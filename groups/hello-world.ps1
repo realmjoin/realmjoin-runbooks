@@ -1,9 +1,11 @@
 param
 (
-    [Parameter(Mandatory=$true)]
-    [String] $Username,
-    [Parameter(Mandatory=$true)]
-    [String] $Callername
+    [Parameter(Mandatory = $true)]
+    [String] $GroupID,
+    [Parameter(Mandatory = $true)]
+    [String] $GroupName,
+    [Parameter(Mandatory = $true)]
+    [String] $CallerName
 )
 
-"Hello $Username!. I was called by $Callername"
+"Hello $GroupName ($GroupID)!. I was called by $CallerName."
