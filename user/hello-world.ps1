@@ -19,3 +19,9 @@ param
 )
 
 "Hello $UserName!. I was called by $CallerName."
+
+"Will now sleep for 10 seconds"
+
+1..10 | % { "Sleeping..."; Start-Sleep -Seconds 1; }
+
+"Done sleeping! Bye."
