@@ -7,7 +7,7 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [String] $AADGroup_ID,
+    [String] $AADGroup_SecurityIdentifier,
     [Parameter(Mandatory = $false)]
     [String] $AADDevice_ID
 )

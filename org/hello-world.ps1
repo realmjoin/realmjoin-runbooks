@@ -9,9 +9,9 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [int] $Number_Count,
+    [int] $Count,
     [Parameter(Mandatory = $false)]
-    [String] $Date_StartDate
+    [String] $Date_Start
 )
 
 "Hello $OrganizationName ($OrganizationID; $OrganizationInitialDomainName)!. I was called by $CallerName."
