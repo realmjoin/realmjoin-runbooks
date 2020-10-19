@@ -9,7 +9,7 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [String] $Number_Count,
+    [int] $Number_Count,
     [Parameter(Mandatory = $false)]
     [String] $Date_StartDate
 )
