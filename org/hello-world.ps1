@@ -7,7 +7,11 @@ param
     [Parameter(Mandatory = $true)]
     [String] $OrganizationInitialDomainName,
     [Parameter(Mandatory = $true)]
-    [String] $CallerName
+    [String] $CallerName,
+    [Parameter(Mandatory = $false)]
+    [String] $Number_Count,
+    [Parameter(Mandatory = $false)]
+    [String] $Date_StartDate
 )
 
 "Hello $OrganizationName ($OrganizationID; $OrganizationInitialDomainName)!. I was called by $CallerName."

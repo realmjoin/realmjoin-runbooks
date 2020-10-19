@@ -9,13 +9,7 @@ param
     [Parameter(Mandatory = $false)]
     [String] $AADGroup_ID,
     [Parameter(Mandatory = $false)]
-    [String] $AADDevice_ID,
-    [Parameter(Mandatory = $false)]
-    [String] $Date_StartDate,
-    [Parameter(Mandatory = $false)]
-    [String] $Date_EndDate,
-    [Parameter(Mandatory = $false)]
-    [String] $Time_StartTime    
+    [String] $AADDevice_ID
 )
 
 "Hello $UserName!. I was called by $CallerName."
