@@ -14,4 +14,8 @@ param
     [String] $Date_Start
 )
 
+if ($Count -lt 0) {
+    throw "Count cannot be negative!";
+}
+
 "Hello $OrganizationName ($OrganizationID; $OrganizationInitialDomainName)!. I was called by $CallerName."
