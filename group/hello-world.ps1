@@ -10,6 +10,9 @@ param
 
 "Hello $GroupName ($GroupID)!. I was called by $CallerName."
 
+[Console]::Out.WriteLine("Test: stdout");
+[Console]::Error.WriteLine("Test: stderr");
+
 Write-Output "Test: Write-Output"
 Write-Warning "Test: Write-Warning"
 Write-Error "Test: Write-Error"
