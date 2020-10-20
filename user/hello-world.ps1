@@ -7,9 +7,11 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [String] $AADGroup_SecurityIdentifier,
+    [String] $UI_GroupSecurityIdentifier,
     [Parameter(Mandatory = $false)]
-    [String] $AADDevice_ID
+    [String] $UI_GroupSecurityIdentifier_Something,
+    [Parameter(Mandatory = $false)]
+    [String] $UI_DeviceID
 )
 
 "Hello $UserName!. I was called by $CallerName."

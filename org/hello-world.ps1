@@ -11,7 +11,7 @@ param
     [Parameter(Mandatory = $false)]
     [int] $Count,
     [Parameter(Mandatory = $false)]
-    [String] $Date_Start
+    [String] $UI_Date_Start
 )
 
 if ($Count -lt 0) {

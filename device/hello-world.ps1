@@ -7,7 +7,7 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [String] $AADUser_ID
+    [String] $UI_UserID
 )
 
 "Hello $DeviceName ($DeviceID)!. I was called by $CallerName."
