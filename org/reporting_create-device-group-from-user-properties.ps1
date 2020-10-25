@@ -1,5 +1,7 @@
 param
 (
+[Parameter(Mandatory=$false)]
+    [Guid] $GitId = "89F76E91-330C-4DFA-9CF2-90759A745E4E",
     [Parameter(Mandatory = $true)]
     [String] $OrganizationID,
     [Parameter(Mandatory = $true)]
