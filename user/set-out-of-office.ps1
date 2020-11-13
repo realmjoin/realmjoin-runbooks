@@ -15,15 +15,12 @@ param
     [Parameter(Mandatory = $false)]
     [String] $String_Disable
 )
-
 Write-Output "Set Out Of Office settings initialized by $CallerName for $UserPrincipalName"
-
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
-Connect-AzAccount @Connection -ServicePrincipal
-
-$TenantName = "c4a8.onmicrosoft.com" # Get-AutomationVariable -Name 'tbd'
-Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $TenantName
-
+Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
+ 
+$TenantName = "c4a8.onmicrosoft.com" # Get-AutomationVariable -Name 'tbd'
+Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $TenantName | OUT-NULL
 if (!$Error) {
     Write-Output "Connection to Exchange Online Powershell established!"    
     if ($String_Disable -eq "True") {
@@ -55,5 +52,7 @@ else {
     Write-Error "Connection to Exchange Online failed! `r`n $Error"
 }
 
-Disconnect-ExchangeOnline
-Write-Host "script ended." 
+Write-Output "Disconnect from EXO"
+Get-PsSession | Where-Object {$_.ConfigurationName -eq 'Microsoft.Exchange'} | Remove-PsSession
+
+Write-Host "script ended."
