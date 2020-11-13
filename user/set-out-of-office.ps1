@@ -5,9 +5,9 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [datetime] $Datetime_Start,
+    [datetime] $UI_DateTime_Start,
     [Parameter(Mandatory = $false)]
-    [datetime] $Datetime_End,
+    [datetime] $UI_DateTime_End,
     [Parameter(Mandatory = $false)]
     [string] $String_MessageIntern,
     [Parameter(Mandatory = $false)]
@@ -37,7 +37,7 @@ if (!$Error) {
     else {
         Write-Output "Enabling Out Of Office settings for $UserPrincipalName"
         $Error.Clear();
-        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $String_MessageExtern -InternalMessage $String_MessageIntern -StartTime $Datetime_Start -EndTime $Datetime_End
+        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $String_MessageExtern -InternalMessage $String_MessageIntern -StartTime $UI_DateTime_Start -EndTime $UI_DateTime_End
         if (!$Error) {
             Write-Output "Out of office settings saved successfully for mailbox $UserPrincipalName"
         }
