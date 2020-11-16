@@ -1,6 +1,6 @@
 param
 (
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $true)]
     [String] $OrganizationInitialDomainName,
     [Parameter(Mandatory = $true)]
     [String] $UserName,
@@ -17,20 +17,21 @@ param
     [Parameter(Mandatory = $false)]
     [boolean] $Disable
 )
+Set-StrictMode -Version Latest
 Write-Output "Set Out Of Office settings initialized by $CallerName for $UserPrincipalName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
 Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
  
-$TenantName = "c4a8.onmicrosoft.com" # Get-AutomationVariable -Name 'tbd'
+$TenantName = $OrganizationInitialDomainName
 Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $TenantName | OUT-NULL
 if (!$Error) {
     Write-Output "Connection to Exchange Online Powershell established!"    
     if ($Disable -eq "True") {
-        Write-Output "Disable Out Of Office settings for $UserPrincipalName"
+        Write-Output "Disable Out Of Office settings for $UserName"
         $Error.Clear();
         Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Disabled
         if (!$Error) {
-            Write-Output "Out Of Office replies are removed for $UserPrincipalName"
+            Write-Output "Out Of Office replies are removed for $UserName"
         }
         else {
             Write-Error "Couldn't remove Out Of Office replies! `r`n $Error"
