@@ -1,6 +1,8 @@
 param
 (
     [Parameter(Mandatory = $true)]
+    [String] $OrganizationName,
+    [Parameter(Mandatory = $true)]
     [String] $UserPrincipalName,
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
@@ -9,9 +11,9 @@ param
     [Parameter(Mandatory = $false)]
     [datetime] $UI_Date_End,
     [Parameter(Mandatory = $false)]
-    [string] $Message_Intern,
+    [string] $UI_Text_Message_Intern,
     [Parameter(Mandatory = $false)]
-    [string] $Message_Extern,
+    [string] $UI_Text_Extern,
     [Parameter(Mandatory = $false)]
     [boolean] $Disable
 )
