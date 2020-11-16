@@ -29,7 +29,7 @@ if (!$Error) {
     if ($Disable -eq "True") {
         Write-Output "Disable Out Of Office settings for $UserName"
         $Error.Clear();
-        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Disabled
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
         if (!$Error) {
             Write-Output "Out Of Office replies are removed for $UserName"
         }
@@ -40,7 +40,7 @@ if (!$Error) {
     else {
         Write-Output "Enabling Out Of Office settings for $UserPrincipalName"
         $Error.Clear();
-        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $UI_Text_Message_Extern -InternalMessage $UI_Text_Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled -ExternalMessage $UI_Text_Message_Extern -InternalMessage $UI_Text_Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
         if (!$Error) {
             Write-Output "Out of office settings saved successfully for mailbox $UserPrincipalName"
         }
