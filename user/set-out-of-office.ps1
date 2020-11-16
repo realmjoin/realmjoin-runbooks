@@ -1,9 +1,9 @@
 param
 (
+    [Parameter(Mandatory = $false)]
+    [String] $OrganizationInitialDomainName,
     [Parameter(Mandatory = $true)]
-    [String] $OrganizationName,
-    [Parameter(Mandatory = $true)]
-    [String] $UserPrincipalName,
+    [String] $UserName,
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
