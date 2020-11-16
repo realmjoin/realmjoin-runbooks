@@ -39,7 +39,7 @@ if (!$Error) {
     else {
         Write-Output "Enabling Out Of Office settings for $UserPrincipalName"
         $Error.Clear();
-        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $Message_Extern -InternalMessage $Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
+        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $UI_Text_Message_Extern -InternalMessage $UI_Text_Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
         if (!$Error) {
             Write-Output "Out of office settings saved successfully for mailbox $UserPrincipalName"
         }
