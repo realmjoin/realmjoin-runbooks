@@ -21,7 +21,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-
 Write-Output "Set Out Of Office settings initialized by $CallerName for $UserName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
 Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
