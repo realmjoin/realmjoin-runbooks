@@ -18,7 +18,10 @@ param
     [boolean] $Disable
 )
 Set-StrictMode -Version Latest
-Write-Output "Set Out Of Office settings initialized by $CallerName for $UserPrincipalName"
+$ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
+
+Write-Output "Set Out Of Office settings initialized by $CallerName for $UserName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
 Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
  
@@ -38,18 +41,18 @@ if (!$Error) {
         }          
     }
     else {
-        Write-Output "Enabling Out Of Office settings for $UserPrincipalName"
+        Write-Output "Enabling Out Of Office settings for $UserName"
         $Error.Clear();
         Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled -ExternalMessage $UI_Text_Message_Extern -InternalMessage $UI_Text_Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
         if (!$Error) {
-            Write-Output "Out of office settings saved successfully for mailbox $UserPrincipalName"
+            Write-Output "Out of office settings saved successfully for mailbox $UserName"
         }
         else {
             Write-Error "Couldn't set Out Of Office settings! `r`n $Error"
         }          
     }
-    Write-Output "Adjusted Out Of Settings for $UserPrincipalName"
-    Get-MailboxAutoReplyConfiguration $UserPrincipalName
+    Write-Output "Adjusted Out Of Settings for $UserName"
+    Get-MailboxAutoReplyConfiguration $UserName
 }
 else {
     Write-Error "Connection to Exchange Online failed! `r`n $Error"
