@@ -5,15 +5,15 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [datetime] $UI_DateTime_Start,
+    [datetime] $UI_Date_Start,
     [Parameter(Mandatory = $false)]
-    [datetime] $UI_DateTime_End,
+    [datetime] $UI_Date_End,
     [Parameter(Mandatory = $false)]
-    [string] $String_MessageIntern,
+    [string] $Message_Intern,
     [Parameter(Mandatory = $false)]
-    [string] $String_MessageExtern,
+    [string] $Message_Extern,
     [Parameter(Mandatory = $false)]
-    [String] $String_Disable
+    [boolean] $Disable
 )
 Write-Output "Set Out Of Office settings initialized by $CallerName for $UserPrincipalName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
@@ -23,7 +23,7 @@ $TenantName = "c4a8.onmicrosoft.com" # Get-AutomationVariable -Name 'tbd'
 Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $TenantName | OUT-NULL
 if (!$Error) {
     Write-Output "Connection to Exchange Online Powershell established!"    
-    if ($String_Disable -eq "True") {
+    if ($Disable -eq "True") {
         Write-Output "Disable Out Of Office settings for $UserPrincipalName"
         $Error.Clear();
         Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Disabled
@@ -37,7 +37,7 @@ if (!$Error) {
     else {
         Write-Output "Enabling Out Of Office settings for $UserPrincipalName"
         $Error.Clear();
-        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $String_MessageExtern -InternalMessage $String_MessageIntern -StartTime $UI_DateTime_Start -EndTime $UI_DateTime_End
+        Set-MailboxAutoReplyConfiguration -Identity $UserPrincipalName -AutoReplyState Scheduled -ExternalMessage $Message_Extern -InternalMessage $Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
         if (!$Error) {
             Write-Output "Out of office settings saved successfully for mailbox $UserPrincipalName"
         }
