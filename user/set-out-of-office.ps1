@@ -13,7 +13,7 @@ param
     [Parameter(Mandatory = $false)]
     [string] $UI_Text_Message_Intern,
     [Parameter(Mandatory = $false)]
-    [string] $UI_Text_Extern,
+    [string] $UI_Text_Message_Extern,
     [Parameter(Mandatory = $false)]
     [boolean] $Disable
 )
