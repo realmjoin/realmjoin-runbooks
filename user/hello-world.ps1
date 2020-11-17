@@ -7,6 +7,8 @@ param
     [Parameter(Mandatory = $false)]
     [String] $UI_DeviceID,
     [Parameter(Mandatory = $false)]
+    [datetime] $myDateTime,
+    [Parameter(Mandatory = $false)]
     [bool] $myBool,
     [Parameter(Mandatory = $false)]
     [switch] $mySwitch
@@ -14,6 +16,7 @@ param
 
 "Hello $UserName!. I was called by $CallerName."
 
+"myDateTime: $myDateTime"
 "myBool: $myBool"
 "mySwitch: $mySwitch"
 
