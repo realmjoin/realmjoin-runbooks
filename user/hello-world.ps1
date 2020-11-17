@@ -1,22 +1,21 @@
 param
 (
-[Parameter(Mandatory=$false)]
-    [Guid] $GitId = "E1A3717C-F838-45EB-B8F0-58A2D3333AB4",
-    [Parameter(Mandatory = $true)]
-    [String] $UserID,
     [Parameter(Mandatory = $true)]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [String] $UI_GroupSecurityIdentifier,
+    [String] $UI_DeviceID,
     [Parameter(Mandatory = $false)]
-    [String] $UI_GroupSecurityIdentifier_Something,
+    [bool] $myBool,
     [Parameter(Mandatory = $false)]
-    [String] $UI_DeviceID
+    [switch] $mySwitch
 )
 
 "Hello $UserName!. I was called by $CallerName."
+
+"myBool: $myBool"
+"mySwitch: $mySwitch"
 
 "Will now sleep for 10 seconds"
 
