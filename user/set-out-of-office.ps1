@@ -60,5 +60,6 @@ else {
 
 Write-Output "Disconnect from EXO"
 Get-PsSession | Where-Object {$_.ConfigurationName -eq 'Microsoft.Exchange'} | Remove-PsSession
+Disconnect-ExchangeOnline -Confirm:$false
 
 Write-Host "script ended."
