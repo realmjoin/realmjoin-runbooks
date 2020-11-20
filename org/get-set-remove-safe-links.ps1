@@ -27,7 +27,7 @@ Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint 
 
 Write-Output ""
 Write-Output "# Available Safe Links Policies"
-Get-SafeLinksPolicy -Identity Default
+Get-SafeLinksPolicy
 
 Write-Output ""
 Write-Output "# Safe Links Settings for Policy $PolicyName"
