@@ -40,7 +40,7 @@ Function Get-GraphResponse {
         $Url
     )
     try {
-        $appCredentials = Get-AutomationPSCredential -Name 'ServicePrincipalGkCsoc'
+        $appCredentials = Get-AutomationPSCredential -Name 'realmjoin-automation-cred'
     }
     catch {
         throw "Automation Credential not set!"
