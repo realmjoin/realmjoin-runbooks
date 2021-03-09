@@ -3,6 +3,8 @@ param
     [Parameter(Mandatory = $true)]
     [String] $OrganizationInitialDomainName,
     [Parameter(Mandatory = $true)]
+    [String] $OrganizationId,
+    [Parameter(Mandatory = $true)]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
@@ -16,23 +18,13 @@ $ProgressPreference = "SilentlyContinue"
 Write-Output "Add an initial e-Mail address (Alias) initialized by $CallerName for $UserName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
 Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
+$appCredentials = Get-AutomationPSCredential -Name 'rj-serviceprincipal'
+
+
 #Get Graph Credentials 
 
 $TenantName = $OrganizationInitialDomainName
 Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $TenantName | OUT-NULL
-
-function IsExchangeAliasUnique($exchangeAlias)
-{
-    $domainName = $Context.GetObjectDomain("%distinguishedName%")
-
-#    Search all aliases
-#    https://graph.microsoft.com/beta/users?$filter=otherMails/any(x:x eq 'xxx@abc.com')
-#    if($users.Count -eq 0)
-#    {
-#       return $True
-#    }
-#    return $False
-}
 
 Function Get-GraphResponse {
     param(
@@ -40,21 +32,7 @@ Function Get-GraphResponse {
         $Url
     )
     try {
-        $appCredentials = Get-AutomationPSCredential -Name 'realmjoin-automation-cred'
-    }
-    catch {
-        throw "Automation Credential not set!"
-        return $false
-    }
-    try {
-        $tenantId = $TenantInformation.id
-    }
-    catch {
-        throw "tenants.json incosistent!"
-        return $false
-    }
-    try {
-        $tokenEndpoint = "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token"
+        $tokenEndpoint = "https://login.microsoftonline.com/$OrganizationId/oauth2/v2.0/token"
         $body = @{
             grant_type    = "client_credentials"
             client_id     = $appCredentials.GetNetworkCredential().UserName
@@ -81,6 +59,20 @@ Function Get-GraphResponse {
     }catch {
         return $_.Exception.Response.StatusCode.value__
     }
+}
+
+function IsExchangeAliasUnique($exchangeAlias)
+{
+
+#    Search all aliases
+    Get-GraphResponse -Url "https://graph.microsoft.com/beta/users?$filter=(otherMails/any(x:x eq 'karsten@gkcamino.com') or userPrincipalName eq 'karsten@gkcamino.com' or mail eq 'karsten@gkcamino.com')"
+    #https://graph.microsoft.com/beta/users?$filter=(otherMails/any(x:x eq 'karsten@gkcamino.com') or userPrincipalName eq 'karsten@gkcamino.com' or mail eq 'karsten@gkcamino.com')
+
+#    if($users.Count -eq 0)
+#    {
+#       return $True
+#    }
+#    return $False
 }
 
 
