@@ -1,9 +1,8 @@
+
 param
 (
     [Parameter(Mandatory = $true)]
     [String] $OrganizationInitialDomainName,
-    [Parameter(Mandatory = $true)]
-    [String] $OrganizationId,
     [Parameter(Mandatory = $true)]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
@@ -17,14 +16,18 @@ $ProgressPreference = "SilentlyContinue"
 
 Write-Output "Add an initial e-Mail address (Alias) initialized by $CallerName for $UserName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
-Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
+
+Connect-AzAccount @Connection -ServicePrincipal
 $appCredentials = Get-AutomationPSCredential -Name 'rj-serviceprincipal'
 
 
 #Get Graph Credentials 
+$Connection
+$Connection.CertificateThumbprint
+$Connection.ApplicationId
 
-$TenantName = $OrganizationInitialDomainName
-Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $TenantName | OUT-NULL
+Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $OrganizationInitialDomainName 
+
 
 Function Get-GraphResponse {
     param(
