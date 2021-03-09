@@ -7,7 +7,7 @@ param
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
-    [string] $UI_Text_Additional_Alias,
+    [string] $UI_Text_Additional_Alias
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -86,7 +86,7 @@ Function Get-GraphResponse {
 
 if (!$Error) {
     Write-Output "Connection to Exchange Online Powershell established!"    
-    if ((IsExchangeAliasUnique($UI_Text_Additional_Alias)) {
+    if (IsExchangeAliasUnique($UI_Text_Additional_Alias)) {
         Write-Output "New Alias will be added to $UserName"
         $Error.Clear();
         Set-RemoteMailBox -Identity $UserName -EmailAddresses @{Add='$UI_Text_Additional_Alias'}
