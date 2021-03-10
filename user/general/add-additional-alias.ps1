@@ -1,33 +1,33 @@
-
 param
 (
     [Parameter(Mandatory = $true)]
-    [String] $OrganizationInitialDomainName,
+    [string] $OrganizationInitialDomainName,
     [Parameter(Mandatory = $true)]
-    [String] $UserName,
+    [string] $OrganizationId,
     [Parameter(Mandatory = $true)]
-    [String] $CallerName,
-    [Parameter(Mandatory = $false)]
-    [string] $UI_Text_Additional_Alias
-)
+    [string] $UserName,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName,
+    [Parameter(Mandatory = $true)]
+    [string] $Additional_Alias
+)c
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 Write-Output "Add an initial e-Mail address (Alias) initialized by $CallerName for $UserName"
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
-
+#error here
 Connect-AzAccount @Connection -ServicePrincipal
+Write-Output "Connect-azaccount"
+$Error.Count
 $appCredentials = Get-AutomationPSCredential -Name 'rj-serviceprincipal'
 
+Write-Output "appCredentials"
+$Error.Count
 
-#Get Graph Credentials 
-$Connection
-$Connection.CertificateThumbprint
-$Connection.ApplicationId
-
-Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $OrganizationInitialDomainName 
-
+#Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $OrganizationInitialDomainName 
 
 Function Get-GraphResponse {
     param(
@@ -64,47 +64,53 @@ Function Get-GraphResponse {
     }
 }
 
-function IsExchangeAliasUnique($exchangeAlias)
-{
+Write-Output "before IsExchangeAliasUnique "
+$Error.Count
 
+Function IsExchangeAliasUnique($exchangeAlias) {
 #    Search all aliases
-    Get-GraphResponse -Url "https://graph.microsoft.com/beta/users?$filter=(otherMails/any(x:x eq 'karsten@gkcamino.com') or userPrincipalName eq 'karsten@gkcamino.com' or mail eq 'karsten@gkcamino.com')"
-    #https://graph.microsoft.com/beta/users?$filter=(otherMails/any(x:x eq 'karsten@gkcamino.com') or userPrincipalName eq 'karsten@gkcamino.com' or mail eq 'karsten@gkcamino.com')
+    Write-Output "before getgraph"
+    $graph=    Get-GraphResponse -Url "https://graph.microsoft.com/beta/users?`$filter=proxyAddresses/any(x:startswith(x, 'smtp:$Additional_Alias')) or userPrincipalName eq '$Additional_Alias' or mail eq '$Additional_Alias')"
+    Write-Output $graph
+    Write-Output "getgraph output"
+
+    Get-GraphResponse -Url "https://graph.microsoft.com/beta/users?`$filter=proxyAddresses/any(x:startswith(x, 'smtp:$Additional_Alias')) or userPrincipalName eq '$Additional_Alias' or mail eq '$Additional_Alias')"
 
 #    if($users.Count -eq 0)
 #    {
 #       return $True
 #    }
 #    return $False
+#
 }
 
+$Error.Count
 
 if (!$Error) {
     Write-Output "Connection to Exchange Online Powershell established!"    
-    if (IsExchangeAliasUnique($UI_Text_Additional_Alias)) {
+    if (IsExchangeAliasUnique($Additional_Alias)) {
         Write-Output "New Alias will be added to $UserName"
         $Error.Clear();
-        Set-RemoteMailBox -Identity $UserName -EmailAddresses @{Add='$UI_Text_Additional_Alias'}
+        Set-RemoteMailBox -Identity $UserName -EmailAddresses @{Add='$Additional_Alias'}
         if (!$Error) {
-            Write-Output "New Alias $UI_Text_Additional_Alias was added for $UserName"
+            Write-Output "New Alias $Additional_Alias was added for $UserName"
         }
         else {
             Write-Error "Couldn't add additional alias! `r`n $Error"
         }          
     }
     else {
-        Write-Output "Alias $UI_Text_Additional_Alias is not unique!"
+        Write-Output "Alias $Additional_Alias is not unique!"
         $Error.Clear();          
     }
     Write-Output "Adjusted Out Of Settings for $UserName"
-    Get-MailboxAutoReplyConfiguration $UserName
 }
 else {
-    Write-Error "Connection to Exchange Online failed! `r`n $Error"
+    Write-Error "99 Connection to Exchange Online failed! `r`n $Error"
 }
 
 Write-Output "Disconnect from EXO"
 Get-PsSession | Where-Object {$_.ConfigurationName -eq 'Microsoft.Exchange'} | Remove-PsSession
 Disconnect-ExchangeOnline -Confirm:$false
 
-Write-Host "script ended."
+Write-Output "script ended."
