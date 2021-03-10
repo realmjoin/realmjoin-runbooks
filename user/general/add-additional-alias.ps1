@@ -17,12 +17,46 @@ Set-StrictMode -Version Latest
 #$ProgressPreference = "SilentlyContinue"
 $GLOBAL:DebugPreference="Continue"  
 
+$connectionName = "AzureRunAsConnection"
+$LogType = "AutomationAppConnecting"
+$ErrorMessage = ""
+$Exception = ""
+$desc = ""
+
+try
+{
+    # Get the connection "AzureRunAsConnection"
+    
+    $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
+    $tenantId = $servicePrincipalConnection.TenantId
+    $AzureAPPID = $servicePrincipalConnection.ApplicationId
+    $subID = $servicePrincipalConnection.SubscriptionId
+    $runBookJobID = $PSPrivateMetadata.JobId.Guid
+    $certificateThumbprint = $servicePrincipalConnection.CertificateThumbprint
+    $desc = "[INFO] Logging in to Azure.... RunBook Job ID:[$runBookJobID]`r`n"
+        Connect-AzAccount -ServicePrincipal -Tenant $tenantId -ApplicationId $AzureAPPID -CertificateThumbprint $certificateThumbprint
+} catch {
+    if (!$servicePrincipalConnection)
+    {
+        $ErrorMessage = "Connection $connectionName not found."
+        throw $ErrorMessage
+    } else {
+        $Exception = $_.Exception
+        Write-Error -Message $Exception
+        throw $Exception
+    }
+} finally {
+    # Log the Run Book Started
+    #$customLogCollection = New-Object System.Collections.ArrayList
+    $desc += "AzureAPPID:[$AzureAPPID] in TenantId:[$tenantId], Sub ID[$subID]. Errors:[$ErrorMessage] Exception:[$Exception]"
+    #$muteOnScreen = $customLogCollection.Add($customLog)
+    $desc
+}
+
 Write-Output "Add an initial e-Mail address (Alias) initialized by $CallerName for $UserName"
-$Connection = Get-AutomationConnection -Name 'AzureRunAsConnection' 
-$Connection
 
 #Debug Connect-AzAccount @Connection -ServicePrincipal 5>&1
-Connect-AzAccount @Connection -ServicePrincipal 
+#Connect-AzAccount @servicePrincipalConnection -ServicePrincipal 
 
 Write-Output "After Connect-azaccount"  $Error.Count
 $Error
@@ -30,7 +64,7 @@ $Error
 
 #$appCredentials = Get-AutomationPSCredential -Name 'rj-serviceprincipal'
 
-#Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $OrganizationInitialDomainName 
+#Connect-ExchangeOnline -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -AppId $servicePrincipalConnection.ApplicationId -Organization $OrganizationInitialDomainName 
 
 Function Get-GraphResponse {
     param(
