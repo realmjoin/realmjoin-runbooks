@@ -1,4 +1,4 @@
-#Requires -Modules Az.Accounts
+#Requires -Modules Az.Accounts,ExchangeOnline
 
 param
 (
