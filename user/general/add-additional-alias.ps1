@@ -10,22 +10,25 @@ param
     [string] $CallerName,
     [Parameter(Mandatory = $true)]
     [string] $Additional_Alias
-)c
+)
 
 Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-$ProgressPreference = "SilentlyContinue"
+#$ErrorActionPreference = "Stop"
+#$ProgressPreference = "SilentlyContinue"
+$GLOBAL:DebugPreference="Continue"  
 
 Write-Output "Add an initial e-Mail address (Alias) initialized by $CallerName for $UserName"
-$Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
-#error here
-Connect-AzAccount @Connection -ServicePrincipal
-Write-Output "Connect-azaccount"
-$Error.Count
-$appCredentials = Get-AutomationPSCredential -Name 'rj-serviceprincipal'
+$Connection = Get-AutomationConnection -Name 'AzureRunAsConnection' 
+$Connection
 
-Write-Output "appCredentials"
-$Error.Count
+#Debug Connect-AzAccount @Connection -ServicePrincipal 5>&1
+Connect-AzAccount @Connection -ServicePrincipal 
+
+Write-Output "After Connect-azaccount"  $Error.Count
+$Error
+
+
+#$appCredentials = Get-AutomationPSCredential -Name 'rj-serviceprincipal'
 
 #Connect-ExchangeOnline -CertificateThumbprint $Connection.CertificateThumbprint -AppId $Connection.ApplicationId -Organization $OrganizationInitialDomainName 
 
@@ -110,6 +113,7 @@ else {
 }
 
 Write-Output "Disconnect from EXO"
+Write-Output "------ " (get-date).ToString('T') "--------------------------------------------------------------------------------------------------------"
 Get-PsSession | Where-Object {$_.ConfigurationName -eq 'Microsoft.Exchange'} | Remove-PsSession
 Disconnect-ExchangeOnline -Confirm:$false
 
