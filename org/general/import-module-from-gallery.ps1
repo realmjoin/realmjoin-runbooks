@@ -1,9 +1,17 @@
 param(
-    $moduleName = "Az.Accounts",
-    $moduleVersion = "2.2.7",
-    $automationAccountName = "rj-test-automation-01",
-    $resourceGroupName = "rj-test-runbooks-01"
+    [string]$moduleName = "Az.Accounts",
+    [string]$moduleVersion = "2.2.7",
+    [string]$automationAccountName = "rj-test-automation-01",
+    [string]$resourceGroupName = "rj-test-runbooks-01"
 )
+
+#Try to load Az modules IF available
+if (Get-Module -ListAvailable Az.Accounts) {
+    Import-Module Az.Accounts
+}
+if (Get-Module -ListAvailable Az.Automation) {
+    Import-Module Az.Automation
+}
 
 $connectionName = "AzureRunAsConnection"
 try {
@@ -12,7 +20,6 @@ try {
 
     #"Logging in to Azure..."
     if (Get-Command "Connect-AzAccount" -ErrorAction SilentlyContinue) {
-        #TODO: Test
         $result = Connect-AzAccount `
             -ServicePrincipal `
             -Tenant $servicePrincipalConnection.TenantId `
