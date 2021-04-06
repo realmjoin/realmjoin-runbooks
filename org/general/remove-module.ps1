@@ -48,9 +48,9 @@ catch {
 }
 
 if (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
-    Remove-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Confirm
+    Remove-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Force
 } elseif (Get-Command "New-AzureRMAutomationModule" -ErrorAction SilentlyContinue) {
-    Remove-AzureRmAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Confirm
+    Remove-AzureRmAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Force
 } else {
     $ErrorMessage = "No automation management module found"
     throw $ErrorMessage
