@@ -1,6 +1,5 @@
 param(
-    [string]$moduleName = "Az.Accounts",
-    [string]$moduleVersion = "2.2.7",
+    [string]$moduleName = "Az.Storage",
     [string]$automationAccountName = "rj-test-automation-01",
     [string]$resourceGroupName = "rj-test-runbooks-01"
 )
@@ -25,8 +24,7 @@ try {
             -Tenant $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
             -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
-    }
-    elseif (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
+    } elseif (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
         $result = Add-AzureRmAccount `
             -ServicePrincipal `
             -TenantId $servicePrincipalConnection.TenantId `
@@ -50,11 +48,10 @@ catch {
 }
 
 if (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
-    New-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -ContentLink "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
+    Remove-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Force
 } elseif (Get-Command "New-AzureRMAutomationModule" -ErrorAction SilentlyContinue) {
-    New-AzureRMAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -ContentLink "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
-}
-else {
+    Remove-AzureRmAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Force
+} else {
     $ErrorMessage = "No automation management module found"
     throw $ErrorMessage
 }
