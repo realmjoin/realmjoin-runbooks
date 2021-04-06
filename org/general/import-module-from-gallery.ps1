@@ -11,20 +11,20 @@ try {
     $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName         
 
     #"Logging in to Azure..."
-    if (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
-        $result = Add-AzureRmAccount `
-            -ServicePrincipal `
-            -TenantId $servicePrincipalConnection.TenantId `
-            -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
-    }
-    elseif (Get-Command "Connect-AzAccount" -ErrorAction SilentlyContinue) {
+    if (Get-Command "Connect-AzAccount" -ErrorAction SilentlyContinue) {
         #TODO: Test
         $result = Connect-AzAccount `
             -ServicePrincipal `
             -Tenant $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
             -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
+    }
+    elseif (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
+        $result = Add-AzureRmAccount `
+            -ServicePrincipal `
+            -TenantId $servicePrincipalConnection.TenantId `
+            -ApplicationId $servicePrincipalConnection.ApplicationId `
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
     }
     else {
         $ErrorMessage = "No login provider found."
@@ -42,11 +42,10 @@ catch {
     }
 }
 
-if (Get-Command "New-AzureRMAutomationModule" -ErrorAction SilentlyContinue) {
-    New-AzureRMAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -ContentLink "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
-}
-elseif (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
+if (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
     New-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -ContentLink "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
+} elseif (Get-Command "New-AzureRMAutomationModule" -ErrorAction SilentlyContinue) {
+    New-AzureRMAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -ContentLink "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
 }
 else {
     $ErrorMessage = "No automation management module found"
