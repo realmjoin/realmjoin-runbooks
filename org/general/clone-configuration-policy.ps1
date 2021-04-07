@@ -86,6 +86,7 @@ function Execute-GraphRestRequest {
         $authToken = Load-AppLoginToken
         if ($null -eq $authToken) {
             "Please provide an authentication token. You can use Get-DeviceLoginToken to acquire one."
+            return
         }
     }
 
@@ -99,7 +100,11 @@ function Execute-GraphRestRequest {
     }
     catch {
         Write-Error $_.Exception
-        throw "Executing Graph Rest Call against " + $prefix + $resource + " failed. See Error Log."
+        Write-Error ("Method: " + $method)
+        Write-Error ("Prefix: " + $prefix)
+        Write-Error ("Resource: " + $resource)
+        Write-Error ("Body: " + $body)
+        throw "Executing Graph Rest Call failed. See Error Log."
     }
 
     if ($onlyValues) {
@@ -170,23 +175,23 @@ function Get-DeviceConfigurationById {
 
 #endregion
 
-#Write-Output "Get Azure Automation Connection..."
+Write-Output "Get Azure Automation Connection..."
 $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
 
-#Write-Output "Connect to Graph API..."
+Write-Output "Connect to Graph API..."
 $token = Get-AzAutomationCredLoginToken -tenant $servicePrincipalConnection.TenantId -automationCredName $automationCredsName
 
-#Write-Output ("Fetch policy " + $configPolicyID)
+Write-Output ("Fetch policy " + $configPolicyID)
 $confpol = Get-DeviceConfigurationById -authToken $token -configId $configPolicyID
 
-#Write-Output ("New name: " + $confpol.displayName + " - Copy")
+Write-Output ("New name: " + $confpol.displayName + " - Copy")
 $confpol.displayName = ($confpol.displayName + " - Copy")
 
-#Write-Output ("Fetch all policies, check I will create no conflict...")
+Write-Output ("Fetch all policies, check I will create no conflict...")
 $allPols = Get-DeviceConfigurations -authToken $token
 if ($null -ne ($allPols | Where-Object { $_.displayName -eq $confpol.displayName })) { 
     throw ("Target Policyname `"" + $confpol.displayName + "`" already exists.")
  } 
 
-#Write-Output ("Import new policy")
+Write-Output ("Import new policy")
 Add-DeviceConfiguration -authToken $token -config $confpol | Out-Null
