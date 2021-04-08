@@ -2,8 +2,7 @@
 # This will currently not copy the device/user assignments. This is intentional, so you can tweak the policy before applying it.
 # Problems: This version uses "v1.0" endpoints of graph api. These are stable but incomplete. Some profiles will only work with "beta".
 #
-# Assumptions: The automations creds in "realmjoin-automation-cred" correlate to an AppRegsitration and are able to sign in to MS Graph and have the following permissions:
-# ...
+# Assumptions: The automations creds in "realmjoin-automation-cred" correlate to an AppRegsitration and are able to sign in to MS Graph and have the enough permissions
 
 param(
     [string]$automationCredsName = "realmjoin-automation-cred",
