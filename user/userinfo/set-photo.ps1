@@ -9,8 +9,10 @@
 using module AzureAD
 
 param(
+    [Parameter(Mandatory = $true)]
     [string]$photoURI = "",
-    [string]$userPrincipalName
+    [Parameter(Mandatory = $true)]
+    [String] $UserName
 )
 
 $connectionName = "AzureRunAsConnection"
@@ -27,10 +29,10 @@ catch {
     throw "AzureAD login failed"
 }
 
-write-output ("Find the user object " + $userPrincipalName) 
-$targetUser = Get-AzureADUser -ObjectId $userPrincipalName -ErrorAction SilentlyContinue
+write-output ("Find the user object " + $UserName) 
+$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
 if ($null -eq $targetUser) {
-    throw ("User " + $userPrincipalName + " not found.")
+    throw ("User " + $UserName + " not found.")
 }
 
 write-output ("Download the photo from URI " + $photoURI)
