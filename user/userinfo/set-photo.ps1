@@ -17,12 +17,12 @@ param(
 
 $connectionName = "AzureRunAsConnection"
 
-# Get the connection "AzureRunAsConnection "
+# Get the connection "AzureRunAsConnection"
 $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
 
 write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
 try {
-    $session = Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId 
+    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId | Out-Null
 }
 catch {
     Write-Error $_.Exception
