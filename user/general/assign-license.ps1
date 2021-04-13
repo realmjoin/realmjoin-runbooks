@@ -1,4 +1,4 @@
-# This runbook will block access of a user and revoke all current sessions (AzureAD tokens)
+# This runbook will assign a license to a user via group membership.
 #
 # This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
 # 
