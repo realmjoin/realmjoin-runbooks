@@ -7,19 +7,15 @@
 using module MEMPSToolkit
 
 param(
-    [Parameter(Mandatory = $false)]
-    [string]$automationCredsName = "realmjoin-automation-cred",
     [Parameter(Mandatory = $true)]
-    [string]$configPolicyID = ""
+    [string]$configPolicyID = "",
+    [string]$OrganizationID
 )
 
-$connectionName = "AzureRunAsConnection"
-
-Write-Output "Get Azure Automation Connection..."
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
+$automationCredsName = "realmjoin-automation-cred"
 
 Write-Output "Connect to Graph API..."
-$token = Get-AzAutomationCredLoginToken -tenant $servicePrincipalConnection.TenantId -automationCredName $automationCredsName
+$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
 
 Write-Output ("Fetch policy " + $configPolicyID)
 $confpol = Get-DeviceConfigurationById -authToken $token -configId $configPolicyID
@@ -27,7 +23,7 @@ $confpol = Get-DeviceConfigurationById -authToken $token -configId $configPolicy
 Write-Output ("New name: " + $confpol.displayName + " - Copy")
 $confpol.displayName = ($confpol.displayName + " - Copy")
 
-Write-Output ("Fetch all policies, check I will create no conflict...")
+Write-Output ("Fetch all policies, check I new names does not exist...")
 $allPols = Get-DeviceConfigurations -authToken $token
 if ($null -ne ($allPols | Where-Object { $_.displayName -eq $confpol.displayName })) { 
     throw ("Target Policyname `"" + $confpol.displayName + "`" already exists.")
