@@ -11,19 +11,19 @@ param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
-    [String] $UI_GroupID_License
+    [String] $UI_GroupID_License,
+    [Parameter(Mandatory = $true)]
+    [String] $OrganizationID
 )
 
 # Licensing group prefix
 $groupPrefix = "LIC_"
 
-$connectionName = "AzureRunAsConnection"
-
-Write-Output "Get Azure Automation Connection..."
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
+# Automation credentials
+$automationCredsName = "realmjoin-automation-cred"
 
 Write-Output "Connect to Graph API..."
-$token = Get-AzAutomationCredLoginToken -tenant $servicePrincipalConnection.TenantId -automationCredName $automationCredsName
+$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
 
 write-output ("Find select group from Object ID " + $UI_GroupID_License)
 $group = Get-AADGroupById -groupId $UI_GroupID_License -authToken $token
