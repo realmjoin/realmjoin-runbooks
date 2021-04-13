@@ -32,7 +32,7 @@ function Get-PublishedModuleVersion
    }
 }
 
-# Ask PowerShellGallery for the most up2date version
+# Ask PowerShellGallery for newest version
 [string]$moduleVersion = Get-PublishedModuleVersion -Name $moduleName
 
 # Try to load Az modules if available
