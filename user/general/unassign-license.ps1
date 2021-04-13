@@ -1,7 +1,6 @@
-# This runbook will assign a license to a user via group membership.
+# This runbook will remove a license from a user via removing a group membership.
 #
-# This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
-# 
+# This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
 
 # Required modules. Will be honored by Azure Automation.
 using module MEMPSToolkit
@@ -39,10 +38,11 @@ if ($null -eq $targetUser) {
 write-output ("Is user member of the the group?")
 $members = Get-AADGroupMembers -groupID $UI_GroupID_License -authToken $token
 if ($members.id -contains $targetUser.id) {
-    Write-Output "License is already assigned. No action taken."
+    Write-Output "Removing license."
+    Remove-AADGroupMember -groupID $UI_GroupID_License -userID $targetUser.id -authToken $token
 } else {
-    Write-Output "Assigning license"
-    Add-AADGroupMember -groupID $UI_GroupID_License -userID $targetUser.id -authToken $token
+    Write-Output "License is not assigned. Doing nothing."
+    
 }
 
 
