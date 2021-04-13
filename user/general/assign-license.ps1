@@ -1,8 +1,7 @@
 # This runbook will block access of a user and revoke all current sessions (AzureAD tokens)
 #
-# This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
-# Permissions:
-# - AzureAD Role: User administrator
+# This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
+# 
 
 # Required modules. Will be honored by Azure Automation.
 using module MEMPSToolkit
