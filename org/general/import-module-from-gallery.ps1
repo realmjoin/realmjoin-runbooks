@@ -1,11 +1,41 @@
 param(
+    [Parameter(Mandatory = $true)]
     [string]$moduleName = "Az.Accounts",
-    [string]$moduleVersion = "2.2.7",
     [string]$automationAccountName = "rj-test-automation-01",
     [string]$resourceGroupName = "rj-test-runbooks-01"
 )
 
-#Try to load Az modules IF available
+# Adapted from https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/getting-latest-powershell-gallery-module-version
+function Get-PublishedModuleVersion
+{
+    param(
+        [string]$Name
+    )
+   # access the main module page
+   $url = "https://www.powershellgallery.com/packages/$Name"
+   $request = [System.Net.WebRequest]::Create($url)
+   # do not allow to redirect. The result is a "MovedPermanently"
+   $request.AllowAutoRedirect=$false
+   try
+   {
+     # send the request
+     $response = $request.GetResponse()
+     # get back the URL of the true destination page, and split off the version
+     $response.GetResponseHeader("Location").Split("/")[-1]
+     # make sure to clean up
+     $response.Close()
+     $response.Dispose()
+   }
+   catch
+   {
+     Write-Error $_.Exception.Message
+   }
+}
+
+# Ask PowerShellGallery for the most up2date version
+[string]$moduleVersion = Get-PublishedModuleVersion -Name $moduleName
+
+# Try to load Az modules if available
 if (Get-Module -ListAvailable Az.Accounts) {
     Import-Module Az.Accounts
 }
