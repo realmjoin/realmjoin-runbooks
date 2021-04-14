@@ -23,7 +23,7 @@ $confpol = Get-DeviceConfigurationById -authToken $token -configId $configPolicy
 Write-Output ("New name: " + $confpol.displayName + " - Copy")
 $confpol.displayName = ($confpol.displayName + " - Copy")
 
-Write-Output ("Fetch all policies, check I new names does not exist...")
+Write-Output ("Fetch all policies, check new policy name does not exist...")
 $allPols = Get-DeviceConfigurations -authToken $token
 if ($null -ne ($allPols | Where-Object { $_.displayName -eq $confpol.displayName })) { 
     throw ("Target Policyname `"" + $confpol.displayName + "`" already exists.")

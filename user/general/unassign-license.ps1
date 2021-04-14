@@ -23,7 +23,7 @@ $automationCredsName = "realmjoin-automation-cred"
 Write-Output "Connect to Graph API..."
 $token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
 
-write-output ("Find select group from Object ID " + $UI_GroupID_License)
+write-output ("Find selected group from Object ID " + $UI_GroupID_License)
 $group = Get-AADGroupById -groupId $UI_GroupID_License -authToken $token
 if (-not $group.displayName.startswith($groupPrefix)) {
     throw "Please select a licensing group."

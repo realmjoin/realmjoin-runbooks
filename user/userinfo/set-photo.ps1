@@ -25,7 +25,7 @@ try {
     Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId | Out-Null
 }
 catch {
-    Write-Error $_.Exception
+    Write-Error $_
     throw "AzureAD login failed"
 }
 
@@ -42,7 +42,7 @@ try {
     Invoke-WebRequest -Uri $photoURI -OutFile ($env:TEMP + "\photo.jpg") 
 }
 catch {
-    Write-Error $_.Exception
+    Write-Error $_
     throw ("Photo download from " + $photoURI + " failed.")
 }
 
