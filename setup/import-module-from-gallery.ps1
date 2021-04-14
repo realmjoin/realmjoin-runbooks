@@ -1,3 +1,7 @@
+# Imports a module from PSGallery.
+#
+# requires the Automation Account to have variables created by the "initial setup" runbook.
+
 param(
     [Parameter(Mandatory = $true)]
     [string]$moduleName
@@ -30,16 +34,19 @@ function Get-PublishedModuleVersion
    }
 }
 
+Write-Output "Querying Automation Account Name and Resource Group"
 $automationAccountName = Get-AutomationVariable -name "AzAAName" -ErrorAction SilentlyContinue
-$resourceGroupName = Get-AutomationVariable -name "AzAAName" -ErrorAction SilentlyContinue
+$resourceGroupName = Get-AutomationVariable -name "AzAAResourceGroup" -ErrorAction SilentlyContinue
 
 if (($null -eq $automationAccountName) -or ($null -eq $resourceGroupName)) {
     throw "Automation Account not correctly configured. Please use the `"initial setup`" runbook first."
 }
 
-# Ask PowerShellGallery for newest version
+Write-Output ("Ask PowerShellGallery for newest version of " + $moduleName)
 [string]$moduleVersion = Get-PublishedModuleVersion -Name $moduleName
+Write-Output ("Version: " + $moduleVersion)
 
+Write-Output ("Sign in to AzureRM")
 # Try to load Az modules if available
 if (Get-Module -ListAvailable Az.Accounts) {
     Import-Module Az.Accounts
@@ -84,6 +91,7 @@ catch {
     }
 }
 
+Write-Output ("Importing module")
 if (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
     New-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -ContentLink "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
 } elseif (Get-Command "New-AzureRMAutomationModule" -ErrorAction SilentlyContinue) {
