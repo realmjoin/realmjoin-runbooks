@@ -1,8 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string]$moduleName = "Az.Accounts",
-    [string]$automationAccountName = "rj-test-automation-01",
-    [string]$resourceGroupName = "rj-test-runbooks-01"
+    [string]$moduleName
 )
 
 # Adapted from https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/getting-latest-powershell-gallery-module-version
@@ -32,6 +30,13 @@ function Get-PublishedModuleVersion
    }
 }
 
+$automationAccountName = Get-AutomationVariable -name "AzAAName" -ErrorAction SilentlyContinue
+$resourceGroupName = Get-AutomationVariable -name "AzAAName" -ErrorAction SilentlyContinue
+
+if (($null -eq $automationAccountName) -or ($null -eq $resourceGroupName)) {
+    throw "Automation Account not correctly configured. Please use the `"initial setup`" runbook first."
+}
+
 # Ask PowerShellGallery for newest version
 [string]$moduleVersion = Get-PublishedModuleVersion -Name $moduleName
 
@@ -50,18 +55,18 @@ try {
 
     #"Logging in to Azure..."
     if (Get-Command "Connect-AzAccount" -ErrorAction SilentlyContinue) {
-        $result = Connect-AzAccount `
+        Connect-AzAccount `
             -ServicePrincipal `
             -Tenant $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
     }
     elseif (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
-        $result = Add-AzureRmAccount `
+        Add-AzureRmAccount `
             -ServicePrincipal `
             -TenantId $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
     }
     else {
         $ErrorMessage = "No login provider found."
