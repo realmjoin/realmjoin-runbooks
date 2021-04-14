@@ -33,17 +33,17 @@ try {
 
     #"Logging in to Azure..."
     if (Get-Command "Connect-AzAccount" -ErrorAction SilentlyContinue) {
-        $result = Connect-AzAccount `
+        Connect-AzAccount `
             -ServicePrincipal `
             -Tenant $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
     } elseif (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
-        $result = Add-AzureRmAccount `
+        Add-AzureRmAccount `
             -ServicePrincipal `
             -TenantId $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
     }
     else {
         $ErrorMessage = "No login provider found."
