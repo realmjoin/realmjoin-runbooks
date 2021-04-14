@@ -1,8 +1,20 @@
+# This will remove a module from the azure automation account.
+# 
+# requires the Automation Account to have variables created by the "initial setup" runbook.
+
 param(
-    [string]$moduleName = "Az.Storage",
-    [string]$automationAccountName = "rj-test-automation-01",
-    [string]$resourceGroupName = "rj-test-runbooks-01"
+    [Parameter(Mandatory = $true)]
+    [string]$moduleName
 )
+
+Write-Output "Querying Automation Account Name and Resource Group"
+$automationAccountName = Get-AutomationVariable -name "AzAAName" -ErrorAction SilentlyContinue
+$resourceGroupName = Get-AutomationVariable -name "AzAAResourceGroup" -ErrorAction SilentlyContinue
+
+if (($null -eq $automationAccountName) -or ($null -eq $resourceGroupName)) {
+    throw "Automation Account not correctly configured. Please use the `"initial setup`" runbook first."
+}
+
 
 #Try to load Az modules IF available
 if (Get-Module -ListAvailable Az.Accounts) {
@@ -12,6 +24,8 @@ if (Get-Module -ListAvailable Az.Automation) {
     Import-Module Az.Automation
 }
 
+Write-Output ("Sign in to AzureRM")
+
 $connectionName = "AzureRunAsConnection"
 try {
     # Get the connection "AzureRunAsConnection "
@@ -19,17 +33,17 @@ try {
 
     #"Logging in to Azure..."
     if (Get-Command "Connect-AzAccount" -ErrorAction SilentlyContinue) {
-        $result = Connect-AzAccount `
+        Connect-AzAccount `
             -ServicePrincipal `
             -Tenant $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
     } elseif (Get-Command "Add-AzureRmAccount" -ErrorAction SilentlyContinue) {
-        $result = Add-AzureRmAccount `
+        Add-AzureRmAccount `
             -ServicePrincipal `
             -TenantId $servicePrincipalConnection.TenantId `
             -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
     }
     else {
         $ErrorMessage = "No login provider found."
@@ -47,6 +61,7 @@ catch {
     }
 }
 
+Write-Output ("Removing module " + $moduleName)
 if (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
     Remove-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName -Force
 } elseif (Get-Command "New-AzureRMAutomationModule" -ErrorAction SilentlyContinue) {
