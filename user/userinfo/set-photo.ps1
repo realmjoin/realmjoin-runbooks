@@ -5,15 +5,46 @@
 # Permissions:
 # - AzureAD Role: User administrator
 
-# Required modules. Will be honored by Azure Automation.
-using module AzureAD
-
 param(
     [Parameter(Mandatory = $true)]
     [string]$photoURI = "",
     [Parameter(Mandatory = $true)]
-    [String] $UserName
+    [String] $UserName,
+    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
+    [bool]$reRun = $false
 )
+
+$neededModule = "AzureAD"
+$thisRunbook = "rjgit-user_userinfo_set-photo"
+$thisRunbookParams = @{
+    "reRun"    = $true;
+    "photoURI" = $photoURI;
+    "UserName" = $UserName
+}
+
+#region Module Management
+Write-Output ("Check if " + $neededModule + " is available")
+$moduleInstallerRunbook = "rjgit-setup_import-module-from-gallery" 
+
+if (-not $reRun) { 
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        Write-Output ("Installing " + $neededModule + ". This might take several minutes.")
+        $runbookJob = Start-AutomationRunbook -Name $moduleInstallerRunbook -Parameters @{"moduleName" = $neededModule; "waitForDeployment" = $true }
+        Wait-AutomationJob -Id $runbookJob.Guid -TimeoutInMinutes 10
+        Write-Output ("Restarting Runbook and stopping this run.")
+        Start-AutomationRunbook -Name $thisRunbook -Parameters $thisRunbookParams
+        exit
+    }
+} 
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+#endregion
 
 $connectionName = "AzureRunAsConnection"
 
@@ -25,7 +56,7 @@ try {
     Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId | Out-Null
 }
 catch {
-    Write-Error $_.Exception
+    Write-Error $_
     throw "AzureAD login failed"
 }
 
@@ -42,7 +73,7 @@ try {
     Invoke-WebRequest -Uri $photoURI -OutFile ($env:TEMP + "\photo.jpg") 
 }
 catch {
-    Write-Error $_.Exception
+    Write-Error $_
     throw ("Photo download from " + $photoURI + " failed.")
 }
 
