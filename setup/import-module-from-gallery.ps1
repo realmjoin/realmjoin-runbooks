@@ -11,7 +11,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$moduleName,
     # by default the runbook will exit when deployment is started. Set this to wait for completion of the module deployment.
-    [switch]$waitForDeployment
+    [bool]$waitForDeployment = $false
 )
 
 # Adapted from https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/getting-latest-powershell-gallery-module-version
