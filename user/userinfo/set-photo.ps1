@@ -80,7 +80,13 @@ catch {
 Write-Output "Set profile picture for user"
 # "ImageByteArray" is broken in PS5, so will use a file.
 # Set-AzureADUserThumbnailPhoto -ImageByteArray $photo -ObjectId $targetUser.ObjectId 
-Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId
+try {
+    Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId -ErrorAction Stop
+} catch {
+    Write-Error $_
+    Disconnect-AzureAD -Confirm:$false
+    throw "Setting photo failed."
+}
 
 Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
