@@ -14,7 +14,7 @@ param(
 )
 
 $neededModule = "MEMPSToolkit"
-$thisRunbook = "rjgit-user_security_reset-mfa-Graph"
+$thisRunbook = "rjgit-user_security_reset-mfa"
 $thisRunbookParams = @{
     "reRun"    = $true;
     "UserName" = $UserName;
@@ -53,13 +53,17 @@ $token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredN
 write-output ("Find phone auth. methods for user " + $UserName) 
 $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
 if ($phoneAMs) {
-    write-output "Phone methods found"
+    write-output "Phone methods found."
+} else {
+    write-output "No phone methods found."
 }
 
 write-output ("Find Authenticator App auth methods for user " + $UserName)
 $appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $token
 if ($appAMs) {
-    write-output "Apps methods found"
+    write-output "Apps methods found."
+} else {
+    write-output "No apps methods found."
 }
 
 [int]$count = 0
@@ -84,21 +88,25 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
         }
     }
 
-    Write-Output "Waiting 10 sec. (App removal is not immediate)"
+    Write-Output "Waiting 10 sec. (AuthMethod removal is not immediate)"
     Start-Sleep -Seconds 10
 
     write-output ("Find phone auth. methods for user " + $UserName) 
     $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
     if ($phoneAMs) {
-        write-output "Phone methods found"
+        write-output "Phone methods found."
+    } else {
+        write-output "No phone methods found."
     }
     
     write-output ("Find Authenticator App auth methods for user " + $UserName)
     $appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $token
     if ($appAMs) {
-        write-output "App methods found"
+        write-output "Apps methods found."
+    } else {
+        write-output "No apps methods found."
     }
-
+    
 }
 
 if ($count -le 3) {
