@@ -18,6 +18,7 @@ $thisRunbook = "rjgit-user_security_reset-mfa"
 $thisRunbookParams = @{
     "reRun"    = $true;
     "UserName" = $UserName;
+    "OrganizationID" = $OrganizationID;
 }
 
 #region Module Management
@@ -50,12 +51,12 @@ $automationCredsName = "realmjoin-automation-cred"
 Write-Output "Connect to Graph API..."
 $token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
 
-write-output ("Find phone auth. methods for user " + $UserName) 
+write-output ("Find mobile phone auth. methods for user " + $UserName) 
 $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
 if ($phoneAMs) {
-    write-output "Phone methods found."
+    write-output "Mobile phone methods found."
 } else {
-    write-output "No phone methods found."
+    write-output "No mobile phone methods found."
 }
 
 write-output ("Find Authenticator App auth methods for user " + $UserName)
@@ -71,7 +72,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     $count++;
 
     $phoneAMs | ForEach-Object {
-        write-output ("try to remove phone method, id: " + $_.id) 
+        write-output ("try to remove mobile phone method, id: " + $_.id) 
         try {
             Remove-AADUserPhoneAuthMethod -userID $UserName -authId $_.id -authToken $token
         } catch {
@@ -91,12 +92,12 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     Write-Output "Waiting 10 sec. (AuthMethod removal is not immediate)"
     Start-Sleep -Seconds 10
 
-    write-output ("Find phone auth. methods for user " + $UserName) 
+    write-output ("Find mobile phone auth. methods for user " + $UserName) 
     $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
     if ($phoneAMs) {
-        write-output "Phone methods found."
+        write-output "Mobile phone methods found."
     } else {
-        write-output "No phone methods found."
+        write-output "No mobile phone methods found."
     }
     
     write-output ("Find Authenticator App auth methods for user " + $UserName)
@@ -110,7 +111,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
 }
 
 if ($count -le 3) {
-    Write-Output "All methods removed."
+    Write-Output "All App and Mobile Phone MFA methods for " + $UserName + " successfully removed."
 } else {
-    Write-Output "Could not remove all methods. Please review manually."
+    Write-Output "Could not remove all App and Mobile Phone MFA methods for " + $UserName + ". Please review."
 }

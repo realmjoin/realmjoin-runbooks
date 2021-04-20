@@ -80,5 +80,7 @@ else {
     Add-AADGroupMember -groupID $UI_GroupID_License -userID $targetUser.id -authToken $token
 }
 
+Write-Output ($group.displayName + " is assigned to " + $UserName)
+
 
 
