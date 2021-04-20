@@ -8,18 +8,20 @@
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
+    [bool] $enableUserIfNeeded = $true,
     # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
     [bool]$reRun = $false
 )
 
-# Optional: Set a password for every reset. Otherwise, a random PW will be generated every time.
+# Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered).
 [String] $initialPassword = ""
 
 $neededModule = "AzureAD"
 $thisRunbook = "rjgit-user_security_reset-password"
 $thisRunbookParams = @{
-    "reRun" = $true;
-    "UserName"=$UserName
+    "reRun"    = $true;
+    "UserName" = $UserName;
+    "enableUserIfNeeded" = $enableUserIfNeeded;
 }
 
 #region Module Management
@@ -68,8 +70,10 @@ if ($null -eq $targetUser) {
     throw ("User " + $UserName + " not found.")
 }
 
-Write-Output "Enable user sign in"
-Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $true
+if ($enableUserIfNeeded) {
+    Write-Output "Enable user sign in"
+    Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $true
+}
 
 if ($initialPassword -eq "") {
     $initialPassword = ("Reset" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
@@ -83,3 +87,5 @@ Set-AzureADUserPassword -ObjectId $targetUser.ObjectId -Password $encPassword -F
 
 Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
+
+Write-Output ("Password for " + $UserName + " has been reset to: " + $initialPassword)

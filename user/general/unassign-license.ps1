@@ -80,5 +80,5 @@ else {
     
 }
 
-
+Write-Output ($group.displayName + " is unassigned from " + $UserName)
 

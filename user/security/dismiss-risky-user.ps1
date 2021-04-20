@@ -1,28 +1,25 @@
-# This runbook will assign a license to a user via group membership.
+# This runbook will add or update a user's mobile phone MFA information.
+# It will NOT change the default auth method.
 #
 # This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
 # 
-
-# Required modules. Will be honored by Azure Automation.
+# Permissions needed:
+# - UserAuthenticationMethod.ReadWrite.All
 
 param(
     [Parameter(Mandatory = $true)]
-    [String] $UserName,
-    [Parameter(Mandatory = $true)]
-    [String] $UI_GroupID_License,
-    [Parameter(Mandatory = $true)]
-    [String] $OrganizationID,
+    [String]$UserName,
+    [String]$OrganizationID,
     # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
     [bool]$reRun = $false
 )
 
 $neededModule = "MEMPSToolkit"
-$thisRunbook = "rjgit-user_general_assign-license"
+$thisRunbook = "rjgit-user_security_dismiss-risky-user"
 $thisRunbookParams = @{
-    "reRun"              = $true;
-    "UserName"           = $UserName;
-    "UI_GroupID_License" = $UI_GroupID_License;
-    "OrganizationID"     = $OrganizationID
+    "reRun"    = $true;
+    "UserName" = $UserName;
+    "OrganizationID" = $OrganizationID;
 }
 
 #region Module Management
@@ -49,38 +46,27 @@ else {
 }
 #endregion
 
-# Licensing group prefix
-$groupPrefix = "LIC_"
-
+#region Authentication
 # Automation credentials
 $automationCredsName = "realmjoin-automation-cred"
 
 Write-Output "Connect to Graph API..."
 $token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+#endregion
 
-write-output ("Find select group from Object ID " + $UI_GroupID_License)
-$group = Get-AADGroupById -groupId $UI_GroupID_License -authToken $token
-if (-not $group.displayName.startswith($groupPrefix)) {
-    throw "Please select a licensing group."
+write-output ("Checking risk status of " + $UserName) 
+$riskyUsers = get-RiskyUsers -authToken $token
+$targetUser = ($riskyUsers | where-Object { $_.userPrincipalName -ieq $UserName })
+if (-not $targetUser) {
+    Write-Output ($UserName + " is not in list of risky users. No action taken.")
+    exit
 }
 
-write-output ("Find the user object " + $UserName) 
-$targetUser = get-AADUserByUPN -userName $UserName -authToken $token
-if ($null -eq $targetUser) {
-    throw ("User " + $UserName + " not found.")
+Write-Output ("Current risk: " + $targetUser.riskState)
+if (($targetUser.riskState -eq "atRisk") -or ($targetUser.riskState -eq "confirmedCompromised")) {
+    Write-Output ("Dismissing.")
+    set-DismissRiskyUser -authToken $token -userId $targetUser.id 
+    Write-Output ("User risk for " + $UserName + " successfully dismissed.")
+} else {
+    Write-Output ("User " + $UserName + " not at risk. No action taken.")
 }
-
-write-output ("Is user member of the the group?")
-$members = Get-AADGroupMembers -groupID $UI_GroupID_License -authToken $token
-if ($members.id -contains $targetUser.id) {
-    Write-Output "License is already assigned. No action taken."
-}
-else {
-    Write-Output "Assigning license"
-    Add-AADGroupMember -groupID $UI_GroupID_License -userID $targetUser.id -authToken $token
-}
-
-Write-Output ($group.displayName + " is assigned to " + $UserName)
-
-
-

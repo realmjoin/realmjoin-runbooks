@@ -16,10 +16,12 @@ param(
 )
 
 $neededModule = "MEMPSToolkit"
-$thisRunbook = "rjgit-user_security_add-phone-mfa"
+$thisRunbook = "rjgit-user_security_set-mobile-phone-mfa"
 $thisRunbookParams = @{
     "reRun"    = $true;
     "UserName" = $UserName;
+    "OrganizationID" = $OrganizationID;
+    "phoneNumber" = $phoneNumber
 }
 
 #region Module Management
@@ -46,11 +48,13 @@ else {
 }
 #endregion
 
+#region Authentication
 # Automation credentials
 $automationCredsName = "realmjoin-automation-cred"
 
 Write-Output "Connect to Graph API..."
 $token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+#endregion
 
 write-output ("Find phone auth. methods for user " + $UserName) 
 $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
@@ -62,4 +66,4 @@ if ($phoneAMs) {
     write-output "No phone methods found. Will add a new one."
     Add-AADUserPhoneAuthMethod -authToken $token -userID $UserName -phoneNumber $phoneNumber 
 }
-write-output ("Phone auth method is updated.")
+write-output ("Successfully added mobile phone authentication number " + $phoneNumber + " to user "+ $UserName + ".")

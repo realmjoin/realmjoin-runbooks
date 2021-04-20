@@ -71,3 +71,5 @@ Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId
 
 Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
+
+Write-Output ("User access for " + $UserName + " has been revoked.")
