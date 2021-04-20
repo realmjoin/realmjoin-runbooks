@@ -111,7 +111,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
 }
 
 if ($count -le 3) {
-    Write-Output "All App and Mobile Phone MFA methods for " + $UserName + " successfully removed."
+    Write-Output ("All App and Mobile Phone MFA methods for " + $UserName + " successfully removed.")
 } else {
-    Write-Output "Could not remove all App and Mobile Phone MFA methods for " + $UserName + ". Please review."
+    Write-Output ("Could not remove all App and Mobile Phone MFA methods for " + $UserName + ". Please review.")
 }
