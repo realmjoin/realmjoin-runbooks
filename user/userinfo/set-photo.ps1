@@ -90,3 +90,5 @@ try {
 
 Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
+
+Write-Output ("Updating profile photo for " + $UserName + " succeded.")
