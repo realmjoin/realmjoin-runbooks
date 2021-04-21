@@ -114,11 +114,11 @@ if ($waitForDeployment) {
     while ($moduleState -ne "Succeeded") {
         $moduleState = (Get-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name $moduleName).ProvisioningState
         if ($moduleState -eq "Failed") {
-            throw "Module deployment failed"
+            throw ("Module " + $moduleName + " deployment failed")
         }
         Write-Output ("..")
         Start-Sleep 10
     }
-    Write-Output ("Importing module succeeded")
+    Write-Output ("Importing module " + $moduleName + " ver. " + $moduleVersion + " succeeded")
 }
 

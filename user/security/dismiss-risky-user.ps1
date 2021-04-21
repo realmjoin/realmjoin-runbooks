@@ -1,10 +1,9 @@
-# This runbook will add or update a user's mobile phone MFA information.
-# It will NOT change the default auth method.
+# This runbook will dismiss a user risk classification. 
 #
 # This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
 # 
 # Permissions needed:
-# - UserAuthenticationMethod.ReadWrite.All
+# - IdentityRiskyUser.ReadWrite.All
 
 param(
     [Parameter(Mandatory = $true)]

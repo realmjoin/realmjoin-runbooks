@@ -70,3 +70,5 @@ if (Get-Command "New-AzAutomationModule" -ErrorAction SilentlyContinue) {
     $ErrorMessage = "No automation management module found"
     throw $ErrorMessage
 }
+
+Write-Output ("Removal of module " + $moduleName + " succeded.")
