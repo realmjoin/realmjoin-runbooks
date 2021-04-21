@@ -1,4 +1,4 @@
-# This runbook will dismiss a user risk classification. 
+# This runbook will confirm a user as compromised. 
 #
 # This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
 # 
@@ -14,7 +14,7 @@ param(
 )
 
 $neededModule = "MEMPSToolkit"
-$thisRunbook = "rjgit-user_security_dismiss-risky-user"
+$thisRunbook = "rjgit-user_security_confirm-risky-user"
 $thisRunbookParams = @{
     "reRun"    = $true;
     "UserName" = $UserName;
@@ -62,10 +62,10 @@ if (-not $targetUser) {
 }
 
 Write-Output ("Current risk: " + $targetUser.riskState)
-if (($targetUser.riskState -eq "atRisk") -or ($targetUser.riskState -eq "confirmedCompromised")) {
-    Write-Output ("Dismissing.")
-    set-DismissRiskyUser -authToken $token -userId $targetUser.id 
-    Write-Output ("User risk for " + $UserName + " successfully dismissed.")
+if ($targetUser.riskState -eq "confirmedCompromised") {
+    Write-Output ("User risk for " + $UserName + " already set to `"confirmed compromised`". No action taken.")
 } else {
-    Write-Output ("User " + $UserName + " not at risk. No action taken.")
+    Write-Output ("Confirming")
+    set-ConfirmCompromisedRiskyUser -authToken $token -userId $targetUser.id 
+    Write-Output ("Compromise for " + $UserName + " successfully confirmed.")
 }

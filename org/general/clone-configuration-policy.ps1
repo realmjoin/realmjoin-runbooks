@@ -46,10 +46,12 @@ else {
 }
 #endregion
 
+#region authentication
 $automationCredsName = "realmjoin-automation-cred"
 
 Write-Output "Connect to Graph API..."
 $token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+#endregion
 
 Write-Output ("Fetch policy " + $configPolicyID)
 $confpol = Get-DeviceConfigurationById -authToken $token -configId $configPolicyID
@@ -65,3 +67,5 @@ if ($null -ne ($allPols | Where-Object { $_.displayName -eq $confpol.displayName
 
 Write-Output ("Import new policy")
 Add-DeviceConfiguration -authToken $token -config $confpol | Out-Null
+
+Write-Output ("Policy " + $confpol.displayName + " has been successfully created.")
