@@ -14,7 +14,7 @@ param(
     [bool]$reRun = $false
 )
 
-$neededModule = "MSPSToolkit"
+$neededModule = "MEMPSToolkit"
 $thisRunbook = "rjgit-org_general_clone-configuration-policy"
 $thisRunbookParams = @{
     "reRun"          = $true;
