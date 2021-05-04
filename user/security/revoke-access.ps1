@@ -8,14 +8,8 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [String] $UserName,
-    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
-    [bool]$reRun = $false
+    [String] $UserName
 )
-
-if (-not (Get-Module -ListAvailable AzureAD)) {
-    throw ("Module AzureAD is not available. Please check.")
-}
 
 #region Authentication
 $connectionName = "AzureRunAsConnection"
