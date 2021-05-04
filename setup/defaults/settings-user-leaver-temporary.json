@@ -1,3 +1,11 @@
 {
-  "deleteUser": false
+  "disableUser": true,
+  "revokeAccess": true,
+  "exportGroupMemberships": true,
+  "changeLicenses": true,
+  "grantAccessToMailbox": true,
+  "setOutOfOffice": true,
+  "removeMFAMethods": true,
+  "removeGroups": [
+  ]
 }
