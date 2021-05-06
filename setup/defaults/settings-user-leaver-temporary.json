@@ -1,9 +1,12 @@
 {
   "disableUser": true,
   "revokeAccess": true,
+  "exportStorAccountName": "rj-runbook-exports-01",
+  "exportStorContainerGroupmembershipExports": "user-leaver-groupmemberships",
   "exportGroupMemberships": true,
   "changeLicenses": true,
   "grantAccessToMailbox": true,
+  "hideFromAddresslist": true,
   "setOutOfOffice": true,
   "removeMFAMethods": true,
   "removeGroups": [

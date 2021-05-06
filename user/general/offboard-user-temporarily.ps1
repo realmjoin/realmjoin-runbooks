@@ -1,6 +1,8 @@
 # This runbook is intended to orchestrate the different steps to temporarily offboard a user. This can be cases like parental leaves or sabaticals. 
 
-#Requires -Modules AzureAD, RealmJoin.RunbookHelper
+# If you store a users group memberships, you will need to have access
+
+#Requires -Modules AzureAD, RealmJoin.RunbookHelper, Az.Storage
 
 param (
     [String] $UserName
@@ -43,9 +45,24 @@ if ($processConfig.disableUser) {
 #endregion
 
 #region Export / Backup group and DL memberships
+# Get list of group and role memberships. Write to file, as Set-AzStorageBlobContent needs a file to upload.
+Get-AzureADUserMembership -ObjectId $UserName -All $true > "memberships.txt"
+# Connect to / create Azure Storage Account
 if ($processConfig.exportGroupMemberships) {
-
+    $AzAAResourceGroup = Get-AutomationVariable -name "AzAAResourceGroup" -ErrorAction Stop
+    $storAccount = Get-AzStorageAccount -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName -ErrorAction SilentlyContinue
+    if (-not $storAccount) {
+        $storAccount = New-AzStorageAccount -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName -ErrorAction Stop
+    }
+    $keys = Get-AzStorageAccountKey -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName
+    $context = New-AzStorageContext -StorageAccountName $processConfig.exportStorAccountName -StorageAccountKey $keys[0].Value
+    $container = Get-AzStorageContainer -Name $processConfig.exportStorContainerGroupmembershipExports -Context $context -ErrorAction SilentlyContinue
+    if (-not $container) {
+        $container = New-AzStorageContainer -Name $processConfig.exportStorContainerGroupmembershipExports -Context $context -ErrorAction Stop
+    }
 }
+# Upload list. This might overwrite older versions.
+Set-AzStorageBlobContent -File "memberships.txt" -Container $container -Blob $UserName -Context $context -Force
 #endregion
 
 #region Change license (group membership)
@@ -59,6 +76,11 @@ if ($processConfig.grantAccessToMailbox) {
 
 }
 #endregion
+
+#region hide mailbox in adresslist
+if ($processConfig.hideFromAddresslist) {
+
+}
 
 #region out of office message
 if ($processConfig.setOutOfOffice) {
