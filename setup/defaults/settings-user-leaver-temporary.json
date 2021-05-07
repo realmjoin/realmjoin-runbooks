@@ -1,7 +1,7 @@
 {
   "disableUser": true,
   "revokeAccess": true,
-  "exportStorAccountName": "rj-runbook-exports-01",
+  "exportStorAccountName": "rjrunbookexports01",
   "exportStorAccountLocation": "West Europe",
   "exportStorAccountSKU": "Standard_LRS",
   "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
