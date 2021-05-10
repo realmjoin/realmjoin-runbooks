@@ -76,7 +76,7 @@ if ($processConfig.exportGroupMemberships) {
     }
 }
 Write-Output "Uploading list of memberships. This might overwrite older versions."
-Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force -ErrorAction Stop
+Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force -ErrorAction Stop | Out-Null
 Disconnect-AzAccount -Confirm:$false
 #endregion
 
@@ -142,4 +142,6 @@ if ($processConfig.removeMFAMethods) {
 #region finishing
 Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
+
+Write-Output "Temporary offboarding of $($UserName) successful."
 #endregion
