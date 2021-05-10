@@ -1,14 +1,18 @@
+#Requires -Module ExchangeOnlineManagement, RealmJoin.RunbookHelper
+
 param
 (
     [Parameter(Mandatory = $true)]
     [String] $OrganizationInitialDomainName,
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
     [String] $GroupName,
     [Parameter(Mandatory = $true)]
     [String] $CallerName,
     [Parameter(Mandatory = $false)]
     [boolean] $Disable
 )
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"

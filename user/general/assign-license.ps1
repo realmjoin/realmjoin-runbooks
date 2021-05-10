@@ -3,42 +3,20 @@
 # This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
 # 
 
-# Required modules. Will be honored by Azure Automation.
+#Requires -Modules MEMPSToolkit, RealmJoin.RunbookHelper
 
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
     [String] $UI_GroupID_License,
     [Parameter(Mandatory = $true)]
-    [String] $OrganizationID,
-    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
-    [bool]$reRun = $false
+    [String] $OrganizationID
 )
 
+#region module check
 $neededModule = "MEMPSToolkit"
-$thisRunbook = "rjgit-user_general_assign-license"
-$thisRunbookParams = @{
-    "reRun"              = $true;
-    "UserName"           = $UserName;
-    "UI_GroupID_License" = $UI_GroupID_License;
-    "OrganizationID"     = $OrganizationID
-}
-
-#region Module Management
-Write-Output ("Check if " + $neededModule + " is available")
-$moduleInstallerRunbook = "rjgit-setup_import-module-from-gallery" 
-
-if (-not $reRun) { 
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        Write-Output ("Installing " + $neededModule + ". This might take several minutes.")
-        $runbookJob = Start-AutomationRunbook -Name $moduleInstallerRunbook -Parameters @{"moduleName" = $neededModule; "waitForDeployment" = $true }
-        Wait-AutomationJob -Id $runbookJob.Guid -TimeoutInMinutes 10
-        Write-Output ("Restarting Runbook and stopping this run.")
-        Start-AutomationRunbook -Name $thisRunbook -Parameters $thisRunbookParams
-        exit
-    }
-} 
 
 if (-not (Get-Module -ListAvailable $neededModule)) {
     throw ($neededModule + " is not available and can not be installed automatically. Please check.")
