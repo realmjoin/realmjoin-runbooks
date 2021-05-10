@@ -2,47 +2,16 @@
 #
 # This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
 # Permissions:
-# - AzureAD Role: User administrator
+# - User.ReadWrite.All, Directory.ReadWrite.All,
 
-# Required modules. Will be honored by Azure Automation.
+#Requires -Modules AzureAD, RealmJoin.RunbookHelper
+
 param(
     [Parameter(Mandatory = $true)]
-    [String] $UserName,
-    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
-    [bool]$reRun = $false
+    [String] $UserName
 )
 
-$neededModule = "AzureAD"
-$thisRunbook = "rjgit-user_security_revoke-access"
-$thisRunbookParams = @{
-    "reRun" = $true;
-    "UserName"=$UserName
-}
-
-#region Module Management
-Write-Output ("Check if " + $neededModule + " is available")
-$moduleInstallerRunbook = "rjgit-setup_import-module-from-gallery" 
-
-if (-not $reRun) { 
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        Write-Output ("Installing " + $neededModule + ". This might take several minutes.")
-        $runbookJob = Start-AutomationRunbook -Name $moduleInstallerRunbook -Parameters @{"moduleName" = $neededModule; "waitForDeployment" = $true }
-        Wait-AutomationJob -Id $runbookJob.Guid -TimeoutInMinutes 10
-        Write-Output ("Restarting Runbook and stopping this run.")
-        Start-AutomationRunbook -Name $thisRunbook -Parameters $thisRunbookParams
-        exit
-    }
-} 
-
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
-#endregion
-
+#region Authentication
 $connectionName = "AzureRunAsConnection"
 
 # Get the connection "AzureRunAsConnection "
@@ -56,7 +25,9 @@ catch {
     Write-Error $_.Exception
     throw "AzureAD login failed"
 }
+#endregion
 
+#region main script
 write-output ("Find the user object " + $UserName) 
 $targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
 if ($null -eq $targetUser) {
@@ -73,3 +44,4 @@ Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
 
 Write-Output ("User access for " + $UserName + " has been revoked.")
+#endregion

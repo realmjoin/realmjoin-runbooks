@@ -1,0 +1,20 @@
+{
+  "disableUser": true,
+  "revokeAccess": true,
+  "exportStorAccountName": "rjrunbookexports01",
+  "exportStorAccountLocation": "West Europe",
+  "exportStorAccountSKU": "Standard_LRS",
+  "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
+  "exportGroupMemberships": true,
+  "changeLicenses": true,
+  "licenseGroupsToAdd": [
+    "LIC_M365_E1"
+  ],
+  "licenseGroupsToRemovePrefix": "LIC_M365",
+  "grantAccessToMailbox": true,
+  "hideFromAddresslist": true,
+  "setOutOfOffice": true,
+  "removeMFAMethods": true,
+  "secGroupsToRemove": [
+  ]
+}
