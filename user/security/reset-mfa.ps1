@@ -1,40 +1,117 @@
-param
-(
+# This runbook will assign a license to a user via group membership.
+#
+# This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
+# 
+# Permissions needed:
+# - UserAuthenticationMethod.ReadWrite.All
+
+param(
     [Parameter(Mandatory = $true)]
-    [String] $OrganizationInitialDomainName,
-    [Parameter(Mandatory = $true)]
-    [String] $UserName,
-    [Parameter(Mandatory = $true)]
-    [String] $CallerName
+    [String]$UserName,
+    [String]$OrganizationID,
+    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
+    [bool]$reRun = $false
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-$ProgressPreference = "SilentlyContinue"
-
-Write-Output "Reset Multi-Factor Authentication Office settings initialized by $CallerName for $UserName"
-$Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
-Connect-AzAccount @Connection -ServicePrincipal | OUT-NULL
-
-$credObject = Get-AutomationPSCredential -Name "Office-Credentials" | OUT-NULL
-Connect-MsolService -Credential $credObject | OUT-NULL
-if (!$Error) {
-    Write-Output "Connection to Azure AD MSOL Powershell established!"    
-    Write-Output "Enabling Out Of Office settings for $UserName"
-    $Error.Clear();
-    Set-MSOLUser -UserPrincipalName $UserName -StrongAuthenticationMethods @()
-    if (!$Error) {
-            Write-Output "MFA settings reset successfully for  $UserName"
-        }
-        else {
-            Write-Error "Couldn't reset MFA settings! `r`n $Error"
-        }
-    Write-Output "Resetted MFA Settings for $UserName"
-    }
-else {
-    Write-Error "Connection to Azure AD failed! `r`n $Error"
+$neededModule = "MEMPSToolkit"
+$thisRunbook = "rjgit-user_security_reset-mfa"
+$thisRunbookParams = @{
+    "reRun"    = $true;
+    "UserName" = $UserName;
+    "OrganizationID" = $OrganizationID;
 }
 
-# There is no disconnect for MSOLService
+#region Module Management
+Write-Output ("Check if " + $neededModule + " is available")
+$moduleInstallerRunbook = "rjgit-setup_import-module-from-gallery" 
 
-Write-Host "script ended."
+if (-not $reRun) { 
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        Write-Output ("Installing " + $neededModule + ". This might take several minutes.")
+        $runbookJob = Start-AutomationRunbook -Name $moduleInstallerRunbook -Parameters @{"moduleName" = $neededModule; "waitForDeployment" = $true }
+        Wait-AutomationJob -Id $runbookJob.Guid -TimeoutInMinutes 10
+        Write-Output ("Restarting Runbook and stopping this run.")
+        Start-AutomationRunbook -Name $thisRunbook -Parameters $thisRunbookParams
+        exit
+    }
+} 
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+#endregion
+
+# Automation credentials
+$automationCredsName = "realmjoin-automation-cred"
+
+Write-Output "Connect to Graph API..."
+$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+
+write-output ("Find mobile phone auth. methods for user " + $UserName) 
+$phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
+if ($phoneAMs) {
+    write-output "Mobile phone methods found."
+} else {
+    write-output "No mobile phone methods found."
+}
+
+write-output ("Find Authenticator App auth methods for user " + $UserName)
+$appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $token
+if ($appAMs) {
+    write-output "Apps methods found."
+} else {
+    write-output "No apps methods found."
+}
+
+[int]$count = 0
+while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
+    $count++;
+
+    $phoneAMs | ForEach-Object {
+        write-output ("try to remove mobile phone method, id: " + $_.id) 
+        try {
+            Remove-AADUserPhoneAuthMethod -userID $UserName -authId $_.id -authToken $token
+        } catch {
+            write-output "Failed or not found. "
+        }
+    }
+
+    $appAMs | ForEach-Object {
+        write-output ("try to remove app method, id: " + $_.id) 
+        try {
+            Remove-AADUserMSAuthenticatorMethod -userID $UserName -authId $_.id -authToken $token
+        } catch {
+            write-output "Failed or not found. "
+        }
+    }
+
+    Write-Output "Waiting 10 sec. (AuthMethod removal is not immediate)"
+    Start-Sleep -Seconds 10
+
+    write-output ("Find mobile phone auth. methods for user " + $UserName) 
+    $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
+    if ($phoneAMs) {
+        write-output "Mobile phone methods found."
+    } else {
+        write-output "No mobile phone methods found."
+    }
+    
+    write-output ("Find Authenticator App auth methods for user " + $UserName)
+    $appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $token
+    if ($appAMs) {
+        write-output "Apps methods found."
+    } else {
+        write-output "No apps methods found."
+    }
+    
+}
+
+if ($count -le 3) {
+    Write-Output ("All App and Mobile Phone MFA methods for " + $UserName + " successfully removed.")
+} else {
+    Write-Output ("Could not remove all App and Mobile Phone MFA methods for " + $UserName + ". Please review.")
+}
