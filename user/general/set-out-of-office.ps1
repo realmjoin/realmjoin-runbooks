@@ -1,21 +1,32 @@
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.3.0" }
+
 param
 (
     [Parameter(Mandatory = $true)]
-    [String] $OrganizationInitialDomainName,
+    [string] $OrganizationInitialDomainName,
+
     [Parameter(Mandatory = $true)]
-    [String] $UserName,
+    [string] $UserName,
+
     [Parameter(Mandatory = $true)]
-    [String] $CallerName,
+    [string] $CallerName,
+
     [Parameter(Mandatory = $false)]
-    [datetime] $UI_Date_Start,
+    [datetime] $Start,
+
     [Parameter(Mandatory = $false)]
-    [datetime] $UI_Date_End,
+    [datetime] $End,
+
     [Parameter(Mandatory = $false)]
-    [string] $UI_Text_Message_Intern,
+    [ValidateScript( { Use-RJInterface -Type Textarea } )]
+    [string] $Message_Intern,
+
     [Parameter(Mandatory = $false)]
-    [string] $UI_Text_Message_Extern,
+    [ValidateScript( { Use-RJInterface -Type Textarea } )]
+    [string] $Message_Extern,
+
     [Parameter(Mandatory = $false)]
-    [boolean] $Disable
+    [bool] $Disable
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -43,7 +54,7 @@ if (!$Error) {
     else {
         Write-Output "Enabling Out Of Office settings for $UserName"
         $Error.Clear();
-        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled -ExternalMessage $UI_Text_Message_Extern -InternalMessage $UI_Text_Message_Intern -StartTime $UI_Date_Start -EndTime $UI_Date_End
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled -ExternalMessage $Message_Extern -InternalMessage $Message_Intern -StartTime $Start -EndTime $End
         if (!$Error) {
             Write-Output "Out of office settings saved successfully for mailbox $UserName"
         }
@@ -59,7 +70,7 @@ else {
 }
 
 Write-Output "Disconnect from EXO"
-Get-PsSession | Where-Object {$_.ConfigurationName -eq 'Microsoft.Exchange'} | Remove-PsSession
+Get-PsSession | Where-Object { $_.ConfigurationName -eq 'Microsoft.Exchange' } | Remove-PsSession
 Disconnect-ExchangeOnline -Confirm:$false
 
 Write-Host "script ended."

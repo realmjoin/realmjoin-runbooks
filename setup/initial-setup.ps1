@@ -2,8 +2,6 @@
 # - Add ClientSecret to AzureRunasAccount, store in Automation Account
 # - Add Variables to Automation Account, to enable automatic module import.
 #
-# Permissions needed:
-#
 # Implements https://dev.azure.com/c4a8/GKGAB%20Managed%20Services/_workitems/edit/779
 
 param(
