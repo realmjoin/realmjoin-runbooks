@@ -1,3 +1,5 @@
+#Requires -Module ExchangeOnlineManagement, RealmJoin.RunbookHelper
+
 param
 (
     [Parameter(Mandatory = $true)]

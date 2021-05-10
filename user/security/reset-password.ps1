@@ -4,40 +4,19 @@
 # Permissions:
 # - AzureAD Role: User administrator
 
-# Required modules. Will be honored by Azure Automation.
+#Requires -Modules AzureAD, RealmJoin.RunbookHelper
+
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [bool] $enableUserIfNeeded = $true,
-    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
-    [bool]$reRun = $false
+    [bool] $enableUserIfNeeded = $true
 )
 
-# Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered).
+# Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered!).
 [String] $initialPassword = ""
 
+#region module check
 $neededModule = "AzureAD"
-$thisRunbook = "rjgit-user_security_reset-password"
-$thisRunbookParams = @{
-    "reRun"    = $true;
-    "UserName" = $UserName;
-    "enableUserIfNeeded" = $enableUserIfNeeded;
-}
-
-#region Module Management
-Write-Output ("Check if " + $neededModule + " is available")
-$moduleInstallerRunbook = "rjgit-setup_import-module-from-gallery" 
-
-if (-not $reRun) { 
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        Write-Output ("Installing " + $neededModule + ". This might take several minutes.")
-        $runbookJob = Start-AutomationRunbook -Name $moduleInstallerRunbook -Parameters @{"moduleName" = $neededModule; "waitForDeployment" = $true }
-        Wait-AutomationJob -Id $runbookJob.Guid -TimeoutInMinutes 10
-        Write-Output ("Restarting Runbook and stopping this run.")
-        Start-AutomationRunbook -Name $thisRunbook -Parameters $thisRunbookParams
-        exit
-    }
-} 
 
 if (-not (Get-Module -ListAvailable $neededModule)) {
     throw ($neededModule + " is not available and can not be installed automatically. Please check.")
