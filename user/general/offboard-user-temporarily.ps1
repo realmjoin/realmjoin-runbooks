@@ -9,6 +9,28 @@ param (
     [String] $OrganizationID
 )
 
+#region module check
+$neededModule = "AzureAD"
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+
+$neededModule = "Az.Storage"
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+#endregion
+
 Write-Output "Getting Process configuration URL"
 $processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverTemporary" -ErrorAction Stop
 Write-Output "Process Config URL is $($processConfigURL)"

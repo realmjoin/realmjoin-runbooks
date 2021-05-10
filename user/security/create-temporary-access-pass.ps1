@@ -5,42 +5,21 @@
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
+#Requires -Modules MEMPSToolkit, RealmJoin.RunbookHelper
+
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName,
     [String]$OrganizationID,
     # How long (starting immediately) is the pass valid?
+    [ValidateScript( { Use-RJInterface -Type Number } )]
     [int] $lifetimeInMinutes = 240,
     # Is this a one-time pass (prefered); will be usable multiple times otherwise
-    [bool] $oneTimeUseOnly = $true,
-    # Is this a "second attempt" to execute the runbook? Only allow starting another run if $false, to avoid endless looping.
-    [bool]$reRun = $false
+    [bool] $oneTimeUseOnly = $true
 )
 
+#region module check
 $neededModule = "MEMPSToolkit"
-$thisRunbook = "rjgit-user_security_create-temporary-access-pass"
-$thisRunbookParams = @{
-    "reRun"    = $true;
-    "UserName" = $UserName;
-    "OrganizationID" = $OrganizationID;
-    "lifetimeInMinutes" = $lifetimeInMinutes;
-    "oneTimeUseOnly" = $oneTimeUseOnly;
-}
-
-#region Module Management
-Write-Output ("Check if " + $neededModule + " is available")
-$moduleInstallerRunbook = "rjgit-setup_import-module-from-gallery" 
-
-if (-not $reRun) { 
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        Write-Output ("Installing " + $neededModule + ". This might take several minutes.")
-        $runbookJob = Start-AutomationRunbook -Name $moduleInstallerRunbook -Parameters @{"moduleName" = $neededModule; "waitForDeployment" = $true }
-        Wait-AutomationJob -Id $runbookJob.Guid -TimeoutInMinutes 10
-        Write-Output ("Restarting Runbook and stopping this run.")
-        Start-AutomationRunbook -Name $thisRunbook -Parameters $thisRunbookParams
-        exit
-    }
-} 
 
 if (-not (Get-Module -ListAvailable $neededModule)) {
     throw ($neededModule + " is not available and can not be installed automatically. Please check.")
