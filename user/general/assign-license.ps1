@@ -9,7 +9,8 @@ param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
+    ## FIXME Picker not working!
+    #[ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
     [String] $UI_GroupID_License,
     [Parameter(Mandatory = $true)]
     [String] $OrganizationID
