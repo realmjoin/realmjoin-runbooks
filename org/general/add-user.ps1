@@ -78,19 +78,21 @@ if ($null -ne $targetUser) {
     throw ("Username $userPrincipalName is already taken.")
 }
 
+# Prefereably contruct the displayName from the real names...
 if (($displayName -eq "") -and ($givenName -ne "") -and ($surname -ne "")) {
     $displayName = "$givenName $surname"    
-    Write-Output "Setting displayName to `"$displayName`"."
-}
-
-if ($displayName -eq "") {
-    $displayName = $userPrincipalName    
     Write-Output "Setting displayName to `"$displayName`"."
 }
 
 if ($mailNickName -eq "") {
     $mailNickName = $userPrincipalName.Split('@')[0]
     Write-Output "Setting mailNickName `"$mailNickName`"."
+}
+
+# Ok, at least have some displayName...
+if ($displayName -eq "") {
+    $displayName = $mailNickName    
+    Write-Output "Setting displayName to `"$mailNickName`"."
 }
 
 if ($companyName -eq "") {
@@ -148,5 +150,8 @@ foreach ($groupname in $groupsArray) {
         }
     }
 }
+
+Write-Output "Disconnecting from AzureAD."
+Disconnect-AzureAD
 
 Write-Output "User $userPrincipalName successfully created. Initial PW: $initialPassword"
