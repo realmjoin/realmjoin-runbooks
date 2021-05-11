@@ -9,6 +9,28 @@ param (
     [String] $OrganizationID
 )
 
+#region module check
+$neededModule = "AzureAD"
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+
+$neededModule = "Az.Storage"
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+#endregion
+
 Write-Output "Getting Process configuration URL"
 $processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverTemporary" -ErrorAction Stop
 Write-Output "Process Config URL is $($processConfigURL)"
@@ -76,7 +98,7 @@ if ($processConfig.exportGroupMemberships) {
     }
 }
 Write-Output "Uploading list of memberships. This might overwrite older versions."
-Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force -ErrorAction Stop
+Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force -ErrorAction Stop | Out-Null
 Disconnect-AzAccount -Confirm:$false
 #endregion
 
@@ -142,4 +164,6 @@ if ($processConfig.removeMFAMethods) {
 #region finishing
 Write-Output "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
+
+Write-Output "Temporary offboarding of $($UserName) successful."
 #endregion

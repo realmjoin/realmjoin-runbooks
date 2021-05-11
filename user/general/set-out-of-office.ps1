@@ -1,4 +1,4 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.3.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.3.0" }, ExchangeOnlineManagement
 
 param
 (

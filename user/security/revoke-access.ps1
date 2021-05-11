@@ -11,6 +11,18 @@ param(
     [String] $UserName
 )
 
+#region module check
+$neededModule = "AzureAD"
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    Write-Output ("Module " + $neededModule + " is available.")
+}
+#endregion
+
 #region Authentication
 $connectionName = "AzureRunAsConnection"
 

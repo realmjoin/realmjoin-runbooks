@@ -1,4 +1,4 @@
-#Requires -Modules Az.Accounts,ExchangeOnlineManagement
+#Requires -Modules Az.Accounts, ExchangeOnlineManagement
 
 param
 (
@@ -19,7 +19,6 @@ param
 #$ProgressPreference = "SilentlyContinue"
 #$GLOBAL:DebugPreference="Continue"  
 
-$OrganizationId = "81a3ef22-4447-4627-91ae-6774f48748d1"
 $connectionName = "AzureRunAsConnection"
 $LogType = "AutomationAppConnecting"
 $ErrorMessage = ""
