@@ -31,7 +31,7 @@ if (-not (Get-Module -ListAvailable $neededModule)) {
 }
 else {
     Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
+    # "Module " + $neededModule + " is available."
 }
 #endregion
 
