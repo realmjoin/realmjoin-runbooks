@@ -23,6 +23,19 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
+#region module check
+$neededModule = "ExchangeOnlineManagement"
+
+if (-not (Get-Module -ListAvailable $neededModule)) {
+    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+}
+else {
+    Import-Module $neededModule
+    # "Module " + $neededModule + " is available."
+}
+#endregion
+
+#region authentication
 $Connection = Get-AutomationConnection -Name 'AzureRunAsConnection'
 # "Connecting to Exchange online."
 try {
@@ -32,6 +45,7 @@ catch {
     throw "Connection to Exchange Online failed! `r`n $_"
 }
 # "Connection to Exchange Online Powershell established!"  
+#endregion
 
 # "Checking"  if group is universal group
 if (-not (Get-UnifiedGroup -Identity $GroupName -ErrorAction SilentlyContinue)) {
