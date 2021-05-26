@@ -1,6 +1,6 @@
 # This runbook will update fields of an existing user object.
 
-#Requires -Module RealmJoin.RunbookHelper, AzureAD
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
