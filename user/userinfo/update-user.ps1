@@ -1,6 +1,6 @@
 # This runbook will update fields of an existing user object.
 
-# Requires #Requires -Module AzureAD, RealmJoin.RunbookHelper
+#Requires -Module RealmJoin.RunbookHelper, AzureAD
 
 param (
     [Parameter(Mandatory = $true)]
