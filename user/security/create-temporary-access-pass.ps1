@@ -5,12 +5,11 @@
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
-#Requires -Modules MEMPSToolkit, RealmJoin.RunbookHelper
+#Requires -Modules MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName,
-    [String]$OrganizationID,
     # How long (starting immediately) is the pass valid?
     [ValidateScript( { Use-RJInterface -Type Number } )]
     [int] $lifetimeInMinutes = 240,
@@ -19,33 +18,37 @@ param(
 )
 
 #region module check
-$neededModule = "MEMPSToolkit"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "MEMPSToolkit"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
 #region Authentication
-# Automation credentials
-$automationCredsName = "realmjoin-automation-cred"
-
-Write-Output "Connect to Graph API..."
-$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+# "Connect to Graph API..."
+Connect-RjRbGraph
 #endregion
 
-Write-Output ("Making sure, no old temp. access passes exist for " + $UserName)
-Remove-AadUserTemporaryAccessPass -authToken $token -userID $UserName
+"Making sure, no old temp. access passes exist for $UserName"
+Remove-AadUserTemporaryAccessPass -authToken $Global:RjRbGraphAuthHeaders -userID $UserName
 
-Write-Output ("Creating new temp. access pass")
-$pass = New-AadUserTemporaryAccessPass -authToken $token -userID $UserName -oneTimeUse $oneTimeUseOnly -lifetimeInMinutes $lifetimeInMinutes
+"Creating new temp. access pass"
+$pass = New-AadUserTemporaryAccessPass -authToken $Global:RjRbGraphAuthHeaders -userID $UserName -oneTimeUse $oneTimeUseOnly -lifetimeInMinutes $lifetimeInMinutes
 
 if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
-    Write-Output ("Beware: The use of Temporary access passes seems to be disabled for this user.")
+    "Beware: The use of Temporary access passes seems to be disabled for this user."
 }
 
-Write-Output ("New Temporary access pass for " + $UserName + " with a lifetime of " + $lifetimeInMinutes +" minutes has been created: " + $pass.temporaryAccessPass)
+"New Temporary access pass for $UserName with a lifetime of $lifetimeInMinutes minutes has been created: $($pass.temporaryAccessPass)"

@@ -2,7 +2,7 @@
 #
 # It will try to guess values if needed.
 
-# Requires #Requires -Module AzureAD, RealmJoin.RunbookHelper
+# Requires #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param (
     # Option - Use at least "givenName" and "surname" to create the user.
@@ -23,38 +23,38 @@ param (
 )
 
 #region module check
-$neededModule = "AzureAD"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "AzureAD"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
+
 
 #region Authentication
-$connectionName = "AzureRunAsConnection"
-
-# Get the connection "AzureRunAsConnection "
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
-
-write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
-try {
-    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId -ErrorAction Stop | Out-Null
-}
-catch {
-    Write-Error $_.Exception
-    throw "AzureAD login failed"
-}
+# "Connecting to AzureAD"
+Connect-RjRbAzureAD
+# AzureAD Module is broken in regards to ErrorAction, so...
+$ErrorActionPreference = "SilentlyContinue"
 #endregion
 
+# "Generating random initial PW."
 if ($initialPassword -eq "") {
     $initialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
-    Write-Output ("Generating random initial PW.")
 }
 
+# "Choosing UPN, if not given"
 if ($userPrincipalName -eq "") {
     $tenantDetail = Get-AzureADTenantDetail
     $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
@@ -69,11 +69,11 @@ if ($userPrincipalName -eq "") {
     else {
         throw "Please provide a userPrincipalName"
     }
-    Write-Output "Setting userPrincipalName to `"$userPrincipalName`"."
+    "Setting userPrincipalName to `"$userPrincipalName`"."
 }
 
-write-output ("Check if the username $userPrincipalName is available") 
-$targetUser = Get-AzureADUser -ObjectId $userPrincipalName -ErrorAction SilentlyContinue
+"Check if the username $userPrincipalName is available" 
+$targetUser = Get-AzureADUser -ObjectId $userPrincipalName 
 if ($null -ne $targetUser) {
     throw ("Username $userPrincipalName is already taken.")
 }
@@ -81,33 +81,33 @@ if ($null -ne $targetUser) {
 # Prefereably contruct the displayName from the real names...
 if (($displayName -eq "") -and ($givenName -ne "") -and ($surname -ne "")) {
     $displayName = "$givenName $surname"    
-    Write-Output "Setting displayName to `"$displayName`"."
+    "Setting displayName to `"$displayName`"."
 }
 
 if ($mailNickName -eq "") {
     $mailNickName = $userPrincipalName.Split('@')[0]
-    Write-Output "Setting mailNickName `"$mailNickName`"."
+    "Setting mailNickName `"$mailNickName`"."
 }
 
 # Ok, at least have some displayName...
 if ($displayName -eq "") {
     $displayName = $mailNickName    
-    Write-Output "Setting displayName to `"$mailNickName`"."
+    "Setting displayName to `"$mailNickName`"."
 }
 
 if ($companyName -eq "") {
     $companyName = (Get-AzureADTenantDetail).DisplayName
-    Write-Output "Setting companyName to `"$companyName`"."
+    "Setting companyName to `"$companyName`"."
 }
 
 # Create password profile for new user
 $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
-Write-Output "Setting password."
+"Setting password."
 $PasswordProfile.Password = $initialPassword
-Write-Output "Enforcing password change at next logon. (PasswordProfile)"
+"Enforcing password change at next logon. (PasswordProfile)"
 $PasswordProfile.ForceChangePasswordNextLogin = $true
 
-Write-Output "Creating user object for $userPrincipalName"
+"Creating user object for $userPrincipalName"
 try {
     if (($givenName -ne "") -and ($surname -ne "")) {
         $userObject = New-AzureADUser -AccountEnabled $true -DisplayName $displayName -PasswordProfile $PasswordProfile -UserPrincipalName $userPrincipalName -GivenName $givenName -Surname $surname -MailNickName $mailNickName -CompanyName $companyName -ErrorAction Stop 
@@ -122,14 +122,14 @@ catch {
 
 # Assign the default license. Continue even if this fails.
 if ($defaultLicense -ne "") {
-    Write-Output "Searching license group $defaultLicense."
+    "Searching license group $defaultLicense."
     $group = Get-AzureADGroup -Filter "displayName eq `'$defaultLicense`'" -ErrorAction SilentlyContinue
     if (-not $group) {
-        Write-Output "License group $defaultLicense not found!"
+        "License group $defaultLicense not found!"
         Write-Error "License group $defaultLicense not found!"
     }
     else {
-        Write-Output "Adding $userPrincipalName to $($group.displayName)"
+        "Adding $userPrincipalName to $($group.displayName)"
         Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
     }
 }
@@ -138,20 +138,20 @@ if ($defaultLicense -ne "") {
 $groupsArray = $defaultGroups.split(',')
 foreach ($groupname in $groupsArray) {
     if ($groupname -ne "") {
-        Write-Output "Searching default group $groupname."
+        "Searching default group $groupname."
         $group = Get-AzureADGroup -Filter "displayName eq `'$groupname`'" -ErrorAction SilentlyContinue
         if (-not $group) {
-            Write-Output "Group $groupname not found!" 
+            "Group $groupname not found!" 
             Write-Error "Group $groupname not found!"
         }
         else {
-            Write-Output "Adding $userPrincipalName to $($group.displayName)"
+            "Adding $userPrincipalName to $($group.displayName)"
             Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
         }
     }
 }
 
-Write-Output "Disconnecting from AzureAD."
+# "Disconnecting from AzureAD."
 Disconnect-AzureAD
 
 Write-Output "User $userPrincipalName successfully created. Initial PW: $initialPassword"
