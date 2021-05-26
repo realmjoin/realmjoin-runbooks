@@ -12,48 +12,47 @@ param(
 )
 
 #region module check
-$neededModule = "AzureAD"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "AzureAD"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
 #region Authentication
-$connectionName = "AzureRunAsConnection"
-
-# Get the connection "AzureRunAsConnection "
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
-
-write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
-try {
-    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId | Out-Null
-}
-catch {
-    Write-Error $_.Exception
-    throw "AzureAD login failed"
-}
+Connect-RjRbAzureAD
 #endregion
 
-#region main script
-write-output ("Find the user object " + $UserName) 
-$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "SilentlyContinue"
+
+# "Find the user object $UserName"
+$targetUser = Get-AzureADUser -ObjectId $UserName 
 if ($null -eq $targetUser) {
     throw ("User " + $UserName + " not found.")
 }
 
-Write-Output "Block user sign in"
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "Stop"
+
+"Block user sign in"
 Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false
 
-Write-Output "Revoke all refresh tokens"
+"Revoke all refresh tokens"
 Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId
 
-Write-Output "Sign out from AzureAD"
+# "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
 
-Write-Output ("User access for " + $UserName + " has been revoked.")
-#endregion
+"User access for " + $UserName + " has been revoked."

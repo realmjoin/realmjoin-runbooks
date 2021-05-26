@@ -24,15 +24,21 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 #region module check
-$neededModule = "ExchangeOnlineManagement"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    # "Module " + $neededModule + " is available."
-}
+Test-ModulePresent "ExchangeOnlineManagement"
 #endregion
 
 #region authentication

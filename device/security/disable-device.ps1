@@ -18,72 +18,58 @@ param(
 )
 
 
-#region module check
-$neededModule = "AzureAD"
+#region Module check
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
-
-$neededModule = "MEMPSToolkit"
-
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "RealmJoin.RunbookHelper"
+Test-ModulePresent "MEMPSToolkit"
+Test-ModulePresent "AzureAD"
 #endregion
 
 #region Authentication
-$connectionName = "AzureRunAsConnection"
+# "Connecting to AzureAD"
+Connect-RjRbAzureAD
 
-# Get the connection "AzureRunAsConnection "
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
-
-write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
-try {
-    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId -ErrorAction Stop | Out-Null
-}
-catch {
-    Write-Error $_.Exception
-    throw "AzureAD login failed"
-}
-
-$automationCredsName = "realmjoin-automation-cred"
-
-Write-Output "Connect to Graph API..."
-$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+# "Connect to Graph API..."
+Connect-RjRbGraph
 #endregion
 
-write-output "Searching DeviceId $DeviceID."
+# "Searching DeviceId $DeviceID."
 # Sadly, Get-AzureADDevices can not filter by deviceId. Will use MS Graph / MEMPSToolkit.
-$targetDevice = Get-AadDevices -deviceId $DeviceId -authToken $token
-if ($null -eq $targetDevice) {
+$targetDevice = Get-AadDevices -deviceId $DeviceId -authToken $Global:RjRbGraphAuthHeaders
+if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 
 
 if ($targetDevice.accountEnabled) {
-    Write-Output "Disabling device $($targetDevice.displayName) in AzureAD."
+    "Disabling device $($targetDevice.displayName) in AzureAD."
     # Sadly, MS Graph does not allow to disable a device using app credentials. Using AzureAD.
     try {
         Set-AzureADDevice -AccountEnabled $false -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
     }
     catch {
+        write-error $_
         throw "Disabling of device $($targetDevice.displayName) failed"
     }
 }
 else {
-    Write-Output "Device $($targetDevice.displayName) is already disabled in AzureAD."
+    "Device $($targetDevice.displayName) is already disabled in AzureAD."
 }
 
-Write-Output "Disconnecting from AzureAD"
+# "Disconnecting from AzureAD"
 Disconnect-AzureAD
 
-Write-Output "Device $($targetDevice.displayName) with DeviceId $DeviceId is disabled."
+"Device $($targetDevice.displayName) with DeviceId $DeviceId is disabled."
 

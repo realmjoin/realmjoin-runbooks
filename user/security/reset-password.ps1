@@ -16,55 +16,56 @@ param(
 [String] $initialPassword = ""
 
 #region module check
-$neededModule = "AzureAD"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "AzureAD"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
 #region Authentication
-$connectionName = "AzureRunAsConnection"
-
-# Get the connection "AzureRunAsConnection "
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
-
-write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
-try {
-    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId | Out-Null
-}
-catch {
-    Write-Error $_.Exception
-    throw "AzureAD login failed"
-}
+Connect-RjRbAzureAD
 #endregion
 
-write-output ("Find the user object " + $UserName) 
-$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "SilentlyContinue"
+
+# "Find the user object $UserName"
+$targetUser = Get-AzureADUser -ObjectId $UserName 
 if ($null -eq $targetUser) {
     throw ("User " + $UserName + " not found.")
 }
 
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "Stop"
+
 if ($enableUserIfNeeded) {
-    Write-Output "Enable user sign in"
+    "Enable user sign in"
     Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $true
 }
 
 if ($initialPassword -eq "") {
     $initialPassword = ("Reset" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
-    Write-Output ("Generating initial PW: " + $initialPassword)
+    "Generating initial PW: $initialPassword"
 }
 
 $encPassword = ConvertTo-SecureString -String $initialPassword -AsPlainText -Force
 
-Write-Output ("Setting PW for user " + $UserName + ". User will have to change PW at next login.")
+"Setting PW for user " + $UserName + ". User will have to change PW at next login."
 Set-AzureADUserPassword -ObjectId $targetUser.ObjectId -Password $encPassword -ForceChangePasswordNextLogin $true
 
-Write-Output "Sign out from AzureAD"
+# "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
 
-Write-Output ("Password for " + $UserName + " has been reset to: " + $initialPassword)
+"Password for $UserName has been reset to: $initialPassword"

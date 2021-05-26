@@ -5,6 +5,8 @@
 #
 # Permissions:
 # - AzureAD Role: User administrator
+#
+# If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
 
 #Requires -Module AzureAD, RealmJoin.RunbookHelper
 
@@ -15,41 +17,44 @@ param(
     [String] $UserName
 )
 
-#region module check
-$neededModule = "AzureAD"
+#region Module check
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "AzureAD"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
-#region authentication
-$connectionName = "AzureRunAsConnection"
-
-# Get the connection "AzureRunAsConnection"
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
-
-write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
-try {
-    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId | Out-Null
-}
-catch {
-    Write-Error $_
-    throw "AzureAD login failed"
-}
+#region Authentication
+# "Connecting to AzureAD"
+Connect-RjRbAzureAD
 #endregion
 
-write-output ("Find the user object " + $UserName) 
-$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
-if ($null -eq $targetUser) {
-    throw ("User " + $UserName + " not found.")
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "SilentlyContinue"
+
+"Find the user object $UserName"
+$targetUser = Get-AzureADUser -ObjectId $UserName 
+if (-not $targetUser) {
+    throw ("User $UserName not found.")
 }
 
-write-output ("Download the photo from URI " + $photoURI)
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "Stop"
+
+
+"Download the photo from URI $photoURI"
 try {
     # "ImageByteArray" is broken in PS5, so will use a file.
     #$photo = (Invoke-WebRequest -Uri $photoURI -UseBasicParsing).Content
@@ -57,21 +62,21 @@ try {
 }
 catch {
     Write-Error $_
-    throw ("Photo download from " + $photoURI + " failed.")
+    throw ("Photo download from $photoURI failed.")
 }
 
-Write-Output "Set profile picture for user"
+"Set profile picture for user"
 # "ImageByteArray" is broken in PS5, so will use a file.
 # Set-AzureADUserThumbnailPhoto -ImageByteArray $photo -ObjectId $targetUser.ObjectId 
 try {
-    Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId -ErrorAction Stop
+    Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId 
 } catch {
     Write-Error $_
     Disconnect-AzureAD -Confirm:$false
     throw "Setting photo failed."
 }
 
-Write-Output "Sign out from AzureAD"
+# "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
 
-Write-Output ("Updating profile photo for " + $UserName + " succeded.")
+"Updating profile photo for $UserName succeded."

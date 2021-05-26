@@ -15,37 +15,42 @@ param(
 )
 
 #region module check
-$neededModule = "MEMPSToolkit"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "MEMPSToolkit"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
 #region authentication
-$automationCredsName = "realmjoin-automation-cred"
-
-Write-Output "Connect to Graph API..."
-$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
+# "Connecting to MS Graph"
+Connect-RjRbGraph
 #endregion
 
-Write-Output ("Fetch policy " + $configPolicyID)
-$confpol = Get-DeviceConfigurationById -authToken $token -configId $configPolicyID
+"Fetch policy $configPolicyID"
+$confpol = Get-DeviceConfigurationById -authToken $Global:RjRbGraphAuthHeaders -configId $configPolicyID
 
-Write-Output ("New name: " + $confpol.displayName + " - Copy")
+"New name: $($confpol.displayName) - Copy"
 $confpol.displayName = ($confpol.displayName + " - Copy")
 
-Write-Output ("Fetch all policies, check new policy name does not exist...")
-$allPols = Get-DeviceConfigurations -authToken $token
+"Fetch all policies, check new policy name does not exist..."
+$allPols = Get-DeviceConfigurations -authToken $Global:RjRbGraphAuthHeaders
 if ($null -ne ($allPols | Where-Object { $_.displayName -eq $confpol.displayName })) { 
     throw ("Target Policyname `"" + $confpol.displayName + "`" already exists.")
 } 
 
-Write-Output ("Import new policy")
-Add-DeviceConfiguration -authToken $token -config $confpol | Out-Null
+"Import new policy"
+Add-DeviceConfiguration -authToken $Global:RjRbGraphAuthHeaders -config $confpol | Out-Null
 
-Write-Output ("Policy " + $confpol.displayName + " has been successfully created.")
+"Policy " + $confpol.displayName + " has been successfully created."

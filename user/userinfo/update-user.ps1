@@ -23,44 +23,47 @@ param (
 
 )
 
-#region module check
-$neededModule = "AzureAD"
+#region Module check
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "AzureAD"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
 #region Authentication
-$connectionName = "AzureRunAsConnection"
-
-# Get the connection "AzureRunAsConnection "
-$servicePrincipalConnection = Get-AutomationConnection -Name $connectionName
-
-write-output "Authenticate to AzureAD with AzureRunAsConnection..." 
-try {
-    Connect-AzureAD -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint -ApplicationId $servicePrincipalConnection.ApplicationId -TenantId $servicePrincipalConnection.TenantId -ErrorAction Stop | Out-Null
-}
-catch {
-    Write-Error $_.Exception
-    throw "AzureAD login failed"
-}
+# "Connecting to AzureAD"
+Connect-RjRbAzureAD
 #endregion
 
-write-output ("Searching for user $UserName.") 
-$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
-if ($null -eq $targetUser) {
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "SilentlyContinue"
+
+# "Searching for user $UserName."
+$targetUser = Get-AzureADUser -ObjectId $UserName 
+if (-not $targetUser) {
     throw ("User $UserName not found.")
 }
+
+
+# Bug in AzureAD Module when using ErrorAction
+$ErrorActionPreference = "Stop"
 
 #region atomic changes
 if ($givenName) {
     try {
-        Write-Output "Setting givenName to `"$givenName`""
+        "Setting givenName to `"$givenName`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -GivenName $givenName 
     }
     catch {
@@ -70,7 +73,7 @@ if ($givenName) {
 
 if ($surname) {
     try {
-        Write-Output "Setting surname to `"$surname`""
+        "Setting surname to `"$surname`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -Surname $surname
     }
     catch {
@@ -80,7 +83,7 @@ if ($surname) {
 
 if ($displayName) {
     try {
-        Write-Output "Setting displayName to `"$displayName`""
+        "Setting displayName to `"$displayName`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -DisplayName $displayName
     }
     catch {
@@ -90,7 +93,7 @@ if ($displayName) {
 
 if ($companyName) {
     try {
-        Write-Output "Setting companyName to `"$companyName`""
+        "Setting companyName to `"$companyName`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -CompanyName $companyName
     }
     catch {
@@ -100,7 +103,7 @@ if ($companyName) {
 
 if ($city) {
     try {
-        Write-Output "Setting city to `"$city`""
+        "Setting city to `"$city`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -City $city
     }
     catch {
@@ -110,7 +113,7 @@ if ($city) {
 
 if ($country) {
     try {
-        Write-Output "Setting country to `"$country`""
+        "Setting country to `"$country`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -Country $country
     }
     catch {
@@ -120,7 +123,7 @@ if ($country) {
 
 if ($jobTitle) {
     try {
-        Write-Output "Setting jobTitle to `"$jobTitle`""
+        "Setting jobTitle to `"$jobTitle`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -JobTitle $jobTitle
     }
     catch {
@@ -131,7 +134,7 @@ if ($jobTitle) {
 # Be aware - naming difference local AD and AzureAD!
 if ($officeLocation) {
     try {
-        Write-Output "Setting officeLocation to `"$officeLocation`""
+        "Setting officeLocation to `"$officeLocation`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -PhysicalDeliveryOfficeName $officeLocation
     }
     catch {
@@ -141,7 +144,7 @@ if ($officeLocation) {
 
 if ($postalCode) {
     try {
-        Write-Output "Setting postalCode to `"$postalCode`""
+        "Setting postalCode to `"$postalCode`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -PostalCode $postalCode
     }
     catch {
@@ -151,7 +154,7 @@ if ($postalCode) {
 
 if ($preferredLanguage) {
     try {
-        Write-Output "Setting preferredLanguage to `"$preferredLanguage`""
+        "Setting preferredLanguage to `"$preferredLanguage`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -PreferredLanguage $preferredLanguage
     }
     catch {
@@ -161,7 +164,7 @@ if ($preferredLanguage) {
 
 if ($state) {
     try {
-        Write-Output "Setting state to `"$state`""
+        "Setting state to `"$state`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -State $state
     }
     catch {
@@ -171,7 +174,7 @@ if ($state) {
 
 if ($streetAddress) {
     try {
-        Write-Output "Setting streetAddress to `"$streetAddress`""
+        "Setting streetAddress to `"$streetAddress`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -StreetAddress $streetAddress
     }
     catch {
@@ -181,7 +184,7 @@ if ($streetAddress) {
 
 if ($usageLocation) {
     try {
-        Write-Output "Setting usageLocation to `"$usageLocation`""
+        "Setting usageLocation to `"$usageLocation`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -UsageLocation $usageLocation
     }
     catch {
@@ -191,23 +194,23 @@ if ($usageLocation) {
 #endregion
 
 #load new state from AzureAD
-$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
+$targetUser = Get-AzureADUser -ObjectId $UserName
 
 #region inference updates
-if (($null -eq $targetUser.DisplayName) -and ($null -ne $targetUser.GivenName) -and ($null -ne $targetUser.Surname)) {
+if ((-not $targetUser.DisplayName) -and ($targetUser.GivenName) -and ($targetUser.Surname)) {
     $displayName = ($targetUser.GivenName + " " + $targetUser.Surname)
     try {
-        Write-Output "Setting displayName to `"$displayName`""
+        "Setting displayName to `"$displayName`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -DisplayName $displayName
     }
     catch {
         throw "Updating user object failed!"
     }
     
-} elseif ($null -eq $targetUser.DisplayName) {
+} elseif (-not $targetUser.DisplayName) {
     $displayName = $targetUser.MailNickName
     try {
-        Write-Output "Setting displayName to `"$displayName`""
+        "Setting displayName to `"$displayName`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -DisplayName $displayName
     }
     catch {
@@ -215,10 +218,10 @@ if (($null -eq $targetUser.DisplayName) -and ($null -ne $targetUser.GivenName) -
     }
 }
 
-if ($null -eq $targetUser.Company) {
+if (-not $targetUser.CompanyName) {
     $companyName = (Get-AzureADTenantDetail).DisplayName
     try {
-        Write-Output "Setting companyName to `"$companyName`""
+        "Setting companyName to `"$companyName`""
         Set-AzureADUser -ObjectId $targetUser.ObjectId -CompanyName $companyName
     }
     catch {
@@ -227,7 +230,7 @@ if ($null -eq $targetUser.Company) {
 }
 #endregion
 
-Write-Output "Disconnecting from AzureAD."
+"Disconnecting from AzureAD."
 Disconnect-AzureAD
 
-Write-Output "User $UserName successfully updated."
+"User $UserName successfully updated."

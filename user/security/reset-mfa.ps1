@@ -9,42 +9,47 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [String]$UserName,
-    [String]$OrganizationID
+    [String]$UserName
 )
 
 #region module check
-$neededModule = "MEMPSToolkit"
+function Test-ModulePresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$neededModule
+    )
+    if (-not (Get-Module -ListAvailable $neededModule)) {
+        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
+    }
+    else {
+        Import-Module $neededModule
+        # "Module " + $neededModule + " is available."
+    }
+}
 
-if (-not (Get-Module -ListAvailable $neededModule)) {
-    throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-}
-else {
-    Import-Module $neededModule
-    Write-Output ("Module " + $neededModule + " is available.")
-}
+Test-ModulePresent "MEMPSToolkit"
+Test-ModulePresent "RealmJoin.RunbookHelper"
 #endregion
 
-# Automation credentials
-$automationCredsName = "realmjoin-automation-cred"
+#region Authentication
+# "Connect to Graph API..."
+Connect-RjRbGraph
+#endregion
 
-Write-Output "Connect to Graph API..."
-$token = Get-AzAutomationCredLoginToken -tenant $OrganizationID -automationCredName $automationCredsName
-
-write-output ("Find mobile phone auth. methods for user " + $UserName) 
-$phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
+# "Find mobile phone auth. methods for user $UserName"
+$phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
 if ($phoneAMs) {
-    write-output "Mobile phone methods found."
+   "Mobile phone methods found."
 } else {
-    write-output "No mobile phone methods found."
+   "No mobile phone methods found."
 }
 
-write-output ("Find Authenticator App auth methods for user " + $UserName)
-$appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $token
+# "Find Authenticator App auth methods for user $UserName"
+$appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
 if ($appAMs) {
-    write-output "Apps methods found."
+    "Apps methods found."
 } else {
-    write-output "No apps methods found."
+    "No apps methods found."
 }
 
 [int]$count = 0
@@ -52,46 +57,46 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     $count++;
 
     $phoneAMs | ForEach-Object {
-        write-output ("try to remove mobile phone method, id: " + $_.id) 
+        "trying to remove mobile phone method, id: $($_.id)"
         try {
-            Remove-AADUserPhoneAuthMethod -userID $UserName -authId $_.id -authToken $token
+            Remove-AADUserPhoneAuthMethod -userID $UserName -authId $_.id -authToken $Global:RjRbGraphAuthHeaders
         } catch {
-            write-output "Failed or not found. "
+            "Failed or not found. "
         }
     }
 
     $appAMs | ForEach-Object {
-        write-output ("try to remove app method, id: " + $_.id) 
+        "trying to remove app method, id: $($_.id)" 
         try {
-            Remove-AADUserMSAuthenticatorMethod -userID $UserName -authId $_.id -authToken $token
+            Remove-AADUserMSAuthenticatorMethod -userID $UserName -authId $_.id -authToken $Global:RjRbGraphAuthHeaders
         } catch {
-            write-output "Failed or not found. "
+            "Failed or not found. "
         }
     }
 
-    Write-Output "Waiting 10 sec. (AuthMethod removal is not immediate)"
+    "Waiting 10 sec. (AuthMethod removal is not immediate)"
     Start-Sleep -Seconds 10
 
-    write-output ("Find mobile phone auth. methods for user " + $UserName) 
-    $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $token
+    # "Find mobile phone auth. methods for user $UserName "
+    $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
     if ($phoneAMs) {
-        write-output "Mobile phone methods found."
+        "Mobile phone methods found."
     } else {
-        write-output "No mobile phone methods found."
+        "No mobile phone methods found."
     }
     
-    write-output ("Find Authenticator App auth methods for user " + $UserName)
-    $appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $token
+    # "Find Authenticator App auth methods for user $UserNamer"
+    $appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
     if ($appAMs) {
-        write-output "Apps methods found."
+        "Apps methods found."
     } else {
-        write-output "No apps methods found."
+        "No apps methods found."
     }
     
 }
 
 if ($count -le 3) {
-    Write-Output ("All App and Mobile Phone MFA methods for " + $UserName + " successfully removed.")
+    "All App and Mobile Phone MFA methods for $UserName successfully removed."
 } else {
-    Write-Output ("Could not remove all App and Mobile Phone MFA methods for " + $UserName + ". Please review.")
+    "Could not remove all App and Mobile Phone MFA methods for $UserName. Please review."
 }
