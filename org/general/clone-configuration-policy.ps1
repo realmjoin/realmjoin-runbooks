@@ -6,7 +6,7 @@
 # - The automations creds in "realmjoin-automation-cred" correlate to an AppRegsitration and are able to sign in to MS Graph and have the enough permissions
 #
 
-#Requires -Modules MEMPSToolkit, RealmJoin.RunbookHelper
+#Requires -Modules MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]

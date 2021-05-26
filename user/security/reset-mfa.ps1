@@ -5,7 +5,7 @@
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
-#Requires -Modules MEMPSToolkit, RealmJoin.RunbookHelper
+#Requires -Modules MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]

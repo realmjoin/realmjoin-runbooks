@@ -1,6 +1,6 @@
 # This runbook is intended to orchestrate the different steps to temporarily offboard a user. This can be cases like parental leaves or sabaticals. 
 
-#Requires -Modules AzureAD, RealmJoin.RunbookHelper, Az.Storage
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, Az.Storage
 
 param (
     [Parameter(Mandatory = $true)]

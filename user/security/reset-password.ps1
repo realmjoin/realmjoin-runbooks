@@ -4,7 +4,7 @@
 # Permissions:
 # - AzureAD Role: User administrator
 
-#Requires -Modules AzureAD, RealmJoin.RunbookHelper
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]

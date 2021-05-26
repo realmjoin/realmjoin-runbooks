@@ -8,7 +8,7 @@
 # Roles (AzureAD):
 # - Cloud Device Administrator
 
-#Requires -Module AzureAD, RealmJoin.RunbookHelper, MEMPSToolkit
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, MEMPSToolkit
 
 param(
     [Parameter(Mandatory = $true)]

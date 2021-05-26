@@ -8,7 +8,7 @@
 #
 # If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
 
-#Requires -Module AzureAD, RealmJoin.RunbookHelper
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]

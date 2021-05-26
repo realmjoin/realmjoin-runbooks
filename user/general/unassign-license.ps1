@@ -6,7 +6,7 @@
 #  AzureAD Roles
 #   - User administrator
 
-#Requires -Module MEMPSToolkit, RealmJoin.RunbookHelper
+#Requires -Module MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]

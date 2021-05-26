@@ -7,7 +7,7 @@
 # Azure AD Roles
 #  - Exchange administrator
 
-#Requires -Module ExchangeOnlineManagement, RealmJoin.RunbookHelper
+#Requires -Module ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
 param
 (

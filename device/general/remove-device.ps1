@@ -10,7 +10,7 @@
 # - DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
 # - DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
 
-#Requires -Module RealmJoin.RunbookHelper, MEMPSToolkit
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, MEMPSToolkit
 
 param (
     [Parameter(Mandatory = $true)]
