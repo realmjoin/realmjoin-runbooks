@@ -1,4 +1,4 @@
-# This runbook is intended to orchestrate the different steps to temporarily offboard a user. This can be cases like parental leaves or sabaticals. 
+# This runbook is intended to orchestrate the different steps to permanently offboard a user. 
 
 #Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, Az.Storage
 
@@ -12,7 +12,7 @@ Connect-RjRbAzureAD
 
 #region configuration import
 # "Getting Process configuration URL"
-$processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverTemporary" 
+$processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverPermanent" 
 Write-RjRbDebug "Process Config URL is $($processConfigURL)"
 # "Getting Process configuration"
 $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
@@ -66,6 +66,17 @@ if ($processConfig.exportGroupMemberships) {
 "Uploading list of memberships. This might overwrite older versions."
 Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
 Disconnect-AzAccount -Confirm:$false | Out-Null
+#endregion
+
+#region delete user
+if ($processConfig.deleteUser) {
+    "Deleting User Object $UserName"
+    Remove-AzureADUser -ObjectId $targetUser.ObjectId
+    Disconnect-AzureAD -Confirm:$false | Out-Null
+    "Offboarding of $($UserName) successful."
+    # Script ends here
+    exit
+}
 #endregion
 
 #region Change license (group membership)
@@ -136,4 +147,4 @@ if ($processConfig.removeMFAMethods) {
 # "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false | Out-Null
 
-"Temporary offboarding of $($UserName) successful."
+"Offboarding of $($UserName) successful."
