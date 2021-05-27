@@ -7,65 +7,29 @@ param (
     [String] $UserName
 )
 
-#region module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "AzureAD"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-Test-ModulePresent "Az.Storage"
-#endregion
-
-#region RJ RunbookHelper
-function Connect-RjRbAz {
-    [CmdletBinding()]
-    param (
-        [string] $AutomationConnectionName = "AzureRunAsConnection"
-    )
-
-    if ($RjRbRunningInAzure) {
-        Write-RjRbLog "Getting automation connection '$AutomationConnectionName'"
-        $autoCon = Get-AutomationConnection -Name $AutomationConnectionName
-    }
-    else {
-        $autoCon = devGetAutomationConnectionFromLocalCertificate -Name $AutomationConnectionName
-    }
-
-    Write-RjRbLog "Connecting with Az module" $autoCon
-    Connect-AzAccount -ServicePrincipal -CertificateThumbprint $autoCon.CertificateThumbprint -ApplicationId $autoCon.ApplicationId -Tenant $autoCon.TenantId -EA Stop | Out-Null
-}
-#endregion 
-
-Write-Output "Getting Process configuration URL"
-$processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverTemporary" -ErrorAction Stop
-Write-Output "Process Config URL is $($processConfigURL)"
-Write-Output "Getting Process configuration"
-$webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL -ErrorAction Stop
-$processConfig = $webResult.Content | ConvertFrom-Json
-
-#region Authentication
+# Connect Azure AD
 Connect-RjRbAzureAD
-# AzureAD Module is broken in regards to ErrorAction.
-$ErrorActionPreference = "SilentlyContinue"
+
+#region configuration import
+# "Getting Process configuration URL"
+$processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverTemporary" 
+Write-RjRbDebug "Process Config URL is $($processConfigURL)"
+# "Getting Process configuration"
+$webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+$processConfig = $webResult.Content | ConvertFrom-Json
 #endregion
+
 
 #region Get User object
 "Finding the user object $UserName"
-$targetUser = Get-AzureADUser -ObjectId $UserName -ErrorAction SilentlyContinue
+# AzureAD Module is broken in regards to ErrorAction.
+$ErrorActionPreference = "SilentlyContinue"
+$targetUser = Get-AzureADUser -ObjectId $UserName
 if (-not $targetUser) {
     throw ("User " + $UserName + " not found.")
 }
+# AzureAD Module is broken in regards to ErrorAction.
+$ErrorActionPreference = "Stop"
 #endregion
 
 #region Disable user
@@ -76,49 +40,55 @@ if ($processConfig.disableUser) {
 #endregion
 
 #region Export / Backup group and DL memberships
-"Getting list of group and role memberships for user $UserName." 
+# "Getting list of group and role memberships for user $UserName." 
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
 $memberships = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId -All $true
-$memberships | Select-Object -Property "DisplayName","ObjectId" | ConvertTo-Json > memberships.txt
-#Write-Output "Connectint to Azure Storage Account"
+$memberships | Select-Object -Property "DisplayName", "ObjectId" | ConvertTo-Json > memberships.txt
+# "Connectint to Azure Storage Account"
 if ($processConfig.exportGroupMemberships) {
     # "Connecting to Az module..."
-    Connect-RjRbAz
+    Connect-RjRbAzAccount
     # Get Resource group and storage account
-    $AzAAResourceGroup = Get-AutomationVariable -name "AzAAResourceGroup" -ErrorAction Stop
+    $AzAAResourceGroup = Get-AutomationVariable -name "AzAAResourceGroup" 
     $storAccount = Get-AzStorageAccount -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "Creating Azure Storage Account $($processConfig.exportStorAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName -Location $processConfig.exportStorAccountLocation -SkuName $processConfig.exportStorAccountSKU -ErrorAction Stop
+        $storAccount = New-AzStorageAccount -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName -Location $processConfig.exportStorAccountLocation -SkuName $processConfig.exportStorAccountSKU 
     }
     $keys = Get-AzStorageAccountKey -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName
     $context = New-AzStorageContext -StorageAccountName $processConfig.exportStorAccountName -StorageAccountKey $keys[0].Value
     $container = Get-AzStorageContainer -Name $processConfig.exportStorContainerGroupMembershipExports -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
         "Creating Azure Storage Account Container $($processConfig.exportStorContainerGroupmembershipExports)"
-        $container = New-AzStorageContainer -Name $processConfig.exportStorContainerGroupmembershipExports -Context $context -ErrorAction Stop
+        $container = New-AzStorageContainer -Name $processConfig.exportStorContainerGroupmembershipExports -Context $context 
     }
 }
 "Uploading list of memberships. This might overwrite older versions."
-Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force -ErrorAction Stop | Out-Null
-Disconnect-AzAccount -Confirm:$false
+Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
+Disconnect-AzAccount -Confirm:$false | Out-Null
 #endregion
 
 #region Change license (group membership)
 if ($processConfig.changeLicenses) {
     # Add new licensing group, if not already assigned
     $processConfig.licenseGroupsToAdd | ForEach-Object {
-        $group =  Get-AzureADGroup -Filter "DisplayName eq `'$_`'" 
+        $group = Get-AzureADGroup -Filter "DisplayName eq `'$_`'" 
         "Adding License group $_ to user $UserName"
-        Add-AzureADGroupMember -RefObjectId $targetUser.ObjectID -ObjectId $group.ObjectID -ErrorAction Continue
+        # AzureAD is broken in regards to ErrorAction...
+        $ErrorActionPreference = "Continue"
+        Add-AzureADGroupMember -RefObjectId $targetUser.ObjectID -ObjectId $group.ObjectID
+        $ErrorActionPreference = "Stop"
     }
 
     # Remove all other known licensing groups
     $groups = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId
-    $groups | Where-Object { $_.DisplayName.startswith($processConfig.licenseGroupsToRemovePrefix)} | ForEach-Object {
+    $groups | Where-Object { $_.DisplayName.startswith($processConfig.licenseGroupsToRemovePrefix) } | ForEach-Object {
         if (-not $processConfig.licenseGroupsToAdd.contains($_.DisplayName)) {
             "Removing license group $($_.DisplayName) from $UserName"
-            Remove-AzureADGroupMember -MemberId $targetUser.ObjectId -ObjectId $_.ObjectID -ErrorAction Continue
+            # AzureAD is broken in regards to ErrorAction...
+            $ErrorActionPreference = "Continue"
+            Remove-AzureADGroupMember -MemberId $targetUser.ObjectId -ObjectId $_.ObjectID
+            $ErrorActionPreference = "Stop"
         }
     }
 }
@@ -126,18 +96,18 @@ if ($processConfig.changeLicenses) {
 
 #region grant other user access to mailbox
 if ($processConfig.grantAccessToMailbox) {
-##TODO
+    ##TODO
 }
 #endregion
 
 #region hide mailbox in adresslist
 if ($processConfig.hideFromAddresslist) {
-##TODO
+    ##TODO
 }
 
 #region out of office message
 if ($processConfig.setOutOfOffice) {
-##TODO
+    ##TODO
 }
 #endregion
 
@@ -147,7 +117,7 @@ if ($processConfig.setOutOfOffice) {
 
 #region remove MFA methods
 if ($processConfig.removeMFAMethods) {
-##TODO    
+    ##TODO    
 }
 #endregion
 
@@ -163,9 +133,7 @@ if ($processConfig.removeMFAMethods) {
 ##TODO
 #endregion
 
-#region finishing
-"Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false
+# "Sign out from AzureAD"
+Disconnect-AzureAD -Confirm:$false | Out-Null
 
 "Temporary offboarding of $($UserName) successful."
-#endregion
