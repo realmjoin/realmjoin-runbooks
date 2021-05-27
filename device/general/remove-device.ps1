@@ -5,7 +5,7 @@
 # - this runbook uses MS Graph "Beta" functionality and might break at some point.
 # - https://docs.microsoft.com/en-us/graph/api/device-delete?view=graph-rest-1.0&tabs=http says we can not use API permissions to delete AzureAD devices, but it works (now). Might break.
 #
-# Permissions (API):
+# Permissions, Graph, API:
 # - DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
 # - DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
 # - DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
