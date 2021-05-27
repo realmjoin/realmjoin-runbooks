@@ -68,6 +68,7 @@ Set-AzStorageBlobContent -File "memberships.txt" -Container $processConfig.expor
 Disconnect-AzAccount -Confirm:$false | Out-Null
 #endregion
 
+#region delete user
 if ($processConfig.deleteUser) {
     "Deleting User Object $UserName"
     Remove-AzureADUser -ObjectId $targetUser.ObjectId
@@ -76,6 +77,7 @@ if ($processConfig.deleteUser) {
     # Script ends here
     exit
 }
+#endregion
 
 #region Change license (group membership)
 if ($processConfig.changeLicenses) {
