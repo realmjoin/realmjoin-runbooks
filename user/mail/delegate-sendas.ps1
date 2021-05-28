@@ -30,4 +30,4 @@ if ($Remove)
     "SendAs Permission for $delegateTo added to mailbox  $UserName"
 }
 
-Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
