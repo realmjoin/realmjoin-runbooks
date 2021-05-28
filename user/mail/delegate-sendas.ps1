@@ -2,12 +2,24 @@
 
 param
 (
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
     [bool] $Remove = $false
 )
 
+$VerbosePreference = "SilentlyContinue"
+
 Connect-RjRbExchangeOnline
+
+# Check if User has a mailbox
+# No need to check trustee for a mailbox with "SendAs"
+$user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
+if (-not $user) {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    throw "User $userName has no mailbox."
+}
 
 if ($Remove)
 {
