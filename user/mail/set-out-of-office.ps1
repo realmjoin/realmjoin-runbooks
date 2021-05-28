@@ -4,12 +4,14 @@ param
 (
     [Parameter(Mandatory = $true)] [string] $UserName,
     [Parameter(Mandatory = $true)] [string] $CallerName,
-    [datetime] $Start,
-    [datetime] $End,
+    [datetime] $Start = (get-date),
+    [datetime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Intern,
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Extern,
-    [switch] $Disable
+    [bool] $Disable = $false
 )
+$VerbosePreference = "SilentlyContinue"
+
 $VerbosePreference = "SilentlyContinue"
 
 Write-RjRbLog "Set Out Of Office settings initialized by '$CallerName' for '$UserName'"
@@ -28,6 +30,6 @@ else {
 
 Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
 
-Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Continue
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 
 "Successfully updated Out Of Office settings for user '$UserName'."

@@ -8,6 +8,8 @@ param
     [bool] $asPrimary = $false
 )
 
+$VerbosePreference = "SilentlyContinue"
+
 Connect-RjRbExchangeOnline
 
 # Get User / Mailbox

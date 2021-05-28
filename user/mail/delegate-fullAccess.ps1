@@ -6,6 +6,7 @@ param
     [Parameter(Mandatory = $true)] [string] $UserName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
+    [bool] $AutoMapping = $false,
     [bool] $Remove = $false
 )
 
@@ -14,7 +15,7 @@ $VerbosePreference = "SilentlyContinue"
 Connect-RjRbExchangeOnline
 
 # Check if User has a mailbox
-# No need to check trustee for a mailbox with "SendAs"
+# No need to check trustee for a mailbox with "FullAccess"
 $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
 if (-not $user) {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -23,11 +24,13 @@ if (-not $user) {
 
 if ($Remove)
 {
-    Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-    "SendAs Permission for $delegateTo removed from mailbox $UserName"
+    # Remove access
+    Remove-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
+    "FullAccess Permission for $delegateTo removed from mailbox $UserName"
 } else {
-    Add-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-    "SendAs Permission for $delegateTo added to mailbox  $UserName"
+    # Add access
+    Add-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+    "FullAccess Permission for $delegateTo added to mailbox  $UserName"
 }
 
 Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
