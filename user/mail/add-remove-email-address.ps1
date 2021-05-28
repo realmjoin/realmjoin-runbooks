@@ -12,31 +12,32 @@ Connect-RjRbExchangeOnline
 
 # Get User / Mailbox
 $mailbox = Get-EXOMailbox -UserPrincipalName $UserName
-# Is the alias present?
-foreach ($existingAddress in $mailbox.EmailAddresses) {
-    if ($existingAddress -eq "smtp:$eMailAddress") {
-        if ($Remove) {
-            # Remove email address
-            Set-Mailbox -Identity $UserName -EmailAddresses @{remove = "$eMailAddress" }
-            "Alias $eMailAddress is removed from user $UserName"
-            Disconnect-ExchangeOnline -Confirm:$false | Out-Null
-            exit
+
+if ($mailbox.EmailAddresses -icontains "smtp:$eMailAddress") {
+    # eMail-Address is already present
+    if ($Remove) {
+        # Remove email address
+        Set-Mailbox -Identity $UserName -EmailAddresses @{remove = "$eMailAddress" }
+        "Alias $eMailAddress is removed from user $UserName"
+    }
+    else {
+        "$eMailAddress is already assigned to user $UserName"
+    }
+} 
+else {
+    # eMail-Address is not present
+    if (-not $Remove) {
+        # Add email address    
+        if ($asPrimary) {
+            Set-Mailbox -Identity $UserName -EmailAddresses @{add = "SMTP:$eMailAddress" }
         }
         else {
-            # found email address
-            "$eMailAddress is already assigned to user $UserName"
-            Disconnect-ExchangeOnline -Confirm:$false | Out-Null
-            exit
+            Set-Mailbox -Identity $UserName -EmailAddresses @{add = "$eMailAddress" }
         }
+        "$eMailAddress successfully added to user $UserName"
+    } else {
+        "$eMailAddress is not assigned to user $UserName"
     }
 }
 
-# Not removed, not found - Add email address
-if ($asPrimary) {
-    Set-Mailbox -Identity $UserName -EmailAddresses @{add = "SMTP:$eMailAddress" }
-}
-else {
-    Set-Mailbox -Identity $UserName -EmailAddresses @{add = "$eMailAddress" }
-}
-"$eMailAddress successfully added to user $UserName."
-Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
