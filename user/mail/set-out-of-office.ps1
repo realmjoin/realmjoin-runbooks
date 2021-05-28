@@ -10,6 +10,7 @@ param
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Extern,
     [bool] $Disable = $false
 )
+$VerbosePreference = "SilentlyContinue"
 
 $VerbosePreference = "SilentlyContinue"
 
@@ -29,6 +30,6 @@ else {
 
 Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
 
-"Successfully updated Out Of Office settings for user '$UserName'."
-
 Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+
+"Successfully updated Out Of Office settings for user '$UserName'."
