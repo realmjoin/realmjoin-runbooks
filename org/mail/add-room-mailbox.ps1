@@ -6,7 +6,8 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [string] $delegateTo,
     [int] $capacity,
-    [bool] $autoAccept = $false
+    [bool] $autoAccept = $false,
+    [bool] $autoMapping = $false
 )
 
 $VerbosePreference = "SilentlyContinue"
@@ -34,7 +35,7 @@ if ($delegateTo) {
     # "Grant SendOnBehalf"
     $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
     # "Grant FullAccess"
-    $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+    $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $autoMapping -confirm:$false | Out-Null
     # Calendar delegation
     Set-CalendarProcessing -Identity $mailboxName -ResourceDelegates $delegateTo 
 }
