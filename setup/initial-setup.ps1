@@ -102,7 +102,3 @@ if ($null -eq $result) {
         }
     }
 }
-
-#region Add ClientSecret
-## TODO
-#endregion

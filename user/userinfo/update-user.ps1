@@ -1,6 +1,6 @@
 # This runbook will update fields of an existing user object.
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, AzureAD
 
 param (
     [Parameter(Mandatory = $true)]
@@ -67,4 +67,4 @@ Write-RjRbLog "Updating user object with the following properties" $userArgs
 Set-AzureADUser -ObjectId $targetUser.ObjectId @userArgs
 
 
-Write-Output "User '$UserName' successfully updated."
+"User '$UserName' successfully updated."
