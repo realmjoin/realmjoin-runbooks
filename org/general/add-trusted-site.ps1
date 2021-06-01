@@ -1,4 +1,7 @@
 # This will add one more entry to the intune configuration policy "Windows 10 - Trusted Sites" - if present
+#
+# Permissions: MS Graph API permissions:
+# - DeviceManagementConfiguration.ReadWrite.All
 
 # Requires #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
 
