@@ -8,6 +8,7 @@ Get-AzureADUser | Format-Table | Out-String
 
 Connect-RjRbExchangeOnline
 Get-EXOMailbox | Format-Table | Out-String
+Disconnect-ExchangeOnline
 
 Connect-RjRbGraph
 Invoke-RjRbRestMethodGraph "/users" -OdSelect displayName | Format-Table | Out-String
