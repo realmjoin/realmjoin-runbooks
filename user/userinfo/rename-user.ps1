@@ -14,9 +14,9 @@ param(
     # needs to be prefixed with "http://" / "https://"
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [Parameter(Mandatory = $true)] [string] $UserId,
-    [Parameter(Mandatory = $true)] [string] $NewUsername,
-    [bool] $SetMailnickname = $true,
-    [bool] $RemoveOldMail = $false
+    [Parameter(Mandatory = $true)] [string] $NewUpn,
+    [bool] $ChangeMailnickname = $true,
+    [bool] $RemoveOldEmail = $false
 )
 
 Connect-RjRbGraph
@@ -27,13 +27,13 @@ $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserId"
 
 ## Check if desired name is available
 ## Skip for now - rename will fail gracefully
-#$otherUser = Invoke-RjRbRestMethodGraph -resource "/users/$NewUsername" -ErrorAction SilentlyContinue
+#$otherUser = Invoke-RjRbRestMethodGraph -resource "/users/$NewUpn" -ErrorAction SilentlyContinue
 #if ($otherUser) {
-#    throw "Username '$NewUsername' is already taken"
+#    throw "Username '$NewUpn' is already taken"
 #}
 
 $body = @{
-    userPrincipalName = $NewUsername
+    userPrincipalName = $NewUpn
 }
 
 # Change UPN
@@ -43,14 +43,14 @@ Invoke-RjRbRestMethodGraph -resource "/users/$UserId" -Method Patch -Body $body
 $mailbox = Get-EXOMailbox -Identity $UserId -ErrorAction SilentlyContinue
 if ($mailbox) {
 
-    if ($SetMailnickname) {
-        Set-Mailbox -Identity $mailbox.Identity -Name $NewUsername.split('@')[0] -alias $NewUsername.split('@')[0]
+    if ($ChangeMailnickname) {
+        Set-Mailbox -Identity $mailbox.Identity -Name $NewUpn.split('@')[0] -alias $NewUpn.split('@')[0]
     }
 
     # Update
     $mailbox = Get-EXOMailbox -Identity $UserId -ErrorAction SilentlyContinue
     
-    if ($RemoveOldMail) {
+    if ($RemoveOldEmail) {
         if ($mailbox.EmailAddresses -icontains "smtp:$($userObject.UserPrincipalName)") {
             # Remove email address
             Set-Mailbox -Identity $mailbox.Identity -EmailAddresses @{remove = "$($userObject.UserPrincipalName)" }
@@ -58,7 +58,7 @@ if ($mailbox) {
     }
 }
     
-"User '$UserId' successfully renamed to '$NewUsername'"
+"User '$UserId' successfully renamed to '$NewUpn'"
 
 Disconnect-ExchangeOnline -ErrorAction SilentlyContinue -Confirm:$true | Out-Null
 
