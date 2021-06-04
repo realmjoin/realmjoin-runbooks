@@ -24,8 +24,8 @@ param(
 Connect-RjRbGraph
 Connect-RjRbExchangeOnline
 
-# Get original UPN
-$userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserId" 
+## Get original UPN
+# $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserId" 
 
 # Change UPN
 $body = @{
