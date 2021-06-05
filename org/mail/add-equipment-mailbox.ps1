@@ -1,4 +1,4 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)] [string] $mailboxName,
@@ -8,8 +8,6 @@ param (
     [bool] $autoAccept = $false,
     [bool] $autoMapping = $false
 )
-
-$VerbosePreference = "SilentlyContinue"
 
 Connect-RjRbExchangeOnline
 
