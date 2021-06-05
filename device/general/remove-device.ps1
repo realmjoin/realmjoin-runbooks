@@ -10,7 +10,7 @@
 # - DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
 # - DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, MEMPSToolkit
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, MEMPSToolkit
 
 param (
     [Parameter(Mandatory = $true)]
@@ -18,25 +18,6 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $OrganizationId
 )
-
-#region Module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "RealmJoin.RunbookHelper"
-Test-ModulePresent "MEMPSToolkit"
-#endregion
 
 #region Authentication
 # "Connect to Graph API..."
@@ -61,10 +42,7 @@ catch {
 # Remove from Intune
 # "Searching DeviceId $DeviceID in Intune."
 $mgdDevice = Get-ManagedDeviceByDeviceId -azureAdDeviceId $DeviceId -authToken $Global:RjRbGraphAuthHeaders
-if (-not $mgdDevice) {
-    "DeviceId $DeviceId not found in Intune."
-}
-else {
+if ($mgdDevice) {
     "Deleting DeviceId $DeviceID (Intune ID: $($mgdDevice.id)) from Intune"
     try {
         Remove-ManagedDevice -id $mgdDevice.id -authToken $Global:RjRbGraphAuthHeaders | Out-Null
@@ -77,10 +55,7 @@ else {
 # Remove from Autopilot
 # "Searching DeviceId $DeviceID in Autopilot."
 $apDevice = Get-WindowsAutopilotDeviceByDeviceId -azureAdDeviceId $DeviceId -authToken $Global:RjRbGraphAuthHeaders
-if (-not $apDevice) {
-    "DeviceId $DeviceId not found in Autopilot."
-}
-else {
+if ($apDevice) {
     "Deleting DeviceId $DeviceID (Autopilot ID: $($apDevice.id)) from Autopilot"
     try {
         Remove-WindowsAutopilotDevice -id $apDevice.id -authToken $Global:RjRbGraphAuthHeaders | Out-Null
