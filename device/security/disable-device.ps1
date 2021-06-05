@@ -8,7 +8,7 @@
 # Roles (AzureAD):
 # - Cloud Device Administrator
 
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, MEMPSToolkit
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, MEMPSToolkit
 
 param(
     [Parameter(Mandatory = $true)]
@@ -16,27 +16,6 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $OrganizationId
 )
-
-
-#region Module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "RealmJoin.RunbookHelper"
-Test-ModulePresent "MEMPSToolkit"
-Test-ModulePresent "AzureAD"
-#endregion
 
 #region Authentication
 # "Connecting to AzureAD"
