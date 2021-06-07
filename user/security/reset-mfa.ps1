@@ -5,52 +5,20 @@
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
-#Requires -Modules MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName
 )
 
-#region module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "MEMPSToolkit"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-#endregion
-
-#region Authentication
-# "Connect to Graph API..."
 Connect-RjRbGraph
-#endregion
 
-# "Find mobile phone auth. methods for user $UserName"
-$phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
-if ($phoneAMs) {
-   "Mobile phone methods found."
-} else {
-   "No mobile phone methods found."
-}
+# "Find phone auth. methods for user $UserName"
+$phoneAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Beta
 
 # "Find Authenticator App auth methods for user $UserName"
-$appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
-if ($appAMs) {
-    "Apps methods found."
-} else {
-    "No apps methods found."
-}
+$appAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/microsoftAuthenticatorMethods" -Beta
 
 [int]$count = 0
 while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
@@ -59,7 +27,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     $phoneAMs | ForEach-Object {
         "trying to remove mobile phone method, id: $($_.id)"
         try {
-            Remove-AADUserPhoneAuthMethod -userID $UserName -authId $_.id -authToken $Global:RjRbGraphAuthHeaders
+            Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($_.id)" -Method Delete -Beta | Out-Null
         } catch {
             "Failed or not found. "
         }
@@ -68,7 +36,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     $appAMs | ForEach-Object {
         "trying to remove app method, id: $($_.id)" 
         try {
-            Remove-AADUserMSAuthenticatorMethod -userID $UserName -authId $_.id -authToken $Global:RjRbGraphAuthHeaders
+            Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/microsoftAuthenticatorMethods/$($_.id)" -Method Delete -Beta | Out-Null
         } catch {
             "Failed or not found. "
         }
@@ -77,21 +45,11 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     "Waiting 10 sec. (AuthMethod removal is not immediate)"
     Start-Sleep -Seconds 10
 
-    # "Find mobile phone auth. methods for user $UserName "
-    $phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
-    if ($phoneAMs) {
-        "Mobile phone methods found."
-    } else {
-        "No mobile phone methods found."
-    }
+    # "Find phone auth. methods for user $UserName "
+    $phoneAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Beta
     
     # "Find Authenticator App auth methods for user $UserNamer"
-    $appAMs = Get-AADUserMSAuthenticatorMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
-    if ($appAMs) {
-        "Apps methods found."
-    } else {
-        "No apps methods found."
-    }
+    $appAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/microsoftAuthenticatorMethods" -Beta
     
 }
 

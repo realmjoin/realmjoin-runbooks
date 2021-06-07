@@ -9,10 +9,9 @@
 
 #Permissons -MSGraph Directory.Read.All:Api, User.ReadWrite.All:Api -ExchangeOnline Exchange.ManageAsApp:Api -AzureADRole "Application administrator"
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, MEMPSToolkit
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
 
 param(
-    # needs to be prefixed with "http://" / "https://"
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [Parameter(Mandatory = $true)] [string] $UserId,
     [Parameter(Mandatory = $true)] [string] $NewUpn,
@@ -31,7 +30,7 @@ Connect-RjRbExchangeOnline
 $body = @{
     userPrincipalName = $NewUpn
 }
-Invoke-RjRbRestMethodGraph -resource "/users/$UserId" -Method Patch -Body $body
+Invoke-RjRbRestMethodGraph -resource "/users/$UserId" -Method Patch -Body $body | Out-Null
 
 # Change eMail-Adresses
 $mailbox = Get-EXOMailbox -Identity $UserId -ErrorAction SilentlyContinue
@@ -51,23 +50,13 @@ if ($mailbox) {
             $mail = $address.Split(":")[1]
             
             if ($prefix -eq "smtp") {
-                if ($mail -eq $NewUpn ) {
-                    # Do nothing - primary email-address is already added
-                }
-                #elseif (($mail -eq $($userObject.UserPrincipalName)) -and $RemoveOldAddress) {
-                    # Do nothing - do not add old email-address
-                #}
-                else {
+                if ($mail -ne $NewUpn ) {
                     $newAdresses.Add($address.ToLower()) | Out-Null
                 }
-            }
-            else {
-                # not specifying the SIP address will automatically update it.
-                # $newAdresses.Add($address) | Out-Null
+               # not smtp: not specifying the SIP address will automatically update it.
             }
         }
-
-        Set-Mailbox -Identity $UserId -EmailAddresses $newAdresses
+        Set-Mailbox -Identity $UserId -EmailAddresses $newAdresses | Out-Null
     }
 }
     
