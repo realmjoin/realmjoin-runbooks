@@ -1,6 +1,6 @@
 # This runbook will update fields of an existing user object.
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, AzureAD
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, AzureAD
 
 param (
     [Parameter(Mandatory = $true)]
@@ -64,7 +64,7 @@ if (-not $targetUser.CompanyName -and -not $companyName) {
 }
 
 Write-RjRbLog "Updating user object with the following properties" $userArgs
-Set-AzureADUser -ObjectId $targetUser.ObjectId @userArgs
+Set-AzureADUser -ObjectId $targetUser.ObjectId @userArgs | Out-Null
 
 
 "User '$UserName' successfully updated."

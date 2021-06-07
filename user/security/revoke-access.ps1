@@ -11,28 +11,7 @@ param(
     [String] $UserName
 )
 
-#region module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "AzureAD"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-#endregion
-
-#region Authentication
 Connect-RjRbAzureAD
-#endregion
 
 # Bug in AzureAD Module when using ErrorAction
 $ErrorActionPreference = "SilentlyContinue"
@@ -40,19 +19,19 @@ $ErrorActionPreference = "SilentlyContinue"
 # "Find the user object $UserName"
 $targetUser = Get-AzureADUser -ObjectId $UserName 
 if ($null -eq $targetUser) {
-    throw ("User " + $UserName + " not found.")
+    throw ("User $UserName not found.")
 }
 
 # Bug in AzureAD Module when using ErrorAction
 $ErrorActionPreference = "Stop"
 
-"Block user sign in"
-Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false
+# "Block user sign in"
+Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false | Out-Null
 
-"Revoke all refresh tokens"
-Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId
+# "Revoke all refresh tokens"
+Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
 
 # "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false
+Disconnect-AzureAD -Confirm:$false | Out-Null
 
 "User access for " + $UserName + " has been revoked."

@@ -8,7 +8,7 @@
 #
 # If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
 
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -17,34 +17,12 @@ param(
     [String] $UserName
 )
 
-#region Module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "AzureAD"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-#endregion
-
-#region Authentication
-# "Connecting to AzureAD"
 Connect-RjRbAzureAD
-#endregion
 
 # Bug in AzureAD Module when using ErrorAction
 $ErrorActionPreference = "SilentlyContinue"
 
-"Find the user object $UserName"
+# "Find the user object $UserName"
 $targetUser = Get-AzureADUser -ObjectId $UserName 
 if (-not $targetUser) {
     throw ("User $UserName not found.")
@@ -53,30 +31,29 @@ if (-not $targetUser) {
 # Bug in AzureAD Module when using ErrorAction
 $ErrorActionPreference = "Stop"
 
-
-"Download the photo from URI $photoURI"
+# "Download the photo from URI $photoURI"
 try {
     # "ImageByteArray" is broken in PS5, so will use a file.
     #$photo = (Invoke-WebRequest -Uri $photoURI -UseBasicParsing).Content
-    Invoke-WebRequest -Uri $photoURI -OutFile ($env:TEMP + "\photo.jpg") 
+    Invoke-WebRequest -Uri $photoURI -OutFile ($env:TEMP + "\photo.jpg") | Out-Null
 }
 catch {
     Write-Error $_
     throw ("Photo download from $photoURI failed.")
 }
 
-"Set profile picture for user"
+# "Set profile picture for user"
 # "ImageByteArray" is broken in PS5, so will use a file.
 # Set-AzureADUserThumbnailPhoto -ImageByteArray $photo -ObjectId $targetUser.ObjectId 
 try {
-    Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId 
+    Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId | Out-Null
 } catch {
     Write-Error $_
-    Disconnect-AzureAD -Confirm:$false
+    Disconnect-AzureAD -Confirm:$false | Out-Null
     throw "Setting photo failed."
 }
 
 # "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false
+Disconnect-AzureAD -Confirm:$false | Out-Null
 
 "Updating profile photo for $UserName succeded."

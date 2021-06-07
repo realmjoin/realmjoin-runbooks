@@ -2,7 +2,7 @@
 #
 # It will try to guess values if needed.
 
-# Requires #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+# Requires #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param (
     # Option - Use at least "givenName" and "surname" to create the user.
@@ -22,32 +22,10 @@ param (
 
 )
 
-#region module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "AzureAD"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-#endregion
-
-
-#region Authentication
-# "Connecting to AzureAD"
 Connect-RjRbAzureAD
+
 # AzureAD Module is broken in regards to ErrorAction, so...
 $ErrorActionPreference = "SilentlyContinue"
-#endregion
 
 # "Generating random initial PW."
 if ($initialPassword -eq "") {
