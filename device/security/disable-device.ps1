@@ -8,26 +8,18 @@
 # Roles (AzureAD):
 # - Cloud Device Administrator
 
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, MEMPSToolkit
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $DeviceId,
-    [Parameter(Mandatory = $true)]
-    [string] $OrganizationId
+    [string] $DeviceId
 )
 
-#region Authentication
-# "Connecting to AzureAD"
 Connect-RjRbAzureAD
-
-# "Connect to Graph API..."
 Connect-RjRbGraph
-#endregion
 
 # "Searching DeviceId $DeviceID."
-# Sadly, Get-AzureADDevices can not filter by deviceId. Will use MS Graph / MEMPSToolkit.
-$targetDevice = Get-AadDevices -deviceId $DeviceId -authToken $Global:RjRbGraphAuthHeaders
+$targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 
