@@ -10,7 +10,6 @@ param
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Extern,
     [bool] $Disable = $false
 )
-$VerbosePreference = "SilentlyContinue"
 
 $VerbosePreference = "SilentlyContinue"
 
