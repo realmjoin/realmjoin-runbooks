@@ -2,7 +2,7 @@
 #
 # It will try to guess values if needed.
 
-# Requires #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param (
     # Option - Use at least "givenName" and "surname" to create the user.
