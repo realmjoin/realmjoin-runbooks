@@ -81,6 +81,43 @@ $TotalStream = ($Skus | Where-Object { $_.SkuPartNumber -eq "STREAM" }).PrepaidU
 $UsedStream = ($Skus | Where-Object { $_.SkuPartNumber -eq "STREAM" }).ConsumedUnits
 $AvailableStream = $TotalStream - $UsedStream
 
+### newly added
+
+# "Microsoft Defender For Endpoint"
+$TotalMDATPXPLAT = ($Skus | Where-Object { $_.SkuPartNumber -eq "MDATP_XPLAT" }).PrepaidUnits.Enabled
+$UsedMDATPXPLAT = ($Skus | Where-Object { $_.SkuPartNumber -eq "MDATP_XPLAT" }).ConsumedUnits
+$AvailableMDATPXPLAT = $TotalMDATPXPLAT - $UsedMDATPXPLAT
+
+# "Microsoft 365 E5 Security"
+$TotalE5Sec = ($Skus | Where-Object { $_.SkuPartNumber -eq "IDENTITY_THREAT_PROTECTION" }).PrepaidUnits.Enabled
+$UsedE5Sec = ($Skus | Where-Object { $_.SkuPartNumber -eq "IDENTITY_THREAT_PROTECTION" }).ConsumedUnits
+$AvailableE5Sec = $TotalE5Sec - $UsedE5Sec
+
+# "Microsoft 365 Phone System"
+$TotalMCOEV = ($Skus | Where-Object { $_.SkuPartNumber -eq "MCOEV" }).PrepaidUnits.Enabled
+$UsedMCOEV = ($Skus | Where-Object { $_.SkuPartNumber -eq "MCOEV" }).ConsumedUnits
+$AvailableMCOEV = $TotalMCOEV - $UsedMCOEV
+
+# Teams Meeting Room
+$TotalMEETING_ROOM = ($Skus | Where-Object { $_.SkuPartNumber -eq "MEETING_ROOM" }).PrepaidUnits.Enabled
+$UsedMEETING_ROOM = ($Skus | Where-Object { $_.SkuPartNumber -eq "MEETING_ROOM" }).ConsumedUnits
+$AvailableMEETING_ROOM = $TotalMEETING_ROOM - $UsedMEETING_ROOM
+
+# "Microsoft 365 Business Standard"
+$TotalO365BS = ($Skus | Where-Object { $_.SkuPartNumber -eq "O365_BUSINESS_PREMIUM" }).PrepaidUnits.Enabled
+$UsedO365BS = ($Skus | Where-Object { $_.SkuPartNumber -eq "O365_BUSINESS_PREMIUM" }).ConsumedUnits
+$AvailableO365BS = $TotalO365BS - $UsedO365BS
+
+# "Audioconferencing in Microsoft 365"
+$TotalMCOMEETADV = ($Skus | Where-Object { $_.SkuPartNumber -eq "MCOMEETADV" }).PrepaidUnits.Enabled
+$UsedMCOMEETADV = ($Skus | Where-Object { $_.SkuPartNumber -eq "MCOMEETADV" }).ConsumedUnits
+$AvailableMCOMEETADV = $TotalMCOMEETADV - $UsedMCOMEETADV
+
+# "Microsoft 365 E3"
+$TotalSPE_E3 = ($Skus | Where-Object { $_.SkuPartNumber -eq "SPE_E3" }).PrepaidUnits.Enabled
+$UsedSPE_E3 = ($Skus | Where-Object { $_.SkuPartNumber -eq "SPE_E3" }).ConsumedUnits
+$AvailableSPE_E3 = $TotalSPE_E3 - $UsedSPE_E3
+
 if ($NoLicenseMailboxes) {
     "Mailboxes with no license:"
     $NoLicenseMailboxes
@@ -124,6 +161,30 @@ if ($TotalE3 -gt 0) {
     "We have: $TotalE3"
     "Used: $UsedE3"
     "Available: $AvailableE3"
+    ""
+}
+
+if ($TotalO365BS -gt 0) {
+    "Microsoft 365 Business Standard:"
+    "We have: $TotalO365BS"
+    "Used: $UsedO365BS"
+    "Available: $AvailableO365BS"
+    ""
+}
+
+if ($TotalSPE_E3 -gt 0) {
+    "Microsoft 365 E3"
+    "We have: $TotalSPE_E3"
+    "Used: $UsedSPE_E3"
+    "Available: $AvailableSPE_E3"
+    ""
+}
+
+if ($TotalE5Sec -gt 0) {
+    "Microsoft 365 E5 Security"
+    "We have: $TotalE5Sec"
+    "Used: $UsedE5Sec"
+    "Available: $AvailableE5Sec"
     ""
 }
 
@@ -204,6 +265,38 @@ if ($TotalStream -gt 0) {
     "We have: $TotalStream"
     "Used: $UsedStream"
     "Available: $AvailableStream"
+    ""
+}
+
+if ($TotalMDATPXPLAT -gt 0) {
+    "Microsoft Defender For Endpoint:"
+    "We have: $TotalMDATPXPLAT"
+    "Used: $UsedMDATPXPLAT"
+    "Available: $AvailableMDATPXPLAT"
+    ""
+}
+
+if ($TotalMCOEV -gt 0) {
+    "Microsoft 365 Phone System:"
+    "We have: $TotalMCOEV"
+    "Used: $UsedMCOEV"
+    "Available: $AvailableMCOEV"
+    ""
+}
+
+if ($TotalMEETING_ROOM -gt 0) {
+    "Teams Meeting Room:"
+    "We have: $TotalMEETING_ROOM"
+    "Used: $UsedMEETING_ROOM"
+    "Available: $AvailableMEETING_ROOM"
+    ""
+}
+
+if ($TotalMCOMEETADV -gt 0) {
+    "Audioconferencing in Microsoft 365:"
+    "We have: $TotalMCOMEETADV"
+    "Used: $UsedMCOMEETADV"
+    "Available: $AvailableMCOMEETADV"
     ""
 }
 
