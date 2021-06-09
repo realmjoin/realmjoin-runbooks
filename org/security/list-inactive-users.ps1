@@ -16,4 +16,4 @@ Connect-RjRbGraph
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 $filter='signInActivity/lastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 
-Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta | Select-Object -Property UserPrincipalName,signInSessionsValidFromDateTime 
+Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta | Select-Object -Property UserPrincipalName,signInSessionsValidFromDateTime | out-string
