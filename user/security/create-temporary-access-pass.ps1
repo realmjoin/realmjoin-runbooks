@@ -5,7 +5,7 @@
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
-#Requires -Modules MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -17,35 +17,21 @@ param(
     [bool] $oneTimeUseOnly = $true
 )
 
-#region module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
+Connect-RjRbGraph
+
+# "Making sure, no old temp. access passes exist for $UserName"
+$OldPasses = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Beta
+$OldPasses | ForEach-Object {
+    Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods/$($_.id)" -Beta -Method Delete | Out-Null
 }
 
-Test-ModulePresent "MEMPSToolkit"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-#endregion
-
-#region Authentication
-# "Connect to Graph API..."
-Connect-RjRbGraph
-#endregion
-
-"Making sure, no old temp. access passes exist for $UserName"
-Remove-AadUserTemporaryAccessPass -authToken $Global:RjRbGraphAuthHeaders -userID $UserName
-
-"Creating new temp. access pass"
-$pass = New-AadUserTemporaryAccessPass -authToken $Global:RjRbGraphAuthHeaders -userID $UserName -oneTimeUse $oneTimeUseOnly -lifetimeInMinutes $lifetimeInMinutes
+# "Creating new temp. access pass"
+$body = @{
+    "@odata.type"       = "#microsoft.graph.temporaryAccessPassAuthenticationMethod";
+    "lifetimeInMinutes" = $lifetimeInMinutes;
+    "isUsableOnce"      = $oneTimeUseOnly
+}
+$pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
 
 if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
     "Beware: The use of Temporary access passes seems to be disabled for this user."

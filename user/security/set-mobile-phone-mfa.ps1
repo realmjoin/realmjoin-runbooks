@@ -6,7 +6,7 @@
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
-#Requires -Module MEMPSToolkit, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -15,29 +15,7 @@ param(
     [String]$phoneNumber
 )
 
-#region module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "MEMPSToolkit"
-Test-ModulePresent "RealmJoin.RunbookHelper"
-#endregion
-
-#region Authentication
-# "Connect to Graph API..."
 Connect-RjRbGraph
-#endregion
 
 # Graph API requires "+" Syntax
 if ($phoneNumber.StartsWith("01")) {
@@ -49,15 +27,18 @@ if ($phoneNumber.StartsWith("49")) {
     $phoneNumber = "+" + $phoneNumber
 }
 
-"Find mobile phone auth. methods for user $UserName"
-$phoneAMs = Get-AADUserPhoneAuthMethods -userID $UserName -authToken $Global:RjRbGraphAuthHeaders
-if ($phoneAMs) {
-    "Phone methods found. Will update primary entry."
-    $authId = ($phoneAMs | Where-Object { $_.phoneType -eq "mobile" }).id
-    Update-AADUserPhoneAuthMethod -authToken $Global:RjRbGraphAuthHeaders -userID $UserName -authId $authId -phoneNumber $phoneNumber 
+#"Find mobile phone auth. methods for user $UserName"
+$phoneAM = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Beta -OdFilter "phoneType eq 'mobile'"
+$body = @{
+    phoneNumber = $phoneNumber
+    phoneType   = "mobile"
+}
+if ($phoneAM) {
+    # "Mobile Phone method found. Updating entry."
+    Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Put -Body $body -Beta | Out-Null
 }
 else {
-    "No phone methods found. Will add a new one."
-    Add-AADUserPhoneAuthMethod -authToken $Global:RjRbGraphAuthHeaders -userID $UserName -phoneNumber $phoneNumber 
+    # "No phone methods found. Will add a new one."
+    Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Method Post -Body $body -Beta | Out-Null
 }
 "Successfully set mobile phone authentication number $phoneNumber to user $UserName."

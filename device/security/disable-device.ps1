@@ -8,47 +8,18 @@
 # Roles (AzureAD):
 # - Cloud Device Administrator
 
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, MEMPSToolkit
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $DeviceId,
-    [Parameter(Mandatory = $true)]
-    [string] $OrganizationId
+    [string] $DeviceId
 )
 
-
-#region Module check
-function Test-ModulePresent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$neededModule
-    )
-    if (-not (Get-Module -ListAvailable $neededModule)) {
-        throw ($neededModule + " is not available and can not be installed automatically. Please check.")
-    }
-    else {
-        Import-Module $neededModule
-        # "Module " + $neededModule + " is available."
-    }
-}
-
-Test-ModulePresent "RealmJoin.RunbookHelper"
-Test-ModulePresent "MEMPSToolkit"
-Test-ModulePresent "AzureAD"
-#endregion
-
-#region Authentication
-# "Connecting to AzureAD"
 Connect-RjRbAzureAD
-
-# "Connect to Graph API..."
 Connect-RjRbGraph
-#endregion
 
 # "Searching DeviceId $DeviceID."
-# Sadly, Get-AzureADDevices can not filter by deviceId. Will use MS Graph / MEMPSToolkit.
-$targetDevice = Get-AadDevices -deviceId $DeviceId -authToken $Global:RjRbGraphAuthHeaders
+$targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 

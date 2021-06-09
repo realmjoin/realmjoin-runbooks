@@ -3,7 +3,7 @@
 # Permissions: MS Graph API permissions:
 # - DeviceManagementConfiguration.ReadWrite.All
 
-# Requires #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     # needs to be prefixed with "http://" / "https://"
@@ -11,8 +11,6 @@ param(
     [int] $newSiteZone = 1,
     [string] $intunePolicyName = "Windows 10 - Trusted Sites"
 )
-
-$VerbosePreference = "SilentlyContinue"
 
 Connect-RjRbGraph
 
