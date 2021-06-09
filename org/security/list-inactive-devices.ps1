@@ -15,5 +15,5 @@ Connect-RjRbGraph
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 $filter='approximateLastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 
-Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter | Select-Object -Property displayName,deviceId,approximateLastSignInDateTime
+Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter | Select-Object -Property displayName,deviceId,approximateLastSignInDateTime | out-string
 
