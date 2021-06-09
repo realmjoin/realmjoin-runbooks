@@ -10,27 +10,28 @@ param
     [bool] $Remove = $false
 )
 
-$VerbosePreference = "SilentlyContinue"
 
-Connect-RjRbExchangeOnline
+try {
+    Connect-RjRbExchangeOnline
 
-# Check if User has a mailbox
-# No need to check trustee for a mailbox with "FullAccess"
-$user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
-if (-not $user) {
-    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-    throw "User $userName has no mailbox."
+    # Check if User has a mailbox
+    # No need to check trustee for a mailbox with "FullAccess"
+    $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
+    if (-not $user) {
+        throw "User $userName has no mailbox."
+    }
+
+    if ($Remove) {
+        # Remove access
+        Remove-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
+        "FullAccess Permission for $delegateTo removed from mailbox $UserName"
+    }
+    else {
+        # Add access
+        Add-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+        "FullAccess Permission for $delegateTo added to mailbox  $UserName"
+    }
 }
-
-if ($Remove)
-{
-    # Remove access
-    Remove-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
-    "FullAccess Permission for $delegateTo removed from mailbox $UserName"
-} else {
-    # Add access
-    Add-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-    "FullAccess Permission for $delegateTo added to mailbox  $UserName"
+finally {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Continue | Out-Null
 }
-
-Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
