@@ -68,8 +68,8 @@ try {
         "MCOEV"                      = "Microsoft 365 Phone System"
         "MCOMEETADV"                 = "Audioconferencing in Microsoft 365"
         "MEETING_ROOM"               = "Teams Meeting Room"
-        "FLOW_FREE" = "Microsoft Flow (free)"
-        "RMSBASIC" = "Rights Management Basic"
+        "FLOW_FREE"                  = "Microsoft Flow (free)"
+        "RMSBASIC"                   = "Rights Management Basic"
     }
 
     # SKUs to ignore
