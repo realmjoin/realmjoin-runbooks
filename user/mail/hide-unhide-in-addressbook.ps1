@@ -6,14 +6,19 @@ param
     [bool] $hide = $false
 )
 
-Connect-RjRbExchangeOnline
+try {
+    Connect-RjRbExchangeOnline
 
-if ($hide) {
-    Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $true 
-    "Mailbox $UserName is hidden."
-} else {
-    Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $false
-    "Mailbox $UserName is not hidden."    
+    if ($hide) {
+        Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $true 
+        "Mailbox $UserName is hidden."
+    }
+    else {
+        Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $false
+        "Mailbox $UserName is not hidden."    
+    }
+
 }
-
-Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+finally {
+    Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+}

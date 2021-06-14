@@ -1,7 +1,7 @@
 # This will add or remove a SafeLinks URL exclusion to/from a given policy.
 # If no policy is given and only one exist, this one will be used.
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param(
     # Not mandatory to allow an example value
@@ -12,36 +12,42 @@ param(
 
 )
 
-Connect-RjRbExchangeOnline
+try {
+    Connect-RjRbExchangeOnline
 
-$policy = $null
-if ($PolicyName) {
-    # "Use the given policy $PolicyName"
-    $policy = Get-SafeLinksPolicy -Identity $PolicyName -ErrorAction SilentlyContinue
-} else {
-    # If there is only one policy - use it
-    $policies = [array](Get-SafeLinksPolicy -ErrorAction SilentlyContinue)
-    if (($policies).count -eq 1) {
-        $policy = $policies[0]
+    $policy = $null
+    if ($PolicyName) {
+        # "Use the given policy $PolicyName"
+        $policy = Get-SafeLinksPolicy -Identity $PolicyName -ErrorAction SilentlyContinue
     }
-}
-if (-not $policy) {
-    throw "Please give a SafeLinks Policy."
-}
-
-$DoNotRewriteUrls = @()
-if ($RemovePattern) {
-    foreach ($entry in $policy.DoNotRewriteUrls) {
-        if ($entry -ne $LinkPattern) {
-            $DoNotRewriteUrls += $entry
-        } 
+    else {
+        # If there is only one policy - use it
+        $policies = [array](Get-SafeLinksPolicy -ErrorAction SilentlyContinue)
+        if (($policies).count -eq 1) {
+            $policy = $policies[0]
+        }
     }
-} else {
-    $DoNotRewriteUrls = $policy.DoNotRewriteUrls + $LinkPattern | Sort-Object -Unique
+    if (-not $policy) {
+        throw "Please give a SafeLinks Policy."
+    }
+
+    $DoNotRewriteUrls = @()
+    if ($RemovePattern) {
+        foreach ($entry in $policy.DoNotRewriteUrls) {
+            if ($entry -ne $LinkPattern) {
+                $DoNotRewriteUrls += $entry
+            } 
+        }
+    }
+    else {
+        $DoNotRewriteUrls = $policy.DoNotRewriteUrls + $LinkPattern | Sort-Object -Unique
+    }
+
+    Set-SafeLinksPolicy -Identity $policy.Id -DoNotRewriteUrls $DoNotRewriteUrls | Out-Null
+
+    "Policy $PolicyName successfully updated."
+
 }
-
-Set-SafeLinksPolicy -Identity $policy.Id -DoNotRewriteUrls $DoNotRewriteUrls | Out-Null
-
-Disconnect-ExchangeOnline -confirm:$false | Out-Null
-
-"Policy $PolicyName successfully updated."
+finally {
+    Disconnect-ExchangeOnline -confirm:$false | Out-Null
+}
