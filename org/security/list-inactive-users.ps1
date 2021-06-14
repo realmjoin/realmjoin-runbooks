@@ -4,7 +4,7 @@
 # - AuditLogs.Read.All
 # - Organization.Read.All
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [int] $Days = 30

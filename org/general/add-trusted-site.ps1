@@ -3,7 +3,7 @@
 # Permissions: MS Graph API permissions:
 # - DeviceManagementConfiguration.ReadWrite.All
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     # needs to be prefixed with "http://" / "https://"

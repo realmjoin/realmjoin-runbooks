@@ -6,7 +6,7 @@
 # - DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
 # - DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param (
     [Parameter(Mandatory = $true)]
