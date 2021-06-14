@@ -8,23 +8,27 @@ param (
     [bool] $AutoMapping = $false
 )
 
-Connect-RjRbExchangeOnline
+try {
+    Connect-RjRbExchangeOnline
 
-# make sure a displayName exists
-if (-not $displayName) {
-    $displayName = $mailboxName
+    # make sure a displayName exists
+    if (-not $displayName) {
+        $displayName = $mailboxName
+    }
+
+    # Create the mailbox
+    $mailbox = New-Mailbox -Shared -Name $mailboxName -DisplayName $displayName -Alias $mailboxName 
+
+    if ($delegateTo) {
+        # "Grant SendOnBehalf"
+        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
+        # "Grant FullAccess"
+        $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+    }
+
+    "Shared Mailbox $mailboxName has been created."
+
 }
-
-# Create the mailbox
-$mailbox = New-Mailbox -Shared -Name $mailboxName -DisplayName $displayName -Alias $mailboxName 
-
-if ($delegateTo) {
-    # "Grant SendOnBehalf"
-    $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
-    # "Grant FullAccess"
-    $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+finally {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }
-
-"Shared Mailbox $mailboxName has been created."
-
-Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

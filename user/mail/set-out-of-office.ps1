@@ -12,23 +12,27 @@ param
 )
 
 $VerbosePreference = "SilentlyContinue"
+try {
+    Write-RjRbLog "Set Out Of Office settings initialized by '$CallerName' for '$UserName'"
 
-Write-RjRbLog "Set Out Of Office settings initialized by '$CallerName' for '$UserName'"
+    Connect-RjRbExchangeOnline
 
-Connect-RjRbExchangeOnline
+    if ($Disable) {
+        Write-RjRbLog "Disable Out Of Office settings for '$UserName'"
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
+    }
+    else {
+        Write-RjRbLog "Enabling Out Of Office settings for '$UserName'"
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled `
+            -ExternalMessage $Message_Extern -InternalMessage $Message_Intern -StartTime $Start -EndTime $End
+    }
 
-if ($Disable) {
-    Write-RjRbLog "Disable Out Of Office settings for '$UserName'"
-    Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
+    Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
+
+    "Successfully updated Out Of Office settings for user '$UserName'."
+
 }
-else {
-    Write-RjRbLog "Enabling Out Of Office settings for '$UserName'"
-    Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled `
-        -ExternalMessage $Message_Extern -InternalMessage $Message_Intern -StartTime $Start -EndTime $End
+finally {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null    
 }
 
-Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
-
-Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-
-"Successfully updated Out Of Office settings for user '$UserName'."

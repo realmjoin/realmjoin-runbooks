@@ -9,34 +9,37 @@ param (
     [bool] $autoMapping = $false
 )
 
-Connect-RjRbExchangeOnline
+try {
+    Connect-RjRbExchangeOnline
 
-$invokeParams = @{
-    Name = $mailboxName
-    Alias = $mailboxName
-    Equipment = $true
+    $invokeParams = @{
+        Name      = $mailboxName
+        Alias     = $mailboxName
+        Equipment = $true
+    }
+
+    if ($displayName) {
+        $invokeParams += @{ DisplayName = $displayName }
+    }
+
+    # Create the mailbox
+    $mailbox = New-Mailbox @invokeParams
+
+    if ($delegateTo) {
+        # "Grant SendOnBehalf"
+        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
+        # "Grant FullAccess"
+        $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+        # Calendar delegation
+        Set-CalendarProcessing -Identity $mailboxName -ResourceDelegates $delegateTo 
+    }
+
+    if ($autoAccept) {
+        Set-CalendarProcessing -Identity $mailboxName -AutomateProcessing "AutoAccept"
+    }
+
+    "Equipment Mailbox $mailboxName has been created."
 }
-
-if ($displayName) {
-    $invokeParams += @{ DisplayName = $displayName }
+finally {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }
-
-# Create the mailbox
-$mailbox = New-Mailbox @invokeParams
-
-if ($delegateTo) {
-    # "Grant SendOnBehalf"
-    $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
-    # "Grant FullAccess"
-    $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-    # Calendar delegation
-    Set-CalendarProcessing -Identity $mailboxName -ResourceDelegates $delegateTo 
-}
-
-if ($autoAccept) {
-    Set-CalendarProcessing -Identity $mailboxName -AutomateProcessing "AutoAccept"
-}
-
-"Equipment Mailbox $mailboxName has been created."
-
-Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

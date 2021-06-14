@@ -20,47 +20,50 @@ param(
     # [bool] $RemoveOldAddress = $false
 )
 
-Connect-RjRbGraph
-Connect-RjRbExchangeOnline
+try {
+    Connect-RjRbGraph
+    Connect-RjRbExchangeOnline
 
-## Get original UPN
-# $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserId" 
+    ## Get original UPN
+    # $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserId" 
 
-# Change UPN
-$body = @{
-    userPrincipalName = $NewUpn
-}
-Invoke-RjRbRestMethodGraph -resource "/users/$UserId" -Method Patch -Body $body | Out-Null
-
-# Change eMail-Adresses
-$mailbox = Get-EXOMailbox -Identity $UserId -ErrorAction SilentlyContinue
-if ($mailbox) {
-
-    if ($ChangeMailnickname) {
-        Set-Mailbox -Identity $UserId -Name $NewUpn.split('@')[0] -alias $NewUpn.split('@')[0] | Out-Null
+    # Change UPN
+    $body = @{
+        userPrincipalName = $NewUpn
     }
+    Invoke-RjRbRestMethodGraph -resource "/users/$UserId" -Method Patch -Body $body | Out-Null
 
-    if ($UpdatePrimaryAddress) {
+    # Change eMail-Adresses
+    $mailbox = Get-EXOMailbox -Identity $UserId -ErrorAction SilentlyContinue
+    if ($mailbox) {
 
-        $newAdresses = New-Object System.Collections.ArrayList
-        $newAdresses.Add("SMTP:$NewUpn") | Out-Null
-
-        foreach ($address in $mailbox.EmailAddresses) {
-            $prefix = $address.Split(":")[0] 
-            $mail = $address.Split(":")[1]
-            
-            if ($prefix -eq "smtp") {
-                if ($mail -ne $NewUpn ) {
-                    $newAdresses.Add($address.ToLower()) | Out-Null
-                }
-               # not smtp: not specifying the SIP address will automatically update it.
-            }
+        if ($ChangeMailnickname) {
+            Set-Mailbox -Identity $UserId -Name $NewUpn.split('@')[0] -alias $NewUpn.split('@')[0] | Out-Null
         }
-        Set-Mailbox -Identity $UserId -EmailAddresses $newAdresses | Out-Null
-    }
-}
-    
-"User '$UserId' successfully renamed to '$NewUpn'"
 
-Disconnect-ExchangeOnline -ErrorAction SilentlyContinue -Confirm:$true | Out-Null
+        if ($UpdatePrimaryAddress) {
+
+            $newAdresses = New-Object System.Collections.ArrayList
+            $newAdresses.Add("SMTP:$NewUpn") | Out-Null
+
+            foreach ($address in $mailbox.EmailAddresses) {
+                $prefix = $address.Split(":")[0] 
+                $mail = $address.Split(":")[1]
+            
+                if ($prefix -eq "smtp") {
+                    if ($mail -ne $NewUpn ) {
+                        $newAdresses.Add($address.ToLower()) | Out-Null
+                    }
+                    # not smtp: not specifying the SIP address will automatically update it.
+                }
+            }
+            Set-Mailbox -Identity $UserId -EmailAddresses $newAdresses | Out-Null
+        }
+    }
+    
+    "User '$UserId' successfully renamed to '$NewUpn'"
+}
+finally {
+    Disconnect-ExchangeOnline -ErrorAction SilentlyContinue -Confirm:$true | Out-Null
+}
 
