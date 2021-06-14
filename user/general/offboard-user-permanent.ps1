@@ -1,6 +1,6 @@
 # This runbook is intended to orchestrate the different steps to permanently offboard a user. 
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, Az.Storage
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
 
 param (
     [Parameter(Mandatory = $true)]
