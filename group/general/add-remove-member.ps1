@@ -13,10 +13,10 @@ param(
 
 Connect-RjRbGraph
 
-# "Find the user object " + $UserName) 
+# "Find the user object " 
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
-    throw ("User $UserName not found.")
+    throw ("User $UserId not found.")
 }
 
 # "Is user member of the the group?" 
