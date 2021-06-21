@@ -14,7 +14,6 @@ param(
 Connect-RjRbGraph
 
 # "Find the user object " + $UserName) 
-#$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
     throw ("User $UserName not found.")
@@ -23,14 +22,9 @@ if (-not $targetUser) {
 # "Is user member of the the group?" 
 $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members" -ErrorAction SilentlyContinue
 
-$body = @{
-    "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
-}
-
-
 if ($members.id -contains $UserId) {
     if ($remove) {
-        Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Delete -Body $body | Out-Null
+        Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserId/`$ref" -Method Delete -Body $body | Out-Null
         "$($targetUser.UserPrincipalName) is removed from $GroupID"
     }
     else {    
@@ -42,6 +36,9 @@ else {
         "User is not a member. No action taken."
     }
     else {
+        $body = @{
+            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
+        }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
         "$($targetUser.UserPrincipalName) is added to $GroupID"    
     }
