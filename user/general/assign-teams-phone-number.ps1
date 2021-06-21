@@ -2,7 +2,9 @@
 #
 # Permissions: 
 # The MicrosoftTeams PS module requires to use a "real user account" for some operations.
-# This user will need the Azure AD role "Teams Administrator"
+# This user will need the Azure AD roles: 
+# - "Teams Administrator"
+# - "Skype for Business Administrator"
 
 # Be aware: MicrosoftTeams Module only wotk with PS 5.x, not 7
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, MicrosoftTeams 
@@ -63,10 +65,10 @@ try {
         # Search Emergency Location
         $CsOnlineLisLocation = Get-CsOnlineLisLocation | where-object { $_.City -eq $CsOnlineUser.City -and $_.PostalCode -eq $CsOnlineUser.PostalCode -and ($_.StreetName + " " + $_.HouseNumber + $_.HouseNumberSuffix) -eq $CsOnlineUser.StreetAddress }
         if ($CsOnlineLisLocation) {
-            Set-CsOnlineVoiceUser -Identity $UserName -TelephoneNumber $Number -LocationID $CsOnlineLisLocation.LocationId[0]
+            Set-CsOnlineVoiceUser -Identity $UserName -TelephoneNumber $Number -LocationID $CsOnlineLisLocation.LocationId[0] | Out-Null
         }
         else {
-            Set-CsOnlineVoiceUser -Identity $UserName -TelephoneNumber $Number
+            Set-CsOnlineVoiceUser -Identity $UserName -TelephoneNumber $Number | Out-Null
             Write-RjRbLog -Message "WARNING: No Emergency-Location could be found for this User. Maybe the Users Attributes (Postal Code, City and Street Adress) are not filled correctly."
         }
 
@@ -82,7 +84,7 @@ try {
                 -EnterpriseVoiceEnabled $true `
                 -HostedVoiceMail $true `
                 -OnPremLineURI $LineURI `
-                -ErrorAction Stop
+                -ErrorAction Stop | Out-Null
         }
         catch { throw "Error assigning the Number. Please make sure, a MS Phone System license is assigned to the user." }
 
@@ -90,10 +92,10 @@ try {
         if ((Get-CsOnlineVoiceRoutingPolicy).Identity -eq "WorldWide") {
             ## Assign appropriate OnlineVoiceRoutingPolicy
             try {
-                If ($Number -like "+49*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName }
-                If ($Number -like "+1*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName }
-                If ($Number -like "+971*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName }
-                If ($Number -like "+52*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName }
+                If ($Number -like "+49*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName | Out-Null }
+                If ($Number -like "+1*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName | Out-Null }
+                If ($Number -like "+971*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName | Out-Null }
+                If ($Number -like "+52*") { Grant-CsOnlineVoiceRoutingPolicy -PolicyName WorldWide -Identity $UserName | Out-Null }
             }
             catch { Write-Error "Error assigning OnlineVoiceRoutingPolicy" -Exception $_.Exception -ErrorAction Continue; exit }
         }
@@ -105,11 +107,14 @@ try {
     ## Set CsUserPstnSettings to allow International Calls if requested
     if ($allow_International_Calls) {
         try {
-            Set-CsUserPstnSettings -Identity $UserName -AllowInternationalCalls $true
+            Set-CsUserPstnSettings -Identity $UserName -AllowInternationalCalls $true | Out-Null
         }
         catch { Write-Error "Error assigning PstnSettings" -Exception $_.Exception -ErrorAction Continue; exit }
     }
+
+    "Phone Number $Number successfully assigned to $UserName."
 }
 finally {
     Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
+    Get-PSSession | Remove-PSSession | Out-Null
 }
