@@ -5,6 +5,19 @@
 # This user will need the Azure AD roles: 
 # - "Teams Administrator"
 # - "Skype for Business Administrator"
+#
+# If you want to use this runbook, you will have to
+# - Create an ADM-User object, e.g. "ADM-ServiceUser.TeamsAutomation"
+# - Assign a password to the user
+# - Set the password to never expire (or track the password changes accordingly)
+# - Disable MFA for this user / make sure conditional access is not blocking the user
+# - Add the following AzureAD roles permanently to the user:
+#   "Teams Administrator"
+#   "Skype for Business Administrator"
+# - Create a credentials object in the Azure Automation Account you use for the RealmJoin Runbooks, call the credentials "teamsautomation".
+# - Store the credentials (username and password) in "teamsautomation".
+# 
+# This is not a recommended situation and will be fixed as soon as a technical solution is known. 
 
 # Be aware: MicrosoftTeams Module only wotk with PS 5.x, not 7
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, MicrosoftTeams 
