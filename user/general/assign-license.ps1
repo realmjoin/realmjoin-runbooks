@@ -1,6 +1,6 @@
 # This runbook will assign a license to a user via group membership.
 #
-# This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
+# This runbook will use the "AzureRunAsConnection" - Please make sure, enough API-permissions are given to this service principal.
 # 
 # Permissions:
 #  AzureAD Roles
@@ -34,9 +34,8 @@ if (-not $targetUser) {
 }
 
 # "Is user member of the the group?" 
-$members = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members" -ErrorAction SilentlyContinue
-if ($members.id -contains $targetUser.id) {
-    Write-Output "License is already assigned. No action taken."
+if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($targetUser.id)" -ErrorAction SilentlyContinue) {
+    "License is already assigned. No action taken."
 }
 else {
     "Assigning license"
