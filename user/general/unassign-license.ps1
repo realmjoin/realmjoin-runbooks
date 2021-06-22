@@ -33,9 +33,8 @@ if ($null -eq $targetUser) {
     throw ("User $UserName not found.")
 }
 
-# "Is user member of the the group?"
-$members = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members" -ErrorAction SilentlyContinue
-if ($members.id -contains $targetUser.id) {
+# "Is user member of the the group?" 
+if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($targetUser.id)" -ErrorAction SilentlyContinue) {
     "Removing license."
     Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
 }
