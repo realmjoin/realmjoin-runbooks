@@ -1,7 +1,7 @@
 # This runbook will add or update a user's mobile phone MFA information.
 # It will NOT change the default auth method.
 #
-# This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
+# This runbook will use the "AzureRunAsConnection". Please make sure, enough API-permissions are given to this service principal.
 # 
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All

@@ -1,6 +1,6 @@
 # This runbook will create an AAD temporary access pass for a user. 
 #
-# This runbook will use the "AzureRunAsConnection" via stored credentials. Please make sure, enough API-permissions are given to this service principal.
+# This runbook will use the "AzureRunAsConnection". Please make sure, enough API-permissions are given to this service principal.
 # 
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
