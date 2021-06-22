@@ -2,7 +2,7 @@
 
 <#
   .SYNOPSIS
-  Performs monthly data updates (3).
+  Performs monthly data updates (4).
 
   .DESCRIPTION
   The Update-Month.ps1 script updates the registry with new data generated
