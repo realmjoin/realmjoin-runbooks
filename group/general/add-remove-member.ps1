@@ -1,4 +1,4 @@
-# This runbook will add/remove users via to/from a group membership.
+# This runbook will add/remove users to/from a group membership.
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
