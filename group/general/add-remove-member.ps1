@@ -20,9 +20,7 @@ if (-not $targetUser) {
 }
 
 # "Is user member of the the group?" 
-$members = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members" -ErrorAction SilentlyContinue
-
-if ($members.id -contains $UserId) {
+if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserID" -ErrorAction SilentlyContinue) {
     if ($remove) {
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserId/`$ref" -Method Delete -Body $body | Out-Null
         "$($targetUser.UserPrincipalName) is removed from $GroupID"
