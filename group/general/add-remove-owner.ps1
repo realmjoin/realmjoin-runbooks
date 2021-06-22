@@ -26,12 +26,12 @@ if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -Erro
         "$($targetUser.UserPrincipalName) is removed from $GroupID owners"
     }
     else {    
-        "User is already an owner. No action taken."
+        "User $($targetUser.UserPrincipalName) is already an owner of $GroupID. No action taken."
     }
 }
 else {
     if ($remove) {
-        "User is not an owner. No action taken."
+        "User $($targetUser.UserPrincipalName) is not an owner of $GroupID. No action taken."
     }
     else {
         $body = @{
