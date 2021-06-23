@@ -42,12 +42,10 @@ param (
     [string]$UserTemplate = "default"
 )
 
-# Those are empty by default. Listing them for completeness.
-# $MailNickname = ""
-# $DisplayName = ""
-# $InitialPassword = ""
-
-
+# Those are empty by default. 
+$MailNickname = ""
+$DisplayName = ""
+$InitialPassword = ""
 
 Connect-RjRbAzureAD
 
@@ -78,6 +76,7 @@ $ErrorActionPreference = "SilentlyContinue"
 # "Generating random initial PW."
 if ($InitialPassword -eq "") {
     $InitialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
+    "Setting Password"
 }
 
 # "Choosing UPN, if not given"
@@ -95,18 +94,18 @@ if ($null -ne $targetUser) {
 }
 
 # Prefereably contruct the displayName from the real names...
-if (($DisplayName -eq "") -and ($GivenName -ne "") -and ($Surname -ne "")) {
+if (-not $DisplayName) {
     $DisplayName = "$GivenName $Surname"    
     "Setting displayName to `"$DisplayName`"."
 }
 
-if ($MailNickname -eq "") {
+if (-not $MailNickname) {
     $MailNickname = $UserPrincipalName.Split('@')[0]
     "Setting mailNickName `"$MailNickname`"."
 }
 
 # Ok, at least have some displayName...
-if ($DisplayName -eq "") {
+if (-not $DisplayName) {
     $DisplayName = $MailNickname    
     "Setting displayName to `"$MailNickname`"."
 }
