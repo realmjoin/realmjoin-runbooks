@@ -33,7 +33,7 @@ param (
     [string]$JobTitle = "",
     [string]$LocationName = "",
     [string]$Department = "",
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager"} )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" } )]
     [string]$ManagerId = "",
     [string]$CompanyName = "",
     [string]$MobilePhoneNumber = "",
@@ -84,18 +84,8 @@ if ($InitialPassword -eq "") {
 if (-not $UserPrincipalName) {
     $tenantDetail = Get-AzureADTenantDetail
     $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
-    if (-not $MailNickname) {
-        # Try to base it on mailnickname...
-        $UserPrincipalName = $MailNickname + "@" + $UPNSuffix
-    }
-    elseif ((-not $GivenName) -and (-not $Surname)) {
-        # Try to create it from the real name...
-        $UserPrincipalName = $GivenName + "." + $Surname + "@" + $UPNSuffix
-    }
-    else {
-        throw "Please provide a userPrincipalName"
-    }
-    # "Setting userPrincipalName to `"$UserPrincipalName`"."
+    $UserPrincipalName = $GivenName + "." + $Surname + "@" + $UPNSuffix
+    "Setting userPrincipalName to `"$UserPrincipalName`"."
 }
 
 # "Check if the username $UserPrincipalName is available" 
@@ -107,18 +97,18 @@ if ($null -ne $targetUser) {
 # Prefereably contruct the displayName from the real names...
 if (($DisplayName -eq "") -and ($GivenName -ne "") -and ($Surname -ne "")) {
     $DisplayName = "$GivenName $Surname"    
-    #    "Setting displayName to `"$DisplayName`"."
+    "Setting displayName to `"$DisplayName`"."
 }
 
 if ($MailNickname -eq "") {
     $MailNickname = $UserPrincipalName.Split('@')[0]
-    #    "Setting mailNickName `"$MailNickname`"."
+    "Setting mailNickName `"$MailNickname`"."
 }
 
 # Ok, at least have some displayName...
 if ($DisplayName -eq "") {
     $DisplayName = $MailNickname    
-    #    "Setting displayName to `"$MailNickname`"."
+    "Setting displayName to `"$MailNickname`"."
 }
 
 # Read more info from the User Template
