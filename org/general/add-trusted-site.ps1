@@ -7,9 +7,9 @@
 
 param(
     # needs to be prefixed with "http://" / "https://"
-    [Parameter(Mandatory = $true)] [string] $newSite,
-    [int] $newSiteZone = 1,
-    [string] $intunePolicyName = "Windows 10 - Trusted Sites"
+    [Parameter(Mandatory = $true)] [string] $Url,
+    [int] $Zone = 1,
+    [string] $IntunePolicyName = "Windows 10 - Trusted Sites"
 )
 
 Connect-RjRbGraph
@@ -20,7 +20,7 @@ if (-not $pol) {
 }
 
 # Add new entry at the end of the list
-$newValue = $pol.omaSettings.value.Substring(0, $pol.omaSettings.value.Length - 3) + '&#xF000;' + $newSite + '&#xF000;' + $newSiteZone + '"/>'
+$newValue = $pol.omaSettings.value.Substring(0, $pol.omaSettings.value.Length - 3) + '&#xF000;' + $Url + '&#xF000;' + $Zone + '"/>'
 
 $body = @{
     "@odata.type" = "#microsoft.graph.windows10CustomConfiguration"
@@ -35,4 +35,4 @@ $body = @{
 
 Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations/$($pol.id)" -Method Patch -Body $body
 
-"SiteToZoneMapping '$newSite':$newSiteZone successfully added to '$intunePolicyName'"
+"SiteToZoneMapping '$Url':$Zone successfully added to '$intunePolicyName'"
