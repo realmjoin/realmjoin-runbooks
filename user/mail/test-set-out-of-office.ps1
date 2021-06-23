@@ -12,9 +12,7 @@
   Specifies the path to the CSV-based input file.
 
   .PARAMETER Message_Extern
-  Specifies the name and path for the CSV-based output file. By default,
-  MonthlyUpdates.ps1 generates a name from the date and time it runs, and
-  saves the output in the local directory.
+  Reply to be sent to external senders.
 #>
 
 param
@@ -25,7 +23,7 @@ param
     [Parameter(Mandatory = $true)] [datetime] $End,
     [datetime] $End2 = "2020-12-01",
     [ValidateScript( { Use-RJInterface -Type Textarea -DisplayName "Internal Reply" } )] [string] $Message_Intern,
-    [ValidateScript( { Use-RJInterface -Type Textarea -Description "Reply to be sent to external senders" } )] [string] $Message_Extern = "Test nach extern",
+    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Extern = "Test nach extern",
     [switch] $Disable,
     [switch] $Disable2 = $true,
     [bool] $Test,
