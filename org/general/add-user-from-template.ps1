@@ -2,14 +2,13 @@
 
 <#
   .SYNOPSIS
-  This runbook will create a new user account from a template
+  Will create a new user account from a user template
 
   .DESCRIPTION
-  Given a "user template", this runbook will create user accounts and fill/validate fields like
-  officeLocation, companyName etc.
+  Will create a new user account from a user template
 
   .PARAMETER LocationName
-  Specify the name of the users office location. This will fill more fields like country, city, streetAddress if possible
+  Specify the users office location. Will fill more fields like country, city, streetAddress if possible
 
   .PARAMETER ManagerId
   Choose the manager for this user
@@ -18,10 +17,10 @@
   Comma separated list of more groups to assign. e.g. "DL Sales,LIC Internal Product"
 
   .PARAMETER UserPrincipalName
-  Use this if need to overwrite default Username creation or want to assign a different Maildomain.
+  You can overwrite the default UPN if needed. 
 
   .PARAMETER UserTemplate
-  # This will control, which user template from the JSON configuration will be used to "fill the blanks".
+  This will control, which user template from the JSON configuration will be used to "fill the blanks".
 #>
 
 
