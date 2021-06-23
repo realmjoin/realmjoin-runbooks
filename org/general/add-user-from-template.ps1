@@ -178,70 +178,70 @@ $groupsArray += $AdditionalGroups.split(',')
 
 #region Apply / Create user
 $newUserArgs = [ordered]@{
-    userPrincipalName = $UserPrincipalName
-    mailNickName      = $MailNickname
-    displayName       = $DisplayName
-    accountEnabled    = $true
-    passwordProfile   = [Microsoft.Open.AzureAD.Model.PasswordProfile]::new($initialPassword, $true <# ForceChangePasswordNextLogin #>)
+    UserPrincipalName = $UserPrincipalName
+    MailNickName      = $MailNickname
+    DisplayName       = $DisplayName
+    AccountEnabled    = $true
+    PasswordProfile   = [Microsoft.Open.AzureAD.Model.PasswordProfile]::new($initialPassword, $true <# ForceChangePasswordNextLogin #>)
 }
 
 if ($givenName) {
-    $newUserArgs += @{ givenName = $givenName }
+    $newUserArgs += @{ GivenName = $givenName }
 }
 if ($surname) {
-    $newUserArgs += @{ surname = $surname }
+    $newUserArgs += @{ Surname = $surname }
 }
 
 if ($CompanyName) {
-    $newUserArgs += @{ companyName = $CompanyName }
+    $newUserArgs += @{ CompanyName = $CompanyName }
 }
 
 if ($Department) {
-    $newUserArgs += @{ department = $Department }
+    $newUserArgs += @{ Department = $Department }
 }
 
-if ($LocationName) {
-    $newUserArgs += @{ officeLocation = $LocationName }
-}
+#if ($LocationName) {
+#    $newUserArgs += @{ officeLocation = $LocationName }
+#}
 
 if ($country) {
-    $newUserArgs += @{ country = $country }
+    $newUserArgs += @{ Country = $country }
 }
 
 if ($state) {
-    $newUserArgs += @{ state = $state }
+    $newUserArgs += @{ State = $state }
 }
 
 if ($postalCode) {
-    $newUserArgs += @{ postalCode = $postalCode }
+    $newUserArgs += @{ PostalCode = $postalCode }
 }
 
 if ($city) {
-    $newUserArgs += @{ city = $city }
+    $newUserArgs += @{ City = $city }
 }
 
 if ($streetAddress) {
-    $newUserArgs += @{ streetAddress = $streetAddress }
+    $newUserArgs += @{ StreetAddress = $streetAddress }
 }
 
 if ($JobTitle) {
-    $newUserArgs += @{ jobTitle = $JobTitle }
+    $newUserArgs += @{ JobTitle = $JobTitle }
 }
 
 if ($MobilePhoneNumber) {
-    $newUserArgs += @{ mobilePhone = $MobilePhoneNumber }
+    $newUserArgs += @{ Mobile = $MobilePhoneNumber }
 }
+
+$newUserArgs | Format-Table | Out-String
 
 #"Creating user object for $UserPrincipalName"
 $ErrorActionPreference = "Stop"
-try {
-    if (($GivenName -ne "") -and ($Surname -ne "")) {
-        $userObject = New-AzureADUser @newUserArgs -ErrorAction Stop 
-    }
-}
-catch {
-    throw "Failed to create user $UserPrincipalName"
-}
+#{
+$userObject = New-AzureADUser @newUserArgs -ErrorAction Stop 
+#}
+#catch {
+#    throw "Failed to create user $UserPrincipalName"
+#}
 $ErrorActionPreference = "SilentlyContinue"
 
 # Assign the given groups. Continue even if this fails.
