@@ -8,7 +8,7 @@
   Will create a new user account from a user template
 
   .PARAMETER LocationName
-  Specify the users office location. Will fill more fields like country, city, streetAddress if possible
+  Specify the users office location. Will fill more fields from template.
 
   .PARAMETER ManagerId
   Choose the manager for this user
@@ -74,7 +74,7 @@ $ErrorActionPreference = "SilentlyContinue"
 
 #region Gather information / Validate
 # "Generating random initial PW."
-if ($InitialPassword -eq "") {
+if (-not $InitialPassword) {
     $InitialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
     "Setting Password"
 }
@@ -199,9 +199,9 @@ if ($Department) {
     $newUserArgs += @{ Department = $Department }
 }
 
-#if ($LocationName) {
-#    $newUserArgs += @{ officeLocation = $LocationName }
-#}
+if ($LocationName) {
+    $newUserArgs += @{ PhysicalDeliveryOfficeName = $LocationName }
+}
 
 if ($country) {
     $newUserArgs += @{ Country = $country }
