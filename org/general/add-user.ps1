@@ -6,19 +6,20 @@
 
 param (
     # Option - Use at least "givenName" and "surname" to create the user.
-    [string]$givenName = "",
-    [string]$surname = "",
+    [string]$GivenName = "",
+    [string]$Surname = "",
+    [string]$LocationName = "",
     # Option - Use at least "userPrincipalName" to create the user.
-    [string]$userPrincipalName,
-    [string]$displayName = "",
-    [string]$companyName = "",
+    [string]$UserPrincipalName,
+    [string]$DisplayName = "",
+    [string]$CompanyName = "",
     # Option - Use at least the "mailNickName" to create the user.
-    [string]$mailNickName = "",
-    [string]$defaultLicense = "LIC_M365_E5",
+    [string]$MailNickname = "",
+    [string]$DefaultLicense = "",
     # Comma separated list of groups to add the user to
-    [string]$defaultGroups = "",
+    [string]$DefaultGroups = "",
     # Optional: Give an initial password. Otherwise, a random PW will be generated.
-    [String]$initialPassword = ""
+    [String]$InitialPassword = ""
 
 )
 
@@ -28,92 +29,92 @@ Connect-RjRbAzureAD
 $ErrorActionPreference = "SilentlyContinue"
 
 # "Generating random initial PW."
-if ($initialPassword -eq "") {
-    $initialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
+if ($InitialPassword -eq "") {
+    $InitialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
 }
 
 # "Choosing UPN, if not given"
-if ($userPrincipalName -eq "") {
+if ($UserPrincipalName -eq "") {
     $tenantDetail = Get-AzureADTenantDetail
     $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
-    if ($mailNickName -ne "") {
+    if ($MailNickname -ne "") {
         # Try to base it on mailnickname...
-        $userPrincipalName = $mailNickName + "@" + $UPNSuffix
+        $UserPrincipalName = $MailNickname + "@" + $UPNSuffix
     }
-    elseif (($givenName -ne "") -and ($surname -ne "")) {
+    elseif (($GivenName -ne "") -and ($Surname -ne "")) {
         # Try to create it from the real name...
-        $userPrincipalName = $givenName + "." + $surname + "@" + $UPNSuffix
+        $UserPrincipalName = $GivenName + "." + $Surname + "@" + $UPNSuffix
     }
     else {
         throw "Please provide a userPrincipalName"
     }
-    "Setting userPrincipalName to `"$userPrincipalName`"."
+    "Setting userPrincipalName to `"$UserPrincipalName`"."
 }
 
-"Check if the username $userPrincipalName is available" 
-$targetUser = Get-AzureADUser -ObjectId $userPrincipalName 
+"Check if the username $UserPrincipalName is available" 
+$targetUser = Get-AzureADUser -ObjectId $UserPrincipalName 
 if ($null -ne $targetUser) {
-    throw ("Username $userPrincipalName is already taken.")
+    throw ("Username $UserPrincipalName is already taken.")
 }
 
 # Prefereably contruct the displayName from the real names...
-if (($displayName -eq "") -and ($givenName -ne "") -and ($surname -ne "")) {
-    $displayName = "$givenName $surname"    
-    "Setting displayName to `"$displayName`"."
+if (($DisplayName -eq "") -and ($GivenName -ne "") -and ($Surname -ne "")) {
+    $DisplayName = "$GivenName $Surname"    
+    "Setting displayName to `"$DisplayName`"."
 }
 
-if ($mailNickName -eq "") {
-    $mailNickName = $userPrincipalName.Split('@')[0]
-    "Setting mailNickName `"$mailNickName`"."
+if ($MailNickname -eq "") {
+    $MailNickname = $UserPrincipalName.Split('@')[0]
+    "Setting mailNickName `"$MailNickname`"."
 }
 
 # Ok, at least have some displayName...
-if ($displayName -eq "") {
-    $displayName = $mailNickName    
-    "Setting displayName to `"$mailNickName`"."
+if ($DisplayName -eq "") {
+    $DisplayName = $MailNickname    
+    "Setting displayName to `"$MailNickname`"."
 }
 
-if ($companyName -eq "") {
-    $companyName = (Get-AzureADTenantDetail).DisplayName
-    "Setting companyName to `"$companyName`"."
+if ($CompanyName -eq "") {
+    $CompanyName = (Get-AzureADTenantDetail).DisplayName
+    "Setting companyName to `"$CompanyName`"."
 }
 
 # Create password profile for new user
 $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
 "Setting password."
-$PasswordProfile.Password = $initialPassword
+$PasswordProfile.Password = $InitialPassword
 "Enforcing password change at next logon. (PasswordProfile)"
 $PasswordProfile.ForceChangePasswordNextLogin = $true
 
-"Creating user object for $userPrincipalName"
+"Creating user object for $UserPrincipalName"
 try {
-    if (($givenName -ne "") -and ($surname -ne "")) {
-        $userObject = New-AzureADUser -AccountEnabled $true -DisplayName $displayName -PasswordProfile $PasswordProfile -UserPrincipalName $userPrincipalName -GivenName $givenName -Surname $surname -MailNickName $mailNickName -CompanyName $companyName -ErrorAction Stop 
+    if (($GivenName -ne "") -and ($Surname -ne "")) {
+        $userObject = New-AzureADUser -AccountEnabled $true -DisplayName $DisplayName -PasswordProfile $PasswordProfile -UserPrincipalName $UserPrincipalName -GivenName $GivenName -Surname $Surname -MailNickName $MailNickname -CompanyName $CompanyName -ErrorAction Stop 
     }
     else {
-        $userObject = New-AzureADUser -AccountEnabled $true -DisplayName $displayName -PasswordProfile $PasswordProfile -UserPrincipalName $userPrincipalName -MailNickName $mailNickName -CompanyName $companyName -ErrorAction Stop 
+        $userObject = New-AzureADUser -AccountEnabled $true -DisplayName $DisplayName -PasswordProfile $PasswordProfile -UserPrincipalName $UserPrincipalName -MailNickName $MailNickname -CompanyName $CompanyName -ErrorAction Stop 
     }
 }
 catch {
-    throw "Failed to create user $userPrincipalName"
+    throw "Failed to create user $UserPrincipalName"
 }
 
 # Assign the default license. Continue even if this fails.
-if ($defaultLicense -ne "") {
-    "Searching license group $defaultLicense."
-    $group = Get-AzureADGroup -Filter "displayName eq `'$defaultLicense`'" -ErrorAction SilentlyContinue
+if ($DefaultLicense -ne "") {
+    "Searching license group $DefaultLicense."
+    $group = Get-AzureADGroup -Filter "displayName eq `'$DefaultLicense`'" -ErrorAction SilentlyContinue
     if (-not $group) {
-        "License group $defaultLicense not found!"
-        Write-Error "License group $defaultLicense not found!"
+        "License group $DefaultLicense not found!"
+        Write-Error "License group $DefaultLicense not found!"
     }
     else {
-        "Adding $userPrincipalName to $($group.displayName)"
+        "Adding $UserPrincipalName to $($group.displayName)"
         Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
     }
 }
 
 # Assign the given groups. Continue even if this fails.
-$groupsArray = $defaultGroups.split(',')
+$groupsArray = $DefaultGroups.split(',')
 foreach ($groupname in $groupsArray) {
     if ($groupname -ne "") {
         "Searching default group $groupname."
@@ -123,7 +124,7 @@ foreach ($groupname in $groupsArray) {
             Write-Error "Group $groupname not found!"
         }
         else {
-            "Adding $userPrincipalName to $($group.displayName)"
+            "Adding $UserPrincipalName to $($group.displayName)"
             Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
         }
     }
@@ -132,4 +133,4 @@ foreach ($groupname in $groupsArray) {
 # "Disconnecting from AzureAD."
 Disconnect-AzureAD
 
-Write-Output "User $userPrincipalName successfully created. Initial PW: $initialPassword"
+Write-Output "User $UserPrincipalName successfully created. Initial PW: $InitialPassword"

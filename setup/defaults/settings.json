@@ -2,6 +2,9 @@
   "userSettings": {
     "templates": {
       "default": {
+        "country": "Germany",
+        "company": "glueckkanja-gab AG",
+        "location": "Offenbach",    
         "validateDepartment": [
         ],
         "validateOfficeLocation": {
@@ -56,8 +59,6 @@
         ]
       }
     },
-    "country": "Germany",
-    "company": "glueckkanja-gab AG",
     "offboarding": {
       "templates": {
         "temporary": {
