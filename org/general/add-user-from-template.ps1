@@ -46,6 +46,7 @@ param (
 $MailNickname = ""
 $DisplayName = ""
 $InitialPassword = ""
+$UsageLocation = ""
 
 Connect-RjRbAzureAD
 
@@ -76,15 +77,15 @@ $ErrorActionPreference = "SilentlyContinue"
 # "Generating random initial PW."
 if (-not $InitialPassword) {
     $InitialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
-    "Setting Password"
+    #"Setting Password"
 }
 
 # "Choosing UPN, if not given"
 if (-not $UserPrincipalName) {
     $tenantDetail = Get-AzureADTenantDetail
     $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
-    $UserPrincipalName = $GivenName + "." + $Surname + "@" + $UPNSuffix
-    "Setting userPrincipalName to `"$UserPrincipalName`"."
+    $UserPrincipalName = ($GivenName + "." + $Surname + "@" + $UPNSuffix).ToLower()
+    #"Setting userPrincipalName to `"$UserPrincipalName`"."
 }
 
 # "Check if the username $UserPrincipalName is available" 
@@ -96,18 +97,18 @@ if ($null -ne $targetUser) {
 # Prefereably contruct the displayName from the real names...
 if (-not $DisplayName) {
     $DisplayName = "$GivenName $Surname"    
-    "Setting displayName to `"$DisplayName`"."
+    #"Setting displayName to `"$DisplayName`"."
 }
 
 if (-not $MailNickname) {
     $MailNickname = $UserPrincipalName.Split('@')[0]
-    "Setting mailNickName `"$MailNickname`"."
+    #"Setting mailNickName `"$MailNickname`"."
 }
 
 # Ok, at least have some displayName...
 if (-not $DisplayName) {
     $DisplayName = $MailNickname    
-    "Setting displayName to `"$MailNickname`"."
+    #"Setting displayName to `"$MailNickname`"."
 }
 
 # Read more info from the User Template
@@ -168,11 +169,21 @@ if ($LocationName) {
         if (-not $country -and $template.validateOfficeLocation.$LocationName.country) {
             $country = $template.validateOfficeLocation.$LocationName.country
         }
+        if (-not $UsageLocation -and $template.validateOfficeLocation.$LocationName.usageLocation) {
+            $UsageLocation = $template.validateOfficeLocation.$LocationName.usageLocation
+        }
+    }
+}
+
+if (-not $UsageLocation)
+{
+    if ($template.usageLocation) {
+        $UsageLocation = $template.usageLocation
     }
 }
 
 $groupsArray = $template.AADGroupsToAssign
-$groupsArray += $AdditionalGroups.split(',')
+$groupsArray += ($AdditionalGroups.split(',')).Trim()
 #endregion
 
 #region Apply / Create user
@@ -187,6 +198,7 @@ $newUserArgs = [ordered]@{
 if ($givenName) {
     $newUserArgs += @{ GivenName = $givenName }
 }
+
 if ($surname) {
     $newUserArgs += @{ Surname = $surname }
 }
@@ -231,16 +243,15 @@ if ($MobilePhoneNumber) {
     $newUserArgs += @{ Mobile = $MobilePhoneNumber }
 }
 
-$newUserArgs | Format-Table | Out-String
+if ($UsageLocation) {
+    $newUserArgs += @{ UsageLocation = $UsageLocation }
+}
+
+# $newUserArgs | Format-Table | Out-String
 
 #"Creating user object for $UserPrincipalName"
 $ErrorActionPreference = "Stop"
-#{
 $userObject = New-AzureADUser @newUserArgs -ErrorAction Stop 
-#}
-#catch {
-#    throw "Failed to create user $UserPrincipalName"
-#}
 $ErrorActionPreference = "SilentlyContinue"
 
 # Assign the given groups. Continue even if this fails.
@@ -261,9 +272,10 @@ foreach ($groupname in $groupsArray) {
 
 # Assign Manager
 if ($ManagerId) {
+    $ErrorActionPreference = "Stop"
     Set-AzureADUserManager -ObjectId $userObject.ObjectId -RefObjectId $ManagerId | Out-Null
+    $ErrorActionPreference = "SilentlyContinue"
 }
-
 #endregion
 
 # "Disconnecting from AzureAD."

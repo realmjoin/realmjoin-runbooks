@@ -39,11 +39,11 @@ if ($UserPrincipalName -eq "") {
     $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
     if ($MailNickname -ne "") {
         # Try to base it on mailnickname...
-        $UserPrincipalName = $MailNickname + "@" + $UPNSuffix
+        $UserPrincipalName = ($MailNickname + "@" + $UPNSuffix).ToLower()
     }
     elseif (($GivenName -ne "") -and ($Surname -ne "")) {
         # Try to create it from the real name...
-        $UserPrincipalName = $GivenName + "." + $Surname + "@" + $UPNSuffix
+        $UserPrincipalName = ($GivenName + "." + $Surname + "@" + $UPNSuffix).ToLower()
     }
     else {
         throw "Please provide a userPrincipalName"

@@ -4,7 +4,8 @@
       "default": {
         "country": "Germany",
         "company": "glueckkanja-gab AG",
-        "location": "Offenbach",    
+        "location": "Offenbach",
+        "usageLocation": "DE",   
         "validateDepartment": [
         ],
         "validateOfficeLocation": {
@@ -46,7 +47,8 @@
           },
           "Helsinki": {
             "city": "Helsinki",
-            "country": "Finnland"
+            "country": "Finnland",
+            "usageLocation": "FI"
           }
         },
         "AADGroupsToAssign": [
