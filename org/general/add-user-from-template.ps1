@@ -257,14 +257,13 @@ $ErrorActionPreference = "SilentlyContinue"
 # Assign the given groups. Continue even if this fails.
 foreach ($groupname in $groupsArray) {
     if ($groupname -ne "") {
-        "Searching default group $groupname."
+        #"Searching default group $groupname."
         $group = Get-AzureADGroup -Filter "displayName eq `'$groupname`'" -ErrorAction SilentlyContinue
         if (-not $group) {
-            "Group $groupname not found!" 
-            Write-Error "Group $groupname not found!"
+            Write-Error "Group $groupname not found! Continuing..."
         }
         else {
-            "Adding $UserPrincipalName to $($group.displayName)"
+            #"Adding $UserPrincipalName to $($group.displayName)"
             Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
         }
     }
