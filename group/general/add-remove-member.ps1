@@ -1,4 +1,4 @@
-# This runbook will add/remove users via to/from a group membership.
+# This runbook will add/remove users to/from a group membership.
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
@@ -23,22 +23,22 @@ if (-not $targetUser) {
 if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserID" -ErrorAction SilentlyContinue) {
     if ($remove) {
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserId/`$ref" -Method Delete -Body $body | Out-Null
-        "$($targetUser.UserPrincipalName) is removed from $GroupID"
+        "$($targetUser.UserPrincipalName) is removed from $GroupID members."
     }
     else {    
-        "User is already a member. No action taken."
+        "User $($targetUser.userPrincipalName) is already a member of $GroupID. No action taken."
     }
 }
 else {
     if ($remove) {
-        "User is not a member. No action taken."
+        "User $($targetUser.userPrincipalName) is not a member of $GroupID. No action taken."
     }
     else {
         $body = @{
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
         }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
-        "$($targetUser.UserPrincipalName) is added to $GroupID"    
+        "$($targetUser.UserPrincipalName) is added to $GroupID members."    
     }
 }
 
