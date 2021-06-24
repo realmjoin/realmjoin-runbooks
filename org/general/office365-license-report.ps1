@@ -1,6 +1,12 @@
-# This will generate a Office 365 licensing report
-
 #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+
+<#
+  .SYNOPSIS
+  Will generate an Office 365 licensing report.
+
+  .DESCRIPTION
+  Will generate an Office 365 licensing report.
+#>
 
 try {
     $VerbosePreference = "SilentlyContinue"

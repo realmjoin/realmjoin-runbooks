@@ -11,16 +11,16 @@
   Specify the users office location. Will fill more fields from template.
 
   .PARAMETER ManagerId
-  Choose the manager for this user
+  Assign a manager for this user
 
   .PARAMETER AdditionalGroups
   Comma separated list of more groups to assign. e.g. "DL Sales,LIC Internal Product"
 
   .PARAMETER UserPrincipalName
-  You can overwrite the default UPN if needed. 
+  Overwrite the default UPN if needed 
 
   .PARAMETER UserTemplate
-  This will control, which user template from the JSON configuration will be used to "fill the blanks".
+  Which user template from the JSON configuration will be used to "fill the blanks"
 #>
 
 
@@ -36,8 +36,9 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" } )]
     [string]$ManagerId = "",
     [string]$CompanyName = "",
-    [string]$MobilePhoneNumber = "",
+    [string]$MobilePhone = "",
     [string]$AdditionalGroups = "",
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "UserPrincipalName" } )]
     [string]$UserPrincipalName = "",
     [string]$UserTemplate = "default"
 )
@@ -239,8 +240,8 @@ if ($JobTitle) {
     $newUserArgs += @{ JobTitle = $JobTitle }
 }
 
-if ($MobilePhoneNumber) {
-    $newUserArgs += @{ Mobile = $MobilePhoneNumber }
+if ($MobilePhone) {
+    $newUserArgs += @{ Mobile = $MobilePhone }
 }
 
 if ($UsageLocation) {

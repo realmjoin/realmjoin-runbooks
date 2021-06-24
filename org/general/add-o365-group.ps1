@@ -1,18 +1,32 @@
-# This runbook will create a new Office 365 group, which in turn will create a SharePoint site and optionally a MS Teams team
-#
 # Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
 # MS Graph: Group.Create, Team.Create
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
+<#
+  .SYNOPSIS
+  Will create an Office 365 group and SharePoint site, optionally creates a (Teams) team.
+
+  .DESCRIPTION
+  Will create an Office 365 group and SharePoint site, optionally creates a (Teams) team.
+
+#>
+
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -DisplayName "MailNickname" } )]
     [string] $MailNickname,
+    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
     [string] $DisplayName,
+    [ValidateScript( { Use-RJInterface -DisplayName "Create a team" } )]
     [bool] $CreateTeam = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Group is private" } )]
     [bool] $Private = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Group is mail-enabled" } )]
     [bool] $MailEnabled = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Group is securiry-enabled" } )]
     [bool] $SecurityEnabled = $true,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" } )]
     [string] $Owner,
     [string] $CallerName
 )

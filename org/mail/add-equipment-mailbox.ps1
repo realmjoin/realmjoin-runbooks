@@ -1,44 +1,55 @@
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
+<#
+  .SYNOPSIS
+  Will create an equipment mailbox.
+
+  .DESCRIPTION
+  Will create an equipment mailbox.
+#>
+
 param (
-    [Parameter(Mandatory = $true)] [string] $mailboxName,
-    [string] $displayName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
-    [string] $delegateTo,
-    [bool] $autoAccept = $false,
-    [bool] $autoMapping = $false
+    [Parameter(Mandatory = $true)] 
+    [string] $MailboxName,
+    [string] $DisplayName,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
+    [string] $DelegateTo,
+    [ValidateScript( { Use-RJInterface -DisplayName "Automatically accept meeting requests" } )]
+    [bool] $AutoAccept = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
+    [bool] $AutoMapping = $false
 )
 
 try {
     Connect-RjRbExchangeOnline
 
     $invokeParams = @{
-        Name      = $mailboxName
-        Alias     = $mailboxName
+        Name      = $MailboxName
+        Alias     = $MailboxName
         Equipment = $true
     }
 
-    if ($displayName) {
-        $invokeParams += @{ DisplayName = $displayName }
+    if ($DisplayName) {
+        $invokeParams += @{ DisplayName = $DisplayName }
     }
 
     # Create the mailbox
     $mailbox = New-Mailbox @invokeParams
 
-    if ($delegateTo) {
+    if ($DelegateTo) {
         # "Grant SendOnBehalf"
-        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
+        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $DelegateTo | Out-Null
         # "Grant FullAccess"
-        $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+        $mailbox | Add-MailboxPermission -User $DelegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
         # Calendar delegation
-        Set-CalendarProcessing -Identity $mailboxName -ResourceDelegates $delegateTo 
+        Set-CalendarProcessing -Identity $MailboxName -ResourceDelegates $DelegateTo 
     }
 
-    if ($autoAccept) {
-        Set-CalendarProcessing -Identity $mailboxName -AutomateProcessing "AutoAccept"
+    if ($AutoAccept) {
+        Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
     }
 
-    "Equipment Mailbox $mailboxName has been created."
+    "Equipment Mailbox $MailboxName has been created."
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

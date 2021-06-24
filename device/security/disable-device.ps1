@@ -1,7 +1,3 @@
-# This runbook will will disable a device in AzureAD. 
-#
-# This runbook uses both AzureAD- and Graph-modules to avoid performance-issues with large directories.
-# 
 # Permissions (Graph):
 # - Device.Read.All
 #
@@ -9,6 +5,14 @@
 # - Cloud Device Administrator
 
 #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+
+<#
+  .SYNOPSIS
+  Will disable a device in AzureAD.
+
+  .DESCRIPTION
+  Will disable a device in AzureAD.
+#>
 
 param(
     [Parameter(Mandatory = $true)]
