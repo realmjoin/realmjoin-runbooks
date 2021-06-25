@@ -26,7 +26,7 @@ param
     [datetime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageInternal="Sorry, this person is currently not able to receive your message.",
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageExternal="Sorry, this person is currently not able to receive your message.",
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable Out-of-offce notice"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Disable Out-of-office notice"} )]
     [bool] $Disable = $false,
     [string] $CallerName
     
