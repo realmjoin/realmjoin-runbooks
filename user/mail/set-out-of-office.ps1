@@ -20,9 +20,9 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Start Date/Time"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
     [datetime] $Start = (get-date),
-    [ValidateScript( { Use-RJInterface -DisplayName "End Date/Time"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
     [datetime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageInternal,
     [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageExternal,
