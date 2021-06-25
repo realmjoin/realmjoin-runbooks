@@ -1,12 +1,19 @@
-# This will list all users that have not signed in in at least the given number of days
-#
 # Permissions: MS Graph
 # - AuditLogs.Read.All
 # - Organization.Read.All
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
+<#
+  .SYNOPSIS
+  List users, that have no recent signins.
+
+  .DESCRIPTION
+  List users, that have no recent signins.
+#>
+
 param(
+    [ValidateScript( { Use-RJInterface -DisplayName "Days without signin" } )]
     [int] $Days = 30
 )
 

@@ -1,13 +1,21 @@
-# This runbook will add/remove owners to/from a O365 group.
-
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+
+<#
+  .SYNOPSIS
+  Add/remove owners to/from an Office 365 group.
+
+  .DESCRIPTION
+  Add/remove owners to/from an Office 365 group.
+#>
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupID,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove this owner" } )]
     [bool] $remove = $false
 )
 

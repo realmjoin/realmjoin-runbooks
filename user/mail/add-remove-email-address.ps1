@@ -1,10 +1,24 @@
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
+<#
+  .SYNOPSIS
+  Add/remove eMail address to/from mailbox.
+
+  .DESCRIPTION
+  Add/remove eMail address to/from mailbox.
+#>
+
 param
 (
-    [Parameter(Mandatory = $true)] [string] $UserName,
-    [Parameter(Mandatory = $true)] [string] $eMailAddress,
+    [Parameter(Mandatory = $true)] 
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
+    [string] $UserName,
+    [Parameter(Mandatory = $true)] 
+    [ValidateScript( { Use-RJInterface -DisplayName "eMail Address" } )]
+    [string] $eMailAddress,
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove this address" } )]
     [bool] $Remove = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Set as primary address" } )]
     [bool] $asPrimary = $false
 )
 

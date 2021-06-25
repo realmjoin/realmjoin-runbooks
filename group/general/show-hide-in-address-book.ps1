@@ -1,5 +1,3 @@
-# This runbook will enable/disable external parties to send emails to O365 groups.
-#
 # Permissions: 
 #  Office 365 Exchange Online
 #  - Exchange.ManageAsApp
@@ -9,11 +7,21 @@
 
 #Requires -Module ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
+<#
+  .SYNOPSIS
+  (Un)hide this group in Address Book.
+
+  .DESCRIPTION
+  (Un)hide this group in Address Book.
+
+#>
+
 param
 (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupName,
+    [ValidateScript( { Use-RJInterface -DisplayName "Hide this group" } )]
     [boolean] $Hide = $false
 )
 

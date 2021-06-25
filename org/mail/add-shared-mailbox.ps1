@@ -1,10 +1,21 @@
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
+<#
+  .SYNOPSIS
+  Create a shared mailbox.
+
+  .DESCRIPTION
+  Create a shared mailbox.
+#>
+
 param (
-    [Parameter(Mandatory = $true)] [string] $mailboxName,
-    [string] $displayName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
-    [string] $delegateTo,
+    [Parameter(Mandatory = $true)] 
+    [string] $MailboxName,
+    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
+    [string] $DisplayName,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
+    [string] $DelegateTo,
+    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false
 )
 
@@ -12,21 +23,21 @@ try {
     Connect-RjRbExchangeOnline
 
     # make sure a displayName exists
-    if (-not $displayName) {
-        $displayName = $mailboxName
+    if (-not $DisplayName) {
+        $DisplayName = $MailboxName
     }
 
     # Create the mailbox
-    $mailbox = New-Mailbox -Shared -Name $mailboxName -DisplayName $displayName -Alias $mailboxName 
+    $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName 
 
-    if ($delegateTo) {
+    if ($DelegateTo) {
         # "Grant SendOnBehalf"
-        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $delegateTo | Out-Null
+        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $DelegateTo | Out-Null
         # "Grant FullAccess"
-        $mailbox | Add-MailboxPermission -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+        $mailbox | Add-MailboxPermission -User $DelegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
     }
 
-    "Shared Mailbox $mailboxName has been created."
+    "Shared Mailbox $MailboxName has been created."
 
 }
 finally {

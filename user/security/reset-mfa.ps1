@@ -1,14 +1,20 @@
-# This runbook will assign a license to a user via group membership.
-#
-# This runbook will use the "AzureRunAsConnection". Please make sure, enough API-permissions are given to this service principal.
-# 
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
+<#
+  .SYNOPSIS
+  Remove all App- and Mobilephone auth methods for a user.
+
+  .DESCRIPTION
+  Remove all App- and Mobilephone auth methods for a user. User can re-enroll MFA.
+
+#>
+
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String]$UserName
 )
 

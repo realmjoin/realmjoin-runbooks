@@ -1,9 +1,17 @@
-# This runbook is intended to orchestrate the different steps to permanently offboard a user. 
-
 #Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
+
+<#
+  .SYNOPSIS
+  Permanently offboard a user.
+
+  .DESCRIPTION
+  Permanently offboard a user.
+  
+#>
 
 param (
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName
 )
 

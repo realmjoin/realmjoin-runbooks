@@ -1,15 +1,24 @@
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
+<#
+  .SYNOPSIS
+  Grant another user sendAs permissions on this mailbox.
+
+  .DESCRIPTION
+  Grant another user sendAs permissions on this mailbox.
+#>
+
 param
-(
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
-    [Parameter(Mandatory = $true)] [string] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
-    [Parameter(Mandatory = $true)] [string] $delegateTo,
+( 
+    [Parameter(Mandatory = $true)]     
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
+    [string] $UserName,
+    [Parameter(Mandatory = $true)] 
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
+    [string] $delegateTo,
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
     [bool] $Remove = $false
 )
-
-$VerbosePreference = "SilentlyContinue"
 
 try {
     Connect-RjRbExchangeOnline

@@ -1,5 +1,3 @@
-# This runbook will assign a phone number to a teams-enabled user to enable calling
-#
 # Permissions: 
 # The MicrosoftTeams PS module requires to use a "real user account" for some operations.
 # This user will need the Azure AD roles: 
@@ -22,11 +20,23 @@
 # Be aware: MicrosoftTeams Module only wotk with PS 5.x, not 7
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, MicrosoftTeams 
 
+<#
+  .SYNOPSIS
+  Assign a phone number to a teams-enabled user and enable calling.
+
+  .DESCRIPTION
+  Assign a phone number to a teams-enabled user and enable calling. Needs specific permissions - see Runbook source!
+  
+#>
+
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [Parameter(Mandatory = $false)]
+    [ValidateScript( { Use-RJInterface -DisplayName "Phone number to assign" } )]
     [string] $Number,
+    [ValidateScript( { Use-RJInterface -DisplayName "Allow international calling" } )]
     [bool] $allow_International_Calls = $true,
     [Parameter(Mandatory = $true)]
     [string] $OrganizationId 

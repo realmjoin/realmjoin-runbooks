@@ -1,17 +1,35 @@
-# This will import a windows device into windows autopilot
-#
 # Permissions: MS Graph
 # - DeviceManagementServiceConfig.ReadWrite.All
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+
+<#
+  .SYNOPSIS
+  Import a windows device into Windows Autopilot.
+
+  .DESCRIPTION
+  Import a windows device into Windows Autopilot.
+
+  .PARAMETER SerialNumber
+  "Device Serial Number" from Get-WindowsAutopilotInfo
+
+  .PARAMETER HardwareIdentifier
+  "Hardware Hash" from Get-WindowsAutopilotInfo
+
+  .PARAMETER AssignedUser
+  Permanently assign device to this user
+
+#>
+
 
 param(
     [Parameter(Mandatory = $true)]
     [string] $SerialNumber,
     [Parameter(Mandatory = $true)]
     [string] $HardwareIdentifier,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User (optional)" } )]
     [string] $AssignedUser = "",
+    [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
     [bool] $Wait = $true
 
 )

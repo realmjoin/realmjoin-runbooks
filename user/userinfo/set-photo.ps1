@@ -1,20 +1,28 @@
-# This runbook will update the photo / avatar picture of a user
-# It requires an URI to a jpeg-file and a users UPN.
-#
-# This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
-#
 # Permissions:
 # - AzureAD Role: User administrator
-#
-# If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
 
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+
+<#
+  .SYNOPSIS
+  Set / update the photo / avatar picture of a user.
+
+  .DESCRIPTION
+  Set / update the photo / avatar picture of a user.
+
+  .PARAMETER PhotoURI
+  Source needs to be a JPEG
+
+#>
 
 param(
     [Parameter(Mandatory = $true)]
-    [string]$photoURI = "",
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [String] $UserName,
+    # If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
     [Parameter(Mandatory = $true)]
-    [String] $UserName
+    [ValidateScript( { Use-RJInterface -DisplayName "Source URL" } )]
+    [string]$PhotoURI = ""
 )
 
 Connect-RjRbAzureAD
@@ -31,15 +39,15 @@ if (-not $targetUser) {
 # Bug in AzureAD Module when using ErrorAction
 $ErrorActionPreference = "Stop"
 
-# "Download the photo from URI $photoURI"
+# "Download the photo from URI $PhotoURI"
 try {
     # "ImageByteArray" is broken in PS5, so will use a file.
-    #$photo = (Invoke-WebRequest -Uri $photoURI -UseBasicParsing).Content
-    Invoke-WebRequest -Uri $photoURI -OutFile ($env:TEMP + "\photo.jpg") | Out-Null
+    #$photo = (Invoke-WebRequest -Uri $PhotoURI -UseBasicParsing).Content
+    Invoke-WebRequest -Uri $PhotoURI -OutFile ($env:TEMP + "\photo.jpg") | Out-Null
 }
 catch {
     Write-Error $_
-    throw ("Photo download from $photoURI failed.")
+    throw ("Photo download from $PhotoURI failed.")
 }
 
 # "Set profile picture for user"

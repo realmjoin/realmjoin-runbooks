@@ -1,15 +1,23 @@
-# This runbook will add or update a user's mobile phone MFA information.
-# It will NOT change the default auth method.
-#
-# This runbook will use the "AzureRunAsConnection". Please make sure, enough API-permissions are given to this service principal.
-# 
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+
+<#
+  .SYNOPSIS
+  Add or update a user's mobile phone MFA information.
+
+  .DESCRIPTION
+  Aadd or update a user's mobile phone MFA information.
+
+  .PARAMETER phoneNumber
+  Needs to be in '+###########' syntax
+
+#>
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String]$UserName,
     [Parameter(Mandatory = $true)]
     [String]$phoneNumber
@@ -22,7 +30,7 @@ if ($phoneNumber.StartsWith("01")) {
     $phoneNumber = ("+49" + $phoneNumber.Substring(1))
 }
 
-# Woraround - sometimes "+" gets lost...
+# Workaround - sometimes "+" gets lost...
 if ($phoneNumber.StartsWith("49")) {
     $phoneNumber = "+" + $phoneNumber
 }

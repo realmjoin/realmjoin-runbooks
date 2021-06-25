@@ -1,20 +1,28 @@
-# This runbook will create an AAD temporary access pass for a user. 
-#
-# This runbook will use the "AzureRunAsConnection". Please make sure, enough API-permissions are given to this service principal.
-# 
 # Permissions needed:
 # - UserAuthenticationMethod.ReadWrite.All
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
+<#
+  .SYNOPSIS
+  Create an AAD temporary access pass for a user.
+
+  .DESCRIPTION
+  Create an AAD temporary access pass for a user.
+
+  .PARAMETER LifetimeInMinutes
+  Time the pass will stay valid in minutes
+
+  #>
+
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String]$UserName,
-    # How long (starting immediately) is the pass valid?
-    [ValidateScript( { Use-RJInterface -Type Number } )]
-    [int] $lifetimeInMinutes = 240,
-    # Is this a one-time pass (prefered); will be usable multiple times otherwise
-    [bool] $oneTimeUseOnly = $true
+    [ValidateScript( { Use-RJInterface -Type Number -DisplayName "Lifetime"} )]
+    [int] $LifetimeInMinutes = 240,
+    [ValidateScript( { Use-RJInterface -Type Number -DisplayName "One time use only"} )]
+    [bool] $OneTimeUseOnly = $true
 )
 
 Connect-RjRbGraph
@@ -28,8 +36,8 @@ $OldPasses | ForEach-Object {
 # "Creating new temp. access pass"
 $body = @{
     "@odata.type"       = "#microsoft.graph.temporaryAccessPassAuthenticationMethod";
-    "lifetimeInMinutes" = $lifetimeInMinutes;
-    "isUsableOnce"      = $oneTimeUseOnly
+    "lifetimeInMinutes" = $LifetimeInMinutes;
+    "isUsableOnce"      = $OneTimeUseOnly
 }
 $pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
 
@@ -37,4 +45,4 @@ if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
     "Beware: The use of Temporary access passes seems to be disabled for this user."
 }
 
-"New Temporary access pass for $UserName with a lifetime of $lifetimeInMinutes minutes has been created: $($pass.temporaryAccessPass)"
+"New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created: $($pass.temporaryAccessPass)"
