@@ -8,7 +8,7 @@
   En-/Disable Out-of-office-notifications for a user/mailbox.
 
   .PARAMETER Start
-  Will start now if left empty
+  "Now" if left empty
 
   .PARAMETER End
   10 years into the future ("forever") if left empty
