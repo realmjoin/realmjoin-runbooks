@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will create a shared mailbox.
+  Create a shared mailbox.
 
   .DESCRIPTION
-  Will create a shared mailbox.
+  Create a shared mailbox.
 #>
 
 param (

@@ -1,15 +1,22 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+
+<#
+  .SYNOPSIS
+  Grant another user sendOnBehalf permissions on this mailbox.
+
+  .DESCRIPTION
+  Grant another user sendOnBehalf permissions on this mailbox.
+#>
 
 param
 (
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
     [bool] $Remove = $false
 )
-
-$VerbosePreference = "SilentlyContinue"
 
 try {
     Connect-RjRbExchangeOnline
@@ -36,7 +43,7 @@ try {
     else {
         #Add permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Add = "$delegateTo" } -Confirm:$false | Out-Null
-        "SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox  $($user.UserPrincipalName)"
+        "SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox $($user.UserPrincipalName)"
     }
 }
 finally {

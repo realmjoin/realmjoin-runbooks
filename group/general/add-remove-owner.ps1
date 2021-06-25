@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will add/remove owners to/from a O365 group.
+  Add/remove owners to/from an Office 365 group.
 
   .DESCRIPTION
-  Will add/remove owners to/from a O365 group.
+  Add/remove owners to/from an Office 365 group.
 #>
 
 param(

@@ -8,10 +8,10 @@
 
 <#
   .SYNOPSIS
-  Will disable a device in AzureAD.
+  Disable a device in AzureAD.
 
   .DESCRIPTION
-  Will disable a device in AzureAD.
+  Disable a device in AzureAD.
 #>
 
 param(

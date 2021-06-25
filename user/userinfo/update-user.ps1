@@ -1,25 +1,37 @@
-# This runbook will update fields of an existing user object.
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, AzureAD
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, AzureAD
+<#
+  .SYNOPSIS
+  Update the metadata of an existing user object.
+
+  .DESCRIPTION
+  Update the metadata of an existing user object.
+
+  .PARAMETER PreferredLanguage
+  Examples: 'en-US' or 'de-DE'
+
+#>
 
 param (
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string]$UserName,
-    [string]$givenName,
-    [string]$surname,
-    [string]$displayName,
-    [string]$companyName,
-    [string]$city,
-    [string]$country,
-    [string]$jobTitle,
+    [string]$GivenName,
+    [string]$Surname,
+    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
+    [string]$DisplayName,
+    [string]$CompanyName,
+    [string]$City,
+    [string]$Country,
+    [string]$JobTitle,
     # think "physicalDeliveryOfficeName" if you are coming from on-prem
-    [string]$officeLocation,
+    [string]$OfficeLocation,
     [ValidateScript( { Use-RJInterface -Type Number } )]
-    [string]$postalCode,
-    [string]$preferredLanguage,
-    [string]$state,
-    [string]$streetAddress,
-    [string]$usageLocation
+    [string]$PostalCode,
+    [string]$PreferredLanguage,
+    [string]$State,
+    [string]$StreetAddress,
+    [string]$UsageLocation
 
 )
 
@@ -49,9 +61,9 @@ addToUserArgs 'state'
 addToUserArgs 'streetAddress'
 addToUserArgs 'usageLocation'
 
-if (-not $targetUser.DisplayName -and -not $displayName) {
-    $resultingGivenName = ($givenName, $targetUser.GivenName -ne "" -ne $null)[0]
-    $resultingSurname = ($surname, $targetUser.Surname  -ne "" -ne $null)[0]
+if (-not $targetUser.DisplayName -and -not $DisplayName) {
+    $resultingGivenName = ($GivenName, $targetUser.GivenName -ne "" -ne $null)[0]
+    $resultingSurname = ($Surname, $targetUser.Surname  -ne "" -ne $null)[0]
     if ($resultingGivenName -and $resultingSurname) {
         $userArgs['displayName'] = "$resultingGivenName $resultingSurname"
     }
@@ -59,7 +71,7 @@ if (-not $targetUser.DisplayName -and -not $displayName) {
         $userArgs['displayName'] = $targetUser.MailNickName
     }
 }
-if (-not $targetUser.CompanyName -and -not $companyName) {
+if (-not $targetUser.CompanyName -and -not $CompanyName) {
     $userArgs['companyName'] = (Get-RjRbAzureADTenantDetail).DisplayName
 }
 

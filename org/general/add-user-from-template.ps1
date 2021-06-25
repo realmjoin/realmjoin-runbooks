@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will create a new user account from a user template
+  Create a new user account from a template
 
   .DESCRIPTION
-  Will create a new user account from a user template
+  Create a new user account from a template
 
   .PARAMETER LocationName
   Specify the users office location. Will fill more fields from template.

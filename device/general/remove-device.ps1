@@ -7,10 +7,10 @@
 
 <#
   .SYNOPSIS
-  Will remove a windows device from Intune, AzureAD and Autopilot.
+  Remove a windows device from Intune, AzureAD and Autopilot.
 
   .DESCRIPTION
-  Will remove a windows device from Intune, AzureAD and Autopilot. Will not wipe a device but user data will be removed after devices checks in.
+  Remove a windows device from Intune, AzureAD and Autopilot. Will not wipe a device but user data will be removed after devices checks in.
 #>
 
 param (

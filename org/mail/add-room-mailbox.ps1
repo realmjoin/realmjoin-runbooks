@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will create a room resource.
+  Create a room resource.
 
   .DESCRIPTION
-  Will create a room resource.
+  Create a room resource.
 #>
 
 param (

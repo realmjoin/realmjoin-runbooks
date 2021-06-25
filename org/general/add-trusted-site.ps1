@@ -5,10 +5,10 @@
 
 <#
   .SYNOPSIS
-  Will add an entry to the Intune Windows 10 Trusted Sites Policy
+  Add an entry to the Intune Windows 10 Trusted Sites Policy
 
   .DESCRIPTION
-  Will add an entry to the Intune Windows 10 Trusted Sites Policy
+  Add an entry to the Intune Windows 10 Trusted Sites Policy
 
   .PARAMETER Url
   Needs to be prefixed with "http://" or "https://"

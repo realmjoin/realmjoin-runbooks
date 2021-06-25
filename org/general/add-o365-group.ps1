@@ -5,10 +5,10 @@
 
 <#
   .SYNOPSIS
-  Will create an Office 365 group and SharePoint site, optionally creates a (Teams) team.
+  Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
   .DESCRIPTION
-  Will create an Office 365 group and SharePoint site, optionally creates a (Teams) team.
+  Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
 #>
 

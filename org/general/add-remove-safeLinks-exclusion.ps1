@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will add or remove a SafeLinks URL exclusion to/from a given policy.
+  Add or remove a SafeLinks URL exclusion to/from a given policy.
 
   .DESCRIPTION
-  Will add or remove a SafeLinks URL exclusion to/from a given policy.
+  Add or remove a SafeLinks URL exclusion to/from a given policy.
 
   .PARAMETER LinkPattern
   URL to allow, can contain '*' as wildcard for host and paths

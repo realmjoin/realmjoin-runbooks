@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will generate an Office 365 licensing report.
+  Generate an Office 365 licensing report.
 
   .DESCRIPTION
-  Will generate an Office 365 licensing report.
+  Generate an Office 365 licensing report.
 #>
 
 try {

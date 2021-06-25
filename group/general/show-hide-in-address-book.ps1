@@ -9,10 +9,10 @@
 
 <#
   .SYNOPSIS
-  Will (un)hide this group in Address Book.
+  (Un)hide this group in Address Book.
 
   .DESCRIPTION
-  Will (un)hide this group in Address Book.
+  (Un)hide this group in Address Book.
 
 #>
 

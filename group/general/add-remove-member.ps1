@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will add/remove users to/from a group membership.
+  Add/remove users to/from a group membership.
 
   .DESCRIPTION
-  Will add/remove users to/from a group membership.
+  Add/remove users to/from a group membership.
 #>
 
 param(

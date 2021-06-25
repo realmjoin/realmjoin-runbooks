@@ -5,10 +5,10 @@
 
 <#
   .SYNOPSIS
-  Will import a windows device into Windows Autopilot.
+  Import a windows device into Windows Autopilot.
 
   .DESCRIPTION
-  Will import a windows device into Windows Autopilot.
+  Import a windows device into Windows Autopilot.
 
   .PARAMETER SerialNumber
   "Device Serial Number" from Get-WindowsAutopilotInfo

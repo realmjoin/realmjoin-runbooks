@@ -9,10 +9,10 @@
 
 <#
   .SYNOPSIS
-  Will enable/disable external parties to send emails to O365 groups.
+  Enable/disable external parties to send eMails to O365 groups.
 
   .DESCRIPTION
-  Will enable/disable external parties to send emails to O365 groups.
+  Enable/disable external parties to send eMails to O365 groups.
 #>
 
 param

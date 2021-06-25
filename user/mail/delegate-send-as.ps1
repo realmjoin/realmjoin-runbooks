@@ -20,8 +20,6 @@ param
     [bool] $Remove = $false
 )
 
-$VerbosePreference = "SilentlyContinue"
-
 try {
     Connect-RjRbExchangeOnline
 

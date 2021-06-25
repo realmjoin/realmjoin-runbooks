@@ -1,9 +1,5 @@
-# This rename a user object. This will not update the DisplayName, GivenName, Surname.
-#
-# Currently, removing the old eMail-address "in one go" seems not to work reliably
-# Updating the SIP takes some minutes tp propagate
-#
-# Permissions: MS Graph API
+# Permissions: 
+# MS Graph API
 # - Directory.Read.All
 # - User.ReadWrite.All
 
@@ -11,12 +7,28 @@
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
 
+<#
+  .SYNOPSIS
+  Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+
+  .DESCRIPTION
+  Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+
+  .PARAMETER ChangeMailnickname
+  If 'true', change the mailNickname based on the new UPN
+#>
+
 param(
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
-    [Parameter(Mandatory = $true)] [string] $UserId,
-    [Parameter(Mandatory = $true)] [string] $NewUpn,
+    [Parameter(Mandatory = $true)] 
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
+    [string] $UserId,
+    [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -DisplayName "New UserPrincipalName" } )]
+    [string] $NewUpn,
     [bool] $ChangeMailnickname = $true,
+    [ValidateScript( { Use-RJInterface -DisplayName "Update primary eMail address" } )]
     [bool] $UpdatePrimaryAddress = $true
+    ## Currently, removing the old eMail-address "in one go" seems not to work reliably
     # [bool] $RemoveOldAddress = $false
 )
 
@@ -54,7 +66,8 @@ try {
                     if ($mail -ne $NewUpn ) {
                         $newAdresses.Add($address.ToLower()) | Out-Null
                     }
-                    # not smtp: not specifying the SIP address will automatically update it.
+                    # not smtp: not including the SIP address will automatically update it to the new default address.
+                    # Updating SIP takes some minutes to propagate after rename
                 }
             }
             Set-Mailbox -Identity $UserId -EmailAddresses $newAdresses | Out-Null

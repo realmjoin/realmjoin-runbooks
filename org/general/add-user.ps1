@@ -6,10 +6,10 @@
 
 <#
   .SYNOPSIS
-  Will create a new user account (without template).
+  Create a new user account (without template).
 
   .DESCRIPTION
-  Will create a new user account (without template). 
+  Create a new user account (without template). 
 
   .PARAMETER GivenName
   "givenName" and "surname" is enough to create a user

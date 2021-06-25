@@ -1,9 +1,19 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+
+<#
+  .SYNOPSIS
+  (Un)Hide this mailbox in address book.
+
+  .DESCRIPTION
+  (Un)Hide this mailbox in address book.
+#>
 
 param
 (
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
-    [bool] $hide = $false
+    [ValidateScript( { Use-RJInterface -DisplayName "Hide the mailbox" } )]
+    [bool] $hide = $true
 )
 
 try {

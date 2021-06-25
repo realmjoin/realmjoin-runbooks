@@ -2,10 +2,10 @@
 
 <#
   .SYNOPSIS
-  Will create an equipment mailbox.
+  Create an equipment mailbox.
 
   .DESCRIPTION
-  Will create an equipment mailbox.
+  Create an equipment mailbox.
 #>
 
 param (
