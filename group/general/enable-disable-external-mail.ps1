@@ -4,6 +4,10 @@
 #
 # Azure AD Roles
 #  - Exchange administrator
+#
+# Notes: Setting this via graph is currently broken as of 2021-06-28: 
+#  attribute: allowExternalSenders
+#  https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property
 
 #Requires -Module ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
