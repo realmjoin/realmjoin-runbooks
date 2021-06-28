@@ -1,5 +1,3 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
-
 <#
   .SYNOPSIS
   Grant another user sendOnBehalf permissions on this mailbox.
@@ -7,6 +5,8 @@
   .DESCRIPTION
   Grant another user sendOnBehalf permissions on this mailbox.
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param
 (

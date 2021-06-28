@@ -1,12 +1,3 @@
-# Permissions: 
-# MS Graph API
-# - Directory.Read.All
-# - User.ReadWrite.All
-
-#Permissons -MSGraph Directory.Read.All:Api, User.ReadWrite.All:Api -ExchangeOnline Exchange.ManageAsApp:Api -AzureADRole "Application administrator"
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
-
 <#
   .SYNOPSIS
   Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
@@ -16,7 +7,17 @@
 
   .PARAMETER ChangeMailnickname
   If 'true', change the mailNickname based on the new UPN
+
+  .NOTES
+  Permissions: 
+  MS Graph API
+  - Directory.Read.All
+  - User.ReadWrite.All
+  Permissons -MSGraph Directory.Read.All:Api, User.ReadWrite.All:Api -ExchangeOnline Exchange.ManageAsApp:Api -AzureADRole "Application administrator"
+
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
 
 param(
     [Parameter(Mandatory = $true)] 

@@ -1,5 +1,3 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
-
 <#
   .SYNOPSIS
   En-/Disable Out-of-office-notifications for a user/mailbox.
@@ -14,6 +12,8 @@
   10 years into the future ("forever") if left empty
 
   #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param
 (

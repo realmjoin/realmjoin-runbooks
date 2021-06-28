@@ -1,8 +1,3 @@
-# Permissions needed:
-# - UserAuthenticationMethod.ReadWrite.All
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Add, update or remove a user's mobile phone MFA information.
@@ -13,7 +8,12 @@
   .PARAMETER phoneNumber
   Needs to be in '+###########' syntax
 
+  .NOTES
+  Permissions needed:
+ - UserAuthenticationMethod.ReadWrite.All
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

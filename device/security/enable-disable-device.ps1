@@ -1,11 +1,3 @@
-# Permissions (Graph):
-# - Device.Read.All
-#
-# Roles (AzureAD):
-# - Cloud Device Administrator
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Disable a device in AzureAD.
@@ -13,7 +5,14 @@
   .DESCRIPTION
   Disable a device in AzureAD.
 
+  .NOTES
+  Permissions (Graph):
+  - Device.Read.All
+  Roles (AzureAD):
+  - Cloud Device Administrator
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

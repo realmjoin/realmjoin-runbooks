@@ -1,8 +1,3 @@
-# Permissions: MS Graph API permissions:
-# - DeviceManagementConfiguration.ReadWrite.All
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   List Url/Zone pairs in an Intune Windows 10 Trusted Sites Policy
@@ -10,7 +5,13 @@
   .DESCRIPTION
   List Url/Zone pairs in an Intune Windows 10 Trusted Sites Policy
 
+  .NOTES
+  Permissions: MS Graph API permissions:
+  - DeviceManagementConfiguration.ReadWrite.All
+
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [string] $IntunePolicyName = "Windows 10 - Trusted Sites"

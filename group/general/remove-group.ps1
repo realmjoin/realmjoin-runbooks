@@ -1,8 +1,3 @@
-# Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-# MS Graph: Group.Create, Team.Create
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Removes a group, incl. SharePoint site and Teams team.
@@ -10,7 +5,13 @@
   .DESCRIPTION
   Removes a group, incl. SharePoint site and Teams team.
 
+  .NOTES
+  Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
+  MS Graph: Group.Create, Team.Create
+
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

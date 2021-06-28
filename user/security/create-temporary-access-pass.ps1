@@ -1,7 +1,3 @@
-# Permissions needed:
-# - UserAuthenticationMethod.ReadWrite.All
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 <#
   .SYNOPSIS
@@ -13,7 +9,13 @@
   .PARAMETER LifetimeInMinutes
   Time the pass will stay valid in minutes
 
-  #>
+  .NOTES
+  Permissions needed:
+  - UserAuthenticationMethod.ReadWrite.All
+
+#>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]

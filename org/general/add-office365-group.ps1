@@ -1,8 +1,3 @@
-# Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-# MS Graph: Group.Create, Team.Create
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
@@ -10,7 +5,12 @@
   .DESCRIPTION
   Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
+  .NOTES
+  Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
+  MS Graph: Group.Create, Team.Create
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

@@ -1,16 +1,17 @@
-# Permissions:
-#  AzureAD Roles
-#   - User administrator
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   (Un-)Assign a license to a user via group membership.
 
   .DESCRIPTION
   (Un-)Assign a license to a user via group membership
+
+  .NOTES
+  Permissions:
+   AzureAD Roles 
+   - User administrator
 #>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

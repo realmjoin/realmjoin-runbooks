@@ -1,15 +1,16 @@
-# Permissions MS Graph, at least:
-# - InformationProtectionPolicy.Read.All
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Prints a list of all available InformationProtectionPolicy labels.
 
   .DESCRIPTION
   Prints a list of all available InformationProtectionPolicy labels.
+
+  .NOTES
+  Permissions MS Graph, at least:
+  - InformationProtectionPolicy.Read.All
 #>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 Connect-RjRbGraph
 

@@ -1,5 +1,3 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
-
 <#
   .SYNOPSIS
   Add/remove eMail address to/from mailbox.
@@ -7,6 +5,8 @@
   .DESCRIPTION
   Add/remove eMail address to/from mailbox.
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param
 (

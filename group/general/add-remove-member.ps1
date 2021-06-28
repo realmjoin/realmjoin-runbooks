@@ -1,5 +1,3 @@
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Add/remove users to/from a group membership.
@@ -7,6 +5,8 @@
   .DESCRIPTION
   Add/remove users to/from a group membership.
 #>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

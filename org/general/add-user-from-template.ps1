@@ -1,5 +1,3 @@
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Create a new user account from a template
@@ -23,6 +21,7 @@
   Which user template from the JSON configuration will be used to "fill the blanks"
 #>
 
+#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param (
     # Option - Use at least "givenName" and "surname" to create the user.
