@@ -1,5 +1,3 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
-
 <#
   .SYNOPSIS
   Add or remove a SafeLinks URL exclusion to/from a given policy.
@@ -13,6 +11,8 @@
   .PARAMETER PolicyName
   Optional if only one exists.
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param(
     # Not mandatory to allow an example value

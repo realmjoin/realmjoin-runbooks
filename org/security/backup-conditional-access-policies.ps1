@@ -1,9 +1,3 @@
-# Permissions
-# MS Graph: Policy.Read.All
-# Azure: Access to the given Azure Storage Account / Resource Group
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
-
 <#
   .SYNOPSIS
   Exports the current set of Conditional Access policies to an Azure storage account.
@@ -26,7 +20,14 @@
   .PARAMETER StorageAccountSku
   Will be read from central config if left empty
 
+  .NOTES
+  Permissions
+   MS Graph: Policy.Read.All
+   Azure: Access to the given Azure Storage Account / Resource Group
+
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
 
 param(
     [string] $ContainerName,

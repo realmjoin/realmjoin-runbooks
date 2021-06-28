@@ -1,8 +1,3 @@
-# Permissions: MS Graph API permissions:
-# - DeviceManagementConfiguration.ReadWrite.All
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
@@ -19,7 +14,14 @@
   2: Trusted sites Zone,
   3: Internet Zone,
   4: Restricted Sites Zone
+
+  .NOTES
+  Permissions: MS Graph API permissions:
+  - DeviceManagementConfiguration.ReadWrite.All
+
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)] 

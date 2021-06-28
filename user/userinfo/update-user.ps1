@@ -1,5 +1,3 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, AzureAD
-
 <#
   .SYNOPSIS
   Update the metadata of an existing user object.
@@ -11,6 +9,8 @@
   Examples: 'en-US' or 'de-DE'
 
 #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, AzureAD
 
 param (
     [Parameter(Mandatory = $true)]

@@ -1,5 +1,3 @@
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
-
 <#
   .SYNOPSIS
   Temporarily offboard a user.
@@ -8,6 +6,8 @@
   Temporarily offboard a user in cases like parental leaves or sabaticals.
   
 #>
+
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
 
 param (
     [Parameter(Mandatory = $true)]

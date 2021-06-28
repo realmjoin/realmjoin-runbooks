@@ -1,5 +1,3 @@
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
-
 <#
   .SYNOPSIS
   Permanently offboard a user.
@@ -8,6 +6,8 @@
   Permanently offboard a user.
   
 #>
+
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
 
 param (
     [Parameter(Mandatory = $true)]

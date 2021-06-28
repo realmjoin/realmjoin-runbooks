@@ -1,8 +1,3 @@
-# Permissions: MS Graph
-# - DeviceManagementServiceConfig.ReadWrite.All
-
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Import a windows device into Windows Autopilot.
@@ -19,8 +14,13 @@
   .PARAMETER AssignedUser
   Permanently assign device to this user
 
+  .NOTES
+  Permissions: MS Graph
+  - DeviceManagementServiceConfig.ReadWrite.All
+
 #>
 
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

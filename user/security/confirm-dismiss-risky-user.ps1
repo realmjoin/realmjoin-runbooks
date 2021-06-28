@@ -1,8 +1,3 @@
-# Permissions needed:
-# - IdentityRiskyUser.ReadWrite.All
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
-
 <#
   .SYNOPSIS
   Confirm compromise / Dismiss a "risky user"
@@ -13,7 +8,12 @@
   .PARAMETER Dismiss
   False: Confirm compromise, True: Dismiss risk
 
-  #>
+  .NOTES
+  Permissions needed:
+  - IdentityRiskyUser.ReadWrite.All
+#>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

@@ -1,8 +1,3 @@
-# Permissions:
-# - AzureAD Role: User administrator
-
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
-
 <#
   .SYNOPSIS
   Reset a user's password. 
@@ -10,7 +5,13 @@
   .DESCRIPTION
   Reset a user's password. The user will have to change it on singin.
 
+  .NOTES
+  Permissions:
+  - AzureAD Role: User administrator
+
 #>
+
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
