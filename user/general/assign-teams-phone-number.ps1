@@ -49,7 +49,7 @@ try {
     #$autoCon = Get-AutomationConnection -Name $AutomationConnectionName
     #Connect-MicrosoftTeams -TenantId "primepulse.de" -ApplicationId $autoCon.ApplicationId -CertificateThumbprint $autoCon.CertificateThumbprint | Out-Null
 
-    $cred = Get-AutomationPSCredential -name "teamsautomation"
+    $cred = Get-AutomationPSCredential -name "realmjoin-automation-cred"
     Connect-MicrosoftTeams -TenantId $OrganizationId -Credential $cred | Out-Null
 
     ## Woraround - "+" gets lost...
