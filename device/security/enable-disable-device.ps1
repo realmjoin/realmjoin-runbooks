@@ -21,7 +21,6 @@ param(
     [bool] $EnableDevice = $false
 )
 
-Connect-RjRbAzureAD
 Connect-RjRbGraph
 
 # "Searching DeviceId $DeviceID."
