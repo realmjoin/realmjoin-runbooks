@@ -5,10 +5,10 @@
 
 <#
   .SYNOPSIS
-  Removes a group, incl. SharePoint site and Team.
+  Removes a group, incl. SharePoint site and Teams team.
 
   .DESCRIPTION
-  Removes a group, incl. SharePoint site and Team.
+  Removes a group, incl. SharePoint site and Teams team.
 
 #>
 
