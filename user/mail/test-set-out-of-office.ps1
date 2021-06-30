@@ -1,5 +1,20 @@
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
 
+<#
+  .SYNOPSIS
+  Performs monthly data updates (4).
+
+  .DESCRIPTION
+  The Update-Month.ps1 script updates the registry with new data generated
+  during the past month and generates a report.
+
+  .PARAMETER End
+  Specifies the path to the CSV-based input file.
+
+  .PARAMETER Message_Extern
+  Reply to be sent to external senders.
+#>
+
 param
 (
     [Parameter(Mandatory = $true)] [string] $UserName,

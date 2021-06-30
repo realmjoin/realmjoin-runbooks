@@ -12,6 +12,9 @@ param (
     [string]$userPrincipalName,
     [string]$displayName = "",
     [string]$companyName = "",
+    [string]$StreetAddress,
+    [string]$PostalCode,
+    [string]$City,
     # Option - Use at least the "mailNickName" to create the user.
     [string]$mailNickName = "",
     [string]$defaultLicense = "LIC_M365_E5",
