@@ -7,6 +7,7 @@ param
     [string] $TestString3,
     [int] $TestInt,
     [double] $TestDouble,
+    [datetime] $testDatetime,
     [bool] $TestBool,
     [switch] $TestSwitch,
     [object] $TestObject1,
