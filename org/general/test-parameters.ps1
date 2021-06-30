@@ -7,7 +7,7 @@ param
     [string] $TestString3,
     [int] $TestInt,
     [double] $TestDouble,
-    [datetime] $testDatetime,
+    [datetime] $TestDatetime,
     [bool] $TestBool,
     [switch] $TestSwitch,
     [object] $TestObject1,
@@ -15,3 +15,7 @@ param
 )
 
 $PSBoundParameters | ConvertTo-Json
+
+if ($TestDatetime) {
+    "`$TestDatetime: $($TestDatetime.ToString("o"))"
+}
