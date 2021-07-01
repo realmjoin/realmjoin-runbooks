@@ -1,15 +1,15 @@
 <#
   .SYNOPSIS
-  Export a CSV of all entprise app owners and users
+  Export a CSV of all (entprise) app owners and users
 
   .DESCRIPTION
-  Export a CSV of all entprise app owners and users
+  Export a CSV of all (entprise) app owners and users
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
-    [ValidateScript( { Use-RJInterface -DisplayName "Show only Enterprise Apps" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
     [bool] $entAppsOnly = $true
 )
 
@@ -125,7 +125,7 @@ try {
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "enterpriseApps.csv" -FullUri -ExpiryTime $EndTime
 
-    "Created the Enterprise List Export"
+    "App Owner/User List Export created."
     "Expiry of Link: $EndTime"
     $SASLink | Out-String
     
