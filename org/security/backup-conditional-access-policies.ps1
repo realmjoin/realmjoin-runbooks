@@ -102,9 +102,9 @@ try {
 
     # Write policy export as files
     mkdir "CAPols" | Out-Null
-    $path = Set-Location -Path "CAPols"
+    Set-Location -Path "CAPols" | Out-Null
     Export-PolicyObjects -policies $pols
-    Set-Location -Path ".."
+    Set-Location -Path ".."  | Out-Null
     Compress-Archive -Path "CAPols\*" -DestinationPath "$ContainerName.zip" | Out-Null   
 
     # Make sure storage account exists
