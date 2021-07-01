@@ -37,7 +37,7 @@ param (
     [string]$CompanyName = "",
     [string]$MobilePhone = "",
     [string]$AdditionalGroups = "",
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "UserPrincipalName" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "UserPrincipalName" } )]
     [string]$UserPrincipalName = "",
     [string]$UserTemplate = "default"
 )
