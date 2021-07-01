@@ -46,19 +46,19 @@ try {
     }
 
     #region configuration import
-    # "Getting Process configuration URL"
-    $processConfigURL = Get-AutomationVariable -name "SettingsSourceOrgPolicyExport" -ErrorAction SilentlyContinue
-    if (-not $processConfigURL) {
+    # "Getting Process configuration - JSON in Az Automation Variable"
+    $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
+    if (-not $processConfigRaw) {
         ## production default
         $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
-        ## staging default
+        $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+        $processConfigRaw = $webResult.Content        ## staging default
         #$processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/master/setup/defaults/settings-org-policies-export.json"
     }
     # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
 
     # "Getting Process configuration"
-    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
-    $processConfig = $webResult.Content | ConvertFrom-Json
+    $processConfig = $processConfigRaw | ConvertFrom-Json
 
     if (-not $ResourceGroupName) {
         $ResourceGroupName = $processConfig.exportResourceGroupName
@@ -103,7 +103,9 @@ try {
     # Write policy export as files
     mkdir "CAPols" | Out-Null
     $path = Set-Location -Path "CAPols"
-    Export-PolicyObjects -policies $pols    
+    Export-PolicyObjects -policies $pols
+    Set-Location -Path ".."
+    Compress-Archive -Path "CAPols\*" -DestinationPath "$ContainerName.zip" | Out-Null   
 
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
@@ -120,18 +122,32 @@ try {
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
         "Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+        $container = New-AzStorageContainer -Name $ContainerName -Context $context
+        "" 
     }
     
     # Upload
-    $files = Get-ChildItem -Path $path
-    $files | ForEach-Object {
-        Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
-    }
 
-    "Successfully created Conditional Access Export to"
-    $container.CloudBlobContainer.Uri.AbsoluteUri | Out-String
+    #$files = Get-ChildItem -Path $path
+    #$files | ForEach-Object {
+    #    Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
+    #}
+    
+    Set-AzStorageBlobContent -File "$ContainerName.zip" -Container $ContainerName -Blob "$ContainerName.zip" -Context $context -Force | Out-Null
+    
+    #Create signed (SAS) link
+    $EndTime = (Get-Date).AddDays(6)
+    $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "$ContainerName.zip" -FullUri -ExpiryTime $EndTime
+    
 
+    "Successfully created Conditional Access Export."
+    "Expiry of the Link: $EndTime"
+    #$container.CloudBlobContainer.Uri.AbsoluteUri | Out-String
+    $SASLink | Out-String 
+    
+}
+catch {
+    throw $_
 }
 finally {
     Disconnect-AzAccount -Confirm:$false | Out-Null
