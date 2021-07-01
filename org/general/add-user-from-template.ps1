@@ -37,7 +37,7 @@ param (
     [string]$CompanyName = "",
     [string]$MobilePhone = "",
     [string]$AdditionalGroups = "",
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "UserPrincipalName" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "UserPrincipalName" } )]
     [string]$UserPrincipalName = "",
     [string]$UserTemplate = "default"
 )
@@ -51,23 +51,26 @@ $UsageLocation = ""
 Connect-RjRbAzureAD
 
 #region configuration import
-# "Getting Process configuration URL"
-$processConfigURL = Get-AutomationVariable -name "SettingsSourceOrgAddUser" -ErrorAction SilentlyContinue
-if (-not $processConfigURL) {
+
+#"Getting Process configuration"
+$processConfigRaw = Get-AutomationVariable -name "SettingsOrgAddUser" -ErrorAction SilentlyContinue
+if (-not $processConfigRaw) {
     ## production default
     # $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings.json"
     ## staging default
     $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/master/setup/defaults/settings.json"
+    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+    $processConfigRaw = $webResult.Content 
 }
 # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
 
 # "Getting Process configuration"
-$webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
-$processConfig = $webResult.Content | ConvertFrom-Json
+$processConfig = $processConfigRaw | ConvertFrom-Json
 
 if (-not $processConfig.userSettings.templates.$UserTemplate) {
     throw "Unkown User Template '$UserTemplate'"
 }
+
 #endregion
 
 # AzureAD Module is broken in regards to ErrorAction, so...
@@ -175,8 +178,7 @@ if ($LocationName) {
     }
 }
 
-if (-not $UsageLocation)
-{
+if (-not $UsageLocation) {
     if ($template.usageLocation) {
         $UsageLocation = $template.usageLocation
     }
