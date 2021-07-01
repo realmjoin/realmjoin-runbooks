@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  List entprise apps / service principals
+  Export a CSV of all entprise app owners and users
 
   .DESCRIPTION
-  List entprise apps / service principals
+  Export a CSV of all entprise app owners and users
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
