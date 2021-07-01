@@ -52,12 +52,8 @@
           }
         },
         "AADGroupsToAssign": [
-          "cfg - RealmJoin - Local admin on trusted device",
-          "dl - GKGAB All",
-          "lic - Default gluckkanja Teams calling plan",
           "lic - Default glueckkanja-gab",
-          "lic - Default glueckkanja-gab Intune only",
-          "sec - Odoo Production"
+          "lic - Default glueckkanja-gab Intune only"
         ]
       }
     },

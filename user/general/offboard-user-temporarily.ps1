@@ -19,12 +19,20 @@ param (
 Connect-RjRbAzureAD
 
 #region configuration import
-# "Getting Process configuration URL"
-$processConfigURL = Get-AutomationVariable -name "SettingsSourceUserLeaverTemporary" 
-Write-RjRbDebug "Process Config URL is $($processConfigURL)"
+#"Getting Process configuration"
+$processConfigRaw = Get-AutomationVariable -name "SettingsOrgUserLeaverTemp" -ErrorAction SilentlyContinue
+if (-not $processConfigRaw) {
+    ## production default
+    # $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings.json"
+    ## staging default
+    $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/master/setup/defaults/settings.json"
+    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+    $processConfigRaw = $webResult.Content 
+}
+# Write-RjRbDebug "Process Config URL is $($processConfigURL)"
+
 # "Getting Process configuration"
-$webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
-$processConfig = $webResult.Content | ConvertFrom-Json
+$processConfig = $processConfigRaw | ConvertFrom-Json
 #endregion
 
 
@@ -57,7 +65,7 @@ if ($processConfig.exportGroupMemberships) {
     # "Connecting to Az module..."
     Connect-RjRbAzAccount
     # Get Resource group and storage account
-    $AzAAResourceGroup = Get-AutomationVariable -name "AzAAResourceGroup" 
+    $AzAAResourceGroup = $processConfig.exportResourceGroupName
     $storAccount = Get-AzStorageAccount -ResourceGroupName $AzAAResourceGroup -Name $processConfig.exportStorAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "Creating Azure Storage Account $($processConfig.exportStorAccountName)"
