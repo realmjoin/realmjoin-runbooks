@@ -3,6 +3,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Path')]
 param
 (
+    [ValidateSet("Chocolate", "Strawberry", "Vanilla")]
     [string] $TestString1,
     [string] $TestString2,
     [string] $TestString3,
@@ -12,8 +13,7 @@ param
     [bool] $TestBool,
     [switch] $TestSwitch,
     [object] $TestObject1,
-    [object] $TestObject2,
-    [Parameter(ParameterSetName = 'PathAll')] [switch]$Recurse
+    [object] $TestObject2
 )
 
 $PSBoundParameters | ConvertTo-Json
