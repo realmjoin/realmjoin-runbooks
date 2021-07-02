@@ -1,15 +1,24 @@
-# This runbook will block access of a user and revoke all current sessions (AzureAD tokens)
-#
-# This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
-# Permissions:
-# - AzureAD Role: User administrator
+<#
+  .SYNOPSIS
+  Reset a user's password. 
+
+  .DESCRIPTION
+  Reset a user's password. The user will have to change it on singin.
+
+  .NOTES
+  Permissions:
+  - AzureAD Role: User administrator
+
+#>
 
 #Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [bool] $enableUserIfNeeded = $true
+    [ValidateScript( { Use-RJInterface -DisplayName "Enable this user object, if disabled" } )]
+    [bool] $EnableUserIfNeeded = $true
 )
 
 # Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered!).

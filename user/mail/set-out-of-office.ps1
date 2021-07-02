@@ -1,34 +1,59 @@
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }, ExchangeOnlineManagement
+<#
+  .SYNOPSIS
+  En-/Disable Out-of-office-notifications for a user/mailbox.
+
+  .DESCRIPTION
+  En-/Disable Out-of-office-notifications for a user/mailbox.
+
+  .PARAMETER Start
+  "Now" if left empty
+
+  .PARAMETER End
+  10 years into the future ("forever") if left empty
+
+  #>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] [string] $UserName,
-    [Parameter(Mandatory = $true)] [string] $CallerName,
+    [Parameter(Mandatory = $true)] 
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
+    [string] $UserName,
+    [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
     [datetime] $Start = (get-date),
+    [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
     [datetime] $End = ((get-date) + (new-timespan -Days 3650)),
-    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Intern,
-    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $Message_Extern,
-    [bool] $Disable = $false
+    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageInternal="Sorry, this person is currently not able to receive your message.",
+    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageExternal="Sorry, this person is currently not able to receive your message.",
+    [ValidateScript( { Use-RJInterface -DisplayName "Disable Out-of-office notice"} )]
+    [bool] $Disable = $false,
+    [string] $CallerName
+    
 )
 
 $VerbosePreference = "SilentlyContinue"
+try {
+    Write-RjRbLog "Set Out Of Office settings initialized by '$CallerName' for '$UserName'"
 
-Write-RjRbLog "Set Out Of Office settings initialized by '$CallerName' for '$UserName'"
+    Connect-RjRbExchangeOnline
 
-Connect-RjRbExchangeOnline
+    if ($Disable) {
+        Write-RjRbLog "Disable Out Of Office settings for '$UserName'"
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
+    }
+    else {
+        Write-RjRbLog "Enabling Out Of Office settings for '$UserName'"
+        Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled `
+            -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End
+    }
 
-if ($Disable) {
-    Write-RjRbLog "Disable Out Of Office settings for '$UserName'"
-    Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
+    Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
+
+    "Successfully updated Out Of Office settings for user '$UserName'."
+
 }
-else {
-    Write-RjRbLog "Enabling Out Of Office settings for '$UserName'"
-    Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled `
-        -ExternalMessage $Message_Extern -InternalMessage $Message_Intern -StartTime $Start -EndTime $End
+finally {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null    
 }
 
-Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
-
-Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-
-"Successfully updated Out Of Office settings for user '$UserName'."

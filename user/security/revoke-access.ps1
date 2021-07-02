@@ -1,10 +1,18 @@
-# This runbook will block access of a user and revoke all current sessions (AzureAD tokens)
-#
-# This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
-# Permissions:
-# - User.ReadWrite.All, Directory.ReadWrite.All,
+<#
+  .SYNOPSIS
+  Disable a user and revoke all tokens.
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.4.0" }
+  .DESCRIPTION
+  Disable a user and revoke all tokens.
+
+  .NOTES
+  This runbook will block access of a user and revoke all current sessions (AzureAD tokens)
+  This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
+  Permissions:
+  - User.ReadWrite.All, Directory.ReadWrite.All,
+#>
+
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]

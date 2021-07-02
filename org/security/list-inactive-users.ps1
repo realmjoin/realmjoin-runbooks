@@ -1,12 +1,20 @@
-# This will list all users that have not signed in in at least the given number of days
-#
-# Permissions: MS Graph
-# - AuditLogs.Read.All
-# - Organization.Read.All
+<#
+  .SYNOPSIS
+  List users, that have no recent signins.
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+  .DESCRIPTION
+  List users, that have no recent signins.
+
+  .NOTES
+  Permissions: MS Graph
+  - AuditLogs.Read.All
+  - Organization.Read.All
+#>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
+    [ValidateScript( { Use-RJInterface -DisplayName "Days without signin" } )]
     [int] $Days = 30
 )
 
@@ -16,4 +24,4 @@ Connect-RjRbGraph
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 $filter='signInActivity/lastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 
-Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta | Select-Object -Property UserPrincipalName,signInSessionsValidFromDateTime 
+Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta | Select-Object -Property UserPrincipalName,signInSessionsValidFromDateTime | out-string

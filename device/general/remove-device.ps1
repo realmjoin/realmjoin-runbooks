@@ -1,12 +1,18 @@
-# This runbook will remove a windows device from Intune, AzureAD and Autopilot.
-# This will NOT wipe a device. (although company user data and configs are removed from the client when it checks in.)
-# 
-# Permissions, Graph, API:
-# - DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
-# - DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
-# - DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
+<#
+  .SYNOPSIS
+  Remove a windows device from Intune, AzureAD and Autopilot.
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+  .DESCRIPTION
+  Remove a windows device from Intune, AzureAD and Autopilot. Will not wipe a device but user data will be removed after devices checks in.
+
+  .NOTES
+  PERMISSIONS
+   DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
+   DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
+   DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
+#>
+
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param (
     [Parameter(Mandatory = $true)]
