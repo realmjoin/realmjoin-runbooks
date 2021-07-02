@@ -1,5 +1,6 @@
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
+[CmdletBinding(DefaultParameterSetName = 'Path')]
 param
 (
     [string] $TestString1,
@@ -11,7 +12,8 @@ param
     [bool] $TestBool,
     [switch] $TestSwitch,
     [object] $TestObject1,
-    [object] $TestObject2
+    [object] $TestObject2,
+    [Parameter(ParameterSetName = 'PathAll')] [switch]$Recurse
 )
 
 $PSBoundParameters | ConvertTo-Json
