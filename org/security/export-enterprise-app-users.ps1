@@ -3,7 +3,7 @@
   Export a CSV of all (entprise) app owners and users
 
   .DESCRIPTION
-  Export a CSV of all (entprise) app owners and users
+  Export a CSV of all (entprise) app owners and users. Will use a storage account as given in the Az. Automation Variable "SettingsExports".
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -25,7 +25,7 @@ try {
     # "Getting Process configuration - JSON in Az Automation Variable"
     $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
     if (-not $processConfigRaw) {
-        ## production default
+        ## production default - use this as template to create the Az. Automation Variable "SettingsExports"
         $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
         $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
         $processConfigRaw = $webResult.Content        ## staging default
@@ -71,9 +71,9 @@ try {
     $servicePrincipals | ForEach-Object {
         $AppId = $_.appId
         $AppDisplayName = $_.displayName
-        $AccountEnabled = $_.accountEnabled | Out-String
-        $HideApp = $_.tags -contains "hideapp" | Out-String
-        $AssignmentRequired = $_.appRoleAssignmentRequired | Out-String
+        $AccountEnabled = $_.accountEnabled 
+        $HideApp = $_.tags -contains "hideapp" 
+        $AssignmentRequired = $_.appRoleAssignmentRequired 
 
         # Get Owners
         $owners = Invoke-RjRbRestMethodGraph -resource "/servicePrincipals/$($_.id)/owners"
