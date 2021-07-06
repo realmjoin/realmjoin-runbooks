@@ -66,7 +66,7 @@ try {
     # Get Ent. Apps / Service Principals
     $servicePrincipals = Invoke-RjRbRestMethodGraph @invokeParams
 
-    'AppId;AppDisplayName;AccountEnabled;HideApp;AssignmentRequired;PrincipalRole;PrincipalType;PrincipalId' > enterpriseApps.csv
+    'AppId;AppDisplayName;AccountEnabled;HideApp;AssignmentRequired;PrincipalRole;PrincipalType;PrincipalId;Notes' > enterpriseApps.csv
 
     $servicePrincipals | ForEach-Object {
         $AppId = $_.appId
@@ -75,15 +75,24 @@ try {
         $HideApp = $_.tags -contains "hideapp" 
         $AssignmentRequired = $_.appRoleAssignmentRequired 
 
+        if ($_.notes) {
+            $Notes = [string]::join(" ", ($_.notes.Split("`n") -replace (';', ',')))
+        }
+        else {
+            $Notes = ""
+        }
+
         # Get Owners
         $owners = Invoke-RjRbRestMethodGraph -resource "/servicePrincipals/$($_.id)/owners"
         if ($owners) {
-        $owners | ForEach-Object {
-            #"Owner: $($_.userPrincipalName)"
-            "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;$($_.userPrincipalName)" >> enterpriseApps.csv
-        } } else {
+            $owners | ForEach-Object {
+                #"Owner: $($_.userPrincipalName)"
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;$($_.userPrincipalName);$Notes" >> enterpriseApps.csv
+            } 
+        }
+        else {
             # Make sure to list apps missing an owner
-            "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;;" >> enterpriseApps.csv
+            "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;;$Notes" >> enterpriseApps.csv
         }
     
         # Get App Role assignments
@@ -92,16 +101,16 @@ try {
             if ($_.principalType -eq "User") {
                 $userobject = Invoke-RjRbRestMethodGraph -resource "/users/$($_.principalId)"
                 #"Assigned to User: $($userobject.userPrincipalName)"
-                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;User;$($userobject.userPrincipalName)" >> enterpriseApps.csv
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;User;$($userobject.userPrincipalName);$Notes" >> enterpriseApps.csv
             }
             elseif ($_.principalType -eq "Group") {
                 $groupobject = $userobject = Invoke-RjRbRestMethodGraph -resource "/groups/$($_.principalId)"
                 #"Assigned to Group: $($groupobject.mailNickname)"
-                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;Group;$($groupobject.mailNickname) ($($groupobject.displayName))" >> enterpriseApps.csv
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;Group;$($groupobject.mailNickname) ($($groupobject.displayName));$Notes" >> enterpriseApps.csv
             }
             elseif ($_.principalType -eq "ServicePrincipal") {
                 #"Assigned to ServicePrincipal: $($_.principalId)"
-                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;ServicePrincipal;$($_.principalId)" >> enterpriseApps.csv
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;ServicePrincipal;$($_.principalId);$Notes" >> enterpriseApps.csv
             }
         
         }
