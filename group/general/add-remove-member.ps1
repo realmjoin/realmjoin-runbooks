@@ -4,6 +4,19 @@
 
   .DESCRIPTION
   Add/remove users to/from a group membership.
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
+                "DisplayName": "Add or Remove Member",
+                "SelectSimple": {
+                    "Add User to Group": false,
+                    "Remove User from Group": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -16,7 +29,7 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this member" } )]
-    [bool] $remove = $false
+    [bool] $Remove = $false
 )
 
 Connect-RjRbGraph
@@ -29,7 +42,7 @@ if (-not $targetUser) {
 
 # "Is user member of the the group?" 
 if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId/members/$UserID" -ErrorAction SilentlyContinue) {
-    if ($remove) {
+    if ($Remove) {
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId/members/$UserId/`$ref" -Method Delete -Body $body | Out-Null
         "$($targetUser.UserPrincipalName) is removed from $GroupId members."
     }
@@ -38,7 +51,7 @@ if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId/members/$UserID" -Err
     }
 }
 else {
-    if ($remove) {
+    if ($Remove) {
         "User $($targetUser.userPrincipalName) is not a member of $GroupId. No action taken."
     }
     else {

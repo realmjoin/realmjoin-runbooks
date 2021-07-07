@@ -10,6 +10,19 @@
 
   .PARAMETER PolicyName
   Optional if only one exists.
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
+                "DisplayName": "Add or Remove URL Pattern to/from Policy",
+                "SelectSimple": {
+                    "Add URL Pattern to Policy": false,
+                    "Remove URL Pattern from Policy": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
@@ -21,8 +34,7 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "Safe Links policy name" } )]
     [String] $PolicyName,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this pattern" } )]
-    [boolean] $RemovePattern = $false
-
+    [boolean] $Remove = $false
 )
 
 try {
@@ -45,7 +57,7 @@ try {
     }
 
     $DoNotRewriteUrls = @()
-    if ($RemovePattern) {
+    if ($Remove) {
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {
                 $DoNotRewriteUrls += $entry

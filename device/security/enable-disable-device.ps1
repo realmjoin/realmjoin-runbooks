@@ -10,6 +10,19 @@
   - Device.Read.All
   Roles (AzureAD):
   - Cloud Device Administrator
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Enable": {
+                "DisplayName": "Disable or Enable Device",
+                "SelectSimple": {
+                    "Disable Device": false,
+                    "Enable Device again": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -17,7 +30,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
-    [bool] $EnableDevice = $false
+    [bool] $Enable = $false
 )
 
 Connect-RjRbGraph
@@ -28,10 +41,10 @@ if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 
 
-$body = @{ accountEnabled = $EnableDevice }
+$body = @{ accountEnabled = $Enable }
 
 if ($targetDevice.accountEnabled) {
-    if ($EnableDevice) {
+    if ($Enable) {
         "Device $($targetDevice.displayName) with DeviceId $DeviceId is already enabled in AzureAD."
     }
     else {
@@ -48,7 +61,7 @@ if ($targetDevice.accountEnabled) {
     }
 }
 else {
-    if ($EnableDevice) { 
+    if ($Enable) { 
         # "Enabling device $($targetDevice.displayName) in AzureAD."
         try {
             # Set-AzureADDevice -AccountEnabled $true -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null

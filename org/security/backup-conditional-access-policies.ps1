@@ -27,14 +27,19 @@
 
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, Az.Storage
 
 param(
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPolicies.Container" } )]
     [string] $ContainerName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPolicies.ResourceGroup" } )]
     [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPolicies.StorageAccount.Name" } )]
     [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPolicies.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [string] $StorageAccountSku 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPolicies.StorageAccount.Sku" } )]
+    [string] $StorageAccountSku
 )
 
 try {

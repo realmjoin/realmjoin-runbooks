@@ -15,6 +15,18 @@
     PATCH : https://graph.microsoft.com/v1.0/groups/{id}
     body = { "resourceBehaviorOptions":["HideGroupInOutlook"] }
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Hide": {
+                "DisplayName": "Show or Hide Group in Address Book",
+                "SelectSimple": {
+                    "Show Group in Address Book": false,
+                    "Hide Group from Address Book": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Module ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

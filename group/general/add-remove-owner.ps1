@@ -4,6 +4,19 @@
 
   .DESCRIPTION
   Add/remove owners to/from an Office 365 group.
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
+                "DisplayName": "Add or Remove Owner",
+                "SelectSimple": {
+                    "Add User as Owner": false,
+                    "Remove User as Owner": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -16,7 +29,7 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this owner" } )]
-    [bool] $remove = $false
+    [bool] $Remove = $false
 )
 
 Connect-RjRbGraph
@@ -29,7 +42,7 @@ if (-not $targetUser) {
 
 # "Is user owner of the the group?" 
 if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -ErrorAction SilentlyContinue) {
-    if ($remove) {
+    if ($Remove) {
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserId/`$ref" -Method Delete -Body $body | Out-Null
         "$($targetUser.UserPrincipalName) is removed from $GroupID owners"
     }
@@ -38,7 +51,7 @@ if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -Erro
     }
 }
 else {
-    if ($remove) {
+    if ($Remove) {
         "User $($targetUser.UserPrincipalName) is not an owner of $GroupID. No action taken."
     }
     else {
