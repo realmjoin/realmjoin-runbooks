@@ -11,7 +11,43 @@
   .PARAMETER End
   10 years into the future ("forever") if left empty
 
-  #>
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Disable": {
+                "DisplayName": "Enable or Disable Out-of-Office",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Enable Out-of-Office",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Mandatory": [
+                                    "Start",
+                                    "MessageInternal",
+                                    "MessageExternal"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Disable Out-of-Office",
+                            "ParameterValue": true,
+                            "Customization": {
+                                "Hide": [
+                                    "Start",
+                                    "End",
+                                    "MessageInternal",
+                                    "MessageExternal"
+                                ]
+                            }
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            }
+        }
+    }
+#>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
@@ -20,16 +56,17 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
-    [datetime] $Start = (get-date),
-    [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
-    [datetime] $End = ((get-date) + (new-timespan -Days 3650)),
-    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageInternal="Sorry, this person is currently not able to receive your message.",
-    [ValidateScript( { Use-RJInterface -Type Textarea } )] [string] $MessageExternal="Sorry, this person is currently not able to receive your message.",
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable Out-of-office notice"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office"} )]
     [bool] $Disable = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
+    [System.DateTimeOffset] $Start = (get-date),
+    [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
+    [System.DateTimeOffset] $End = ((get-date) + (new-timespan -Days 3650)),
+    [ValidateScript( { Use-RJInterface -Type Textarea } )]
+    [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
+    [ValidateScript( { Use-RJInterface -Type Textarea } )]
+    [string] $MessageExternal = "Sorry, this person is currently not able to receive your message.",
     [string] $CallerName
-    
 )
 
 $VerbosePreference = "SilentlyContinue"
@@ -56,4 +93,3 @@ try {
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null    
 }
-

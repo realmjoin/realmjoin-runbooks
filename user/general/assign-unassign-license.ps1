@@ -9,6 +9,19 @@
   Permissions:
    AzureAD Roles 
    - User administrator
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
+                "DisplayName": "Assign or Remove License",
+                "SelectSimple": {
+                    "Assign License to User": false,
+                    "Remove License from User": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -18,11 +31,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "License group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "ref:LicenseGroup" -DisplayName "License group" } )]
     [String] $GroupID_License,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove license" } )]
     [boolean] $Remove = $false
-    
 )
 
 Connect-RjRbGraph
