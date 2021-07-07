@@ -6,11 +6,33 @@
   Disable a device in AzureAD.
 
   .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  Roles (AzureAD):
-  - Cloud Device Administrator
+  RunbookCustomization: {
+        "Parameters": [
+            {
+                "Name": "EnableDevice",
+                "DisplayName": "Disable or Enable Device",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Disable Device",
+                            "ParameterValue": false
+                        },
+                        {
+                            "Display": "Enable Device again",
+                            "ParameterValue": true
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            }
+        ]
+    }
 #>
+
+# Permissions (Graph):
+# - Device.Read.All
+# Roles (AzureAD):
+# - Cloud Device Administrator
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
