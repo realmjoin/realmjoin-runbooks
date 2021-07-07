@@ -8,17 +8,33 @@
   .PARAMETER Url
   Needs to be prefixed with "http://" or "https://"
 
-  .PARAMETER Zone
-  0: My Computer,
-  1: Local Intranet Zone,
-  2: Trusted sites Zone,
-  3: Internet Zone,
-  4: Restricted Sites Zone
-
   .NOTES
   Permissions: MS Graph API permissions:
   - DeviceManagementConfiguration.ReadWrite.All
 
+  .INPUTS
+  RunbookCustomization: {
+      "Parameters": [
+          {
+              "Name": "Zone",
+              "SelectSimple": {
+                  "My Computer (0)": 0,
+                  "Local Intranet Zone (1)": 1,
+                  "Trusted sites Zone (2)": 2,
+                  "Internet Zone (3)": 3,
+                  "Restricted Sites Zone (4)": 4
+              }
+          },
+          {
+              "Name": "Remove",
+              "DisplayName": "Add or Remove URL to/from Trusted Sites",
+              "SelectSimple": {
+                  "Add URL to Trusted Sites": false,
+                  "Remove URL from Trusted Sites": true
+              }
+          }
+      ]
+  }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
