@@ -15,6 +15,28 @@
    attribute: allowExternalSenders
    https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property
 
+  .INPUTS
+  RunbookCustomization: {
+      "Parameters": [
+          {
+              "Name": "Disable",
+              "DisplayName": "Enable or Disable External Mail",
+              "Select": {
+                  "Options": [
+                      {
+                          "Display": "Enable External Mail",
+                          "ParameterValue": false
+                      },
+                      {
+                          "Display": "Disable External Mail",
+                          "ParameterValue": true
+                      }
+                  ],
+                  "ShowValue": false
+              }
+          }
+      ]
+  }
 #>
 
 #Requires -Module ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
