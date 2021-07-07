@@ -6,7 +6,13 @@
   Disable a device in AzureAD.
 
   .NOTES
-  RunbookCustomization: {
+  Permissions (Graph):
+  - Device.Read.All
+  Roles (AzureAD):
+  - Cloud Device Administrator
+
+  .INPUTS
+    RunbookCustomization: {
         "Parameters": [
             {
                 "Name": "EnableDevice",
@@ -27,12 +33,8 @@
             }
         ]
     }
-#>
 
-# Permissions (Graph):
-# - Device.Read.All
-# Roles (AzureAD):
-# - Cloud Device Administrator
+#>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
