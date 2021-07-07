@@ -12,26 +12,16 @@
   - Cloud Device Administrator
 
   .INPUTS
-    RunbookCustomization: {
-        "Parameters": [
-            {
-                "Name": "EnableDevice",
+  RunbookCustomization: {
+        "Parameters": {
+            "Enable": {
                 "DisplayName": "Disable or Enable Device",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Disable Device",
-                            "ParameterValue": false
-                        },
-                        {
-                            "Display": "Enable Device again",
-                            "ParameterValue": true
-                        }
-                    ],
-                    "ShowValue": false
+                "SelectSimple": {
+                    "Disable Device": false,
+                    "Enable Device again": true
                 }
             }
-        ]
+        }
     }
 #>
 
@@ -40,7 +30,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
-    [bool] $EnableDevice = $false
+    [bool] $Enable = $false
 )
 
 Connect-RjRbGraph
@@ -51,10 +41,10 @@ if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 
 
-$body = @{ accountEnabled = $EnableDevice }
+$body = @{ accountEnabled = $Enable }
 
 if ($targetDevice.accountEnabled) {
-    if ($EnableDevice) {
+    if ($Enable) {
         "Device $($targetDevice.displayName) with DeviceId $DeviceId is already enabled in AzureAD."
     }
     else {
@@ -71,7 +61,7 @@ if ($targetDevice.accountEnabled) {
     }
 }
 else {
-    if ($EnableDevice) { 
+    if ($Enable) { 
         # "Enabling device $($targetDevice.displayName) in AzureAD."
         try {
             # Set-AzureADDevice -AccountEnabled $true -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null

@@ -6,26 +6,16 @@
   Add/remove owners to/from an Office 365 group.
 
   .INPUTS
-    RunbookCustomization: {
-        "Parameters": [
-            {
-                "Name": "Remove",
+  RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
                 "DisplayName": "Add or Remove Owner",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Add User as Owner",
-                            "ParameterValue": false
-                        },
-                        {
-                            "Display": "Remove User as Owner",
-                            "ParameterValue": true
-                        }
-                    ],
-                    "ShowValue": false
+                "SelectSimple": {
+                    "Add User as Owner": false,
+                    "Remove User as Owner": true
                 }
             }
-        ]
+        }
     }
 #>
 

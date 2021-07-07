@@ -14,27 +14,25 @@
 
   .INPUTS
   RunbookCustomization: {
-      "Parameters": [
-          {
-              "Name": "Zone",
-              "SelectSimple": {
-                  "My Computer (0)": 0,
-                  "Local Intranet Zone (1)": 1,
-                  "Trusted sites Zone (2)": 2,
-                  "Internet Zone (3)": 3,
-                  "Restricted Sites Zone (4)": 4
-              }
-          },
-          {
-              "Name": "Remove",
-              "DisplayName": "Add or Remove URL to/from Trusted Sites",
-              "SelectSimple": {
-                  "Add URL to Trusted Sites": false,
-                  "Remove URL from Trusted Sites": true
-              }
-          }
-      ]
-  }
+        "Parameters": {
+            "Zone": {
+                "SelectSimple": {
+                    "My Computer (0)": 0,
+                    "Local Intranet Zone (1)": 1,
+                    "Trusted sites Zone (2)": 2,
+                    "Internet Zone (3)": 3,
+                    "Restricted Sites Zone (4)": 4
+                }
+            },
+            "Remove": {
+                "DisplayName": "Add or Remove URL to/from Trusted Sites",
+                "SelectSimple": {
+                    "Add URL to Trusted Sites": false,
+                    "Remove URL from Trusted Sites": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

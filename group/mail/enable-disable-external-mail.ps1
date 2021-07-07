@@ -17,26 +17,16 @@
 
   .INPUTS
   RunbookCustomization: {
-      "Parameters": [
-          {
-              "Name": "Disable",
-              "DisplayName": "Enable or Disable External Mail",
-              "Select": {
-                  "Options": [
-                      {
-                          "Display": "Enable External Mail",
-                          "ParameterValue": false
-                      },
-                      {
-                          "Display": "Disable External Mail",
-                          "ParameterValue": true
-                      }
-                  ],
-                  "ShowValue": false
-              }
-          }
-      ]
-  }
+        "Parameters": {
+            "Disable": {
+                "DisplayName": "Enable or Disable External Mail",
+                "SelectSimple": {
+                    "Enable External Mail": false,
+                    "Disable External Mail": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Module ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

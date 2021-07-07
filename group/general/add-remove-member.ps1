@@ -6,26 +6,16 @@
   Add/remove users to/from a group membership.
 
   .INPUTS
-    RunbookCustomization: {
-        "Parameters": [
-            {
-                "Name": "Remove",
+  RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
                 "DisplayName": "Add or Remove Member",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Add User to Group",
-                            "ParameterValue": false
-                        },
-                        {
-                            "Display": "Remove User from Group",
-                            "ParameterValue": true
-                        }
-                    ],
-                    "ShowValue": false
+                "SelectSimple": {
+                    "Add User to Group": false,
+                    "Remove User from Group": true
                 }
             }
-        ]
+        }
     }
 #>
 

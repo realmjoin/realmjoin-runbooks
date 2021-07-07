@@ -13,26 +13,16 @@
 
   .INPUTS
   RunbookCustomization: {
-      "Parameters": [
-          {
-              "Name": "Remove",
-              "DisplayName": "Add or Remove URL Pattern to/from Policy",
-              "Select": {
-                  "Options": [
-                      {
-                          "Display": "Add URL Pattern to Policy",
-                          "ParameterValue": false
-                      },
-                      {
-                          "Display": "Remove URL Pattern from Policy",
-                          "ParameterValue": true
-                      }
-                  ],
-                  "ShowValue": false
-              }
-          }
-      ]
-  }
+        "Parameters": {
+            "Remove": {
+                "DisplayName": "Add or Remove URL Pattern to/from Policy",
+                "SelectSimple": {
+                    "Add URL Pattern to Policy": false,
+                    "Remove URL Pattern from Policy": true
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
