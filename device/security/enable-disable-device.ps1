@@ -33,7 +33,6 @@
             }
         ]
     }
-
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
