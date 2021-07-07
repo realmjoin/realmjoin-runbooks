@@ -3,7 +3,7 @@
   Export a CSV of all (entprise) app owners and users
 
   .DESCRIPTION
-  Export a CSV of all (entprise) app owners and users
+  Export a CSV of all (entprise) app owners and users. Will use a storage account as given in the Az. Automation Variable "SettingsExports".
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -25,7 +25,7 @@ try {
     # "Getting Process configuration - JSON in Az Automation Variable"
     $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
     if (-not $processConfigRaw) {
-        ## production default
+        ## production default - use this as template to create the Az. Automation Variable "SettingsExports"
         $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
         $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
         $processConfigRaw = $webResult.Content        ## staging default
@@ -66,17 +66,33 @@ try {
     # Get Ent. Apps / Service Principals
     $servicePrincipals = Invoke-RjRbRestMethodGraph @invokeParams
 
-    'AppId;AppDisplayName;PrincipalRole;PrincipalType;PrincipalId' > enterpriseApps.csv
+    'AppId;AppDisplayName;AccountEnabled;HideApp;AssignmentRequired;PrincipalRole;PrincipalType;PrincipalId;Notes' > enterpriseApps.csv
 
     $servicePrincipals | ForEach-Object {
-        $AppId = $_.id
+        $AppId = $_.appId
         $AppDisplayName = $_.displayName
+        $AccountEnabled = $_.accountEnabled 
+        $HideApp = $_.tags -contains "hideapp" 
+        $AssignmentRequired = $_.appRoleAssignmentRequired 
+
+        if ($_.notes) {
+            $Notes = [string]::join(" ", ($_.notes.Split("`n") -replace (';', ',')))
+        }
+        else {
+            $Notes = ""
+        }
 
         # Get Owners
         $owners = Invoke-RjRbRestMethodGraph -resource "/servicePrincipals/$($_.id)/owners"
-        $owners | ForEach-Object {
-            #"Owner: $($_.userPrincipalName)"
-            "$AppId;$AppDisplayName;Owner;User;$($_.userPrincipalName)" >> enterpriseApps.csv
+        if ($owners) {
+            $owners | ForEach-Object {
+                #"Owner: $($_.userPrincipalName)"
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;$($_.userPrincipalName);$Notes" >> enterpriseApps.csv
+            } 
+        }
+        else {
+            # Make sure to list apps missing an owner
+            "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;;$Notes" >> enterpriseApps.csv
         }
     
         # Get App Role assignments
@@ -85,16 +101,16 @@ try {
             if ($_.principalType -eq "User") {
                 $userobject = Invoke-RjRbRestMethodGraph -resource "/users/$($_.principalId)"
                 #"Assigned to User: $($userobject.userPrincipalName)"
-                "$AppId;$AppDisplayName;Member;User;$($userobject.userPrincipalName)" >> enterpriseApps.csv
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;User;$($userobject.userPrincipalName);$Notes" >> enterpriseApps.csv
             }
             elseif ($_.principalType -eq "Group") {
                 $groupobject = $userobject = Invoke-RjRbRestMethodGraph -resource "/groups/$($_.principalId)"
                 #"Assigned to Group: $($groupobject.mailNickname)"
-                "$AppId;$AppDisplayName;Member;Group;$($groupobject.mailNickname) ($($groupobject.displayName))" >> enterpriseApps.csv
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;Group;$($groupobject.mailNickname) ($($groupobject.displayName));$Notes" >> enterpriseApps.csv
             }
             elseif ($_.principalType -eq "ServicePrincipal") {
                 #"Assigned to ServicePrincipal: $($_.principalId)"
-                "$AppId;$AppDisplayName;Member;ServicePrincipal;$($_.principalId)" >> enterpriseApps.csv
+                "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;ServicePrincipal;$($_.principalId);$Notes" >> enterpriseApps.csv
             }
         
         }
