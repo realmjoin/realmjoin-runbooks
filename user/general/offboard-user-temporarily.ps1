@@ -5,6 +5,12 @@
   .DESCRIPTION
   Temporarily offboard a user in cases like parental leaves or sabaticals.
   
+  .NOTES
+  Permissions
+  AzureAD Roles
+  - User administrator
+  Azure IaaS: "Contributor" access on subscription or resource group used for the export
+ 
 #>
 
 #Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, Az.Storage

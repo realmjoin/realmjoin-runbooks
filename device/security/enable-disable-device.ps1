@@ -30,6 +30,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
+    [ValidateScript( { Use-RJInterface -DisplayName "Disable or Enable Device" } )]
     [bool] $Enable = $false
 )
 

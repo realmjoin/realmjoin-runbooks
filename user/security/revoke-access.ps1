@@ -6,9 +6,8 @@
   Disable a user and revoke all tokens.
 
   .NOTES
-  This runbook will block access of a user and revoke all current sessions (AzureAD tokens)
-  This runbook will use the "AzureRunAsConnection" to connect to AzureAD. Please make sure, enough API-permissions are given to this service principal.
   Permissions:
+  MS Graph (API)
   - User.ReadWrite.All, Directory.ReadWrite.All,
 #>
 

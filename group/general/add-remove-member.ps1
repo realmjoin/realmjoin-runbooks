@@ -5,6 +5,14 @@
   .DESCRIPTION
   Add/remove users to/from a group membership.
 
+  .NOTES
+  Permissions: 
+  MS Graph (API)
+  - User.Read.All
+  - GroupMember.ReadWrite.All 
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

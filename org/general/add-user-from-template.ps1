@@ -19,6 +19,11 @@
 
   .PARAMETER UserTemplate
   Which user template from the JSON configuration will be used to "fill the blanks"
+
+  .NOTES
+  Permissions
+  AzureAD Roles
+  - User administrator
 #>
 
 #Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

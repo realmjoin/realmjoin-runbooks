@@ -4,6 +4,12 @@
 
   .DESCRIPTION
   List devices, which had no recent user logons.
+
+  .NOTES
+  Permissions
+  MS Graph (API):
+  - Directory.Read.All
+  - Device.Read.All
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

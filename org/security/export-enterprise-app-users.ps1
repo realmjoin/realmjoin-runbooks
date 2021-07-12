@@ -4,6 +4,16 @@
 
   .DESCRIPTION
   Export a CSV of all (entprise) app owners and users. Will use a storage account as given in the Az. Automation Variable "SettingsExports".
+
+  .NOTES
+  Permissions: 
+  MS Graph (API)
+  - User.Read.All
+  - Group.Read.All 
+  - Directory.Read.All
+  - Application.Read.All
+  Azure IaaS: "Contributor" access on subscription or resource group used for the export
+
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

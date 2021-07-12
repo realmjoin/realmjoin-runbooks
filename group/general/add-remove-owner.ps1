@@ -5,6 +5,13 @@
   .DESCRIPTION
   Add/remove owners to/from an Office 365 group.
 
+  .NOTES
+  Permissions: 
+  MS Graph (API)
+  - User.Read.All
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

@@ -5,6 +5,12 @@
   .DESCRIPTION
   Change a group's visibility
 
+  .NOTES
+  Permissions: 
+  MS Graph (API)
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

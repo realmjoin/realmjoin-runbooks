@@ -7,8 +7,10 @@
 
   .NOTES
   Permissions:
-   AzureAD Roles 
-   - User administrator
+  MS Graph (API):
+  - User.Read.All
+  - GroupMember.ReadWrite.All 
+  - Group.ReadWrite.All
 
   .INPUTS
   RunbookCustomization: {

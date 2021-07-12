@@ -6,8 +6,8 @@
   Removes a group, incl. SharePoint site and Teams team.
 
   .NOTES
-  Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-  MS Graph: Group.Create, Team.Create
+  MS Graph (API): 
+  - Group.ReadWrite.All 
 
 #>
 

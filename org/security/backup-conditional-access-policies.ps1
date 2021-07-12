@@ -22,8 +22,9 @@
 
   .NOTES
   Permissions
-   MS Graph: Policy.Read.All
-   Azure: Access to the given Azure Storage Account / Resource Group
+   MS Graph (API): 
+   - Policy.Read.All
+   Azure IaaS: Access to the given Azure Storage Account / Resource Group
 
 #>
 

@@ -7,7 +7,9 @@
 
   .NOTES
   Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-  MS Graph: Group.Create, Team.Create
+  MS Graph (API): 
+  - Group.Create 
+  - Team.Create
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

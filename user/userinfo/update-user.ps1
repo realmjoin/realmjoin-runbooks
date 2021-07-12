@@ -8,6 +8,11 @@
   .PARAMETER PreferredLanguage
   Examples: 'en-US' or 'de-DE'
 
+  .NOTES
+  Permissions
+  AzureAD Roles
+  - User administrator
+
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, AzureAD

@@ -7,6 +7,7 @@
 
   .NOTES
   Permissions: MS Graph
+  - User.Read.All
   - AuditLogs.Read.All
   - Organization.Read.All
 #>

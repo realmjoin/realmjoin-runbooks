@@ -13,7 +13,6 @@
   MS Graph API
   - Directory.Read.All
   - User.ReadWrite.All
-  Permissons -MSGraph Directory.Read.All:Api, User.ReadWrite.All:Api -ExchangeOnline Exchange.ManageAsApp:Api -AzureADRole "Application administrator"
 
 #>
 

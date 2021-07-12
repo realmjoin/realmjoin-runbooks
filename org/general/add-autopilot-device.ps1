@@ -15,7 +15,8 @@
   Permanently assign device to this user
 
   .NOTES
-  Permissions: MS Graph
+  Permissions: 
+  MS Graph (API):
   - DeviceManagementServiceConfig.ReadWrite.All
 
 #>
