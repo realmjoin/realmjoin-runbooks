@@ -8,8 +8,6 @@
   .NOTES
   Permissions: 
   MS Graph (API)
-  - User.Read.All
-  - Group.Read.All 
   - Directory.Read.All
   - Application.Read.All
   Azure IaaS: "Contributor" access on subscription or resource group used for the export

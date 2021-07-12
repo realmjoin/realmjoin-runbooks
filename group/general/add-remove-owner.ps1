@@ -8,7 +8,6 @@
   .NOTES
   Permissions: 
   MS Graph (API)
-  - User.Read.All
   - Group.ReadWrite.All
   - Directory.ReadWrite.All
 
