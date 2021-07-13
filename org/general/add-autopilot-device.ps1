@@ -5,30 +5,40 @@
   .DESCRIPTION
   Import a windows device into Windows Autopilot.
 
-  .PARAMETER SerialNumber
-  "Device Serial Number" from Get-WindowsAutopilotInfo
-
-  .PARAMETER HardwareIdentifier
-  "Hardware Hash" from Get-WindowsAutopilotInfo
-
-  .PARAMETER AssignedUser
-  Permanently assign device to this user
-
   .NOTES
   Permissions: 
   MS Graph (API):
   - DeviceManagementServiceConfig.ReadWrite.All
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "SerialNumber": {
+                "DisplayName": "'Device Serial Number' from Get-WindowsAutopilotInfo"   
+            },
+            "HardwareIdentifier": {
+                "DisplayName": "'Hardware Hash' from Get-WindowsAutopilotInfo"
+            },
+            "AssignedUser": {
+                "DisplayName": "Assign device to this user (optional)"
+            },
+            "Wait": {
+                "DisplayName": "Wait for job to finish"
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -DisplayName "'Device Serial Number' from Get-WindowsAutopilotInfo" } )]
     [string] $SerialNumber,
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -DisplayName "'Hardware Hash' from Get-WindowsAutopilotInfo" } )]
     [string] $HardwareIdentifier,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)" } )]
     [string] $AssignedUser = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
     [bool] $Wait = $true

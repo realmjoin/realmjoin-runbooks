@@ -24,6 +24,7 @@
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [string] $GroupId
 )
 

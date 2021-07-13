@@ -39,7 +39,7 @@ param
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Hide this group" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Hide Group in Address Book" } )]
     [boolean] $Hide = $false
 )
 
