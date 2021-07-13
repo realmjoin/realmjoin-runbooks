@@ -21,6 +21,9 @@
                     "Add User to Group": false,
                     "Remove User from Group": true
                 }
+            },
+            "GroupId": {
+                "Hide": true
             }
         }
     }

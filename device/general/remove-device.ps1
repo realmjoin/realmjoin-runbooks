@@ -10,6 +10,15 @@
    DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
    DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
    DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "DeviceId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

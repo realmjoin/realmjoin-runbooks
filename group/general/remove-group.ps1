@@ -9,6 +9,15 @@
   MS Graph (API): 
   - Group.ReadWrite.All 
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "GroupId": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }

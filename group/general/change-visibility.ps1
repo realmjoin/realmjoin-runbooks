@@ -20,6 +20,9 @@
                     "Make group private": false,
                     "Make group public": true
                 }
+            },
+            "GroupId": {
+                "Hide": true
             }
         }
     }

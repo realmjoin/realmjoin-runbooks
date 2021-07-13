@@ -20,7 +20,11 @@
                     "Disable Device": false,
                     "Enable Device again": true
                 }
+            },
+            "DeviceId": {
+                "Hide": true
             }
+
         }
     }
 #>

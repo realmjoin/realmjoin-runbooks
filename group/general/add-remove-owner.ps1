@@ -20,6 +20,9 @@
                     "Add User as Owner": false,
                     "Remove User as Owner": true
                 }
+            },
+            "GroupId": {
+                "Hide": true
             }
         }
     }
