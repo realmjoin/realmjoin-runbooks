@@ -24,6 +24,9 @@
                     "Show Group in Address Book": false,
                     "Hide Group from Address Book": true
                 }
+            },
+            "GroupName": {
+                "Hide": true
             }
         }
     }

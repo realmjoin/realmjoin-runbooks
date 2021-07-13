@@ -24,6 +24,9 @@
                     "Enable External Mail": false,
                     "Disable External Mail": true
                 }
+            },
+            "GroupName": {
+                "Hide": true
             }
         }
     }
