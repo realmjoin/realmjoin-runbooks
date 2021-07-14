@@ -22,7 +22,7 @@
   RunbookCustomization: {
         "Parameters": {
             "Remove": {
-                "DisplayName": "Add or Remove URL Pattern to/from Policy",
+                "DisplayName": "Action",
                 "SelectSimple": {
                     "Add URL Pattern to Policy": false,
                     "Remove URL Pattern from Policy": true

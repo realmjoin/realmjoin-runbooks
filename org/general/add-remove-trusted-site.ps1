@@ -25,7 +25,7 @@
                 }
             },
             "Remove": {
-                "DisplayName": "Add or Remove URL to/from Trusted Sites",
+                "DisplayName": "Action",
                 "SelectSimple": {
                     "Add URL to Trusted Sites": false,
                     "Remove URL from Trusted Sites": true

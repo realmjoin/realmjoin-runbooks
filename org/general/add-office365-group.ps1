@@ -10,6 +10,29 @@
   MS Graph (API): 
   - Group.Create 
   - Team.Create
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CreateTeam": {
+                "DisplayName":  "Create a Teams Team",
+                "SelectSimple": {
+                    "Only create a SharePoint Site": false,
+                    "Create a Team (and SharePoint Site)": true
+                }
+            },
+            "Private": {
+                "DisplayName":  "Visibility",
+                "SelectSimple": {
+                    "Public": false,
+                    "Private": true
+                }
+            },
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
@@ -18,7 +41,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -DisplayName "MailNickname" } )]
     [string] $MailNickname,
-    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName - will use MailNickname if left empty" } )]
     [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -DisplayName "Create a team" } )]
     [bool] $CreateTeam = $false,
