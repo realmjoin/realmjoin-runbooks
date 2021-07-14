@@ -11,7 +11,7 @@
   - User.ReadWrite.All, Directory.ReadWrite.All,
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }
 
 param(
     [Parameter(Mandatory = $true)]

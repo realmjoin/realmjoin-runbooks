@@ -13,7 +13,7 @@
   - IdentityRiskyUser.ReadWrite.All
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }
 
 param(
     [Parameter(Mandatory = $true)]

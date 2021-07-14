@@ -26,7 +26,7 @@
   - User administrator
 #>
 
-#Requires -Module AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }
 
 param (
     # Option - Use at least "givenName" and "surname" to create the user.

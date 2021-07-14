@@ -20,7 +20,7 @@
 
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
 
 param(
     [Parameter(Mandatory = $true)] 

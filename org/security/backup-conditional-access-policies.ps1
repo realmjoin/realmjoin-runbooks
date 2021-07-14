@@ -28,7 +28,7 @@
 
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, Az.Storage
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, Az.Storage
 
 param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPolicies.Container" } )]
