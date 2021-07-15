@@ -22,7 +22,7 @@
   RunbookCustomization: {
         "Parameters": {
             "Remove": {
-                "DisplayName": "Action",
+                "DisplayName": "Add or Remove URL Pattern to/from Policy",
                 "SelectSimple": {
                     "Add URL Pattern to Policy": false,
                     "Remove URL Pattern from Policy": true
@@ -32,7 +32,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
 
 param(
     # Not mandatory to allow an example value
@@ -60,11 +60,22 @@ try {
         }
     }
     if (-not $policy) {
-        throw "Please give a SafeLinks Policy."
+        throw "No policy found. Please provide a SafeLinks policy."
     }
 
+    "Policy is defined as $policy"
+    "------------------------------------------------------------------------------------------------------------------------"
+    Get-SafeLinksPolicy -Identity $policy.Id | Format-Table Name,IsEnabled,IsDefault
+
+
+    "Current list of excluded Safe Links"
+    "------------------------------------------------------------------------------------------------------------------------"
+    Get-SafeLinksPolicy -Identity $policy.Id | select -expandproperty DoNotRewriteUrls
+
+    ""
     $DoNotRewriteUrls = @()
     if ($Remove) {
+    "Trying to remove $LinkPattern ..."
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {
                 $DoNotRewriteUrls += $entry
@@ -72,12 +83,16 @@ try {
         }
     }
     else {
+    "Trying to add $LinkPattern ..."
         $DoNotRewriteUrls = $policy.DoNotRewriteUrls + $LinkPattern | Sort-Object -Unique
     }
-
     Set-SafeLinksPolicy -Identity $policy.Id -DoNotRewriteUrls $DoNotRewriteUrls | Out-Null
+    "Policy $policy successfully updated."
 
-    "Policy $PolicyName successfully updated."
+    ""
+    "Safe Link Policy Dump"
+    "------------------------------------------------------------------------------------------------------------------------"
+    Get-SafeLinksPolicy -Identity $policy.Id | fl
 
 }
 finally {
