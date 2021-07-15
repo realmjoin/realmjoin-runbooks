@@ -9,7 +9,7 @@
   Enter the address created by MS Teams for a channel
 
   .PARAMETER DesiredAddress
-  Will be created and forward to the real address.
+  Will forward/relay to the real address.
 
   .NOTES
   Permissions given to the Az Automation RunAs Account:
@@ -18,9 +18,21 @@
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
 
+  .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "Remove": {
+                "DisplayName": "Action",
+                "SelectSimple": {
+                    "Relay the desired address to the real address": false,
+                    "Stop the relay and remove desired address": true
+                }
+            }
+        }
+    }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, ExchangeOnlineManagement
 
 param
 (
@@ -30,6 +42,7 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -DisplayName "Desired address" } )]
     [string] $DesiredAddress,
+    [ValidateScript( { Use-RJInterface -DisplayName "Name in Address Book" } )]
     [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this contact" } )]
     [bool] $Remove = $false

@@ -15,6 +15,9 @@
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
             "Remove": {
                 "DisplayName": "Assign or Remove License",
                 "SelectSimple": {
@@ -33,7 +36,8 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "ref:LicenseGroup" -DisplayName "License group" } )]
+    # production does not supprt "ref:LicenseGroup" yet
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "startswith(DisplayName, 'LIC_')" -DisplayName "License group" } )]
     [String] $GroupID_License,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove license" } )]
     [boolean] $Remove = $false

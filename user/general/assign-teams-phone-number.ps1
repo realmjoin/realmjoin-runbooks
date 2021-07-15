@@ -24,6 +24,17 @@
    This is not a recommended situation and will be fixed as soon as a technical solution is known. 
    Be aware: MicrosoftTeams Module only wotk with PS 5.x, not 7
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "OrganizationId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, MicrosoftTeams 
@@ -124,7 +135,7 @@ try {
         #### Direct Routing Part End ###
     }
 
-    # "Phoneno set"
+    # "PhoneNo set"
 
     ## Set CsUserPstnSettings to allow International Calls if requested
     if ($allow_International_Calls) {

@@ -3,7 +3,7 @@
   Export a CSV of all (entprise) app owners and users
 
   .DESCRIPTION
-  Export a CSV of all (entprise) app owners and users. Will use a storage account as given in the Az. Automation Variable "SettingsExports".
+  Export a CSV of all (entprise) app owners and users. 
 
   .NOTES
   Permissions: 
@@ -12,13 +12,36 @@
   - Application.Read.All
   Azure IaaS: "Contributor" access on subscription or resource group used for the export
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "entAppsOnly": {
+                "DisplayName": "Scope",
+                "SelectSimple": {
+                    "List only Enterprise Apps": true,
+                    "List all Service Principals / Apps": false
+                }
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
-    [bool] $entAppsOnly = $true
+    [bool] $entAppsOnly = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.Container" } )]
+    [string] $ContainerName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.ResourceGroup" } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Name" } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Location" } )]
+    [string] $StorageAccountLocation,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Sku" } )]
+    [string] $StorageAccountSku
 )
 
 if (-not $ContainerName) {
@@ -29,38 +52,37 @@ Connect-RjRbGraph
 Connect-RjRbAzAccount
 
 try {
-    #region configuration import
-    # "Getting Process configuration - JSON in Az Automation Variable"
-    $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
-    if (-not $processConfigRaw) {
+    # Configuration import - fallback to Az Automation Variable 
+    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku)) {
+        $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
+        #if (-not $processConfigRaw) {
         ## production default - use this as template to create the Az. Automation Variable "SettingsExports"
-        $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
-        $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
-        $processConfigRaw = $webResult.Content        ## staging default
-        #$processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/master/setup/defaults/settings-org-policies-export.json"
+        #    $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
+        #    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+        #    $processConfigRaw = $webResult.Content        ## staging default
+        #}
+        # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
+
+        # "Getting Process configuration"
+        $processConfig = $processConfigRaw | ConvertFrom-Json
+
+        if (-not $ResourceGroupName) {
+            $ResourceGroupName = $processConfig.exportResourceGroupName
+        }
+
+        if (-not $StorageAccountName) {
+            $StorageAccountName = $processConfig.exportStorAccountName
+        }
+
+        if (-not $StorageAccountLocation) {
+            $StorageAccountLocation = $processConfig.exportStorAccountLocation
+        }
+
+        if (-not $StorageAccountSku) {
+            $StorageAccountSku = $processConfig.exportStorAccountSKU
+        }
+        #endregion
     }
-    # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
-
-    # "Getting Process configuration"
-    $processConfig = $processConfigRaw | ConvertFrom-Json
-
-    if (-not $ResourceGroupName) {
-        $ResourceGroupName = $processConfig.exportResourceGroupName
-    }
-
-    if (-not $StorageAccountName) {
-        $StorageAccountName = $processConfig.exportStorAccountName
-    }
-
-    if (-not $StorageAccountLocation) {
-        $StorageAccountLocation = $processConfig.exportStorAccountLocation
-    }
-
-    if (-not $StorageAccountSku) {
-        $StorageAccountSku = $processConfig.exportStorAccountSKU
-    }
-    #endregion
-
 
     $invokeParams = @{
         resource = "/servicePrincipals"
