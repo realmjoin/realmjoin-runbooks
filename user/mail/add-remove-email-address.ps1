@@ -33,20 +33,25 @@ param
 $VerbosePreference = "SilentlyContinue"
 
 try {
+    "## Trying to connect and check for $UserName"
     Connect-RjRbExchangeOnline
 
     # Get User / Mailbox
     $mailbox = Get-EXOMailbox -UserPrincipalName $UserName
 
+    "## Current eMail Addresses"
+    Get-EXOMailbox -UserPrincipalName $UserName | select -expandproperty EmailAddresses
+
+    ""
     if ($mailbox.EmailAddresses -icontains "smtp:$eMailAddress") {
         # eMail-Address is already present
         if ($Remove) {
             # Remove email address
             Set-Mailbox -Identity $UserName -EmailAddresses @{remove = "$eMailAddress" }
-            "Alias $eMailAddress is removed from user $UserName"
+            "## Alias $eMailAddress is removed from user $UserName"
         }
         else {
-            "$eMailAddress is already assigned to user $UserName"
+            "## $eMailAddress is already assigned to user $UserName"
         }
     } 
     else {
@@ -59,12 +64,17 @@ try {
             else {
                 Set-Mailbox -Identity $UserName -EmailAddresses @{add = "$eMailAddress" }
             }
-            "$eMailAddress successfully added to user $UserName"
+            "## $eMailAddress successfully added to user $UserName"
         }
         else {
-            "$eMailAddress is not assigned to user $UserName"
+            "## $eMailAddress is not assigned to user $UserName"
         }
     }
+
+    ""
+    "## Dump Mailbox Details"
+    Get-EXOMailbox -UserPrincipalName $UserName
+
 }
 finally {   
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
