@@ -63,19 +63,17 @@ try {
         throw "No policy found. Please provide a SafeLinks policy."
     }
 
-    "Policy is defined as $policy"
-    "------------------------------------------------------------------------------------------------------------------------"
+    "## Policy is defined as $policy"
     Get-SafeLinksPolicy -Identity $policy.Id | Format-Table Name,IsEnabled,IsDefault
 
 
-    "Current list of excluded Safe Links"
-    "------------------------------------------------------------------------------------------------------------------------"
+    "## Current list of excluded Safe Links"
     Get-SafeLinksPolicy -Identity $policy.Id | select -expandproperty DoNotRewriteUrls
 
     ""
     $DoNotRewriteUrls = @()
     if ($Remove) {
-    "Trying to remove $LinkPattern ..."
+    "## Trying to remove $LinkPattern ..."
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {
                 $DoNotRewriteUrls += $entry
@@ -83,15 +81,14 @@ try {
         }
     }
     else {
-    "Trying to add $LinkPattern ..."
+    "## Trying to add $LinkPattern ..."
         $DoNotRewriteUrls = $policy.DoNotRewriteUrls + $LinkPattern | Sort-Object -Unique
     }
     Set-SafeLinksPolicy -Identity $policy.Id -DoNotRewriteUrls $DoNotRewriteUrls | Out-Null
-    "Policy $policy successfully updated."
+    "## Policy $policy successfully updated."
 
     ""
-    "Safe Link Policy Dump"
-    "------------------------------------------------------------------------------------------------------------------------"
+    "## Safe Link Policy Dump"
     Get-SafeLinksPolicy -Identity $policy.Id | fl
 
 }
