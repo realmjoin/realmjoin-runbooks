@@ -32,6 +32,7 @@ param
 
 
 try {
+    "## Trying to connect and check for $UserName"
     Connect-RjRbExchangeOnline
 
     # Check if User has a mailbox
@@ -41,16 +42,24 @@ try {
         throw "User $userName has no mailbox."
     }
 
+    "## Current Permission Delegations"
+    Get-MailboxPermission -Identity $UserName | select -expandproperty User
+
+    ""
     if ($Remove) {
         # Remove access
         Remove-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
-        "FullAccess Permission for $delegateTo removed from mailbox $UserName"
+        "## FullAccess Permission for $delegateTo removed from mailbox $UserName"
     }
     else {
         # Add access
         Add-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-        "FullAccess Permission for $delegateTo added to mailbox  $UserName"
+        "## FullAccess Permission for $delegateTo added to mailbox  $UserName"
     }
+
+    ""
+    "## Dump Mailbox Details"
+    Get-MailboxPermission -Identity $UserName
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Continue | Out-Null
