@@ -12,6 +12,47 @@
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "Remove": {
+                "Hide": true
+            }
+        },
+        "ParameterList": [
+            {
+                "DisplayName": "Action",
+                "DisplayBefore": "AutoMapping",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Delegate 'Full Access'",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": false
+                                }
+                            }
+                        }, {
+                            "Display": "Remove this delegation",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": true
+                                },
+                                "Hide": [
+                                    "AutoMapping"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Default": "Delegate 'Full Access'"
+            }
+        ]
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
@@ -24,10 +65,11 @@ param
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
     [string] $delegateTo,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
-    [bool] $AutoMapping = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
+    [bool] $AutoMapping = $false
+
 )
 
 
@@ -43,7 +85,7 @@ try {
     }
 
     "## Current Permission Delegations"
-    Get-MailboxPermission -Identity $UserName | select -expandproperty User
+    Get-MailboxPermission -Identity $UserName | Select-Object -expandproperty User
 
     ""
     if ($Remove) {
@@ -54,11 +96,11 @@ try {
     else {
         # Add access
         Add-MailboxPermission -Identity $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-        "## FullAccess Permission for $delegateTo added to mailbox  $UserName"
+        "## FullAccess Permission for $delegateTo added to mailbox $UserName"
     }
 
     ""
-    "## Dump Mailbox Details"
+    "## Dump Mailbox Permission Details"
     Get-MailboxPermission -Identity $UserName
 }
 finally {
