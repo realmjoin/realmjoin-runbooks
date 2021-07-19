@@ -121,7 +121,7 @@
     }
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, Az.Storage
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
 
 param (
     [Parameter(Mandatory = $true)]

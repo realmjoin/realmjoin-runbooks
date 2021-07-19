@@ -12,9 +12,51 @@
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
 
+  .INPUTS
+  RunbookCustomization: {
+    "ParameterList": [
+        {
+                    "DisplayBefore": "asPrimary",
+                    "Select": {
+                        "Options": [
+                            {
+                                "Display": "Add eMail address",
+                                "Customization": {
+                                    "Default": {
+                                        "Remove": false
+                                    }
+                                }
+                            },
+                            {
+                                "Display": "Remove this address",
+                                "Customization": {
+                                    "Default": {
+                                        "Remove": true
+                                    },
+                                    "Hide": [
+                                        "asPrimary"
+                                    ]
+                                }
+                            }
+                        ]
+                        
+                    },
+                    "Default": "Add eMail address"
+                }
+    ],
+    "Parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "Remove": {
+            "Default": false,
+            "Hide": true
+        }
+    }
+}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param
 (
@@ -40,7 +82,7 @@ try {
     $mailbox = Get-EXOMailbox -UserPrincipalName $UserName
 
     "## Current eMail Addresses"
-    Get-EXOMailbox -UserPrincipalName $UserName | select -expandproperty EmailAddresses
+    Get-EXOMailbox -UserPrincipalName $UserName | Select-Object -expandproperty EmailAddresses
 
     ""
     if ($mailbox.EmailAddresses -icontains "smtp:$eMailAddress") {

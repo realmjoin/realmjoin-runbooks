@@ -136,7 +136,7 @@
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.2" }
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param (
@@ -160,7 +160,7 @@ param (
     [string]$State,
     [string]$Country,
     [string]$UsageLocation,
-    [string]$DefaultLicense = "LIC_M365_E5",
+    [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [String]$InitialPassword = ""
 )
