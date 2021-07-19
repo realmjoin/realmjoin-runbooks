@@ -59,6 +59,11 @@ param(
 # How long to wait in seconds for a group to propagate to the Teams service
 [int]$teamsTimer = 30
 
+# Input Validations - from user feedback.
+if ($MailNickname.GetEnumerator() -contains " ") {
+    throw "MailNickname may not contain Whitespaces."
+}
+
 Connect-RjRbGraph
 
 # Check if group exists already
