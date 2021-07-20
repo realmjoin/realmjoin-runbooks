@@ -64,9 +64,9 @@ try {
     }
 
     "## Policy is defined as $policy"
-    Get-SafeLinksPolicy -Identity $policy.Id | Format-Table Name, IsEnabled, IsDefault
+    Get-SafeLinksPolicy -Identity $policy.Id | Format-Table -Property Name,IsEnabled,IsDefault | Out-String
 
-
+    ""
     "## Current list of excluded Safe Links"
     Get-SafeLinksPolicy -Identity $policy.Id | Select-Object -expandproperty DoNotRewriteUrls
 
@@ -89,7 +89,7 @@ try {
 
     ""
     "## Safe Link Policy Dump"
-    Get-SafeLinksPolicy -Identity $policy.Id | Format-List
+    Get-SafeLinksPolicy -Identity $policy.Id | Format-List | Out-String
 
 }
 finally {
