@@ -13,6 +13,15 @@
   AzureAD Roles
   - User administrator
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, AzureAD

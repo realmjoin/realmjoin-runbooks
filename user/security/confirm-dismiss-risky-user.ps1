@@ -5,12 +5,25 @@
   .DESCRIPTION
   Confirm compromise / Dismiss a "risky user"
 
-  .PARAMETER Dismiss
-  False: Confirm compromise, True: Dismiss risk
-
   .NOTES
   Permissions needed:
   - IdentityRiskyUser.ReadWrite.All
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Dismiss": {
+                "DisplayName": "Action",
+                "SelectSimple": {
+                    "Confirm compromise": false,
+                    "Dismiss risk": true
+                }
+            },
+            "UserName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }

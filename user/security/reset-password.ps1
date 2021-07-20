@@ -9,6 +9,15 @@
   Permissions:
   - AzureAD Role: User administrator
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -39,7 +48,7 @@ if ($null -eq $targetUser) {
 $ErrorActionPreference = "Stop"
 
 if ($enableUserIfNeeded) {
-    "Enabling user sign in"
+    "## Enabling user sign in"
     Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $true | Out-Null
 }
 
@@ -56,4 +65,8 @@ Set-AzureADUserPassword -ObjectId $targetUser.ObjectId -Password $encPassword -F
 # "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false
 
-"Password for $UserName has been reset to: '$initialPassword'. User will have to change PW at next login."
+"## Password reset successful." 
+"User will have to change PW at next login."
+""
+"## Password for $UserName has been reset to:"
+"$initialPassword"

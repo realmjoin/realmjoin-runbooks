@@ -9,6 +9,15 @@
   Permissions needed:
   - UserAuthenticationMethod.ReadWrite.All
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -32,24 +41,24 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
     $count++;
 
     $phoneAMs | ForEach-Object {
-        "trying to remove mobile phone method, id: $($_.id)"
+        "## Trying to remove mobile phone method, id: $($_.id)"
         try {
             Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($_.id)" -Method Delete -Beta | Out-Null
         } catch {
-            "Failed or not found. "
+            "## Failed or not found. "
         }
     }
 
     $appAMs | ForEach-Object {
-        "trying to remove app method, id: $($_.id)" 
+        "## Trying to remove app method, id: $($_.id)" 
         try {
             Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/microsoftAuthenticatorMethods/$($_.id)" -Method Delete -Beta | Out-Null
         } catch {
-            "Failed or not found. "
+            "## Failed or not found. "
         }
     }
 
-    "Waiting 10 sec. (AuthMethod removal is not immediate)"
+    "## Waiting 10 sec. (AuthMethod removal is not immediate)"
     Start-Sleep -Seconds 10
 
     # "Find phone auth. methods for user $UserName "
@@ -61,7 +70,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs))) {
 }
 
 if ($count -le 3) {
-    "All App and Mobile Phone MFA methods for $UserName successfully removed."
+    "## All App and Mobile Phone MFA methods for $UserName successfully removed."
 } else {
-    "Could not remove all App and Mobile Phone MFA methods for $UserName. Please review."
+    "## Could not remove all App and Mobile Phone MFA methods for $UserName. Please review."
 }

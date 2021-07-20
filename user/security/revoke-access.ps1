@@ -9,6 +9,16 @@
   Permissions:
   MS Graph (API)
   - User.ReadWrite.All, Directory.ReadWrite.All,
+  
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -41,4 +51,4 @@ Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
 # "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false | Out-Null
 
-"User access for " + $UserName + " has been revoked."
+"## User access for " + $UserName + " has been revoked."

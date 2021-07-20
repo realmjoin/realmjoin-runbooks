@@ -5,9 +5,6 @@
   .DESCRIPTION
   En-/Disable Out-of-office-notifications for a user/mailbox.
 
-  .PARAMETER Start
-  "Now" if left empty
-
   .PARAMETER End
   10 years into the future ("forever") if left empty
 
@@ -51,7 +48,14 @@
                     ],
                     "ShowValue": false
                 }
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "UserName": {
+                "Hide": true
             }
+
         }
     }
 #>

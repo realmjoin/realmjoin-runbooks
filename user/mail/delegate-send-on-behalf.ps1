@@ -12,6 +12,43 @@
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "Remove": {
+                "Hide": true
+            }
+        },
+        "ParameterList": [
+            {
+                "DisplayName": "Action",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Delegate 'Send On Behalf Of'",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": false
+                                }
+                            }
+                        }, {
+                            "Display": "Remove this delegation",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": true
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Default": "Delegate 'Send On Behalf Of'"
+            }
+        ]
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement

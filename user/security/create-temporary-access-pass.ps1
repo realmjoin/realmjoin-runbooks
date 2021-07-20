@@ -13,6 +13,15 @@
   Permissions needed:
   - UserAuthenticationMethod.ReadWrite.All
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -44,7 +53,10 @@ $body = @{
 $pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
 
 if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
-    "Beware: The use of Temporary access passes seems to be disabled for this user."
+    "## Beware: The use of Temporary access passes seems to be disabled for this user."
+    ""
 }
 
-"New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created: $($pass.temporaryAccessPass)"
+"## New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created:" 
+""
+"$($pass.temporaryAccessPass)"
