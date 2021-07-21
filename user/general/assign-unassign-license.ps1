@@ -65,15 +65,15 @@ if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($ta
     if ($Remove) {
         #"Removing license."
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
-        "'$($group.displayName)' is removed from '$UserName'"
+        "## '$($group.displayName)' is removed from '$UserName'"
     }
     else {
-        "License '$($group.displayName)' is already assigned to '$UserName'. No action taken."
+        "## License '$($group.displayName)' is already assigned to '$UserName'. No action taken."
     }
 }
 else {
     if ($Remove) {
-        "License '$($group.displayName)' is not assigned to '$UserName'. Doing nothing."
+        "## License '$($group.displayName)' is not assigned to '$UserName'. Doing nothing."
     }
     else {
         #"Assigning license"
@@ -81,6 +81,6 @@ else {
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
         }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/`$ref" -Method Post -Body $body | Out-Null
-        "'$($group.displayName)' is assigned to '$UserName'"
+        "## '$($group.displayName)' is assigned to '$UserName'"
     }
 }

@@ -38,4 +38,4 @@ if (-not $group) {
 
 Invoke-RjRbRestMethodGraph -Method DELETE -resource "/groups/$GroupId" | Out-Null
 
-"Group $GroupId successfully deleted."
+"## Group '$($group.mailNickname)' successfully deleted."

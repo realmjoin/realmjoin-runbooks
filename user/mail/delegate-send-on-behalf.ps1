@@ -83,13 +83,18 @@ try {
     if ($Remove) {
         #Remove permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Remove = "$delegateTo" } -Confirm:$false | Out-Null
-        "SendOnBehalf Permission for $($trustee.UserPrincipalName) removed from mailbox $($user.UserPrincipalName)"
+        "## SendOnBehalf Permission for $($trustee.UserPrincipalName) removed from mailbox $($user.UserPrincipalName)"
     }
     else {
         #Add permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Add = "$delegateTo" } -Confirm:$false | Out-Null
-        "SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox $($user.UserPrincipalName)"
+        "## SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox $($user.UserPrincipalName)"
     }
+
+    ""
+    "## Dump Mailbox Permission Details"
+    Get-MailboxPermission -Identity $UserName
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

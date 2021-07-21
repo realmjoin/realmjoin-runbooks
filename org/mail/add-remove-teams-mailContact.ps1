@@ -62,7 +62,7 @@ try {
     $contact = Get-EXORecipient -Identity $RealAddress -ErrorAction SilentlyContinue
     if (-not $contact) {
         if ($Remove) {
-            "Contact does not exist. Nothing to do."
+            "## Contact does not exist. Nothing to do."
             exit
         }
 
@@ -91,7 +91,7 @@ try {
     
     Set-MailContact -Identity $contact.Name -EmailAddresses $neweMailAddresses
 
-    "Successfully modified mailContact $($contact.Name)"
+    "## Successfully modified mailContact $($contact.Name)"
 
 }
 finally {   

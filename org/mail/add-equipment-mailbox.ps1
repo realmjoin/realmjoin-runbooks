@@ -57,7 +57,7 @@ try {
         Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
     }
 
-    "Equipment Mailbox $MailboxName has been created."
+    "## Equipment Mailbox $MailboxName has been created."
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

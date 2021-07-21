@@ -287,4 +287,5 @@ if ($ManagerId) {
 # "Disconnecting from AzureAD."
 Disconnect-AzureAD -Confirm:$false | Out-Null
 
-Write-Output "User $UserPrincipalName successfully created. Initial PW: $InitialPassword"
+"## User $UserPrincipalName successfully created. Initial PW:" 
+"$InitialPassword"

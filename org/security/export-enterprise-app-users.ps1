@@ -149,7 +149,7 @@ try {
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
-        "Creating Azure Storage Account $($StorageAccountName)"
+        "## Creating Azure Storage Account $($StorageAccountName)"
         $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
     }
  
@@ -160,7 +160,7 @@ try {
     # Make sure, container exists
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
-        "Creating Azure Storage Account Container $($ContainerName)"
+        "## Creating Azure Storage Account Container $($ContainerName)"
         $container = New-AzStorageContainer -Name $ContainerName -Context $context 
     }
  
@@ -171,8 +171,8 @@ try {
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "enterpriseApps.csv" -FullUri -ExpiryTime $EndTime
 
-    "App Owner/User List Export created."
-    "Expiry of Link: $EndTime"
+    "## App Owner/User List Export created."
+    "## Expiry of Link: $EndTime"
     $SASLink | Out-String
     
 }

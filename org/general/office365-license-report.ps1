@@ -118,20 +118,20 @@ try {
     # "Output trouble cases"
 
     if ($NoLicenseMailboxes) {
-        "Mailboxes with no license:"
+        "## Mailboxes with no license:"
         $NoLicenseMailboxes
         ""
     }
 
     if ($DuplicateLicenseUsers) {
-        "Mailboxes with duplicate license:"
+        "## Mailboxes with duplicate license:"
         $DuplicateLicenseUsers
         ""
     }
 
     # "Output reporting"
 
-    "Totals of licenses we have:"
+    "## Totals of licenses we have:"
     ""
     $results | sort-object -property Name | format-table | out-string
 }

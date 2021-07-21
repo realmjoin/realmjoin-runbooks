@@ -49,7 +49,6 @@ try {
 
     $policy = $null
     if ($PolicyName) {
-        # "Use the given policy $PolicyName"
         $policy = Get-SafeLinksPolicy -Identity $PolicyName -ErrorAction SilentlyContinue
     }
     else {
@@ -64,11 +63,11 @@ try {
     }
 
     "## Policy is defined as $policy"
-    Get-SafeLinksPolicy -Identity $policy.Id | Format-Table -Property Name,IsEnabled,IsDefault | Out-String
+    $policy | Format-Table -Property Name,IsEnabled,IsDefault | Out-String
 
     ""
     "## Current list of excluded Safe Links"
-    Get-SafeLinksPolicy -Identity $policy.Id | Select-Object -expandproperty DoNotRewriteUrls
+    $policy | Select-Object -expandproperty DoNotRewriteUrls
 
     ""
     $DoNotRewriteUrls = @()

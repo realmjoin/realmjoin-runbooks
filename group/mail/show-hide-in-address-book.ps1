@@ -59,7 +59,7 @@ try {
     catch {
         throw "Couldn't modify '$GroupName'"
     }
-    "'$GroupName' successfully updated."
+    "## '$GroupName' successfully updated."
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false | Out-Null

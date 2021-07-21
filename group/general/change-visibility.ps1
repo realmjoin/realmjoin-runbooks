@@ -49,9 +49,11 @@ $body = @{}
     
 if ($Public) {
     $body.Add("visibility","Public")
+    "## Setting the group '$($targetGroup.mailNickname)' to 'Public' visibility."
 }
 else {
     $body.Add("visibility","Private")
+    "## Setting the group '$($targetGroup.mailNickname)'' to 'Private' visibility."
 }
 
 Invoke-RjRbRestMethodGraph -Method PATCH -resource "/groups/$($targetGroup.id)" -body $body | Out-Null

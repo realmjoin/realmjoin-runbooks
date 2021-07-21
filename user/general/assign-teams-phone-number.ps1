@@ -78,14 +78,14 @@ try {
 
     $someUser = Get-CsOnlineUser -TenantId $autoCon.TenantId -Filter "LineURI -eq '$LineURI'" -ErrorAction SilentlyContinue
     if ($someUser) {
-        "$Number is already assigned to to $($someUser.UserPrincipalName)"
+        "## $Number is already assigned to to $($someUser.UserPrincipalName)"
     }
 
     # "Number not assigned"
 
     $CsOnlineUser = Get-CsOnlineUser -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $CsOnlineUser) {
-        "$UserName seems not to be Teams enabled."
+        "## $UserName seems not to be Teams enabled."
     }
     
     # "User Checks complete"
@@ -145,7 +145,7 @@ try {
         catch { Write-Error "Error assigning PstnSettings" -Exception $_.Exception -ErrorAction Continue; exit }
     }
 
-    "Phone Number $Number successfully assigned to $UserName."
+    "## Phone Number $Number successfully assigned to $UserName."
 }
 finally {
     Disconnect-MicrosoftTeams -Confirm:$false | Out-Null

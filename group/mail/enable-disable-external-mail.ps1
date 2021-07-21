@@ -61,7 +61,7 @@ try {
         catch {
             throw "Couldn't disable external mailing! `r`n $_"
         }
-        "External mailing successfully disabled for `'$GroupName`'"
+        "## External mailing successfully disabled for `'$GroupName`'"
     }
     
     else {
@@ -72,7 +72,7 @@ try {
         catch {
             throw "Couldn't enable external mailing! `r`n $_"
         }
-        "External mailing successfully enabled for `'$GroupName`'"
+        "## External mailing successfully enabled for `'$GroupName`'"
     }
 }
 finally {

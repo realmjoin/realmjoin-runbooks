@@ -328,7 +328,9 @@ if ($ManagerId) {
     $ErrorActionPreference = "SilentlyContinue"
 }
 
-Write-Output "User $UserPrincipalName successfully created. Initial PW: $InitialPassword"
+"## User $UserPrincipalName successfully created. Initial PW:" 
+"$InitialPassword"
+
 # "Disconnecting from AzureAD."
 Disconnect-AzureAD -confirm:$false | Out-Null
 

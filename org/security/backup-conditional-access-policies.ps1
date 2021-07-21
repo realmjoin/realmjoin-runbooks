@@ -84,7 +84,7 @@ try {
                 $_ | ConvertTo-Json -Depth 6 > ($name + ".json")
             }
             else {
-                "Will not overwrite " + ($name + ".json") + ". Skipping."
+                "## Will not overwrite " + ($name + ".json") + ". Skipping."
             }
      
         }
@@ -104,7 +104,7 @@ try {
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
-        "Creating Azure Storage Account $($StorageAccountName)"
+        "## Creating Azure Storage Account $($StorageAccountName)"
         $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
     }
     
@@ -115,7 +115,7 @@ try {
     # Make sure, container exists
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
-        "Creating Azure Storage Account Container $($ContainerName)"
+        "## Creating Azure Storage Account Container $($ContainerName)"
         $container = New-AzStorageContainer -Name $ContainerName -Context $context
         "" 
     }
@@ -136,8 +136,8 @@ try {
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "$ContainerName.zip" -FullUri -ExpiryTime $EndTime
     
 
-    "Successfully created Conditional Access Export."
-    "Expiry of the Link: $EndTime"
+    "## Successfully created Conditional Access Export."
+    "## Expiry of the Link: $EndTime"
     #$container.CloudBlobContainer.Uri.AbsoluteUri | Out-String
     $SASLink | Out-String 
     

@@ -78,12 +78,17 @@ try {
 
     if ($Remove) {
         Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "SendAs Permission for $delegateTo removed from mailbox $UserName"
+        "## SendAs Permission for $delegateTo removed from mailbox $UserName"
     }
     else {
         Add-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "SendAs Permission for $delegateTo added to mailbox  $UserName"
+        "## SendAs Permission for $delegateTo added to mailbox  $UserName"
     }
+
+    ""
+    "## Dump Mailbox Permission Details"
+    Get-MailboxPermission -Identity $UserName
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

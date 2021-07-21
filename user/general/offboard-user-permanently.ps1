@@ -174,7 +174,7 @@ if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exp
 # Connect Azure AD
 Connect-RjRbAzureAD
 
-"Finding the user object $UserName"
+"## Finding the user object $UserName"
 # AzureAD Module is broken in regards to ErrorAction.
 $ErrorActionPreference = "SilentlyContinue"
 $targetUser = Get-AzureADUser -ObjectId $UserName
@@ -205,25 +205,25 @@ if ($exportGroupMemberships) {
     # Get Resource group and storage account
     $storAccount = Get-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
-        "Creating Azure Storage Account $($exportStorAccountName)"
+        "## Creating Azure Storage Account $($exportStorAccountName)"
         $storAccount = New-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -Location $exportStorAccountLocation -SkuName $exportStorAccountSKU 
     }
     $keys = Get-AzStorageAccountKey -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName
     $context = New-AzStorageContext -StorageAccountName $exportStorAccountName -StorageAccountKey $keys[0].Value
     $container = Get-AzStorageContainer -Name $exportStorContainerGroupMembershipExports -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
-        "Creating Azure Storage Account Container $($exportStorContainerGroupmembershipExports)"
+        "## Creating Azure Storage Account Container $($exportStorContainerGroupmembershipExports)"
         $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context 
     }
 }
-"Uploading list of memberships. This might overwrite older versions."
+"## Uploading list of memberships. This might overwrite older versions."
 Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
 Disconnect-AzAccount -Confirm:$false | Out-Null
 
 if ($DeleteUser) {
-    "Deleting User Object $UserName"
+    "## Deleting User Object $UserName"
     Remove-AzureADUser -ObjectId $targetUser.ObjectId
-    "Offboarding of $($UserName) successful."
+    "## Offboarding of $($UserName) successful."
     # Script ends here
     Disconnect-AzureAD -Confirm:$false | Out-Null
     exit
@@ -233,7 +233,7 @@ if ($ChangeLicenses) {
     # Add new licensing group, if not already assigned
     if ($LicenseGroupToAdd) {
         $group = Get-AzureADGroup -Filter "DisplayName eq `'$LicenseGroupToAdd`'" 
-        "Adding License group $LicenseGroupToAdd to user $UserName"
+        "## Adding License group $LicenseGroupToAdd to user $UserName"
         # AzureAD is broken in regards to ErrorAction...
         $ErrorActionPreference = "Continue"
         Add-AzureADGroupMember -RefObjectId $targetUser.ObjectID -ObjectId $group.ObjectID
@@ -244,7 +244,7 @@ if ($ChangeLicenses) {
     $groups = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId
     $groups | Where-Object { $_.DisplayName.startswith($licenseGroupsToRemovePrefix) } | ForEach-Object {
         if ($LicenseGroupToAdd -ne $_.DisplayName) {
-            "Removing license group $($_.DisplayName) from $UserName"
+            "## Removing license group $($_.DisplayName) from $UserName"
             # AzureAD is broken in regards to ErrorAction...
             $ErrorActionPreference = "Continue"
             Remove-AzureADGroupMember -MemberId $targetUser.ObjectId -ObjectId $_.ObjectID
@@ -281,4 +281,4 @@ if ($removeMFAMethods) {
 # "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false | Out-Null
 
-"Offboarding of $($UserName) successful."
+"## Offboarding of $($UserName) successful."

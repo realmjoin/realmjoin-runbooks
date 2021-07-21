@@ -67,11 +67,11 @@ try {
 
     if ($HideMailbox) {
         Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $true 
-        "Mailbox $UserName is hidden."
+        "## Mailbox $UserName is hidden."
     }
     else {
         Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $false
-        "Mailbox $UserName is not hidden."    
+        "## Mailbox $UserName is not hidden."    
     }
 
 }

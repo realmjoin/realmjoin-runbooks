@@ -63,7 +63,7 @@ try {
         Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
     }
 
-    "Room Mailbox $MailboxName has been created."
+    "## Room Mailbox $MailboxName has been created."
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

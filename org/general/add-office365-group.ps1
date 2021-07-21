@@ -107,6 +107,7 @@ if ($Owner) {
     $groupDescription["owners@odata.bind"] = [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
 }
 
+"## Creating group '$MailNickname'"
 $groupObj = Invoke-RjRbRestMethodGraph -Method POST -resource "/groups" -body $groupDescription
 
 if ($CreateTeam) {
@@ -115,10 +116,13 @@ if ($CreateTeam) {
         "group@odata.bind"    = "https://graph.microsoft.com/v1.0/groups('$($groupObj.id)')"
     }
 
+    "## Waiting/Sleeping to allow data propagation..."
     # a new group needs some time to propagate...
     Start-Sleep -Seconds $teamsTimer
 
+    "## Triggering Team creation"
     Invoke-RjRbRestMethodGraph -Method POST -Resource "/teams" -Body $teamDescription | Out-Null
 }
 
-"Group $MailNickname successfully created."
+""
+"## Group $MailNickname successfully created."

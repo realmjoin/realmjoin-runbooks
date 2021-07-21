@@ -53,22 +53,22 @@ if (-not $targetUser) {
 if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -ErrorAction SilentlyContinue) {
     if ($Remove) {
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserId/`$ref" -Method Delete -Body $body | Out-Null
-        "$($targetUser.UserPrincipalName) is removed from $GroupID owners"
+        "## $($targetUser.UserPrincipalName) is removed from $GroupID owners"
     }
     else {    
-        "User $($targetUser.UserPrincipalName) is already an owner of $GroupID. No action taken."
+        "## User $($targetUser.UserPrincipalName) is already an owner of $GroupID. No action taken."
     }
 }
 else {
     if ($Remove) {
-        "User $($targetUser.UserPrincipalName) is not an owner of $GroupID. No action taken."
+        "## User $($targetUser.UserPrincipalName) is not an owner of $GroupID. No action taken."
     }
     else {
         $body = @{
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
         }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/`$ref" -Method Post -Body $body | Out-Null
-        "$($targetUser.UserPrincipalName) is added to $GroupID owners."    
+        "## $($targetUser.UserPrincipalName) is added to $GroupID owners."    
     }
 }
 

@@ -62,17 +62,17 @@ if ($AssignedUser) {
 # Start the import
 $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/importedWindowsAutopilotDeviceIdentities" -Method "POST" -Body $body
 
-"Import of device $SerialNumber started."
+"## Import of device $SerialNumber started."
 
 # Track the import's progress
 if ($Wait) {
     while (($result.state.deviceImportStatus -ne "complete") -and ($result.state.deviceImportStatus -ne "error")) {
-        "."
+        "## ."
         Start-Sleep -Seconds 20
         $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/importedWindowsAutopilotDeviceIdentities/$($result.id)" -Method Get
     }
     if ($result.state.deviceImportStatus -eq "complete") {
-        "Import of device $SerialNumber is successfull."
+        "## Import of device $SerialNumber is successfull."
     }
     else {
         write-error ($result.state)

@@ -54,11 +54,11 @@ if (-not $pol) {
 }
 
 if ($Remove) {
-    # Find and remove entry. 
-    # Either not at the end
+    # Find and remove entry... 
+    # ... either not at the end
     if ($pol.omaSettings.value | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone + '&#xF000;')) {
         $newValue = $pol.omaSettings.value -replace (($Url + '&#xF000;' + $Zone + '&#xF000;'),"")
-    } # or at the end
+    } # ... or at the end
     elseif ($pol.omaSettings.value | Select-String -SimpleMatch -Pattern ('&#xF000;' + $Url + '&#xF000;' + $Zone)) {
         $newValue = $pol.omaSettings.value -replace (('&#xF000;' + $Url + '&#xF000;' + $Zone),"")
     } else {
@@ -84,7 +84,7 @@ $body = @{
 Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations/$($pol.id)" -Method Patch -Body $body | Out-Null
 
 if ($Remove) {
-    "SiteToZoneMapping '$($Url):$Zone' successfully removed from '$intunePolicyName'"
+    "## SiteToZoneMapping '$($Url):$Zone' successfully removed from '$intunePolicyName'"
 } else {
-    "SiteToZoneMapping '$($Url):$Zone' successfully added to '$intunePolicyName'"
+    "## SiteToZoneMapping '$($Url):$Zone' successfully added to '$intunePolicyName'"
 }

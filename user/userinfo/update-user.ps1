@@ -93,4 +93,4 @@ Write-RjRbLog "Updating user object with the following properties" $userArgs
 Set-AzureADUser -ObjectId $targetUser.ObjectId @userArgs | Out-Null
 
 
-"User '$UserName' successfully updated."
+"## User '$UserName' successfully updated."

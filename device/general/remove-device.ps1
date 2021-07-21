@@ -37,7 +37,7 @@ if (-not $targetDevice) {
 } 
 
 # Remove from AzureAD - we could wipe the device, but we could not continue the process here immediately -> different runbook.
-"Deleting $($targetDevice.displayName) (Object ID $($targetDevice.id)) from AzureAD"
+"## Deleting $($targetDevice.displayName) (Object ID $($targetDevice.id)) from AzureAD"
 try {
     Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Delete | Out-Null
 }
@@ -49,7 +49,7 @@ catch {
 # "Searching DeviceId $DeviceID in Intune."
 $mgdDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if ($mgdDevice) {
-    "Deleting DeviceId $DeviceID (Intune ID: $($mgdDevice.id)) from Intune"
+    "## Deleting DeviceId $DeviceID (Intune ID: $($mgdDevice.id)) from Intune"
     try {
         Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)" -Method Delete | Out-Null
     }
@@ -62,7 +62,7 @@ if ($mgdDevice) {
 # "Searching DeviceId $DeviceID in Autopilot."
 $apDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "azureActiveDirectoryDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if ($apDevice) {
-    "Deleting DeviceId $DeviceID (Autopilot ID: $($apDevice.id)) from Autopilot"
+    "## Deleting DeviceId $DeviceID (Autopilot ID: $($apDevice.id)) from Autopilot"
     try {
         Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$($apDevice.id)" -Method Delete | Out-Null
     }
@@ -73,4 +73,4 @@ if ($apDevice) {
 
 ""
 
-"Device $($targetDevice.displayName) with DeviceId $DeviceId successfully removed."
+"## Device $($targetDevice.displayName) with DeviceId $DeviceId successfully removed."
