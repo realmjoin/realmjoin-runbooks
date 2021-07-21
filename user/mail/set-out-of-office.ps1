@@ -70,9 +70,9 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office"} )]
     [bool] $Disable = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
-    [System.DateTimeOffset] $Start = (get-date),
+    [System.DateTime] $Start = (get-date),
     [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
-    [System.DateTimeOffset] $End = ((get-date) + (new-timespan -Days 3650)),
+    [System.DateTime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
@@ -96,9 +96,9 @@ try {
             -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End
     }
 
-    Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
+    Write-RjRbLog "## Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
 
-    "Successfully updated Out Of Office settings for user '$UserName'."
+    "## Successfully updated Out Of Office settings for user '$UserName'."
 
 }
 finally {
