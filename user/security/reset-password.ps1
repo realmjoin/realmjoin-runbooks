@@ -66,7 +66,7 @@ Set-AzureADUserPassword -ObjectId $targetUser.ObjectId -Password $encPassword -F
 Disconnect-AzureAD -Confirm:$false
 
 "## Password reset successful." 
-"User will have to change PW at next login."
+"## User will have to change PW at next login."
 ""
 "## Password for $UserName has been reset to:"
 "$initialPassword"
