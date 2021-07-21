@@ -1,8 +1,3 @@
-# Permissions:
-# - AzureAD Role: User administrator
-
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
-
 <#
   .SYNOPSIS
   Set / update the photo / avatar picture of a user.
@@ -11,8 +6,20 @@
   Set / update the photo / avatar picture of a user.
 
   .PARAMETER PhotoURI
-  Source needs to be a JPEG
+  Needs to be a JPEG
 
+  .NOTES
+  Permissions:
+ - MS Graph (API): User.ReadWrite.All
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 param(
@@ -25,19 +32,17 @@ param(
     [string]$PhotoURI = ""
 )
 
-Connect-RjRbAzureAD
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = "Stop"
+
+Connect-RjRbGraph
 
 # "Find the user object $UserName"
-$targetUser = Get-AzureADUser -ObjectId $UserName 
+$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
     throw ("User $UserName not found.")
 }
-
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "Stop"
 
 # "Download the photo from URI $PhotoURI"
 try {
@@ -52,16 +57,11 @@ catch {
 
 # "Set profile picture for user"
 # "ImageByteArray" is broken in PS5, so will use a file.
-# Set-AzureADUserThumbnailPhoto -ImageByteArray $photo -ObjectId $targetUser.ObjectId 
 try {
-    Set-AzureADUserThumbnailPhoto -FilePath ($env:TEMP + "\photo.jpg") -ObjectId $targetUser.ObjectId | Out-Null
+    Invoke-RjRbRestMethodGraph -resource "/users/$($targetUser.id)/photo" -inFile ($env:TEMP + "\photo.jpg") -Method Put -ContentType "image/jpeg"
 } catch {
     Write-Error $_
-    Disconnect-AzureAD -Confirm:$false | Out-Null
     throw "Setting photo failed."
 }
 
-# "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false | Out-Null
-
-"Updating profile photo for $UserName succeded."
+"## Updating profile photo for $UserName succeded."
