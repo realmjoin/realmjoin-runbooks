@@ -45,7 +45,7 @@ try {
         $mailbox | Add-MailboxPermission -User $DelegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
     }
 
-    "## Shared Mailbox $MailboxName has been created."
+    "## Shared Mailbox '$MailboxName' has been created."
 
 }
 finally {

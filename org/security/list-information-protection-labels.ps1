@@ -22,4 +22,6 @@ if (-not $labels) {
 }
 
 # TODO check formatting
+"## Current Inf. Protection Labels"
+""
 $labels | Format-Table | Out-String

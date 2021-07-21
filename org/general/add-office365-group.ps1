@@ -125,4 +125,4 @@ if ($CreateTeam) {
 }
 
 ""
-"## Group $MailNickname successfully created."
+"## Group '$MailNickname' successfully created."

@@ -91,7 +91,7 @@ try {
     
     Set-MailContact -Identity $contact.Name -EmailAddresses $neweMailAddresses
 
-    "## Successfully modified mailContact $($contact.Name)"
+    "## Successfully modified mailContact '$($contact.Name)'"
 
 }
 finally {   
