@@ -136,7 +136,7 @@
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param (
@@ -162,7 +162,9 @@ param (
     [string]$UsageLocation,
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
-    [String]$InitialPassword = ""
+    [String]$InitialPassword = "",
+    [ValidateScript( { Use-RJInterface -DisplayName "Create Exchange Online Archive Mailbox" } )]
+    [bool]$EnableEXOArchive = $false
 )
 
 Connect-RjRbAzureAD
@@ -284,7 +286,7 @@ if ($UsageLocation) {
 
 # $newUserArgs | Format-Table | Out-String
 
-#"Creating user object for $UserPrincipalName"
+"## Creating user object '$UserPrincipalName'"
 $ErrorActionPreference = "Stop"
 $userObject = New-AzureADUser @newUserArgs -ErrorAction Stop 
 $ErrorActionPreference = "SilentlyContinue"
@@ -299,7 +301,7 @@ if ($DefaultLicense -ne "") {
         Write-Error "License group $DefaultLicense not found!"
     }
     else {
-        #"Adding $UserPrincipalName to $($group.displayName)"
+        "## Adding to license group '$($group.displayName)'"
         Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
     }
 }
@@ -315,7 +317,7 @@ foreach ($groupname in $groupsArray) {
             Write-Error "Group $groupname not found!"
         }
         else {
-            #"Adding $UserPrincipalName to $($group.displayName)"
+            "Adding to group '$($group.displayName)'"
             Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
         }
     }
@@ -324,7 +326,41 @@ foreach ($groupname in $groupsArray) {
 # Assign Manager
 if ($ManagerId) {
     $ErrorActionPreference = "Stop"
+    $Manager = Get-AzureADUser -ObjectId $ManagerId
+    "## Assigning Manager '$($Manager.DisplayName)'"
     Set-AzureADUserManager -ObjectId $userObject.ObjectId -RefObjectId $ManagerId | Out-Null
+    $ErrorActionPreference = "SilentlyContinue"
+}
+
+# Enable Exchange Online Archive
+if ($EnableEXOArchive) {
+    $ErrorActionPreference = "Stop"
+    try {
+        Connect-RjRbExchangeOnline
+        
+        # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
+        $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue
+        if (-not $mbox) {
+            $MaxRuns = 30
+            Write-RjRbLog -Message "Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
+            $mbox = $null; 
+            $counter = 0
+            while ((-not $mbox) -and ($counter -le $MaxRuns)) {
+                $counter++;
+                Start-Sleep 30; 
+                $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue; 
+            }; 
+        }
+        "## Enabling EXO Archive Mailbox"
+        Enable-Mailbox -Archive -Identity $UserPrincipalName | Out-Null
+    }
+    catch {
+        Write-Error "Enabling Mail Archive for '$UserPrincipalName' failed"
+        Write-Error $_
+    }
+    finally {
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    }
     $ErrorActionPreference = "SilentlyContinue"
 }
 
