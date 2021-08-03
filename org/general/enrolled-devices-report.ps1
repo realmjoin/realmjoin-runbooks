@@ -1,20 +1,86 @@
 <#
   .SYNOPSIS
-  Show recent initial device enrollments.
+  Show recent first-time device enrollments.
 
   .DESCRIPTION
-  Show recent initial device enrollments, grouped by a category/attribute.
+  Show recent first-time device enrollments, grouped by a category/attribute.
 
   .NOTES
   Permissions: 
   MS Graph (API):
 
+  .INPUTS
+  RunbookCustomization: {
+    "ParameterList": [
+        {
+            "Name": "Weeks",
+            "DisplayName": "Time range (in weeks)"
+        },
+        {
+            "Name": "groupingSource",
+            "DisplayName": "Data source for the grouping attribute",
+            "Select": {
+                "Options": [
+                    {
+                        "Display": "No grouping",
+                        "ParameterValue": 0,
+                        "Customization": {
+                            "Hide": [
+                                "groupingAttribute"
+                            ]
+                        }
+                    },
+                    {
+                        "Display": "AzureAD User properties",
+                        "ParameterValue": 1,
+                        "Customization": {
+                            "Default": {
+                                "groupingAttribute": "country"
+                            }
+                        }
+                    },
+                    {
+                        "Display": "AzureAD Device properties",
+                        "ParameterValue": 2,
+                        "Customization": {
+                            "Default": {
+                                "groupingAttribute": "accountEnabled"
+                            }
+                        }
+                    },
+                    {
+                        "Display": "Intune Device properties",
+                        "ParameterValue": 3,
+                        "Customization": {
+                            "Default": {
+                                "groupingAttribute": "manufacturer"
+                            }
+                        }
+                    },
+                    {
+                        "Display": "AutoPilot Device properties",
+                        "ParameterValue": 4,
+                        "Customization": {
+                            "Default": {
+                                "groupingAttribute": "groupTag"
+                            }
+                        }
+                    }
+                ],
+                "ShowValue": false
+            }
+        },
+        {
+            "Name": "groupingAttribute",
+            "DisplayName": "Attribute/Category to group by"
+        }
+    ]
+}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
-  [ValidateScript( { Use-RJInterface -DisplayName "Time range (in weeks)" } )]
   [int] $Weeks = 50,
   ## How to group results?
   # 0 - no grouping
@@ -38,7 +104,7 @@ param(
   # - "preferredLanguage"
   # - "state"
   # - "usageLocation"
-  # - "manager"
+  # - "manager"?
   #
   # AzureAD Device:
   # - "manufacturer"
