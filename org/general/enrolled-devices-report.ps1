@@ -5,9 +5,27 @@
   .DESCRIPTION
   Show recent first-time device enrollments, grouped by a category/attribute.
 
+  .PARAMETER exportCsv
+  Please configure an Azure Storage Account to use this feature.
+
   .NOTES
   Permissions: 
   MS Graph (API):
+
+  .EXAMPLE
+  Example of Azure Storage Account configuration for RJ central datastore
+  {
+    "Settings": {
+        "EnrolledDevicesReport": {
+            "ResourceGroup": "rj-test-runbooks-01",
+            "StorageAccount": {
+                "Name": "c4a1rjrbexports01",
+                "Location": "West Europe",
+                "Sku": "Standard_LRS"
+            }
+        }
+    }
+  }
 
   .INPUTS
   RunbookCustomization: {
@@ -15,6 +33,14 @@
         {
             "Name": "Weeks",
             "DisplayName": "Time range (in weeks)"
+        },
+        {
+            "Name": "dataSource",
+            "DisplayName": "First enrollment criterion",
+            "SelectSimple": {
+                "Date of Autopilot profile assignment": 0,
+                "Date of Intune enrollment": 1
+            }
         },
         {
             "Name": "groupingSource",
@@ -71,9 +97,34 @@
             }
         },
         {
+            "Name": "exportCsv",
+            "DisplayName": "Export report as downloadable CSV?"
+        },
+        {
             "Name": "groupingAttribute",
             "DisplayName": "Attribute/Category to group by"
+        },
+        {
+            "Name": "ContainerName",
+            "Hide": true
+        },
+        {
+            "Name": "ResourceGroupName",
+            "Hide": true
+        },
+        {
+            "Name": "StorageAccountName",
+            "Hide": true
+        },
+        {
+            "Name": "StorageAccountLocation",
+            "Hide": true
+        },
+        {
+            "Name": "StorageAccountSku",
+            "Hide": true
         }
+
     ]
 }
 #>
@@ -82,6 +133,10 @@
 
 param(
   [int] $Weeks = 50,
+  ## Where to look for a devices "birthday"?
+  # 0 - AutoPilot profile assignment date
+  # 1 - Intune object creation date
+  [int] $dataSource = 0,
   ## How to group results?
   # 0 - no grouping
   # 1 - AzureAD User properties
@@ -112,7 +167,20 @@ param(
   #
   # Intune Device:
   # - "isEncrypted"
-  [string] $groupingAttribute = "country"
+  [string] $groupingAttribute = "country",
+  # StorageAccount info, if exporting a CSV
+  [bool] $exportCsv = $true,
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.Container" } )]
+  [string] $ContainerName,
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.ResourceGroup" } )]
+  [string] $ResourceGroupName,
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Name" } )]
+  [string] $StorageAccountName,
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Location" } )]
+  [string] $StorageAccountLocation,
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Sku" } )]
+  [string] $StorageAccountSku
+
 )
 
 Connect-RjRbGraph
@@ -120,126 +188,144 @@ Connect-RjRbGraph
 # find cutoff point in time
 $date = (Get-Date) - (New-TimeSpan -Days ($Weeks * 7))
 
-# get AutoPilot-Devices newer than cutoff
-$devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta | Where-Object { ([datetime]$_.deploymentProfileAssignedDateTime) -ge $date } 
+# Get AutoPilot-Devices newer than cutoff
+# $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta | Where-Object { ([datetime]$_.deploymentProfileAssignedDateTime) -ge $date } 
+$devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta
 
-"Grouping by:"
-
-if ($groupingSource -eq 0) {
-  " - no grouping"
-  ""
-
-  $devices | ForEach-Object {
+$data = $devices | ForEach-Object {
+  if (($dataSource -eq 1) -or (([datetime]$_.deploymentProfileAssignedDateTime) -ge $date)) {
+    # Only process this device if either Intune datasource is used, or Autopilot assignment is not too old.
     $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue 
-  
-    $output = [PSCustomObject]@{
-      Serial         = $_.serialNumber
-      User           = ""
-      Model          = $_.model
-      AssignmentDate = [datetime]($_.deploymentProfileAssignedDateTime)
-    }
-    if ($intuneDevice -and $intuneDevice.userPrincipalName) {
-      $output.User = $intuneDevice.userPrincipalName
+    if (($dataSource -eq 0) -or ($intuneDevice -and ([datetime]$intuneDevice.enrolledDateTime) -ge $date)) {
+      # Only process this device if either Autopilot datasource is used, or Intune enrollment is not too old.
+      $output = [PSCustomObject]@{
+        apDevice           = $_
+        intuneDevice       = $intuneDevice
+        Serial             = $_.serialNumber
+        User               = ""
+        Model              = $_.model
+        AssignmentDate     = ""
+        $groupingAttribute = ""
+      }
+      if ($dataSource -eq 0) {
+        $output.AssignmentDate = (get-date -Date ($_.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
+      }
+      else {
+        $output.AssignmentDate = (get-date -Date ($_.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
+      }
+      if ($intuneDevice -and $intuneDevice.userPrincipalName) {
+        $output.User = $intuneDevice.userPrincipalName
+      }  
     }
 
     $output
-  } | Sort-Object -Property "AssignmentDate" | Format-Table -AutoSize | Out-String
+  }
 }
 
-if ($groupingSource -eq 1) {
-  "AzureAD User: $groupingAttribute"
+"## Grouping by:"
+
+if ($groupingSource -eq 0) {
+  "## - no grouping"
   ""
-  $devices | ForEach-Object {
-    $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue 
-    if ($intuneDevice -and $intuneDevice.userId) {
-      $azureADUser = Invoke-RjRbRestMethodGraph -Resource "/users/$($intuneDevice.userId)" -OdSelect $groupingAttribute -ErrorAction SilentlyContinue 
-    }
+  $data | Sort-Object -Property "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" # | Out-String
 
-    $output = [PSCustomObject]@{
-      Serial             = $_.serialNumber
-      User               = ""
-      Model              = $_.model
-      AssignmentDate     = [datetime]($_.deploymentProfileAssignedDateTime)
-      $groupingAttribute = ""
-    }
-    if ($intuneDevice -and $intuneDevice.userPrincipalName) {
-      $output.User = $intuneDevice.userPrincipalName
-    }
-    if ($azureADUser) {
-      $output.($groupingAttribute) = $azureADUser.($groupingAttribute)
-    }
+} 
 
-    $output
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" -AutoSize | Out-String
+if ($groupingSource -eq 1) {
+  "## - AzureAD User: $groupingAttribute"
+  ""
+  $data | ForEach-Object {
+    if ($_.intuneDevice -and $_.intuneDevice.userId ) {
+      $azureADUser = Invoke-RjRbRestMethodGraph -Resource "/users/$($_.intuneDevice.userId)" -OdSelect $groupingAttribute -ErrorAction SilentlyContinue
+      
+      if ($azureADUser) {
+        $_.$groupingAttribute = $azureADUser.$groupingAttribute
+      }
+      
+      $_
+    } 
+  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
 }
 
 if ($groupingSource -eq 2) {
-  "AzureAD Device: $groupingAttribute"
+  "## - AzureAD Device: $groupingAttribute"
   ""
-  $devices | ForEach-Object {
-    $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue 
-    $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.azureAdDeviceId)'" -ErrorAction SilentlyContinue 
+  $data | ForEach-Object {
+    $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.apDevice.azureAdDeviceId)'" -ErrorAction SilentlyContinue 
 
-    $output = [PSCustomObject]@{
-      Serial             = $_.serialNumber
-      User               = ""
-      Model              = $_.model
-      AssignmentDate     = [datetime]($_.deploymentProfileAssignedDateTime)
-      $groupingAttribute = ""
-    }
-    if ($intuneDevice -and $intuneDevice.userPrincipalName) {
-      $output.User = $intuneDevice.userPrincipalName
-    }
     if ($azureADDevice) {
-      $output.($groupingAttribute) = $azureADDevice.($groupingAttribute)
+      $_.$groupingAttribute = $azureADDevice.$groupingAttribute
     }
 
-    $output
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" -AutoSize | Out-String
+    $_
+  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
 }
 
 if ($groupingSource -eq 3) {
-  "Intune Device: $groupingAttribute"
+  "## - Intune Device: $groupingAttribute"
   ""
-  $devices | ForEach-Object {
-    $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue 
-
-    $output = [PSCustomObject]@{
-      Serial             = $_.serialNumber
-      User               = ""
-      Model              = $_.model
-      AssignmentDate     = [datetime]($_.deploymentProfileAssignedDateTime)
-      $groupingAttribute = ""
-    }
-    if ($intuneDevice -and $intuneDevice.userPrincipalName) {
-      $output.User = $intuneDevice.userPrincipalName
-    }
-    if ($intuneDevice) {
-      $output.($groupingAttribute) = $intuneDevice.($groupingAttribute)
+  $data | ForEach-Object {
+    if ($_.intuneDevice) {
+      $_.$groupingAttribute = $_.intuneDevice.$groupingAttribute
     }
 
-    $output
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" -AutoSize | Out-String
+    $_
+  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
 }
 
 if ($groupingSource -eq 4) {
-  "AutoPilot Device: $groupingAttribute"
+  "## - AutoPilot Device: $groupingAttribute"
   ""
-  $devices | ForEach-Object {
-    $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue 
+  $data | ForEach-Object {
+    $_.$groupingAttribute = $_.apDevice.$groupingAttribute
 
-    $output = [PSCustomObject]@{
-      Serial             = $_.serialNumber
-      User               = ""
-      Model              = $_.model
-      AssignmentDate     = [datetime]($_.deploymentProfileAssignedDateTime)
-      $groupingAttribute = ""
-    }
-    if ($intuneDevice -and $intuneDevice.userPrincipalName) {
-      $output.User = $intuneDevice.userPrincipalName
-    }
-    $output.($groupingAttribute) = $_.($groupingAttribute)
+    $_
+  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
+}
 
-    $output
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" -AutoSize | Out-String
+if ($exportCsv) {  
+  Connect-RjRbAzAccount
+
+  if (-not $ContainerName) {
+    $ContainerName = "enrolled-devices-$($Weeks)w-" + (get-date -Format "yyyy-MM-dd")
+  }
+
+  if ($groupingSource -eq 0) {
+    $data | Sort-Object -Property "AssignmentDate" | Select-Object -Property "Serial", "User", "Model", "AssignmentDate" | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
+  } else {
+    $data | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Select-Object -Property "Serial", "User", "Model", "AssignmentDate", "$groupingAttribute" | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
+  }
+
+  ""
+
+  # Make sure storage account exists
+  $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
+  if (-not $storAccount) {
+    "## Creating Azure Storage Account $($StorageAccountName)"
+    $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+  }
+ 
+  # Get access to the Storage Account
+  $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
+  $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
+
+  # Make sure, container exists
+  $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
+  if (-not $container) {
+    "## Creating Azure Storage Account Container $($ContainerName)"
+    $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+  }
+ 
+  # Upload
+  Set-AzStorageBlobContent -File "enrolled-devices.csv" -Container $ContainerName -Blob "enrolled-devices.csv" -Context $context -Force | Out-Null
+ 
+  #Create signed (SAS) link
+  $EndTime = (Get-Date).AddDays(6)
+  $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "enrolled-devices.csv" -FullUri -ExpiryTime $EndTime
+
+  ""
+  "## Enrolled devices CSV report created."
+  "## Expiry of Link: $EndTime"
+  $SASLink | Out-String
+
 }
