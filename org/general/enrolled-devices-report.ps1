@@ -132,7 +132,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
-  [int] $Weeks = 50,
+  [int] $Weeks = 4,
   ## Where to look for a devices "birthday"?
   # 0 - AutoPilot profile assignment date
   # 1 - Intune object creation date
@@ -199,27 +199,31 @@ $data = $devices | ForEach-Object {
     if (($dataSource -eq 0) -or ($intuneDevice -and ([datetime]$intuneDevice.enrolledDateTime) -ge $date)) {
       # Only process this device if either Autopilot datasource is used, or Intune enrollment is not too old.
       $output = [PSCustomObject]@{
-        apDevice           = $_
-        intuneDevice       = $intuneDevice
-        Serial             = $_.serialNumber
-        User               = ""
-        Model              = $_.model
-        AssignmentDate     = ""
-        $groupingAttribute = ""
+        apDevice             = $_
+        intuneDevice         = $intuneDevice
+        Serial               = $_.serialNumber
+        User                 = ""
+        Model                = $_.model
+        APAssignmentDate     = (get-date -Date ($_.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
+        IntuneEnrolledDate = ""
+        $groupingAttribute   = ""
       }
-      if ($dataSource -eq 0) {
-        $output.AssignmentDate = (get-date -Date ($_.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
+      if ($intuneDevice) {
+        $output.IntuneEnrolledDate = (get-date -Date ($intuneDevice.enrolledDateTime) -Format "yyyy-MM-ddTHH:mmK" )
+        if ($intuneDevice.userPrincipalName) {
+          $output.User = $intuneDevice.userPrincipalName
+        }
       }
-      else {
-        $output.AssignmentDate = (get-date -Date ($_.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
-      }
-      if ($intuneDevice -and $intuneDevice.userPrincipalName) {
-        $output.User = $intuneDevice.userPrincipalName
-      }  
-    }
 
-    $output
+      # Take this device into account / print data
+      $output  
+    }
   }
+}
+
+$sortingAttribute = "APAssignmentDate"
+if ($groupingSource -eq 1) {
+  $sortingAttribute = "IntuneEnrolledDate"
 }
 
 "## Grouping by:"
@@ -227,7 +231,7 @@ $data = $devices | ForEach-Object {
 if ($groupingSource -eq 0) {
   "## - no grouping"
   ""
-  $data | Sort-Object -Property "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" # | Out-String
+  $data | Sort-Object -Property $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute | Out-String
 
 } 
 
@@ -244,7 +248,7 @@ if ($groupingSource -eq 1) {
       
       $_
     } 
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
+  } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
 }
 
 if ($groupingSource -eq 2) {
@@ -258,7 +262,7 @@ if ($groupingSource -eq 2) {
     }
 
     $_
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
+  } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
 }
 
 if ($groupingSource -eq 3) {
@@ -270,7 +274,7 @@ if ($groupingSource -eq 3) {
     }
 
     $_
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
+  } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
 }
 
 if ($groupingSource -eq 4) {
@@ -280,7 +284,7 @@ if ($groupingSource -eq 4) {
     $_.$groupingAttribute = $_.apDevice.$groupingAttribute
 
     $_
-  } | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Format-Table -AutoSize -Property "Serial", "User", "Model", "AssignmentDate" -GroupBy "$groupingAttribute" | Out-String
+  } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
 }
 
 if ($exportCsv) {  
@@ -291,9 +295,10 @@ if ($exportCsv) {
   }
 
   if ($groupingSource -eq 0) {
-    $data | Sort-Object -Property "AssignmentDate" | Select-Object -Property "Serial", "User", "Model", "AssignmentDate" | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
-  } else {
-    $data | Sort-Object -Property "$groupingAttribute", "AssignmentDate" | Select-Object -Property "Serial", "User", "Model", "AssignmentDate", "$groupingAttribute" | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
+    $data | Sort-Object -Property $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
+  }
+  else {
+    $data | Sort-Object -Property $groupingAttribute, $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute, $groupingAttribute | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
   }
 
   ""
