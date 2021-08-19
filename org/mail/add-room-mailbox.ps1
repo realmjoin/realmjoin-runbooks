@@ -56,11 +56,11 @@ try {
         # "Grant FullAccess"
         $mailbox | Add-MailboxPermission -User $DelegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
         # Calendar delegation
-        Set-CalendarProcessing -Identity $MailboxName -ResourceDelegates $DelegateTo 
+        Set-CalendarProcessing -Identity $MailboxName -ResourceDelegates $DelegateTo -AutomateProcessing AutoAccept -AllRequestInPolicy $true -AllBookInPolicy $false
     }
 
     if ($AutoAccept) {
-        Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
+        Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept" -AllRequestInPolicy $true -AllBookInPolicy $true
     }
 
     "## Room Mailbox '$MailboxName' has been created."
