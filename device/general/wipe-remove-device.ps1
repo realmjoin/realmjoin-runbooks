@@ -10,6 +10,8 @@
    DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
    DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
    DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
+  ROLES
+   Cloud device administrator
 
   .INPUTS
   RunbookCustomization: {
@@ -89,7 +91,6 @@ if (-not $targetDevice) {
 
 if ($disableAADDevice) {
     "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in AzureAD"
-
     try {
         $body = @{
             "accountEnabled" = $false
@@ -97,7 +98,10 @@ if ($disableAADDevice) {
         Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Patch -Body $body | Out-Null
     }
     catch {
-        throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!"
+        "## Error Message: $($_.Exception.Message)"
+        "## Please see 'All logs' for more details."
+        "## Execution stopped." 
+        throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
     }
 }
 
@@ -107,8 +111,16 @@ if ($removeAADDevice) {
         Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Delete | Out-Null
     }
     catch {
+        "## Error Message: $($_.Exception.Message)"
+        "## Please see 'All logs' for more details."
+        "## Execution stopped." 
         throw "Deleting Object ID $($targetDevice.id) from AzureAD failed!"
+        
     }
+}
+
+if ((-not $disableAADDevice) -and (-not $removeAADDevice)) {
+    "## Skipping AzureAD object operations."
 }
 
 $mgdDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
@@ -123,6 +135,9 @@ if ($mgdDevice) {
             Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body
         }
         catch {
+            "## Error Message: $($_.Exception.Message)"
+            "## Please see 'All logs' for more details."
+            "## Execution stopped."     
             throw "Wiping DeviceID $DeviceID (Intune ID: $($mgdDevice.id)) failed!"
         }
     }
@@ -132,9 +147,16 @@ if ($mgdDevice) {
             Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)" -Method Delete | Out-Null
         }
         catch {
+            "## Error Message: $($_.Exception.Message)"
+            "## Please see 'All logs' for more details."
+            "## Execution stopped."     
             throw "Deleting Intune ID: $($mgdDevice.id) from Intune failed!"
         }
+    } else {
+        "## Skipping Intune operations."
     }
+} else {
+    "## Device not found in Intune. Skipping."
 }
 
 if ($removeAutopilotDevice) {
@@ -145,9 +167,16 @@ if ($removeAutopilotDevice) {
             Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$($apDevice.id)" -Method Delete | Out-Null
         }
         catch {
+            "## Error Message: $($_.Exception.Message)"
+            "## Please see 'All logs' for more details."
+            "## Execution stopped."     
             throw "Deleting Autopilot ID: $($apDevice.id) from Autopilot failed!"
         }
+    } else {
+        "## Device not found in AutoPilot database. Skipping."
     }
+} else {
+    "## Skipping AutoPilot operations."
 }
 
 ""
