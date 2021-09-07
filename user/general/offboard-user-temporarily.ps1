@@ -141,7 +141,7 @@ param (
     [String] $exportStorAccountSKU,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportStorContainerGroupMembershipExports" } )]
     [String] $exportStorContainerGroupMembershipExports,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships"} )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.changeLicenses" } )]
     [bool] $ChangeLicenses = $true,
@@ -200,10 +200,11 @@ if ($exportGroupMemberships) {
         "## Creating Azure Storage Account Container $($exportStorContainerGroupmembershipExports)"
         $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context 
     }
+
+    "## Uploading list of memberships. This might overwrite older versions."
+    Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
+    Disconnect-AzAccount -Confirm:$false | Out-Null
 }
-"## Uploading list of memberships. This might overwrite older versions."
-Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
-Disconnect-AzAccount -Confirm:$false | Out-Null
 
 if ($ChangeLicenses) {
     # Add new licensing group, if not already assigned
