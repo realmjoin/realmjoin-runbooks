@@ -217,9 +217,9 @@ if ($ChangeLicenses) {
         $ErrorActionPreference = "Stop"
     }
 
-    # Remove all other known licensing groups
+    # Remove other known groups
     $groups = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId
-    $groups | Where-Object { $_.DisplayName.startswith($licenseGroupsToRemovePrefix) } | ForEach-Object {
+    $groups | Where-Object { $_.DisplayName.startswith($GroupsToRemovePrefix) } | ForEach-Object {
         if ($LicenseGroupToAdd -ne $_.DisplayName) {
             "## Removing license group $($_.DisplayName) from $UserName"
             # AzureAD is broken in regards to ErrorAction...
