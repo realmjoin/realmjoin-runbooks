@@ -195,12 +195,12 @@ if (-not $targetUser) {
 $ErrorActionPreference = "Stop"
 
 if ($DisableUser) {
-    "Blocking user sign in for $UserName"
+    "## Blocking user sign in for $UserName"
     Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false | Out-Null
 }
 
 if ($RevokeAccess) {
-    "Revoke all refresh tokens"
+    "## Revoke all refresh tokens"
     Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
 }
 
