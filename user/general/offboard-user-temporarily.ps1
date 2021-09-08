@@ -153,8 +153,18 @@ param (
 )
 
 # Sanity checks
-if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName))) {
-    throw "To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {
+    "## To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    ""
+    "## Configure the following attributes:"
+    "## - OffboardUserTemporarily.exportResourceGroupName"
+    "## - OffboardUserTemporarily.exportStorAccountName"
+    "## - OffboardUserTemporarily.exportStorAccountLocation"
+    "## - OffboardUserTemporarily.exportStorAccountSKU"
+    ""
+    "## Disabling Group Membership Backup/Export."
+    $exportGroupMemberships = $false
+    ""
 }
 
 # Connect Azure AD
