@@ -92,6 +92,7 @@ try {
 
     if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
         "## To backup cond. access policies to a storage account, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+        "## Alternatively, present values for ResourceGroup and StorageAccount when staring the runbook."
         ""
         "## Configure the following attributes:"
         "## - CaPoliciesExport.ResourceGroup"
