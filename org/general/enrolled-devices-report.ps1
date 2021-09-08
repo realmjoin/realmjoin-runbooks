@@ -192,13 +192,17 @@ param(
 
 # Sanity checks
 if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
-  "## Storage Account not configured -> Disabling CSV export"
+  "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+  ""
   "## Please configure the following attributes in the RJ central datastore:"
   "## - EnrolledDevicesReport.ResourceGroup"
   "## - EnrolledDevicesReport.StorageAccount.Name"
   "## - EnrolledDevicesReport.StorageAccount.Location"
   "## - EnrolledDevicesReport.StorageAccount.Sku"
+  ""
+  "## Disabling CSV export."
   $exportCsv = $false
+  ""
 }
 
 Connect-RjRbGraph
