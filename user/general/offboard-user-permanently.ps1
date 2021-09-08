@@ -236,6 +236,9 @@ if ($DeleteUser) {
     Remove-AzureADUser -ObjectId $targetUser.ObjectId
     "## Offboarding of $($UserName) successful."
     # Script ends here
+    if ($ChangeLicenses) {
+        "## Skipping license/group modifications as User object will be deleted."
+    }
     Disconnect-AzureAD -Confirm:$false | Out-Null
     exit
 }
