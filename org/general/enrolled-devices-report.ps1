@@ -191,8 +191,13 @@ param(
 )
 
 # Sanity checks
-if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName))) {
+if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
   "## Storage Account not configured -> Disabling CSV export"
+  "## Please configure the following attributes in the RJ central datastore:"
+  "## - EnrolledDevicesReport.ResourceGroup"
+  "## - EnrolledDevicesReport.StorageAccount.Name"
+  "## - EnrolledDevicesReport.StorageAccount.Location"
+  "## - EnrolledDevicesReport.StorageAccount.Sku"
   $exportCsv = $false
 }
 
