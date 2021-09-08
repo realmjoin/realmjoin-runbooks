@@ -190,6 +190,12 @@ param(
 
 )
 
+# Sanity checks
+if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName))) {
+  "## Storage Account not configured -> Disabling CSV export"
+  $exportCsv = $false
+}
+
 Connect-RjRbGraph
 
 # find cutoff point in time
