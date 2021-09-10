@@ -59,7 +59,12 @@ try {
     catch {
         throw "Couldn't modify '$GroupName'"
     }
-    "## '$GroupName' successfully updated."
+    if ($Hide) {
+        "## '$GroupName' successfully hidden."
+    }
+    else {
+        "## '$GroupName' successfully made visible."    
+    }
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false | Out-Null

@@ -18,10 +18,14 @@ Connect-RjRbGraph
 $labels = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/policy/labels" -Beta -ErrorAction SilentlyContinue
 
 if (-not $labels) {
-    throw "Could not read InformationProtection labels. Either missing permission, or no InformationProtection policy is set."
+    "## Could not read InformationProtection labels. Either missing permission, or no InformationProtection policy is set."
+    ""
+    "## Make sure, the following Graph API Permission is available"
+    "## - InformationProtectionPolicy.Read.All (API)"
+    ""
+    throw "No inform. protection labels found."
 }
 
-# TODO check formatting
 "## Current Inf. Protection Labels"
 ""
 $labels | Format-Table -AutoSize | Out-String
