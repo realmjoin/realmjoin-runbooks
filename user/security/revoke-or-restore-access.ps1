@@ -53,7 +53,7 @@ if ($null -eq $targetUser) {
 $ErrorActionPreference = "Stop"
 
 # "Block/Enable user sign in"
-Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $Revoke | Out-Null
+Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled (-not $Revoke) | Out-Null
 
 if ($Revoke) {
     # "Revoke all refresh tokens"
