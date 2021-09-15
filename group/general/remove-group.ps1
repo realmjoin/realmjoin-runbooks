@@ -36,6 +36,17 @@ if (-not $group) {
     throw "Group '$GroupId' does not exist."
 }
 
-Invoke-RjRbRestMethodGraph -Method DELETE -resource "/groups/$GroupId" | Out-Null
+try {
+    Invoke-RjRbRestMethodGraph -Method DELETE -resource "/groups/$GroupId" | Out-Null
+}
+catch {
+    "## Could not delete group. Maybe missing permissions?"
+    ""
+    "## Make sure, the following Graph API permission is present:"
+    "## - Group.ReadWrite.All (API)"
+    ""
+    $_
+    throw ("Deleting group failed.")
+}
 
 "## Group '$($group.mailNickname)' successfully deleted."

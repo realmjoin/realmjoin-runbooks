@@ -144,7 +144,7 @@ param (
     [String] $exportStorAccountSKU,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorContainerGroupMembershipExports" } )]
     [String] $exportStorContainerGroupMembershipExports,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships"} )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.changeLicenses" } )]
     [bool] $ChangeLicenses = $true,
@@ -167,8 +167,18 @@ param (
 )
 
 # Sanity checks
-if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName))) {
-    throw "To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {
+    "## To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    ""
+    "## Configure the following attributes:"
+    "## - OffboardUserPermanently.exportResourceGroupName"
+    "## - OffboardUserPermanently.exportStorAccountName"
+    "## - OffboardUserPermanently.exportStorAccountLocation"
+    "## - OffboardUserPermanently.exportStorAccountSKU"
+    ""
+    "## Disabling Group Membership Backup/Export."
+    $exportGroupMemberships = $false
+    ""
 }
 
 # Connect Azure AD
@@ -185,12 +195,12 @@ if (-not $targetUser) {
 $ErrorActionPreference = "Stop"
 
 if ($DisableUser) {
-    "Blocking user sign in for $UserName"
+    "## Blocking user sign in for $UserName"
     Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false | Out-Null
 }
 
 if ($RevokeAccess) {
-    "Revoke all refresh tokens"
+    "## Revoke all refresh tokens"
     Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
 }
 
@@ -215,12 +225,16 @@ if ($exportGroupMemberships) {
         "## Creating Azure Storage Account Container $($exportStorContainerGroupmembershipExports)"
         $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context 
     }
+
+    "## Uploading list of memberships. This might overwrite older versions."
+    Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
+    Disconnect-AzAccount -Confirm:$false | Out-Null
 }
-"## Uploading list of memberships. This might overwrite older versions."
-Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
-Disconnect-AzAccount -Confirm:$false | Out-Null
 
 if ($DeleteUser) {
+    if ($ChangeLicenses) {
+        "## Skipping license/group modifications as User object will be deleted."
+    }
     "## Deleting User Object $UserName"
     Remove-AzureADUser -ObjectId $targetUser.ObjectId
     "## Offboarding of $($UserName) successful."
@@ -242,7 +256,7 @@ if ($ChangeLicenses) {
 
     # Remove all other known licensing groups
     $groups = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId
-    $groups | Where-Object { $_.DisplayName.startswith($licenseGroupsToRemovePrefix) } | ForEach-Object {
+    $groups | Where-Object { $_.DisplayName.startswith($GroupsToRemovePrefix) } | ForEach-Object {
         if ($LicenseGroupToAdd -ne $_.DisplayName) {
             "## Removing license group $($_.DisplayName) from $UserName"
             # AzureAD is broken in regards to ErrorAction...

@@ -51,7 +51,7 @@ try {
     Invoke-WebRequest -Uri $PhotoURI -OutFile ($env:TEMP + "\photo.jpg") | Out-Null
 }
 catch {
-    Write-Error $_
+    $_
     throw ("Photo download from $PhotoURI failed.")
 }
 
@@ -60,7 +60,12 @@ catch {
 try {
     Invoke-RjRbRestMethodGraph -resource "/users/$($targetUser.id)/photo" -inFile ($env:TEMP + "\photo.jpg") -Method Put -ContentType "image/jpeg"
 } catch {
-    Write-Error $_
+    "## Can't update user photo in Exchange. Maybe the user has no mailbox?"
+    ""
+    "## Make sure, you have the following Graph API permission:"
+    "## - User.ReadWrite.All (API)"
+    ""
+    $_
     throw "Setting photo failed."
 }
 

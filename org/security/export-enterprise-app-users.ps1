@@ -84,6 +84,20 @@ try {
         #endregion
     }
 
+    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
+        "## To export to a storage account, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+        "## Alternatively, present values for ResourceGroup and StorageAccount when staring the runbook."
+        ""
+        "## Configure the following attributes:"
+        "## - EntAppsReport.ResourceGroup"
+        "## - EntAppsReport.StorageAccount.Name"
+        "## - EntAppsReport.StorageAccount.Location"
+        "## - EntAppsReport.StorageAccount.Sku"
+        ""
+        "## Stopping execution."
+        throw "Missing Storage Account Configuration."
+    }
+
     $invokeParams = @{
         resource = "/servicePrincipals"
     }

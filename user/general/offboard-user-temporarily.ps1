@@ -141,7 +141,7 @@ param (
     [String] $exportStorAccountSKU,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportStorContainerGroupMembershipExports" } )]
     [String] $exportStorContainerGroupMembershipExports,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships"} )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.changeLicenses" } )]
     [bool] $ChangeLicenses = $true,
@@ -153,8 +153,18 @@ param (
 )
 
 # Sanity checks
-if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName))) {
-    throw "To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {
+    "## To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    ""
+    "## Configure the following attributes:"
+    "## - OffboardUserTemporarily.exportResourceGroupName"
+    "## - OffboardUserTemporarily.exportStorAccountName"
+    "## - OffboardUserTemporarily.exportStorAccountLocation"
+    "## - OffboardUserTemporarily.exportStorAccountSKU"
+    ""
+    "## Disabling Group Membership Backup/Export."
+    $exportGroupMemberships = $false
+    ""
 }
 
 # Connect Azure AD
@@ -200,10 +210,11 @@ if ($exportGroupMemberships) {
         "## Creating Azure Storage Account Container $($exportStorContainerGroupmembershipExports)"
         $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context 
     }
+
+    "## Uploading list of memberships. This might overwrite older versions."
+    Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
+    Disconnect-AzAccount -Confirm:$false | Out-Null
 }
-"## Uploading list of memberships. This might overwrite older versions."
-Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
-Disconnect-AzAccount -Confirm:$false | Out-Null
 
 if ($ChangeLicenses) {
     # Add new licensing group, if not already assigned
@@ -216,9 +227,9 @@ if ($ChangeLicenses) {
         $ErrorActionPreference = "Stop"
     }
 
-    # Remove all other known licensing groups
+    # Remove other known groups
     $groups = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId
-    $groups | Where-Object { $_.DisplayName.startswith($licenseGroupsToRemovePrefix) } | ForEach-Object {
+    $groups | Where-Object { $_.DisplayName.startswith($GroupsToRemovePrefix) } | ForEach-Object {
         if ($LicenseGroupToAdd -ne $_.DisplayName) {
             "## Removing license group $($_.DisplayName) from $UserName"
             # AzureAD is broken in regards to ErrorAction...

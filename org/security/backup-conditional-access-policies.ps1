@@ -31,13 +31,32 @@ param(
     [string] $StorageAccountSku
 )
 
-try {
-    Connect-RjRbGraph
-    Connect-RjRbAzAccount
+# Write a JSON file from a Policy / group description object
+function Export-PolicyObjects {
+    param (
+        [Parameter(Mandatory = $true)]
+        [array]$policies
+    )
 
-    if (-not $ContainerName) {
-        $ContainerName = "conditional-policy-backup-" + (get-date -Format "yyyy-MM-dd")
+    $policies | ForEach-Object {
+        $name = $_.displayName -replace "[$([RegEx]::Escape([string][IO.Path]::GetInvalidFileNameChars()))]+", "_"
+        if (-not (Test-Path ($name + ".json"))) {
+            $_ | ConvertTo-Json -Depth 6 > ($name + ".json")
+        }
+        else {
+            "## Will not overwrite " + ($name + ".json") + ". Skipping."
+        }
+     
     }
+
+}
+
+
+if (-not $ContainerName) {
+    $ContainerName = "conditional-policy-backup-" + (get-date -Format "yyyy-MM-dd")
+}
+
+try {
 
     # Configuration import - fallback to Az Automation Variable 
     if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku)) {
@@ -71,26 +90,23 @@ try {
         #endregion
     }
 
-    # Write a JSON file from a Policy / group description object
-    function Export-PolicyObjects {
-        param (
-            [Parameter(Mandatory = $true)]
-            [array]$policies
-        )
-
-        $policies | ForEach-Object {
-            $name = $_.displayName -replace "[$([RegEx]::Escape([string][IO.Path]::GetInvalidFileNameChars()))]+", "_"
-            if (-not (Test-Path ($name + ".json"))) {
-                $_ | ConvertTo-Json -Depth 6 > ($name + ".json")
-            }
-            else {
-                "## Will not overwrite " + ($name + ".json") + ". Skipping."
-            }
-     
-        }
-
+    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
+        "## To backup cond. access policies to a storage account, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+        "## Alternatively, present values for ResourceGroup and StorageAccount when staring the runbook."
+        ""
+        "## Configure the following attributes:"
+        "## - CaPoliciesExport.ResourceGroup"
+        "## - CaPoliciesExport.StorageAccount.Name"
+        "## - CaPoliciesExport.StorageAccount.Location"
+        "## - CaPoliciesExport.StorageAccount.Sku"
+        ""
+        "## Stopping execution."
+        throw "Missing Storage Account Configuration."
     }
 
+    Connect-RjRbGraph
+    Connect-RjRbAzAccount
+    
     # fetch the policies
     $pols = Invoke-RjRbRestMethodGraph -Resource "/identity/conditionalAccess/policies"
 
