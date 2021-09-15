@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Disable a user and revoke all tokens.
+  Disable or a user and revoke all tokens or re-enable this user.
 
   .DESCRIPTION
-  Disable a user and revoke all tokens.
+  Disable or a user and revoke all tokens or re-enable this user.
 
   .NOTES
   Permissions:
