@@ -17,6 +17,13 @@
         "Parameters": {
              "UserName": {
                 "Hide": true
+            },
+            "Revoke": {
+                "DisplayName": "Action",
+                "SelectSimple": {
+                    "(Re-)Enable User": false,
+                    "Revoke Access": true
+                } 
             }
         }
     }
@@ -27,7 +34,8 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [String] $UserName
+    [String] $UserName,
+    [bool] $Revoke = $true
 )
 
 Connect-RjRbAzureAD
@@ -44,13 +52,18 @@ if ($null -eq $targetUser) {
 # Bug in AzureAD Module when using ErrorAction
 $ErrorActionPreference = "Stop"
 
-# "Block user sign in"
-Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false | Out-Null
+# "Block/Enable user sign in"
+Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $Revoke | Out-Null
 
-# "Revoke all refresh tokens"
-Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
+if ($Revoke) {
+    # "Revoke all refresh tokens"
+    Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
+
+    "## User access for " + $UserName + " has been revoked."
+}
+else {
+    "## User " + $UserName + " has been enabled."
+}
 
 # "Sign out from AzureAD"
 Disconnect-AzureAD -Confirm:$false | Out-Null
-
-"## User access for " + $UserName + " has been revoked."
