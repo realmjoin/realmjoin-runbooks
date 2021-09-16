@@ -18,14 +18,15 @@
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
-            "Disable": {
-                "DisplayName": "Enable or Disable External Mail",
+            "Action": {
+                "DisplayName": "Choose action",
                 "SelectSimple": {
-                    "Enable External Mail": false,
-                    "Disable External Mail": true
+                    "Enable External Mail": 0,
+                    "Disable External Mail": 1,
+                    "Query current state only": 2
                 }
             },
-            "GroupName": {
+            "GroupId": {
                 "Hide": true
             }
         }
@@ -37,10 +38,9 @@
 param
 (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
-    [String] $GroupName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable external mail" } )]
-    [boolean] $Disable = $false
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
+    [String] $GroupId,
+    [int] $Action = 0
 )
 
 try {
@@ -49,30 +49,34 @@ try {
     Connect-RjRbExchangeOnline
 
     # "Checking"  if group is universal group
-    if (-not (Get-UnifiedGroup -Identity $GroupName -ErrorAction SilentlyContinue)) {
-        throw "`'$GroupName`' is not a unified (O365) group. Can not proceed."
+    if (-not (Get-UnifiedGroup -Identity $GroupId -ErrorAction SilentlyContinue)) {
+        throw "`'$GroupId`' is not a unified (O365) group. Can not proceed."
     }
     
-    if ($Disable) {
-        # "Disable external mailing for $GroupName"
+    if ($Action -eq 1) {
+        # "Disable external mailing for $GroupId"
         try {
-            Set-UnifiedGroup -Identity $GroupName -RequireSenderAuthenticationEnabled $true
+            Set-UnifiedGroup -Identity $GroupId -RequireSenderAuthenticationEnabled $true
         }
         catch {
             throw "Couldn't disable external mailing! `r`n $_"
         }
-        "## External mailing successfully disabled for `'$GroupName`'"
+        "## External mailing successfully disabled for `'$GroupId`'"
     }
     
-    else {
-        # "Enabling external mailing for $GroupName"
+    if ($Action -eq 0) {
+        # "Enabling external mailing for $GroupId"
         try {
-            Set-UnifiedGroup -Identity $GroupName -RequireSenderAuthenticationEnabled $false
+            Set-UnifiedGroup -Identity $GroupId -RequireSenderAuthenticationEnabled $false
         }
         catch {
             throw "Couldn't enable external mailing! `r`n $_"
         }
-        "## External mailing successfully enabled for `'$GroupName`'"
+        "## External mailing successfully enabled for `'$GroupId`'"
+    }
+
+    if ($Action -eq 2) {
+        "## External Mailing for this group is enabled: $( -not (Get-UnifiedGroup -Identity $GroupId).RequireSenderAuthenticationEnabled)"
     }
 }
 finally {
