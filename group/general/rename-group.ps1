@@ -26,10 +26,10 @@ param(
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
     [string] $GroupId,
+    [ValidateScript( { Use-RJInterface -DisplayName "New DisplayName / Team Name" } )]
+    [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -DisplayName "New MailNickname" } )]
     [string] $MailNickname,
-    [ValidateScript( { Use-RJInterface -DisplayName "New DisplayName" } )]
-    [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -DisplayName "New Description" } )]
     [string] $Description
 )
