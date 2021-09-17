@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  (Un)hide this group in Address Book.
+  (Un)hide an O365- or static Distribution-group in Address Book.
 
   .DESCRIPTION
-  (Un)hide this group in Address Book.
+  (Un)hide an O365- or static Distribution-group in Address Book. Can also show the current state.
 
   .NOTES
   Permissions: 
@@ -18,11 +18,12 @@
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
-            "Hide": {
+            "Action": {
                 "DisplayName": "Show or Hide Group in Address Book",
                 "SelectSimple": {
-                    "Show Group in Address Book": false,
-                    "Hide Group from Address Book": true
+                    "Show Group in Address Book": 0,
+                    "Hide Group from Address Book": 1,
+                    "Query current state": 2
                 }
             },
             "GroupName": {
@@ -40,7 +41,7 @@ param
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupName,
     [ValidateScript( { Use-RJInterface -DisplayName "Hide Group in Address Book" } )]
-    [boolean] $Hide = $false
+    [int] $Action = 1
 )
 
 try {
@@ -48,22 +49,47 @@ try {
 
     Connect-RjRbExchangeOnline
 
-    # "Checking"  if group is universal group
-    if (-not (Get-UnifiedGroup -Identity $GroupName -ErrorAction SilentlyContinue)) {
-        throw "`'$GroupName`' is not a unified (O365) group. Can not proceed."
+    $group = Get-UnifiedGroup -Identity $GroupName -ErrorAction SilentlyContinue
+    $groupType = 0
+
+    # "Checking"  if group is universal or distribution group
+    if (-not $group) {
+        $group = Get-DistributionGroup -Identity $GroupName -ErrorAction SilentlyContinue
+        $groupType = 1
+        if (-not $group) {
+            "## `'$GroupName`' is not a unified (O365)- or distribution group."
+            ""
+            throw ("Group not found.")
+        }
     }
     
-    try {
-        Set-UnifiedGroup -Identity $GroupName -HiddenFromAddressListsEnabled $Hide
-    }
-    catch {
-        throw "Couldn't modify '$GroupName'"
-    }
-    if ($Hide) {
-        "## '$GroupName' successfully hidden."
+    if ($Action -le 1) {
+        try {
+            if ($Action -eq 0) {
+                if ($groupType -eq 0) {
+                    Set-UnifiedGroup -Identity $GroupName -HiddenFromAddressListsEnabled $false
+                }
+                else {
+                    Set-DistributionGroup -Identity $GroupName -HiddenFromAddressListsEnabled $false
+                }
+                "## '$GroupName' successfully made visible."    
+            }
+            if ($Action -eq 1) {
+                if ($groupType -eq 0) {
+                    Set-UnifiedGroup -Identity $GroupName -HiddenFromAddressListsEnabled $true
+                }
+                else {
+                    Set-DistributionGroup -Identity $GroupName -HiddenFromAddressListsEnabled $true
+                }
+                "## '$GroupName' successfully hidden."
+            }
+        }
+        catch {
+            throw "Couldn't modify '$GroupName'"
+        }
     }
     else {
-        "## '$GroupName' successfully made visible."    
+        "## '$GroupName' is currently hidden: $($group.HiddenFromAddressListsEnabled)"
     }
 }
 finally {
