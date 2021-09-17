@@ -57,7 +57,7 @@ param(
 )
 
 # How long to wait in seconds for a group to propagate to the Teams service
-[int]$teamsTimer = 30
+[int]$teamsTimer = 15
 
 # Input Validations - from user feedback.
 if ($MailNickname.GetEnumerator() -contains " ") {
@@ -116,12 +116,30 @@ if ($CreateTeam) {
         "group@odata.bind"    = "https://graph.microsoft.com/v1.0/groups('$($groupObj.id)')"
     }
 
-    "## Waiting/Sleeping to allow data propagation..."
-    # a new group needs some time to propagate...
-    Start-Sleep -Seconds $teamsTimer
+    [int]$tries = 0
+    [bool]$success = $false
+    while (-not $success -and $tries -le 8) {
+        $success = $true
+        $tries++
 
-    "## Triggering Team creation"
-    Invoke-RjRbRestMethodGraph -Method POST -Resource "/teams" -Body $teamDescription | Out-Null
+        "## Waiting/Sleeping to allow data propagation..."
+        # a new group needs some time to propagate...
+        Start-Sleep -Seconds $teamsTimer
+
+        try {
+            "## Triggering Team creation"
+            Invoke-RjRbRestMethodGraph -Method POST -Resource "/teams" -Body $teamDescription | Out-Null
+        }
+        catch {
+            "## ... too early. Try again."
+            $success = $false
+        }
+    }
+    if (-not $success) {
+        "## Timeout on Team creation. The group has been created, but could not be promoted to a Team."
+        ""
+        throw (timeout)
+    }
 }
 
 ""
