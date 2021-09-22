@@ -7,12 +7,17 @@
 
   .NOTES
   Permissions:
-   AzureAD Roles 
-   - User administrator
+  MS Graph (API):
+  - User.Read.All
+  - GroupMember.ReadWrite.All 
+  - Group.ReadWrite.All
 
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
             "Remove": {
                 "DisplayName": "Assign or Remove License",
                 "SelectSimple": {
@@ -24,14 +29,15 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "ref:LicenseGroup" -DisplayName "License group" } )]
+    # production does not supprt "ref:LicenseGroup" yet
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "startswith(DisplayName, 'LIC_')" -DisplayName "License group" } )]
     [String] $GroupID_License,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove license" } )]
     [boolean] $Remove = $false
@@ -59,15 +65,15 @@ if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($ta
     if ($Remove) {
         #"Removing license."
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
-        "'$($group.displayName)' is removed from '$UserName'"
+        "## '$($group.displayName)' is removed from '$UserName'"
     }
     else {
-        "License '$($group.displayName)' is already assigned to '$UserName'. No action taken."
+        "## License '$($group.displayName)' is already assigned to '$UserName'. No action taken."
     }
 }
 else {
     if ($Remove) {
-        "License '$($group.displayName)' is not assigned to '$UserName'. Doing nothing."
+        "## License '$($group.displayName)' is not assigned to '$UserName'. Doing nothing."
     }
     else {
         #"Assigning license"
@@ -75,6 +81,6 @@ else {
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
         }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/`$ref" -Method Post -Body $body | Out-Null
-        "'$($group.displayName)' is assigned to '$UserName'"
+        "## '$($group.displayName)' is assigned to '$UserName'"
     }
 }

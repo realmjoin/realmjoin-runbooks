@@ -20,16 +20,21 @@
                     "Disable Device": false,
                     "Enable Device again": true
                 }
+            },
+            "DeviceId": {
+                "Hide": true
             }
+
         }
     }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
+    [ValidateScript( { Use-RJInterface -DisplayName "Disable or Enable Device" } )]
     [bool] $Enable = $false
 )
 
@@ -45,14 +50,13 @@ $body = @{ accountEnabled = $Enable }
 
 if ($targetDevice.accountEnabled) {
     if ($Enable) {
-        "Device $($targetDevice.displayName) with DeviceId $DeviceId is already enabled in AzureAD."
+        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already enabled in AzureAD."
     }
     else {
-        # "Disabling device $($targetDevice.displayName) in AzureAD."
+        "## Disabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
             # Set-AzureADDevice -AccountEnabled $false -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
-            "Device $($targetDevice.displayName) with DeviceId $DeviceId is disabled."
         }
         catch {
             write-error $_
@@ -62,17 +66,16 @@ if ($targetDevice.accountEnabled) {
 }
 else {
     if ($Enable) { 
-        # "Enabling device $($targetDevice.displayName) in AzureAD."
+        "## Enabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
             # Set-AzureADDevice -AccountEnabled $true -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
-            "Device $($targetDevice.displayName) with DeviceId $DeviceId is enabled."
         }
         catch {
             write-error $_
             throw "Enabling of device $($targetDevice.displayName) failed"
         }
     } else {
-        "Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in AzureAD."        
+        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in AzureAD."        
     }
 }

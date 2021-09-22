@@ -24,9 +24,20 @@
    This is not a recommended situation and will be fixed as soon as a technical solution is known. 
    Be aware: MicrosoftTeams Module only wotk with PS 5.x, not 7
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "OrganizationId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, MicrosoftTeams 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, MicrosoftTeams 
 
 param(
     [Parameter(Mandatory = $true)]
@@ -67,14 +78,14 @@ try {
 
     $someUser = Get-CsOnlineUser -TenantId $autoCon.TenantId -Filter "LineURI -eq '$LineURI'" -ErrorAction SilentlyContinue
     if ($someUser) {
-        "$Number is already assigned to to $($someUser.UserPrincipalName)"
+        "## $Number is already assigned to to $($someUser.UserPrincipalName)"
     }
 
     # "Number not assigned"
 
     $CsOnlineUser = Get-CsOnlineUser -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $CsOnlineUser) {
-        "$UserName seems not to be Teams enabled."
+        "## $UserName seems not to be Teams enabled."
     }
     
     # "User Checks complete"
@@ -124,7 +135,7 @@ try {
         #### Direct Routing Part End ###
     }
 
-    # "Phoneno set"
+    # "PhoneNo set"
 
     ## Set CsUserPstnSettings to allow International Calls if requested
     if ($allow_International_Calls) {
@@ -134,7 +145,7 @@ try {
         catch { Write-Error "Error assigning PstnSettings" -Exception $_.Exception -ErrorAction Continue; exit }
     }
 
-    "Phone Number $Number successfully assigned to $UserName."
+    "## Phone Number $Number successfully assigned to $UserName."
 }
 finally {
     Disconnect-MicrosoftTeams -Confirm:$false | Out-Null

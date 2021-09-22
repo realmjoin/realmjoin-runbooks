@@ -6,15 +6,25 @@
   Removes a group, incl. SharePoint site and Teams team.
 
   .NOTES
-  Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-  MS Graph: Group.Create, Team.Create
+  MS Graph (API): 
+  - Group.ReadWrite.All 
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "GroupId": {
+                "Hide": true
+            }
+        }
+    }
 
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [string] $GroupId
 )
 
@@ -26,6 +36,17 @@ if (-not $group) {
     throw "Group '$GroupId' does not exist."
 }
 
-Invoke-RjRbRestMethodGraph -Method DELETE -resource "/groups/$GroupId" | Out-Null
+try {
+    Invoke-RjRbRestMethodGraph -Method DELETE -resource "/groups/$GroupId" | Out-Null
+}
+catch {
+    "## Could not delete group. Maybe missing permissions?"
+    ""
+    "## Make sure, the following Graph API permission is present:"
+    "## - Group.ReadWrite.All (API)"
+    ""
+    $_
+    throw ("Deleting group failed.")
+}
 
-"Group $GroupId successfully deleted."
+"## Group '$($group.mailNickname)' successfully deleted."

@@ -11,6 +11,13 @@
   .PARAMETER PolicyName
   Optional if only one exists.
 
+  .NOTES
+  Permissions given to the Az Automation RunAs Account:
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -25,7 +32,7 @@
     }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param(
     # Not mandatory to allow an example value
@@ -42,7 +49,6 @@ try {
 
     $policy = $null
     if ($PolicyName) {
-        # "Use the given policy $PolicyName"
         $policy = Get-SafeLinksPolicy -Identity $PolicyName -ErrorAction SilentlyContinue
     }
     else {
@@ -53,11 +59,20 @@ try {
         }
     }
     if (-not $policy) {
-        throw "Please give a SafeLinks Policy."
+        throw "No policy found. Please provide a SafeLinks policy."
     }
 
+    "## Policy is defined as $policy"
+    $policy | Format-Table -Property Name,IsEnabled,IsDefault | Out-String
+
+    ""
+    "## Current list of excluded Safe Links"
+    $policy | Select-Object -expandproperty DoNotRewriteUrls
+
+    ""
     $DoNotRewriteUrls = @()
     if ($Remove) {
+        "## Trying to remove $LinkPattern ..."
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {
                 $DoNotRewriteUrls += $entry
@@ -65,12 +80,15 @@ try {
         }
     }
     else {
+        "## Trying to add $LinkPattern ..."
         $DoNotRewriteUrls = $policy.DoNotRewriteUrls + $LinkPattern | Sort-Object -Unique
     }
-
     Set-SafeLinksPolicy -Identity $policy.Id -DoNotRewriteUrls $DoNotRewriteUrls | Out-Null
+    "## Policy $policy successfully updated."
 
-    "Policy $PolicyName successfully updated."
+    ""
+    "## Safe Link Policy Dump"
+    Get-SafeLinksPolicy -Identity $policy.Id | Format-List | Out-String
 
 }
 finally {

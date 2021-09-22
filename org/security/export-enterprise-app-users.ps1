@@ -3,14 +3,45 @@
   Export a CSV of all (entprise) app owners and users
 
   .DESCRIPTION
-  Export a CSV of all (entprise) app owners and users. Will use a storage account as given in the Az. Automation Variable "SettingsExports".
+  Export a CSV of all (entprise) app owners and users. 
+
+  .NOTES
+  Permissions: 
+  MS Graph (API)
+  - Directory.Read.All
+  - Application.Read.All
+  Azure IaaS: "Contributor" access on subscription or resource group used for the export
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "entAppsOnly": {
+                "DisplayName": "Scope",
+                "SelectSimple": {
+                    "List only Enterprise Apps": true,
+                    "List all Service Principals / Apps": false
+                }
+            }
+        }
+    }
+
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
-    [bool] $entAppsOnly = $true
+    [bool] $entAppsOnly = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.Container" } )]
+    [string] $ContainerName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.ResourceGroup" } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Name" } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Location" } )]
+    [string] $StorageAccountLocation,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Sku" } )]
+    [string] $StorageAccountSku
 )
 
 if (-not $ContainerName) {
@@ -21,38 +52,51 @@ Connect-RjRbGraph
 Connect-RjRbAzAccount
 
 try {
-    #region configuration import
-    # "Getting Process configuration - JSON in Az Automation Variable"
-    $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
-    if (-not $processConfigRaw) {
+    # Configuration import - fallback to Az Automation Variable 
+    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku)) {
+        $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
+        #if (-not $processConfigRaw) {
         ## production default - use this as template to create the Az. Automation Variable "SettingsExports"
-        $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
-        $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
-        $processConfigRaw = $webResult.Content        ## staging default
-        #$processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/master/setup/defaults/settings-org-policies-export.json"
+        #    $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
+        #    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+        #    $processConfigRaw = $webResult.Content        ## staging default
+        #}
+        # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
+
+        # "Getting Process configuration"
+        $processConfig = $processConfigRaw | ConvertFrom-Json
+
+        if (-not $ResourceGroupName) {
+            $ResourceGroupName = $processConfig.exportResourceGroupName
+        }
+
+        if (-not $StorageAccountName) {
+            $StorageAccountName = $processConfig.exportStorAccountName
+        }
+
+        if (-not $StorageAccountLocation) {
+            $StorageAccountLocation = $processConfig.exportStorAccountLocation
+        }
+
+        if (-not $StorageAccountSku) {
+            $StorageAccountSku = $processConfig.exportStorAccountSKU
+        }
+        #endregion
     }
-    # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
 
-    # "Getting Process configuration"
-    $processConfig = $processConfigRaw | ConvertFrom-Json
-
-    if (-not $ResourceGroupName) {
-        $ResourceGroupName = $processConfig.exportResourceGroupName
+    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
+        "## To export to a storage account, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+        "## Alternatively, present values for ResourceGroup and StorageAccount when staring the runbook."
+        ""
+        "## Configure the following attributes:"
+        "## - EntAppsReport.ResourceGroup"
+        "## - EntAppsReport.StorageAccount.Name"
+        "## - EntAppsReport.StorageAccount.Location"
+        "## - EntAppsReport.StorageAccount.Sku"
+        ""
+        "## Stopping execution."
+        throw "Missing Storage Account Configuration."
     }
-
-    if (-not $StorageAccountName) {
-        $StorageAccountName = $processConfig.exportStorAccountName
-    }
-
-    if (-not $StorageAccountLocation) {
-        $StorageAccountLocation = $processConfig.exportStorAccountLocation
-    }
-
-    if (-not $StorageAccountSku) {
-        $StorageAccountSku = $processConfig.exportStorAccountSKU
-    }
-    #endregion
-
 
     $invokeParams = @{
         resource = "/servicePrincipals"
@@ -119,7 +163,7 @@ try {
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
-        "Creating Azure Storage Account $($StorageAccountName)"
+        "## Creating Azure Storage Account $($StorageAccountName)"
         $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
     }
  
@@ -130,7 +174,7 @@ try {
     # Make sure, container exists
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
-        "Creating Azure Storage Account Container $($ContainerName)"
+        "## Creating Azure Storage Account Container $($ContainerName)"
         $container = New-AzStorageContainer -Name $ContainerName -Context $context 
     }
  
@@ -141,8 +185,8 @@ try {
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "enterpriseApps.csv" -FullUri -ExpiryTime $EndTime
 
-    "App Owner/User List Export created."
-    "Expiry of Link: $EndTime"
+    "## App Owner/User List Export created."
+    "## Expiry of Link: $EndTime"
     $SASLink | Out-String
     
 }

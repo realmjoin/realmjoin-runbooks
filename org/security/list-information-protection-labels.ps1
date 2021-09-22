@@ -10,7 +10,7 @@
   - InformationProtectionPolicy.Read.All
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 Connect-RjRbGraph
 
@@ -18,8 +18,14 @@ Connect-RjRbGraph
 $labels = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/policy/labels" -Beta -ErrorAction SilentlyContinue
 
 if (-not $labels) {
-    throw "Could not read InformationProtection labels. Either missing permission, or no InformationProtection policy is set."
+    "## Could not read InformationProtection labels. Either missing permission, or no InformationProtection policy is set."
+    ""
+    "## Make sure, the following Graph API Permission is available"
+    "## - InformationProtectionPolicy.Read.All (API)"
+    ""
+    throw "No inform. protection labels found."
 }
 
-# TODO check formatting
-$labels | Format-Table | Out-String
+"## Current Inf. Protection Labels"
+""
+$labels | Format-Table -AutoSize | Out-String

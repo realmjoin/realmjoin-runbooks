@@ -4,9 +4,54 @@
 
   .DESCRIPTION
   Grant another user sendAs permissions on this mailbox.
+
+  .NOTES
+  Permissions given to the Az Automation RunAs Account:
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "Remove": {
+                "Hide": true
+            }
+        },
+        "ParameterList": [
+            {
+                "DisplayName": "Action",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Delegate 'Send As'",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": false
+                                }
+                            }
+                        }, {
+                            "Display": "Remove this delegation",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": true
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Default": "Delegate 'Send As'"
+            }
+        ]
+    }
+
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param
 ( 
@@ -33,12 +78,17 @@ try {
 
     if ($Remove) {
         Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "SendAs Permission for $delegateTo removed from mailbox $UserName"
+        "## SendAs Permission for $delegateTo removed from mailbox $UserName"
     }
     else {
         Add-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "SendAs Permission for $delegateTo added to mailbox  $UserName"
+        "## SendAs Permission for $delegateTo added to mailbox  $UserName"
     }
+
+    ""
+    "## Dump Mailbox Permission Details"
+    Get-MailboxPermission -Identity $UserName
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

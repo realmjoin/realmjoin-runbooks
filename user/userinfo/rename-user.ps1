@@ -5,27 +5,28 @@
   .DESCRIPTION
   Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
 
-  .PARAMETER ChangeMailnickname
-  If 'true', change the mailNickname based on the new UPN
-
   .NOTES
   Permissions: 
   MS Graph API
   - Directory.Read.All
   - User.ReadWrite.All
-  Permissons -MSGraph Directory.Read.All:Api, User.ReadWrite.All:Api -ExchangeOnline Exchange.ManageAsApp:Api -AzureADRole "Application administrator"
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
 
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param(
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
-    [string] $UserId,
+    [string] $UserName,
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -DisplayName "New UserPrincipalName" } )]
     [string] $NewUpn,
+    [ValidateScript( { Use-RJInterface -DisplayName "Change MailNickname based on new UPN" } )]
     [bool] $ChangeMailnickname = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Update primary eMail address" } )]
     [bool] $UpdatePrimaryAddress = $true
@@ -38,20 +39,20 @@ try {
     Connect-RjRbExchangeOnline
 
     ## Get original UPN
-    # $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserId" 
+    # $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" 
 
     # Change UPN
     $body = @{
         userPrincipalName = $NewUpn
     }
-    Invoke-RjRbRestMethodGraph -resource "/users/$UserId" -Method Patch -Body $body | Out-Null
+    Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -Method Patch -Body $body | Out-Null
 
     # Change eMail-Adresses
-    $mailbox = Get-EXOMailbox -Identity $UserId -ErrorAction SilentlyContinue
+    $mailbox = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if ($mailbox) {
 
         if ($ChangeMailnickname) {
-            Set-Mailbox -Identity $UserId -Name $NewUpn.split('@')[0] -alias $NewUpn.split('@')[0] | Out-Null
+            Set-Mailbox -Identity $UserName -Name $NewUpn.split('@')[0] -alias $NewUpn.split('@')[0] | Out-Null
         }
 
         if ($UpdatePrimaryAddress) {
@@ -71,11 +72,11 @@ try {
                     # Updating SIP takes some minutes to propagate after rename
                 }
             }
-            Set-Mailbox -Identity $UserId -EmailAddresses $newAdresses | Out-Null
+            Set-Mailbox -Identity $UserName -EmailAddresses $newAdresses | Out-Null
         }
     }
     
-    "User '$UserId' successfully renamed to '$NewUpn'"
+    "## User '$UserName' successfully renamed to '$NewUpn'"
 }
 finally {
     Disconnect-ExchangeOnline -ErrorAction SilentlyContinue -Confirm:$true | Out-Null

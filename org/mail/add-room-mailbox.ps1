@@ -4,9 +4,17 @@
 
   .DESCRIPTION
   Create a room resource.
+
+  .NOTES
+  Permissions given to the Az Automation RunAs Account:
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)] 
@@ -48,14 +56,14 @@ try {
         # "Grant FullAccess"
         $mailbox | Add-MailboxPermission -User $DelegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
         # Calendar delegation
-        Set-CalendarProcessing -Identity $MailboxName -ResourceDelegates $DelegateTo 
+        Set-CalendarProcessing -Identity $MailboxName -ResourceDelegates $DelegateTo -AutomateProcessing AutoAccept -AllRequestInPolicy $true -AllBookInPolicy $false
     }
 
     if ($AutoAccept) {
-        Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
+        Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept" -AllRequestInPolicy $true -AllBookInPolicy $true
     }
 
-    "Room Mailbox $MailboxName has been created."
+    "## Room Mailbox '$MailboxName' has been created."
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

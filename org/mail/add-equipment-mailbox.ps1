@@ -4,9 +4,17 @@
 
   .DESCRIPTION
   Create an equipment mailbox.
+
+  .NOTES
+  Permissions given to the Az Automation RunAs Account:
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)] 
@@ -49,7 +57,7 @@ try {
         Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
     }
 
-    "Equipment Mailbox $MailboxName has been created."
+    "## Equipment Mailbox '$MailboxName' has been created."
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

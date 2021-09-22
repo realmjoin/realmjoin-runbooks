@@ -13,9 +13,18 @@
   Permissions needed:
   - UserAuthenticationMethod.ReadWrite.All
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -29,11 +38,19 @@ param(
 
 Connect-RjRbGraph
 
+try {
 # "Making sure, no old temp. access passes exist for $UserName"
 $OldPasses = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Beta
 $OldPasses | ForEach-Object {
     Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods/$($_.id)" -Beta -Method Delete | Out-Null
+} } catch {
+    "Querying of existing Temp. Access Passes failed. Maybe you are missing Graph API permissions:"
+    "- 'UserAuthenticationMethod.ReadWrite.All' (API)"
+
+    throw ($_) 
 }
+
+try {
 
 # "Creating new temp. access pass"
 $body = @{
@@ -44,7 +61,15 @@ $body = @{
 $pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
 
 if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
-    "Beware: The use of Temporary access passes seems to be disabled for this user."
+    "## Beware: The use of Temporary access passes seems to be disabled for this user."
+    ""
 }
 
-"New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created: $($pass.temporaryAccessPass)"
+"## New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created:" 
+""
+"$($pass.temporaryAccessPass)"
+} catch {
+    "Creation of a new Temp. Access Pass failed. Maybe you are missing Graph API permissions:"
+    "- 'UserAuthenticationMethod.ReadWrite.All' (API)"
+    throw ($_)
+}

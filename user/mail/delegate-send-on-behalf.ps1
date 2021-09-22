@@ -4,9 +4,54 @@
 
   .DESCRIPTION
   Grant another user sendOnBehalf permissions on this mailbox.
+
+  .NOTES
+  Permissions given to the Az Automation RunAs Account:
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "Remove": {
+                "Hide": true
+            }
+        },
+        "ParameterList": [
+            {
+                "DisplayName": "Action",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Delegate 'Send On Behalf Of'",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": false
+                                }
+                            }
+                        }, {
+                            "Display": "Remove this delegation",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": true
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Default": "Delegate 'Send On Behalf Of'"
+            }
+        ]
+    }
+
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param
 (
@@ -38,13 +83,18 @@ try {
     if ($Remove) {
         #Remove permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Remove = "$delegateTo" } -Confirm:$false | Out-Null
-        "SendOnBehalf Permission for $($trustee.UserPrincipalName) removed from mailbox $($user.UserPrincipalName)"
+        "## SendOnBehalf Permission for $($trustee.UserPrincipalName) removed from mailbox $($user.UserPrincipalName)"
     }
     else {
         #Add permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Add = "$delegateTo" } -Confirm:$false | Out-Null
-        "SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox $($user.UserPrincipalName)"
+        "## SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox $($user.UserPrincipalName)"
     }
+
+    ""
+    "## Dump Mailbox Permission Details"
+    Get-MailboxPermission -Identity $UserName
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

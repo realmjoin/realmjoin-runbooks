@@ -5,11 +5,15 @@
   .DESCRIPTION
   En-/Disable Out-of-office-notifications for a user/mailbox.
 
-  .PARAMETER Start
-  "Now" if left empty
-
   .PARAMETER End
   10 years into the future ("forever") if left empty
+
+  .NOTES
+  Permissions given to the Az Automation RunAs Account:
+  AzureAD Roles:
+  - Exchange administrator
+  Office 365 Exchange Online API
+  - Exchange.ManageAsApp
 
   .INPUTS
   RunbookCustomization: {
@@ -44,12 +48,19 @@
                     ],
                     "ShowValue": false
                 }
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "UserName": {
+                "Hide": true
             }
+
         }
     }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param
 (
@@ -59,9 +70,9 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office"} )]
     [bool] $Disable = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
-    [System.DateTimeOffset] $Start = (get-date),
+    [System.DateTime] $Start = (get-date),
     [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
-    [System.DateTimeOffset] $End = ((get-date) + (new-timespan -Days 3650)),
+    [System.DateTime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
@@ -85,9 +96,9 @@ try {
             -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End
     }
 
-    Write-RjRbLog "Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
+    Write-RjRbLog "## Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
 
-    "Successfully updated Out Of Office settings for user '$UserName'."
+    "## Successfully updated Out Of Office settings for user '$UserName'."
 
 }
 finally {

@@ -5,15 +5,28 @@
   .DESCRIPTION
   Confirm compromise / Dismiss a "risky user"
 
-  .PARAMETER Dismiss
-  False: Confirm compromise, True: Dismiss risk
-
   .NOTES
   Permissions needed:
   - IdentityRiskyUser.ReadWrite.All
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "Dismiss": {
+                "DisplayName": "Action",
+                "SelectSimple": {
+                    "Confirm compromise": false,
+                    "Dismiss risk": true
+                }
+            },
+            "UserName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -28,7 +41,7 @@ Connect-RjRbGraph
 # "Checking risk status of $UserName"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/identityProtection/riskyUsers" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
-    "$UserName is not in list of risky users. No action taken."
+    "## $UserName is not in list of risky users. No action taken."
     exit
 }
 
@@ -42,12 +55,12 @@ $body = @{ "userIds" = ([array]$targetUser.id) }
 if ($Dismiss) {
     if (($targetUser.riskState -eq "atRisk") -or ($targetUser.riskState -eq "confirmedCompromised")) {
         Invoke-RjRbRestMethodGraph -Resource "/identityProtection/riskyUsers/dismiss" -Body $body -Method Post | Out-Null
-        "User risk for $UserName successfully dismissed."
+        "## User risk for $UserName successfully dismissed."
     } else {
-        "User $UserName not at risk. No action taken."
+        "## User $UserName not at risk. No action taken."
     }    
 } else {
     Invoke-RjRbRestMethodGraph -Resource "/identityProtection/riskyUsers/confirmCompromised" -Body $body -Method Post | Out-Null
-    "Compromise for $UserName successfully confirmed."    
+    "## Compromise for $UserName successfully confirmed."    
 }
 

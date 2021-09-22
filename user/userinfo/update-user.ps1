@@ -8,9 +8,23 @@
   .PARAMETER PreferredLanguage
   Examples: 'en-US' or 'de-DE'
 
+  .NOTES
+  Permissions
+  AzureAD Roles
+  - User administrator
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+             "UserName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.5.1" }, AzureAD
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, AzureAD
 
 param (
     [Parameter(Mandatory = $true)]
@@ -79,4 +93,4 @@ Write-RjRbLog "Updating user object with the following properties" $userArgs
 Set-AzureADUser -ObjectId $targetUser.ObjectId @userArgs | Out-Null
 
 
-"User '$UserName' successfully updated."
+"## User '$UserName' successfully updated."
