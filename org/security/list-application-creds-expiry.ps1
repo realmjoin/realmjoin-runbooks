@@ -7,13 +7,8 @@
 
   .NOTES
   Permissions: 
-
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-        }
-    }
-
+   MS Graph - Application Permission
+    Application.Read.All
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
