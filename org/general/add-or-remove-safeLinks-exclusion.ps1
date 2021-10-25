@@ -69,6 +69,7 @@ param(
     # Not mandatory to allow an example value
     [String] $LinkPattern = "https://*.microsoft.com/*",
     # If only one policy exists, no need to specify. Will use "DefaultPolicyName" as default otherwise.
+    [Parameter(Mandatory = $true)]
     [String] $DefaultPolicyName = "Default SafeLinks Policy",
     # Using "PolicyName" will overwrite the defaults
     [ValidateScript( { Use-RJInterface -DisplayName "Safe Links policy name" } )]
