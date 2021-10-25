@@ -54,6 +54,15 @@ param(
     [bool] $Remove = $false
 )
 
+##FIXME
+"## This runbook is currenty disabled as the Graph API has changed. Please see"
+"https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/"
+""
+"## Running this code will destroy existing policies."
+"## We will renable this runbooks as soon as possible."
+""
+throw("unsupported graph api changes")
+
 Connect-RjRbGraph
 
 $pol = $null
