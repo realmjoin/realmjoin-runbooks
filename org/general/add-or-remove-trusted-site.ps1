@@ -14,6 +14,11 @@
   .NOTES
   Permissions: MS Graph API permissions:
   - DeviceManagementConfiguration.ReadWrite.All
+ 
+  This runbook uses calls as descrobed in 
+  https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
+  to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this. 
+  Please switch to "v1.0" as soon, as this funtionality is available.
 
   .INPUTS
   RunbookCustomization: {
@@ -52,16 +57,8 @@ param(
     [string] $IntunePolicyName,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this URL" } )]
     [bool] $Remove = $false
-)
 
-##FIXME
-#"## This runbook is currenty disabled as the Graph API has changed. Please see"
-#"https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/"
-#""
-#"## Running this code will destroy existing policies."
-#"## We will renable this runbooks as soon as possible."
-#""
-#throw("unsupported graph api changes")
+)
 
 Connect-RjRbGraph
 
@@ -149,6 +146,9 @@ if ($pol) {
         } # ... or at the end
         elseif ($omaValue | Select-String -SimpleMatch -Pattern ('&#xF000;' + $Url + '&#xF000;' + $Zone)) {
             $newValue = $omaValue -replace (('&#xF000;' + $Url + '&#xF000;' + $Zone), "")
+        } # Or the last one...
+        elseif ($omaValue | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone)) {
+            $newValue = $omaValue -replace (($Url + '&#xF000;' + $Zone), "")
         }
         else {
             "## SiteToZoneMapping '$($Url):$Zone' not found in '$($pol.displayName)'. Exiting."
@@ -157,13 +157,21 @@ if ($pol) {
         }
     }
     else {
-        # Add new entry at the end of the list
+        # Add new entry to the the list
         if ($omaValue | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone)) {
             "## SiteToZoneMapping '$($Url):$Zone' already present in '$($pol.displayName)'. Exiting."
             ""
             exit
-        } else {
-            $newValue = $omaValue.Substring(0, $omaValue.Length - 3) + '&#xF000;' + $Url + '&#xF000;' + $Zone + '"/>'
+        }
+        else {
+            if ($omaValue -match '&#xF000;') {
+                # Add to the end
+                $newValue = $omaValue.Substring(0, $omaValue.Length - 3) + '&#xF000;' + $Url + '&#xF000;' + $Zone + '"/>'
+            }
+            else {
+                # Was empty, build new one
+                $newValue = '<enabled/><data id="IZ_ZonemapPrompt" value="' + $Url + '&#xF000;' + $Zone + '"/>' 
+            }
         }
     }
 
