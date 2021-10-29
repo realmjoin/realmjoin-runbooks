@@ -82,6 +82,6 @@ $pol | ForEach-Object {
         $mappings | Format-Table -AutoSize | Out-String
     }
     else {
-        throw "Error in parsing policy!"
+        throw "Error in parsing policy '$($_.displayName)' !"
     }
 }
