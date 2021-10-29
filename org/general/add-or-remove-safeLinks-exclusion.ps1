@@ -143,7 +143,7 @@ try {
         $policies | ForEach-Object {
             ""
             "## Policy name: $($_.Name)"
-            $_ | Select-Object -Property IsEnabled,AllowClickThrough,DoNotAllowClickThrough,ScanUrls,EnableForInternalSenders,DeliverMessageAfterScan,EnableOrganizationBranding,TrackClicks,DoNotTrackUserClicks,EnableSafeLinksForTeams,DisableUrlRewrite,DoNotRewriteUrls | Format-List | Out-String
+            $_ | Select-Object -Property IsEnabled, AllowClickThrough, DoNotAllowClickThrough, ScanUrls, EnableForInternalSenders, DeliverMessageAfterScan, EnableOrganizationBranding, TrackClicks, DoNotTrackUserClicks, EnableSafeLinksForTeams, DisableUrlRewrite, DoNotRewriteUrls | Format-List | Out-String
         }
         
         exit
@@ -203,8 +203,12 @@ try {
                 "## Multiple policies available. Please select one."
                 ""
                 "## Available policies:"
-                $policies.Id
                 ""
+                $policies | ForEach-Object {
+                    "## Policy name: $($_.Name)"
+                    $_ | Select-Object -Property IsEnabled, AllowClickThrough, DoNotAllowClickThrough, ScanUrls, EnableForInternalSenders, DeliverMessageAfterScan, EnableOrganizationBranding, TrackClicks, DoNotTrackUserClicks, EnableSafeLinksForTeams, DisableUrlRewrite, DoNotRewriteUrls | Format-List | Out-String
+                    ""
+                }
                 throw ("Policy not selected")
             }
             # No policies available...
@@ -242,10 +246,14 @@ try {
     if (-not $policy) {
         "## Policy not found. Please provide a SafeLinks policy."
         ""
-        "## Available policies:"
         $policies = [array](Get-SafeLinksPolicy -ErrorAction SilentlyContinue)
-        $policies.Id
+        "## Available policies:"
         ""
+        $policies | ForEach-Object {
+            "## Policy name: $($_.Name)"
+            $_ | Select-Object -Property IsEnabled, AllowClickThrough, DoNotAllowClickThrough, ScanUrls, EnableForInternalSenders, DeliverMessageAfterScan, EnableOrganizationBranding, TrackClicks, DoNotTrackUserClicks, EnableSafeLinksForTeams, DisableUrlRewrite, DoNotRewriteUrls | Format-List | Out-String
+            ""
+        }
         throw("Policy not found or created")
     }
 
