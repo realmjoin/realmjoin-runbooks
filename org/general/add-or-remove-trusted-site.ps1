@@ -55,13 +55,13 @@ param(
 )
 
 ##FIXME
-"## This runbook is currenty disabled as the Graph API has changed. Please see"
-"https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/"
-""
-"## Running this code will destroy existing policies."
-"## We will renable this runbooks as soon as possible."
-""
-throw("unsupported graph api changes")
+#"## This runbook is currenty disabled as the Graph API has changed. Please see"
+#"https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/"
+#""
+#"## Running this code will destroy existing policies."
+#"## We will renable this runbooks as soon as possible."
+#""
+#throw("unsupported graph api changes")
 
 Connect-RjRbGraph
 
@@ -69,7 +69,7 @@ $pol = $null
 
 # Use given policy name
 if ($IntunePolicyName) {
-    $pol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -OdFilter "displayName eq '$intunePolicyName'" 
+    $pol = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations" -OdFilter "displayName eq '$intunePolicyName'" 
     if (-not $pol) {
         "## Policy '$intunePolicyName' not found."
         if ($Remove) {
@@ -80,8 +80,8 @@ if ($IntunePolicyName) {
 }
 
 # Do we have existing "Trusted Site" policies we should use?
-if (-not $pol) {
-    $pols = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" 
+if ((-not $IntunePolicyName) -and (-not $pol)) {
+    $pols = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations" 
     [array]$trustedSitesPols = $pols | Where-Object { $_.omaSettings.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList" }
     if ($trustedSitesPols.count -eq 0) {
         "## No Trusted Site Policies found."
@@ -96,7 +96,7 @@ if (-not $pol) {
         ""
     }
     elseif ($trustedSitesPols.count -gt 1) {
-        $trustedSitesPols | Where-Object { $_.displayName -eq $DefaultPolicyName } {
+        $trustedSitesPols | Where-Object { $_.displayName -eq $DefaultPolicyName } | ForEach-Object {
             "## Using default policy '$DefaultPolicyName'"
             $script:pol = $_
             ""
@@ -129,7 +129,7 @@ if (-not $pol) {
                 value         = '<enabled/><data id="IZ_ZonemapPrompt" value=""/>'
             })
     }
-    $pol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Method Post -Body $body 
+    $pol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Beta -Method Post -Body $body 
     "## - Please assign users to the policy to activate it."
     ""
 }
@@ -138,14 +138,17 @@ if ($pol) {
     "## Will use policy '$($pol.displayName)'."
     ""
 
+    # Decrypt omaSettings value...
+    $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($pol.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($pol.omaSettings.secretReferenceValueId)')"
+
     if ($Remove) {
         # Find and remove entry... 
         # ... either not at the end
-        if ($pol.omaSettings.value | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone + '&#xF000;')) {
-            $newValue = $pol.omaSettings.value -replace (($Url + '&#xF000;' + $Zone + '&#xF000;'), "")
+        if ($omaValue | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone + '&#xF000;')) {
+            $newValue = $omaValue -replace (($Url + '&#xF000;' + $Zone + '&#xF000;'), "")
         } # ... or at the end
-        elseif ($pol.omaSettings.value | Select-String -SimpleMatch -Pattern ('&#xF000;' + $Url + '&#xF000;' + $Zone)) {
-            $newValue = $pol.omaSettings.value -replace (('&#xF000;' + $Url + '&#xF000;' + $Zone), "")
+        elseif ($omaValue | Select-String -SimpleMatch -Pattern ('&#xF000;' + $Url + '&#xF000;' + $Zone)) {
+            $newValue = $omaValue -replace (('&#xF000;' + $Url + '&#xF000;' + $Zone), "")
         }
         else {
             "## SiteToZoneMapping '$($Url):$Zone' not found in '$($pol.displayName)'. Exiting."
@@ -155,12 +158,12 @@ if ($pol) {
     }
     else {
         # Add new entry at the end of the list
-        if ($pol.omaSettings.value | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone)) {
+        if ($omaValue | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone)) {
             "## SiteToZoneMapping '$($Url):$Zone' already present in '$($pol.displayName)'. Exiting."
             ""
             exit
         } else {
-            $newValue = $pol.omaSettings.value.Substring(0, $pol.omaSettings.value.Length - 3) + '&#xF000;' + $Url + '&#xF000;' + $Zone + '"/>'
+            $newValue = $omaValue.Substring(0, $omaValue.Length - 3) + '&#xF000;' + $Url + '&#xF000;' + $Zone + '"/>'
         }
     }
 
