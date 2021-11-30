@@ -33,7 +33,7 @@ Connect-RjRbGraph
 # Check if group exists already
 $group = Invoke-RjRbRestMethodGraph -resource "/groups/$GroupId" -erroraction SilentlyContinue
 if (-not $group) {
-    throw "Group '$GroupId' does not exist."
+    throw "GroupId '$GroupId' does not exist."
 }
 
 try {
@@ -49,4 +49,4 @@ catch {
     throw ("Deleting group failed.")
 }
 
-"## Group '$($group.mailNickname)' successfully deleted."
+"## Group '$($group.displayName)' (ID: $GroupId) successfully deleted."

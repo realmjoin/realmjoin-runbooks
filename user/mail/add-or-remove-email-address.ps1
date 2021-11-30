@@ -91,7 +91,7 @@ try {
             if ($eMailAddress -eq $mailbox.UserPrincipalName) {
                 throw "Cannot remove the UserPrincipalName from the list of eMail-Addresses. Please rename the user for that."
             }
-            $eMailAddressList = $mailbox.EmailAddresses | Where-Object { ($_ -ne "smtp:$($mailbox.UserPrincipalName)") -and ($_ -ne "smtp:$eMailAddress)") }
+            $eMailAddressList = $mailbox.EmailAddresses | Where-Object { $_ -ne "smtp:$eMailAddress" }
             # Remove email address
             Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
             "## Alias $eMailAddress is removed from user $UserName"
@@ -104,7 +104,7 @@ try {
             }
             else {
                 "## Update primary address"
-                $eMailAddressList = @($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$($mailbox.UserPrincipalName)" -and $_ -ne "smtp:$eMailAddress" })
+                $eMailAddressList = @($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$eMailAddress" })
                 $eMailAddressList += "SMTP:$eMailAddress" 
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
                 "## Successfully updated primary eMail address"
@@ -114,7 +114,6 @@ try {
             }   
         }
     }
-
     else {
         # eMail-Address is not present
         if (-not $Remove) {
