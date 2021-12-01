@@ -16,7 +16,9 @@
 
 param(
   [ValidateScript( { Use-RJInterface -DisplayName "Days without signin" } )]
-  [int] $Days = 30
+  [int] $Days = 30,
+  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in?" } )]
+  [bool] $showBlockedUsers = $true
 )
 
 Connect-RjRbGraph
@@ -38,11 +40,15 @@ catch {
   throw ("Listing users failed.")
 }
 
+if (-not $showBlockedUsers) {
+  $userObjects = $userObjects | Where-Object { $_.accountEnabled }
+}
+
 "## Inactive Users (No SignIn since at least $Days days.)"
 ""
-$userObjects | Where-Object { $_.userType -eq "Member" } | Select-Object -Property UserPrincipalName, signInSessionsValidFromDateTime | out-string
+$userObjects | Where-Object { $_.userType -eq "Member" } | Select-Object -Property UserPrincipalName, signInSessionsValidFromDateTime, accountEnabled | Sort-Object -Property signInSessionsValidFromDateTime | Format-Table UserPrincipalName,@{L=’Last Signin’;E={$_.signInSessionsValidFromDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
 ""
 
 "## Inactive Guests (No SignIn since at least $Days days.)"
 ""
-$userObjects | Where-Object { $_.userType -eq "Guest" } | Select-Object -Property Mail, signInSessionsValidFromDateTime | out-string
+$userObjects | Where-Object { $_.userType -eq "Guest" } | Select-Object -Property Mail, signInSessionsValidFromDateTime, accountEnabled | Sort-Object -Property signInSessionsValidFromDateTime | Format-Table Mail,@{L=’Last Signin’;E={$_.signInSessionsValidFromDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
