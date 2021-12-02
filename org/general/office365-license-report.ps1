@@ -6,34 +6,35 @@
   Generate an Office 365 licensing report.
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 try {
     $VerbosePreference = "SilentlyContinue"
 
-    Connect-RjRbAzureAD
+    Connect-RjRbGraph
     Connect-RjRbExchangeOnline
 
     # "This report heavily uses 'all users' lists. Will fetch them one time."
-    $allUsers = Get-AzureADUser -All:$true
+    $allUsers = Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging:$true
 
     # "Adapted from https://docs.microsoft.com/de-de/microsoft-365/enterprise/view-licensed-and-unlicensed-users-with-microsoft-365-powershell?view=o365-worldwide"
     $AllNoLicenseUsers = @()
     $AllLicensedUsers = @()
     $allUsers | ForEach-Object { 
         $licensed = $False ; 
-        For ($i = 0; $i -le ($_.AssignedLicenses | Measure-Object).Count ; $i++) { 
-            If ( [string]::IsNullOrEmpty(  $_.AssignedLicenses[$i].SkuId ) -ne $True) { 
+        $assignedLicenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails"
+        For ($i = 0; $i -lt ($assignedLicenses | Measure-Object).Count ; $i++) { 
+            If ( [string]::IsNullOrEmpty($assignedLicenses[$i].skuId) -ne $True) { 
                 $licensed = $true 
             } 
         }  
         If ( $licensed ) { 
             # "$($_.UserPrincipalName) is licensed"
-            $AllLicensedUsers += $_.UserPrincipalName 
+            $AllLicensedUsers += $_.userPrincipalName 
         }
         else {
             # "$($_.UserPrincipalName) is not licensed"
-            $AllNoLicenseUsers += $_.UserPrincipalName 
+            $AllNoLicenseUsers += $_.userPrincipalName 
         }
     }
 
@@ -43,13 +44,10 @@ try {
 
     # "Get SKUs and build a lookuptable for SKU IDs"
     $SkuHashtable = @{}
-    $Skus = Get-AzureADSubscribedSku
+    $Skus = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
     $Skus | ForEach-Object {
-        $SkuHashtable.Add($_.SkuId, $_.SkuPartNumber)
+        $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
     }
-
-    # "One possible 'overlicensed' case."
-    $DuplicateLicenseUsers = ($allUsers | Where-Object { $AllLicensedUsers -contains $_.UserPrincipalName } | Where-Object { $SkuHashtable[$_.AssignedLicenses.SkuId] -eq "ENTERPRISEPACK" -and $SkuHashtable[$_.AssignedLicenses.SkuId] -eq "EXCHANGEENTERPRISE" }).UserPrincipalName
 
     # "List of well known SKUs - please update/add more when needed."
     $SkuNames = @{
@@ -76,6 +74,8 @@ try {
         "MEETING_ROOM"               = "Teams Meeting Room"
         "FLOW_FREE"                  = "Microsoft Flow (free)"
         "RMSBASIC"                   = "Rights Management Basic"
+        "MCOPSTNC"                   = "Communications Credits"
+        "PHONESYSTEM_VIRTUALUSER"    = "Microsoft 365 Phone System - Virtual User"
     }
 
     # SKUs to ignore
@@ -96,20 +96,20 @@ try {
 
     $SKUs | ForEach-Object {
         #only look at active and relevant licenses
-        if (($_.PrepaidUnits.Enabled -gt 0) -and (-not $ignoreListe.contains($_.SkuPartNumber))) {
+        if (($_.prepaidUnits.enabled -gt 0) -and (-not $ignoreListe.contains($_.skuPartNumber))) {
             $entry = [LicReportObject]::new() 
 
-            if ($SkuNames.contains($_.SkuPartNumber)) {
+            if ($SkuNames.contains($_.skuPartNumber)) {
                 # "Well known SKU found: $($SkuNames[$_.SkuPartNumber])"
-                $entry.Name = $SkuNames[$_.SkuPartNumber]
+                $entry.Name = $SkuNames[$_.skuPartNumber]
             }
             else {
                 # "Fallback if unknown SKU: $($_.SkuPartNumber)"
-                $entry.Name = $_.SkuPartNumber
+                $entry.Name = $_.skuPartNumber
             }
-            $entry.Total = $_.PrepaidUnits.Enabled
-            $entry.Used = $_.ConsumedUnits
-            $entry.Available = $_.PrepaidUnits.Enabled - $_.ConsumedUnits
+            $entry.Total = $_.prepaidUnits.enabled
+            $entry.Used = $_.consumedUnits
+            $entry.Available = $_.prepaidUnits.enabled - $_.consumedUnits
 
             $results += $entry
         }
@@ -134,6 +134,16 @@ try {
     "## Totals of licenses we have:"
     ""
     $results | sort-object -property Name | format-table | out-string
+}
+catch { 
+    "## Access to either AzureAD or Exchange Online failed. Maybe missing permissions?"
+    ""
+    "## Please make sure, the follwing permissions are given:"
+    "## - Office 365 Exchange Online: Exchange.ManageAsApp (application permission)"
+    "## - MS Graph API: User.Read.All (application permission)"
+    "## - AzureAD Roles: Exchange Administrator"
+    ""
+    throw $_
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false | Out-Null
