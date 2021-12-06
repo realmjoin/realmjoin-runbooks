@@ -153,6 +153,7 @@ try {
         "RMSBASIC"                   = "Rights Management Basic"
         "MCOPSTNC"                   = "Communications Credits"
         "PHONESYSTEM_VIRTUALUSER"    = "Microsoft 365 Phone System - Virtual User"
+        "SPE_E5"                     = "Microsoft 365 E5"
     }
 
     # SKUs to ignore
