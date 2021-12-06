@@ -16,6 +16,24 @@
         "Parameters": {
             "UserName": {
                 "Hide": true
+            },
+            "exportGroupMemberships": {
+                "Hide": true
+            },
+            "exportResourceGroupName": {
+                "Hide": true
+            },
+            "exportStorAccountName": {
+                "Hide": true
+            },
+            "exportStorAccountLocation": {
+                "Hide": true
+            },
+            "exportStorAccountSKU": {
+                "Hide": true
+            },
+            "exportStorContainerGroupMembershipExports": {
+                "Hide": true
             }
         }
     }
