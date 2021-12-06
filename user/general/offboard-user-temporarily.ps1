@@ -144,11 +144,11 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.changeLicenses" } )]
-    [bool] $ChangeLicenses = $true,
+    [bool] $ChangeLicenses = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licenseGroupsToAdd" } )]
-    [string] $LicenseGroupToAdd = "LIC_M365_E1",
+    [string] $LicenseGroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licenseGroupsToRemovePrefix" } )]
-    [String] $GroupsToRemovePrefix = "LIC_M365"
+    [String] $GroupsToRemovePrefix
 
 )
 
@@ -167,32 +167,36 @@ if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exp
     ""
 }
 
-# Connect Azure AD
-Connect-RjRbAzureAD
+Connect-RjRbGraph
 
 "## Finding the user object $UserName"
-# AzureAD Module is broken in regards to ErrorAction.
-$ErrorActionPreference = "SilentlyContinue"
-$targetUser = Get-AzureADUser -ObjectId $UserName
+$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
+
 if (-not $targetUser) {
     throw ("User " + $UserName + " not found.")
 }
-$ErrorActionPreference = "Stop"
 
 if ($DisableUser) {
     "## Blocking user sign in for $UserName"
-    Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $false
+    $body = @{ accountEnabled = $false }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 }
 
 if ($RevokeAccess) {
     "## Revoke all refresh tokens"
-    Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
+    $body = @{ }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
 }
 
 # "Getting list of group and role memberships for user $UserName." 
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
-$memberships = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId -All $true
-$memberships | Select-Object -Property "DisplayName", "ObjectId" | ConvertTo-Json > memberships.txt
+$membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
+$memberships = $membershipIds | ForEach-Object {
+    Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
+}
+
+$memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
+
 # "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
     # "Connecting to Az module..."
@@ -219,23 +223,29 @@ if ($exportGroupMemberships) {
 if ($ChangeLicenses) {
     # Add new licensing group, if not already assigned
     if ($LicenseGroupToAdd) {
-        $group = Get-AzureADGroup -Filter "DisplayName eq `'$LicenseGroupToAdd`'" 
+        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$LicenseGroupToAdd'" 
+        if (([array]$group).count -eq 1) {
         "## Adding License group $LicenseGroupToAdd to user $UserName"
-        # AzureAD is broken in regards to ErrorAction...
-        $ErrorActionPreference = "Continue"
-        Add-AzureADGroupMember -RefObjectId $targetUser.ObjectID -ObjectId $group.ObjectID
-        $ErrorActionPreference = "Stop"
+        $body = @{
+            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body 
+        } else {
+            "## Could not resove group name '$LicenseGroupToAdd', skipping..."
+        }
     }
 
     # Remove other known groups
-    $groups = Get-AzureADUserMembership -ObjectId $targetUser.ObjectId
-    $groups | Where-Object { $_.DisplayName.startswith($GroupsToRemovePrefix) } | ForEach-Object {
-        if ($LicenseGroupToAdd -ne $_.DisplayName) {
-            "## Removing license group $($_.DisplayName) from $UserName"
-            # AzureAD is broken in regards to ErrorAction...
-            $ErrorActionPreference = "Continue"
-            Remove-AzureADGroupMember -MemberId $targetUser.ObjectId -ObjectId $_.ObjectID
-            $ErrorActionPreference = "Stop"
+    if ($GroupsToRemovePrefix) {
+        $membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
+        $groups = $membershipIds | ForEach-Object {
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
+        }
+        $groups | Where-Object { $_.displayName.startswith($GroupsToRemovePrefix) } | ForEach-Object {
+            if ($LicenseGroupToAdd -ne $_.DisplayName) {
+                "## Removing license group $($_.DisplayName) from $UserName"
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+            }
         }
     }
 }
@@ -266,6 +276,6 @@ if ($removeMFAMethods) {
 ##TODO
 
 # "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false | Out-Null
+# Disconnect-AzureAD -Confirm:$false | Out-Null
 
 "## Temporary offboarding of $($UserName) successful."
