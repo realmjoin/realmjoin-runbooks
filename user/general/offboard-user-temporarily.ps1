@@ -18,7 +18,7 @@
                 "Hide": true
             },
             "exportGroupMemberships": {
-                "Hide": true
+                "Hide": true,
             },
             "exportResourceGroupName": {
                 "Hide": true
@@ -34,112 +34,108 @@
             },
             "exportStorContainerGroupMembershipExports": {
                 "Hide": true
+            },
+            "ChangeLicensesSelector": {
+                "DisplayName": "Change directly assigned licenses",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Do not change assigned licenses",
+                            "Value": 0
+                        },
+                        {
+                            "Display": "Remove all directly assigned licenses",
+                            "Value": 2
+                        }
+                    ]
+                }
+            },
+            "ChangeGroupsSelector": {
+                "DisplayName": "Change assigned groups",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Do not change assigned groups",
+                            "Value": 0,
+                            "Customization": {
+                                "Hide": [
+                                    "GroupToAdd",
+                                    "GroupsToRemovePrefix"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Change the user's groups",
+                            "Value": 1
+                        },
+                        {
+                            "Display": "Remove all groups",
+                            "Value": 2,
+                            "Customization": {
+                                "Hide": [
+                                    "GroupsToRemovePrefix"
+                                ]
+                            }
+                        }    
+                    ]
+                }
             }
         }
     }
 
   .EXAMPLE
   Full RJ Runbook Customizing Sample:
-    {
-        "Settings": {
-            "OffboardUserTemporarily": {
-                "disableUser": true,
-                "revokeAccess": true,
-                "exportResourceGroupName": "rjtestrunbooks-01",
-                "exportStorAccountName": "rjrbexports01",
-                "exportStorAccountLocation": "West Europe",
-                "exportStorAccountSKU": "Standard_LRS",
-                "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
-                "exportGroupMemberships": true,
-                "changeLicenses": true,
-                "licenseGroupsToAdd": "LIC_M365_E1",
-                "licenseGroupsToRemovePrefix": "LIC_M365",
-                "grantAccessToMailbox": true,
-                "hideFromAddresslist": true,
-                "setOutOfOffice": true,
-                "removeMFAMethods": true,
-                "secGroupsToRemove": ""
-            }
-        },
-        "Runbooks": {
-            "rjgit-user_general_offboard-user-temporarily": {
-                "ParameterList": [
-                    {
-                        "Name": "disableUser",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "deleteUser",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "revokeAccess",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "exportGroupMemberships",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "exportResourceGroupName",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "exportStorAccountName",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "exportStorAccountLocation",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "exportStorAccountSKU",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "exportStorContainerGroupMembershipExports",
-                        "Hide": true
-                    },
-                    {
-                        "DisplayName": "Change Assigned Licenses",
-                        "DisplayBefore": "LicenseGroupToAdd",
-                        "Select": {
-                            "Options": [
-                                {
-                                    "Display": "Reduce the users licenses",
-                                    "Customization": {
-                                        "Default": {
-                                            "ChangeLicenses": true
-                                        }
-                                    }
-                                },
-                                {
-                                    "Display": "Do not change assigned licenses",
-                                    "Customization": {
-                                        "Default": {
-                                            "ChangeLicenses": false
-                                        },
-                                        "Hide": [
-                                            "LicenseGroupToAdd",
-                                            "GroupsToRemovePrefix"
-                                        ]
-                                    }
-                                }
-                            ]
-                            
-                        },
-                        "Default": "Reduce the users licenses"
-                    }, {
-                        "Name": "ChangeLicenses",
-                        "Hide": true
-                    }
-                ]
-            }
+  {
+    "Settings": {
+        "OffboardUserTemporarily": {
+            "disableUser": true,
+            "revokeAccess": true,
+            "exportGroupMemberships": false,
+            "exportResourceGroupName": "rj-test-runbooks-01",
+            "exportStorAccountName": "rjrbexports01",
+            "exportStorAccountLocation": "West Europe",
+            "exportStorAccountSKU": "Standard_LRS",
+            "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
+            "licensesMode": 2, // "false": Do nothing, "true": remove all directly assigned licenses
+            "groupsMode": 1, // 0: Do nothing, 1: Change, 2: Remove all
+            "groupToAdd": "LIC_M365_E1",
+            "groupsToRemovePrefix": "LIC_"
+        }
+    },
+    "Runbooks": {
+        "rjgit-user_general_offboard-user-temporarily": {
+            "ParameterList": [
+                {
+                    "Name": "disableUser",
+                    "Hide": true
+                },
+                {
+                    "Name": "revokeAccess",
+                    "Hide": true
+                },
+                {
+                    "Name": "ChangeLicensesSelector",
+                    "Hide": true
+                },
+                {
+                    "Name": "ChangeGroupsSelector",
+                    "Hide": true
+                },
+                {
+                    "Name": "GroupToAdd",
+                    "Hide": true
+                },
+                {
+                    "Name": "GroupsToRemovePrefix",
+                    "Hide": true
+                }
+            ]
         }
     }
+}
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
 
 param (
     [Parameter(Mandatory = $true)]
@@ -147,7 +143,7 @@ param (
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
     [bool] $DisableUser = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokaAccess" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
@@ -161,13 +157,14 @@ param (
     [String] $exportStorContainerGroupMembershipExports,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.changeLicenses" } )]
-    [bool] $ChangeLicenses = $false,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licenseGroupsToAdd" } )]
-    [string] $LicenseGroupToAdd,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licenseGroupsToRemovePrefix" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licensesMode" } )]
+    [int] $ChangeLicensesSelector,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsMode" } )]
+    [int] $ChangeGroupsSelector,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
+    [string] $GroupToAdd,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" } )]
     [String] $GroupsToRemovePrefix
-
 )
 
 # Sanity checks
@@ -238,32 +235,59 @@ if ($exportGroupMemberships) {
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
 
-if ($ChangeLicenses) {
+if ($ChangeGroupsSelector -ne 0) {
     # Add new licensing group, if not already assigned
-    if ($LicenseGroupToAdd) {
-        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$LicenseGroupToAdd'" 
+    if ($GroupToAdd -and ($memberships.DisplayName -notcontains $GroupToAdd)) {
+        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupToAdd'" 
         if (([array]$group).count -eq 1) {
-        "## Adding License group $LicenseGroupToAdd to user $UserName"
-        $body = @{
-            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
+            "## Adding group $GroupToAdd to user $UserName"
+            $body = @{
+                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
+            }
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
         }
-        Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body 
-        } else {
-            "## Could not resove group name '$LicenseGroupToAdd', skipping..."
+        else {
+            "## Could not resove group name '$GroupToAdd', skipping..."
+        }
+    }
+    
+
+    # Search groups by prefix
+    if (($ChangeGroupsSelector -eq 1) -and $GroupsToRemovePrefix) {
+        $groupsToRemove = $memberships  | Where-Object { $_.displayName.startswith($GroupsToRemovePrefix) } 
+    }
+
+    # Choose all groups
+    if ($ChangeGroupsSelector -eq 2) {
+        $groupsToRemove = $memberships 
+    }
+
+    # Remove group memberships
+    $groupsToRemove | ForEach-Object {
+        if ($GroupToAdd -ne $_.DisplayName) {
+            "## Removing group $($_.DisplayName) from $UserName"
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
         }
     }
 
-    # Remove other known groups
-    if ($GroupsToRemovePrefix) {
-        $membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
-        $groups = $membershipIds | ForEach-Object {
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
+}
+
+if ($ChangeLicensesSelector -ne 0) {
+    $assignments = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -OdSelect "licenseAssignmentStates"
+
+    # Remove all directly assigned licenses
+    if ($ChangeLicensesSelector -eq 2) {
+        $licsToRemove = @()
+        $assignments.licenseAssignmentStates | Where-Object { $null -eq $_.assignedByGroup } | ForEach-Object {
+            $licsToRemove += $_.skuId
         }
-        $groups | Where-Object { $_.displayName.startswith($GroupsToRemovePrefix) } | ForEach-Object {
-            if ($LicenseGroupToAdd -ne $_.DisplayName) {
-                "## Removing license group $($_.DisplayName) from $UserName"
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+        if ($licsToRemove.Count -gt 0) {
+            $body = @{
+                "addLicenses"    = @()
+                "removeLicenses" = $licsToRemove
             }
+            "## Removing license assignments $licsToRemove"
+            Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/assignLicense" -Method Post -Body $body | Out-Null
         }
     }
 }
@@ -292,8 +316,5 @@ if ($removeMFAMethods) {
 
 # wipe client
 ##TODO
-
-# "Sign out from AzureAD"
-# Disconnect-AzureAD -Confirm:$false | Out-Null
 
 "## Temporary offboarding of $($UserName) successful."
