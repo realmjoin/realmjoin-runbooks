@@ -27,5 +27,5 @@ $filter='approximateLastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 
 "## Inactive Devices (No SignIn since at least $Days days):"
 ""
-Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter | Select-Object -Property displayName,deviceId,approximateLastSignInDateTime | out-string
+Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter | Select-Object -Property displayName,deviceId,approximateLastSignInDateTime | Sort-Object -Property approximateLastSignInDateTime | out-string
 

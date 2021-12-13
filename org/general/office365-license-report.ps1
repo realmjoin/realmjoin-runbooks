@@ -4,9 +4,86 @@
 
   .DESCRIPTION
   Generate an Office 365 licensing report.
+
+  .EXAMPLE
+  Example of Azure Storage Account configuration for RJ central datastore
+  {
+    "Settings": {
+        "OfficeLicensingReport": {
+            "ResourceGroup": "rj-test-runbooks-01",
+            "StorageAccount": {
+                "Name": "rbexports01",
+                "Location": "West Europe",
+                "Sku": "Standard_LRS"
+            }
+        }
+    }
+  }
+
+  .INPUTS
+  RunbookCustomization: {
+    "ParameterList": [
+        {
+            "Name": "exportToFile",
+            "DisplayName": "Export report as downloadable file?",
+            "Hide": true
+        },
+        {
+            "Name": "ContainerName",
+            "Hide": true
+        },
+        {
+            "Name": "ResourceGroupName",
+            "Hide": true
+        },
+        {
+            "Name": "StorageAccountName",
+            "Hide": true
+        },
+        {
+            "Name": "StorageAccountLocation",
+            "Hide": true
+        },
+        {
+            "Name": "StorageAccountSku",
+            "Hide": true
+        }
+    ]
+  }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+
+param(
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
+    [bool] $exportToFile = $false,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.Container" } )]
+    [string] $ContainerName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.ResourceGroup" } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Name" } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Location" } )]
+    [string] $StorageAccountLocation,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Sku" } )]
+    [string] $StorageAccountSku
+)
+
+# Sanity checks
+if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
+    "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    ""
+    "## Please configure the following attributes in the RJ central datastore:"
+    "## - OfficeLicensingReport.ResourceGroup"
+    "## - OfficeLicensingReport.StorageAccount.Name"
+    "## - OfficeLicensingReport.StorageAccount.Location"
+    "## - OfficeLicensingReport.StorageAccount.Sku"
+    ""
+    "## Disabling CSV export..."
+    $exportToFile = $false
+    ""
+}
 
 try {
     $VerbosePreference = "SilentlyContinue"
@@ -76,6 +153,7 @@ try {
         "RMSBASIC"                   = "Rights Management Basic"
         "MCOPSTNC"                   = "Communications Credits"
         "PHONESYSTEM_VIRTUALUSER"    = "Microsoft 365 Phone System - Virtual User"
+        "SPE_E5"                     = "Microsoft 365 E5"
     }
 
     # SKUs to ignore
@@ -134,6 +212,48 @@ try {
     "## Totals of licenses we have:"
     ""
     $results | sort-object -property Name | format-table | out-string
+
+    if ($exportToFile) {  
+        ""
+        Connect-RjRbAzAccount
+      
+        if (-not $ContainerName) {
+          $ContainerName = "office-licensing-" + (get-date -Format "yyyy-MM-dd")
+        }
+      
+        # Make sure storage account exists
+        $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
+        if (-not $storAccount) {
+          "## Creating Azure Storage Account $($StorageAccountName)"
+          $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+        }
+       
+        # Get access to the Storage Account
+        $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
+        $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
+      
+        # Make sure, container exists
+        $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
+        if (-not $container) {
+          "## Creating Azure Storage Account Container $($ContainerName)"
+          $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+        }
+       
+        # Upload
+        $results | sort-object -property Name | format-table > "office-licensing.txt"
+        Set-AzStorageBlobContent -File "office-licensing.txt" -Container $ContainerName -Blob "office-licensing.txt" -Context $context -Force | Out-Null
+       
+        #Create signed (SAS) link
+        $EndTime = (Get-Date).AddDays(6)
+        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "office-licensing.txt" -FullUri -ExpiryTime $EndTime
+      
+        ""
+        "## Office Licensing report created."
+        "## Expiry of Link: $EndTime"
+        $SASLink | Out-String
+      
+      }
+
 }
 catch { 
     "## Access to either AzureAD or Exchange Online failed. Maybe missing permissions?"
@@ -143,6 +263,12 @@ catch {
     "## - MS Graph API: User.Read.All (application permission)"
     "## - AzureAD Roles: Exchange Administrator"
     ""
+
+    if ($exportToFile) {
+        ""
+        "## Also make sure, writeable access to Azure Storage Account $StorageAccountName is possible to export downloadable files."
+    }
+
     throw $_
 }
 finally {

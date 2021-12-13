@@ -26,7 +26,7 @@
         "EnrolledDevicesReport": {
             "ResourceGroup": "rj-test-runbooks-01",
             "StorageAccount": {
-                "Name": "c4a1rjrbexports01",
+                "Name": "rjrbexports01",
                 "Location": "West Europe",
                 "Sku": "Standard_LRS"
             }
