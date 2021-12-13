@@ -240,7 +240,7 @@ if ($ChangeGroupsSelector -ne 0) {
     if ($GroupToAdd -and ($memberships.DisplayName -notcontains $GroupToAdd)) {
         $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupToAdd'" 
         if (([array]$group).count -eq 1) {
-            "## Adding group $GroupToAdd to user $UserName"
+            "## Adding group '$GroupToAdd' to user $UserName"
             $body = @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
             }
@@ -265,11 +265,20 @@ if ($ChangeGroupsSelector -ne 0) {
     # Remove group memberships
     $groupsToRemove | ForEach-Object {
         if ($GroupToAdd -ne $_.DisplayName) {
-            "## Removing group $($_.DisplayName) from $UserName"
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+            "## Removing group '$($_.DisplayName)' from $UserName"
+            if ($_.groupTypes -contains "DynamicMembership") {
+                "## ... group is a dynamic group - skipping. Not an error."
+            }
+            else {
+                try {
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                }
+                catch {
+                    "## ... group removal failed. Please check."
+                }
+            }
         }
     }
-
 }
 
 if ($ChangeLicensesSelector -ne 0) {
@@ -287,7 +296,12 @@ if ($ChangeLicensesSelector -ne 0) {
                 "removeLicenses" = $licsToRemove
             }
             "## Removing license assignments $licsToRemove"
-            Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/assignLicense" -Method Post -Body $body | Out-Null
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/assignLicense" -Method Post -Body $body | Out-Null
+            }
+            catch {
+                "## ... removing licenses failed. Please check."
+            }
         }
     }
 }
