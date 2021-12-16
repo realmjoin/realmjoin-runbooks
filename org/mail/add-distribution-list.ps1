@@ -30,8 +30,6 @@ try {
     $script:Alias = ([mailaddress]"$Alias@demo.com").user 
 } catch {
     "## $Alias is not a valid alias." 
-    ""
-    "The value of Alias can contain letters, numbers and the following characters: !, #, $, %, &, ', *, +, -, /, =, ?, ^, _, `, {, }, |, and ~. Periods (.) are allowed, but each period must be surrounded by other valid characters (for example, help.desk). Unicode characters from U+00A1 to U+00FF are also allowed. The maximum length of the Alias value is 64 characters."
 }
 
 if (-not $GroupName) {
@@ -42,7 +40,7 @@ try {
     Connect-RjRbExchangeOnline
 
     $invokeParams = @{
-        RequireSenderAuthenticationEnabled  = $RequireSenderAuthentication
+        RequireSenderAuthenticationEnabled  = (-not $RequireSenderAuthentication)
         Alias = $Alias
         Name = $GroupName 
         Type = "Distribution"
