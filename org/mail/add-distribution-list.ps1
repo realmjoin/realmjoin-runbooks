@@ -23,7 +23,7 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" } )]
     [string] $Owner,
     [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
-    [bool] $RequireSenderAuthentication = $false
+    [bool] $AllowExternalSenders = $false
 )
 
 try {
@@ -40,7 +40,7 @@ try {
     Connect-RjRbExchangeOnline
 
     $invokeParams = @{
-        RequireSenderAuthenticationEnabled  = (-not $RequireSenderAuthentication)
+        RequireSenderAuthenticationEnabled  = (-not $AllowExternalSenders)
         Alias = $Alias
         Name = $GroupName 
         Type = "Distribution"
