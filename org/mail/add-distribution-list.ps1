@@ -23,7 +23,9 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" } )]
     [string] $Owner,
     [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
-    [bool] $AllowExternalSenders = $false
+    [bool] $AllowExternalSenders = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
+    [string] $PrimarySMTPAddress 
 )
 
 try {
@@ -52,6 +54,12 @@ try {
         $invokeParams += @{ 
             ManagedBy = $Owner 
             CopyOwnerToMember = $true
+        }
+    }
+
+    if ($PrimarySMTPAddress) {
+        $invokeParams += @{ 
+            PrimarySMTPAddress = $PrimarySMTPAddress
         }
     }
 
