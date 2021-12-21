@@ -20,7 +20,7 @@ param (
     [Parameter(Mandatory = $true)] 
     [string] $Alias,
     [string] $GroupName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
     [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
     [bool] $AllowExternalSenders = $false,

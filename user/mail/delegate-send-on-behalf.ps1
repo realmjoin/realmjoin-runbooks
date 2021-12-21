@@ -57,7 +57,7 @@ param
 (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
     [bool] $Remove = $false

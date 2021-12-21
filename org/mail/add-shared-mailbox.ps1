@@ -21,7 +21,7 @@ param (
     [string] $MailboxName,
     [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
     [string] $DisplayName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'"} )]
     [string] $DelegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false

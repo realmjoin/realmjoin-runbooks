@@ -38,7 +38,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -DisplayName "'Hardware Hash' from Get-WindowsAutopilotInfo" } )]
     [string] $HardwareIdentifier,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)"  -Filter "userType eq 'Member'" } )]
     [string] $AssignedUser = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
     [bool] $Wait = $true
