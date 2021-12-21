@@ -15,7 +15,7 @@
   Permissions: MS Graph API permissions:
   - DeviceManagementConfiguration.ReadWrite.All
  
-  This runbook uses calls as descrobed in 
+  This runbook uses calls as described in 
   https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
   to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this. 
   Please switch to "v1.0" as soon, as this funtionality is available.
@@ -99,7 +99,7 @@ if ((-not $IntunePolicyName) -and (-not $pol)) {
             ""
         }
         if ((-not $pol) -and $Remove) {
-            "## More than Trusted Site policy found. Please choose:"
+            "## More than one Trusted Site policy found. Please choose:"
             $trustedSitesPols.displayName
             ""
             throw ("Policy not chosen")
