@@ -23,6 +23,32 @@
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
+            "Action": {
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Add URL to Trusted Sites",
+                            "ParameterValue": 0
+                        },
+                        {
+                            "Display": "Remove URL from Trusted Sites",
+                            "ParameterValue": 1
+                        },
+                        {
+                            "Display": "List/Print all Trusted Sites Policies",
+                            "ParameterValue": 2,
+                            "Customization": {
+                                "Hide": [
+                                    "Url",
+                                    "Zone",
+                                    "DefaulPolicyName",
+                                    "IntunePolicyName"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
             "Zone": {
                 "SelectSimple": {
                     "My Computer (0)": 0,
@@ -30,13 +56,6 @@
                     "Trusted sites Zone (2)": 2,
                     "Internet Zone (3)": 3,
                     "Restricted Sites Zone (4)": 4
-                }
-            },
-            "Remove": {
-                "DisplayName": "Action",
-                "SelectSimple": {
-                    "Add URL to Trusted Sites": false,
-                    "Remove URL from Trusted Sites": true
                 }
             },
             "DefaultPolicyName": {
@@ -49,18 +68,63 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
+    [int] $Action = 2,
     [string] $Url,
     [int] $Zone = 1,
-    [Parameter(Mandatory = $true)]
     [string] $DefaultPolicyName = "Windows 10 - Trusted Sites", 
-    [string] $IntunePolicyName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove this URL" } )]
-    [bool] $Remove = $false
+    [string] $IntunePolicyName
 
 )
 
 Connect-RjRbGraph
+
+# Print all policies and exit
+if ($Action -eq 2) {
+    $AllPol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Beta
+    [array]$pol = $AllPol | Where-Object { $_.omaSettings.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList" }
+
+    if ($pol.count -eq 0) {
+        "## No Trusted Site Policies found."
+    }
+    else {
+        $pol | ForEach-Object {
+            ""
+            "## Policy: $($_.displayName)"
+            ""
+            $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($_.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($_.omaSettings.secretReferenceValueId)')"
+            $innerValue = ($omaValue.split('"')[3]) -replace ('&#xF000;', ';') 
+            [array]$pairs = $innerValue.Split(';')
+            if (($pairs.Count % 2) -eq 0) {
+                [int]$i = 0;
+                $mappings = @{}
+                do {
+                    switch ($pairs[$i + 1]) {
+                        0 { $value = "My Computer (0)" }
+                        1 { $value = "Local Intranet Zone (1)" }
+                        2 { $value = "Trusted sites Zone (2)" }
+                        3 { $value = "Internet Zone (3)" }
+                        4 { $value = "Restricted Sites Zone (4)" }
+                        Default { $value = $pairs[$i + 1] }
+                    }
+                    $mappings.Add($pairs[$i], $value)
+                    $i = $i + 2
+                } while ($i -lt $pairs.Count)
+                $mappings | Format-Table -AutoSize | Out-String
+            }
+            elseif ($pairs.Count -gt 2) {
+                "Error in parsing policy! Please verify the policies correctness."
+            }
+            else {
+                "No values found in policy."
+            }
+        }
+    }
+
+    exit
+}
+
+# Add or remove a trusted site
 
 $pol = $null
 
@@ -69,7 +133,7 @@ if ($IntunePolicyName) {
     $pol = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations" -OdFilter "displayName eq '$intunePolicyName'" 
     if (-not $pol) {
         "## Policy '$intunePolicyName' not found."
-        if ($Remove) {
+        if ($Action -eq 1) {
             "## Nothing to do. Exiting."
             exit
         }
@@ -82,7 +146,7 @@ if ((-not $IntunePolicyName) -and (-not $pol)) {
     [array]$trustedSitesPols = $pols | Where-Object { $_.omaSettings.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList" }
     if ($trustedSitesPols.count -eq 0) {
         "## No Trusted Site Policies found."
-        if ($Remove) {
+        if ($Action -eq 1) {
             "## Nothing to do. Exiting."
             exit
         }
@@ -98,7 +162,7 @@ if ((-not $IntunePolicyName) -and (-not $pol)) {
             $script:pol = $_
             ""
         }
-        if ((-not $pol) -and $Remove) {
+        if ((-not $pol) -and ($Action -eq 1)) {
             "## More than one Trusted Site policy found. Please choose:"
             $trustedSitesPols.displayName
             ""
@@ -138,7 +202,7 @@ if ($pol) {
     # Decrypt omaSettings value...
     $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($pol.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($pol.omaSettings.secretReferenceValueId)')"
 
-    if ($Remove) {
+    if ($Action -eq 1) {
         # Find and remove entry... 
         # ... either not at the end
         if ($omaValue | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone + '&#xF000;')) {
@@ -187,7 +251,7 @@ if ($pol) {
 
     Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations/$($pol.id)" -Method Patch -Body $body | Out-Null
 
-    if ($Remove) {
+    if ($Action -eq 1) {
         "## SiteToZoneMapping '$($Url):$Zone' successfully removed from '$($pol.displayName)'"
     }
     else {
