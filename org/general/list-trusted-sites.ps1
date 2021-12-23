@@ -65,34 +65,39 @@ else {
     [array]$pol = $AllPol | Where-Object { $_.omaSettings.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList" }
 }
 
-$pol | ForEach-Object {
-    ""
-    "## Policy: $($_.displayName)"
-    ""
-    $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($_.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($_.omaSettings.secretReferenceValueId)')"
-    $innerValue = ($omaValue.split('"')[3]) -replace ('&#xF000;', ';') 
-    [array]$pairs = $innerValue.Split(';')
-    if (($pairs.Count % 2) -eq 0) {
-        [int]$i = 0;
-        $mappings = @{}
-        do {
-            switch ($pairs[$i + 1]) {
-                0 { $value = "My Computer (0)" }
-                1 { $value = "Local Intranet Zone (1)" }
-                2 { $value = "Trusted sites Zone (2)" }
-                3 { $value = "Internet Zone (3)" }
-                4 { $value = "Restricted Sites Zone (4)" }
-                Default { $value = $pairs[$i + 1] }
-            }
-            $mappings.Add($pairs[$i], $value)
-            $i = $i + 2
-        } while ($i -lt $pairs.Count)
-        $mappings | Format-Table -AutoSize | Out-String
-    }
-    elseif ($pairs.Count -gt 2) {
-        "Error in parsing policy! Please verify the policies correctness."
-    }
-    else {
-        "No values found in policy."
+if ($pol.count -eq 0) {
+    "## No Trusted Site Policies found."
+}
+else {
+    $pol | ForEach-Object {
+        ""
+        "## Policy: $($_.displayName)"
+        ""
+        $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($_.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($_.omaSettings.secretReferenceValueId)')"
+        $innerValue = ($omaValue.split('"')[3]) -replace ('&#xF000;', ';') 
+        [array]$pairs = $innerValue.Split(';')
+        if (($pairs.Count % 2) -eq 0) {
+            [int]$i = 0;
+            $mappings = @{}
+            do {
+                switch ($pairs[$i + 1]) {
+                    0 { $value = "My Computer (0)" }
+                    1 { $value = "Local Intranet Zone (1)" }
+                    2 { $value = "Trusted sites Zone (2)" }
+                    3 { $value = "Internet Zone (3)" }
+                    4 { $value = "Restricted Sites Zone (4)" }
+                    Default { $value = $pairs[$i + 1] }
+                }
+                $mappings.Add($pairs[$i], $value)
+                $i = $i + 2
+            } while ($i -lt $pairs.Count)
+            $mappings | Format-Table -AutoSize | Out-String
+        }
+        elseif ($pairs.Count -gt 2) {
+            "Error in parsing policy! Please verify the policies correctness."
+        }
+        else {
+            "No values found in policy."
+        }
     }
 }
