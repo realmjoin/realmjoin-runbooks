@@ -140,7 +140,7 @@ if ($CreateTeam) {
     if (-not $success) {
         "## Timeout on Team creation. The group has been created, but could not be promoted to a Team."
         ""
-        throw (timeout)
+        throw ("timeout")
     }
 }
 
