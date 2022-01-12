@@ -27,7 +27,7 @@
 param(
   [ValidateScript( { Use-RJInterface -DisplayName "Days without signin" } )]
   [int] $Days = 30,
-  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in?" } )]
+  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in" } )]
   [bool] $showBlockedUsers = $true,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
