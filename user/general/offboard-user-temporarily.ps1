@@ -137,6 +137,15 @@
         }
     }
 }
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
