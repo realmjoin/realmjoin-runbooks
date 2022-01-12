@@ -152,6 +152,10 @@
                 {
                     "Name": "GroupsToRemovePrefix",
                     "Hide": true
+                },
+                {
+                    "Name": "CallerName",
+                    "Hide": true
                 }
             ]
         }
@@ -190,7 +194,10 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" } )]
-    [String] $GroupsToRemovePrefix
+    [String] $GroupsToRemovePrefix,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 # Sanity checks

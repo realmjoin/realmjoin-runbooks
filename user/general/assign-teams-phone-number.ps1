@@ -32,6 +32,9 @@
             },
             "OrganizationId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -49,7 +52,10 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "Allow international calling" } )]
     [bool] $allow_International_Calls = $true,
     [Parameter(Mandatory = $true)]
-    [string] $OrganizationId 
+    [string] $OrganizationId ,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 try {

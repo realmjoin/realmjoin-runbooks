@@ -56,6 +56,9 @@
         },
         "DefaultPolicyName": {
             "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
@@ -74,7 +77,10 @@ param(
     # Using "PolicyName" will overwrite the defaults
     [ValidateScript( { Use-RJInterface -DisplayName "Safe Links policy name" } )]
     [String] $PolicyName,
-    [boolean] $CreateNewPolicyIfNeeded = $true
+    [boolean] $CreateNewPolicyIfNeeded = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 function createGroupFromPolicyName {

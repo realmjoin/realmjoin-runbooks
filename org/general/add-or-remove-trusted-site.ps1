@@ -60,6 +60,9 @@
             },
             "DefaultPolicyName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -73,7 +76,10 @@ param(
     [string] $Url,
     [int] $Zone = 1,
     [string] $DefaultPolicyName = "Windows 10 - Trusted Sites", 
-    [string] $IntunePolicyName
+    [string] $IntunePolicyName,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 
 )
 

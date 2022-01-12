@@ -49,6 +49,10 @@
                     ]
                 },
                 "Default": "Delegate 'Full Access'"
+            },
+            {
+                "Name": "CallerName",
+                "Hide": true
             }
         ]
     }
@@ -68,7 +72,10 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
     [bool] $Remove = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
-    [bool] $AutoMapping = $false
+    [bool] $AutoMapping = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 
 )
 

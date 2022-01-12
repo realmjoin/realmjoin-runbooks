@@ -46,6 +46,10 @@
                     ]
                 },
                 "Default": "Hide the Mailbox in Address Book"
+            },
+            {
+                "Name": "CallerName",
+                "Hide": true
             }
         ]
     }
@@ -59,7 +63,10 @@ param
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
     [ValidateScript( { Use-RJInterface -DisplayName "Hide the mailbox" } )]
-    [bool] $HideMailbox = $true
+    [bool] $HideMailbox = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 try {

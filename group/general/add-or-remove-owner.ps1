@@ -23,6 +23,9 @@
             },
             "GroupId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -38,7 +41,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this owner" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

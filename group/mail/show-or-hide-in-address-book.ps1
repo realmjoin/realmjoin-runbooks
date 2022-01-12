@@ -28,6 +28,9 @@
             },
             "GroupName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -41,7 +44,10 @@ param
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupName,
     [ValidateScript( { Use-RJInterface -DisplayName "Hide Group in Address Book" } )]
-    [int] $Action = 1
+    [int] $Action = 1,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 try {

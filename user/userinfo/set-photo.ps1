@@ -17,6 +17,9 @@
         "Parameters": {
             "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -29,7 +32,10 @@ param(
     # If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -DisplayName "Source URL" } )]
-    [string]$PhotoURI = ""
+    [string]$PhotoURI = "",
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }

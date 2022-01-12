@@ -24,6 +24,9 @@
             },
             "Wait": {
                 "DisplayName": "Wait for job to finish"
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -41,7 +44,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)"  -Filter "userType eq 'Member'" } )]
     [string] $AssignedUser = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
-    [bool] $Wait = $true
+    [bool] $Wait = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 
 )
 

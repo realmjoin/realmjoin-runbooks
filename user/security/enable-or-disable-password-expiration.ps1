@@ -15,6 +15,9 @@
         "Parameters": {
             "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -28,7 +31,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -DisplayName "Disable Password Expiration?"} )]
-    [boolean] $DisablePasswordExpiration = $true
+    [boolean] $DisablePasswordExpiration = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

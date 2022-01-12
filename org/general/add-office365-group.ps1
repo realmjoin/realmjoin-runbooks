@@ -53,6 +53,8 @@ param(
     [bool] $SecurityEnabled = $true,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 

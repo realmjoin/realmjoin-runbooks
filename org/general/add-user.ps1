@@ -130,6 +130,9 @@
             },
             "DisplayName": {
                  "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -164,7 +167,10 @@ param (
     [string]$DefaultGroups = "",
     [String]$InitialPassword = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Create Exchange Online Archive Mailbox" } )]
-    [bool]$EnableEXOArchive = $false
+    [bool]$EnableEXOArchive = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbAzureAD

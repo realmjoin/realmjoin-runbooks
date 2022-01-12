@@ -10,6 +10,16 @@
   - User.Read.All
   - AuditLogs.Read.All
   - Organization.Read.All
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -18,7 +28,10 @@ param(
   [ValidateScript( { Use-RJInterface -DisplayName "Days without signin" } )]
   [int] $Days = 30,
   [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in?" } )]
-  [bool] $showBlockedUsers = $true
+  [bool] $showBlockedUsers = $true,
+  # CallerName is tracked purely for auditing purposes
+  [Parameter(Mandatory = $true)]
+  [string] $CallerName
 )
 
 Connect-RjRbGraph

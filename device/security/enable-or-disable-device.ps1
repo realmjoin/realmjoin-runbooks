@@ -23,8 +23,10 @@
             },
             "DeviceId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-
         }
     }
 #>
@@ -35,7 +37,10 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [ValidateScript( { Use-RJInterface -DisplayName "Disable or Enable Device" } )]
-    [bool] $Enable = $false
+    [bool] $Enable = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

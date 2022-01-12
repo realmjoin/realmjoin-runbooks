@@ -10,13 +10,26 @@
   MS Graph (API):
   - Directory.Read.All
   - Device.Read.All
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Days without user logon" } )]
-    [int] $Days = 30
+    [int] $Days = 30,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

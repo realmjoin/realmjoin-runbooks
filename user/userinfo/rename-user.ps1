@@ -15,6 +15,15 @@
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
@@ -29,7 +38,10 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "Change MailNickname based on new UPN" } )]
     [bool] $ChangeMailnickname = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Update primary eMail address" } )]
-    [bool] $UpdatePrimaryAddress = $true
+    [bool] $UpdatePrimaryAddress = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
     ## Currently, removing the old eMail-address "in one go" seems not to work reliably
     # [bool] $RemoveOldAddress = $false
 )

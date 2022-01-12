@@ -21,6 +21,9 @@
             },
             "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -33,7 +36,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -Type Textarea -DisplayName "Dismiss risk"} )]
-    [boolean] $Dismiss = $false
+    [boolean] $Dismiss = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

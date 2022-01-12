@@ -130,6 +130,10 @@
         {
             "Name": "StorageAccountSku",
             "Hide": true
+        },
+        {
+            "Name: "CallerName",
+            "Hide": true
         }
 
     ]
@@ -186,7 +190,10 @@ param(
   [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Location" } )]
   [string] $StorageAccountLocation,
   [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Sku" } )]
-  [string] $StorageAccountSku
+  [string] $StorageAccountSku,
+  # CallerName is tracked purely for auditing purposes
+  [Parameter(Mandatory = $true)]
+  [string] $CallerName
 
 )
 
