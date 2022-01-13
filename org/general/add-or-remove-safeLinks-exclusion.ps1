@@ -56,6 +56,9 @@
         },
         "DefaultPolicyName": {
             "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
@@ -65,7 +68,7 @@
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Action to execute" } )]
-    [int] $Action = 0,
+    [int] $Action = 2,
     # Not mandatory to allow an example value
     [String] $LinkPattern = "https://*.microsoft.com/*",
     # If only one policy exists, no need to specify. Will use "DefaultPolicyName" as default otherwise.
@@ -74,7 +77,10 @@ param(
     # Using "PolicyName" will overwrite the defaults
     [ValidateScript( { Use-RJInterface -DisplayName "Safe Links policy name" } )]
     [String] $PolicyName,
-    [boolean] $CreateNewPolicyIfNeeded = $true
+    [boolean] $CreateNewPolicyIfNeeded = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 function createGroupFromPolicyName {

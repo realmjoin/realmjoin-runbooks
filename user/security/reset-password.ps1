@@ -14,6 +14,9 @@
         "Parameters": {
              "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -27,7 +30,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -DisplayName "Enable this user object, if disabled" } )]
-    [bool] $EnableUserIfNeeded = $true
+    [bool] $EnableUserIfNeeded = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 # Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered!).

@@ -24,6 +24,9 @@
                     "Add this number as Mobile Phone MFA Factor'": false,
                     "Remove this number / mobile phone MFA factor": true
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -38,7 +41,10 @@ param(
     [Parameter(Mandatory = $true)]
     [String]$phoneNumber,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this mobile phone MFA factor" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

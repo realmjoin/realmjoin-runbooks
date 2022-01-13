@@ -21,6 +21,9 @@
                     "List only Enterprise Apps": true,
                     "List all Service Principals / Apps": false
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -41,7 +44,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Sku" } )]
-    [string] $StorageAccountSku
+    [string] $StorageAccountSku,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 if (-not $ContainerName) {

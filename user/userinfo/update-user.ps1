@@ -18,6 +18,9 @@
         "Parameters": {
              "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -45,7 +48,10 @@ param (
     [string]$PreferredLanguage,
     [string]$State,
     [string]$StreetAddress,
-    [string]$UsageLocation
+    [string]$UsageLocation,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 
 )
 

@@ -54,8 +54,10 @@
             },
             "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-
         }
     }
 #>
@@ -77,6 +79,8 @@ param
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageExternal = "Sorry, this person is currently not able to receive your message.",
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 

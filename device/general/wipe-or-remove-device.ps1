@@ -63,6 +63,9 @@
                 "Remove the device from AutoPilot (the device can leave the tenant)": true,
                 "Keep device / do not care": false
             }
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
@@ -77,8 +80,10 @@ param (
     [bool] $removeIntuneDevice = $true,
     [bool] $removeAutopilotDevice = $true,
     [bool] $removeAADDevice = $false,
-    [bool] $disableAADDevice = $true
-
+    [bool] $disableAADDevice = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

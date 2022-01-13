@@ -14,6 +14,9 @@
         "Parameters": {
             "GroupId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -31,7 +34,10 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "New MailNickname" } )]
     [string] $MailNickname,
     [ValidateScript( { Use-RJInterface -DisplayName "New Description" } )]
-    [string] $Description
+    [string] $Description,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

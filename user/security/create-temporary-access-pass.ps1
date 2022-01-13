@@ -18,6 +18,9 @@
         "Parameters": {
              "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -33,7 +36,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Number -DisplayName "Lifetime"} )]
     [int] $LifetimeInMinutes = 240,
     [ValidateScript( { Use-RJInterface -Type Number -DisplayName "One time use only"} )]
-    [bool] $OneTimeUseOnly = $true
+    [bool] $OneTimeUseOnly = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

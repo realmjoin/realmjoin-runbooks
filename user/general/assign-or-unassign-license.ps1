@@ -24,6 +24,9 @@
                     "Assign License to User": false,
                     "Remove License from User": true
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -40,7 +43,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "startswith(DisplayName, 'LIC_')" -DisplayName "License group" } )]
     [String] $GroupID_License,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove license" } )]
-    [boolean] $Remove = $false
+    [boolean] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbGraph

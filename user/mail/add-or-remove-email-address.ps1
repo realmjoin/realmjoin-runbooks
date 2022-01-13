@@ -51,6 +51,9 @@
         "Remove": {
             "Default": false,
             "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
@@ -69,7 +72,10 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this address" } )]
     [bool] $Remove = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Set as primary address" } )]
-    [bool] $asPrimary = $false
+    [bool] $asPrimary = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 $VerbosePreference = "SilentlyContinue"

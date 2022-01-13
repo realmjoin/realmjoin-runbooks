@@ -24,6 +24,9 @@
                     "(Re-)Enable User": false,
                     "Revoke Access": true
                 } 
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -35,7 +38,10 @@
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [bool] $Revoke = $true
+    [bool] $Revoke = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Connect-RjRbAzureAD

@@ -45,6 +45,10 @@
                     ]
                 },
                 "Default": "Delegate 'Send On Behalf Of'"
+            },
+            {
+                "Name": "CallerName",
+                "Hide": true
             }
         ]
     }
@@ -60,7 +64,10 @@ param
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 try {

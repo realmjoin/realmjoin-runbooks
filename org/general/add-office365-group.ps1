@@ -53,6 +53,8 @@ param(
     [bool] $SecurityEnabled = $true,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
@@ -138,7 +140,7 @@ if ($CreateTeam) {
     if (-not $success) {
         "## Timeout on Team creation. The group has been created, but could not be promoted to a Team."
         ""
-        throw (timeout)
+        throw ("timeout")
     }
 }
 

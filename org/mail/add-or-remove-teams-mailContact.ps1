@@ -27,6 +27,9 @@
                     "Relay the desired address to the real address": false,
                     "Stop the relay and remove desired address": true
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
@@ -45,7 +48,10 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Name in Address Book" } )]
     [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this contact" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 $VerbosePreference = "SilentlyContinue"
