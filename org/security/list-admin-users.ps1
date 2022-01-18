@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  List users havin administrative AzureAD roles.
+  List AzureAD role holders.
 
   .DESCRIPTION
-  List users havin administrative AzureAD roles.
+  Will list users and service principals that hold a builtin AzureAD role.
 
   .NOTES
   Permissions: MS Graph
