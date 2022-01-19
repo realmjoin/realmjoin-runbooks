@@ -9,6 +9,7 @@
   Permissions: MS Graph
   - User.Read.All
   - Directory.Read.All
+  - RoleManagement.Read.All
 
   .INPUTS
   RunbookCustomization: {
@@ -39,24 +40,56 @@ if ([array]$roles.count -eq 0) {
     throw("no roles found")
 }
 
+## Performance issue - Get all PIM role assignments at once
+$allPimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -ErrorAction SilentlyContinue
+
 $roles | ForEach-Object {
-    $roleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$($_.id)'" -ErrorAction SilentlyContinue
-    if (([array]$roleHolders).count -gt 0) {
+    # $pimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -OdFilter "roleDefinitionId eq '$($_.id)'" -ErrorAction SilentlyContinue
+    $roleDefinitionId = $_.id
+    $pimHolders = $allPimHolders | Where-Object {$_.roleDefinitionId -eq $roleDefinitionId }
+    $roleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$roleDefinitionId'" -ErrorAction SilentlyContinue
+
+    if ((([array]$roleHolders).count -gt 0) -or (([array]$pimHolders).count -gt 0)) {
         "## Role: $($_.displayName)"
+        "## - Active Assignments"
+
         $roleHolders | ForEach-Object {
             $principal = Invoke-RjRbRestMethodGraph -Resource "/directoryObjects/$($_.principalId)" -ErrorAction SilentlyContinue
             if (-not $principal) {
-                "Unknown principal: $($_.principalId)"
+                "  $($_.principalId) (Unknown principal)"
             } else {
                 if ($principal."@odata.type" -eq "#microsoft.graph.user") {
-                    $principal.userPrincipalName
+                    "  $($principal.userPrincipalName)"
                 } elseif ($principal."@odata.type" -eq "#microsoft.graph.servicePrincipal") {
-                    "$($principal.displayName) (ServicePrincipal)"
+                    "  $($principal.displayName) (ServicePrincipal)"
+                } elseif ($principal."@odata.type" -eq "#microsoft.graph.group") {
+                    "  $($principal.displayName) (Group)"
                 } else {
-                    "$($principal.displayName) $($principal."@odata.type")"
+                    "  $($principal.displayName) $($principal."@odata.type")"
                 }
             }
         }
+
+        "## - PIM eligbile"
+
+        $pimHolders | ForEach-Object {
+            $principal = Invoke-RjRbRestMethodGraph -Resource "/directoryObjects/$($_.principalId)" -ErrorAction SilentlyContinue
+            if (-not $principal) {
+                "  $($_.principalId) (Unknown principal)"
+            } else {
+                if ($principal."@odata.type" -eq "#microsoft.graph.user") {
+                    "  $($principal.userPrincipalName)"
+                } elseif ($principal."@odata.type" -eq "#microsoft.graph.servicePrincipal") {
+                    "  $($principal.displayName) (ServicePrincipal)"
+                } elseif ($principal."@odata.type" -eq "#microsoft.graph.group") {
+                    "  $($principal.displayName) (Group)"
+                }else {
+                    "  $($principal.displayName) $($principal."@odata.type")"
+                }
+            }
+        }
+
+
         ""
     }
 
