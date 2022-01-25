@@ -53,6 +53,8 @@ param(
     [bool] $SecurityEnabled = $true,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Second Owner" -Filter "userType eq 'Member'" } )]
+    [string] $Owner2,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -106,8 +108,14 @@ if ($CreateTeam) {
 
 if ($Owner) {
     $OwnerObj = Invoke-RjRbRestMethodGraph -Resource "/users/$Owner"
-    $groupDescription["owners@odata.bind"] = [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+    $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
 }
+if ($Owner2 -and ($Owner -ne $Owner2)) {
+    $Owner2Obj = Invoke-RjRbRestMethodGraph -Resource "/users/$Owner2"
+    $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($Owner2Obj.id)")
+    
+}
+
 
 "## Creating group '$MailNickname'"
 $groupObj = Invoke-RjRbRestMethodGraph -Method POST -resource "/groups" -body $groupDescription
