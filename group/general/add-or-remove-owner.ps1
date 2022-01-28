@@ -10,6 +10,10 @@
   MS Graph (API)
   - Group.ReadWrite.All
   - Directory.ReadWrite.All
+  Office 365 Exchange Online
+   - Exchange.ManageAsApp
+  Azure AD Roles
+   - Exchange administrator
 
   .INPUTS
   RunbookCustomization: {
@@ -49,32 +53,83 @@ param(
 
 Connect-RjRbGraph
 
+
 # "Find the user object " 
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
-    throw ("User $UserId not found.")
+    throw ("User '$UserId' not found.")
 }
 
-# "Is user owner of the the group?" 
-if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -ErrorAction SilentlyContinue) {
-    if ($Remove) {
-        Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserId/`$ref" -Method Delete -Body $body | Out-Null
-        "## $($targetUser.UserPrincipalName) is removed from $GroupID owners"
-    }
-    else {    
-        "## User $($targetUser.UserPrincipalName) is already an owner of $GroupID. No action taken."
-    }
+$targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID" -ErrorAction SilentlyContinue
+if (-not $targetGroup) {
+    throw ("Group '$GroupID' not found.")
 }
-else {
-    if ($Remove) {
-        "## User $($targetUser.UserPrincipalName) is not an owner of $GroupID. No action taken."
+
+# Work on AzureAD based groups
+if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEnabled)) {
+    # "Is user owner of the the group?" 
+    if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -ErrorAction SilentlyContinue) {
+        if ($Remove) {
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserId/`$ref" -Method Delete -Body $body | Out-Null
+            "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)' owners"
+        }
+        else {    
+            "## User '$($targetUser.UserPrincipalName)' is already an owner of '$($targetGroup.DisplayName)'. No action taken."
+        }
     }
     else {
-        $body = @{
-            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
+        if ($Remove) {
+            "## User '$($targetUser.UserPrincipalName)' is not an owner of '$($targetGroup.DisplayName)'. No action taken."
         }
-        Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/`$ref" -Method Post -Body $body | Out-Null
-        "## $($targetUser.UserPrincipalName) is added to $GroupID owners."    
+        else {
+            $body = @{
+                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
+            }
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/`$ref" -Method Post -Body $body | Out-Null
+            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)' owners."    
+        }
+    }
+} 
+# Work on Exchange groups
+else {
+    try {
+        $ProgressPreference = "SilentlyContinue"
+    
+        Connect-RjRbExchangeOnline
+    
+        $exgroup = Get-DistributionGroup -Identity $GroupID
+        # Checking if group is of type "distribution"
+        if (-not $exgroup) {
+            throw "'$GroupId' is not a distribution- or mail-enabled sec. group. Can not proceed."
+        }
+
+        $exuser = Get-EXORecipient -Identity $UserId
+        if (-not $exuser) {
+            throw "Recipient '$UserId' not found in ExchangeOnline. Can not proceed."
+        }
+
+        if ($Remove) {
+            if ($exgroup.ManagedBy -contains $exuser.Name) {
+                $managedBy = $exgroup.ManagedBy | Where-Object { $_ -ne $exuser.Name }
+                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy
+                "## Removed '$($targetUser.UserPrincipalName)' from the list of owners for '$($targetGroup.DisplayName)'."
+            }
+            else {
+                "## '$($targetUser.UserPrincipalName)' is not owner of '$($targetGroup.DisplayName)'. No action taken."
+            }
+        }
+        else {
+            if ($exgroup.ManagedBy -contains $exuser.Name) {
+                "## '$($targetUser.UserPrincipalName)' is already owner of '$($targetGroup.DisplayName)'. No action taken."
+            }
+            else {
+                $managedBy = $exgroup.ManagedBy + $exuser.Name
+                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy
+                "## Added '$($targetUser.UserPrincipalName)' to the list of owners for '$($targetGroup.DisplayName)'."
+            }
+        }    
+    }
+    finally {
+        Disconnect-ExchangeOnline -Confirm:$false | Out-Null
     }
 }
-
