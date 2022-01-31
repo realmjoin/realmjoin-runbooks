@@ -20,7 +20,8 @@
                 "DisplayName": "'Hardware Hash' from Get-WindowsAutopilotInfo"
             },
             "AssignedUser": {
-                "DisplayName": "Assign device to this user (optional)"
+                "DisplayName": "Assign device to this user (optional)",
+                "Hide": true // MS removed the ability to assign users directly via Autopilot
             },
             "Wait": {
                 "DisplayName": "Wait for job to finish"
@@ -41,6 +42,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -DisplayName "'Hardware Hash' from Get-WindowsAutopilotInfo" } )]
     [string] $HardwareIdentifier,
+    ## MS removed the ability to assign users directly via Autopilot
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)"  -Filter "userType eq 'Member'" } )]
     [string] $AssignedUser = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
@@ -59,8 +61,9 @@ $body = @{
     # groupTag = ""
 }
 
-# Find assigned user's name
+## MS removed the abaility to assign users directly via Autopilot
 if ($AssignedUser) {
+    ## Find assigned user's name
     $username = (Invoke-RjRbRestMethodGraph -Resource "/users/$AssignedUser").UserPrincipalName
     $body += @{ assignedUserPrincipalName = $username }
 }
