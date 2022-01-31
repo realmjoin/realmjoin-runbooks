@@ -195,7 +195,17 @@ if ($UserPrincipalName -eq "") {
     }
     elseif (($GivenName -ne "") -and ($Surname -ne "")) {
         # Try to create it from the real name...
-        $UserPrincipalName = ($GivenName + "." + $Surname + "@" + $UPNSuffix).ToLower()
+        $prefix = ($GivenName + "." + $Surname).ToLower()
+        # Filter/Replace illeagal characters. List is not complete.
+        $prefix = $prefix.Replace(" ","")
+        $prefix = $prefix.Replace("´","'")
+        $prefix = $prefix.Replace("``","'")
+        $prefix = $prefix.Replace("ä","ae")
+        $prefix = $prefix.Replace("ö","oe")
+        $prefix = $prefix.Replace("ü","ue")
+        $prefix = $prefix.Replace("ß","ss")
+
+        $UserPrincipalName = ($prefix + "@" + $UPNSuffix).ToLower()
     }
     else {
         throw "Please provide a userPrincipalName"
