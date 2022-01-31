@@ -139,7 +139,7 @@
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param (
@@ -173,7 +173,7 @@ param (
     [string] $CallerName
 )
 
-Connect-RjRbAzureAD
+Connect-RjRbGraph
 
 # AzureAD Module is broken in regards to ErrorAction, so...
 $ErrorActionPreference = "SilentlyContinue"
@@ -183,10 +183,12 @@ if ($InitialPassword -eq "") {
     $InitialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
 }
 
+# Collect information about this tenant, like verified domains
+$tenantDetail = Invoke-RjRbRestMethodGraph -Resource "/organization"
+
 #"Choosing UPN, if not given"
 if ($UserPrincipalName -eq "") {
-    $tenantDetail = Get-AzureADTenantDetail
-    $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
+    $UPNSuffix = ($tenantDetail.verifiedDomains | Where-Object { $_.isDefault }).name
     if ($MailNickname -ne "") {
         # Try to base it on mailnickname...
         $UserPrincipalName = ($MailNickname + "@" + $UPNSuffix).ToLower()
@@ -202,7 +204,7 @@ if ($UserPrincipalName -eq "") {
 }
 
 #"Check if the username $UserPrincipalName is available" 
-$targetUser = Get-AzureADUser -ObjectId $UserPrincipalName 
+$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserPrincipalName" -ErrorAction SilentlyContinue
 if ($null -ne $targetUser) {
     throw ("Username $UserPrincipalName is already taken.")
 }
@@ -225,90 +227,103 @@ if ($DisplayName -eq "") {
 }
 
 if ($CompanyName -eq "") {
-    $CompanyName = (Get-AzureADTenantDetail).DisplayName
+    $CompanyName = $tenantDetail.displayName
     #"Setting companyName to `"$CompanyName`"."
 }
 
 
 $newUserArgs = [ordered]@{
-    UserPrincipalName = $UserPrincipalName
-    MailNickName      = $MailNickname
-    DisplayName       = $DisplayName
-    AccountEnabled    = $true
-    PasswordProfile   = [Microsoft.Open.AzureAD.Model.PasswordProfile]::new($initialPassword, $true <# ForceChangePasswordNextLogin #>)
+    userPrincipalName = $UserPrincipalName
+    mailNickName      = $MailNickname
+    displayName       = $DisplayName
+    accountEnabled    = $true
+    passwordProfile   = @{
+        forceChangePasswordNextSignIn = $true
+        password                      = $initialPassword
+    }
 }
 
 if ($givenName) {
-    $newUserArgs += @{ GivenName = $givenName }
+    $newUserArgs += @{ givenName = $givenName }
 }
 
 if ($surname) {
-    $newUserArgs += @{ Surname = $surname }
+    $newUserArgs += @{ surname = $surname }
 }
 
 if ($CompanyName) {
-    $newUserArgs += @{ CompanyName = $CompanyName }
+    $newUserArgs += @{ companyName = $CompanyName }
 }
 
 if ($Department) {
-    $newUserArgs += @{ Department = $Department }
+    $newUserArgs += @{ department = $Department }
 }
 
 if ($LocationName) {
-    $newUserArgs += @{ PhysicalDeliveryOfficeName = $LocationName }
+    $newUserArgs += @{ officeLocation = $LocationName }
 }
 
 if ($Country) {
-    $newUserArgs += @{ Country = $Country }
+    $newUserArgs += @{ country = $Country }
 }
 
 if ($State) {
-    $newUserArgs += @{ State = $State }
+    $newUserArgs += @{ state = $State }
 }
 
 if ($postalCode) {
-    $newUserArgs += @{ PostalCode = $postalCode }
+    $newUserArgs += @{ postalCode = $postalCode }
 }
 
 if ($city) {
-    $newUserArgs += @{ City = $city }
+    $newUserArgs += @{ city = $city }
 }
 
 if ($streetAddress) {
-    $newUserArgs += @{ StreetAddress = $streetAddress }
+    $newUserArgs += @{ streetAddress = $streetAddress }
 }
 
 if ($JobTitle) {
-    $newUserArgs += @{ JobTitle = $JobTitle }
+    $newUserArgs += @{ jobTitle = $JobTitle }
 }
 
 if ($MobilePhone) {
-    $newUserArgs += @{ Mobile = $MobilePhone }
+    $newUserArgs += @{ mobilePhone = $MobilePhone }
 }
 
 if ($UsageLocation) {
-    $newUserArgs += @{ UsageLocation = $UsageLocation }
+    $newUserArgs += @{ usageLocation = $UsageLocation }
 }
 
 # $newUserArgs | Format-Table | Out-String
 
 "## Creating user object '$UserPrincipalName'"
-$ErrorActionPreference = "Stop"
-$userObject = New-AzureADUser @newUserArgs -ErrorAction Stop 
-$ErrorActionPreference = "SilentlyContinue"
+$userObject = Invoke-RjRbRestMethodGraph -Resource "/users" -Method Post -Body $newUserArgs
 
+
+# Assign a manager 
+if ($ManagerId) {
+    $body = @{
+        "@odata.id" = "https://graph.microsoft.com/v1.0/users/$($ManagerId)"
+    }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($userObject.id)/manager/`$ref" -Method Put -Body $body | Out-Null
+}
 
 # Assign the default license. Continue even if this fails.
 if ($DefaultLicense -ne "") {
     #"Searching license group $DefaultLicense."
-    $group = Get-AzureADGroup -Filter "displayName eq `'$DefaultLicense`'" -ErrorAction SilentlyContinue
+    $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$DefaultLicense'" -ErrorAction SilentlyContinue
     if (-not $group) {
         "License group $DefaultLicense not found!"
         Write-Error "License group $DefaultLicense not found!"
     }
     else {
         "## Adding to license group '$($group.displayName)'"
-        Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
+        $body = @{
+            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+        #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
     }
 }
 
@@ -317,30 +332,24 @@ $groupsArray = $DefaultGroups.split(',').Trim()
 foreach ($groupname in $groupsArray) {
     if ($groupname -ne "") {
         #"Searching default group $groupname."
-        $group = Get-AzureADGroup -Filter "displayName eq `'$groupname`'" -ErrorAction SilentlyContinue
+        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$groupname'" -ErrorAction SilentlyContinue
         if (-not $group) {
             "Group $groupname not found!" 
             Write-Error "Group $groupname not found!"
         }
         else {
-            "Adding to group '$($group.displayName)'"
-            Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
+            "## Adding to group '$($group.displayName)'"
+            $body = @{
+                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
+            }
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+            #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
         }
     }
 }
 
-# Assign Manager
-if ($ManagerId) {
-    $ErrorActionPreference = "Stop"
-    $Manager = Get-AzureADUser -ObjectId $ManagerId
-    "## Assigning Manager '$($Manager.DisplayName)'"
-    Set-AzureADUserManager -ObjectId $userObject.ObjectId -RefObjectId $ManagerId | Out-Null
-    $ErrorActionPreference = "SilentlyContinue"
-}
-
 # Enable Exchange Online Archive
 if ($EnableEXOArchive) {
-    $ErrorActionPreference = "Stop"
     try {
         Connect-RjRbExchangeOnline
         
@@ -367,12 +376,8 @@ if ($EnableEXOArchive) {
     finally {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
     }
-    $ErrorActionPreference = "SilentlyContinue"
 }
 
-"## User $UserPrincipalName successfully created. Initial PW:" 
+"## User '$UserPrincipalName' successfully created. Initial PW:" 
 "$InitialPassword"
-
-# "Disconnecting from AzureAD."
-Disconnect-AzureAD -confirm:$false | Out-Null
 
