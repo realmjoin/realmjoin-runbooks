@@ -8,6 +8,9 @@
   .PARAMETER PreferredLanguage
   Examples: 'en-US' or 'de-DE'
 
+  .PARAMETER UsageLocation
+  Examples: "DE" or "US"
+
   .NOTES
   Permissions
   AzureAD Roles
@@ -27,7 +30,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, AzureAD
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -55,10 +58,10 @@ param (
 
 )
 
-Connect-RjRbAzureAD
+Connect-RjRbGraph
 
 Write-RjRbLog "Searching for user '$UserName'"
-$targetUser = Get-AzureADUser -ObjectId $UserName
+$targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName"
 
 $userArgs = @{}
 function addToUserArgs($variableName, $paramName = $variableName) {
@@ -74,7 +77,7 @@ addToUserArgs 'companyName'
 addToUserArgs 'city'
 addToUserArgs 'country'
 addToUserArgs 'jobTitle'
-addToUserArgs 'officeLocation' 'PhysicalDeliveryOfficeName'
+addToUserArgs 'officeLocation'
 addToUserArgs 'postalCode'
 addToUserArgs 'preferredLanguage'
 addToUserArgs 'state'
@@ -92,11 +95,11 @@ if (-not $targetUser.DisplayName -and -not $DisplayName) {
     }
 }
 if (-not $targetUser.CompanyName -and -not $CompanyName) {
-    $userArgs['companyName'] = (Get-RjRbAzureADTenantDetail).DisplayName
+    $tenantDetail = Invoke-RjRbRestMethodGraph -Resource "/organization"
+    $userArgs['companyName'] = $tenantDetail.displayName
 }
 
 Write-RjRbLog "Updating user object with the following properties" $userArgs
-Set-AzureADUser -ObjectId $targetUser.ObjectId @userArgs | Out-Null
-
+Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $userArgs
 
 "## User '$UserName' successfully updated."

@@ -33,7 +33,7 @@
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -44,32 +44,26 @@ param(
     [string] $CallerName
 )
 
-Connect-RjRbAzureAD
-
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "SilentlyContinue"
+Connect-RjRbGraph
 
 # "Find the user object $UserName"
-$targetUser = Get-AzureADUser -ObjectId $UserName 
+$targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -ErrorAction SilentlyContinue 
 if ($null -eq $targetUser) {
     throw ("User $UserName not found.")
 }
 
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "Stop"
-
 # "Block/Enable user sign in"
-Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled (-not $Revoke) | Out-Null
+$body = @{
+    accountEnabled = (-not $Revoke)
+}
+Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 
 if ($Revoke) {
     # "Revoke all refresh tokens"
-    Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
-
+    $body = @{ }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
     "## User access for " + $UserName + " has been revoked."
 }
 else {
     "## User " + $UserName + " has been enabled."
 }
-
-# "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false | Out-Null

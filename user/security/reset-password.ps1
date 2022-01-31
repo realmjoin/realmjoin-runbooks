@@ -23,7 +23,7 @@
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -39,23 +39,20 @@ param(
 # Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered!).
 [String] $initialPassword = ""
 
-Connect-RjRbAzureAD
-
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "SilentlyContinue"
+Connect-RjRbGraph
 
 # "Find the user object $UserName"
-$targetUser = Get-AzureADUser -ObjectId $UserName 
+$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName" -ErrorAction SilentlyContinue
 if ($null -eq $targetUser) {
     throw ("User $UserName not found.")
 }
 
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "Stop"
-
 if ($enableUserIfNeeded) {
     "## Enabling user sign in"
-    Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled $true | Out-Null
+    $body = @{
+        accountEnabled = $true
+    }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body
 }
 
 if ($initialPassword -eq "") {
@@ -63,16 +60,17 @@ if ($initialPassword -eq "") {
 #    "Generating initial PW: $initialPassword"
 }
 
-$encPassword = ConvertTo-SecureString -String $initialPassword -AsPlainText -Force
-
-#"Setting PW for user " + $UserName" 
-Set-AzureADUserPassword -ObjectId $targetUser.ObjectId -Password $encPassword -ForceChangePasswordNextLogin $true | Out-Null
-
-# "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false
+#"Setting PW for user " + $UserName"
+$body = @{
+    passwordProfile = @{
+        forceChangePasswordNextSignIn = $true
+        password = $initialPassword
+    }
+}
+Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 
 "## Password reset successful." 
 "## User will have to change PW at next login."
 ""
-"## Password for $UserName has been reset to:"
+"## Password for '$UserName' has been reset to:"
 "$initialPassword"

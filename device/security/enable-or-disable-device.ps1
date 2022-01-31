@@ -60,7 +60,6 @@ if ($targetDevice.accountEnabled) {
     else {
         "## Disabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
-            # Set-AzureADDevice -AccountEnabled $false -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
         }
         catch {
@@ -73,7 +72,6 @@ else {
     if ($Enable) { 
         "## Enabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
-            # Set-AzureADDevice -AccountEnabled $true -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
         }
         catch {
