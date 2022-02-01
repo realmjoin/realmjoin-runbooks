@@ -51,6 +51,12 @@ if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 
 
+if ($targetDevice.operatingSystem -ne "Windows") {
+    # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
+    "## Can not en-/disable non-windows devices currently in AzureAD. "
+    throw ("OS not supported")
+}
+
 $body = @{ accountEnabled = $Enable }
 
 if ($targetDevice.accountEnabled) {
