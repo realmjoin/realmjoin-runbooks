@@ -95,18 +95,23 @@ if (-not $targetDevice) {
 } 
 
 if ($disableAADDevice) {
-    "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in AzureAD"
-    try {
-        $body = @{
-            "accountEnabled" = $false
+    # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
+    if ($targetDevice.operatingSystem -eq "Windows") {
+        "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in AzureAD"
+        try {
+            $body = @{
+                "accountEnabled" = $false
+            }
+            Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Patch -Body $body | Out-Null
         }
-        Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Patch -Body $body | Out-Null
-    }
-    catch {
-        "## Error Message: $($_.Exception.Message)"
-        "## Please see 'All logs' for more details."
-        "## Execution stopped." 
-        throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
+        catch {
+            "## Error Message: $($_.Exception.Message)"
+            "## Please see 'All logs' for more details."
+            "## Execution stopped." 
+            throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
+        }
+    } else {
+        "## Disabling non-windows devices in AzureAD is currently not supported. Skipping."
     }
 }
 
@@ -157,10 +162,12 @@ if ($mgdDevice) {
             "## Execution stopped."     
             throw "Deleting Intune ID: $($mgdDevice.id) from Intune failed!"
         }
-    } else {
+    }
+    else {
         "## Skipping Intune operations."
     }
-} else {
+}
+else {
     "## Device not found in Intune. Skipping."
 }
 
@@ -177,10 +184,12 @@ if ($removeAutopilotDevice) {
             "## Execution stopped."     
             throw "Deleting Autopilot ID: $($apDevice.id) from Autopilot failed!"
         }
-    } else {
+    }
+    else {
         "## Device not found in AutoPilot database. Skipping."
     }
-} else {
+}
+else {
     "## Skipping AutoPilot operations."
 }
 
