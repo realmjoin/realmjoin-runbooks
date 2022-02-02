@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-02-02
+
+* Bugfix - `group\general\add-or-remove-owner` could break if multiple users have similar display names
 ## 1.0.0 (2022-02-01)
 
 * Official release of Runbook Library for RealmJoin and start of ongoing change tracking.
