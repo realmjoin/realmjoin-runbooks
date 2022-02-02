@@ -123,7 +123,7 @@ else {
                 "## '$($targetUser.UserPrincipalName)' is already owner of '$($targetGroup.DisplayName)'. No action taken."
             }
             else {
-                $managedBy = $exgroup.ManagedBy + $exuser.Name
+                $managedBy = $exgroup.ManagedBy + $UserId
                 Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy
                 "## Added '$($targetUser.UserPrincipalName)' to the list of owners for '$($targetGroup.DisplayName)'."
             }
