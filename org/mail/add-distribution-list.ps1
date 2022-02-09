@@ -31,10 +31,12 @@ param (
     [string] $GroupName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
-    [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
-    [bool] $AllowExternalSenders = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
     [string] $PrimarySMTPAddress,
+    [ValidateScript( { Use-RJInterface -DisplayName "Create as Roomlist" } )]
+    [bool] $Roomlist = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
+    [bool] $AllowExternalSenders = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName 
@@ -60,6 +62,7 @@ try {
         Type = "Distribution"
         MemberDepartRestriction = "Closed"
         MemberJoinRestriction = "Closed"
+        RoomList = $Roomlist
     }
 
     if ($Owner) {
