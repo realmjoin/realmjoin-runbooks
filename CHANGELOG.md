@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+
+## 2022-02-9
+
+* Support to create Distribution Groups as Roomlists
+
 ## 2022-02-02
 
 * Bugfix - `group\general\add-or-remove-owner` could break if multiple users have similar display names
