@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Remove/Outphase a windows device
+  Wipe a windows device
 
   .DESCRIPTION
-  Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+  Wipe a windows device. 
 
   .NOTES
   PERMISSIONS
@@ -77,10 +77,10 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [bool] $wipeDevice = $true,
-    [bool] $removeIntuneDevice = $true,
-    [bool] $removeAutopilotDevice = $true,
+    [bool] $removeIntuneDevice = $false,
+    [bool] $removeAutopilotDevice = $false,
     [bool] $removeAADDevice = $false,
-    [bool] $disableAADDevice = $true,
+    [bool] $disableAADDevice = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName

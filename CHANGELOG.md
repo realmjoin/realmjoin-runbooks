@@ -1,7 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-14
 
-## 2022-02-9
+* Split Wipe/Outphase Runbook into two to allow separate roles/defaults
+
+## 2022-02-09
 
 * Support to create Distribution Groups as Roomlists
 
