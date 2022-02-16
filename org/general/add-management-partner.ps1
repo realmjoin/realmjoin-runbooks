@@ -26,10 +26,6 @@
                         {
                             "Display": "Add a PAL",
                             "ParameterValue": 1
-                        },
-                        {
-                            "Display": "Remove a PAL",
-                            "ParameterValue": 2
                         }
                     ]
                 }
@@ -78,14 +74,14 @@ elseif ($Action -eq 1) {
     ""
     New-AzManagementPartner -PartnerId $PartnerId
 }
-elseif ($Action -eq 2) {
-    if (($pals | Where-Object { $_.PartnerId -eq $PartnerId }).count -gt 0) {
-        "## Removing Management Partner Link (PAL) $PartnerId ..."
-        ""
-        Remove-AzManagementPartner -PartnerId $PartnerId
-    }
-    else {
-        "## PAL / Management Parner Link $PartnerId not present."
-        throw ("PAL not found")
-    }
-}
+#elseif ($Action -eq 2) {
+#    if (($pals | Where-Object { $_.PartnerId -eq $PartnerId }).count -gt 0) {
+#        "## Removing Management Partner Link (PAL) $PartnerId ..."
+#        ""
+#        Remove-AzManagementPartner -PartnerId $PartnerId
+#    }
+#    else {
+#        "## PAL / Management Parner Link $PartnerId not present."
+#        throw ("PAL not found")
+#    }
+#}
