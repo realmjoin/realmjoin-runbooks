@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Add or remove a PAL / Management Partner Link
+  List or add or Management Partner Links (PAL)
 
   .DESCRIPTION
-  Add or remove a PAL / Management Partner Link
+  List or add or Management Partner Links (PAL)
 
   .INPUTS
   RunbookCustomization: {
@@ -74,6 +74,7 @@ elseif ($Action -eq 1) {
     ""
     New-AzManagementPartner -PartnerId $PartnerId
 }
+
 #elseif ($Action -eq 2) {
 #    if (($pals | Where-Object { $_.PartnerId -eq $PartnerId }).count -gt 0) {
 #        "## Removing Management Partner Link (PAL) $PartnerId ..."
