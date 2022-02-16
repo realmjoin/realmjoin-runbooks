@@ -74,7 +74,7 @@ if ($Release) {
     ""
     "Error details:"
     $_
-    throw "failed"
+    throw "unisolation failed"
   }
 
   if ($response.type -eq "Unisolate") {
@@ -97,7 +97,7 @@ else {
     ""
     "Error details:"
     $_
-    throw "failed"
+    throw "isolation failed"
   }
 
   if ($response.type -eq "Isolate") {
