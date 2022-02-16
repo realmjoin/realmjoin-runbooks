@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Add a PAL / Management Partner Link
+  Add or remove a PAL / Management Partner Link
 
   .DESCRIPTION
-  Add a PAL / Management Partner Link
+  Add or remove a PAL / Management Partner Link
 
   .INPUTS
   RunbookCustomization: {
