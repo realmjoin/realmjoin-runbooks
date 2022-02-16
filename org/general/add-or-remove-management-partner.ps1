@@ -26,6 +26,10 @@
                         {
                             "Display": "Add a PAL",
                             "ParameterValue": 1
+                        },
+                        {
+                            "Display": "Remove a PAL",
+                            "ParameterValue": 2
                         }
                     ]
                 }
@@ -48,20 +52,40 @@ param(
 
 Connect-RjRbAzAccount
 
+# Get current PALs
+$pals = Get-AzManagementPartner -ErrorAction SilentlyContinue
+
+
 if ($Action -eq 0) {
     "## Listing all PALs"
     ""
-    Get-AzManagementPartner | Out-String
+    if (-not $pals) {
+        "## ... no PALs found."
+    }
+    else {
+        $pals | Out-String
+    }
 
 }
 elseif ($Action -eq 1) {
-    if ((Get-AzManagementPartner -ErrorAction SilentlyContinue | Where-Object { $_.PartnerId -eq $PartnerId }).count -gt 0) {
+    if (($pals | Where-Object { $_.PartnerId -eq $PartnerId }).count -gt 0) {
         "## PAL / Management Parner Link $PartnerId is already set."
         ""
-        exit 0
+        throw ("PAL already set")
     }
 
-    "## Setting Management Partner Link..."
+    "## Setting Management Partner Link (PAL) ..."
     ""
     New-AzManagementPartner -PartnerId $PartnerId
+}
+elseif ($Action -eq 2) {
+    if (($pals | Where-Object { $_.PartnerId -eq $PartnerId }).count -gt 0) {
+        "## Removing Management Partner Link (PAL) $PartnerId ..."
+        ""
+        Remove-AzManagementPartner -PartnerId $PartnerId
+    }
+    else {
+        "## PAL / Management Parner Link $PartnerId not present."
+        throw ("PAL not found")
+    }
 }
