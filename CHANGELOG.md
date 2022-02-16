@@ -1,6 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
-## 2022-04-14
+## 2022-02-16
+
+* New Runbook: Set PAL / Azure Management Parner Link
+
+## 2022-02-14
 
 * Split Wipe/Outphase Runbook into two to allow separate roles/defaults
 
