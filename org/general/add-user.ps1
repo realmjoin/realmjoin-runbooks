@@ -197,13 +197,13 @@ if ($UserPrincipalName -eq "") {
         # Try to create it from the real name...
         $prefix = ($GivenName + "." + $Surname).ToLower()
         # Filter/Replace illeagal characters. List is not complete.
-        $prefix = $prefix.Replace(" ","")
-        $prefix = $prefix.Replace("´","'")
-        $prefix = $prefix.Replace("``","'")
-        $prefix = $prefix.Replace("ä","ae")
-        $prefix = $prefix.Replace("ö","oe")
-        $prefix = $prefix.Replace("ü","ue")
-        $prefix = $prefix.Replace("ß","ss")
+        $prefix = $prefix.Replace(" ", "")
+        $prefix = $prefix.Replace("´", "'")
+        $prefix = $prefix.Replace("``", "'")
+        $prefix = $prefix.Replace("ä", "ae")
+        $prefix = $prefix.Replace("ö", "oe")
+        $prefix = $prefix.Replace("ü", "ue")
+        $prefix = $prefix.Replace("ß", "ss")
 
         $UserPrincipalName = ($prefix + "@" + $UPNSuffix).ToLower()
     }
@@ -332,8 +332,14 @@ if ($DefaultLicense -ne "") {
         $body = @{
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
         }
-        Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
-        #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+        try {
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+            #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+        }
+        catch {
+            "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+            Write-RjRbLog $_
+        }
     }
 }
 
@@ -352,8 +358,14 @@ foreach ($groupname in $groupsArray) {
             $body = @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
             }
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
-            #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+            }
+            catch {
+                "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                Write-RjRbLog $_
+            }
         }
     }
 }
