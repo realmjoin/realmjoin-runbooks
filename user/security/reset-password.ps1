@@ -3,7 +3,7 @@
   Reset a user's password. 
 
   .DESCRIPTION
-  Reset a user's password. The user will have to change it on singin.
+  Reset a user's password. The user will have to change it on signin.
 
   .NOTES
   Permissions:
