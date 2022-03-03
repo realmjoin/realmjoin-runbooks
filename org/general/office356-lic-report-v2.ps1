@@ -312,7 +312,7 @@ if ($exportToFile) {
         Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
             #Create signed (SAS) link
             $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
-            "$($_.Name): $SASLink"
+            "$SASLink"
     }
     else {
         # Upload all files individually
