@@ -10,8 +10,38 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param(
-    [bool] $includeExhange = $false
+    [bool] $includeExhange = $false,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.ExportToFile" } )]
+    [bool] $exportToFile = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.Container" } )]
+    [string] $ContainerName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.ResourceGroup" } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.StorageAccount.Name" } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.StorageAccount.Location" } )]
+    [string] $StorageAccountLocation,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.StorageAccount.Sku" } )]
+    [string] $StorageAccountSku,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+# Sanity checks
+if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
+    "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    ""
+    "## Please configure the following attributes in the RJ central datastore:"
+    "## - OfficeLicensingReportv2.ResourceGroup"
+    "## - OfficeLicensingReportv2.StorageAccount.Name"
+    "## - OfficeLicensingReportv2.StorageAccount.Location"
+    "## - OfficeLicensingReportv2.StorageAccount.Sku"
+    ""
+    "## Disabling CSV export..."
+    $exportToFile = $false
+    ""
+}
 
 # Static / internal defaults
 $OutPutPath = "CloudEconomics\"
@@ -197,7 +227,7 @@ function Get-AdminReport {
                     DisplayName = $user.displayName
                     UPN         = $user.userPrincipalName
                     IsLicensed  = ($Licenses.licenseAssignmentStates.count -gt 0)
-                    Licenses    = ($Licenses.licenseAssignmentStates.skuId | ForEach-Object { "$_;"} )
+                    Licenses    = ($Licenses.licenseAssignmentStates.skuId | ForEach-Object { "$_;" } )
                     Adminrole   = $role.displayName
                 }
             }
@@ -242,4 +272,51 @@ Get-LicenseAssignmentPath -CSVPath $OutPutPath
 "## Collecting: Licensed Admin Accounts"
 Get-AdminReport -CSVPath $OutPutPath
 
+#endregion
+
+#region export to file
+
+if ($exportToFile) {  
+    ""
+    Connect-RjRbAzAccount
+  
+    if (-not $ContainerName) {
+        $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
+    }
+  
+    # Make sure storage account exists
+    $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
+    if (-not $storAccount) {
+        "## Creating Azure Storage Account $($StorageAccountName)"
+        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+    }
+   
+    # Get access to the Storage Account
+    $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
+    $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
+  
+    # Make sure, container exists
+    $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
+    if (-not $container) {
+        "## Creating Azure Storage Account Container $($ContainerName)"
+        $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+    }
+   
+    $EndTime = (Get-Date).AddDays(6)
+
+    # Upload
+    Get-ChildItem -Path $OutPutPath | ForEach-Object {
+        Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
+        #Create signed (SAS) link
+        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
+        "$($_.Name): $SASLink"
+
+    }
+  
+    ""
+    "## Reports created."
+    "## Expiry of Links: $EndTime"
+    $SASLink | Out-String
+  
+}
 #endregion
