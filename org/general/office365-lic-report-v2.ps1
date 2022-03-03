@@ -5,6 +5,10 @@
   .DESCRIPTION
   Generate an Office 365 licensing report.
 
+  .NOTES
+  New permission: 
+  MSGraph 
+  - Reports.Read.All
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
@@ -133,12 +137,14 @@ function Get-LoginLogs {
     $today = Get-Date -Format "yyyy-MM-dd"
     $PastPeriod = ("{0:s}" -f (get-date).AddDays( - ($PastDays))).Split("T")[0]
 
-    $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z"
-    $allLogs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter
-
     foreach ($app in $Applications) {
+        "## ... $app"
+        # Slow down to avoid http 429 errors
+        Start-Sleep -Seconds 10
+        $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"        
+        $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter 
         $outputFile = $CSVPath + "\" + "Audit-" + $app + ".csv"
-        $allLogs | Where-Object { ($_.appId -eq $app) -or ($_.appDisplayName -eq $app) } | ConvertTo-Csv -NoTypeInformation | Add-Content -Path $outputFile
+        $logs | ConvertTo-Csv -NoTypeInformation | Add-Content -Path $outputFile
     }
 }
 function Get-AssignedPlans {
@@ -310,9 +316,9 @@ if ($exportToFile) {
         $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
         Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
         Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
-            #Create signed (SAS) link
-            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
-            "$SASLink"
+        #Create signed (SAS) link
+        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
+        "$SASLink"
     }
     else {
         # Upload all files individually
