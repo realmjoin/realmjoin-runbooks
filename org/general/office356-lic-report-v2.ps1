@@ -1,4 +1,20 @@
-# New Permission: Reports.Read.All
+<#
+  .SYNOPSIS
+  Generate an Office 365 licensing report.
+
+  .DESCRIPTION
+  Generate an Office 365 licensing report.
+
+#>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+
+param(
+    [bool] $includeExhange = $false
+)
+
+# Static / internal defaults
+$OutPutPath = "CloudEconomics\"
 
 Connect-RjRbExchangeOnline
 Connect-RjRbGraph
@@ -83,14 +99,15 @@ function Get-LoginLogs {
         $PastDays = 90
     )
 
-    
     $today = Get-Date -Format "yyyy-MM-dd"
     $PastPeriod = ("{0:s}" -f (get-date).AddDays( - ($PastDays))).Split("T")[0]
-    $url = "/auditLogs/signIns" 
+
+    $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z"
+    $allLogs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter
+
     foreach ($app in $Applications) {
-        $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"        
         $outputFile = $CSVPath + "\" + "Audit-" + $app + ".csv"
-        Invoke-RjRbRestMethodGraph -Resource $url -OdFilter $filter -FollowPaging | ConvertTo-Csv -NoTypeInformation | Add-Content -Path $outputFile
+        $allLogs | Where-Object { ($_.appId -eq $app) -or ($_.appDisplayName -eq $app) } | ConvertTo-Csv -NoTypeInformation | Add-Content -Path $outputFile
     }
 }
 function Get-AssignedPlans {
@@ -135,27 +152,94 @@ function Get-LicenseAssignmentPath {
         }
     }
 }  
-function Get-LicensingGroups{
+function Get-LicensingGroups {
     [cmdletbinding()]
     param(
         [parameter(Mandatory = $true)][string]$CSVPath
     )
     $reportname = "\LicensingGroups"
     $Path = $CSVPath + $reportname + ".csv"
-    $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdSelect "assignedLicenses,id,displayName" -FollowPaging| Where-Object {$_.assignedLicenses}
-    foreach($group in $groups){
-    $LicenseString= ""
-    $obj=@()
-    $Member =Get-MsolGroupMember -GroupObjectId $group.ObjectId -All 
-    $obj = $Member
-    foreach ($License in  $group.AssignedLicenses.AccountSkuId.SkuPartNumber){
-        $LicenseString += $License+"; "
-    }
-
-    $obj | Add-Member -MemberType NoteProperty -Name "GroupLicense" -value $LicenseString
-    $obj | Add-Member -MemberType NoteProperty -Name "GroupName" -value $group.DisplayName
-    $obj | Add-Member -MemberType NoteProperty -Name "GroupId" -value $group.ObjectId
-    $obj | Select -Property * | Export-Csv $Path -Append -NoTypeInformation
+    $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdSelect "assignedLicenses,id,displayName" -FollowPaging | Where-Object { $_.assignedLicenses }
+    foreach ($group in $groups) {
+        $LicenseString = ""
+        foreach ($assignedLicense in  $group.assignedLicenses) {
+            $License = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" -FollowPaging | Where-Object { $_.skuId -eq $assignedLicense.skuId }
+            $LicenseString += $License.skuPartNumber + "; "
+        }
+        $obj = New-Object pscustomobject -Property @{
+            GroupLicense = $LicenseString
+            GroupName    = $group.displayName
+            GroupId      = $group.id
+        }
+        $obj | Export-Csv $Path -Append -NoTypeInformation
     } 
-    }   
+}   
 
+function Get-AdminReport {
+    [cmdletbinding()]
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    $reportname = "\AdminReport"
+    $Path = $CSVPath + $reportname + ".csv"
+
+    $AllAdminRole = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
+
+    $msolUserResults = [System.Collections.ArrayList]@()
+    foreach ($Role in $AllAdminRole) {
+        $RoleID = $Role.id
+        $Admins = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$RoleId'" -ErrorAction SilentlyContinue
+        foreach ($AdminCandidate in $Admins) {
+            $user = Invoke-RjRbRestMethodGraph -Resource "/users/$($AdminCandidate.principalId)" -ErrorAction SilentlyContinue
+            if ($user.mail) {                
+                $Licenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -OdSelect "licenseAssignmentStates"
+                $msolUserResults += New-Object psobject -Property @{
+                    DisplayName = $user.displayName
+                    UPN         = $user.userPrincipalName
+                    IsLicensed  = ($Licenses.licenseAssignmentStates.count -gt 0)
+                    Licenses    = ($Licenses.licenseAssignmentStates.skuId | ForEach-Object { "$_;"} )
+                    Adminrole   = $role.displayName
+                }
+            }
+        }
+    }
+    $msolUserResults | Select-Object -Property * | Export-Csv -notypeinformation -Path $Path 
+}
+
+#region main
+
+if (-Not (Test-Path -Path $OutPutPath)) {
+    New-Item -ItemType directory -Path $OutPutPath | Out-Null
+}
+else {
+    "## Deleting old reports"
+    Get-ChildItem -Path $OutPutPath -Filter *.csv  | Remove-Item | Out-Null
+}
+
+if ($includeExchange) {
+    "## Collecting: Shared Mailbox licensing"
+    Get-SharedMailboxLicensing -CSVPath $OutPutPath
+}
+
+"## Collecting: MS Graph Reports"
+Get-GraphReports -CSVPath $OutPutPath
+
+"## Collecting: Login Logs"
+Get-LoginLogs -CSVPath $OutPutPath
+
+"## Collecting: All user objects"
+Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation
+
+"## Collecting: Assigned License Plans"
+Get-AssignedPlans -CSVPath $OutPutPath
+
+"## Collecting: Licensing Groups"
+Get-LicensingGroups -CSVPath $OutPutPath
+
+"## Collecting: Directly vs. Group assigned Licenses"
+Get-LicenseAssignmentPath -CSVPath $OutPutPath
+
+"## Collecting: Licensed Admin Accounts"
+Get-AdminReport -CSVPath $OutPutPath
+
+#endregion
