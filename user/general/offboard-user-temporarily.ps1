@@ -263,7 +263,7 @@ if ($ChangeGroupsSelector -ne 0) {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
         }
         else {
-            "## Could not resove group name '$GroupToAdd', skipping..."
+            "## Could not resolve group name '$GroupToAdd', skipping..."
         }
     }
     
