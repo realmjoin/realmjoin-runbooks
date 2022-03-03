@@ -13,6 +13,7 @@ param(
     [bool] $includeExhange = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.ExportToFile" } )]
     [bool] $exportToFile = $true,
+    [bool] $exportAsZip = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.Container" } )]
     [string] $ContainerName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.ResourceGroup" } )]
@@ -304,19 +305,26 @@ if ($exportToFile) {
    
     $EndTime = (Get-Date).AddDays(6)
 
-    # Upload
-    Get-ChildItem -Path $OutPutPath | ForEach-Object {
-        Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
-        #Create signed (SAS) link
-        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
-        "$($_.Name): $SASLink"
-
+    "## Upload"
+    if ($exportAsZip) {
+        $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
+        Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
+        Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
+            #Create signed (SAS) link
+            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
+            "$($_.Name): $SASLink"
+    }
+    else {
+        # Upload all files individually
+        Get-ChildItem -Path $OutPutPath | ForEach-Object {
+            Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
+            #Create signed (SAS) link
+            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
+            "$($_.Name): $SASLink"
+        }
     }
   
     ""
-    "## Reports created."
     "## Expiry of Links: $EndTime"
-    $SASLink | Out-String
-  
 }
 #endregion
