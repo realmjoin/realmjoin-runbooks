@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+## 1.0.1 (2022-03-10)
+
+* Office 365 Lic. Reporting v2
+  * Merged with 'CloudEconimics' reports intended for PowerBI
+
 ## 2022-02-16
 
 * New Runbook: Set PAL / Azure Management Parner Link
