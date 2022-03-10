@@ -17,9 +17,11 @@ param(
     [bool] $includeExhange = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.ExportToFile" } )]
     [bool] $exportToFile = $true,
-    [bool] $exportAsZip = $true,
+    [bool] $exportAsZip = $false,
+    [bool] $produceLinks = $true,
+    # Make a persistent container the default, so you can simply update PowerBI's report from the same source
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.Container" } )]
-    [string] $ContainerName,
+    [string] $ContainerName = "rjrb-licensing-report-v2",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.ResourceGroup" } )]
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReportv2.StorageAccount.Name" } )]
@@ -159,12 +161,7 @@ function Get-AssignedPlans {
 
     $users | ForEach-Object {
         $thisUser = $_
-
-        ## Variant - go for accountskuid
-        #Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails" | Select-Object -Property @{name = "licenses"; expression = { $_.id } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
-
-        ## Variant - use MS Graph license / plan representation
-        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanId } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
+        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
     } | ConvertTo-Csv -NoTypeInformation | Out-File $Path -Append
 }   
 function Get-LicenseAssignmentPath {
@@ -175,14 +172,17 @@ function Get-LicenseAssignmentPath {
     $reportname = "\LicenseAssignmentPath"
     $Path = $CSVPath + $reportname + ".csv"
     $users = Invoke-RjRbRestMethodGraph -Resource "/users" -OdSelect "licenseAssignmentStates,userPrincipalName" -FollowPaging
+    $allSkus = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
 
     foreach ($user in $users) {
         foreach ($sku in $user.licenseAssignmentStates) {
+            $skuPartNumber = ($allSkus | Where-Object { $_.skuId -eq $sku.skuId }).skuPartNumber
+
             $UserHasLicenseAssignedDirectly = $null -eq $sku.assignedByGroup
             $UserHasLicenseAssignedFromGroup = -not $UserHasLicenseAssignedDirectly
 
             $obj = $user
-            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $sku.skuId -Force 
+            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force 
             $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -value $UserHasLicenseAssignedDirectly -Force
             $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -value $UserHasLicenseAssignedFromGroup -Force
             $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation
@@ -221,6 +221,7 @@ function Get-AdminReport {
     $Path = $CSVPath + $reportname + ".csv"
 
     $AllAdminRole = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
+    $AllSkus = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
 
     $msolUserResults = [System.Collections.ArrayList]@()
     foreach ($Role in $AllAdminRole) {
@@ -229,12 +230,19 @@ function Get-AdminReport {
         foreach ($AdminCandidate in $Admins) {
             $user = Invoke-RjRbRestMethodGraph -Resource "/users/$($AdminCandidate.principalId)" -ErrorAction SilentlyContinue
             if ($user.mail) {                
+                [string]$licensesString = ""
                 $Licenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -OdSelect "licenseAssignmentStates"
+                $Licenses | ForEach-Object {
+                    if ($licensesString) {
+                        $licensesString += "+"
+                    }
+                    $licensesString += ($allSkus | Where-Object { $_.skuId -eq $Licenses.licenseAssignmentStates.skuId }).skuPartNumber
+                }
                 $msolUserResults += New-Object psobject -Property @{
                     DisplayName = $user.displayName
                     UPN         = $user.userPrincipalName
                     IsLicensed  = ($Licenses.licenseAssignmentStates.count -gt 0)
-                    Licenses    = ($Licenses.licenseAssignmentStates.skuId | ForEach-Object { "$_;" } )
+                    Licenses    = $licensesString
                     Adminrole   = $role.displayName
                 }
             }
@@ -316,21 +324,28 @@ if ($exportToFile) {
         $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
         Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
         Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
-        #Create signed (SAS) link
-        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
-        "$SASLink"
+        if ($produceLinks) {
+            #Create signed (SAS) link
+            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
+            "$SASLink"
+        }
+        "## '$zipFileName' upload successful."
     }
     else {
         # Upload all files individually
         Get-ChildItem -Path $OutPutPath | ForEach-Object {
             Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
-            #Create signed (SAS) link
-            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
-            "$($_.Name): $SASLink"
+            if ($produceLinks) {
+                #Create signed (SAS) link
+                $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
+                "$($_.Name): $SASLink"
+            }
         }
+        "## upload of CSVs successful."
     }
-  
-    ""
-    "## Expiry of Links: $EndTime"
+    if ($produceLinks) {
+        ""
+        "## Expiry of Links: $EndTime"
+    }
 }
 #endregion
