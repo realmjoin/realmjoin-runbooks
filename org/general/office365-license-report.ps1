@@ -90,10 +90,10 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
     ""
     "## Please configure the following attributes in the RJ central datastore:"
-    "## - OfficeLicensingReportv2.ResourceGroup"
-    "## - OfficeLicensingReportv2.StorageAccount.Name"
-    "## - OfficeLicensingReportv2.StorageAccount.Location"
-    "## - OfficeLicensingReportv2.StorageAccount.Sku"
+    "## - OfficeLicensingReport.ResourceGroup"
+    "## - OfficeLicensingReport.StorageAccount.Name"
+    "## - OfficeLicensingReport.StorageAccount.Location"
+    "## - OfficeLicensingReport.StorageAccount.Sku"
     ""
     "## Disabling CSV export..."
     $exportToFile = $false
@@ -215,8 +215,9 @@ function Get-UnusedLicenseReport {
         } 
     }
     catch {
-        Write-Host "Fehler bei Abruf der nicht genutzten Lizenzen"
-        Write-Host $_.Exception.Message
+        "## Error fetching unused licenses"
+        $_.Exception.Message 
+        "## Maybe missing MS Graph permission: Reports.Read.All"
     }
 }
 
