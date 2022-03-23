@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-03-23
+
+* user_security_reset-mfa: Include reset of OATH and FIDO2 methods
+
 ## 1.0.1 (2022-03-10)
 
 * Office 365 Lic. Reporting v2
