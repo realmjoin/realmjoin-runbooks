@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-03-30
+
+* new runbook: List mailbox permissions
+
 ## 2022-03-23
 
 * user_security_reset-mfa: Include reset of OATH and FIDO2 methods
