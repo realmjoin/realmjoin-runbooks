@@ -46,7 +46,7 @@ try {
     }
 
     "## Dump Mailbox Permission Details for $userName"
-    Get-MailboxPermission -Identity $UserName | Format-Table -Property User,AccessRights -AutoSize | Out-String
+    Get-MailboxPermission -Identity $UserName | Where-Object {($_.user -like '*@*')} | Format-Table -Property Identity, User,AccessRights -AutoSize | Out-String
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
