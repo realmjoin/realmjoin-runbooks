@@ -1,5 +1,22 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-11
+
+* moved to lincensing report v2 
+
+## 2022-03-30
+
+* new runbook: List mailbox permissions
+
+## 2022-03-23
+
+* user_security_reset-mfa: Include reset of OATH and FIDO2 methods
+
+## 1.0.1 (2022-03-10)
+
+* Office 365 Lic. Reporting v2
+  * Merged with 'CloudEconimics' reports intended for PowerBI
+
 ## 2022-02-16
 
 * New Runbook: Set PAL / Azure Management Parner Link
