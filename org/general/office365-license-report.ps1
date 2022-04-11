@@ -59,9 +59,9 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
 
 param(
-    [ValidateScript( { Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
     [bool] $printOverview = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Include Exchange Reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Include Exchange Reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
     [bool] $includeExhange = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Export reports to Az Storage Account?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
@@ -199,7 +199,8 @@ function Get-LicenseOverviewReport {
     $results | sort-object -property Name | format-table | out-string
     ""
     if ($TXTPath) {
-        $results | sort-object -property Name | format-table > "$($TXTPath)\office-licensing.txt"
+        #$results | sort-object -property Name | format-table > "$($TXTPath)\office-licensing.txt"
+        $results | sort-object -property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation 
     }
 }
 
@@ -312,7 +313,8 @@ function Get-AssignedPlans {
 
     $users | ForEach-Object {
         $thisUser = $_
-        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
+        #        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
+        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
     } | ConvertTo-Csv -NoTypeInformation | Out-File $Path -Append
 }   
 function Get-LicenseAssignmentPath {
@@ -410,10 +412,8 @@ else {
     Get-ChildItem -Path $OutPutPath -Filter *.txt  | Remove-Item | Out-Null
 }
 
-if ($printOverview) {
-    "## Collecting: License Usage Overview"
-    Get-LicenseOverviewReport -TXTPath $OutPutPath -printOverview $printOverview
-}
+"## Collecting: License Usage Overview"
+Get-LicenseOverviewReport -TXTPath $OutPutPath -printOverview $printOverview
 
 if ($exportToFile) {  
 
@@ -429,7 +429,7 @@ if ($exportToFile) {
     Get-LoginLogs -CSVPath $OutPutPath
 
     "## Collecting: All user objects"
-    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation
+    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation
 
     "## Collecting: Assigned License Plans"
     Get-AssignedPlans -CSVPath $OutPutPath

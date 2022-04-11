@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-11
+
+* moved to lincensing report v2 
+
 ## 2022-03-30
 
 * new runbook: List mailbox permissions
