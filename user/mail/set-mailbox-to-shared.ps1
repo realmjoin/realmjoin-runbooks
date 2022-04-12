@@ -8,7 +8,7 @@
   .NOTES
   Permissions given to the Az Automation RunAs Account:
   AzureAD Roles:
-  - Exchange administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  - Exchange administrator
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
 
@@ -66,11 +66,10 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox"} )]
     [string] $UserName,
-    [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
-    [bool] $Remove = $false,
+    [bool] $Revert = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
     # CallerName is tracked purely for auditing purposes
@@ -97,11 +96,14 @@ try {
 
     ""
 
-    if ($Remove) {
+    if ($Revert) {
         # Remove access
-        
-        Remove-MailboxPermission $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
-        "## FullAccess Permission for $delegateTo removed from mailbox $UserName"
+        $PermittedUsers = Get-MailboxPermission -Identity $UserName | Format-List
+        foreach($PermittedUser in $PermittedUsers){
+            Remove-MailboxPermission $UserName -User $PermittedUser -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
+            "## FullAccess Permission for $PermittedUser reverted from mailbox $UserName"
+        }
+    
         Set-Mailbox $UserName -Type regular
         "## Mailbox $UserName turned into regular Mailbox"
     }
