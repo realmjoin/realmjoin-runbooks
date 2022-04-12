@@ -3,6 +3,7 @@
 ## 2022-04-11
 
 * moved to lincensing report v2 
+* report "SendAs" and "SendOnBehalf" in List Mailbox Permissions
 
 ## 2022-03-30
 
