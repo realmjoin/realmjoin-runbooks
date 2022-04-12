@@ -66,10 +66,11 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox"} )]
     [string] $UserName,
+    [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
-    [bool] $Revert = $false,
+    [bool] $Remove = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
     # CallerName is tracked purely for auditing purposes
@@ -96,7 +97,7 @@ try {
 
     ""
 
-    if ($Revert) {
+    if ($Remove) {
         # Remove access
         $PermittedUsers = Get-MailboxPermission -Identity $UserName | Format-List
         foreach($PermittedUser in $PermittedUsers){
