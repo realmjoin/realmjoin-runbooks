@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-12
+* new runbook: Archive Team
+
 ## 2022-04-11
 
 * moved to lincensing report v2 
