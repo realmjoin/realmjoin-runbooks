@@ -110,7 +110,7 @@ try {
             "## SendAs/SendOnBehalf Permission for $($PermittedRecipient) reverted from mailbox $UserName"
         }
     
-        Set-Mailbox $UserName -Type regular
+        Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null
         "## Mailbox $UserName turned into regular Mailbox"
     }
     else {
