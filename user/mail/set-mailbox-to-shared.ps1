@@ -99,10 +99,15 @@ try {
 
     if ($Remove) {
         # Remove access
-        $PermittedUsers = Get-MailboxPermission -Identity $UserName | Format-List
+        $PermittedUsers = Get-MailboxPermission -Identity $UserName | Where-Object { $_.User -ne "NT AUTHORITY\SELF" }
         foreach($PermittedUser in $PermittedUsers){
-            Remove-MailboxPermission $UserName -User $PermittedUser -AccessRights FullAccess -InheritanceType All -confirm:$false | Out-Null
-            "## FullAccess Permission for $PermittedUser reverted from mailbox $UserName"
+            Remove-MailboxPermission -Identity $UserName -User $PermittedUser.User -AccessRights $PermittedUser.AccessRights -InheritanceType All -confirm:$false | Out-Null
+            "## Mailbox Access Permission for $($PermittedUser.User) reverted from mailbox $UserName"
+        }
+        $PermittedRecipients = Get-RecipientPermission -Identity $UserName | Where-Object { $_.Trustee -ne "NT AUTHORITY\SELF" }
+        foreach($PermittedRecipient in $PermittedRecipients){
+            Remove-RecipientPermission -Identity $UserName -Trustee $PermittedRecipient.Trustee -AccessRights $PermittedRecipient.AccessRights -confirm:$false | Out-Null
+            "## SendAs/SendOnBehalf Permission for $($PermittedRecipient) reverted from mailbox $UserName"
         }
     
         Set-Mailbox $UserName -Type regular
