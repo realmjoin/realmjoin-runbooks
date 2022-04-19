@@ -93,8 +93,8 @@ try {
     }
 
     ""
-    "## Dump Mailbox Permission Details"
-    Get-MailboxPermission -Identity $UserName
+    "## Dump Recipient/Sender Permissions for '$UserName'"
+    Get-RecipientPermission -Identity $UserName | Where-Object {($_.Trustee -like '*@*')} | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
 
 }
 finally {
