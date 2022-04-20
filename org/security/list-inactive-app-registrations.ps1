@@ -22,7 +22,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" },Microsoft.Graph
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Microsoft.Graph
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Days without user logon" } )]
@@ -33,7 +33,7 @@ param(
 )
 
 Connect-RjRbGraph
-
+Connect-MgGraph
 # Calculate "last sign in date"
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 #$filter='createdDateTime le ' + $lastSignInDate + 'T00:00:00Z'
@@ -45,6 +45,6 @@ Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" | Select-Object -Prope
     if($first.createdDateTime -le $lastSignInDate){
          $first
          #Invoke-RjRbRestMethodGraph -Resource"/applications/$($_.appId)" -Method Patch -body {Notes =  $($first.createdDateTime)} 
-         
+         #Update-MgApplication -ApplicationId $first.appId -Notes (convert-string -InputObject $first.createdDateTime)
     }
 }
