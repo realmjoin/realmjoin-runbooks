@@ -12,6 +12,25 @@
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
+            "Select": {
+                    "Options": [
+                        {
+                            "Display": "Turn mailbox into shared mailbox",
+                            "Customization": {
+                                "Default": {
+                                    "Delete": false
+                                }
+                            }
+                        }, {
+                            "Display": "turn shared mailbox back into regular mailbox",
+                            "Customization": {
+                                "Default": {
+                                    "Delete": true
+                                }
+                            }
+                        }
+                    ]
+                },
             "CallerName": {
                 "Hide": true
             }
@@ -23,6 +42,8 @@
 param (
     [ValidateScript( { Use-RJInterface -DisplayName "Maximum Age for a Password" } )]
     [int] $Days = 30,
+    [ValidateScript( { Use-RJInterface -DisplayName "Delete abandoned devices" } )]
+    [bool] $Delete = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
