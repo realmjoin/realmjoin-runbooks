@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-20
+* Bugfix: Corrected reporting for SendOnBehalf Mailbox permissions in multiple runbooks
+* Better usernames reporting in user/mail runbooks
+
 ## 2022-04-12
 * new runbook: Archive Team
 

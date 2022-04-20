@@ -42,16 +42,27 @@ try {
     # Check if User has a mailbox
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
-        throw "User  object $userName has no mailbox."
+        throw "User  object '$UserName' has no mailbox."
     }
 
-    "## Dump Mailbox Permission Details for $userName"
+    "## Dump Mailbox Permission Details for '$UserName'"
     ""
     "## Mailbox Access Permissions"
     Get-MailboxPermission -Identity $UserName | Where-Object {($_.user -like '*@*')} | Format-Table -Property Identity, User,AccessRights -AutoSize | Out-String
     ""
-    "## Recipient/Sender Permissions"
+    "## Recipient/Sender (SendAs) Permissions"
     Get-RecipientPermission -Identity $UserName | Where-Object {($_.Trustee -like '*@*')} | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
+    ""
+    "## SendOnBehalf Permissions"
+    (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
+        $sobTrustee = Get-EXOMailbox -Identity $_
+        $result = @{}
+        $result.Identity = $user.Identity
+        $result.Trustee = $sobTrustee.UserPrincipalName
+        $result.AccessRights = "{SendOnBehalf}"
+        [PsCustomObject]$result
+    } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
