@@ -23,7 +23,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" },MSOnline
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" },Microsoft.Graph
 
 param(
     [Parameter(Mandatory = $true)]
