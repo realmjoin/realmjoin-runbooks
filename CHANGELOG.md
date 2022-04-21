@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-21
+
+* New Runbook: Set Room Mailbox Configuration
+  
+  Configure BookIn Policy, Auto-acceptance and other settings specific to room resources.
+
 ## 2022-04-20
 * Bugfix: Corrected reporting for SendOnBehalf Mailbox permissions in multiple runbooks
 * Better usernames reporting in user/mail runbooks
