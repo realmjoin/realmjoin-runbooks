@@ -76,25 +76,27 @@ try {
     Connect-RjRbExchangeOnline
 
     # Check if User has a mailbox
-    # No need to check trustee for a mailbox with "SendAs"
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
         throw "User $userName has no mailbox."
     }
 
+    # Just collect trustee for better output
+    $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue
+
     if ($Remove) {
         Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "## SendAs Permission for $delegateTo removed from mailbox $UserName"
+        "## SendAs Permission for '$($trustee.UserPrincipalName)' removed from mailbox '$UserName'"
     }
     else {
         Add-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "## SendAs Permission for $delegateTo added to mailbox  $UserName"
+        "## SendAs Permission for '$($trustee.UserPrincipalName)' added to mailbox '$UserName'"
     }
 
     ""
-    "## Dump Mailbox Permission Details"
-    Get-MailboxPermission -Identity $UserName
+    "## Dump Recipient/Sender (SendAs) Permissions for '$UserName'"
+    Get-RecipientPermission -Identity $UserName | Where-Object { ($_.Trustee -like '*@*') } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
 
 }
 finally {
