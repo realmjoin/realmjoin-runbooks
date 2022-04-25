@@ -22,29 +22,38 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Microsoft.Graph
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Days without user logon" } )]
-    [int] $Days = 90,
+    [int] $Days = 2,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
 Connect-RjRbGraph
-Connect-MgGraph
+#Connect-MgGraph
 # Calculate "last sign in date"
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 #$filter='createdDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 
 "## Inactive Applications (No SignIn since at least $Days days):"
 ""
-Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" | Select-Object -Property appDisplayName,appId,createdDateTime | Group-Object -Property appDisplayName | ForEach-Object {
-    $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object First 1
+Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" | Select-Object -Property appDisplayName,appId,createdDateTime | Group-Object -Property Id | ForEach-Object {
+    $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object -First 1
     if($first.createdDateTime -le $lastSignInDate){
-         $first
-         #Invoke-RjRbRestMethodGraph -Resource"/applications/$($_.appId)" -Method Patch -body {Notes =  $($first.createdDateTime)} 
-         #Update-MgApplication -ApplicationId $first.appId -Notes (convert-string -InputObject $first.createdDateTime)
+        $first.appId
+         try {
+            $app = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
+            write-output $app
+            
+            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($app.Id)" -Method Patch -body @{ notes = $(($first.createdDateTime).ToString('o')) }
+        }
+         catch {
+             Write-Output "fail"
+             $_
+         
+       }
     }
 }
