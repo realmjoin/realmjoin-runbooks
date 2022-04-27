@@ -51,7 +51,7 @@ param(
     [bool] $MailEnabled = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Group is securiry-enabled" } )]
     [bool] $SecurityEnabled = $true,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
     [string] $CallerName
 )
