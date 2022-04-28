@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-04-28
+
+* New Runbook: Convert user mailbox to shared mailbox
+
 ## 2022-04-21
 
 * New Runbook: Set Room Mailbox Configuration
