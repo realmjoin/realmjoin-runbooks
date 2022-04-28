@@ -42,7 +42,8 @@
                                     "Remove": true
                                 },
                                 "Hide": [
-                                    "AutoMapping"
+                                    "AutoMapping",
+                                    "delegateTo"
                                 ]
                             }
                         }
@@ -66,7 +67,6 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox"} )]
     [string] $UserName,
-    [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
@@ -107,7 +107,7 @@ try {
         $PermittedRecipients = Get-RecipientPermission -Identity $UserName | Where-Object { $_.Trustee -ne "NT AUTHORITY\SELF" }
         foreach($PermittedRecipient in $PermittedRecipients){
             Remove-RecipientPermission -Identity $UserName -Trustee $PermittedRecipient.Trustee -AccessRights $PermittedRecipient.AccessRights -confirm:$false | Out-Null
-            "## SendAs/SendOnBehalf Permission for $($PermittedRecipient) reverted from mailbox $UserName"
+            "## SendAs/SendOnBehalf Permission for $($PermittedRecipient.Trustee) reverted from mailbox $UserName"
         }
     
         Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null
