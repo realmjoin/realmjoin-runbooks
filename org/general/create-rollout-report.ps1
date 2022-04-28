@@ -79,69 +79,6 @@ $SKUs | ForEach-Object {
     $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
 }
 
-function Get-AssignedPlans {
-    [cmdletbinding()]
-    param(
-        [parameter(Mandatory = $true)][string]$CSVPath
-    )
-    $reportname = "\assignedPlans"
-    $Path = $CSVPath + $reportname + ".csv"
-    #alle lizenzierten Benutzer
-    $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"  
-
-    $users | ForEach-Object {
-        $thisUser = $_
-        #        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
-        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
-    } | ConvertTo-Csv -NoTypeInformation | Out-File $Path -Append
-}   
-
-function Get-LicenseAssignmentPath {
-    [cmdletbinding()]
-    param(
-        [parameter(Mandatory = $true)][string]$CSVPath
-    )
-    $reportname = "\LicenseAssignmentPath"
-    $Path = $CSVPath + $reportname + ".csv"
-    $users = Invoke-RjRbRestMethodGraph -Resource "/users" -OdSelect "licenseAssignmentStates,userPrincipalName" -FollowPaging
-
-    foreach ($user in $users) {
-        foreach ($sku in $user.licenseAssignmentStates) {
-            $skuPartNumber = $SkuHashtable[$sku.skuId]
-
-            $UserHasLicenseAssignedDirectly = $null -eq $sku.assignedByGroup
-            $UserHasLicenseAssignedFromGroup = -not $UserHasLicenseAssignedDirectly
-
-            $obj = $user
-            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force 
-            $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -value $UserHasLicenseAssignedDirectly -Force
-            $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -value $UserHasLicenseAssignedFromGroup -Force
-            $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation
-        }
-    }
-}  
-function Get-LicensingGroups {
-    [cmdletbinding()]
-    param(
-        [parameter(Mandatory = $true)][string]$CSVPath
-    )
-    $reportname = "\LicensingGroups"
-    $Path = $CSVPath + $reportname + ".csv"
-    $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdSelect "assignedLicenses,id,displayName" -FollowPaging | Where-Object { $_.assignedLicenses }
-    foreach ($group in $groups) {
-        $LicenseString = ""
-        foreach ($assignedLicense in  $group.assignedLicenses) {
-            $LicenseString += $SkuHashtable[$assignedLicense.skuId] + "; "
-        }
-        $obj = New-Object pscustomobject -Property @{
-            GroupLicense = $LicenseString
-            GroupName    = $group.displayName
-            GroupId      = $group.id
-        }
-        $obj | Export-Csv $Path -Append -NoTypeInformation
-    } 
-}   
-
 # start of main script
 
 if (-Not (Test-Path -Path $OutPutPath)) {
