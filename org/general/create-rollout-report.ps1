@@ -155,14 +155,14 @@ else {
 
 if ($exportToFile) {  
 
-    "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
+    "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;onPremisesSamAccountName;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
     "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate" > ($OutPutPath + "devices.csv")
-    "userPrincipalName;GroupName" > ($OutPutPath + "groups.csv")
+    "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
     "userPrincipalName;LicenseName;DirectAssignment;GroupName" > ($OutPutPath + "licenses.csv")
 
 
     # Collecting: All user objects
-    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates" | ForEach-Object {
+    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" | ForEach-Object {
         $user = $_
 
         # Filter Exchange special objects...
@@ -202,7 +202,7 @@ if ($exportToFile) {
             $user | Add-Member -NotePropertyName "MFAFido2" -NotePropertyValue ([string]($null -ne $fido2AMs))
             $user | Add-Member -NotePropertyName "MFAApp" -NotePropertyValue ([string]($null -ne $appAMs))
       
-            $user.userPrincipalName + ";" + $user.userType + ";" + $user.accountEnabled + ";" + $user.surname + ";" + $user.givenName + ";" + $user.companyName + ";" + $user.department + ";" + $user.jobTitle + ";" + $user.mail + ";" + $user.MFA + ";" + $user.MFAMobilePhone + ";" + $user.MFAOATH + ";" + $user.MFAFido2 + ";" + $user.MFAApp >> ($OutPutPath + "users.csv") 
+            $user.userPrincipalName + ";" + $user.userType + ";" + $user.accountEnabled + ";" + $user.surname + ";" + $user.givenName + ";" + $user.companyName + ";" + $user.department + ";" + $user.jobTitle + ";" + $user.mail + ";" + $user.onPremisesSamAccountName + ";" + $user.MFA + ";" + $user.MFAMobilePhone + ";" + $user.MFAOATH + ";" + $user.MFAFido2 + ";" + $user.MFAApp >> ($OutPutPath + "users.csv") 
 
             # Check Devices.
             Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/ownedDevices" | ForEach-Object {
@@ -212,8 +212,8 @@ if ($exportToFile) {
 
             # Check Groups.
             Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/getMemberGroups" -Method POST -Body @{ "securityEnabledOnly" = $false } | ForEach-Object {
-                $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_)"
-                $user.userPrincipalName + ";" + $group.displayName >> ($OutPutPath + "groups.csv")
+                $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_)" -OdSelect "displayName,onPremisesSamAccountName"
+                $user.userPrincipalName + ";" + $group.displayName + ";" + $group.onPremisesSamAccountName >> ($OutPutPath + "groups.csv")
             }
 
             # Check Licenses.
