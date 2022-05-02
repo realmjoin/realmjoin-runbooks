@@ -79,6 +79,10 @@ $SKUs | ForEach-Object {
     $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
 }
 
+# Group Hashtable - build ID->DisplayName lookup over time.
+$GroupNameHashtable = @{}
+$GroupSamHashtable = @{}
+
 # start of main script
 
 if (-Not (Test-Path -Path $OutPutPath)) {
@@ -111,6 +115,7 @@ if ($exportToFile) {
             Disconnect-ExchangeOnline -Confirm:$false
             Connect-RjRbGraph -Force
             Connect-RjRbExchangeOnline
+            $timerAuth = get-date
         }
         
         if ((get-date) -gt ($timerProgress + $intervalProgress)) {
@@ -165,7 +170,8 @@ if ($exportToFile) {
                 $device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
                 if ($device.registrationDateTime) {
                     $regDate = (get-date $device.registrationDateTime -Format "dd.MM.yyyy")
-                } else {
+                }
+                else {
                     $regDate = ""
                 }
                 $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate >> ($OutPutPath + "devices.csv")
@@ -173,13 +179,20 @@ if ($exportToFile) {
 
             # Check Groups.
             Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/getMemberGroups" -Method POST -Body @{ "securityEnabledOnly" = $false } | ForEach-Object {
-                $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_)" -OdSelect "displayName,onPremisesSamAccountName"
-                $user.userPrincipalName + ";" + $group.displayName + ";" + $group.onPremisesSamAccountName >> ($OutPutPath + "groups.csv")
+                if ($GroupNameHashtable.Contains("$_")) {
+                    $user.userPrincipalName + ";" + $GroupNameHashtable["$_"] + ";" + $GroupSamHashtable["$_"] >> ($OutPutPath + "groups.csv")
+                }
+                else {
+                    $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_)" -OdSelect "displayName,onPremisesSamAccountName"
+                    $GroupNameHashtable["$_"] = $group.displayName
+                    $GroupSamHashtable["$_"] = $group.onPremisesSamAccountName
+                    $user.userPrincipalName + ";" + $group.displayName + ";" + $group.onPremisesSamAccountName >> ($OutPutPath + "groups.csv")
+                }
             }
 
             # Check Licenses.
             $user.licenseAssignmentStates | ForEach-Object {
-                $sku=$_
+                $sku = $_
                 $groupName = ""
                 $skuPartNumber = $SkuHashtable[$sku.skuId]
                 if ($sku.assignedByGroup) {
@@ -191,7 +204,7 @@ if ($exportToFile) {
         } 
     } 
 
-    Disconnect-ExchangeOnline -Confirm:$false |Out-Null
+    Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 
     ###
 
