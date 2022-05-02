@@ -109,7 +109,7 @@ if ($exportToFile) {
 
 
     # Collecting: All user objects
-    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" | ForEach-Object {
+    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" -OdFilter "userType eq 'Member'" | ForEach-Object {
         if ((get-date) -gt ($timerAuth + $intervalAuth)) {
             "## Reauthenticating..."
             Disconnect-ExchangeOnline -Confirm:$false
