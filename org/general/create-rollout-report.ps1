@@ -144,7 +144,12 @@ if ($exportToFile) {
             # Check Devices.
             Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/ownedDevices" | ForEach-Object {
                 $device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
-                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + (get-date $device.registrationDateTime -Format "dd.MM.yyyy") >> ($OutPutPath + "devices.csv")
+                if ($device.registrationDateTime) {
+                    $regDate = (get-date $device.registrationDateTime -Format "dd.MM.yyyy")
+                } else {
+                    $regDate = ""
+                }
+                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate >> ($OutPutPath + "devices.csv")
             }
 
             # Check Groups.
@@ -200,7 +205,7 @@ if ($exportToFile) {
 
     "## Upload"
     if ($exportAsZip) {
-        $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
+        $zipFileName = "rollout-report-" + (get-date -Format "yyyy-MM-dd") + ".zip"
         Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
         Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
         if ($produceLinks) {
