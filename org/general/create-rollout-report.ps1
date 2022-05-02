@@ -92,6 +92,12 @@ else {
 
 if ($exportToFile) {  
 
+    $intervalAuth = New-TimeSpan -Minutes 30
+    $timerAuth = Get-Date
+    $intervalProgress = New-TimeSpan -Minutes 1
+    $timerProgress = Get-Date
+    $userCount = 0
+
     "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;onPremisesSamAccountName;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
     "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate" > ($OutPutPath + "devices.csv")
     "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
@@ -100,6 +106,19 @@ if ($exportToFile) {
 
     # Collecting: All user objects
     Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" | ForEach-Object {
+        if ((get-date) -gt ($timerAuth + $intervalAuth)) {
+            "## Reauthenticating..."
+            Disconnect-ExchangeOnline -Confirm:$false
+            Connect-RjRbGraph -Force
+            Connect-RjRbExchangeOnline
+        }
+        
+        if ((get-date) -gt ($timerProgress + $intervalProgress)) {
+            "## Users processed: $userCount"
+            $timerProgress = Get-Date
+        }
+        $userCount++;
+
         $user = $_
 
         # Filter Exchange special objects...
@@ -172,6 +191,7 @@ if ($exportToFile) {
         } 
     } 
 
+    Disconnect-ExchangeOnline -Confirm:$false |Out-Null
 
     ###
 
