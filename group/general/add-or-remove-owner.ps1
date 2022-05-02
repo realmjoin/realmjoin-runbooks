@@ -67,6 +67,11 @@ if (-not $targetGroup) {
 
 # Work on AzureAD based groups
 if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEnabled)) {
+    # Prepare Request
+    $body = @{
+        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
+    }
+    
     # "Is user owner of the the group?" 
     if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -ErrorAction SilentlyContinue) {
         if ($Remove) {
@@ -82,11 +87,14 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
             "## User '$($targetUser.UserPrincipalName)' is not an owner of '$($targetGroup.DisplayName)'. No action taken."
         }
         else {
-            $body = @{
-                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
-            }
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)' owners."    
+            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)' owners."  
+            
+            # Check members - owners also have to be members
+            if (-not (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserID" -ErrorAction SilentlyContinue)) {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
+                "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)' members."
+            }
         }
     }
 } 
