@@ -103,7 +103,7 @@ if ($exportToFile) {
     $userCount = 0
 
     "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;onPremisesSamAccountName;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
-    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate" > ($OutPutPath + "devices.csv")
+    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant" > ($OutPutPath + "devices.csv")
     "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
     "userPrincipalName;LicenseName;DirectAssignment;GroupName" > ($OutPutPath + "licenses.csv")
 
@@ -174,7 +174,7 @@ if ($exportToFile) {
                 else {
                     $regDate = ""
                 }
-                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate >> ($OutPutPath + "devices.csv")
+                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate + ";" + $device.trustType + ";" + $device.mdmAppId + ";" + $device.isCompliant >> ($OutPutPath + "devices.csv")
             }
 
             # Check Groups.
@@ -205,6 +205,8 @@ if ($exportToFile) {
     } 
 
     Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+
+    Invoke-RjRbRestMethodGraph -Resource "/devices" -FollowPaging | ConvertTo-Csv > ($OutPutPath + "devicesRaw.csv")
 
     ###
 
