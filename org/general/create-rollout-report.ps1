@@ -27,7 +27,7 @@
 param(
     # Make a persistent container the default, so you can simply update PowerBI's report from the same source
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RolloutReport.Container" } )]
-    [string] $ContainerName = "rjrb-licensing-report-v2",
+    [string] $ContainerName = "rjrb-rollout-report",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RolloutReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RolloutReport.StorageAccount.Name" } )]
