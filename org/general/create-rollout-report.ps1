@@ -74,7 +74,7 @@ Connect-RjRbExchangeOnline
 
 # "Get SKUs and build a lookuptable for SKU IDs"
 $SkuHashtable = @{}
-$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" -FollowPaging
 $SKUs | ForEach-Object {
     $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
 }
@@ -166,7 +166,7 @@ if ($exportToFile) {
             $user.userPrincipalName + ";" + $user.userType + ";" + $user.accountEnabled + ";" + $user.surname + ";" + $user.givenName + ";" + $user.companyName + ";" + $user.department + ";" + $user.jobTitle + ";" + $user.mail + ";" + $user.onPremisesSamAccountName + ";" + $user.MFA + ";" + $user.MFAMobilePhone + ";" + $user.MFAOATH + ";" + $user.MFAFido2 + ";" + $user.MFAApp >> ($OutPutPath + "users.csv") 
 
             # Check Devices.
-            Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/ownedDevices" | ForEach-Object {
+            Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/ownedDevices" -FollowPaging | ForEach-Object {
                 $device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
                 if ($device.registrationDateTime) {
                     $regDate = (get-date $device.registrationDateTime -Format "dd.MM.yyyy")
@@ -178,7 +178,7 @@ if ($exportToFile) {
             }
 
             # Check Groups.
-            Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/getMemberGroups" -Method POST -Body @{ "securityEnabledOnly" = $false } | ForEach-Object {
+            Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/getMemberGroups" -Method POST -Body @{ "securityEnabledOnly" = $false } -FollowPaging | ForEach-Object {
                 if ($GroupNameHashtable.Contains("$_")) {
                     $user.userPrincipalName + ";" + $GroupNameHashtable["$_"] + ";" + $GroupSamHashtable["$_"] >> ($OutPutPath + "groups.csv")
                 }
@@ -196,7 +196,7 @@ if ($exportToFile) {
                 $groupName = ""
                 $skuPartNumber = $SkuHashtable[$sku.skuId]
                 if ($sku.assignedByGroup) {
-                    $groupName = (Invoke-RjRbRestMethodGraph -Resource "/groups/$($sku.assignedByGroup)").displayName
+                    $groupName = (Invoke-RjRbRestMethodGraph -Resource "/groups/$($sku.assignedByGroup)" -FollowPaging).displayName
                 }
 
                 $user.userPrincipalName + ";" + $skuPartNumber + ";" + ([string]($null -eq $sku.assignedByGroup)) + ";" + $groupName >> ($OutPutPath + "licenses.csv")
