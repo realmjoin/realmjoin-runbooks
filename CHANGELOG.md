@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-05
+
+* New Runbooks using MDE / Defenter ATP
+  * Isolate Device
+  * Restrict Code Execution
+
 ## 2022-04-28
 
 * New Runbook: Convert user mailbox to shared mailbox
