@@ -1,5 +1,20 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-06
+
+* List expiring app credentials: Can limit output to creds about to expire.
+* New Runbook: Report changes to Cond. Access Policies via eMail
+  * intended for scheduled execution (daily)
+  * needs Send eMail permissions 
+* New Runbook: List devices of members (users) in a group
+  * Can optionally collect the devices into an AAD group
+
+## 2022-05-05
+
+* New Runbooks using MDE / Defenter ATP
+  * Isolate Device
+  * Restrict Code Execution
+
 ## 2022-04-28
 
 * New Runbook: Convert user mailbox to shared mailbox

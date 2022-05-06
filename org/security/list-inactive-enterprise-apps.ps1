@@ -8,9 +8,8 @@
   .NOTES
   Permissions
   MS Graph (API):
-  - Application.ReadWrite.All
-  - AuditLog.Read.All 
   - Directory.Read.All
+  - Device.Read.All
 
   .INPUTS
   RunbookCustomization: {
@@ -34,6 +33,7 @@ param(
 )
 
 Connect-RjRbGraph
+#Connect-MgGraph
 # Calculate "last sign in date"
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 #$filter='createdDateTime le ' + $lastSignInDate + 'T00:00:00Z'
@@ -41,39 +41,33 @@ $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yy
 "## Inactive Applications (No SignIn since at least $Days days):"
 ""
 [array]$UsedApps = @()
-Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" -FollowPaging | Select-Object -Property appDisplayName,appId,createdDateTime | Group-Object -Property appId | ForEach-Object {
+Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" | Select-Object -Property appDisplayName, appId, createdDateTime | Group-Object -Property appId | ForEach-Object {
     $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object -First 1
-    $app = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
-    if ($app) {
-        $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
-    }
+    $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
+    
 
-    if($first.createdDateTime -le $lastSignInDate){
-         try {
-            if ($app) { 
+    
+    if ($first.createdDateTime -le $lastSignInDate) {
+        try {
             $app = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
-            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($app.Id)" -Method Patch -body @{ notes = $(($first.createdDateTime).ToString()) }
-            } else {
-                "## AppId $($first.appId) not found"
-            }
+            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($app.Id)" -Method Patch -body @{ notes = $(($first.createdDateTime).ToString('o')) }
             $loginTime = New-TimeSpan -Start $first.createdDateTime -End (Get-Date) 
-            "## $($app.appDisplayName) ($($app.appId)) no logins for $($loginTime.Days) Days"
+            "## $($app.appDisplayName) no logins for $($loginTime.Days) Days"
+
         }
-         catch {
-             $_
+        catch {
+            $_
          
-       }
+        }
     }
 }
 
 try {
 
-    $AllApps = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -FollowPaging
+    $AllApps = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals"
     $unusedApps = (Compare-Object $AllApps $UsedApps).InputObject
-    ""
-    "## No Login found:"
-    foreach($unusedApp in $unusedApps){
-        "## $($unusedApp.appDisplayName) ($($app.appId))"
+    foreach ($unusedApp in $unusedApps) {
+        "## $($unusedApp.appDisplayName): no Login found"
     }
 }
 catch {
