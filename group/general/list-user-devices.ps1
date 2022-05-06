@@ -73,7 +73,7 @@ param(
 Connect-RjRbGraph
 $devicelist = New-Object System.Collections.ArrayList
 try {
-    $GroupMembers = Invoke-RjRbRestMethodGraph -Resource "/Groups/$($GroupID)/Members"
+    $GroupMembers = Invoke-RjRbRestMethodGraph -Resource "/Groups/$($GroupID)/Members" -FollowPaging
     foreach ($GroupMember in $GroupMembers) {
 
         try {  
