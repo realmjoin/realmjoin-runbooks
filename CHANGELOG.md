@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+
+## 2022-05-09
+* MWP Rollout Report: Support corelating devices via "registered" relationship (not only "owned" relationship)
+
 ## 2022-05-06
 
 * List expiring app credentials: Can limit output to creds about to expire.

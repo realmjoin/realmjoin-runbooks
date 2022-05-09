@@ -20,11 +20,37 @@
     }
   }
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "trackOwnedDevices": {
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Corelate using ownedDevices",
+                            "ParameterValue": true,
+                        },
+                        {
+                            "Display": "Corelate using registeredDevices",
+                            "ParameterValue": false
+                        }
+                    ]
+                }
+            }  
+        }
+    }
+
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
+    [ValidateScript( { Use-RJInterface -DisplayName "Corelate users to device via ownedDevices or registeredDevices?" } )]
+    [bool] $trackOwnedDevices = $true,
     # Make a persistent container the default, so you can simply update PowerBI's report from the same source
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RolloutReport.Container" } )]
     [string] $ContainerName = "rjrb-rollout-report",
@@ -36,16 +62,16 @@ param(
     [string] $StorageAccountLocation,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RolloutReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
-    # CallerName is tracked purely for auditing purposes
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-
     [ValidateScript( { Use-RJInterface -DisplayName "Export reports to Az Storage Account?" -Type Setting -Attribute "RolloutReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Export reports as single ZIP file?" -Type Setting -Attribute "RolloutReport.ExportToZIPFile" } )]
     [bool] $exportAsZip = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "RolloutReport.CreateLinks" } )]
-    [bool] $produceLinks = $true
+    [bool] $produceLinks = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
+    
 )
 
 # Sanity checks
@@ -166,7 +192,13 @@ if ($exportToFile) {
             $user.userPrincipalName + ";" + $user.userType + ";" + $user.accountEnabled + ";" + $user.surname + ";" + $user.givenName + ";" + $user.companyName + ";" + $user.department + ";" + $user.jobTitle + ";" + $user.mail + ";" + $user.onPremisesSamAccountName + ";" + $user.MFA + ";" + $user.MFAMobilePhone + ";" + $user.MFAOATH + ";" + $user.MFAFido2 + ";" + $user.MFAApp >> ($OutPutPath + "users.csv") 
 
             # Check Devices.
-            Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/ownedDevices" -FollowPaging | ForEach-Object {
+            $userDevices = @()
+            if ($trackOwnedDevices) {
+                $userDevices=Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/ownedDevices" -FollowPaging
+            } else {
+                $userDevices=Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/registeredDevices" -FollowPaging
+            }
+            $userDevices | ForEach-Object {
                 $device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
                 if ($device.registrationDateTime) {
                     $regDate = (get-date $device.registrationDateTime -Format "dd.MM.yyyy")
