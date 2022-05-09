@@ -129,7 +129,7 @@ if ($exportToFile) {
     $userCount = 0
 
     "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;onPremisesSamAccountName;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
-    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant" > ($OutPutPath + "devices.csv")
+    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant;deviceId" > ($OutPutPath + "devices.csv")
     "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
     "userPrincipalName;LicenseName;DirectAssignment;GroupName" > ($OutPutPath + "licenses.csv")
 
@@ -199,14 +199,15 @@ if ($exportToFile) {
                 $userDevices=Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/registeredDevices" -FollowPaging
             }
             $userDevices | ForEach-Object {
-                $device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
+                #$device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
+                $device = $_
                 if ($device.registrationDateTime) {
                     $regDate = (get-date $device.registrationDateTime -Format "dd.MM.yyyy")
                 }
                 else {
                     $regDate = ""
                 }
-                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate + ";" + $device.trustType + ";" + $device.mdmAppId + ";" + $device.isCompliant >> ($OutPutPath + "devices.csv")
+                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate + ";" + $device.trustType + ";" + $device.mdmAppId + ";" + $device.isCompliant + ";" + $device.deviceId >> ($OutPutPath + "devices.csv")
             }
 
             # Check Groups.
