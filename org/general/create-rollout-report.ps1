@@ -202,7 +202,7 @@ if ($exportToFile) {
                 #$device = Invoke-RjRbRestMethodGraph -Resource "/devices/$($_.id)" 
                 $device = $_
                 if ($device.registrationDateTime) {
-                    $regDate = (get-date $device.registrationDateTime -Format "dd.MM.yyyy")
+                    $regDate = (get-date $device.registrationDateTime -Format "yyyy-MM-dd")
                 }
                 else {
                     $regDate = ""
