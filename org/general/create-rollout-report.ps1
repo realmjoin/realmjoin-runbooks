@@ -129,7 +129,7 @@ if ($exportToFile) {
     $userCount = 0
 
     "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;onPremisesSamAccountName;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
-    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant;deviceId" > ($OutPutPath + "devices.csv")
+    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant;deviceId;serialNumber" > ($OutPutPath + "devices.csv")
     "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
     "userPrincipalName;LicenseName;DirectAssignment;GroupName" > ($OutPutPath + "licenses.csv")
 
@@ -207,7 +207,8 @@ if ($exportToFile) {
                 else {
                     $regDate = ""
                 }
-                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate + ";" + $device.trustType + ";" + $device.mdmAppId + ";" + $device.isCompliant + ";" + $device.deviceId >> ($OutPutPath + "devices.csv")
+                $serial = (Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$($userDevices.deviceId)'" -ErrorAction SilentlyContinue).serialNumber
+                $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate + ";" + $device.trustType + ";" + $device.mdmAppId + ";" + $device.isCompliant + ";" + $device.deviceId + ";" + $serial >> ($OutPutPath + "devices.csv")
             }
 
             # Check Groups.
