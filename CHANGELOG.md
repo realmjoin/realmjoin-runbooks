@@ -1,5 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-11
+* Offboard user permanently / temporarily: Added support for removing Exchange groups / distr. lists
 
 ## 2022-05-09
 * MWP Rollout Report: Support corelating devices via "registered" relationship (not only "owned" relationship)
