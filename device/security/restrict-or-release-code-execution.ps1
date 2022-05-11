@@ -53,7 +53,7 @@ param(
 Connect-RjRbDefenderATP
 
 # Find the machine in DefenderATP
-$atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "machines" -OdFilter "aadDeviceId eq $DeviceId"
+$atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId"
 if (-not $atpDevice) {
   "## DeviceId $DeviceId not found in DefenderATP Service. Cannot restrict code execution. "
   throw ("device not found")
@@ -66,7 +66,7 @@ $body = @{
 if ($Release) {
   "## Removing code execution restrictions from device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   try {
-    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "machines/$($atpDevice.id)/unrestrictCodeExecution" -Body $body
+    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/unrestrictCodeExecution" -Body $body
   }
   catch {
     "## ... failed. Not restricted?"
@@ -88,7 +88,7 @@ if ($Release) {
 else {
   "## Resctricting code execution on device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   try {
-    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "machines/$($atpDevice.id)/restrictCodeExecution" -Body $body
+    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/restrictCodeExecution" -Body $body
   }
   catch {
     "## ... failed. Already restricted?"
