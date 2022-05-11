@@ -52,10 +52,10 @@ param(
 
 Connect-RjRbDefenderATP
 
-# Find the machine in DefenderATP
-$atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "machines" -OdFilter "aadDeviceId eq $DeviceId"
+# Find the machine in DefenderATP. From experience - the first result seems to be the "freshest"
+$atpDevice = (Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId")[0]
 if (-not $atpDevice) {
-  "## Device $DeviceId not found in DefenderATP Service. Cannot isolate. "
+  "## DeviceId $DeviceId not found in DefenderATP Service. Cannot restrict code execution. "
   throw ("device not found")
 }
 
@@ -64,12 +64,12 @@ $body = @{
 }
 
 if ($Release) {
-  # Remove App Restriction
+  "## Removing code execution restrictions from device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   try {
-    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "machines/$($atpDevice.id)/unrestrictCodeExecution" -Body $body
+    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/unrestrictCodeExecution" -Body $body
   }
   catch {
-    "## Removing code restriction from device $DeviceID failed. Not restricted?"
+    "## ... failed. Not restricted?"
     ""
     "Error details:"
     $_
@@ -77,7 +77,7 @@ if ($Release) {
   }
 
   if ($response.type -eq "UnrestrictCodeExecution") {
-    "## Successfully triggered unrestriction of device $DeviceID"
+    "## Successfully triggered unrestriction of device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   }
   else {
     "## Unknown Response from DefenderATP"
@@ -86,12 +86,12 @@ if ($Release) {
   }
 }
 else {
-  # Restrict Code Execution
+  "## Resctricting code execution on device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   try {
-    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "machines/$($atpDevice.id)/restrictCodeExecution" -Body $body
+    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/restrictCodeExecution" -Body $body
   }
   catch {
-    "## Restricting code execution on device $DeviceID failed. Already restricted?"
+    "## ... failed. Already restricted?"
     ""
     "Error details:"
     $_
@@ -99,7 +99,7 @@ else {
   }
 
   if ($response.type -eq "RestrictCodeExecution") {
-    "## Successfully triggered restriction of device $DeviceID"
+    "## Successfully triggered restriction of device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   }
   else {
     "## Unknown Response from DefenderATP"

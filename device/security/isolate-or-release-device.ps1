@@ -53,8 +53,8 @@ param(
 
 Connect-RjRbDefenderATP
 
-# Find the machine in DefenderATP
-$atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "machines" -OdFilter "aadDeviceId eq $DeviceId"
+# Find the machine in DefenderATP. From experience - the first result seems to be the "freshest"
+$atpDevice = (Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId")[0]
 if (-not $atpDevice) {
   "## Device $DeviceId not found in DefenderATP Service. Cannot isolate. "
   throw ("device not found")
@@ -65,12 +65,12 @@ $body = @{
 }
 
 if ($Release) {
-  #Release Device
+  "## Releasing device $($atpDevice.computerDnsName) (DeviceId $DeviceId) from isolation"
   try {
-    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "machines/$($atpDevice.id)/unisolate" -Body $body
+    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/unisolate" -Body $body
   }
   catch {
-    "## Releasing device $DeviceID from isolation failed. Not isolated?"
+    "## ... failed. Not isolated?"
     ""
     "Error details:"
     $_
@@ -78,7 +78,7 @@ if ($Release) {
   }
 
   if ($response.type -eq "Unisolate") {
-    "## Successfully triggered release of device $DeviceID"
+    "## Successfully triggered release of device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   }
   else {
     "## Unknown Response from DefenderATP"
@@ -89,11 +89,12 @@ if ($Release) {
 else {
   # Isolate device
   $body += @{   IsolationType = $IsolationType }
+  "## Isolating device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   try {
-    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "machines/$($atpDevice.id)/isolate" -Body $body
+    $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/isolate" -Body $body
   }
   catch {
-    "## Isolating device $DeviceID failed. Already isolated?"
+    "## ... failed. Already isolated?"
     ""
     "Error details:"
     $_
@@ -101,7 +102,7 @@ else {
   }
 
   if ($response.type -eq "Isolate") {
-    "## Successfully triggered isolation of device $DeviceID"
+    "## Successfully triggered isolation of device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   }
   else {
     "## Unknown Response from DefenderATP"

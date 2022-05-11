@@ -112,6 +112,8 @@ if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found in AzureAD.")
 } 
 
+"## Outphasing device $($targetDevice.displayName) (DeviceId $DeviceId)"
+
 if ($disableAADDevice) {
     # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
     if ($targetDevice.operatingSystem -eq "Windows") {
