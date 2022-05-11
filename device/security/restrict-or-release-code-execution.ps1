@@ -52,8 +52,8 @@ param(
 
 Connect-RjRbDefenderATP
 
-# Find the machine in DefenderATP
-$atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId"
+# Find the machine in DefenderATP. From experience - the first result seems to be the "freshest"
+$atpDevice = (Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId")[0]
 if (-not $atpDevice) {
   "## DeviceId $DeviceId not found in DefenderATP Service. Cannot restrict code execution. "
   throw ("device not found")
