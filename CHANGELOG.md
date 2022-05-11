@@ -2,6 +2,7 @@
 
 ## 2022-05-11
 * Offboard user permanently / temporarily: Added support for removing Exchange groups / distr. lists
+* Multiple Runbooks: Use displaynames instead of UIDs in output were possible for better readability
 
 ## 2022-05-06
 
