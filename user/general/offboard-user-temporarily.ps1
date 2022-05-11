@@ -148,7 +148,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
@@ -199,6 +199,7 @@ if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exp
 }
 
 Connect-RjRbGraph
+Connect-RjRbExchangeOnline
 
 "## Finding the user object $UserName"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
@@ -281,17 +282,35 @@ if ($ChangeGroupsSelector -ne 0) {
     # Remove group memberships
     $groupsToRemove | ForEach-Object {
         if ($GroupToAdd -ne $_.DisplayName) {
-            "## Removing group '$($_.DisplayName)' from $UserName"
             if ($_.groupTypes -contains "DynamicMembership") {
-                "## ... group is a dynamic group - skipping. Not an error."
+                "## Group '$($_.DisplayName)' is a dynamic group - skipping."
             }
             else {
-                try {
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                "## Removing group '$($_.DisplayName)' from $UserName"
+                if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
+                    # group is AAD group
+                    try {
+                        Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                    }
+                    catch {
+                        "## ... group removal failed. Please check."
+                    }
                 }
-                catch {
-                    "## ... group removal failed. Please check."
+                else {
+                    # Handle Exchange Distr. Lists etc.
+                    if ($_.mail) {
+                        try {
+                            Remove-DistributionGroupMember -Identity $_.mail -Member $UserName -BypassSecurityGroupManagerCheck -Confirm:$false
+                        }
+                        catch {
+                            "## ... group removal failed. Please check."
+                        }   
+                    }
+                    else {
+                        "## ... failed - '$($_.DisplayName)' is neither an AAD group, nor has an eMail-Address"
+                    }           
                 }
+            
             }
         }
     }
@@ -346,5 +365,7 @@ if ($removeMFAMethods) {
 
 # wipe client
 ##TODO
+
+Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 
 "## Temporary offboarding of $($UserName) successful."

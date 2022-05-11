@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-11
+* Offboard user permanently / temporarily: Added support for removing Exchange groups / distr. lists
+
 ## 2022-05-06
 
 * List expiring app credentials: Can limit output to creds about to expire.
