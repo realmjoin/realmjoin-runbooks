@@ -163,6 +163,7 @@ param (
     [string]$State,
     [string]$Country,
     [string]$UsageLocation,
+    [ValidateScript( { Use-RJInterface -DisplayName "License group to assign" } )]
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [String]$InitialPassword = "",
@@ -174,6 +175,7 @@ param (
 )
 
 Connect-RjRbGraph
+Connect-RjRbExchangeOnline
 
 # AzureAD Module is broken in regards to ErrorAction, so...
 $ErrorActionPreference = "SilentlyContinue"
@@ -354,17 +356,42 @@ foreach ($groupname in $groupsArray) {
             Write-Error "Group $groupname not found!"
         }
         else {
-            "## Adding to group '$($group.displayName)'"
-            $body = @{
-                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
+            if (($group.GroupTypes -contains "Unified") -or (-not $group.MailEnabled)) {
+                "## Adding to group '$($group.displayName)'"
+                $body = @{
+                    "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
+                }
+                try {
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                    #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+                }
+                catch {
+                    "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                    Write-RjRbLog $_
+                }
             }
-            try {
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
-                #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
-            }
-            catch {
-                "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
-                Write-RjRbLog $_
+            else {
+                try {
+                    "## Adding to exchange group/list '$($group.displayName)'"
+                    # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
+                    $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue
+                    if (-not $mbox) {
+                        $MaxRuns = 30
+                        "## - Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
+                        $mbox = $null; 
+                        $counter = 0
+                        while ((-not $mbox) -and ($counter -le $MaxRuns)) {
+                            $counter++;
+                            Start-Sleep 30; 
+                            $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue; 
+                        }; 
+                    }
+                    Add-DistributionGroupMember -Identity $group.id -Member $UserPrincipalName -BypassSecurityGroupManagerCheck:$true -Confirm:$false
+                }
+                catch {
+                    "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                    Write-RjRbLog $_
+                }
             }
         }
     }
@@ -373,13 +400,12 @@ foreach ($groupname in $groupsArray) {
 # Enable Exchange Online Archive
 if ($EnableEXOArchive) {
     try {
-        Connect-RjRbExchangeOnline
-        
+        "## Enabling EXO Archive Mailbox"
         # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
         $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue
         if (-not $mbox) {
             $MaxRuns = 30
-            Write-RjRbLog -Message "Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
+            "## - Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
             $mbox = $null; 
             $counter = 0
             while ((-not $mbox) -and ($counter -le $MaxRuns)) {
@@ -388,17 +414,15 @@ if ($EnableEXOArchive) {
                 $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue; 
             }; 
         }
-        "## Enabling EXO Archive Mailbox"
         Enable-Mailbox -Archive -Identity $UserPrincipalName | Out-Null
     }
     catch {
         Write-Error "Enabling Mail Archive for '$UserPrincipalName' failed"
         Write-Error $_
     }
-    finally {
-        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-    }
 }
+
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 
 "## User '$UserPrincipalName' successfully created. Initial PW:" 
 "$InitialPassword"
