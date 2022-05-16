@@ -79,19 +79,6 @@ param
 
 )
 
-if ($Remove) {
-    "## Trying to remove full access to mailbox '$UserName' from user '$delegateTo'."
-}
-else {
-    "## Trying to give full access to mailbox '$UserName' to user '$delegateTo'."
-}
-
-if ((-not $Remove) -and $AutoMapping) {
-    "## Mailbox will automatically appear in Outlook."
-}
-
-
-
 try {
     "## Trying to connect and check for '$UserName'"
     Connect-RjRbExchangeOnline
@@ -109,8 +96,19 @@ try {
         throw "Trustee '$delegateTo' has no mailbox."
     }
     
-    "## Current Permission Delegations"
-    Get-MailboxPermission -Identity $UserName | Select-Object -expandproperty User
+    if ($Remove) {
+        "## Trying to remove full access to mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
+    }
+    else {
+        "## Trying to give full access to mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
+    }
+    
+    if ((-not $Remove) -and $AutoMapping) {
+        "## Mailbox will automatically appear in Outlook."
+    }
+    
+    "## Current Mailbox Access Permissions for '$UserName'"
+    Get-MailboxPermission -Identity $UserName | Where-Object { ($_.user -like '*@*') } | Format-Table -Property Identity, User, AccessRights -AutoSize | Out-String
 
     ""
     if ($Remove) {
@@ -125,7 +123,7 @@ try {
     }
 
     ""
-    "## Dump Mailbox Access Permissions for '$UserName'"
+    "## New Mailbox Access Permissions for '$UserName'"
     Get-MailboxPermission -Identity $UserName | Where-Object { ($_.user -like '*@*') } | Format-Table -Property Identity, User, AccessRights -AutoSize | Out-String
 }
 finally {

@@ -73,13 +73,6 @@ param
 
 )
 
-if ($Remove) {
-    "## Trying to remove SendAs permission for mailbox '$UserName' from user '$delegateTo'."
-}
-else {
-    "## Trying to give SendAs permission for mailbox '$UserName' to user '$delegateTo'."
-}
-
 try {
     Connect-RjRbExchangeOnline
 
@@ -97,6 +90,13 @@ try {
         throw "Trustee '$delegateTo' has no mailbox."
     }
 
+    if ($Remove) {
+        "## Trying to remove SendAs permission for mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
+    }
+    else {
+        "## Trying to give SendAs permission for mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
+    }
+    
     if ($Remove) {
         Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
         "## SendAs Permission for '$($trustee.UserPrincipalName)' removed from mailbox '$UserName'"

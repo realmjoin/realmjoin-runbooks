@@ -70,14 +70,6 @@ param
     [string] $CallerName
 )
 
-if ($Remove) {
-    "## Trying to remove SendOnBehalf permission for mailbox '$UserName' from user '$delegateTo'."
-}
-else {
-    "## Trying to give SendOnBehalf permission for mailbox '$UserName' to user '$delegateTo'."
-}
-
-
 try {
     Connect-RjRbExchangeOnline
 
@@ -95,6 +87,13 @@ try {
         throw "Trustee '$delegateTo' has no mailbox."
     }
 
+    if ($Remove) {
+        "## Trying to remove SendOnBehalf permission for mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
+    }
+    else {
+        "## Trying to give SendOnBehalf permission for mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
+    }
+    
     if ($Remove) {
         #Remove permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Remove = "$delegateTo" } -Confirm:$false | Out-Null
