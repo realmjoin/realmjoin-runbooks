@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-12
+* Add User: Supports adding users to Exchange Distr. Lists / mail enabled groups
+
 ## 2022-05-11
 * Offboard user permanently / temporarily: Added support for removing Exchange groups / distr. lists
 * Multiple Runbooks: Use displaynames instead of UIDs in output were possible for better readability
