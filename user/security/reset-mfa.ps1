@@ -46,7 +46,7 @@ $appAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/
 $OATHAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/softwareOathMethods" -Beta
 
 # "Find FIDO2 auth methods for user $UserName"
-$fido2AMs = $OATHAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/fido2Methods" -Beta
+$fido2AMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/fido2Methods" -Beta
 
 [int]$count = 0
 while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2AMs))) {
