@@ -49,6 +49,12 @@ param(
 
 Connect-RjRbGraph
 
+if ($Remove) {
+    "## Trying to remove phone MFA number '$phoneNumber' from user '$UserName'."
+} else {
+    "## Trying to add phone MFA number '$phoneNumber' to user '$UserName'."
+}
+
 # Sanity check 
 if (-not $phoneNumber.startswith("+")) {
     throw "Phone Number needs to be in international E.164 format ('+' + Country Code + Number)"
@@ -63,21 +69,21 @@ $body = @{
 if ($phoneAM) {
     if ($remove) {
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Delete -Beta | Out-Null
-        "## Successfully removed mobile phone authentication number $phoneNumber from user $UserName."
+        "## Successfully removed mobile phone authentication number '$phoneNumber' from user '$UserName'."
     }
     else {
         # "Mobile Phone method found. Updating entry."
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Put -Body $body -Beta | Out-Null
-        "## Successfully updated mobile phone authentication number $phoneNumber for user $UserName."
+        "## Successfully updated mobile phone authentication number '$phoneNumber' for user '$UserName'."
     }
 }
 else {
     if ($Remove) {
-        "## Number $phoneNumber not found as mobile phone MFA factor for $UserName."
+        "## Number '$phoneNumber' not found as mobile phone MFA factor for '$UserName'."
     }
     else {
         # "No phone methods found. Will add a new one."
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Method Post -Body $body -Beta | Out-Null
-        "## Successfully added mobile phone authentication number $phoneNumber to user $UserName."
+        "## Successfully added mobile phone authentication number '$phoneNumber' to user '$UserName'."
     }
 }

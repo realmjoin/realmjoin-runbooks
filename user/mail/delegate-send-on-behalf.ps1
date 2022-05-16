@@ -70,6 +70,14 @@ param
     [string] $CallerName
 )
 
+if ($Remove) {
+    "## Trying to remove SendOnBehalf permission for mailbox '$UserName' from user '$delegateTo'."
+}
+else {
+    "## Trying to give SendOnBehalf permission for mailbox '$UserName' to user '$delegateTo'."
+}
+
+
 try {
     Connect-RjRbExchangeOnline
 
@@ -77,7 +85,7 @@ try {
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-        throw "User '$userName' has no mailbox."
+        throw "User '$UserName' has no mailbox."
     }
 
     $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue 

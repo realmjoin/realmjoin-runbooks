@@ -40,6 +40,9 @@ param(
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
+"## Trying to update user photo of '$UserName' from URL:"
+"## $PhotoURI"
+
 $ErrorActionPreference = "Stop"
 
 Connect-RjRbGraph
@@ -47,7 +50,7 @@ Connect-RjRbGraph
 # "Find the user object $UserName"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
-    throw ("User $UserName not found.")
+    throw ("User '$UserName' not found.")
 }
 
 # "Download the photo from URI $PhotoURI"
@@ -58,7 +61,7 @@ try {
 }
 catch {
     $_
-    throw ("Photo download from $PhotoURI failed.")
+    throw ("Photo download from '$PhotoURI' failed.")
 }
 
 # "Set profile picture for user"
@@ -75,4 +78,4 @@ try {
     throw "Setting photo failed."
 }
 
-"## Updating profile photo for $UserName succeded."
+"## Updating profile photo for '$UserName' succeded."
