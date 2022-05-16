@@ -77,6 +77,8 @@ try {
         throw "Number needs to be in E.164 format ( '+#######...' )."
     }
 
+    "## Trying to assign number '$Number' to user '$UserName'"
+
     # "Number: '$Number'"
 
     ## change number to lineURI

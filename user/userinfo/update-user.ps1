@@ -58,6 +58,8 @@ param (
 
 )
 
+"## Updating metadate of user '$UserName'."
+
 Connect-RjRbGraph
 
 Write-RjRbLog "Searching for user '$UserName'"

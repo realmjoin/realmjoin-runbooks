@@ -77,6 +77,8 @@ param (
     [string] $CallerName
 )
 
+"## Configuring Room Mailbox settings for '$UserName'."
+
 try {
     Connect-RjRbExchangeOnline
 

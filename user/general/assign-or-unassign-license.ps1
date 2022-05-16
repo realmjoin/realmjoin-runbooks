@@ -60,6 +60,8 @@ if (-not $group.displayName.startswith($groupPrefix)) {
     throw "'$($group.displayName)' is not a license assignment group. Will not proceed."
 }
 
+"## Trying to assign license group '$($group.displayName)' to '$UserName'"
+
 # "Find the user object " + $UserName) 
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
 if (-not $targetUser) {

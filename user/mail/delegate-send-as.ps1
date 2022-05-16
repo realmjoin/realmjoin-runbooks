@@ -70,6 +70,7 @@ param
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
+
 )
 
 try {
@@ -79,12 +80,23 @@ try {
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-        throw "User $userName has no mailbox."
+        throw "User '$userName' has no mailbox."
     }
 
-    # Just collect trustee for better output
     $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue
+    # Check if trustee has a mailbox
+    if (-not $trustee) {
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+        throw "Trustee '$delegateTo' has no mailbox."
+    }
 
+    if ($Remove) {
+        "## Trying to remove SendAs permission for mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
+    }
+    else {
+        "## Trying to give SendAs permission for mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
+    }
+    
     if ($Remove) {
         Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
         "## SendAs Permission for '$($trustee.UserPrincipalName)' removed from mailbox '$UserName'"

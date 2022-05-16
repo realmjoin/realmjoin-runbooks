@@ -80,6 +80,20 @@ param
 
 $VerbosePreference = "SilentlyContinue"
 
+$outputString = "Trying to "
+if ($Remove) {
+    $outputString += "remove alias '$eMailAddress' from"
+}
+else {
+    $outputString += "add alias '$eMailAddress' to"
+}
+$outputString += " user '$UserName'"
+if ((-not $Remove) -and $asPrimary) {
+    $outputString += " and setting it as primary"
+}
+
+$outputString
+
 try {
     "## Trying to connect and check for $UserName"
     Connect-RjRbExchangeOnline

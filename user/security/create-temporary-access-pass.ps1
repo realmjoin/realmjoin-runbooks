@@ -42,6 +42,8 @@ param(
     [string] $CallerName
 )
 
+"## Trying to create an Temp. Access Pass (TAP) for user '$UserName'"
+
 Connect-RjRbGraph
 
 try {
@@ -71,7 +73,7 @@ if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
     ""
 }
 
-"## New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created:" 
+"## New Temporary access pass for '$UserName' with a lifetime of $LifetimeInMinutes minutes has been created:" 
 ""
 "$($pass.temporaryAccessPass)"
 } catch {

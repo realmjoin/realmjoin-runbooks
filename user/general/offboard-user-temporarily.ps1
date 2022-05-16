@@ -201,6 +201,8 @@ if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exp
 Connect-RjRbGraph
 Connect-RjRbExchangeOnline
 
+"## Trying to temporarily offboard user '$UserName'"
+
 "## Finding the user object $UserName"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
 
@@ -341,30 +343,6 @@ if ($ChangeLicensesSelector -ne 0) {
     }
 }
 
-if ($grantAccessToMailbox) {
-    ##TODO
-}
-
-if ($hideFromAddresslist) {
-    ##TODO
-}
-
-if ($setOutOfOffice) {
-    ##TODO
-}
-
-## remove teams / M365 group ownerships?
-## Assumption: Self healing process - either team is active or not. Team members will ask for help if needed.
-
-if ($removeMFAMethods) {
-    ##TODO    
-}
-
-# de-associate client
-##TODO
-
-# wipe client
-##TODO
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 

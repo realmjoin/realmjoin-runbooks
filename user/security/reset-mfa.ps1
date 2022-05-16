@@ -36,6 +36,8 @@ param(
 
 Connect-RjRbGraph
 
+"## Trying to remove all MFA methods for user '$UserName'"
+
 # "Find phone auth. methods for user $UserName"
 $phoneAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Beta
 
@@ -110,8 +112,8 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
 }
 
 if ($count -le 3) {
-    "## All App, OATH, FIDO2 and Mobile Phone MFA methods for $UserName successfully removed."
+    "## All App, OATH, FIDO2 and Mobile Phone MFA methods for '$UserName' successfully removed."
 }
 else {
-    "## Could not remove all MFA methods for $UserName. Please review."
+    "## Could not remove all MFA methods for '$UserName'. Please review."
 }
