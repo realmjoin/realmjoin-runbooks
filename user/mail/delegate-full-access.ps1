@@ -80,7 +80,7 @@ param
 )
 
 try {
-    "## Trying to connect and check for '$UserName'"
+    "## Connecting ..."
     Connect-RjRbExchangeOnline
 
     # Check if User has a mailbox
