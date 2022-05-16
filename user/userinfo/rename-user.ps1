@@ -46,6 +46,8 @@ param(
     # [bool] $RemoveOldAddress = $false
 )
 
+"## Trying to rename a user/mailbox '$UserName'. Will not update metadata like DisplayName, GivenName, Surname."
+
 try {
     Connect-RjRbGraph
     Connect-RjRbExchangeOnline

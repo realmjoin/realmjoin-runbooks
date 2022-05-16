@@ -46,10 +46,16 @@ param(
 
 Connect-RjRbGraph
 
+if ($Revoke) {
+    "## Trying to revoke access and block signin for user '$UserName'."
+} else {
+    "## Trying to enable signing for user '$UserName'."
+}
+
 # "Find the user object $UserName"
 $targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -ErrorAction SilentlyContinue 
 if ($null -eq $targetUser) {
-    throw ("User $UserName not found.")
+    throw ("User '$UserName' not found.")
 }
 
 # "Block/Enable user sign in"
@@ -62,8 +68,8 @@ if ($Revoke) {
     # "Revoke all refresh tokens"
     $body = @{ }
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
-    "## User access for " + $UserName + " has been revoked."
+    "## User access for '$UserName' has been revoked."
 }
 else {
-    "## User " + $UserName + " has been enabled."
+    "## User '$UserName' has been enabled."
 }

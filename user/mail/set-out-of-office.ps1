@@ -69,11 +69,11 @@ param
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office" } )]
     [bool] $Disable = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Start Date" } )]
     [System.DateTime] $Start = (get-date),
-    [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "End Date" } )]
     [System.DateTime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
@@ -83,6 +83,8 @@ param
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+"## Configuring Out Of Office settings on mailbox '$UserName'."
 
 $VerbosePreference = "SilentlyContinue"
 try {

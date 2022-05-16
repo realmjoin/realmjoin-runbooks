@@ -65,7 +65,7 @@
 param
 (
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox"} )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
@@ -79,6 +79,21 @@ param
 
 )
 
+$outputString = "## Trying to convert mailbox '$UserName' "
+if ($Remove) {
+    $outputString += "to a regular mailbox."
+}
+else {
+    $outputString += "to a shared mailbox."
+}
+$outputString
+
+if ($delegateTo) {
+    "## Give access to mailbox '$UserName' to '$delegateTo'."
+}
+if ($AutoMapping) {
+    "## Mailbox will automatically appear in Outlook."
+}
 
 try {
     "## Trying to connect and check for $UserName"
@@ -89,7 +104,7 @@ try {
     # No need to check trustee for a mailbox with "FullAccess"
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
-        throw "User $UserName has no mailbox."
+        throw "User '$UserName' has no mailbox."
     }
 
     "## Current Permission Delegations"
@@ -100,26 +115,26 @@ try {
     if ($Remove) {
         # Remove access
         $PermittedUsers = Get-MailboxPermission -Identity $UserName | Where-Object { $_.User -ne "NT AUTHORITY\SELF" }
-        foreach($PermittedUser in $PermittedUsers){
+        foreach ($PermittedUser in $PermittedUsers) {
             Remove-MailboxPermission -Identity $UserName -User $PermittedUser.User -AccessRights $PermittedUser.AccessRights -InheritanceType All -confirm:$false | Out-Null
-            "## Mailbox Access Permission for $($PermittedUser.User) reverted from mailbox $UserName"
+            "## Mailbox Access Permission for '$($PermittedUser.User)' reverted from mailbox '$UserName'"
         }
         $PermittedRecipients = Get-RecipientPermission -Identity $UserName | Where-Object { $_.Trustee -ne "NT AUTHORITY\SELF" }
-        foreach($PermittedRecipient in $PermittedRecipients){
+        foreach ($PermittedRecipient in $PermittedRecipients) {
             Remove-RecipientPermission -Identity $UserName -Trustee $PermittedRecipient.Trustee -AccessRights $PermittedRecipient.AccessRights -confirm:$false | Out-Null
-            "## SendAs/SendOnBehalf Permission for $($PermittedRecipient.Trustee) reverted from mailbox $UserName"
+            "## SendAs/SendOnBehalf Permission for '$($PermittedRecipient.Trustee)' reverted from mailbox '$UserName'"
         }
     
         Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null
-        "## Mailbox $UserName turned into regular Mailbox"
+        "## Mailbox '$UserName' turned into regular Mailbox"
     }
     else {
         Set-Mailbox $UserName -Type shared
-        "## Turned mailbox $UserName into shared mailbox"
+        "## Turned mailbox '$UserName' into shared mailbox"
         # Add access
-        if($delegateTo){
-        Add-MailboxPermission  $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-        "## FullAccess Permission for $delegateTo added to mailbox $UserName"
+        if ($delegateTo) {
+            Add-MailboxPermission $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+            "## FullAccess Permission for '$delegateTo' added to mailbox '$UserName'"
         }
         
     }
