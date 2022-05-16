@@ -10,6 +10,7 @@
    DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
    DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
    DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
+   Device.Read.All
   ROLES
    Cloud device administrator
 
@@ -93,6 +94,13 @@ $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "devic
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found in AzureAD.")
 } 
+$owner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)/registeredOwners" -ErrorAction SilentlyContinue
+
+"## Processing device '$($targetDevice.displayName)' (DeviceId '$DeviceId')"
+if ($owner) {
+    "## Device owner: '$($owner.UserPrincipalName)'"
+}
+
 
 if ($disableAADDevice) {
     # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
