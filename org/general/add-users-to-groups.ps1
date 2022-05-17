@@ -24,8 +24,8 @@
     }
 
 #>
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Source Group" } )]
@@ -38,46 +38,55 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName 
 )
+
 Connect-RjRbGraph
 
-$TargetGroupIdString
+"## Trying to add all members from '$MigGroupId' to multiple groups"
 
-$MigGroupId
 if ($TargetGroupIdString) {
     $TargetGroupIds = @()
     $TargetGroupIds = $TargetGroupIdString.Split(',')
+    "## Target group Ids: "
     $TargetGroupIds
 }
 else {
-    $TargetGroupNameString
+    # $TargetGroupNameString
     $TargetGroupNames = @()
     $TargetGroupNames = $TargetGroupNameString.Split(',')
+    "## Target group Names: "
     $TargetGroupNames
 }
-#define TargetgroupIds and MigGroupId variables beforehand
-#[string] $MigGroupId = ""
-#$TargetGroupIds = @()
-$beforedate = (Get-Date).AddDays(-1) | Get-Date -Format "yyyy-MM-dd"
+
 try {
     $AADGroups = @()
-    if ($TargetGroupIds) {
-        foreach ($TargetGroupId in $TargetgroupIds) {
+    foreach ($TargetGroupId in $TargetgroupIds) {
+        if ($AADGroups.id -notcontains $TargetGroupId) {
             $AADGroups += Invoke-RjRbRestMethodGraph -Resource "/groups/$TargetGroupId" 
         }
     }
-    else {
-        foreach ($TargetGroupName in $TargetGroupNames) {
-            $AADGroups += Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$TargetGroupName'"
+    foreach ($TargetGroupName in $TargetGroupNames) {
+        $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$TargetGroupName'"
+        if ($AADGroups.id -notcontains $targetGroup.Id) {
+            $AADGroups += $targetGroup
         }
     }
 
+    $beforedate = (Get-Date).AddDays(-1) | Get-Date -Format "yyyy-MM-dd"    
     $filter = 'createdDateTime ge ' + $beforedate + 'T00:00:00Z'
     $NewUsers = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter $filter
 
     $MigGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$MigGroupId/members"
     $MigrationUsers = @()
-    $MigrationUsers += $MigGroupMembers
-    $MigrationUsers += $NewUsers
+    foreach ($migUser in $MigGroupMembers) {
+        if ($MigrationUsers.id -notcontains $migUser.id) {
+            $MigrationUsers += $migUser
+        }
+    }
+    foreach ($migUser in $NewUsers) {
+        if ($MigrationUsers.id -notcontains $migUser.id) {
+            $MigrationUsers += $migUser
+        }
+    }
 
     foreach ($AADGroup in $AADGroups) {
         $AADGroupMembers = @()
@@ -86,17 +95,17 @@ try {
         foreach ($MigrationUser in $MigrationUsers) {
             $bindingString = "https://graph.microsoft.com/v1.0/directoryObjects/$($MigrationUser.id)"
             if (!($AADgroupMembers.contains($MigrationUser.id)) -and !($bindings.Contains($bindingString))) {
-
                 $bindings += $bindingString
+                "## Selecting '$($MigrationUser.userPrincipalName)' for group adding."
             }
         }
         if ($bindings) {
             $GroupJson = @{"members@odata.bind" = $bindings }
             Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)" -Method Patch -Body $GroupJson 
-            "## added Users to group $($AADGroup.displayName)" 
+            "## Added Users to group $($AADGroup.displayName)" 
         }
         else {
-            "## all users already in Group $($AADGroup.displayName)"
+            "## All users already in Group $($AADGroup.displayName)"
         }
     }
 }
