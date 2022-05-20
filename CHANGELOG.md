@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-20
+* new runbook: List expiring AzureAD / PIM role assignments
+
 ## 2022-05-19
 * new runbook: List/Add/Remove SmartScreen Exclusions (indicators) in MS Security Center
 
