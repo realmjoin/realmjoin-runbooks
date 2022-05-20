@@ -8,6 +8,7 @@
   .NOTES
   Permissions: MS Graph
   - Organization.Read.All
+  - RoleManagement.Read.All
 
   .INPUTS
   RunbookCustomization: {
