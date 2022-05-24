@@ -41,7 +41,7 @@ param (
 "## Trying to export all Intune devices and metadata based on their owner, like usageLocation."
 
 if (-not $ContainerName) {
-    $ContainerName = "device-list-" + (get-date -Format "yyyy-MM-dd")
+    $ContainerName = "intune-devices-list"
 }
 
 if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
@@ -96,14 +96,14 @@ try {
         $container = New-AzStorageContainer -Name $ContainerName -Context $context 
     }
 
-
-    $Exportdevices | ConvertTo-Csv > device.csv
+    $fileName = "intune-devices-$(get-date -Format "yyyy-MM-dd").csv"
+    $Exportdevices | ConvertTo-Csv > $fileName
 
     Write-RjRbLog "Upload"
-    Set-AzStorageBlobContent -File "device.csv" -Container $ContainerName -Blob "device.csv" -Context $context -Force | Out-Null
+    Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
 
     $EndTime = (Get-Date).AddDays(6)
-    $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "device.csv" -FullUri -ExpiryTime $EndTime
+    $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $fileName -FullUri -ExpiryTime $EndTime
 
     "## Export of all Intune devices created."
     "## Expiry of Link: $EndTime"
