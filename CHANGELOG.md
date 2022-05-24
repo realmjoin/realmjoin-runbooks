@@ -12,7 +12,7 @@
 * new runbook: List/Add/Remove SmartScreen Exclusions (indicators) in MS Security Center
 
 ## 2022-05-16
-* new runbook: Export all devices (to a storage account)
+* new runbook: Export all Intune devices (to a storage account)
 
 ## 2022-05-16
 * Many runbooks: Improve output 

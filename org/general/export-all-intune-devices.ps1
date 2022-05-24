@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  List all devices and where they are registered.
+  Export a list of all Intune devices and where they are registered.
 
   .DESCRIPTION
-  List all devices and where they are registered.
+  Export all Intune devices and metadata based on their owner, like usageLocation.
 
   .NOTES
   Permissions
@@ -24,67 +24,47 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param (
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "Devices.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.Container" } )]
     [string] $ContainerName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "Devices.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "Devices.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "Devices.StorageAccount.Location" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "Devices.StorageAccount.Sku" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
+"## Trying to export all Intune devices and metadata based on their owner, like usageLocation."
+
 if (-not $ContainerName) {
     $ContainerName = "device-list-" + (get-date -Format "yyyy-MM-dd")
 }
 
+if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
+    "## To export to a storage account, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    "## Alternatively, present values for ResourceGroup and StorageAccount when staring the runbook."
+    ""
+    "## Configure the following attributes:"
+    "## - IntuneDevicesReport.ResourceGroup"
+    "## - IntuneDevicesReport.StorageAccount.Name"
+    "## - IntuneDevicesReport.StorageAccount.Location"
+    "## - IntuneDevicesReport.StorageAccount.Sku"
+    ""
+    "## Stopping execution."
+    throw "Missing Storage Account Configuration."
+}
+
+
 Connect-RjRbGraph
 Connect-RjRbAzAccount
 try {
-    # "Getting Process configuration"
-    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku)) {
-        $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
-
-        $processConfig = $processConfigRaw | ConvertFrom-Json
-
-        if (-not $ResourceGroupName) {
-            $ResourceGroupName = $processConfig.exportResourceGroupName
-        }
-
-        if (-not $StorageAccountName) {
-            $StorageAccountName = $processConfig.exportStorAccountName
-        }
-
-        if (-not $StorageAccountLocation) {
-            $StorageAccountLocation = $processConfig.exportStorAccountLocation
-        }
-
-        if (-not $StorageAccountSku) {
-            $StorageAccountSku = $processConfig.exportStorAccountSKU
-        }
-    }
-
-    if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountSku) -or (-not $StorageAccountLocation)) {
-        "## To export to a storage account, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
-        "## Alternatively, present values for ResourceGroup and StorageAccount when staring the runbook."
-        ""
-        "## Configure the following attributes:"
-        "## - Devices.ResourceGroup"
-        "## - Devices.StorageAccount.Name"
-        "## - Devices.StorageAccount.Location"
-        "## - Devices.StorageAccount.Sku"
-        ""
-        "## Stopping execution."
-        throw "Missing Storage Account Configuration."
-    }
-
     $Exportdevices = @()
-    $Devices = [psobject]
-    $Devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState"
+    Write-RjRbLog "Fetching all Intune devices."
+    $Devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState" -FollowPaging
 
     foreach ($Device in $Devices) {
         $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/Users/$($Device.userPrincipalName)" -OdSelect "city, country, department, usageLocation"
@@ -98,8 +78,6 @@ try {
         }
         $Exportdevices += $Exportdevice
     }
-    #zugang zu Az storage um csv zu speichern
-    #oder per mail attachment schicken vgl notify-changed-Conditional-Access-Policies.ps1 und notify-changed-CA-policies.ps1
 
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
@@ -121,13 +99,13 @@ try {
 
     $Exportdevices | ConvertTo-Csv > device.csv
 
-    # Upload
+    Write-RjRbLog "Upload"
     Set-AzStorageBlobContent -File "device.csv" -Container $ContainerName -Blob "device.csv" -Context $context -Force | Out-Null
 
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "device.csv" -FullUri -ExpiryTime $EndTime
 
-    "## App Owner/User List Export created."
+    "## Export of all Intune devices created."
     "## Expiry of Link: $EndTime"
     $SASLink | Out-String
 
