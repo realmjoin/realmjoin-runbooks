@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-24
+* list inactive app: 
+  * Fix - List of apps was truncated
+  * Fix - Display AppId if DisplayName is not available
+
 ## 2022-05-20
 * new runbook: List expiring AzureAD / PIM role assignments
 
