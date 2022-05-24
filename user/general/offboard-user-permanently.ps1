@@ -164,7 +164,8 @@
 
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {            "CallerName": {
+        "Parameters": {            
+            "CallerName": {
                 "Hide": true
             }
         }
@@ -204,6 +205,8 @@ param (
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" } )]
     [String] $GroupsToRemovePrefix,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.ReplacementOwnerName" } )]
+    [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -230,6 +233,7 @@ Connect-RjRbExchangeOnline
 "## Trying to permanently offboard user '$UserName'"
 
 "## Finding the user object $UserName"
+"## $ReplacementOwner"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
 
 if (-not $targetUser) {
@@ -257,6 +261,8 @@ $memberships = $membershipIds | ForEach-Object {
 
 $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
 
+
+
 # "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
     # "Connecting to Az module..."
@@ -279,11 +285,28 @@ if ($exportGroupMemberships) {
     Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
+#remove group ownerships
+
 
 if ($DeleteUser) {
     if (($ChangeGroupsSelector -ne 0) -or ($ChangeLicensesSelector -ne 0)) {
         "## Skipping license/group modifications as User object will be deleted."
     }
+    $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
+    if ($null -ne $OwnedGroups) {
+        $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName"
+        foreach ($OwnedGroup in $OwnedGroups) {
+            $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
+            if (([array]$owners).Count -eq 1) {
+                $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
+                $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
+                "## changed ownership of group $($OwnedGroup.displayName) to $($ReplacementOwner.displayName)"
+            }
+        }
+    }
+
+
     "## Deleting User Object $UserName"
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Delete | Out-Null
     "## Offboarding of $($UserName) successful."
@@ -327,13 +350,13 @@ if ($ChangeGroupsSelector -ne 0) {
             else {
                 "## Removing group '$($_.DisplayName)' from $UserName"
                 if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
-                    # group is AAD group
+                    # group is AAD group            
                     try {
                         Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
                     }
                     catch {
                         "## ... group removal failed. Please check."
-                    }
+                    }                
                 }
                 else {
                     # Handle Exchange Distr. Lists etc.
