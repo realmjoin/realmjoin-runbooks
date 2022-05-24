@@ -232,16 +232,14 @@ Connect-RjRbExchangeOnline
 
 "## Trying to permanently offboard user '$UserName'"
 
-"## Finding the user object $UserName"
-"## $ReplacementOwner"
+Write-RjRbLog "Finding the user object '$UserName'"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
-
 if (-not $targetUser) {
-    throw ("User " + $UserName + " not found.")
+    throw ("User '$UserName' not found.")
 }
 
 if ($DisableUser) {
-    "## Blocking user sign in for $UserName"
+    "## Blocking user sign in for '$UserName'"
     $body = @{ accountEnabled = $false }
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 }
@@ -252,20 +250,16 @@ if ($RevokeAccess) {
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
 }
 
-# "Getting list of group and role memberships for user $UserName." 
+Write-RjRbLog "Getting list of group memberships for user '$UserName'." 
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
 $membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
 $memberships = $membershipIds | ForEach-Object {
     Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
 }
-
 $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
 
-
-
-# "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
-    # "Connecting to Az module..."
+    Write-RjRbLog "Connecting to Azure Storage Account"
     Connect-RjRbAzAccount
     # Get Resource group and storage account
     $storAccount = Get-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -ErrorAction SilentlyContinue
@@ -277,7 +271,7 @@ if ($exportGroupMemberships) {
     $context = New-AzStorageContext -StorageAccountName $exportStorAccountName -StorageAccountKey $keys[0].Value
     $container = Get-AzStorageContainer -Name $exportStorContainerGroupMembershipExports -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
-        "## Creating Azure Storage Account Container $($exportStorContainerGroupmembershipExports)"
+        "## Creating Azure Storage Account Container '$exportStorContainerGroupmembershipExports'"
         $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context 
     }
 
@@ -293,15 +287,21 @@ if ($DeleteUser) {
         "## Skipping license/group modifications as User object will be deleted."
     }
     $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
-    if ($null -ne $OwnedGroups) {
-        $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName"
+    if ($OwnedGroups) {
         foreach ($OwnedGroup in $OwnedGroups) {
             $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
             if (([array]$owners).Count -eq 1) {
-                $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
-                $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
-                "## changed ownership of group $($OwnedGroup.displayName) to $($ReplacementOwner.displayName)"
+                $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                if ($ReplacementOwner) {
+                    $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
+                    $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
+                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.displayName)'"
+                }
+                else {
+                    "## Replacement Owner '$ReplacementOwnerName' not found. Skipping ownership change for group '$($OwnedGroup.displayName)'." 
+                    "## Please verify owners of group '$($OwnedGroup.displayName)' manually!"
+                }
             }
         }
     }
