@@ -4,6 +4,7 @@
 * list-inactive-devices:
   * can read now alternatively query by last Intune sync
   * can export to CSV
+* new runbook: list app registrations that are vulnerable to CVE-2021-42306.
 
 ## 2022-05-24
 * list inactive app: 
