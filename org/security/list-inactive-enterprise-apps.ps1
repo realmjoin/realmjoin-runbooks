@@ -33,43 +33,55 @@ param(
 )
 
 Connect-RjRbGraph
-#Connect-MgGraph
-# Calculate "last sign in date"
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
-#$filter='createdDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 
-"## Inactive Applications (No SignIn since at least $Days days):"
+"## Inactive Applications (Last SignIn more than $Days days ago):"
 ""
 [array]$UsedApps = @()
-Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" | Select-Object -Property appDisplayName, appId, createdDateTime | Group-Object -Property appId | ForEach-Object {
-    $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object -First 1
-    $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
-    
-
-    
-    if ($first.createdDateTime -le $lastSignInDate) {
-        try {
+try {
+    Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" -FollowPaging | Select-Object -Property appDisplayName, appId, createdDateTime | Group-Object -Property appId | ForEach-Object {
+        $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object -First 1
+        $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"        
+        if ($first.createdDateTime -le $lastSignInDate) {
             $app = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
             Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($app.Id)" -Method Patch -body @{ notes = $(($first.createdDateTime).ToString('o')) }
-            $loginTime = New-TimeSpan -Start $first.createdDateTime -End (Get-Date) 
-            "## $($app.appDisplayName) no logins for $($loginTime.Days) Days"
-
+            $loginTime = New-TimeSpan -Start $first.createdDateTime -End (Get-Date)
+            # Some apps seem to have no DisplayName...
+            if ($app.appDisplayName) { 
+                "## $($app.appDisplayName): no logins for $($loginTime.Days) Days"
+            }
+            else {
+                "## (AppId) $($app.appId): no logins for $($loginTime.Days) Days"
+            }
         }
-        catch {
-            $_
-         
-        }
-    }
-}
-
-try {
-
-    $AllApps = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals"
-    $unusedApps = (Compare-Object $AllApps $UsedApps).InputObject
-    foreach ($unusedApp in $unusedApps) {
-        "## $($unusedApp.appDisplayName): no Login found"
     }
 }
 catch {
+    "## Listing AuditLog or ServicePrincipals failed. Missing permissions?"
+    "## Error details:"
+    $_
+}
+
+""
+"## Inactive Applications (No SignIn record exists in AuditLog):"
+""
+
+
+try {
+    $AllApps = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -FollowPaging
+    $unusedApps = (Compare-Object $AllApps $UsedApps).InputObject
+    foreach ($app in $unusedApps) {
+            # Some apps seem to have no DisplayName...
+            if ($app.appDisplayName) { 
+                "## $($app.appDisplayName): no logins recorded in auditLog"
+            }
+            else {
+                "## (AppId) $($app.appId): no logins recorded in auditLog"
+            }
+    }
+}
+catch {
+    "## Listing ServicePrincipals failed. Missing permissions?"
+    "## Error details:"
     $_
 }

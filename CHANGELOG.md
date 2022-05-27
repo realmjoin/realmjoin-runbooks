@@ -1,5 +1,16 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-05-25
+* list-inactive-devices:
+  * can read now alternatively query by last Intune sync
+  * can export to CSV
+* new runbook: list app registrations that are vulnerable to CVE-2021-42306.
+
+## 2022-05-24
+* list inactive app: 
+  * Fix - List of apps was truncated
+  * Fix - Display AppId if DisplayName is not available
+
 ## 2022-05-20
 * new runbook: List expiring AzureAD / PIM role assignments
 
@@ -7,7 +18,7 @@
 * new runbook: List/Add/Remove SmartScreen Exclusions (indicators) in MS Security Center
 
 ## 2022-05-16
-* new runbook: Export all devices (to a storage account)
+* new runbook: Export all Intune devices (to a storage account)
 
 ## 2022-05-16
 * Many runbooks: Improve output 
