@@ -10,7 +10,10 @@
   AzureAD Roles
   - User administrator
   Azure IaaS: "Contributor" access on subscription or resource group used for the export
-  
+
+  .PARAMETER ReplacementOwnerName
+  Who will take over group ownership if the offboarded user is the last remaining group owner.
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -102,7 +105,27 @@
                         }    
                     ]
                 }
-            }
+            },
+            "RevokeGroupOwnership": {
+                "DisplayName": "Handle group ownerships",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "User will remain owner / Do not change",
+                            "Value": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ReplacementOwnerName"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Remove/Replace this user's group ownerships",
+                            "Value": true
+                        }
+                    ]
+                }
+            },
         }
     }
 
@@ -170,7 +193,6 @@
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage, ExchangeOnlineManagement
@@ -205,6 +227,8 @@ param (
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" } )]
     [String] $GroupsToRemovePrefix,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" })]
+    [bool] $RevokeGroupOwnership = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.ReplacementOwnerName" } )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
@@ -258,6 +282,7 @@ $memberships = $membershipIds | ForEach-Object {
 }
 $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
 
+# "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
     Write-RjRbLog "Connecting to Azure Storage Account"
     Connect-RjRbAzAccount
@@ -279,33 +304,50 @@ if ($exportGroupMemberships) {
     Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
-#remove group ownerships
 
-
-if ($DeleteUser) {
-    if (($ChangeGroupsSelector -ne 0) -or ($ChangeLicensesSelector -ne 0)) {
-        "## Skipping license/group modifications as User object will be deleted."
-    }
+# Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
+if ($RevokeGroupOwnership) {
     $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
     if ($OwnedGroups) {
         foreach ($OwnedGroup in $OwnedGroups) {
             $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
             if (([array]$owners).Count -eq 1) {
-                $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
+                $ReplacementOwner = $null
+                if ($ReplacementOwnerName) {
+                    $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                }
                 if ($ReplacementOwner) {
                     $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
                     $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
                     Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
-                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.displayName)'"
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.userPrincipalName)'"
                 }
                 else {
-                    "## Replacement Owner '$ReplacementOwnerName' not found. Skipping ownership change for group '$($OwnedGroup.displayName)'." 
+                    if ($ReplacementOwnerName) {
+                        "## Replacement Owner '$ReplacementOwnerName' not found."
+                    }
+                    else {
+                        "## No Replacement Owner given."
+                    }
+                    "## Skipping ownership change for group '$($OwnedGroup.displayName)'." 
                     "## Please verify owners of group '$($OwnedGroup.displayName)' manually!"
                 }
             }
+            else {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                "## Revoked Ownership of group '$($OwnedGroup.displayName)'"
+            }
+            
         }
     }
+}
 
+if ($DeleteUser) {
+    if (($ChangeGroupsSelector -ne 0) -or ($ChangeLicensesSelector -ne 0)) {
+        "## Skipping license/group modifications as User object will be deleted."
+    }
 
     "## Deleting User Object $UserName"
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Delete | Out-Null
