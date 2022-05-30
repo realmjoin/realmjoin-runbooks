@@ -140,7 +140,8 @@
 
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {            "CallerName": {
+        "Parameters": {            
+            "CallerName": {
                 "Hide": true
             }
         }
@@ -158,6 +159,8 @@ param (
     [bool] $DisableUser = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" } )]
+    [bool] $RevokeGroupOwnership = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportStorAccountName" } )]
@@ -177,7 +180,9 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" } )]
-    [String] $GroupsToRemovePrefix,
+    [String] $GroupsToRemovePrefix, 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" } )]
+    [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -254,6 +259,45 @@ if ($exportGroupMemberships) {
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
 
+# Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
+if ($RevokeGroupOwnership) {
+    $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
+    if ($OwnedGroups) {
+        foreach ($OwnedGroup in $OwnedGroups) {
+            $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
+            if (([array]$owners).Count -eq 1) {
+                "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
+                $ReplacementOwner = $null
+                if ($ReplacementOwnerName) {
+                    $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                }
+                if ($ReplacementOwner) {
+                    $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
+                    $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.displayName)'"
+                }
+                else {
+                    if ($ReplacementOwnerName) {
+                        "## Replacement Owner '$ReplacementOwnerName' not found."
+                    }
+                    else {
+                        "## No Replacement Owner given."
+                    }
+                    "## Skipping ownership change for group '$($OwnedGroup.displayName)'." 
+                    "## Please verify owners of group '$($OwnedGroup.displayName)' manually!"
+                }
+            }
+            else {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                "## Revoked Ownership of group '$($OwnedGroup.displayName)'"
+            }
+            
+        }
+    }
+}
+
 if ($ChangeGroupsSelector -ne 0) {
     # Add new licensing group, if not already assigned
     if ($GroupToAdd -and ($memberships.DisplayName -notcontains $GroupToAdd)) {
@@ -281,6 +325,7 @@ if ($ChangeGroupsSelector -ne 0) {
         $groupsToRemove = $memberships 
     }
 
+    
     # Remove group memberships
     $groupsToRemove | ForEach-Object {
         if ($GroupToAdd -ne $_.DisplayName) {

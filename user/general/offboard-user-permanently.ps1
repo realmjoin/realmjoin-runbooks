@@ -170,7 +170,6 @@
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage, ExchangeOnlineManagement
@@ -185,6 +184,8 @@ param (
     [bool] $DisableUser = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
     [bool] $RevokeAccess = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" } )]
+    [bool] $RevokeGroupOwnership = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountName" } )]
@@ -279,33 +280,50 @@ if ($exportGroupMemberships) {
     Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
-#remove group ownerships
 
-
-if ($DeleteUser) {
-    if (($ChangeGroupsSelector -ne 0) -or ($ChangeLicensesSelector -ne 0)) {
-        "## Skipping license/group modifications as User object will be deleted."
-    }
+# Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
+if ($RevokeGroupOwnership) {
     $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
     if ($OwnedGroups) {
         foreach ($OwnedGroup in $OwnedGroups) {
             $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
             if (([array]$owners).Count -eq 1) {
-                $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
+                $ReplacementOwner = $null
+                if ($ReplacementOwnerName) {
+                    $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                }
                 if ($ReplacementOwner) {
                     $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
                     $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
                     Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
                     "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.displayName)'"
                 }
                 else {
-                    "## Replacement Owner '$ReplacementOwnerName' not found. Skipping ownership change for group '$($OwnedGroup.displayName)'." 
+                    if ($ReplacementOwnerName) {
+                        "## Replacement Owner '$ReplacementOwnerName' not found."
+                    }
+                    else {
+                        "## No Replacement Owner given."
+                    }
+                    "## Skipping ownership change for group '$($OwnedGroup.displayName)'." 
                     "## Please verify owners of group '$($OwnedGroup.displayName)' manually!"
                 }
             }
+            else {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                "## Revoked Ownership of group '$($OwnedGroup.displayName)'"
+            }
+            
         }
     }
+}
 
+if ($DeleteUser) {
+    if (($ChangeGroupsSelector -ne 0) -or ($ChangeLicensesSelector -ne 0)) {
+        "## Skipping license/group modifications as User object will be deleted."
+    }
 
     "## Deleting User Object $UserName"
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Delete | Out-Null
