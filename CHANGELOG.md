@@ -3,6 +3,7 @@
 ## 2022-05-30
 * offboard-user-*: 
   * Handle group ownership on offboarding (replace owner)
+* new runbook: List a user's group ownerships
 
 ## 2022-05-25
 * list-inactive-devices:
