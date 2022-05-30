@@ -120,7 +120,7 @@
                             }
                         },
                         {
-                            "Display": "Remove this user's group ownerships",
+                            "Display": "Remove/Replace this user's group ownerships",
                             "Value": true
                         }
                     ]
@@ -227,7 +227,7 @@ param (
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" } )]
     [String] $GroupsToRemovePrefix,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" })]
     [bool] $RevokeGroupOwnership = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.ReplacementOwnerName" } )]
     [String] $ReplacementOwnerName,
@@ -322,7 +322,7 @@ if ($RevokeGroupOwnership) {
                     $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
                     Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
                     Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
-                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.displayName)'"
+                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.userPrincipalName)'"
                 }
                 else {
                     if ($ReplacementOwnerName) {

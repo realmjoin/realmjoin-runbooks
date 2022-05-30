@@ -97,7 +97,7 @@
                             }
                         },
                         {
-                            "Display": "Remove this user's group ownerships",
+                            "Display": "Remove/Replace this user's group ownerships",
                             "Value": true
                         }
                     ]
