@@ -10,7 +10,10 @@
   AzureAD Roles
   - User administrator
   Azure IaaS: "Contributor" access on subscription or resource group used for the export
- 
+
+  .PARAMETER ReplacementOwnerName
+  Who will take over group ownership if the offboarded user is the last remaining group owner.
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -79,7 +82,27 @@
                         }    
                     ]
                 }
-            }
+            },
+            "RevokeGroupOwnership": {
+                "DisplayName": "Handle group ownerships",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "User will remain owner / Do not change",
+                            "Value": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ReplacementOwnerName"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Remove this user's group ownerships",
+                            "Value": true
+                        }
+                    ]
+                }
+            },
         }
     }
 
@@ -155,12 +178,10 @@ param (
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
-    [bool] $DisableUser = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" } )]
-    [bool] $RevokeGroupOwnership = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
+    [bool] $DisableUser = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportStorAccountName" } )]
@@ -174,13 +195,15 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licensesMode" } )]
-    [int] $ChangeLicensesSelector,
+    [int] $ChangeLicensesSelector=0,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsMode" } )]
-    [int] $ChangeGroupsSelector,
+    [int] $ChangeGroupsSelector=0,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" } )]
     [String] $GroupsToRemovePrefix, 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" } )]
+    [bool] $RevokeGroupOwnership = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" } )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
@@ -227,13 +250,12 @@ if ($RevokeAccess) {
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
 }
 
-# "Getting list of group and role memberships for user $UserName." 
+Write-RjRbLog "Getting list of group and role memberships for user '$UserName'." 
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
 $membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
 $memberships = $membershipIds | ForEach-Object {
     Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
 }
-
 $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
 
 # "Connectint to Azure Storage Account"
@@ -274,9 +296,9 @@ if ($RevokeGroupOwnership) {
                 if ($ReplacementOwner) {
                     $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
                     $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
-                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.displayName)'"
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody | Out-Null
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.userPrincipalName)'"
                 }
                 else {
                     if ($ReplacementOwnerName) {

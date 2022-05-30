@@ -10,7 +10,10 @@
   AzureAD Roles
   - User administrator
   Azure IaaS: "Contributor" access on subscription or resource group used for the export
-  
+
+  .PARAMETER ReplacementOwnerName
+  Who will take over group ownership if the offboarded user is the last remaining group owner.
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -102,7 +105,27 @@
                         }    
                     ]
                 }
-            }
+            },
+            "RevokeGroupOwnership": {
+                "DisplayName": "Handle group ownerships",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "User will remain owner / Do not change",
+                            "Value": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ReplacementOwnerName"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Remove this user's group ownerships",
+                            "Value": true
+                        }
+                    ]
+                }
+            },
         }
     }
 
@@ -184,8 +207,6 @@ param (
     [bool] $DisableUser = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" } )]
-    [bool] $RevokeGroupOwnership = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountName" } )]
@@ -206,6 +227,8 @@ param (
     [string] $GroupToAdd,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" } )]
     [String] $GroupsToRemovePrefix,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" } )]
+    [bool] $RevokeGroupOwnership = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.ReplacementOwnerName" } )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
@@ -259,6 +282,7 @@ $memberships = $membershipIds | ForEach-Object {
 }
 $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
 
+# "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
     Write-RjRbLog "Connecting to Azure Storage Account"
     Connect-RjRbAzAccount
