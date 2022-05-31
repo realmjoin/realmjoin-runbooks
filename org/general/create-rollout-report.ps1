@@ -25,21 +25,7 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
-            },
-            "trackOwnedDevices": {
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Corelate using ownedDevices",
-                            "ParameterValue": true,
-                        },
-                        {
-                            "Display": "Corelate using registeredDevices",
-                            "ParameterValue": false
-                        }
-                    ]
-                }
-            }  
+            }
         }
     }
 
@@ -49,8 +35,6 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
 
 param(
-    [ValidateScript( { Use-RJInterface -DisplayName "Corelate users to device via ownedDevices or registeredDevices?" } )]
-    [bool] $trackOwnedDevices = $true,
     # Make a persistent container the default, so you can simply update PowerBI's report from the same source
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RolloutReport.Container" } )]
     [string] $ContainerName = "rjrb-rollout-report",
@@ -129,12 +113,33 @@ if ($exportToFile) {
     $userCount = 0
 
     "userPrincipalName;userType;accountEnabled;surname;givenName;companyName;department;jobTitle;mail;onPremisesSamAccountName;MFA;MFAMobilePhone;MFAOATH;MFAFido2;MFAApp" > ($OutPutPath + "users.csv")
-    "userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant;deviceId;serialNumber" > ($OutPutPath + "devices.csv")
+    # switched to intune as sole data source for devices
+    ##"userPrincipalName;manufacturer;model;OS;OSVersion;RegistrationDate;trustType;mdmAppId;isCompliant;deviceId;serialNumber" > ($OutPutPath + "devices.csv")
+    "userPrincipalName;deviceName;manufacturer;model;OS;OSVersion;RegistrationDate;isCompliant;deviceId;serialNumber" > ($OutPutPath + "devices.csv")
     "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
     "userPrincipalName;LicenseName;DirectAssignment;GroupName" > ($OutPutPath + "licenses.csv")
 
+    "## Collecting: All Intune Devices"
+    $IntuneDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -FollowPaging
+    foreach ($device in $IntuneDevices) {
+        $result = "$($device.userPrincipalName);$($device.deviceName);$($device.manufacturer);$($device.model);$($device.operatingSystem);$($device.osVersion);"
+        if ($device.enrolledDateTime) {
+            $result += "$(get-date $device.enrolledDateTime -Format "yyyy-MM-dd");"
+        }
+        else {
+            $result += ";"
+        }
+        if ($Device.complianceState -eq "compliant") {
+            $result += "$($true);"
+        } else {
+            $result += "$($false);"
+        }
+        $result += "$($device.azureADDeviceId);$($device.serialNumber)"
+        $result >> ($OutPutPath + "devices.csv")
+    }
 
-    # Collecting: All user objects
+
+    "## Collecting: All User Objects"
     Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" -OdFilter "userType eq 'Member'" | ForEach-Object {
         if ((get-date) -gt ($timerAuth + $intervalAuth)) {
             "## Reauthenticating..."
@@ -191,6 +196,8 @@ if ($exportToFile) {
       
             $user.userPrincipalName + ";" + $user.userType + ";" + $user.accountEnabled + ";" + $user.surname + ";" + $user.givenName + ";" + $user.companyName + ";" + $user.department + ";" + $user.jobTitle + ";" + $user.mail + ";" + $user.onPremisesSamAccountName + ";" + $user.MFA + ";" + $user.MFAMobilePhone + ";" + $user.MFAOATH + ";" + $user.MFAFido2 + ";" + $user.MFAApp >> ($OutPutPath + "users.csv") 
 
+            # switched to Intune as sole source for devices
+            <#
             # Check Devices.
             $userDevices = @()
             if ($trackOwnedDevices) {
@@ -210,6 +217,7 @@ if ($exportToFile) {
                 $serial = (Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$($userDevices.deviceId)'" -ErrorAction SilentlyContinue).serialNumber
                 $user.userPrincipalName + ";" + $device.manufacturer + ";" + $device.model + ";" + $device.operatingSystem + ";" + $device.operatingSystemVersion + ";" + $regDate + ";" + $device.trustType + ";" + $device.mdmAppId + ";" + $device.isCompliant + ";" + $device.deviceId + ";" + $serial >> ($OutPutPath + "devices.csv")
             }
+            #>
 
             # Check Groups.
             Invoke-RjRbRestMethodGraph -Resource "/users/$($user.userPrincipalName)/getMemberGroups" -Method POST -Body @{ "securityEnabledOnly" = $false } -FollowPaging | ForEach-Object {
