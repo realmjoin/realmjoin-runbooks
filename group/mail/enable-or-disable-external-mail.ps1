@@ -55,7 +55,8 @@ try {
     Connect-RjRbExchangeOnline
 
     # "Checking"  if group is universal group
-    if (-not (Get-UnifiedGroup -Identity $GroupId -ErrorAction SilentlyContinue)) {
+    $group = Get-UnifiedGroup -Identity $GroupId -ErrorAction SilentlyContinue
+    if (-not $group) {
         throw "`'$GroupId`' is not a unified (O365) group. Can not proceed."
     }
     
@@ -67,7 +68,7 @@ try {
         catch {
             throw "Couldn't disable external mailing! `r`n $_"
         }
-        "## External mailing successfully disabled for `'$GroupId`'"
+        "## External mailing successfully disabled for '$($group.displayName)'"
     }
     
     if ($Action -eq 0) {
@@ -78,11 +79,11 @@ try {
         catch {
             throw "Couldn't enable external mailing! `r`n $_"
         }
-        "## External mailing successfully enabled for `'$GroupId`'"
+        "## External mailing successfully enabled for '$($group.displayName)'"
     }
 
     if ($Action -eq 2) {
-        "## External Mailing for this group is enabled: $( -not (Get-UnifiedGroup -Identity $GroupId).RequireSenderAuthenticationEnabled)"
+        "## External Mailing for group '$($group.displayName)' is enabled: $( -not (Get-UnifiedGroup -Identity $GroupId).RequireSenderAuthenticationEnabled)"
     }
 }
 finally {

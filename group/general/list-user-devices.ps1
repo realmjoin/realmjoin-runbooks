@@ -19,7 +19,7 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "put devices owned by group members in specified AAD Group",
+                            "Display": "Put devices owned by group members in specified AAD (device) Group",
                             "Customization": {
                                 "Default": {
                                     "moveGroup": true
@@ -38,7 +38,7 @@
                         }
                     ]
                 },
-                "Default": "put devices owned by group members in specified AAD Group"
+                "Default": "Put devices owned by group members in specified AAD (device) Group"
             },
             {
                 "Name": "CallerName",
@@ -60,11 +60,11 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Usergroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group to inspect" } )]
     [String] $GroupID,
-    [ValidateScript( { Use-RJInterface -DisplayName "List Devices owned by Group Members" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Put devices owned by group members in specified AAD (device) Group" } )]
     [bool]$moveGroup = $false,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Devicegroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Device group" } )]
     [String] $targetgroup,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -105,7 +105,7 @@ if ($devicelist.Count -gt 0) {
         }
         $deviceGroupbody = @{"members@odata.bind" = $bindings }
         try {
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$targetgroup" -Method "Patch" -Body $deviceGroupbody
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$targetgroup" -Method "Patch" -Body $deviceGroupbody | out-null
             "## moved devices to group with ID: $targetgroup"
         }
         catch {

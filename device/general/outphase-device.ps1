@@ -16,37 +16,35 @@
 
   .INPUTS
   RunbookCustomization: {
+    
     "Parameters": {
         "DeviceId": {
             "Hide": true
         },
-        "wipeDevice": {
+        "intuneAction": {
             "DisplayName": "Wipe this device?",
             "Select": {
                 "Options": [
                     {
                         "Display": "Completely wipe device (not keeping user or enrollment data)",
-                        "Value": true,
-                        "Customization": {
-                            "Hide": [
-                                "removeIntuneDevice"
-                            ]
-                        }
+                        "Value": 2
                     },
                     {
-                        "Display": "Do not wipe device",
-                        "Value": false
+                        "Display": "Delete device from Intune (only if device is already wiped or destroyed)",
+                        "Value": 1
+                    },                    {
+                        "Display": "Do not wipe or remove device from Intune",
+                        "Value": 0
                     }
                 ],
                 "ShowValue": false
             }
         },
+        "wipeDevice": {
+            "Hide":true
+        },
         "removeIntuneDevice": {
-            "DisplayName": "Delete device from Intune?",
-            "SelectSimple": {
-                "Delete device from Intune (only if device is already wiped or destroyed)": true,
-                "Do not modify the Intune object / do not care": false
-            }
+            "Hide":true
         },
         "removeAutopilotDevice": {
             "DisplayName": "Delete device from AutoPilot database?",
@@ -55,33 +53,31 @@
                 "Keep device / do not care": false
             }
         },
-        "removeAADDevice": {
+        "aadAction": {
             "DisplayName": "Delete device from AzureAD?",
             "Select": {
                 "Options": [
                     {
-                        "Diplay": "Delete device in AzureAD",
-                        "Value": true,
-                        "Customization": {
-                            "Hide": [
-                                "disableAADDevice"
-                            ]
-                        }
+                        "Display": "Delete device in AzureAD",
+                        "Value": 2
                     },
                     {
-                        "Diplay": "Do not delete AzureAD device / do not care",
-                        "Value": false
+                        "Display": "Disable device in AzureAD",
+                        "Value": 1
+                    },
+                    {
+                        "Display": "Do not delete AzureAD device / do not care",
+                        "Value": 0
                     }
                 ],
                 "ShowValue": false
             }
         },
+        "removeAADDevice": {
+            "Hide":true
+        },
         "disableAADDevice": {
-            "DisplayName": "Disable AzureAD device object?",
-            "SelectSimple": {
-                "Disable device in AzureAD": true,
-                "Do not modify AzureAD device / do not care": false
-            }
+            "Hide":true
         },
         "CallerName": {
             "Hide": true
@@ -95,6 +91,8 @@
 param (
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
+    [int] $intuneAction = 2,
+    [int] $aadAction = 2,
     [bool] $wipeDevice = $true,
     [bool] $removeIntuneDevice = $false,
     [bool] $removeAutopilotDevice = $true,
@@ -104,6 +102,28 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+# only modify parameters, if "actions" are set to non-default values
+switch ($intuneAction) {
+    1 {
+        $wipeDevice = $false
+        $removeIntuneDevice = $true
+    }
+    0 {
+        $wipeDevice = $false
+        $removeIntuneDevice = $false
+    }
+}
+switch ($aadAction) {
+    1 {
+        $removeAADDevice = $false
+        $disableAADDevice = $true
+    } 
+    0 {
+        $removeAADDevice = $false
+        $disableAADDevice = $false
+    }
+}
 
 Connect-RjRbGraph
 
@@ -167,7 +187,7 @@ if ($mgdDevice) {
             "keepUserData"       = $false
         }
         try {
-            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body
+            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body | Out-Null
         }
         catch {
             "## Error Message: $($_.Exception.Message)"

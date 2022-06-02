@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-06-01
+* rewriting RBs to have max. one active "Customizing" block per Runbook
+  * outphase-device
+* better output and error handling in several runbooks
+
 ## 2022-05-30
 * offboard-user-*: 
   * Handle group ownership on offboarding (replace owner)
