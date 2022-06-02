@@ -42,17 +42,27 @@ param(
 
 Connect-RjRbGraph
 
+# Check if group exists already
+$group = Invoke-RjRbRestMethodGraph -resource "/groups/$GroupId" -erroraction SilentlyContinue
+if (-not $group) {
+    throw "GroupId '$GroupId' does not exist."
+}
+
+"## Trying to rename/update group $($group.displayName) to:"
+
 $body = @{}
 if ($MailNickname) {
+    "New MailNickname: $MailNickname"
     $body.Add("mailNickname", $MailNickname)
 }
 if ($DisplayName) {
+    "New DisplayName: $DisplayName"
     $body.Add("displayName", $DisplayName)
 }
 if ($Description) {
+    "New Descriptio: $Description"
     $body.Add("description",$Description)
 }
-
 
 if ($body.Count -gt 0) {
     Invoke-RjRbRestMethodGraph -resource "/groups/$GroupId" -Method Patch -Body $body | Out-Null
