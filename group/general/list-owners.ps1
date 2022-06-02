@@ -36,7 +36,15 @@ param(
 
 Connect-RjRbGraph
 
-$owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners" -ErrorAction SilentlyContinue
+$group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID" -ErrorAction SilentlyContinue
+if ($group) {
+    "## Listing all owners of group '$($group.displayName)'"
+} else {
+    "## Group '$GroupID' not found"
+    throw ("Group not found")
+}
+
+$owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners" -ErrorAction SilentlyContinue -FollowPaging
 
 if ($owners) {
     $owners | Format-Table -AutoSize -Property "displayName","userPrincipalName" | Out-String
