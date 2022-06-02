@@ -38,6 +38,8 @@ Connect-RjRbGraph
 
 $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID" -OdSelect "displayName,resourceProvisioningOptions"
 
+"## Trying to archive '$($group.displayName)'..."
+
 # "## Check if group is a team"
 if (-not ($group.resourceProvisioningOptions -contains "Team")) {
     "## Group '$($group.displayName)' is not a team!"
