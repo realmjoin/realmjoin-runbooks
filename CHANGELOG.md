@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-06-8
+* rewriting RBs to have max. one active "Customizing" block per Runbook
+  * ouffboard-user-*
+
 ## 2022-06-03
 * moved all teams phone/voice related runbooks to brach "feature-teamsvoice".
 
