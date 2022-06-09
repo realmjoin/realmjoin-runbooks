@@ -10,9 +10,12 @@
   AzureAD Roles
   - User administrator
   Azure IaaS: "Contributor" access on subscription or resource group used for the export
+  
+  .Parameter ChangeGroupsSelector
+  "Change" and "Remove all" will both honour "groupToAdd"
 
   .PARAMETER ReplacementOwnerName
-  Who will take over group ownership if the offboarded user is the last remaining group owner.
+  Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
 
   .INPUTS
   RunbookCustomization: {
@@ -60,12 +63,6 @@
                         {
                             "Display": "Do not change assigned groups",
                             "Value": 0,
-                            "Customization": {
-                                "Hide": [
-                                    "GroupToAdd",
-                                    "GroupsToRemovePrefix"
-                                ]
-                            }
                         },
                         {
                             "Display": "Change the user's groups",
@@ -73,12 +70,7 @@
                         },
                         {
                             "Display": "Remove all groups",
-                            "Value": 2,
-                            "Customization": {
-                                "Hide": [
-                                    "GroupsToRemovePrefix"
-                                ]
-                            }
+                            "Value": 2
                         }    
                     ]
                 }
@@ -89,12 +81,7 @@
                     "Options": [
                         {
                             "Display": "User will remain owner / Do not change",
-                            "Value": false,
-                            "Customization": {
-                                "Hide": [
-                                    "ReplacementOwnerName"
-                                ]
-                            }
+                            "Value": false
                         },
                         {
                             "Display": "Remove/Replace this user's group ownerships",
@@ -200,11 +187,11 @@ param (
     [int] $ChangeGroupsSelector=0,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix"} )]
     [String] $GroupsToRemovePrefix, 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships"} )]
     [bool] $RevokeGroupOwnership = $false,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" -DisplayName "Who should step in as group owner?"} )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
