@@ -118,13 +118,17 @@ if ($exportToFile) {
     "userPrincipalName;deviceName;manufacturer;model;OS;OSVersion;RegistrationDate;isCompliant;deviceId;serialNumber" > ($OutPutPath + "devices.csv")
     "userPrincipalName;GroupName;onPremisesSamAccountName" > ($OutPutPath + "groups.csv")
     "userPrincipalName;LicenseName;DirectAssignment;GroupName" > ($OutPutPath + "licenses.csv")
+    "currentDate;currentTime" > ($OutPutPath + "currentDate.csv")
+
+    # Writing current date - how fresh is our current report?
+    "$(get-date -Format "yyyy-MM-dd");$(get-date -Format "HH:mm")" >> ($OutPutPath + "currentDate.csv")
 
     "## Collecting: All Intune Devices"
     $IntuneDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -FollowPaging
     foreach ($device in $IntuneDevices) {
         $result = "$($device.userPrincipalName);$($device.deviceName);$($device.manufacturer);$($device.model);$($device.operatingSystem);$($device.osVersion);"
         if ($device.enrolledDateTime) {
-            $result += "$(get-date $device.enrolledDateTime -Format "yyyy-MM-dd");"
+            $result += "$(get-date $device.enrolledDateTime -Format "yyyy-MM-dd")"
         }
         else {
             $result += ";"
