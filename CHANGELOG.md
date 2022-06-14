@@ -3,6 +3,7 @@
 ## 2022-06-14
 * Add-User: Will only provision a license of there still licenses available
 * new runbook: Add/Remove Public Folder
+* Add Shared Mailbox: Support for redirecting sent mail
 
 ## 2022-06-08
 * rewriting RBs to have max. one active "Customizing" block per Runbook
