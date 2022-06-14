@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-06-14
+* Add-User: Will only provision a license of there still licenses available
+
+## 2022-06-08
+* rewriting RBs to have max. one active "Customizing" block per Runbook
+  * ouffboard-user-*
+
+## 2022-06-03
+* moved all teams phone/voice related runbooks to brach "feature-teamsvoice".
+
 ## 2022-06-01
 * rewriting RBs to have max. one active "Customizing" block per Runbook
   * outphase-device
@@ -33,6 +43,7 @@
 ## 2022-05-16
 * Many runbooks: Improve output 
 * device wipe and deveice outphase: Show owner/user UPN for the device
+
 ## 2022-05-12
 * Add User: Supports adding users to Exchange Distr. Lists / mail enabled groups
 

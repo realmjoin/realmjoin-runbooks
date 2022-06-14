@@ -108,12 +108,23 @@ if ($CreateTeam) {
 
 if ($Owner) {
     $OwnerObj = Invoke-RjRbRestMethodGraph -Resource "/users/$Owner"
-    $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+    if ($OwnerObj) {
+        $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+        $groupDescription["members@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+    }
+    else {
+        "## User '$Owner' not found. Skipping setting this owner."
+    }
 }
 if ($Owner2 -and ($Owner -ne $Owner2)) {
     $Owner2Obj = Invoke-RjRbRestMethodGraph -Resource "/users/$Owner2"
-    $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($Owner2Obj.id)")
-    
+    if ($Owner2Obj) {
+        $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($Owner2Obj.id)")
+        $groupDescription["members@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($Owner2Obj.id)")
+    }
+    else {
+        "## User '$Owner2' not found. Skipping setting this owner."
+    }
 }
 
 

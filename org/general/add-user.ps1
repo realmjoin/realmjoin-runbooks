@@ -244,6 +244,7 @@ if ($CompanyName -eq "") {
 }
 
 
+
 $newUserArgs = [ordered]@{
     userPrincipalName = $UserPrincipalName
     mailNickName      = $MailNickname
@@ -324,24 +325,42 @@ if ($ManagerId) {
 # Assign the default license. Continue even if this fails.
 if ($DefaultLicense -ne "") {
     #"Searching license group $DefaultLicense."
-    $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$DefaultLicense'" -ErrorAction SilentlyContinue
+    $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$DefaultLicense'" -OdSelect "displayName, assignedLicenses, id" -ErrorAction SilentlyContinue
+
     if (-not $group) {
-        "License group $DefaultLicense not found!"
-        Write-Error "License group $DefaultLicense not found!"
+        "## License group '$DefaultLicense' not found!"
+        Write-Error "License group '$DefaultLicense' not found!"
     }
     else {
-        "## Adding to license group '$($group.displayName)'"
-        $body = @{
-            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
+        $licenses = $group.assignedLicenses
+        $enoughlicenses = $true
+        foreach ($license in $licenses) {
+            $sku = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" | Where-Object { $_.skuID -eq $license.skuId }
+            $SkuRemaining = $sku.prepaidUnits.enabled - $sku.consumedUnits
+            if ($SkuRemaining -le 0) {
+                $enoughlicenses = $false
+            }
         }
-        try {
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
-            #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+        if ($enoughlicenses) {
+            "## Adding to license group '$($group.displayName)'"
+            $body = @{
+                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)" 
+            }
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+            }
+            catch {
+                "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                Write-RjRbLog $_
+            }
         }
-        catch {
-            "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
-            Write-RjRbLog $_
+        else {
+            "## WARNING - Licensegroup '$DefaultLicense' lacks sufficient licenses! Not provisioning license / group membership."
+
         }
+        
+        
     }
 }
 
@@ -352,8 +371,8 @@ foreach ($groupname in $groupsArray) {
         #"Searching default group $groupname."
         $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$groupname'" -ErrorAction SilentlyContinue
         if (-not $group) {
-            "Group $groupname not found!" 
-            Write-Error "Group $groupname not found!"
+            "## Group '$groupname' not found!" 
+            Write-Error "Group '$groupname' not found!"
         }
         else {
             if (($group.GroupTypes -contains "Unified") -or (-not $group.MailEnabled)) {
