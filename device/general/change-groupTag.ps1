@@ -24,8 +24,7 @@
 param (
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
-    [Parameter(Mandatory = $true)]
-    [string] $newGroupTag
+    [string] $newGroupTag = ""
 )
 
 Connect-RjRbGraph
