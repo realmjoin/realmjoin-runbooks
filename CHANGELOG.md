@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-06-20
+* new runbook: Assign new AutoPilot GroupTag to a device
+  
 ## 2022-06-14
 * Add-User: Will only provision a license of there still licenses available
 * new runbook: Add/Remove Public Folder
