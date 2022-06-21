@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-06-21
+* rollout-report: Show progress in percent
+
 ## 2022-06-20
 * new runbook: Assign new AutoPilot GroupTag to a device
   

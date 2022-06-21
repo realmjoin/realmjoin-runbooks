@@ -73,7 +73,9 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     ""
 }
 
-
+"## Creating MWP Rollout Report"
+""
+"## Connecting"
 
 
 # Static / internal defaults
@@ -144,7 +146,9 @@ if ($exportToFile) {
 
 
     "## Collecting: All User Objects"
-    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" -OdFilter "userType eq 'Member'" | ForEach-Object {
+    $allUsers = Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "id,userPrincipalName,userType,accountEnabled,surname,givenName,companyName,department,jobTitle,mail,licenseAssignmentStates,onPremisesSamAccountName" -OdFilter "userType eq 'Member'" 
+    "## Total users: $($allUsers.count)"
+    foreach ($user in $allUsers) {
         if ((get-date) -gt ($timerAuth + $intervalAuth)) {
             "## Reauthenticating..."
             Disconnect-ExchangeOnline -Confirm:$false
@@ -154,12 +158,10 @@ if ($exportToFile) {
         }
         
         if ((get-date) -gt ($timerProgress + $intervalProgress)) {
-            "## Users processed: $userCount"
+            "## Users processed: $userCount. ( $(($userCount*100/($allUsers.count)).ToString('.#'))% processed )"
             $timerProgress = Get-Date
         }
         $userCount++;
-
-        $user = $_
 
         # Filter Exchange special objects...
         $exoUser = Get-EXOMailbox -Identity $user.userPrincipalName -ErrorAction SilentlyContinue
