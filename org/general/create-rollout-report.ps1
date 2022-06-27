@@ -132,9 +132,7 @@ if ($exportToFile) {
         if ($device.enrolledDateTime) {
             $result += "$(get-date $device.enrolledDateTime -Format "yyyy-MM-dd")"
         }
-        else {
-            $result += ";"
-        }
+        $result += ";"
         if ($Device.complianceState -eq "compliant") {
             $result += "$($true);"
         } else {
