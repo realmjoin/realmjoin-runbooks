@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-07-05
+* new runbook: Add/Remove AzureAD group member
+
 ## 2022-06-20
 * new runbook: Assign new AutoPilot GroupTag to a device
   
