@@ -17,8 +17,8 @@
             "Remove": {
                 "DisplayName": "Add or Remove User",
                 "SelectSimple": {
-                    "Add User as Owner": false,
-                    "Remove User as Owner": true
+                    "Add User as member": false,
+                    "Remove User as member": true
                 }
             },
             "GroupId": {
