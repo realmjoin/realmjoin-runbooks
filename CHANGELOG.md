@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-07-22
+* new runbook: List groups that have license assignment errors
+
 ## 2022-07-05
 * new runbook: Add/Remove AzureAD group member
 
