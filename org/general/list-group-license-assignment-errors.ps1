@@ -39,6 +39,6 @@ if (-not $result) {
 } else {
     "## The following groups have license assignment errors:"
     $result | ForEach-Object {
-        "Group: $($_.displayName), ObjectId: $($_.id)"
+        "Group: '$($_.displayName)', ObjectId: $($_.id)"
     }
 }
