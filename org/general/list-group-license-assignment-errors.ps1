@@ -10,6 +10,15 @@
   - GroupMember.Read.All
   - Group.Read.All
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -30,6 +39,6 @@ if (-not $result) {
 } else {
     "## The following groups have license assignment errors:"
     $result | ForEach-Object {
-        "Group: '" + $_.displayName + "', ObjectId: " + $_.id
+        "Group: $($_.displayName), ObjectId: $($_.id)"
     }
 }
