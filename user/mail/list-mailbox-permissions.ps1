@@ -51,17 +51,21 @@ try {
     "## Dump Mailbox Permission Details for '$UserName'"
     ""
     "## Mailbox Access Permissions"
-    Get-MailboxPermission -Identity $UserName | Where-Object { ($_.user -like '*@*') } | Format-Table -Property Identity, User, AccessRights -AutoSize | Out-String
+    Get-MailboxPermission -Identity $UserName | Where-Object { ($_.user -ne 'NT AUTHORITY\SELF') } | Format-Table -Property Identity, User, AccessRights -AutoSize | Out-String
     ""
     "## Recipient/Sender (SendAs) Permissions"
-    Get-RecipientPermission -Identity $UserName | Where-Object { ($_.Trustee -like '*@*') } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
+    Get-RecipientPermission -Identity $UserName | Where-Object { ($_.Trustee -ne 'NT AUTHORITY\SELF') } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
     ""
     "## SendOnBehalf Permissions"
     (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
-        $sobTrustee = Get-EXOMailbox -Identity $_
+        $sobTrustee = Get-Recipient -Identity $_
         $result = @{}
         $result.Identity = $user.Identity
-        $result.Trustee = $sobTrustee.UserPrincipalName
+        if ($sobTrustee.RecipientType -eq "UserMailbox") {
+            $result.Trustee = $sobTrustee.PrimarySmtpAddress
+        } else {
+            $result.Trustee = $sobTrustee.Identity
+        }
         $result.AccessRights = "{SendOnBehalf}"
         [PsCustomObject]$result
     } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
