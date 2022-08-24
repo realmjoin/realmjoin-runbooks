@@ -3,7 +3,8 @@
   Microsoft Teams telephony offboarding
 
   .DESCRIPTION
-  Remove the phone number and specific policies from a teams-enabled user. Needs specific permissions - see Runbook source!
+  Remove the phone number and specific policies from a teams-enabled user.
+  Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook.
   
   .NOTES
   Permissions: 
@@ -23,6 +24,14 @@
    - Store the credentials (username and password) in "teamsautomation".
    This is not a recommended situation and will be fixed as soon as a technical solution is known. 
 
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
 #>
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "3.1.0" }
 param(
@@ -59,7 +68,7 @@ catch {
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {        
-        Write-Output "Teams PowerShell session could not be established. Stopping script!" 
+        Write-Warning "Teams PowerShell session could not be established. Stopping script!" 
         Exit
     }
 }
@@ -116,12 +125,36 @@ Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
 
 Write-Output "Start disable process:"
 Write-Output "Remove LineUri"
-Remove-CsPhoneNumberAssignment -Identity $UserName -RemoveAll
+try {
+    Remove-CsPhoneNumberAssignment -Identity $UserName -RemoveAll
+}
+catch {
+    $message = $_
+    Write-Error "Teams - Error: Removing the LineUri for $UPN could not be completed!"
+    Write-Error "Error Message: $message"
+    throw "Teams - Error: Removing the LineUri for $UPN could not be completed!"
+}
 
 Write-Output "Remove OnlineVoiceRoutingPolicy (Set to ""global"")"
-Grant-CsOnlineVoiceRoutingPolicy -Identity $UserName -PolicyName ""
+try {
+    Grant-CsOnlineVoiceRoutingPolicy -Identity $UserName -PolicyName ""
+}
+catch {
+    $message = $_
+    Write-Error "Teams - Error: Removing the of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+    Write-Error "Error Message: $message"
+    throw "Teams - Error: Removing the OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+}
 
 Write-Output "Remove (Tenant)DialPlan (Set to ""global"")"
-Grant-CsTenantDialPlan -Identity $UserName -PolicyName ""
+try {
+    Grant-CsTenantDialPlan -Identity $UserName -PolicyName ""
+}
+catch {
+    $message = $_
+    Write-Error "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
+    Write-Error "Error Message: $message"
+    throw "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
+}
 
 Write-Output "Done!"

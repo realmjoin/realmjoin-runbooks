@@ -1,9 +1,10 @@
 <#
   .SYNOPSIS
-  Assign a phone number to a teams-enabled user and enable calling.
+  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
   
   .DESCRIPTION
-  Assign a phone number to a teams-enabled user and enable calling. Needs specific permissions - see Runbook source!
+  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. If the policy name of a policy is left blank, the corresponding policy will not be changed.
+  Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook. 
   
   .NOTES
   Permissions: 
@@ -23,38 +24,41 @@
    - Store the credentials (username and password) in "teamsautomation".
    This is not a recommended situation and will be fixed as soon as a technical solution is known. 
 
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+        "OnlineVoiceRoutingPolicy": {
+            "DisplayName": "Microsoft Teams OnlineVoiceRoutingPolicy Name"
+        },
+        "TenantDialPlan": {
+            "DisplayName": "Microsoft Teams DialPlan Name"
+        },
+        "TeamsCallingPolicy": {
+            "DisplayName": "Microsoft Teams CallingPolicy Name"
+        },
+        "TeamsMeetingPolicy": {
+            "DisplayName": "Microsoft Teams Meeting Policy Name"
+        },
+        "TeamsMeetingBroadcastPolicy": {
+            "DisplayName": "Microsoft Teams Meeting Broadcast Policy Name (Live Event Policy)"
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
 #>
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "3.1.0" }
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
-
-    #Number which should be assigned
-    [parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Phone number to assign (E.164 Format - Example:+49123987654" } )]
-    [String] $PhoneNumber,
-
-    [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams OnlineVoiceRoutingPolicy Name" } )]
     [String] $OnlineVoiceRoutingPolicy,
-
-    [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams DialPlan Name" } )]
     [String] $TenantDialPlan,
-
-    [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams CallingPolicy Name" } )]
     [String] $TeamsCallingPolicy,
-
-    [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams Meeting Policy Name" } )]
     [String] $TeamsMeetingPolicy,
-
-    [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams Meeting Broadcast Policy Name (Live Event Policy)" } )]
     [String] $TeamsMeetingBroadcastPolicy,
 
     # CallerName is tracked purely for auditing purposes
@@ -84,7 +88,8 @@ catch {
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {        
-        Write-Output "Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Teams PowerShell session could not be established. Stopping script!"
+        throw "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -161,7 +166,9 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
         Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy   
     }
     catch {
-        Write-Output "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
     }
 }
@@ -173,7 +180,9 @@ if ($TenantDialPlan -notlike "") {
         Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan  
     }
     catch {
-        Write-Output "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
     }
 }
@@ -185,31 +194,37 @@ if ($TeamsCallingPolicy -notlike "") {
         Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy   
     }
     catch {        
-        Write-Output "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
     }
 }
 
 # Set TeamsMeetingPolicy if defined
 if ($TeamsMeetingPolicy -notlike "") {
-    Write-Output "CallingPolicy: $TeamsMeetingPolicy"
+    Write-Output "TeamsMeetingPolicy: $TeamsMeetingPolicy"
     try {
         Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $TeamsMeetingPolicy   
     }
     catch {
-        Write-Output "Teams - Error: The assignment of TeamsMeetingPolicy for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TeamsMeetingPolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of TeamsMeetingPolicy for $UPN could not be completed!"
     }
 }
 
 # Set TeamsMeetingBroadcastPolicy if defined
 if ($TeamsMeetingBroadcastPolicy -notlike "") {
-    Write-Output "CallingPolicy: $TeamsMeetingBroadcastPolicy"
+    Write-Output "TeamsMeetingBroadcastPolicy: $TeamsMeetingBroadcastPolicy"
     try {
         Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $TeamsMeetingBroadcastPolicy   
     }
     catch {
-        Write-Output "Teams - Error: The assignment of TeamsMeetingBroadcastPolicy for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TeamsMeetingBroadcastPolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of TeamsMeetingBroadcastPolicy for $UPN could not be completed!"
     }
 }

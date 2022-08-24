@@ -1,9 +1,10 @@
 <#
   .SYNOPSIS
-  Assign a phone number to a teams-enabled user and enable calling.
+  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. 
   
   .DESCRIPTION
-  Assign a phone number to a teams-enabled user and enable calling. Needs specific permissions - see Runbook source!
+  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+  Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook.
   
   .NOTES
   Permissions: 
@@ -23,30 +24,46 @@
    - Store the credentials (username and password) in "teamsautomation".
    This is not a recommended situation and will be fixed as soon as a technical solution is known. 
 
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+        "PhoneNumber": {
+            "DisplayName": "Phone number to assign (E.164 Format - Example:+49123987654"
+        },
+        "OnlineVoiceRoutingPolicy": {
+            "DisplayName": "Microsoft Teams OnlineVoiceRoutingPolicy Name"
+        },
+        "TenantDialPlan": {
+            "DisplayName": "Microsoft Teams DialPlan Name"
+        },
+        "TeamsCallingPolicy": {
+            "DisplayName": "Microsoft Teams CallingPolicy Name"
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
 #>
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "3.1.0" }
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
 
     #Number which should be assigned
     [parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Phone number to assign (E.164 Format - Example:+49123987654" } )]
     [String] $PhoneNumber,
 
-    [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams OnlineVoiceRoutingPolicy Name" } )]
+    [parameter(Mandatory = $true)]
     [String] $OnlineVoiceRoutingPolicy,
 
     [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams DialPlan Name" } )]
     [String] $TenantDialPlan,
 
     [parameter(Mandatory = $false)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Microsoft Teams CallingPolicy Name" } )]
     [String] $TeamsCallingPolicy,
 
     # CallerName is tracked purely for auditing purposes
@@ -75,7 +92,8 @@ catch {
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Output "Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Teams PowerShell session could not be established. Stopping script!"
+        throw "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -129,16 +147,29 @@ Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
 
+Write-Output ""
 Write-Output "Preflight-Check"
+
+$AssignedPlan = $StatusQuo.AssignedPlan
+
+if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
+    Write-Output "License check - Microsoft O365 Phone Standard is generally assigned to this user"
+}else {
+    Write-Output ""
+    Write-Error "Error:"
+    Write-Error "The user does not have a license assigned respectively it is not yet replicated in the teams backend or the corresponding applications within the license are not available (MCOEV - Microsoft O365 Phone Standard)"
+    throw "The user does not have a license assigned respectively it is not yet replicated in the teams backend or the corresponding applications within the license are not available (MCOEV - Microsoft O365 Phone Standard)"
+    Exit
+}
+
+
 # Check if number is E.164
 if ($PhoneNumber -notmatch "^\+\d{8,15}") {
-    Write-Output "Phone number needs to be in E.164 format ( '+#######...' )."
+    Write-Error  "Phone number needs to be in E.164 format ( '+#######...' )."
     throw "Phone number needs to be in E.164 format ( '+#######...' )."
 }else {
     Write-Output "Phone number is in the correct E.164 format (Number: $PhoneNumber)."
 }
-
-$PhoneNumber = "+49123987655"
 
 # Check if number is already assigned
 $NumberCheck = "Empty"
@@ -146,7 +177,7 @@ $CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
 $NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber*").UserPrincipalName
 
 if ($NumberCheck -notlike "") {
-    Write-Output "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
+    Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
     throw "The assignment for could not be performed. PhoneNumber is already assigned!"
 }else {
     Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
@@ -154,17 +185,17 @@ if ($NumberCheck -notlike "") {
 
 #Check if number is a calling plan number
 Write-Output "Check if LineUri is a Calling Plan number"
-$CallingPlanNumber = (Get-CsOnlineTelephoneNumber -ResultSize 2147483647 -InventoryType Subscriber).ID
+$CallingPlanNumber = (Get-CsPhoneNumberAssignment -NumberType CallingPlan).TelephoneNumber
 if ($CallingPlanNumber.Count -gt 0) {
-    if ($CallingPlanNumber -contains $PhoneNumber.Replace("+","")) {
+    if ($CallingPlanNumber -contains $PhoneNumber) {
         $CallingPlanCheck = $true
-        Write-Output "LineUri is a Calling Plan number"
+        Write-Output "Phone number is a Calling Plan number"
     }else{
         $CallingPlanCheck = $false
-        Write-Output "LineUri is a Direct Routing number"
+        Write-Output "Phone number is a Direct Routing number"
     }
 }else{
-    Write-Output "LineUri is a Direct Routing number"
+    Write-Output "Phone number is a Direct Routing number"
     $CallingPlanCheck = $false
 }
 
@@ -174,8 +205,8 @@ if ($CallingPlanNumber.Count -gt 0) {
 ##             Main Part
 ##          
 ########################################################
-
-Write-Output "Set process"
+Write-Output ""
+Write-Output "Start set process"
 
 Write-Output "Set $PhoneNumber to $UPN"
 try {
@@ -185,22 +216,25 @@ try {
         Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
     }
 }catch {
-    Write-Output "Teams - Error: The assignment for $UPN could not be performed. Mostly no license is assigned to the user"
-    throw "Teams - Error: The assignment for $UPN could not be performed!"
+    $message = $_
+    Write-Error "Teams - Error: The assignment for $UPN could not be performed!"
+    Write-Error "Error Message: $message"
+    throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
 }
 
 if (($OnlineVoiceRoutingPolicy -notlike "") -and ($TenantDialPlan -notlike "") -and ($TeamsCallingPolicy -notlike "")) {
     Write-Output "Grant Policies these policies to $UPN :"
-}
 
-# Set OnlineVoiceRoutingPolicy if defined
+    # Set OnlineVoiceRoutingPolicy if defined
 if ($OnlineVoiceRoutingPolicy -notlike "") {
     Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
     try {
         Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy   
     }
     catch {
-        Write-Output "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
     }
 }
@@ -212,7 +246,9 @@ if ($TenantDialPlan -notlike "") {
         Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan  
     }
     catch {
-        Write-Output "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
     }
 }
@@ -224,10 +260,15 @@ if ($TeamsCallingPolicy -notlike "") {
         Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy   
     }
     catch {
-        Write-Output "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
         throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
     }
 }
+}
+
+
 
 Write-Output "Done!"
 
