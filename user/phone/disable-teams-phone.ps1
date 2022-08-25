@@ -137,7 +137,7 @@ catch {
 
 Write-Output "Remove OnlineVoiceRoutingPolicy (Set to ""global"")"
 try {
-    Grant-CsOnlineVoiceRoutingPolicy -Identity $UserName -PolicyName ""
+    Grant-CsOnlineVoiceRoutingPolicy -Identity $UserName -PolicyName $null
 }
 catch {
     $message = $_
@@ -148,7 +148,7 @@ catch {
 
 Write-Output "Remove (Tenant)DialPlan (Set to ""global"")"
 try {
-    Grant-CsTenantDialPlan -Identity $UserName -PolicyName ""
+    Grant-CsTenantDialPlan -Identity $UserName -PolicyName $null
 }
 catch {
     $message = $_

@@ -4,6 +4,7 @@
   
   .DESCRIPTION
   Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+  If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
   Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook.
   
   .NOTES
@@ -229,7 +230,11 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -and ($TenantDialPlan -notlike "") -
 if ($OnlineVoiceRoutingPolicy -notlike "") {
     Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
     try {
-        Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy   
+        if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null #reset to default
+        }else {
+            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy   
+        }  
     }
     catch {
         $message = $_
@@ -243,7 +248,11 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
 if ($TenantDialPlan -notlike "") {
     Write-Output "TenantDialPlan: $TenantDialPlan"
     try {
-        Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan  
+        if ($TenantDialPlan -like "Global (Org Wide Default)") {
+            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null #reset to default
+        }else {
+            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan  
+        }
     }
     catch {
         $message = $_
@@ -257,7 +266,11 @@ if ($TenantDialPlan -notlike "") {
 if ($TeamsCallingPolicy -notlike "") {
     Write-Output "CallingPolicy: $TeamsCallingPolicy"
     try {
-        Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy   
+        if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
+            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null #reset to default
+        }else {
+            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy  
+        } 
     }
     catch {
         $message = $_
