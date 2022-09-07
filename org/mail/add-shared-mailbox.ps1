@@ -21,6 +21,29 @@
         }
     }
 
+  .EXAMPLE
+      "Runbooks": {
+        "rjgit-org_mail_add-shared-mailbox": {
+            "ParameterList": [
+                {
+                    "Name": "DomainName",
+                    "Select": {
+                        "Options": [
+                                {
+                                    "Value": "contoso.onmicrosoft.com"
+                                },
+                                {
+                                    "Value": "contoso.com"
+                                }
+                            ]
+                    },
+                    "DefaultValue": "contoso.com"
+                }
+            ]
+        }
+    }
+
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
@@ -30,6 +53,7 @@ param (
     [string] $MailboxName,
     [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
     [string] $DisplayName,
+    [string] $DomainName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
@@ -52,7 +76,11 @@ try {
     }
 
     # Create the mailbox
-    $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName 
+    if (-not $DomainName) {
+        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName 
+    } else {
+        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName -PrimarySmtpAddress ($MailboxName + "@" + $DomainName)
+    }
 
     if ($DelegateTo) {
         # "Grant SendOnBehalf"
