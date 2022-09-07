@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-09-7
+* Add Shared Mailbox: Support Custom Domains
+
 ## 2022-08-02
 * merge Teams Voice Runbook into master branch
 * List mailbox permissions: add support for mail enbled groups as trustee
