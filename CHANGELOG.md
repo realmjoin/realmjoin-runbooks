@@ -2,6 +2,7 @@
 
 ## 2022-09-13
 * Add "List Room Mailbox Configuration" runbook
+* "List Admin Users" will list/validate MFA Methods for each admin
 
 ## 2022-09-7
 * Add Shared Mailbox: Support Custom Domains
