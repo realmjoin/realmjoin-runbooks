@@ -1,7 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
 ## 2022-09-13
-* Add "Get Room Mailbox Configuration" runbook
+* Add "List Room Mailbox Configuration" runbook
 
 ## 2022-09-7
 * Add Shared Mailbox: Support Custom Domains
