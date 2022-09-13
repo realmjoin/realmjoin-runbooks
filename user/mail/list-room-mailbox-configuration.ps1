@@ -20,7 +20,7 @@
                 "Hide": true
             }
         }
-
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -37,4 +37,12 @@ param (
 Connect-RjRbGraph
 
 $User = Invoke-RjRbRestMethodGraph -Resource "/users/$($UserName)" 
+
+try {
 Invoke-RjRbRestMethodGraph -Resource "/places/$($User.userPrincipalName)/microsoft.graph.room" 
+} catch {
+    "## Fetching Room Configuration for '$UserName' failed. Either missing permissions or this is not a Room-Mailbox."
+    "## - If this is a Room Mailbox, make sure 'Place.Read.All' permissions are granted."
+    ""
+    Write-Error $_
+}
