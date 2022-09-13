@@ -31,6 +31,7 @@ param(
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -DisplayName "Enable this user object, if disabled" } )]
     [bool] $EnableUserIfNeeded = $true,
+    [bool] $ForceChangePasswordNextSignIn = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -59,20 +60,22 @@ if ($enableUserIfNeeded) {
 
 if ($initialPassword -eq "") {
     $initialPassword = ("Reset" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
-#    "Generating initial PW: $initialPassword"
+    #    "Generating initial PW: $initialPassword"
 }
 
 #"Setting PW for user " + $UserName"
 $body = @{
     passwordProfile = @{
-        forceChangePasswordNextSignIn = $true
-        password = $initialPassword
+        forceChangePasswordNextSignIn = $ForceChangePasswordNextSignIn
+        password                      = $initialPassword
     }
 }
 Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 
 "## Password reset successful." 
-"## User will have to change PW at next login."
+if ($ForceChangePasswordNextSignIn) {
+    "## User will have to change PW at next login."
+}
 ""
 "## Password for '$UserName' has been reset to:"
 "$initialPassword"
