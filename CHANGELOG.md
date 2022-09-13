@@ -1,5 +1,21 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-09-13
+* Add "List Room Mailbox Configuration" runbook
+* "List Admin Users" will list/validate MFA Methods for each admin
+* Reset PW allows to not "force change on next logon"
+
+## 2022-09-7
+* Add Shared Mailbox: Support Custom Domains
+
+## 2022-08-02
+* merge Teams Voice Runbook into master branch
+* List mailbox permissions: add support for mail enbled groups as trustee
+
+## 2022-07-22
+* new runbook: List groups that have license assignment errors
+* "Convert to shared mailbox" will now check for litigation holds, mbox size and archives and inform you if a license is needed.
+
 ## 2022-07-05
 * new runbook: Add/Remove AzureAD group member
 

@@ -96,9 +96,7 @@ if ($AutoMapping) {
 }
 
 try {
-    "## Trying to connect and check for $UserName"
     Connect-RjRbExchangeOnline
-    "## connected"
 
     # Check if User has a mailbox
     # No need to check trustee for a mailbox with "FullAccess"
@@ -107,13 +105,8 @@ try {
         throw "User '$UserName' has no mailbox."
     }
 
-    "## Current Permission Delegations"
-    Get-MailboxPermission -Identity $UserName | Select-Object -expandproperty User
-
-    ""
-
     if ($Remove) {
-        # Remove access
+        "## Removing access for other users..."
         $PermittedUsers = Get-MailboxPermission -Identity $UserName | Where-Object { $_.User -ne "NT AUTHORITY\SELF" }
         foreach ($PermittedUser in $PermittedUsers) {
             Remove-MailboxPermission -Identity $UserName -User $PermittedUser.User -AccessRights $PermittedUser.AccessRights -InheritanceType All -confirm:$false | Out-Null
@@ -140,8 +133,30 @@ try {
     }
 
     ""
-    "## Dump Mailbox Permission Details"
-    Get-MailboxPermission -Identity $UserName
+    "## Check Mailbox Size"
+    $stats = Get-EXOMailboxStatistics -Identity $UserName
+    if ($stats.TotalItemSize.Value -gt 50GB) {
+        " -> Mailbox is larger than 50GB -> license required"
+    }
+
+    ""
+    "## Check for litigation hold"
+    $result = Get-Mailbox -Identity $UserName
+    if ($result.LitigationHoldEnabled) {
+        " -> Mailbox is on litigation hold -> license required"
+    }    
+
+    ""
+    "## Check for Mailbox Archive"
+    # Not using "ArchiveState", see https://docs.microsoft.com/en-us/office365/troubleshoot/archive-mailboxes/archivestatus-set-none 
+    if (($result.ArchiveGuid -and ($result.ArchiveGuid.GUID -ne "00000000-0000-0000-0000-000000000000")) -or ($result.ArchiveDatabase)) {
+        " -> Mailbox has an archive -> license required"
+    }    
+        
+    ""
+    "## Current Permission Delegations"
+    Get-MailboxPermission -Identity $UserName | Select-Object -expandproperty User
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Continue | Out-Null
