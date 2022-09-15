@@ -47,12 +47,10 @@ foreach ($SerialNumber in $SerialNumberobject) {
 }
 
 "## The following devices are present:"
-$autopilotdevice | Select-Object -Property SerialNumber,Manufacturer,Model | Out-String
+$autopilotdevice | Select-Object -Property SerialNumber, Manufacturer, Model | Out-String
 
 ""
 "## The following serial numbers are not present:"
-foreach ($missingSerial in $missingSerials) {
-    "$missingSerial"
-}
+$missingSerials
 
 
