@@ -3,7 +3,7 @@
   Reset a user's password. 
 
   .DESCRIPTION
-  Reset a user's password. The user will have to change it on signin.
+  Reset a user's password. The user will have to change it on signin. Does not work with PW writeback to onprem AD.
 
   .NOTES
   Permissions:
