@@ -1,5 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
+## 1.2.0 (2022-09-19)
+
 ## 2022-09-19
 * List Admin Users: Export Admin-to-Role Overview as CSV (optional)
 
