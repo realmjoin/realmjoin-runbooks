@@ -32,13 +32,16 @@
             "DisplayName": "Phone number to assign (E.164 Format - Example:+49123987654"
         },
         "OnlineVoiceRoutingPolicy": {
-            "DisplayName": "Microsoft Teams OnlineVoiceRoutingPolicy Name"
+            "DisplayName": "Microsoft Teams Online Voice Routing Policy Name"
         },
         "TenantDialPlan": {
             "DisplayName": "Microsoft Teams DialPlan Name"
         },
         "TeamsCallingPolicy": {
-            "DisplayName": "Microsoft Teams CallingPolicy Name"
+            "DisplayName": "Microsoft Teams Calling Policy Name"
+        },
+        "TeamsIPPhonePolicy": {
+            "DisplayName": "Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users)"
         },
         "CallerName": {
             "Hide": true
@@ -48,7 +51,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "3.1.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.0.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -66,6 +69,9 @@ param(
 
     [parameter(Mandatory = $false)]
     [String] $TeamsCallingPolicy,
+
+    [parameter(Mandatory = $false)]
+    [String] $TeamsIPPhonePolicy,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -105,6 +111,8 @@ catch {
 ########################################################
 
 # Get StatusQuo
+Write-Output ""
+Write-Output "Get StatusQuo"
 Write-Output "Getting StatusQuo for user with ID:  $UserName"
 $StatusQuo = Get-CsOnlineUser $UserName
 
@@ -112,6 +120,10 @@ $UPN = $StatusQuo.UserPrincipalName
 Write-Output "UPN from user: $UPN"
 
 $CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
+if (!($CurrentLineUri.ToString().StartsWith("+"))) {
+    # Add prefix "+", if not there
+    $CurrentLineUri = "+" + $CurrentLineUri
+}
 
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
@@ -137,9 +149,10 @@ if ($StatusQuo.TenantDialPlan -like "") {
     $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
 }
 
-if (!($CurrentLineUri.ToString().StartsWith("+"))) {
-    # Add prefix "+", if not there
-    $CurrentLineUri = "+" + $CurrentLineUri
+if ($StatusQuo.TeamsIPPhonePolicy -like "") {
+    $CurrentTeamsIPPhonePolicy = "Global"
+}else {
+    $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
 Write-Output "Current LineUri: $CurrentLineUri"
@@ -147,6 +160,7 @@ Write-Output "Current OnlineVoiceRoutingPolicy: $CurrentOnlineVoiceRoutingPolicy
 Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
+Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 
 Write-Output ""
 Write-Output "Preflight-Check"
@@ -223,66 +237,65 @@ try {
     throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
 }
 
-if (($OnlineVoiceRoutingPolicy -notlike "") -and ($TenantDialPlan -notlike "") -and ($TeamsCallingPolicy -notlike "")) {
+if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -or ($TeamsCallingPolicy -notlike "")) {
     Write-Output "Grant Policies these policies to $UPN :"
 
     # Set OnlineVoiceRoutingPolicy if defined
-if ($OnlineVoiceRoutingPolicy -notlike "") {
-    Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
-    try {
-        if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
-            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null #reset to default
-        }else {
-            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy   
-        }  
-    }
-    catch {
-        $message = $_
-        Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
-        throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-    }
-}
-
-# Set TenantDialPlan if defined
-if ($TenantDialPlan -notlike "") {
-    Write-Output "TenantDialPlan: $TenantDialPlan"
-    try {
-        if ($TenantDialPlan -like "Global (Org Wide Default)") {
-            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null #reset to default
-        }else {
-            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan  
+    if ($OnlineVoiceRoutingPolicy -notlike "") {
+        Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
+        try {
+            if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+                Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
+            }else {
+                Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop  
+            }  
+        }
+        catch {
+            $message = $_
+            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
+            Write-Error "Error Message: $message"
+            throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
         }
     }
-    catch {
-        $message = $_
-        Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
-        throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+
+    # Set TenantDialPlan if defined
+    if ($TenantDialPlan -notlike "") {
+        Write-Output "TenantDialPlan: $TenantDialPlan"
+        try {
+            if ($TenantDialPlan -like "Global (Org Wide Default)") {
+                Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
+            }else {
+                Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
+            }
+        }
+        catch {
+            $message = $_
+            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+            Write-Error "Error Message: $message"
+            throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
+        }
+    }
+
+    # Set TeamsCallingPolicy if defined
+    if ($TeamsCallingPolicy -notlike "") {
+        Write-Output "CallingPolicy: $TeamsCallingPolicy"
+        try {
+            if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
+                Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
+            }else {
+                Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
+            } 
+        }
+        catch {
+            $message = $_
+            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+            Write-Error "Error Message: $message"
+            throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+        }
     }
 }
 
-# Set TeamsCallingPolicy if defined
-if ($TeamsCallingPolicy -notlike "") {
-    Write-Output "CallingPolicy: $TeamsCallingPolicy"
-    try {
-        if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
-            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null #reset to default
-        }else {
-            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy  
-        } 
-    }
-    catch {
-        $message = $_
-        Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
-        throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
-    }
-}
-}
-
-
-
+Write-Output ""
 Write-Output "Done!"
 
 Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
