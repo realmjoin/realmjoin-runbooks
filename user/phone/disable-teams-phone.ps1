@@ -33,7 +33,9 @@
     }
 }
 #>
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "3.1.0" }
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.0.0" }
+
 param(
     [Parameter(Mandatory = $true)]
     # User which should be cleared
@@ -157,4 +159,8 @@ catch {
     throw "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
 }
 
+Write-Output ""
 Write-Output "Done!"
+
+Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
+Get-PSSession | Remove-PSSession | Out-Null
