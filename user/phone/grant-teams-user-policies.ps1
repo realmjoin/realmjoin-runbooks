@@ -28,13 +28,16 @@
   RunbookCustomization: {
     "Parameters": {
         "OnlineVoiceRoutingPolicy": {
-            "DisplayName": "Microsoft Teams OnlineVoiceRoutingPolicy Name"
+            "DisplayName": "Microsoft Teams Online Voice Routing Policy Name"
         },
         "TenantDialPlan": {
             "DisplayName": "Microsoft Teams DialPlan Name"
         },
         "TeamsCallingPolicy": {
-            "DisplayName": "Microsoft Teams CallingPolicy Name"
+            "DisplayName": "Microsoft Teams Calling Policy Name"
+        },
+        "TeamsIPPhonePolicy": {
+            "DisplayName": "Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users)"
         },
         "TeamsMeetingPolicy": {
             "DisplayName": "Microsoft Teams Meeting Policy Name"
@@ -50,7 +53,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "3.1.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.0.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -58,6 +61,7 @@ param(
     [String] $OnlineVoiceRoutingPolicy,
     [String] $TenantDialPlan,
     [String] $TeamsCallingPolicy,
+    [String] $TeamsIPPhonePolicy,
     [String] $TeamsMeetingPolicy,
     [String] $TeamsMeetingBroadcastPolicy,
 
@@ -106,8 +110,6 @@ $StatusQuo = Get-CsOnlineUser $UserName
 $UPN = $StatusQuo.UserPrincipalName
 Write-Output "UPN from user: $UPN"
 
-$CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
-
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
 }else {
@@ -132,6 +134,12 @@ if ($StatusQuo.TenantDialPlan -like "") {
     $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
 }
 
+if ($StatusQuo.TeamsIPPhonePolicy -like "") {
+    $CurrentTeamsIPPhonePolicy = "Global"
+}else {
+    $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
+}
+
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
 }else {
@@ -148,6 +156,7 @@ Write-Output "Current OnlineVoiceRoutingPolicy: $CurrentOnlineVoiceRoutingPolicy
 Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
+Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
 Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
 
@@ -164,9 +173,9 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
     Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
     try {
         if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
-            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null #reset to default
+            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }else {
-            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy   
+            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop   
         }
     }
     catch {
@@ -182,9 +191,9 @@ if ($TenantDialPlan -notlike "") {
     Write-Output "TenantDialPlan: $TenantDialPlan"
     try {
         if ($TenantDialPlan -like "Global (Org Wide Default)") {
-            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null #reset to default
+            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }else {
-            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan  
+            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
         }
     }
     catch {
@@ -200,9 +209,9 @@ if ($TeamsCallingPolicy -notlike "") {
     Write-Output "CallingPolicy: $TeamsCallingPolicy"
     try {
         if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
-            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null #reset to default
+            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }else {
-            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy  
+            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
         }  
     }
     catch {        
@@ -213,14 +222,32 @@ if ($TeamsCallingPolicy -notlike "") {
     }
 }
 
+# Set TeamsIPPhonePolicy if defined
+if ($TeamsIPPhonePolicy -notlike "") {
+    Write-Output "TeamsIPPhonePolicy: $TeamsIPPhonePolicy"
+    try {
+        if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
+            Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
+        }else {
+            Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop  
+        }  
+    }
+    catch {        
+        $message = $_
+        Write-Error "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
+        Write-Error "Error Message: $message"
+        throw "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
+    }
+}
+
 # Set TeamsMeetingPolicy if defined
 if ($TeamsMeetingPolicy -notlike "") {
     Write-Output "TeamsMeetingPolicy: $TeamsMeetingPolicy"
     try {
         if ($TeamsMeetingPolicy -like "Global (Org Wide Default)") {
-            Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $null #reset to default
+            Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }else {
-            Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $TeamsMeetingPolicy
+            Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $TeamsMeetingPolicy -ErrorAction Stop
         }    
     }
     catch {
@@ -236,9 +263,9 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
     Write-Output "TeamsMeetingBroadcastPolicy: $TeamsMeetingBroadcastPolicy"
     try {
         if ($TeamsMeetingBroadcastPolicy -like "Global (Org Wide Default)") {
-            Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $null #reset to default
+            Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }else {
-            Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $TeamsMeetingBroadcastPolicy 
+            Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $TeamsMeetingBroadcastPolicy -ErrorAction Stop 
         }     
     }
     catch {
@@ -249,6 +276,7 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
     }
 }
 
+Write-Output ""
 Write-Output "Done!"
 
 Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
