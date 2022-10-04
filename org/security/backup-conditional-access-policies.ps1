@@ -63,6 +63,7 @@ function Export-PolicyObjects {
 
 }
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 if (-not $ContainerName) {
     $ContainerName = "conditional-policy-backup-" + (get-date -Format "yyyy-MM-dd")

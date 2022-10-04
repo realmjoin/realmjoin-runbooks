@@ -84,6 +84,8 @@ param
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Configuring Out Of Office settings on mailbox '$UserName'."
 
 $VerbosePreference = "SilentlyContinue"

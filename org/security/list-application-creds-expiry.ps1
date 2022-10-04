@@ -51,6 +51,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 [array]$apps = @()
 $apps = Invoke-RjRbRestMethodGraph -Resource "/applications" -FollowPaging

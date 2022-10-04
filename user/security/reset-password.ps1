@@ -37,6 +37,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Trying to reset the password for user '$UserName'"
 
 # Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (prefered!).

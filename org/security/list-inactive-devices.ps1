@@ -86,6 +86,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 if ((-not $ContainerName) -and $Sync) {
     $ContainerName = "stale-sync-device-list"
 }

@@ -37,6 +37,8 @@ param
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Trying to list all mailbox access / send permissions granted on mailbox '$UserName'."
 
 try {

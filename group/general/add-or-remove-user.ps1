@@ -47,8 +47,9 @@ param(
     [string] $CallerName
 )
 
-Connect-RjRbGraph
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+Connect-RjRbGraph
 
 # "Find the user object " 
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -ErrorAction SilentlyContinue

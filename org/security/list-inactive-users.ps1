@@ -34,6 +34,8 @@ param(
   [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 # Calculate "last sign in date"

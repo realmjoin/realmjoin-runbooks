@@ -174,6 +174,8 @@ param (
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 Connect-RjRbExchangeOnline
 

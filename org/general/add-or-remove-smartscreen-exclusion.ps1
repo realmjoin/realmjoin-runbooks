@@ -79,6 +79,8 @@ param(
 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbDefenderATP
 
 $indicators = Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" | Where-Object { $_.indicatorType -eq "DomainName" }

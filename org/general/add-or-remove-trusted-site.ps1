@@ -83,6 +83,8 @@ param(
 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 # Print all policies and exit
