@@ -42,6 +42,8 @@ param (
     [string] $CallerName 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 try {
     $script:Alias = ([mailaddress]"$Alias@demo.com").user 
 } catch {

@@ -53,6 +53,8 @@ param(
 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 $body = @{

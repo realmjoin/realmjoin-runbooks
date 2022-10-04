@@ -79,6 +79,8 @@ param
 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 try {
     "## Connecting ..."
     Connect-RjRbExchangeOnline

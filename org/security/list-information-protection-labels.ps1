@@ -28,6 +28,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 # TODO: Currently only in preview / beta. Change when available in v1.0

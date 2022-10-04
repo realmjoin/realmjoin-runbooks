@@ -34,6 +34,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 "## Trying to remove all MFA methods for user '$UserName'"

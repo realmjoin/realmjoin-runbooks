@@ -79,6 +79,8 @@ param
 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 $outputString = "## Trying to convert mailbox '$UserName' "
 if ($Remove) {
     $outputString += "to a regular mailbox."
