@@ -103,6 +103,8 @@ param (
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 # only modify parameters, if "actions" are set to non-default values
 switch ($intuneAction) {
     1 {

@@ -38,6 +38,8 @@ param (
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Trying to export all Intune devices and metadata based on their owner, like usageLocation."
 
 if (-not $ContainerName) {

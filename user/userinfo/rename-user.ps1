@@ -46,6 +46,8 @@ param(
     # [bool] $RemoveOldAddress = $false
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Trying to rename a user/mailbox '$UserName'. Will not update metadata like DisplayName, GivenName, Surname."
 
 try {

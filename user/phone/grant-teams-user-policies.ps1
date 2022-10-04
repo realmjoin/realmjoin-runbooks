@@ -52,8 +52,8 @@
 }
 #>
 
-
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.0.0" }
+
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -70,6 +70,7 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 ########################################################
 ##             Connect Part

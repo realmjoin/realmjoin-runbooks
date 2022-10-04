@@ -140,6 +140,8 @@ function createSafeLinksPolicy {
     return $policy
 }
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 try {
     Connect-RjRbExchangeOnline
 

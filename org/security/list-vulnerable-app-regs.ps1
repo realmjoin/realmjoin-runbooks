@@ -65,6 +65,7 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 if (-not $ContainerName) {
     $ContainerName = "list-vulnerableappreg"

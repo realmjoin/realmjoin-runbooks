@@ -69,6 +69,8 @@ param
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 if ($HideMailbox) {
     "## Trying to hide mailbox '$UserName' in addressbook."
 }

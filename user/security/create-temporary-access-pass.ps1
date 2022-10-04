@@ -42,6 +42,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Trying to create an Temp. Access Pass (TAP) for user '$UserName'"
 
 Connect-RjRbGraph

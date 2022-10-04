@@ -50,6 +50,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 if (-not $ContainerName) {
     $ContainerName = "enterprise-apps-" + (get-date -Format "yyyy-MM-dd")
 }

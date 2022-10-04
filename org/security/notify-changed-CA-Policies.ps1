@@ -40,6 +40,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 $Subject = "Created or modified Conditional Access Policies on " + (get-date -Format yyyy-MM-dd)

@@ -21,11 +21,17 @@
   }
 #>
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+
 param (
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
-    [string] $newGroupTag = ""
+    [string] $newGroupTag = "",
+    [Parameter(Mandatory = $true)]
+    [string]$CallerName 
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
