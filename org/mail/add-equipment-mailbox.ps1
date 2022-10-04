@@ -40,6 +40,8 @@ param (
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 try {
     Connect-RjRbExchangeOnline
 

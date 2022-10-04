@@ -58,6 +58,8 @@ param (
 
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 "## Updating metadate of user '$UserName'."
 
 Connect-RjRbGraph

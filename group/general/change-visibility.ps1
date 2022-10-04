@@ -43,6 +43,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 # "Find the group object " 

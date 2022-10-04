@@ -42,6 +42,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 $outputString = "## Trying to "
 if ($Dismiss) {
     $outputString += "dismiss "

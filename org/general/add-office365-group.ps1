@@ -60,6 +60,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 # How long to wait in seconds for a group to propagate to the Teams service
 [int]$teamsTimer = 15
 

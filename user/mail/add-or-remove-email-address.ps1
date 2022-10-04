@@ -78,6 +78,8 @@ param
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 $VerbosePreference = "SilentlyContinue"
 
 $outputString = "Trying to "

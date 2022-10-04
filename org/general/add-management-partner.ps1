@@ -46,6 +46,8 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbAzAccount
 
 # Get current PALs

@@ -70,7 +70,11 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
+
 $devicelist = New-Object System.Collections.ArrayList
 try {
     $GroupMembers = Invoke-RjRbRestMethodGraph -Resource "/Groups/$($GroupID)/Members" -FollowPaging

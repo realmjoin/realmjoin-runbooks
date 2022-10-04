@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-10-04
+* All runbooks report their Caller in Verbose output.
+
 ## 1.1.0 (2022-09-19)
 
 ## 2022-09-19
