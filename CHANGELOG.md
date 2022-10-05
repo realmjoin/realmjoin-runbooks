@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-10-05
+* New: Assign groups via template
+
 ## 2022-10-04
 * All runbooks report their Caller in Verbose output.
 
