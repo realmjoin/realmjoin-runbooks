@@ -14,7 +14,7 @@
                 "$id": "GroupsTemplates",
                 "$values": [
                     {
-                        "Display": "Endress+Hauser AT",
+                        "Display": "User template 1",
                         "Customization": {
                             "Default": {
                                 "GroupsString": "app - Audacity,app - Google Chrome",
@@ -22,7 +22,7 @@
                         }
                     },
                     {
-                        "Display": "Endress+Hauser InfoServe Germany",
+                        "Display": "User template 2, Service Technician",
                         "Customization": {
                             "Default": {
                                 "GroupsString": "app - Microsoft VC Redistributable 2013",
