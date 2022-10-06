@@ -34,7 +34,7 @@
         ]
     },
     "Runbooks": {
-        "rjgit-user_general_assign-group-template": {
+        "rjgit-user_general_assign-groups-by-template": {
             "ParameterList": [
                 {
                     "Name": "GroupsTemplate",
