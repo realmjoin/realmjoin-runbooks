@@ -33,17 +33,23 @@
                             "Customization": {
                                 "Default": {
                                     "Remove": false
-                                }
+                                },
+                                "Hide": [
+                                    "RegularLicenseGroup"
+                                ]
                             }
                         }, {
-                            "Display": "turn shared mailbox back into regular mailbox",
+                            "Display": "Turn shared mailbox back into regular mailbox",
                             "Customization": {
                                 "Default": {
-                                    "Remove": true
+                                    "Remove": true,
+                                    "RemoveGroups": false
                                 },
                                 "Hide": [
                                     "AutoMapping",
-                                    "delegateTo"
+                                    "delegateTo",
+                                    "RemoveGroups",
+                                    "ArchivalLicenseGroup"
                                 ]
                             }
                         }
@@ -73,6 +79,12 @@ param
     [bool] $Remove = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove existing group memberships (incl. license groups)?" } )]
+    [bool] $RemoveGroups = $true,
+    [ValidateScript( { Use-RJInterface -DisplayName "Assign this group (DisplayName) if an Ex. Online Plan 2 is required" } )]
+    [string] $ArchivalLicenseGroup = "",
+    [ValidateScript( { Use-RJInterface -DisplayName "Assign this group (DisplayName) when converting to regular mailbox" } )]
+    [string] $RegularLicenseGroup = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -80,6 +92,7 @@ param
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+Connect-RjRbGraph
 
 $outputString = "## Trying to convert mailbox '$UserName' "
 if ($Remove) {
@@ -91,7 +104,8 @@ else {
 $outputString
 
 if ($delegateTo) {
-    "## Give access to mailbox '$UserName' to '$delegateTo'."
+    $delegateObj = Invoke-RjRbRestMethodGraph -Resource "/users/$delegateTo"
+    "## Give access to mailbox '$UserName' to '$($delegateObj.userPrincipalName)'."
 }
 if ($AutoMapping) {
     "## Mailbox will automatically appear in Outlook."
@@ -107,38 +121,13 @@ try {
         throw "User '$UserName' has no mailbox."
     }
 
-    if ($Remove) {
-        "## Removing access for other users..."
-        $PermittedUsers = Get-MailboxPermission -Identity $UserName | Where-Object { $_.User -ne "NT AUTHORITY\SELF" }
-        foreach ($PermittedUser in $PermittedUsers) {
-            Remove-MailboxPermission -Identity $UserName -User $PermittedUser.User -AccessRights $PermittedUser.AccessRights -InheritanceType All -confirm:$false | Out-Null
-            "## Mailbox Access Permission for '$($PermittedUser.User)' reverted from mailbox '$UserName'"
-        }
-        $PermittedRecipients = Get-RecipientPermission -Identity $UserName | Where-Object { $_.Trustee -ne "NT AUTHORITY\SELF" }
-        foreach ($PermittedRecipient in $PermittedRecipients) {
-            Remove-RecipientPermission -Identity $UserName -Trustee $PermittedRecipient.Trustee -AccessRights $PermittedRecipient.AccessRights -confirm:$false | Out-Null
-            "## SendAs/SendOnBehalf Permission for '$($PermittedRecipient.Trustee)' reverted from mailbox '$UserName'"
-        }
-    
-        Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null
-        "## Mailbox '$UserName' turned into regular Mailbox"
-    }
-    else {
-        Set-Mailbox $UserName -Type shared
-        "## Turned mailbox '$UserName' into shared mailbox"
-        # Add access
-        if ($delegateTo) {
-            Add-MailboxPermission $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-            "## FullAccess Permission for '$delegateTo' added to mailbox '$UserName'"
-        }
-        
-    }
-
+    [bool] $archivalLicNeeded = $false
     ""
     "## Check Mailbox Size"
     $stats = Get-EXOMailboxStatistics -Identity $UserName
     if ($stats.TotalItemSize.Value -gt 50GB) {
         " -> Mailbox is larger than 50GB -> license required"
+        $archivalLicNeeded = $true
     }
 
     ""
@@ -146,6 +135,7 @@ try {
     $result = Get-Mailbox -Identity $UserName
     if ($result.LitigationHoldEnabled) {
         " -> Mailbox is on litigation hold -> license required"
+        $archivalLicNeeded = $true
     }    
 
     ""
@@ -153,8 +143,79 @@ try {
     # Not using "ArchiveState", see https://docs.microsoft.com/en-us/office365/troubleshoot/archive-mailboxes/archivestatus-set-none 
     if (($result.ArchiveGuid -and ($result.ArchiveGuid.GUID -ne "00000000-0000-0000-0000-000000000000")) -or ($result.ArchiveDatabase)) {
         " -> Mailbox has an archive -> license required"
+        $archivalLicNeeded = $true
     }    
-        
+
+    if ($Remove) {
+        "## Removing access for other users..."
+        $PermittedUsers = Get-MailboxPermission -Identity $UserName | Where-Object { $_.User -ne "NT AUTHORITY\SELF" }
+        foreach ($PermittedUser in $PermittedUsers) {
+            "## Reverting Mailbox Access Permission for '$($PermittedUser.User)' from mailbox '$UserName'"
+            Remove-MailboxPermission -Identity $UserName -User $PermittedUser.User -AccessRights $PermittedUser.AccessRights -InheritanceType All -confirm:$false | Out-Null
+        }
+        $PermittedRecipients = Get-RecipientPermission -Identity $UserName | Where-Object { $_.Trustee -ne "NT AUTHORITY\SELF" }
+        foreach ($PermittedRecipient in $PermittedRecipients) {
+            "## Reverting SendAs/SendOnBehalf Permission for '$($PermittedRecipient.Trustee)' from mailbox '$UserName'"
+            Remove-RecipientPermission -Identity $UserName -Trustee $PermittedRecipient.Trustee -AccessRights $PermittedRecipient.AccessRights -confirm:$false | Out-Null
+        }
+
+        if ($RegularLicenseGroup) {
+            # Assign lic. group 
+            $groupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$RegularLicenseGroup'"
+            if ($groupObj) {
+                $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members"
+                if ($members.id -notcontains $user.ExternalDirectoryObjectId) {
+                    "## Assigning license group '$RegularLicenseGroup' to mailbox '$UserName'"
+                    $body = @{
+                        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.ExternalDirectoryObjectId)"
+                    }
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                } else {
+                    "## License group '$RegularLicenseGroup' already assigned to mailbox '$UserName'"
+                }
+            }
+        }        
+    
+        "## Turning mailbox '$UserName' into regular user mailbox"
+        Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null
+    }
+    else {
+        "## Turning mailbox '$UserName' into shared mailbox"
+        Set-Mailbox $UserName -Type shared
+        # Add access
+        if ($delegateTo) {
+            $delegateObj = Invoke-RjRbRestMethodGraph -Resource "/users/$delegateTo"
+            "## Adding FullAccess Permission for '$($delegateObj.userPrincipalName)' to mailbox '$UserName'"
+            Add-MailboxPermission $UserName -User $delegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
+        }
+
+        if ($RemoveGroups) {
+            # Remove all group memberships
+            $memberships = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/memberOf"
+            $memberships | ForEach-Object {
+                "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($user.ExternalDirectoryObjectId)/`$ref" -Method Delete | Out-Null
+            }
+        }
+
+        if ($ArchivalLicenseGroup -and $archivalLicNeeded) {
+            # Assign lic. group to preserve online arhive etc. 
+            $groupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$ArchivalLicenseGroup'"
+            if ($groupObj) {
+                $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members"
+                if ($members.id -notcontains $user.ExternalDirectoryObjectId) {
+                    "## Assigning license group '$ArchivalLicenseGroup' to mailbox '$UserName'"
+                    $body = @{
+                        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.ExternalDirectoryObjectId)"
+                    }
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                } else {
+                    "## License group '$ArchivalLicenseGroup' already assigned to mailbox '$UserName'"
+                }
+            }
+        }        
+    }
+
     ""
     "## Current Permission Delegations"
     Get-MailboxPermission -Identity $UserName | Select-Object -expandproperty User

@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-10-20
+* Convert to shared mailbox:
+- Assign EXO E2 License if needed when converting to shared mailbox
+- Assign M365 Lic when converting back to user mailbox
+- Nicer output (UPN vs ID)
+- Remove groups when converting to shared mailbox
+
 ## 2022-10-04
 * All runbooks report their Caller in Verbose output.
 
