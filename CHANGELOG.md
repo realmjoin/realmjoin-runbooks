@@ -1,13 +1,17 @@
 # RealmJoin Runbooks Changelog 
 
-## 2022-10-05
-* New: Assign groups via template
+## 2022-10-27
+* Isolate Device / Restrict Device Code exec.: Bug fixed, incorrect behaviour if device is not yet available in DefenderATP service.
+
 ## 2022-10-20
 * Convert to shared mailbox:
 - Assign EXO E2 License if needed when converting to shared mailbox
 - Assign M365 Lic when converting back to user mailbox
 - Nicer output (UPN vs ID)
 - Remove groups when converting to shared mailbox
+
+## 2022-10-05
+* New: Assign groups via template
 
 ## 2022-10-04
 * All runbooks report their Caller in Verbose output.
