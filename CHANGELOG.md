@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-10-27
+* Isolate Device / Restrict Device Code exec.: Bug fixed, incorrect behaviour if device is not yet available in DefenderATP service.
+
 ## 2022-10-20
 * Convert to shared mailbox:
 - Assign EXO E2 License if needed when converting to shared mailbox

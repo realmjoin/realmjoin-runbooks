@@ -56,11 +56,12 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbDefenderATP
 
 # Find the machine in DefenderATP. From experience - the first result seems to be the "freshest"
-$atpDevice = (Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId")[0]
-if (-not $atpDevice) {
+$atpDeviceCandidates = Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId"
+if (-not $atpDeviceCandidates) {
   "## Device $DeviceId not found in DefenderATP Service. Cannot isolate. "
   throw ("device not found")
 }
+$atpDevice = $atpDeviceCandidates[0]
 
 $body = @{
   Comment = $Comment
