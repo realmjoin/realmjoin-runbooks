@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Microsoft Teams telephony offboarding
-
+  Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+  
   .DESCRIPTION
-  Remove the phone number and specific policies from a teams-enabled user.
+  Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
   Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook.
   
   .NOTES
@@ -34,12 +34,11 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
 param(
     [Parameter(Mandatory = $true)]
-    # User which should be cleared
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
 
     # CallerName is tracked purely for auditing purposes
@@ -55,7 +54,6 @@ param(
 
 Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
 
-#Needs to be replaced to an RealmJoin Setting!!!
 $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
 Connect-MicrosoftTeams -Credential $CredAutomation
 
@@ -64,19 +62,19 @@ try {
     $Test = Get-CsTenant -ErrorAction Stop | Out-Null
 }
 catch {
-    try {        
+    try {
         Start-Sleep -Seconds 5
-        Write-Output "2nd try after five seconds"
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
-    catch {        
-        Write-Warning "Teams PowerShell session could not be established. Stopping script!" 
+    catch {
+        Write-Error "Teams PowerShell session could not be established. Stopping script!"
+        throw "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
- 
+
 ########################################################
-##             Get StatusQuo
+##             StatusQuo & Preflight-Check Part
 ##          
 ########################################################
 
@@ -131,63 +129,71 @@ if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
+if ($StatusQuo.TeamsMeetingPolicy -like "") {
+    $CurrentTeamsMeetingPolicy = "Global"
+}else {
+    $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
+}
+
+if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
+    $CurrentTeamsMeetingBroadcastPolicy = "Global"
+}else {
+    $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
+}
+
 Write-Output "Current LineUri: $CurrentLineUri"
 Write-Output "Current OnlineVoiceRoutingPolicy: $CurrentOnlineVoiceRoutingPolicy"
 Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
 Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
-
-########################################################
-##             Remove Number from User
-##          
-########################################################
+Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
+Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
 
 Write-Output ""
-Write-Output "Start disable process:"
+Write-Output "Enterprise Voice (for PSTN) License check:"
 Write-Output "---------------------"
-Write-Output "Remove LineUri"
-try {
-    Remove-CsPhoneNumberAssignment -Identity $UserName -RemoveAll
-}
-catch {
-    $message = $_
-    Write-Error "Teams - Error: Removing the LineUri for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
-    throw "Teams - Error: Removing the LineUri for $UPN could not be completed!"
-}
 
-Write-Output "Remove OnlineVoiceRoutingPolicy (Set to ""global"")"
-try {
-    Grant-CsOnlineVoiceRoutingPolicy -Identity $UserName -PolicyName $null
-}
-catch {
-    $message = $_
-    Write-Error "Teams - Error: Removing the of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
-    throw "Teams - Error: Removing the OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-}
+$AssignedPlan = $StatusQuo.AssignedPlan
 
-Write-Output "Remove (Tenant)DialPlan (Set to ""global"")"
-try {
-    Grant-CsTenantDialPlan -Identity $UserName -PolicyName $null
-}
-catch {
-    $message = $_
-    Write-Error "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
-    throw "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
-}
+if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
+    Write-Output "License check - Microsoft O365 Phone Standard is generally assigned to this user"
 
-Write-Output "Remove Teams IP-Phone Policy (Set to ""global"")"
-try {
-    Grant-CsTeamsIPPhonePolicy -Identity $UserName -PolicyName $null
-}
-catch {
-    $message = $_
-    Write-Error "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
-    throw "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed!"
+    #Validation whether license is already assigned long enough
+    $Now = get-date
+
+    $LicenseTimeStamp = ($AssignedPlan | Where-Object Capability -Like "MCOSTANDARD").AssignedTimestamp
+
+    if ($LicenseTimeStamp -like "") {
+        $LicenseTimeStamp = ($AssignedPlan | Where-Object Capability -Like "MCOEV*").AssignedTimestamp
+    }
+    if ($LicenseTimeStamp -notlike "") {
+        try {
+            if ($LicenseTimeStamp.AddHours(1) -lt $Now ) {
+                Write-Output "The license has already been assigned to the user for more than one hour. Date/time of license assignment: $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"))"
+                if (($LicenseTimeStamp.AddHours(24) -gt $Now)) {
+                    Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
+                }
+                
+            }else {
+                Write-Output ""
+                Write-Warning "Error:"
+                Write-Warning "The user license (MCOEV - Microsoft O365 Phone Standard) should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
+                Write-Warning "The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Provisions regarding telephony not before: ($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss"))"
+            }
+        }
+        catch {
+            Write-Warning "Warning: The time of license assignment could not be verified!"
+        }
+    }else {
+        Write-Warning "Warning: The time of license assignment could not be verified!"
+    }
+
+}else {
+    Write-Output ""
+    Write-Output "License check - Microsoft O365 Phone Standard is NOT assigned to this user"
+
+
 }
 
 Write-Output ""
