@@ -50,8 +50,8 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.0.0" }
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -77,8 +77,6 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
-
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 ########################################################
 ##             Connect Part
@@ -115,18 +113,23 @@ catch {
 # Get StatusQuo
 Write-Output ""
 Write-Output "Get StatusQuo"
-Write-Output "Getting StatusQuo for user with ID:  $UserName"
+Write-Output "---------------------"
+Write-Output "Getting StatusQuo for user with submitted ID:  $UserName"
 $StatusQuo = Get-CsOnlineUser $UserName
 
 $UPN = $StatusQuo.UserPrincipalName
 Write-Output "UPN from user: $UPN"
 
 $CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
+
 if (!($CurrentLineUri.ToString().StartsWith("+"))) {
     # Add prefix "+", if not there
     $CurrentLineUri = "+" + $CurrentLineUri
 }
 
+if ($CurrentLineUri -like "+") {
+    $CurrentLineUri = "none"
+}
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
 }else {
@@ -166,11 +169,44 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 
 Write-Output ""
 Write-Output "Preflight-Check"
+Write-Output "---------------------"
 
 $AssignedPlan = $StatusQuo.AssignedPlan
 
 if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
     Write-Output "License check - Microsoft O365 Phone Standard is generally assigned to this user"
+
+    #Validation whether license is already assigned long enough
+    $Now = get-date
+
+    $LicenseTimeStamp = ($AssignedPlan | Where-Object Capability -Like "MCOSTANDARD").AssignedTimestamp
+
+    if ($LicenseTimeStamp -like "") {
+        $LicenseTimeStamp = ($AssignedPlan | Where-Object Capability -Like "MCOEV*").AssignedTimestamp
+    }
+    if ($LicenseTimeStamp -notlike "") {
+        try {
+            if ($LicenseTimeStamp.AddHours(1) -lt $Now ) {
+                Write-Output "The license has already been assigned to the user for more than one hour. Date/time of license assignment: $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"))"
+                if (($LicenseTimeStamp.AddHours(24) -gt $Now)) {
+                    Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
+                }
+                
+            }else {
+                Write-Output ""
+                Write-Error "Error:"
+                Write-Error "The user license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Please try again at $($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss")) (MCOEV - Microsoft O365 Phone Standard)"
+                throw "The user license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Please try again at $($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss")) (MCOEV - Microsoft O365 Phone Standard)"
+                Exit
+            }
+        }
+        catch {
+            Write-Warning "Warning: The time of license assignment could not be verified!"
+        }
+    }else {
+        Write-Warning "Warning: The time of license assignment could not be verified!"
+    }
+
 }else {
     Write-Output ""
     Write-Error "Error:"
@@ -192,10 +228,16 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}") {
 $NumberCheck = "Empty"
 $CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
 $NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber*").UserPrincipalName
+$NumberAlreadyAssigned = 0
 
 if ($NumberCheck -notlike "") {
-    Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
-    throw "The assignment for could not be performed. PhoneNumber is already assigned!"
+    if ($UPN -like $Numbercheck) { #Check if number is already assigned to the target user
+        $NumberAlreadyAssigned = 1
+        Write-Output "Phone number is already assigned to the user!"
+    }else{
+        Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
+        throw "The assignment for could not be performed. PhoneNumber is already assigned!"
+    }
 }else {
     Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
 }
@@ -216,7 +258,72 @@ if ($CallingPlanNumber.Count -gt 0) {
     $CallingPlanCheck = $false
 }
 
+# Check if specified Online Voice Routing Policy exists
+try {
+    if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+        Write-Output "The specified Online Voice Routing Policy exists - (Global (Org Wide Default))"
+    }else{
+        $TMP = Get-CsOnlineVoiceRoutingPolicy $OnlineVoiceRoutingPolicy -ErrorAction Stop
+        Write-Output "The specified Online Voice Routing Policy exists"
+    }
+}
+catch {
+    Write-Error  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy"
+    throw "The specified Online Voice Routing Policy could not be found in the tenant!"
+}
+Clear-Variable TMP
 
+# Check if specified Tenant Dial Plan exists, if submitted
+if ($TenantDialPlan -notlike "") {
+    try {
+        if ($TenantDialPlan -like "Global (Org Wide Default)") {
+            Write-Output "The specified Tenant Dial Plan exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTenantDialPlan $TenantDialPlan -ErrorAction Stop
+            Write-Output "The specified Tenant Dial Plan exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Tenant Dial Plan could not be found in the tenant. Please check the specified policy! Submitted policy name: $TenantDialPlan"
+        throw "The specified Tenant Dial Plan could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+
+# Check if specified Teams Calling Policy exists, if submitted
+if ($TeamsCallingPolicy -notlike "") {
+    try {
+        if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams Calling Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTeamsCallingPolicy $TeamsCallingPolicy -ErrorAction Stop
+            Write-Output "The specified Teams Calling Policy exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Teams Calling Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsCallingPolicy"
+        throw "The specified Teams Calling Policy could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+# Check if specified Teams IP-Phone Policy exists, if submitted
+if ($TeamsIPPhonePolicy -notlike "") {
+    try {
+        if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams IP-Phone Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTeamsIPPhonePolicy $TeamsIPPhonePolicy -ErrorAction Stop
+            Write-Output "The specified Teams IP-Phone Policy exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Teams IP-Phone Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy"
+        throw "The specified Teams IP-Phone Policy could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
 
 ########################################################
 ##             Main Part
@@ -224,27 +331,33 @@ if ($CallingPlanNumber.Count -gt 0) {
 ########################################################
 Write-Output ""
 Write-Output "Start set process"
+Write-Output "---------------------"
 
-Write-Output "Set $PhoneNumber to $UPN"
-try {
-    if ($CallingPlanCheck) {
-        Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
-    }else {
-        Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
+if ($NumberAlreadyAssigned -like 1) {
+    Write-Output "Number $PhoneNumber is already set to $UPN - skip phone number assignment"
+}else {
+    Write-Output "Set $PhoneNumber to $UPN"
+    try {
+        if ($CallingPlanCheck) {
+            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
+        }else {
+            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
+        }
+    }catch {
+        $message = $_
+        Write-Error "Teams - Error: The assignment for $UPN could not be performed!"
+        Write-Error "Error Message: $message"
+        throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
     }
-}catch {
-    $message = $_
-    Write-Error "Teams - Error: The assignment for $UPN could not be performed!"
-    Write-Error "Error Message: $message"
-    throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
 }
 
 if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -or ($TeamsCallingPolicy -notlike "")) {
-    Write-Output "Grant Policies these policies to $UPN :"
+    Write-Output ""
+    Write-Output "Grant Policies policies to $UPN :"
 
-    # Set OnlineVoiceRoutingPolicy if defined
+    # Grant OnlineVoiceRoutingPolicy if defined
     if ($OnlineVoiceRoutingPolicy -notlike "") {
-        Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
+        Write-Output "Online Voice Routing Policy: $OnlineVoiceRoutingPolicy"
         try {
             if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
                 Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
@@ -260,9 +373,9 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
     }
 
-    # Set TenantDialPlan if defined
+    # Grant TenantDialPlan if defined
     if ($TenantDialPlan -notlike "") {
-        Write-Output "TenantDialPlan: $TenantDialPlan"
+        Write-Output "Tenant Dial Plan: $TenantDialPlan"
         try {
             if ($TenantDialPlan -like "Global (Org Wide Default)") {
                 Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
@@ -278,9 +391,9 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
     }
 
-    # Set TeamsCallingPolicy if defined
+    # Grant TeamsCallingPolicy if defined
     if ($TeamsCallingPolicy -notlike "") {
-        Write-Output "CallingPolicy: $TeamsCallingPolicy"
+        Write-Output "Calling Policy: $TeamsCallingPolicy"
         try {
             if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
                 Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
@@ -293,6 +406,24 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
             Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
             Write-Error "Error Message: $message"
             throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
+        }
+    }
+
+    # Grant TeamsIPPhonePolicy if defined
+    if ($TeamsIPPhonePolicy -notlike "") {
+        Write-Output "IP-Phone Policy: $TeamsIPPhonePolicy"
+        try {
+            if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
+                Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
+            }else {
+                Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop  
+            } 
+        }
+        catch {
+            $message = $_
+            Write-Error "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
+            Write-Error "Error Message: $message"
+            throw "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
         }
     }
 }

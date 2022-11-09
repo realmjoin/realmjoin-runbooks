@@ -52,8 +52,8 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.0.0" }
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -70,7 +70,6 @@ param(
     [string] $CallerName
 )
 
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 ########################################################
 ##             Connect Part
@@ -105,7 +104,10 @@ catch {
 ########################################################
 
 # Get StatusQuo
-Write-Output "Getting StatusQuo for user with ID:  $UserName"
+Write-Output ""
+Write-Output "Get StatusQuo"
+Write-Output "---------------------"
+Write-Output "Getting StatusQuo for user with submitted ID:  $UserName"
 $StatusQuo = Get-CsOnlineUser $UserName
 
 $UPN = $StatusQuo.UserPrincipalName
@@ -161,15 +163,125 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
 Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
 
+Write-Output ""
+Write-Output "Preflight-Check"
+Write-Output "---------------------"
+
+# Check if specified Online Voice Routing Policy exists, if submitted
+if ($OnlineVoiceRoutingPolicy -notlike "") {
+    try {
+        if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Online Voice Routing Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsOnlineVoiceRoutingPolicy $OnlineVoiceRoutingPolicy -ErrorAction Stop
+            Write-Output "The specified Online Voice Routing Policy exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy"
+        throw "The specified Online Voice Routing Policy could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+# Check if specified Tenant Dial Plan exists, if submitted
+if ($TenantDialPlan -notlike "") {
+    try {
+        if ($TenantDialPlan -like "Global (Org Wide Default)") {
+            Write-Output "The specified Tenant Dial Plan exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTenantDialPlan $TenantDialPlan -ErrorAction Stop
+            Write-Output "The specified Tenant Dial Plan exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Tenant Dial Plan could not be found in the tenant. Please check the specified policy! Submitted policy name: $TenantDialPlan"
+        throw "The specified Tenant Dial Plan could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+
+# Check if specified Teams Calling Policy exists, if submitted
+if ($TeamsCallingPolicy -notlike "") {
+    try {
+        if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams Calling Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTeamsCallingPolicy $TeamsCallingPolicy -ErrorAction Stop
+            Write-Output "The specified Teams Calling Policy exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Teams Calling Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsCallingPolicy"
+        throw "The specified Teams Calling Policy could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+# Check if specified Teams IP-Phone Policy exists, if submitted
+if ($TeamsIPPhonePolicy -notlike "") {
+    try {
+        if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams IP-Phone Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTeamsIPPhonePolicy $TeamsIPPhonePolicy -ErrorAction Stop
+            Write-Output "The specified Teams IP-Phone Policy exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Teams IP-Phone Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy"
+        throw "The specified Teams IP-Phone Policy could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+# Check if specified Teams Meeting Policy exists, if submitted
+if ($TeamsMeetingPolicy -notlike "") {
+    try {
+        if ($TeamsMeetingPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams Meeting Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTeamsMeetingPolicy $TeamsMeetingPolicy -ErrorAction Stop
+            Write-Output "The specified Teams Meeting Policy exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Teams Meeting Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingPolicy"
+        throw "The specified Teams Meeting Policy could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
+
+# Check if specified Teams Meeting Broadcast Policy (Live Event Policy) exists, if submitted
+if ($TeamsMeetingBroadcastPolicy -notlike "") {
+    try {
+        if ($TeamsMeetingBroadcastPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams Meeting Broadcast Policy (Live Event Policy) exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsTeamsMeetingBroadcastPolicy $TeamsMeetingBroadcastPolicy -ErrorAction Stop
+            Write-Output "The specified Teams Meeting Broadcast Policy (Live Event Policy) exists"
+        }
+    }
+    catch {
+        Write-Error  "Teams - Error: The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingBroadcastPolicy"
+        throw "The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant!"
+    }
+    Clear-Variable TMP
+}
+
 
 ########################################################
 ##             Main Part
 ##          
 ########################################################
 
-Write-Output "Set process"
+Write-Output ""
+Write-Output "Grant process"
+Write-Output "---------------------"
 
-# Set OnlineVoiceRoutingPolicy if defined
+# Grant OnlineVoiceRoutingPolicy, if submitted
 if ($OnlineVoiceRoutingPolicy -notlike "") {
     Write-Output "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy"
     try {
@@ -187,7 +299,7 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
     }
 }
 
-# Set TenantDialPlan if defined
+# Grant TenantDialPlan, if submitted
 if ($TenantDialPlan -notlike "") {
     Write-Output "TenantDialPlan: $TenantDialPlan"
     try {
@@ -205,7 +317,7 @@ if ($TenantDialPlan -notlike "") {
     }
 }
 
-# Set TeamsCallingPolicy if defined
+# Grant TeamsCallingPolicy, if submitted
 if ($TeamsCallingPolicy -notlike "") {
     Write-Output "CallingPolicy: $TeamsCallingPolicy"
     try {
@@ -223,7 +335,7 @@ if ($TeamsCallingPolicy -notlike "") {
     }
 }
 
-# Set TeamsIPPhonePolicy if defined
+# Grant TeamsIPPhonePolicy, if submitted
 if ($TeamsIPPhonePolicy -notlike "") {
     Write-Output "TeamsIPPhonePolicy: $TeamsIPPhonePolicy"
     try {
@@ -241,7 +353,7 @@ if ($TeamsIPPhonePolicy -notlike "") {
     }
 }
 
-# Set TeamsMeetingPolicy if defined
+# Grant TeamsMeetingPolicy, if submitted
 if ($TeamsMeetingPolicy -notlike "") {
     Write-Output "TeamsMeetingPolicy: $TeamsMeetingPolicy"
     try {
@@ -259,7 +371,7 @@ if ($TeamsMeetingPolicy -notlike "") {
     }
 }
 
-# Set TeamsMeetingBroadcastPolicy if defined
+# Grant TeamsMeetingBroadcastPolicy, if submitted
 if ($TeamsMeetingBroadcastPolicy -notlike "") {
     Write-Output "TeamsMeetingBroadcastPolicy: $TeamsMeetingBroadcastPolicy"
     try {
