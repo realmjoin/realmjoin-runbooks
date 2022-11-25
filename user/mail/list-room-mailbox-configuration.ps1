@@ -38,11 +38,11 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
-$User = Invoke-RjRbRestMethodGraph -Resource "/users/$($UserName)" 
+$User = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName" -OdSelect "mail,mailNickname"
 
 "## Basic Infos:"
 try {
-    Invoke-RjRbRestMethodGraph -Resource "/places/$($User.userPrincipalName)/microsoft.graph.room" 
+    Invoke-RjRbRestMethodGraph -Resource "/places/$($User.Mail)/microsoft.graph.room" 
 }
 catch {
     "## Fetching Room Configuration for '$UserName' failed. Either missing permissions or this is not a Room-Mailbox."
@@ -55,7 +55,7 @@ catch {
 "## Calendar Processing:"
 Connect-RjRbExchangeOnline
 try {
-    Get-CalendarProcessing -Identity $UserName | Select-Object -Property AllBookInPolicy, AutomateProcessing, AllowConflicts, BookingWindowsInDays, MaximumDurationInMinutes, ForwardRequetsToDelegates, DeleteSubject, AddOrganizertoSubject, OrganizerInfo
+    Get-CalendarProcessing -Identity $User.mailNickname | Select-Object -Property AllBookInPolicy, AutomateProcessing, AllowConflicts, BookingWindowsInDays, MaximumDurationInMinutes, ForwardRequetsToDelegates, DeleteSubject, AddOrganizertoSubject, OrganizerInfo
 }
 catch {
     "## Fetching Room Configuration for '$UserName' failed."
