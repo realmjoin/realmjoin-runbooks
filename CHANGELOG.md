@@ -1,5 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-11-25
+* Bugfix - List Room Mailbox Config - Could not read config, if room UPN was not the same as primary eMail address.
 ## 2022-10-27
 * Isolate Device / Restrict Device Code exec.: Bug fixed, incorrect behaviour if device is not yet available in DefenderATP service.
 
