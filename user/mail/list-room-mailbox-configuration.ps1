@@ -38,7 +38,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
-$User = Invoke-RjRbRestMethodGraph -Resource "/users/$($UserName)`?`$select=mail,mailNickname" 
+$User = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName" -OdSelect "mail,mailNickname"
 
 "## Basic Infos:"
 try {
