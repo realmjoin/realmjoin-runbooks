@@ -34,6 +34,9 @@
             },
             "overrideRecipient": {
                 "Hide": true
+            },
+            "groupId": {
+                "Hide": true
             }
         }
     }
