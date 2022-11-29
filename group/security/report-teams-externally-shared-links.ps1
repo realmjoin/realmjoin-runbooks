@@ -85,11 +85,11 @@ foreach ($channel in $privateChannels) {
     $siteUrls += $channel.Url
 }
 Disconnect-PnPOnline | Out-Null
-""
 
 foreach ($webUrl in $siteUrls) {
     $siteObj = $allSites | Where-Object { $_.Url -eq $webUrl}
     $site = $siteObj.Title
+    ""
     "# Reporting Site '$site'"
     $ReportFolder = (get-date -Format yyyy-MM-dd)
     $ReportOutput = $ReportFolder + "\" + ($site -replace "[$([RegEx]::Escape([string][IO.Path]::GetInvalidFileNameChars()))]+", "_") + "_ExternalSharedLinks.csv"
