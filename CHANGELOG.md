@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-11-29
+* Report SPO Shared Links: Support for private channels added
+
 ## 2022-11-28
 * New runbook: Report extern. shared links in all teams to the repective teams owners
 
