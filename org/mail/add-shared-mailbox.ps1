@@ -17,6 +17,13 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "Language": {
+                "SelectSimple": {
+                    "en-US": "en-US",
+                    "de-DE": "de-DE",
+                    "fr-FR": "fr-FR"
+                }
             }
         }
     }
@@ -54,6 +61,7 @@ param (
     [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
     [string] $DisplayName,
     [string] $DomainName,
+    [string] $Language = "en-US",
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
@@ -81,7 +89,7 @@ try {
     if (-not $DomainName) {
         $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName 
     } else {
-        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName -PrimarySmtpAddress ($MailboxName + "@" + $DomainName)
+        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName -PrimarySmtpAddress ($MailboxName + "@" + $DomainName) 
     }
 
     if ($DelegateTo) {
@@ -93,6 +101,9 @@ try {
 
     $mailbox | Set-Mailbox -MessageCopyForSentAsEnabled $MessageCopyForSentAsEnabled | Out-Null
     $mailbox | Set-Mailbox -MessageCopyForSendOnBehalfEnabled $MessageCopyForSendOnBehalfEnabled | Out-Null
+
+    # Set Language ( i.e. rename folders like "inbox" )
+    $mailbox |  Set-MailboxRegionalConfiguration -Language $Language -LocalizeDefaultFolderName
 
     "## Shared Mailbox '$MailboxName' has been created."
 
