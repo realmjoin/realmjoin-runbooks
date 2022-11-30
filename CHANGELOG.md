@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-11-30
+* Add shared mailbox: Option to localize new mailboxes.
+
 ## 2022-11-29
 * Report SPO Shared Links: Support for private channels added
 
