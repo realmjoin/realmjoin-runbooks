@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-11-30
+* Add shared mailbox: Option to localize new mailboxes.
+
+## 2022-11-29
+* Report SPO Shared Links: Support for private channels added
+
+## 2022-11-28
+* New runbook: Report extern. shared links in all teams to the repective teams owners
+
 ## 2022-11-25
 * Bugfix - List Room Mailbox Config - Could not read config, if room UPN was not the same as primary eMail address
 * Bugfix - Add/Remove eMail Address - Adding an address failed if mailbox has exactly one email address
