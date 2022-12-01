@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-12-01
+* Add/remove user (from/to group): Support EXO based groups (Distribution Lists and Mail-enabled Sec. Groups)
+
 ## 2022-11-30
 * Add shared mailbox: Option to localize new mailboxes.
 
