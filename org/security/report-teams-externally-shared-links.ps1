@@ -53,6 +53,8 @@ param(
     [string]$perGroupRunbookName = "rjgit-group_security_report-teams-externally-shared-links"
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 $allGroups = Invoke-RjRbRestMethodGraph -Resource "/groups/" -FollowPaging
