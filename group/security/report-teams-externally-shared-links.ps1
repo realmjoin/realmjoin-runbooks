@@ -54,6 +54,8 @@ param(
     [string]$groupId
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
 
 $groupObj = Invoke-RjRbRestMethodGraph -Resource "/groups/$groupId"
