@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Add/remove users to/from an AzureAD group.
+  Add/remove users to/from a group.
 
   .DESCRIPTION
-  Add/remove users to/from an AzureAD group.
+  Add/remove users to/from an AzureAD or Exchange Online group.
 
   .NOTES
   Permissions: 
@@ -64,6 +64,7 @@ if (-not $targetGroup) {
 
 # Work on AzureAD based groups
 if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEnabled)) {
+    "## Group type: AzureAD"
     # Prepare Request
     $body = @{
         "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
@@ -90,6 +91,42 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
     }
 } 
 else {
-    "## Currently Exchange groups are not supported."
-    throw ("EXO groups not supported")
+    "## Group type: Exchange Online"
+    try {
+        Connect-RjRbExchangeOnline
+        $groupObj = Get-Group -Identity $groupID
+
+        # Get User mailbox
+        $targetMailbox = get-mailbox -Identity $targetUser.id
+
+        if ($Remove) {
+            # Remove user from EXO group
+            if ($groupObj.Members -contains $targetMailbox.name) {
+                Remove-DistributionGroupMember -Identity $GroupID -Member $targetMailbox.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)'."
+            }
+            else {
+                "## User '$($targetUser.UserPrincipalName)' is not a member of '$($targetGroup.DisplayName)'. No action taken."
+            }
+        }
+        else {
+            # Add user to EXO group
+            if ($groupObj.RecipientType -in @("MailUniversalDistributionGroup", "MailUniversalSecurityGroup")) {
+                if ($groupObj.Members -contains $targetMailbox.name) {
+                    "## User '$($targetUser.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
+                }
+                else {
+                    Add-DistributionGroupMember -Identity $GroupID -member $targetMailbox.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                    "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."
+                }
+            }
+            else {
+                "## Unknown EXO group type: '$($groupObj.RecipientType)'"
+                throw ("EXO groups not supported")
+            }
+        }
+    }
+    finally {
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    }
 }
