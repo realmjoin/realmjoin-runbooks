@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-12-02
+* Report SPO Shared Links: Support anon. links
+
 ## 2022-12-01
 * Import a device into Intune via corporate identifier.
 * Add/remove user (from/to group): Support EXO based groups (Distribution Lists and Mail-enabled Sec. Groups)
