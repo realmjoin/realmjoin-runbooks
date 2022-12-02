@@ -125,8 +125,7 @@ foreach ($webUrl in $siteUrls) {
         do {
             if (-not $result) {
                 $result = Invoke-PnPSPRestMethod -Url "$webUrl/_api/web/lists/getByTitle('$list')/items`?`$select=ID,hasuniqueroleassignments"
-            }
-            else {
+            } else {
                 $result = Invoke-PnPSPRestMethod -Url $result.'odata.nextLink'
             }
             $ListItems = $result.value
@@ -170,6 +169,19 @@ foreach ($webUrl in $siteUrls) {
                                     }) 
                             }
                         }
+                        if ($SharingInfo.AnonymousViewLink) {
+                            $Results += New-Object PSObject -property $([ordered]@{    
+                                RelativeURL  = $Item.FieldValues["FileRef"]
+                                ExternalUser = "- Anyone can view -"
+                            }) 
+                        }
+                        if ($SharingInfo.AnonymousEditLink) {
+                            $Results += New-Object PSObject -property $([ordered]@{    
+                                RelativeURL  = $Item.FieldValues["FileRef"]
+                                ExternalUser = "- Anyone can edit -"
+                            }) 
+                        }
+
                     }
                 }            
             } 
