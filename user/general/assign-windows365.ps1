@@ -31,7 +31,7 @@
     }
 
    .EXAMPLE
-   "user_general_assign-windows365": {
+   "rjgit-user_general_assign-windows365": {
             "Parameters": {
                 "cfgProvisioningGroupName": {
                     "SelectSimple": {
