@@ -43,6 +43,7 @@ param(
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [string] $licWin365GroupPrefix = "lic - Windows 365 Enterprise - ",
+    [string] $skipGracePeriod = $true,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -64,10 +65,40 @@ $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrinc
 # Make sure the Win365 license is unassigned.
 $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members"
 if ($result -and ($result.userPrincipalName -contains $UserName)) {
+    # Find Cloud PC via SKU
+    $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
+    if (([array]$assignedLicenses).count -eq 1) {
+        $skuId = $assignedLicenses.skuId 
+        $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+        $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
+        $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
+        $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
+    } elseif ($assignedLicenses.count -gt 1) {
+        "## More than one license assigned to '$licWin365GroupName'"
+    }
     Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
     "## Unassgined '$licWin365GroupName' from '$UserName'."
-    # POST https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/cloudPCs/{cloudPCId}/endGracePeriod
-} else {
+    if ($skipGracePeriod) {
+        "## Skip grace period of Cloud PC"
+        if (([array]$cloudPC).count -eq 1) {
+            "## CloudPC found. Waiting for it to enter grace period."
+            # status -in notProvisioned, provisioning, provisioned, upgrading, inGracePeriod, deprovisioning, failed, restoring
+            while ($cloudPC.status -in @("provisioned", "notProvisioned", "failed")) {
+                Start-Sleep -Seconds 30
+                "## ."
+                $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)" -Beta -ErrorAction SilentlyContinue
+            } 
+            if ($cloudPC.status -eq "inGracePeriod") {
+                Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/endGracePeriod" -Method Post -Beta
+                "## CloudPC grace period ended."
+            }
+            elseif ($cloudPC) {
+                "## CloudPC in state '$($cloudPC.status)'. Please check manually."
+            }
+        } 
+    }
+}
+else {
     "## '$UserName' does not have '$licWin365GroupName'." 
     "## Can not deprovision."
 }
@@ -79,6 +110,7 @@ foreach ($group in $allLicWin365Groups) {
     $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
     if ($result -and ($result.userPrincipalName -contains $UserName)) {
         $licWin365GroupIsAssigned = $true
+        "## Other Cloud PCs are assigned to this user. Will not remove Prov. or User Settings policies."
     }
 }
 if (-not $licWin365GroupIsAssigned) {
