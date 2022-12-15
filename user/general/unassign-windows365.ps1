@@ -25,11 +25,26 @@
             "cfgUserSettingsGroupPrefix": {
                 "Hide": true
             },
+            "licWin365GroupPrefix": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
         }
     }
+
+   .EXAMPLE
+   "rjgit-user_general_unassign-windows365": {
+            "Parameters": {
+                "licWin365GroupName": {
+                    "SelectSimple": {
+                        "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                        "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                    }
+                }
+            }
+        }
 
 #>
 
@@ -39,11 +54,13 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
+    [ValidateScript( { Use-RJInterface -DisplayName "Windows 365 license to remove" } )]
     [string] $licWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [string] $licWin365GroupPrefix = "lic - Windows 365 Enterprise - ",
-    [string] $skipGracePeriod = $true,
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove Cloud PC immediately" } )]
+    [bool] $skipGracePeriod = $true,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )

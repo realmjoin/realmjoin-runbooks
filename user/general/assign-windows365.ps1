@@ -61,8 +61,11 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
+    [ValidateScript( { Use-RJInterface -DisplayName "Provisioning Policy to use" } )]
     [string] $cfgProvisioningGroupName = "cfg - Windows 365 - Provisioning - Win11",
+    [ValidateScript( { Use-RJInterface -DisplayName "User Settings Policy to use" } )]
     [string] $cfgUserSettingsGroupName = "cfg - Windows 365 - User Settings - restore allowed",
+    [ValidateScript( { Use-RJInterface -DisplayName "Windows 365 license to assign" } )]
     [string] $licWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
