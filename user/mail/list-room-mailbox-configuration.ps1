@@ -55,7 +55,7 @@ catch {
 "## Calendar Processing:"
 Connect-RjRbExchangeOnline
 try {
-    Get-CalendarProcessing -Identity $User.mailNickname | Select-Object -Property AllBookInPolicy, AutomateProcessing, AllowConflicts, BookingWindowsInDays, MaximumDurationInMinutes, ForwardRequetsToDelegates, DeleteSubject, AddOrganizertoSubject, OrganizerInfo
+    Get-CalendarProcessing -Identity $User.mailNickname | Select-Object -Property AllBookInPolicy, AutomateProcessing, AllowConflicts, BookingWindowInDays, MaximumDurationInMinutes, ForwardRequetsToDelegates, DeleteSubject, AddOrganizertoSubject, OrganizerInfo
 }
 catch {
     "## Fetching Room Configuration for '$UserName' failed."
