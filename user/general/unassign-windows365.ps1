@@ -131,7 +131,7 @@ foreach ($group in $allLicWin365Groups) {
     }
 }
 if (-not $licWin365GroupIsAssigned) {
-    "## No other Cloud PCs exist for '$UserName'."
+    "## No other Cloud PCs exists for '$UserName'."
     "## Removing Provisinging Policy and User Settings."
 
     [array]$groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgProvisioningGroupPrefix')"
