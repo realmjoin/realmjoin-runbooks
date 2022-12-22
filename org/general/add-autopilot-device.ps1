@@ -47,6 +47,7 @@ param(
     [string] $AssignedUser = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
     [bool] $Wait = $true,
+    [string] $GroupTag = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -70,6 +71,10 @@ if ($AssignedUser) {
     $body += @{ assignedUserPrincipalName = $username }
 }
 
+if ($groupTag) {
+    $body += @{ groupTag = $GroupTag }
+}
+
 # Start the import
 $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/importedWindowsAutopilotDeviceIdentities" -Method "POST" -Body $body
 
@@ -90,4 +95,3 @@ if ($Wait) {
         throw "Import of device $SerialNumber failed."
     }
 }
-
