@@ -8,7 +8,7 @@
   .NOTES
   Permissions: MS Graph
   - User.Read.All
-  - AuditLogs.Read.All
+  - AuditLog.Read.All
   - Organization.Read.All
 
   .INPUTS
@@ -48,7 +48,7 @@ catch {
   "## Getting list of users and guests failed. Maybe missing permissions?"
   ""
   "## Make sure, the following Graph API permissions are present:"
-  "## - Users.Read.All (API)"
+  "## - User.Read.All (API)"
   "## - AuditLog.Read.All (API)"
   ""
   $_
