@@ -111,12 +111,7 @@ foreach ($GroupName in $GroupNames) {
 
 foreach ($AADGroup in $AADGroups) {
     $AADGroupMembers = @()
-    $AADGroupMembers += (Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)/members" -OdSelect "Id").id
-    "UserID:"
-    $UserId
-    "## Members:"
-    $AADGroupMembers
-    ""
+    $AADGroupMembers += (Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)/members" -OdSelect "Id" -FollowPaging).id
     [array] $bindings = @()
     if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $UserId)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $UserId))) {    
         $bindingString = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
