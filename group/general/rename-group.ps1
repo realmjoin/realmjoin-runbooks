@@ -3,7 +3,7 @@
   Rename a group.
 
   .DESCRIPTION
-  Rename a group MailNickname, DisplayName and Description. Wil NOT change eMail addresses!
+  Rename a group MailNickname, DisplayName and Description. Will NOT change eMail addresses!
 
   .NOTES
   Permissions: MS Graph (API):

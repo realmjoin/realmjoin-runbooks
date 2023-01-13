@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2022-12-22
+* Add Autopilot Device: Support assigning (optinal) GroupTag
+
 ## 2022-12-02
 * Report SPO Shared Links: Support anon. links
 
