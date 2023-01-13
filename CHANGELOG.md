@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-01-13
+* New Runbook: Sync all Intune Devices
+
 ## 2022-12-22
 * Add Autopilot Device: Support assigning (optinal) GroupTag
 
