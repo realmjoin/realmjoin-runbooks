@@ -75,6 +75,7 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from" } )]
     [string] $fromMailAddress = "runbooks@contoso.com",
     [string] $ticketQueueAddress = "support@glueckkanja-gab.com",
+    [string] $ticketCustomerId = "Contoso",
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -115,7 +116,7 @@ if ($skuObj.prepaidUnits.enabled -le $skuObj.consumedUnits) {
     "## Not enough licenses avaible to assign '$licWin365GroupName'."
     if ($createTicketOutOfLicenses) {
         $message = @{
-            subject = "[Automated eMail] '$licWin365GroupName' out of licenses."
+            subject = "$ticketCustomerId-W365Lic '$licWin365GroupName' out of licenses."
             body    = @{
                 contentType = "HTML"
                 content     = @"
