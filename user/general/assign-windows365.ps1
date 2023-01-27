@@ -71,8 +71,10 @@ param(
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [bool] $sendMailWhenProvisioned = $false,
+    [bool] $createTicketOutOfLicenses = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from" } )]
     [string] $fromMailAddress = "runbooks@contoso.com",
+    [string] $ticketQueueAddress = "support@glueckkanja-gab.com",
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -101,6 +103,41 @@ if (-not $licWin365GroupObj) {
     "## Could not find Windows 365 license group '$licWin365GroupName'."
     throw "licWin365 not found"
 }
+
+# Get License / SKU data
+$assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
+$skuId = $assignedLicenses.skuId 
+$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+$skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
+
+# Are licenses available?
+if ($skuObj.prepaidUnits.enabled -le $skuObj.consumedUnits) {
+    "## Not enough licenses avaible to assign '$licWin365GroupName'."
+    if ($createTicketOutOfLicenses) {
+        $message = @{
+            subject = "[Automated eMail] '$licWin365GroupName' out of licenses."
+            body    = @{
+                contentType = "HTML"
+                content     = @"
+            <p>This is an automated message, no reply is possible.</p>
+            <p>The licenses for '$licWin365GroupName' (Sku Part '$($skuObj.skuPartNumber)') ran out while '$CallerName' tried to request a new Win365 Cloud PC for '$UserName'.</p>
+            <p>Please consider stocking up this license type.</p>
+"@
+            }
+        }
+
+        $message.toRecipients = [array]@{
+            emailAddress = @{
+                address = $ticketQueueAddress
+            }
+        }
+
+        Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+        "## Support Request to '$ticketQueueAddress' sent."
+    }
+    throw "Not enough licenses"
+}
+
 
 $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members"
 if ($result -and ($result.userPrincipalName -contains $UserName)) {
@@ -191,10 +228,6 @@ else {
     }
 
     # Search Cloud PC
-    $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
-    $skuId = $assignedLicenses.skuId 
-    $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
-    $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
     $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
     $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
 
