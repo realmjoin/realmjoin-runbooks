@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-01-30
+* New Feature: Manage MS Bookings
+* New Runbook: set-booking-config: Enable Bookings (tenant-wide)
+
 ## 2023-01-13
 * New Runbook: Sync all Intune Devices
 
