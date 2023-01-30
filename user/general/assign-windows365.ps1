@@ -70,11 +70,15 @@ param(
     [string] $licWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
+    [ValidateScript( { Use-RJInterface -DisplayName "Notify user when CloudPC is ready?" } )]
     [bool] $sendMailWhenProvisioned = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Create a service ticket (email) if not enough licenses are available?" } )]
     [bool] $createTicketOutOfLicenses = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Where to open a service ticket (via email)" } )]
+    [string] $ticketQueueAddress = "support@glueckkanja-gab.com",
     [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from" } )]
     [string] $fromMailAddress = "runbooks@contoso.com",
-    [string] $ticketQueueAddress = "support@glueckkanja-gab.com",
+    [ValidateScript( { Use-RJInterface -DisplayName "Customer ID string for service tickets" } )]
     [string] $ticketCustomerId = "Contoso",
     [Parameter(Mandatory = $true)]
     [string] $CallerName
