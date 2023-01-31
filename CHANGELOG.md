@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-01-31
+* New Feature: Assign/Unassign Windows365 Cloud PCs
+
 ## 2023-01-30
 * New Feature: Manage MS Bookings
 * New Runbook: set-booking-config: Enable Bookings (tenant-wide)
