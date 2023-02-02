@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-02-01
+* New Runbook: Remove Room/Shared/Booking Mailbox
+
 ## 2023-01-31
 * New Feature: Assign/Unassign Windows365 Cloud PCs
 
