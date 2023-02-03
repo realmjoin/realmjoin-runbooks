@@ -14,7 +14,7 @@ param(
         [bool] $BookingsBlockedWordsEnabled = $false,
         [bool] $BookingsNamingPolicyPrefixEnabled = $true,
         [string] $BookingsNamingPolicyPrefix = "Booking-",
-        [bool] $BookingsNamingPolicySuffixEnabled  = $false,
+        [bool] $BookingsNamingPolicySuffixEnabled = $false,
         [string] $BookingsNamingPolicySuffix = "",
         [bool] $CreateOwaPolicy = $true,
         [string] $OwaPolicyName = "BookingsCreators",
@@ -28,23 +28,23 @@ param(
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $splatParams = @{
-        BookingsEnabled = $BookingsEnabled
-        BookingsAuthEnabled = $BookingsAuthEnabled
-        BookingsSocialSharingRestricted = $BookingsSocialSharingRestricted
-        BookingsExposureOfStaffDetailsRestricted = $BookingsExposureOfStaffDetailsRestricted
-        BookingsMembershipApprovalRequired = $BookingsMembershipApprovalRequired
-        BookingsSmsMicrosoftEnabled = $BookingsSmsMicrosoftEnabled
-        BookingsSearchEngineIndexDisabled = $BookingsSearchEngineIndexDisabled
-        BookingsAddressEntryRestricted = $BookingsAddressEntryRestricted
+        BookingsEnabled                             = $BookingsEnabled
+        BookingsAuthEnabled                         = $BookingsAuthEnabled
+        BookingsSocialSharingRestricted             = $BookingsSocialSharingRestricted
+        BookingsExposureOfStaffDetailsRestricted    = $BookingsExposureOfStaffDetailsRestricted
+        BookingsMembershipApprovalRequired          = $BookingsMembershipApprovalRequired
+        BookingsSmsMicrosoftEnabled                 = $BookingsSmsMicrosoftEnabled
+        BookingsSearchEngineIndexDisabled           = $BookingsSearchEngineIndexDisabled
+        BookingsAddressEntryRestricted              = $BookingsAddressEntryRestricted
         BookingsCreationOfCustomQuestionsRestricted = $BookingsCreationOfCustomQuestionsRestricted
-        BookingsNotesEntryRestricted = $BookingsNotesEntryRestricted
-        BookingsPhoneNumberEntryRestricted = $BookingsPhoneNumberEntryRestricted
-        BookingsNamingPolicyEnabled = $BookingsNamingPolicyEnabled
-        BookingsBlockedWordsEnabled = $BookingsBlockedWordsEnabled
-        BookingsNamingPolicyPrefixEnabled = $BookingsNamingPolicyPrefixEnabled
-        BookingsNamingPolicyPrefix = $BookingsNamingPolicyPrefix
-        BookingsNamingPolicySuffixEnabled = $BookingsNamingPolicySuffixEnabled
-        BookingsNamingPolicySuffix = $BookingsNamingPolicySuffix
+        BookingsNotesEntryRestricted                = $BookingsNotesEntryRestricted
+        BookingsPhoneNumberEntryRestricted          = $BookingsPhoneNumberEntryRestricted
+        BookingsNamingPolicyEnabled                 = $BookingsNamingPolicyEnabled
+        BookingsBlockedWordsEnabled                 = $BookingsBlockedWordsEnabled
+        BookingsNamingPolicyPrefixEnabled           = $BookingsNamingPolicyPrefixEnabled
+        BookingsNamingPolicyPrefix                  = $BookingsNamingPolicyPrefix
+        BookingsNamingPolicySuffixEnabled           = $BookingsNamingPolicySuffixEnabled
+        BookingsNamingPolicySuffix                  = $BookingsNamingPolicySuffix
 }
 
 Connect-RjRbExchangeOnline
@@ -55,8 +55,13 @@ Set-OrganizationConfig @splatParams
 $splatParams | Format-Table -AutoSize | Out-String
 
 if ($CreateOwaPolicy) {
-        New-OwaMailboxPolicy -Name $OwaPolicyName | Out-Null
-        "## New OWA Policy '$OwaPolicyName' created."
+        if (get-owaMailboxPolicy -Identity $OwaPolicyName -ErrorAction SilentlyContinue) {
+                "## OWA Policy '$OwaPolicyName' already exists. Skipping."        
+        }
+        else {
+                New-OwaMailboxPolicy -Name $OwaPolicyName | Out-Null
+                "## New OWA Policy '$OwaPolicyName' created."
+        }
         Set-OwaMailboxPolicy "OwaMailboxPolicy-Default" -BookingsMailboxCreationEnabled:$false | Out-Null
         "## Disabled Bookings in default OWA policy."
 }
