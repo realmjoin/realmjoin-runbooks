@@ -32,7 +32,7 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Mailbox" } )]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
-    [string] $OwaPolicyName,
+    [string] $OwaPolicyName = "OwaMailboxPolicy-Default",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -45,7 +45,8 @@ Connect-RjRbExchangeOnline
 
 try {
     Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop       
-} catch {
+}
+catch {
     "## Could not read OWA Policy '$OwaPolicyName'. Exiting."
     ""
     throw $_
