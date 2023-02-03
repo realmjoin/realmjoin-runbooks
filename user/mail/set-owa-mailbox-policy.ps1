@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Hard delete a shared mailbox, room or bookings calendar.
+  Set the OWA mailbox policy for a user.
 
   .DESCRIPTION
-  Hard delete a shared mailbox, room or bookings calendar.
+  Set the OWA mailbox policy for a user. E.g. to allow MS Bookings.
 
   .NOTES
   Permissions
@@ -11,7 +11,13 @@
 
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {            
+        "Parameters": {    
+            "OwaPolicyName": {
+                "SelectSimple": {
+                    "Default": "OwaMailboxPolicy-Default",
+                    "BookingsCreators": "BookingsCreators"
+                }            
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -25,6 +31,8 @@ param (
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Mailbox" } )]
     [String] $UserName,
+    [Parameter(Mandatory = $true)]
+    [string] $OwaPolicyName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -32,7 +40,17 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+
 Connect-RjRbExchangeOnline
+
+try {
+    Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop       
+} catch {
+    "## Could not read OWA Policy '$OwaPolicyName'. Exiting."
+    ""
+    throw $_
+}
+
 
 try {
     $targetMBox = Get-Mailbox -Identity $UserName -ErrorAction Stop
@@ -43,14 +61,8 @@ catch {
     throw $_
 }
 
-"## Object Type: $($targetMBox.RecipientTypeDetails)"    
-if ($targetMBox.RecipientTypeDetails -in ("SchedulingMailbox", "RoomMailbox", "SharedMailbox")) {
-    "## Trying to hard delete mailbox '$UserName'."
-    remove-mailbox -Identity $UserName -Confirm:$false
-}
-else {
-    "## Wrong object type. Skipping."
-}
+Set-CasMailbox -OwaMailboxPolicy $OwaPolicyName -Identity $UserName | Out-Null
+"## OWA Mailbox Policy for '$Username' set to '$OwaPolicyName'."
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 

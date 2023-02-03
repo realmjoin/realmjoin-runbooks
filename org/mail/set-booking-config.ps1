@@ -16,6 +16,8 @@ param(
         [string] $BookingsNamingPolicyPrefix = "Booking-",
         [bool] $BookingsNamingPolicySuffixEnabled  = $false,
         [string] $BookingsNamingPolicySuffix = "",
+        [bool] $CreateOwaPolicy = $true,
+        [string] $OwaPolicyName = "BookingsCreators",
         # CallerName is tracked purely for auditing purposes
         [Parameter(Mandatory = $true)]
         [string] $CallerName    
@@ -51,5 +53,12 @@ Set-OrganizationConfig @splatParams
 
 "## MS Bookings has been configured with these values:"
 $splatParams | Format-Table -AutoSize | Out-String
+
+if ($CreateOwaPolicy) {
+        New-OwaMailboxPolicy -Name $OwaPolicyName | Out-Null
+        "## New OWA Policy '$OwaPolicyName' created."
+        Set-OwaMailboxPolicy "OwaMailboxPolicy-Default" -BookingsMailboxCreationEnabled:$false | Out-Null
+        "## Disabled Bookings in default OWA policy."
+}
 
 Disconnect-ExchangeOnline -Confirm:$false 
