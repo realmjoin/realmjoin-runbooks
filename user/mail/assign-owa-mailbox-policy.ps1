@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Set the OWA mailbox policy for a user.
+  Assign a given OWA mailbox policy to a user.
 
   .DESCRIPTION
-  Set the OWA mailbox policy for a user. E.g. to allow MS Bookings.
+  Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
 
   .NOTES
   Permissions
@@ -44,7 +44,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbExchangeOnline
 
 try {
-    Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop       
+    $policy = Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop       
 }
 catch {
     "## Could not read OWA Policy '$OwaPolicyName'. Exiting."
@@ -62,7 +62,7 @@ catch {
     throw $_
 }
 
-Set-CasMailbox -OwaMailboxPolicy $OwaPolicyName -Identity $UserName | Out-Null
+Set-CasMailbox -OwaMailboxPolicy $OwaPolicyName -Identity $UserName -ErrorAction Stop | Out-Null
 "## OWA Mailbox Policy for '$Username' set to '$OwaPolicyName'."
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
