@@ -216,7 +216,6 @@ foreach ($row in $rawreport.Values) {
         $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $properties["ManagedDeviceName"])
 
         try {
-            $properties | Out-String
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
             $rowsWritten++
             ""
@@ -243,7 +242,6 @@ foreach ($ManagedDeviceName in $cloudPcReported.keys) {
         $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $ManagedDeviceName)
 
         try {
-            $properties | Out-String
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
             $rowsWritten++
             ""
