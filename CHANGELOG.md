@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-02-07
+* New Runbook: Export CloudPC Usage Statistics
+
 ## 2023-02-01
 * New Runbook: Remove Room/Shared/Booking Mailbox
 
