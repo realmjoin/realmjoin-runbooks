@@ -208,8 +208,7 @@ $DataTable = @{
 foreach ($row in $rawreport.Values) {
     $properties = @{}
     for ($i = 0; $i -lt $rawreport.Schema.Column.count; $i++) {
-        $RowValue = Optimize-EntityValue($row[$i])
-        $properties.add($rawreport.Schema.Column[$i], $RowValue)
+        $properties.add($rawreport.Schema.Column[$i], $row[$i])
     }
 
     if (($properties["EventDateTime"] -ge $ReportDateLower) -and ($properties["EventDateTime"] -lt $ReportDateUpper)) {
@@ -217,8 +216,13 @@ foreach ($row in $rawreport.Values) {
         $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $properties["ManagedDeviceName"])
 
         try {
+            "## Debug - Trying to write"
+            "rowkey: $RowKey"
+            "properties:"
+            $properties | Out-String
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
             $rowsWritten++
+            ""
         }
         catch {
             Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
@@ -226,23 +230,29 @@ foreach ($row in $rawreport.Values) {
     }
 } 
 
-foreach ($cloudPc in $cloudPcReported.keys) {
-    if ($cloudPcReported[$cloudPc] -eq $false) {
+foreach ($ManagedDeviceName in $cloudPcReported.keys) {
+    if ($cloudPcReported[$ManagedDeviceName] -eq $false) {
+        $cloudPc = $allCloudPcs | Where-Object { $_.ManagedDeviceName -eq $ManagedDeviceName }
         $properties = @{
             EventDateTime = $ReportDateLower
             CloudPcId = $cloudPc.id
-            ManagedDeviceName = $cloudPc.managedDeviceId
+            ManagedDeviceName = $ManagedDeviceName
             UsageInHour = "0"
             RoundTripTimeInMsP50 = ""
             RemoteSignInTimeInSecP50 = ""
             UserPrincipalName = $cloudpc.userPrincipalName
             AvailableBandwidthInMBpsP50 = ""
         }
-        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $properties["ManagedDeviceName"])
+        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $ManagedDeviceName)
 
         try {
+            "## Debug - Trying to write"
+            "rowkey: $RowKey"
+            "properties:"
+            $properties | Out-String
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
             $rowsWritten++
+            ""
         }
         catch {
             Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
