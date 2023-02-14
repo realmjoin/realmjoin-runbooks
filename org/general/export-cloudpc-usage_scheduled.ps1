@@ -29,6 +29,7 @@ param(
     [string] $ResourceGroupName,
     [Parameter(Mandatory = $true)]
     [string] $StorageAccountName,
+    [int] $days = 1,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -170,7 +171,11 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph 
 Connect-RjRbAzAccount
 
+$ReportDateUpper = Get-Date -Format 'yyyy-MM-dd'
+$ReportDateLower = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format 'yyyy-MM-dd'
+
 $params = @{
+    filter = "(EventDateTime ge datetime'$ReportDateLower')"
     Select = @(
         "EventDateTime"
         "CloudPcId"
@@ -186,16 +191,18 @@ $params = @{
 $TenantId = (invoke-RjRbRestMethodGraph -Resource "/organization").id
 $rawreport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/reports/getDailyAggregatedRemoteConnectionReports" -Body $params -Method Post -Beta
 
-$allCloudPcs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta
-$cloudPcReported = @{}
-foreach ($cloudPc in $allCloudPcs) {
-    $cloudPcReported[$cloudPc.ManagedDeviceName] = $false
+$allCloudPcs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -FollowPaging
+
+$reportedByDate = @{}
+for ($i = 1; $i -le $days; $i++) {
+    $ReportDate = (get-date) - (New-TimeSpan -Days $i) | Get-Date -Format 'yyyy-MM-dd'
+    $reportedByDate[$ReportDate] = @{}
+    foreach ($cloudPc in $allCloudPcs) {
+        $reportedByDate[$ReportDate][$cloudPc.ManagedDeviceName] = $false
+    }
 }
 
 $StorageTables = Get-StorageTables -tables $Table
-
-$ReportDateUpper = Get-Date -Format 'yyyy-MM-dd'
-$ReportDateLower = (get-date) - (New-TimeSpan -Days 1) | Get-Date -Format 'yyyy-MM-dd'
 
 [int]$rowsWritten = 0
 
@@ -204,7 +211,7 @@ $DataTable = @{
     PartitionKey = $TenantId
     Merge        = $true
 }
-    
+
 foreach ($row in $rawreport.Values) {
     $properties = @{}
     for ($i = 0; $i -lt $rawreport.Schema.Column.count; $i++) {
@@ -212,13 +219,12 @@ foreach ($row in $rawreport.Values) {
     }
 
     if (($properties["EventDateTime"] -ge $ReportDateLower) -and ($properties["EventDateTime"] -lt $ReportDateUpper)) {
-        $cloudPcReported[$properties["ManagedDeviceName"]] = $true
-        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $properties["ManagedDeviceName"])
+        $ReportDate = (get-date -Date $properties["EventDateTime"] -Format 'yyyy-MM-dd')
+        $reportedByDate[$ReportDate][$properties["ManagedDeviceName"]] = $true
+        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDate + "_" + $properties["ManagedDeviceName"])
 
         try {
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
-            $rowsWritten++
-            ""
         }
         catch {
             Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
@@ -226,28 +232,31 @@ foreach ($row in $rawreport.Values) {
     }
 } 
 
-foreach ($ManagedDeviceName in $cloudPcReported.keys) {
-    if ($cloudPcReported[$ManagedDeviceName] -eq $false) {
-        $cloudPc = $allCloudPcs | Where-Object { $_.ManagedDeviceName -eq $ManagedDeviceName }
-        $properties = @{
-            EventDateTime = $ReportDateLower
-            CloudPcId = $cloudPc.id
-            ManagedDeviceName = $ManagedDeviceName
-            UsageInHour = "0"
-            RoundTripTimeInMsP50 = ""
-            RemoteSignInTimeInSecP50 = ""
-            UserPrincipalName = $cloudpc.userPrincipalName
-            AvailableBandwidthInMBpsP50 = ""
-        }
-        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDateLower + "_" + $ManagedDeviceName)
+for ($i = 1; $i -le $days; $i++) {
+    $ReportDate = (get-date) - (New-TimeSpan -Days $i) | Get-Date -Format 'yyyy-MM-dd'
+    foreach ($ManagedDeviceName in $allCloudPcs.managedDeviceName) {
+        if ($reportedByDate[$ReportDate][$ManagedDeviceName] -eq $false) {
+            $cloudPc = $allCloudPcs | Where-Object { $_.ManagedDeviceName -eq $ManagedDeviceName }
+            $properties = @{
+                EventDateTime               = $ReportDate + "T00:00:00"
+                CloudPcId                   = $cloudPc.id
+                ManagedDeviceName           = $ManagedDeviceName
+                UsageInHour                 = "0"
+                RoundTripTimeInMsP50        = ""
+                RemoteSignInTimeInSecP50    = ""
+                UserPrincipalName           = $cloudpc.userPrincipalName
+                AvailableBandwidthInMBpsP50 = ""
+            }
+            $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDate + "_" + $ManagedDeviceName)
 
-        try {
-            Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
-            $rowsWritten++
-            ""
-        }
-        catch {
-            Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
+            try {
+                Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
+                $rowsWritten++
+                ""
+            }
+            catch {
+                Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
+            }
         }
     }
 }
