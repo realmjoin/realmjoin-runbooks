@@ -225,6 +225,7 @@ foreach ($row in $rawreport.Values) {
 
         try {
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
+            $rowsWritten++
         }
         catch {
             Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
@@ -252,7 +253,6 @@ for ($i = 1; $i -le $days; $i++) {
             try {
                 Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
                 $rowsWritten++
-                ""
             }
             catch {
                 Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
