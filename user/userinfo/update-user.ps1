@@ -197,6 +197,7 @@ param (
     [string]$City,
     [string]$Country,
     [string]$JobTitle,
+    [string]$Department,
     # think "physicalDeliveryOfficeName" if you are coming from on-prem
     [string]$OfficeLocation,
     [ValidateScript( { Use-RJInterface -Type Number } )]
@@ -241,6 +242,7 @@ try {
     addToUserArgs 'city'
     addToUserArgs 'country'
     addToUserArgs 'jobTitle'
+    addToUserArgs 'department'
     addToUserArgs 'officeLocation'
     addToUserArgs 'postalCode'
     addToUserArgs 'preferredLanguage'
