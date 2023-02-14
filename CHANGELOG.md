@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-02-14 
+* Update User: Support User Templates, Group Management, PW Reset
+
 ## 2023-02-07
 * New Runbook: Export CloudPC Usage Statistics
 
