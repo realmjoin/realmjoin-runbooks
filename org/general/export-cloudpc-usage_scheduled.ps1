@@ -189,7 +189,8 @@ $params = @{
 }
 
 $TenantId = (invoke-RjRbRestMethodGraph -Resource "/organization").id
-$rawreport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/reports/getDailyAggregatedRemoteConnectionReports" -Body $params -Method Post -Beta
+$rawConnectionsReport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/reports/getDailyAggregatedRemoteConnectionReports" -Body $params -Method Post -Beta
+$rawPerformanceReport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/userExperienceAnalyticsResourcePerformance" -Beta
 
 $allCloudPcs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -FollowPaging
 
@@ -212,15 +213,23 @@ $DataTable = @{
     Merge        = $true
 }
 
-foreach ($row in $rawreport.Values) {
+foreach ($row in $rawConnectionsReport.Values) {
     $properties = @{}
-    for ($i = 0; $i -lt $rawreport.Schema.Column.count; $i++) {
-        $properties.add($rawreport.Schema.Column[$i], $row[$i])
+    for ($i = 0; $i -lt $rawConnectionsReport.Schema.Column.count; $i++) {
+        $properties.add($rawConnectionsReport.Schema.Column[$i], $row[$i])
     }
 
     if (($properties["EventDateTime"] -ge $ReportDateLower) -and ($properties["EventDateTime"] -lt $ReportDateUpper)) {
         $ReportDate = (get-date -Date $properties["EventDateTime"] -Format 'yyyy-MM-dd')
         $reportedByDate[$ReportDate][$properties["ManagedDeviceName"]] = $true
+
+        $performanceData = $rawPerformanceReport | Where-Object { $_.deviceName -eq $properties["ManagedDeviceName"] }
+        if ($performanceData) {
+            foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore")) {
+                $properties[$property] = $performanceData.$property
+            }
+        }
+
         $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDate + "_" + $properties["ManagedDeviceName"])
 
         try {
@@ -249,6 +258,13 @@ for ($i = 1; $i -le $days; $i++) {
                 AvailableBandwidthInMBpsP50 = ""
             }
             $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDate + "_" + $ManagedDeviceName)
+
+            $performanceData = $rawPerformanceReport | Where-Object { $_.deviceName -eq $properties["ManagedDeviceName"] }
+            if ($performanceData) {
+                foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore")) {
+                    $properties[$property] = $performanceData.$property
+                }
+            }    
 
             try {
                 Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
