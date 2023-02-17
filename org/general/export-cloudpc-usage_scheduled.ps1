@@ -225,7 +225,7 @@ foreach ($row in $rawConnectionsReport.Values) {
 
         $performanceData = $rawPerformanceReport | Where-Object { $_.deviceName -eq $properties["ManagedDeviceName"] }
         if ($performanceData) {
-            foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore")) {
+            foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore","model")) {
                 $properties[$property] = $performanceData.$property
             }
         }
@@ -261,7 +261,7 @@ for ($i = 1; $i -le $days; $i++) {
 
             $performanceData = $rawPerformanceReport | Where-Object { $_.deviceName -eq $properties["ManagedDeviceName"] }
             if ($performanceData) {
-                foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore")) {
+                foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore","model")) {
                     $properties[$property] = $performanceData.$property
                 }
             }    
