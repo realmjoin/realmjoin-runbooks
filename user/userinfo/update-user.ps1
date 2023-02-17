@@ -226,7 +226,7 @@ Connect-RjRbExchangeOnline
 
 try {
     Write-RjRbLog "Searching for user '$UserName'"
-    $targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName"
+    $targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -OdSelect "companyName,displayName,givenName,surname,mail,userPrincipalName,jobTitle,id,MailNickName"
 
     $userArgs = @{}
     function addToUserArgs($variableName, $paramName = $variableName) {
@@ -388,7 +388,13 @@ try {
                     $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue; 
                 }; 
             }
-            Enable-Mailbox -Archive -Identity $Username | Out-Null
+            $archivembox = get-exomailbox -Identity $Username -Archive -ErrorAction SilentlyContinue        
+            if (-not $archivembox) {
+                Enable-Mailbox -Archive -Identity $Username | Out-Null
+            } else {
+                "## EXO Archive is already configured for '$Username'. Skipping."
+            }
+            
         }
         catch {
             Write-Error "Enabling Mail Archive for '$Username' failed"
