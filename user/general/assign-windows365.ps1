@@ -148,7 +148,7 @@ $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)
 if ($result -and ($result.userPrincipalName -contains $UserName)) {
     "## '$UserName' already has a Win365 license of this type assigned." 
     "## Can not provision - exiting."
-    exit
+    throw "SKU already assigned."
 }
 
 # Prepare for adding a group member
