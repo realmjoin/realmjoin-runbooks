@@ -245,11 +245,13 @@ else {
     }
 
     "## Provisioning started. Waiting for Cloud PC to be ready."
-
-    while ($cloudPC.status -notin @("provisioned", "failed")) {
+    $cloudPCId = $cloudPC.id
+    
+    do  {
+        $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$cloudPCId" -Beta
         Start-Sleep -Seconds 60
         "."
-    }
+    } while ($cloudPC.status -notin @("provisioned", "failed"))
  
     if ($cloudPC.status -eq "provisioned") {
         "## Cloud PC provisioned."
