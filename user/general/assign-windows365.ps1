@@ -261,7 +261,7 @@ else {
                 contentType = "HTML"
                 content     = @"
             <p>This is an automated message, no reply is possible.</p>
-            <p>Your Cloud PC is ready. Access via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a></p>
+            <p>Your Cloud PC is ready. Access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
 "@
             }
         }
