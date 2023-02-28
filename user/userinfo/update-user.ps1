@@ -13,6 +13,8 @@
 
   .NOTES
   Permissions
+  Graph
+  - UserAuthenticationMethod.Read.All
   AzureAD Roles
   - User administrator
   Exchange
@@ -391,7 +393,8 @@ try {
             $archivembox = get-exomailbox -Identity $Username -Archive -ErrorAction SilentlyContinue        
             if (-not $archivembox) {
                 Enable-Mailbox -Archive -Identity $Username | Out-Null
-            } else {
+            }
+            else {
                 "## EXO Archive is already configured for '$Username'. Skipping."
             }
             
@@ -407,17 +410,35 @@ finally {
 }
 
 if ($ResetPassword) {
-    $initialPassword = ("Initial" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
-    $body = @{
-        passwordProfile = @{
-            forceChangePasswordNextSignIn = $true
-            password                      = $initialPassword
+    # Check if user has MFA methods already
+    # "Find phone auth. methods" 
+    $phoneAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/authentication/phoneMethods" -Beta
+
+    # "Find Authenticator App auth methods"
+    $appAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/authentication/microsoftAuthenticatorMethods" -Beta
+
+    # "Find Classic OATH App auth methods"
+    $OATHAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/authentication/softwareOathMethods" -Beta
+
+    # "Find FIDO2 auth methods"
+    $fido2AMs = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/authentication/fido2Methods" -Beta
+
+    if (-not ($phoneAMs -or $appAMs -or $OATHAMs -or $fido2AMs)) {
+        $initialPassword = ("Initial" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
+        $body = @{
+            passwordProfile = @{
+                forceChangePasswordNextSignIn = $true
+                password                      = $initialPassword
+            }
         }
+        Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
+        "## Password for '$UserName' has been reset to:"
+        "$initialPassword"
+        ""
     }
-    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
-    "## Password for '$UserName' has been reset to:"
-    "$initialPassword"
-    ""
+    else {
+        "## '$UserName' already has MFA in place. Will not reset PW."
+    }
 }
 
 
