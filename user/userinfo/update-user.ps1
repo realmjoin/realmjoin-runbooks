@@ -221,7 +221,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-"## Updating metadate of user '$UserName'."
+"## Updating metadata of user '$UserName'."
 
 Connect-RjRbGraph
 Connect-RjRbExchangeOnline
