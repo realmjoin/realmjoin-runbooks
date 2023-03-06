@@ -26,3 +26,4 @@ $mgdDevices | ForEach-Object {
     Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.id)/syncDevice" -Method Post -ErrorAction SilentlyContinue 
 }
 #change
+#more commits bc i thought i knew what i was doing but turns out i didnt
