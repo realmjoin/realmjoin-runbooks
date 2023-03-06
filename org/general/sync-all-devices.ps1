@@ -27,3 +27,4 @@ $mgdDevices | ForEach-Object {
 }
 #change
 #more commits bc i thought i knew what i was doing but turns out i didnt
+#yay it worked so why not another one eh?
