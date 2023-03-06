@@ -25,3 +25,4 @@ $mgdDevices | ForEach-Object {
     "## Triggering Sync: $($_.deviceName)"
     Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.id)/syncDevice" -Method Post -ErrorAction SilentlyContinue 
 }
+#change
