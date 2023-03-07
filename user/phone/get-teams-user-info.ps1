@@ -35,7 +35,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -67,7 +67,7 @@ catch {
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Teams PowerShell session could not be established. Stopping script!"
+        Write-Error -Message "Teams PowerShell session could not be established. Stopping script!" -ErrorAction Continue
         throw "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
