@@ -113,6 +113,9 @@
                     ]
                 }
             },
+            "ManagerAsReplacementOwner": {
+                "Description": "Fetch the user's manager from AzureAD as replacing owner. This takes precedence over manually specifying a replacement owner."
+            }
         }
     }
 
@@ -189,9 +192,9 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.deleteUser" } )]
-    [bool] $DeleteUser = $true,
+    [bool] $DeleteUser = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.disableUser" } )]
-    [bool] $DisableUser = $false,
+    [bool] $DisableUser = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
     [bool] $RevokeAccess = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
@@ -212,11 +215,13 @@ param (
     [int] $ChangeGroupsSelector = 0,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix"} )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
     [String] $GroupsToRemovePrefix,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships"})]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships" })]
     [bool] $RevokeGroupOwnership = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.ReplacementOwnerName" -DisplayName "Who should step in as group owner?"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Grant ownership of the user's resources to the user's manager?" } )]
+    [bool] $ManagerAsReplacementOwner = $true,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Who should step in as group/resource owner?" } )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -294,6 +299,15 @@ if ($exportGroupMemberships) {
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
 
+if ($ManagerAsReplacementOwner) {
+    $manager = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/manager" -ErrorAction SilentlyContinue
+    if ($manager) {
+        $ReplacementOwner = $manager
+        $ReplacementOwnerName = $manager.userPrincipalName
+    }
+}
+
+
 # Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
 if ($RevokeGroupOwnership) {
     $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
@@ -302,8 +316,7 @@ if ($RevokeGroupOwnership) {
             $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
             if (([array]$owners).Count -eq 1) {
                 "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
-                $ReplacementOwner = $null
-                if ($ReplacementOwnerName) {
+                if ($ReplacementOwnerName -and -not $ReplacementOwner) {
                     $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
                 }
                 if ($ReplacementOwner) {
@@ -434,6 +447,6 @@ if ($ChangeLicensesSelector -ne 0) {
     }
 }
 
-Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 
 "## Offboarding of $($UserName) successful."
