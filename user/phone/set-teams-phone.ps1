@@ -87,7 +87,9 @@ param(
 Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
 
 $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
+$VerbosePreference = "SilentlyContinue"
 Connect-MicrosoftTeams -Credential $CredAutomation
+$VerbosePreference = "Continue"
 
 # Check if Teams connection is active
 try {
