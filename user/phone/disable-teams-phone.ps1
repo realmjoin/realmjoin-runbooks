@@ -57,7 +57,9 @@ Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
 
 #Needs to be replaced to an RealmJoin Setting!!!
 $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
+$VerbosePreference = "SilentlyContinue"
 Connect-MicrosoftTeams -Credential $CredAutomation
+$VerbosePreference = "Continue"
 
 # Check if Teams connection is active
 try {
