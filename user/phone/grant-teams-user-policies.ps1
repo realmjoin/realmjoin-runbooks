@@ -53,7 +53,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -92,7 +92,7 @@ catch {
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {        
-        Write-Error "Teams PowerShell session could not be established. Stopping script!"
+        Write-Error -Message "Teams PowerShell session could not be established. Stopping script!" -ErrorAction Continue
         throw "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
@@ -178,8 +178,8 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
         }
     }
     catch {
-        Write-Error  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy"
-        throw "The specified Online Voice Routing Policy could not be found in the tenant!"
+        Write-Error -Message  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy" -ErrorAction Continue
+        throw "The specified Online Voice Routing Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy"
     }
     Clear-Variable TMP
 }
@@ -195,8 +195,8 @@ if ($TenantDialPlan -notlike "") {
         }
     }
     catch {
-        Write-Error  "Teams - Error: The specified Tenant Dial Plan could not be found in the tenant. Please check the specified policy! Submitted policy name: $TenantDialPlan"
-        throw "The specified Tenant Dial Plan could not be found in the tenant!"
+        Write-Error -Message  "Teams - Error: The specified Tenant Dial Plan could not be found in the tenant. Please check the specified policy! Submitted policy name: $TenantDialPlan" -ErrorAction Continue
+        throw "The specified Tenant Dial Plan could not be found in the tenant! Please check the specified policy! Submitted policy name: $TenantDialPlan"
     }
     Clear-Variable TMP
 }
@@ -213,8 +213,8 @@ if ($TeamsCallingPolicy -notlike "") {
         }
     }
     catch {
-        Write-Error  "Teams - Error: The specified Teams Calling Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsCallingPolicy"
-        throw "The specified Teams Calling Policy could not be found in the tenant!"
+        Write-Error -Message  "Teams - Error: The specified Teams Calling Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsCallingPolicy" -ErrorAction Continue
+        throw "The specified Teams Calling Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsCallingPolicy"
     }
     Clear-Variable TMP
 }
@@ -230,8 +230,8 @@ if ($TeamsIPPhonePolicy -notlike "") {
         }
     }
     catch {
-        Write-Error  "Teams - Error: The specified Teams IP-Phone Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy"
-        throw "The specified Teams IP-Phone Policy could not be found in the tenant!"
+        Write-Error -Message  "Teams - Error: The specified Teams IP-Phone Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy" -ErrorAction Continue
+        throw "The specified Teams IP-Phone Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy"
     }
     Clear-Variable TMP
 }
@@ -247,8 +247,8 @@ if ($TeamsMeetingPolicy -notlike "") {
         }
     }
     catch {
-        Write-Error  "Teams - Error: The specified Teams Meeting Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingPolicy"
-        throw "The specified Teams Meeting Policy could not be found in the tenant!"
+        Write-Error -Message  "Teams - Error: The specified Teams Meeting Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingPolicy" -ErrorAction Continue
+        throw "The specified Teams Meeting Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsMeetingPolicy"
     }
     Clear-Variable TMP
 }
@@ -265,8 +265,8 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
         }
     }
     catch {
-        Write-Error  "Teams - Error: The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingBroadcastPolicy"
-        throw "The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant!"
+        Write-Error -Message  "Teams - Error: The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingBroadcastPolicy" -ErrorAction Continue
+        throw "The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsMeetingBroadcastPolicy"
     }
     Clear-Variable TMP
 }
@@ -293,8 +293,7 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
     }
     catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
+        Write-Error -Message "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
     }
 }
@@ -311,8 +310,7 @@ if ($TenantDialPlan -notlike "") {
     }
     catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
+        Write-Error -Message "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
     }
 }
@@ -329,8 +327,7 @@ if ($TeamsCallingPolicy -notlike "") {
     }
     catch {        
         $message = $_
-        Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
+        Write-Error -Message "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
     }
 }
@@ -347,8 +344,7 @@ if ($TeamsIPPhonePolicy -notlike "") {
     }
     catch {        
         $message = $_
-        Write-Error "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
+        Write-Error -Message "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
     }
 }
@@ -365,8 +361,7 @@ if ($TeamsMeetingPolicy -notlike "") {
     }
     catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment of TeamsMeetingPolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
+        Write-Error -Message "Teams - Error: The assignment of TeamsMeetingPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsMeetingPolicy for $UPN could not be completed!"
     }
 }
@@ -383,8 +378,7 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
     }
     catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment of TeamsMeetingBroadcastPolicy for $UPN could not be completed!"
-        Write-Error "Error Message: $message"
+        Write-Error -Message "Teams - Error: The assignment of TeamsMeetingBroadcastPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsMeetingBroadcastPolicy for $UPN could not be completed!"
     }
 }
