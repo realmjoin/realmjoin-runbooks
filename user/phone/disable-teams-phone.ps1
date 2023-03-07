@@ -34,7 +34,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "4.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -152,8 +152,7 @@ try {
 }
 catch {
     $message = $_
-    Write-Error "Teams - Error: Removing the LineUri for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
+    Write-Error -Message "Teams - Error: Removing the LineUri for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
     throw "Teams - Error: Removing the LineUri for $UPN could not be completed!"
 }
 
@@ -163,8 +162,7 @@ try {
 }
 catch {
     $message = $_
-    Write-Error "Teams - Error: Removing the of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
+    Write-Error -Message "Teams - Error: Removing the of OnlineVoiceRoutingPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
     throw "Teams - Error: Removing the OnlineVoiceRoutingPolicy for $UPN could not be completed!"
 }
 
@@ -174,8 +172,7 @@ try {
 }
 catch {
     $message = $_
-    Write-Error "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
+    Write-Error -Message "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
     throw "Teams - Error: Removing the of TenantDialPlan for $UPN could not be completed!"
 }
 
@@ -185,8 +182,7 @@ try {
 }
 catch {
     $message = $_
-    Write-Error "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed!"
-    Write-Error "Error Message: $message"
+    Write-Error -Message "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
     throw "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed!"
 }
 
