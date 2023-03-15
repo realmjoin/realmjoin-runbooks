@@ -107,6 +107,9 @@ catch {
     }
 }
 
+# Add Caller in Verbose output
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 ########################################################
 ##             StatusQuo & Preflight-Check Part
 ##          
@@ -228,7 +231,7 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}") {
 # Check if number is already assigned
 $NumberCheck = "Empty"
 $CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
-$NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber*").UserPrincipalName
+$NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber").UserPrincipalName
 $NumberAlreadyAssigned = 0
 
 if ($NumberCheck -notlike "") {
