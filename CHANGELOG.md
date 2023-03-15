@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-03-15
+* Added audit logging info to phone runbooks
+
 ## 2023-03-07
 * Teams Phone: Update all user/phone runbook. Update to Teams Module v5. Better Errorhandling.
 
