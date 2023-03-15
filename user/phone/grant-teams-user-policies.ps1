@@ -100,6 +100,9 @@ catch {
     }
 }
 
+# Add Caller in Verbose output
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 ########################################################
 ##             StatusQuo & Preflight-Check Part
 ##          
