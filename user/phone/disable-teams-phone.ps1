@@ -76,7 +76,10 @@ catch {
         Exit
     }
 }
- 
+
+# Add Caller in Verbose output
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 ########################################################
 ##             Get StatusQuo
 ##          
