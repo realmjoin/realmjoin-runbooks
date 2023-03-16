@@ -25,8 +25,3 @@ $mgdDevices | ForEach-Object {
     "## Triggering Sync: $($_.deviceName)"
     Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.id)/syncDevice" -Method Post -ErrorAction SilentlyContinue 
 }
-#change
-#more commits bc i thought i knew what i was doing but turns out i didnt
-#yay it worked so why not another one eh?
-#do more things bc this is a second commit but in a dif branch woo!
-#third commit 
