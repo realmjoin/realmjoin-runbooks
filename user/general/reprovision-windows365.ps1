@@ -8,8 +8,9 @@
     .NOTES
     Permissions:
     MS Graph (API):
-    - GroupMember.ReadWrite.All 
-    - Group.ReadWrite.All
+    - GroupMember.Read.All 
+    - Group.Read.All
+    - Directory.Read.All
     - CloudPC.ReadWrite.All (Beta)
     - User.Read.All
     - User.SendMail (later iterations)
@@ -45,8 +46,8 @@
         }
 
 #>
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
-#Requires -Modules "Microsoft.Graph.Users.Actions"
 
 param(
     [Parameter(Mandatory = $true)]
@@ -59,21 +60,24 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
 # Logging Caller
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
-# Find the user object
-$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'"
+# User exists?
+$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
+if (-not $targetUser) {
+    throw ("User $UserName not found.")
+}
 
 # Fetch the user selected license 
 $licWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$licWin365GroupName'"
-#$licWin365GroupObj.id
 
 # Find which of the licenses are in use/assigned to the user
 $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members"
-#$result
+
 if ($result -and ($result.userPrincipalName -contains $UserName)) {
     $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
     # If it's exactly one license, grab the Cloud PC info that is registered under this license and start reprovisioning
@@ -81,14 +85,18 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
         $skuId = $assignedLicenses.skuId 
         $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
         $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
-        $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
+        $cloudPCs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
         $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
+
+        # body of reprovision request
+        $body = @{}
+        
         "## Starting reprovision for: " + $cloudPC.managedDeviceName + " with the service plan: " + $cloudPC.servicePlanName
-        Invoke-RjRbRestMethodGraph -Resource "deviceManagement
+        Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/reprovision" -Beta -Method Post -Body $body
     } 
     # if more than 1 license 
     elseif ($assignedLicenses.count -gt 1) {
-        "## More than one license assigned to '$licWin365GroupName'"
+        "## More than one license assigned to '$licWin365GroupName'. Taking no action."
     }
     # if the selected license is not applicable to the user
 }
@@ -96,8 +104,3 @@ else {
     "## '$UserName' does not have '$licWin365GroupName'." 
     "## Can not reprovision."
 }
-
-#Dayana@c4a8toydaria.onmicrosoft.com
-#lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB
-#lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB
-#adm.dayana.hristova@c4a8toydaria.onmicrosoft.com
