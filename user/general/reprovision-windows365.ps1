@@ -1,49 +1,49 @@
 <#  
-    .SYNOPSIS
-    Reprovision a Windows 365 Cloud PC
+ .SYNOPSIS
+ Reprovision a Windows 365 Cloud PC
 
-    .DESCRIPTION
-    Reprovision an already existing Windows 365 Cloud PC without reassigning a new instance for this user.
+ .DESCRIPTION
+ Reprovision an already existing Windows 365 Cloud PC without reassigning a new instance for this user.
 
-    .NOTES
-    Permissions:
-    MS Graph (API):
-    - GroupMember.Read.All 
-    - Group.Read.All
-    - Directory.Read.All
-    - CloudPC.ReadWrite.All (Beta)
-    - User.Read.All
-    - User.SendMail (later iterations)
+ .NOTES
+ Permissions:
+ MS Graph (API):
+  - GroupMember.Read.All 
+  - Group.Read.All
+  - Directory.Read.All
+  - CloudPC.ReadWrite.All (Beta)
+  - User.Read.All
+  - User.SendMail (later iterations)
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "UserName":{
-                "Hide": false
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "licWin365GroupName": {
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
+ .INPUTS
+ RunbookCustomization: {
+    "Parameters": {
+        "UserName":{
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        },
+        "licWin365GroupName": {
+            "SelectSimple": {
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
             }
         }
     }
+}
 
-    .EXAMPLE
-   "user_general_reprovision-windows365": {
-            "Parameters": {
-                "licWin365GroupName": {
-                    "SelectSimple": {
-                        "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                        "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                    }
-                }
+ .EXAMPLE
+ "user_general_reprovision-windows365": {
+    "Parameters": {
+        "licWin365GroupName": {
+            "SelectSimple": {
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
             }
         }
+    }
+ }
 
 #>
 
