@@ -53,7 +53,7 @@
         },
         "fromMailAddress" : {
             "DisplayName": "(Shared) Mailbox to send mail from: ",
-            "ParameterValue": "hco@c4a8toydaria.onmicrosoft.com"
+            "ParameterValue": "reports@contoso.com"
         }
     }
  }
