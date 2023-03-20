@@ -17,38 +17,63 @@
 
  .INPUTS
  RunbookCustomization: {
-    "ParameterList": [
-        "UserName":{
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
-        },
-        "licWin365GroupName": {
+ "Parameters": {
+    "UserName": {
+        "Hide": true
+    },
+    "CallerName": {
+        "Hide": true
+    },
+    "licWin365GroupName": {
+        "SelectSimple": {
+            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+        }
+    },
+    "sendMailWhenReprovisioning": {
+            "DisplayName": "Notify user when CloudPC reprovisioning has begun?",
             "Select": {
-                "Options": [ 
+                "Options": [
                     {
-                        "Display": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                        "ParameterValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB"
+                        "Display": "Do not send an Email.",
+                        "ParameterValue": false,
+                        "Customization": {
+                            "Hide": [
+                                "fromMailAddress"
+                            ]
+                        }
                     },
                     {
-                        "Display": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
-                        "ParameterValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                        "Display": "Send an Email.",
+                        "ParameterValue": true
                     }
-                ],
-                "ShowValue: false"
-            }
+                ]
+            },
+            "Default": false
         },
-        "Notify user when CloudPC reprovisioning has begun?": {
-            "Display": Notify user when CloudPC reprovisioning has begun?
-            "Hide": false,
-            "ParameterValue": true,
-            "DefaultValue": false
+        "fromMailAddress" : {
+            "DisplayName": "(Shared) Mailbox to send mail from: ",
+            "ParameterValue": "hco@c4a8toydaria.onmicrosoft.com"
         }
-    ]
+    }
  }
+ 
  .EXAMPLE
  "user_general_reprovision-windows365": {
+    "Parameters": {
+        "licWin365GroupName": {
+            "SelectSimple": {
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+            }
+        }
+    }
+ }
+
+
+
+ .EXAMPLE
+ "rjgit-user_general_reprovision-windows365": {
     "Parameters": {
         "licWin365GroupName": {
             "SelectSimple": {
@@ -67,12 +92,12 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJRbInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Cloud PC of which Windows 365 license should be reprovisioned" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "The to-be-reprovisioned Cloud PC uses the following Windows365 license: " } )]
     [Parameter(Mandatory = $true)]
     [string] $licWin365GroupName,
     [bool] $sendMailWhenReprovisioning = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from" } )]
-    [string] $fromMailAddress = "adm.dayana.hristova@c4a8toydaria.onmicrosoft.com",
+    [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
+    [string] $fromMailAddress = "hco@c4a8toydaria.onmicrosoft.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -120,8 +145,8 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
                     contentType = "HTML"
                     content     = @"
                 <p>This is an automated message, no reply is possible.</p>
-                <p>Your Cloud PC is being reprovisioned and will be unavailable for the next ca. hour, please plan accordingly. The Cloud PC will be accessible shortly after the process has finished.</p>
-                <p>You can access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
+                <p>Your Cloud PC is being reprovisioned and will be unavailable for the next ~hour, please plan accordingly. The Cloud PC will be accessible shortly after the process has finished.</p>
+                <p>You can then access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
 "@
                 }
             }
@@ -134,6 +159,9 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
     
             Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
             "## Mail to '$UserName' sent."
+        }
+        else {
+            "## User has chosen not to send Mail to '$UserName'. " 
         }
     } 
     # if more than 1 license 
