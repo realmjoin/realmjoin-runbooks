@@ -1,4 +1,4 @@
-<#  
+<#
  .SYNOPSIS
  Reprovision a Windows 365 Cloud PC
 
@@ -8,31 +8,51 @@
  .NOTES
  Permissions:
  MS Graph (API):
-  - GroupMember.Read.All 
-  - Group.Read.All
-  - Directory.Read.All
-  - CloudPC.ReadWrite.All (Beta)
-  - User.Read.All
-  - User.SendMail (later iterations)
+ - GroupMember.ReadWrite.All 
+ - Group.ReadWrite.All
+ - Directory.Read.All
+ - CloudPC.ReadWrite.All (Beta)
+ - User.Read.All
+ - User.SendMail
 
  .INPUTS
  RunbookCustomization: {
-    "Parameters": {
-        "UserName":{
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
-        },
-        "licWin365GroupName": {
-            "SelectSimple": {
-                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+ "Parameters": {
+    "UserName": {
+        "Hide": true
+    },
+    "CallerName": {
+        "Hide": true
+    },
+    "licWin365GroupName": {
+        "SelectSimple": {
+            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+        }
+    },
+    "sendMailWhenReprovisioning": {
+            "DisplayName": "Notify user when CloudPC reprovisioning has begun?",
+            "Select": {
+                "Options": [
+                    {
+                        "Display": "Do not send an Email.",
+                        "ParameterValue": false,
+                        "Customization": {
+                            "Hide": [
+                                "fromMailAddress"
+                            ]
+                        }
+                    },
+                    {
+                        "Display": "Send an Email.",
+                        "ParameterValue": true
+                    }
+                ]
             }
         }
     }
-}
-
+ }
+ 
  .EXAMPLE
  "user_general_reprovision-windows365": {
     "Parameters": {
@@ -44,7 +64,6 @@
         }
     }
  }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -53,9 +72,12 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJRbInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Cloud PC of which Windows 365 license should be reprovisioned" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "The to-be-reprovisioned Cloud PC uses the following Windows365 license: " } )]
     [Parameter(Mandatory = $true)]
-    [string] $licWin365GroupName,
+    [string] $licWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+    [bool] $sendMailWhenReprovisioning = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
+    [string] $fromMailAddress = "reports@contoso.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -93,6 +115,34 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
         
         "## Starting reprovision for: " + $cloudPC.managedDeviceName + " with the service plan: " + $cloudPC.servicePlanName
         Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/reprovision" -Beta -Method Post -Body $body
+        
+        # check if "Notify user when CloudPC reprovisioning has begun?" switch has been set to true and send email to the User
+        if ($sendMailWhenReprovisioning) {
+            "## Cloud PC Reprovisioning has been triggered. Informing User."
+            $message = @{
+                subject = "[Automated eMail] Cloud PC is being reprovisioned."
+                body    = @{
+                    contentType = "HTML"
+                    content     = @"
+                <p>This is an automated message, no reply is possible.</p>
+                <p>Your Cloud PC is being reprovisioned and will be unavailable for the next ~hour, please plan accordingly. The Cloud PC will be accessible shortly after the process has finished.</p>
+                <p>You can then access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
+"@
+                }
+            }
+    
+            $message.toRecipients = [array]@{
+                emailAddress = @{
+                    address = $UserName
+                }
+            }
+    
+            Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+            "## Mail to '$UserName' sent."
+        }
+        else {
+            "## User has chosen not to send Mail to '$UserName'. " 
+        }
     } 
     # if more than 1 license 
     elseif ($assignedLicenses.count -gt 1) {
