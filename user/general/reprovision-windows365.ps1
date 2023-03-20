@@ -48,12 +48,7 @@
                         "ParameterValue": true
                     }
                 ]
-            },
-            "Default": false
-        },
-        "fromMailAddress" : {
-            "DisplayName": "(Shared) Mailbox to send mail from: ",
-            "ParameterValue": "reports@contoso.com"
+            }
         }
     }
  }
@@ -69,21 +64,6 @@
         }
     }
  }
-
-
-
- .EXAMPLE
- "rjgit-user_general_reprovision-windows365": {
-    "Parameters": {
-        "licWin365GroupName": {
-            "SelectSimple": {
-                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-            }
-        }
-    }
- }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -94,10 +74,10 @@ param(
     [string] $UserName,
     [ValidateScript( { Use-RJInterface -DisplayName "The to-be-reprovisioned Cloud PC uses the following Windows365 license: " } )]
     [Parameter(Mandatory = $true)]
-    [string] $licWin365GroupName,
+    [string] $licWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [bool] $sendMailWhenReprovisioning = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
-    [string] $fromMailAddress = "hco@c4a8toydaria.onmicrosoft.com",
+    [string] $fromMailAddress = "reports@contoso.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
