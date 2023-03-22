@@ -49,7 +49,7 @@
         }
     },
     "sendMailWhenResizing": {
-            "DisplayName": "Notify user when CloudPC resizing has begun?",
+            "DisplayName": "Notify User once the Cloud PC has finished resizing?",
             "Select": {
                 "Options": [
                     {
