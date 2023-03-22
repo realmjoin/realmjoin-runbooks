@@ -48,7 +48,7 @@
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
         }
     },
-    "sendMailWhenResizing": {
+    "sendMailWhenDoneResizing": {
             "DisplayName": "Notify User once the Cloud PC has finished resizing?",
             "Select": {
                 "Options": [
@@ -105,6 +105,7 @@ param(
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [string] $unassignRunbook = "rjgit-user_general_unassign-windows365",
     [string] $assignRunbook = "rjgit-user_general_assign-windows365",
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove the old Cloud PC immediately?" } )]
     [bool] $skipGracePeriod = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
