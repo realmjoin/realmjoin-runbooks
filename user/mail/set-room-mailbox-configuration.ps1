@@ -71,7 +71,9 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.MaximumDurationInMinutes" } )]
     [int] $MaximumDurationInMinutes = 1440,                       
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
-    [bool] $AllowConflicts = $false,                              
+    [bool] $AllowConflicts = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Capacity (will only update on values greater 0)" } )]
+    [int] $Capacity=0,                              
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -103,11 +105,15 @@ try {
         $invokeParams.BookInPolicy = $BookInPolicyGroup
     }
 
-    "## Will update '$UserName' with the following parameters:"
-    [PSCustomObject]$invokeParams | Format-List | Out-String 
-    
-    Set-CalendarProcessing -Identity $UserName @invokeParams
+    if ($Capacity -gt 0) {
+        "## Updating Room Capacity to $Capacity"
+        Set-Place -Identity $UserName -Capacity $Capacity
+    }
 
+    "## Will update '$UserName' with the following parameters:"
+    [PSCustomObject]$invokeParams | Format-List | Out-String
+    Set-CalendarProcessing -Identity $UserName @invokeParams
+    ""
     "## Room Mailbox '$UserName' has been updated."
 }
 finally {
