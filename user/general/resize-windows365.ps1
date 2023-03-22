@@ -24,6 +24,18 @@
     "CallerName": {
         "Hide": true
     },
+    "unassignRunbook": {
+        "Hide": true
+    },
+    "assignRunbook": {
+        "Hide": true
+    },
+    "cfgProvisioningGroupPrefix": {
+        "Hide": true
+    },
+    "cfgUserSettingsGroupPrefix": {
+        "Hide": true
+    },
     "currentLicWin365GroupName": {
         "SelectSimple": {
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
@@ -85,24 +97,24 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "Resizing to following license: " } )]
     [Parameter(Mandatory = $true)]
     [string] $newLicWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
-    [bool] $sendMailWhenResizing = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Notify User once the Cloud PC has finished resizing?" } )]
+    [bool] $sendMailWhenDoneResizing = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
     [string] $fromMailAddress = "reports@contoso.com",
+    [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
+    [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
+    [string] $unassignRunbook = "rjgit-user_general_unassign-windows365",
+    [string] $assignRunbook = "rjgit-user_general_assign-windows365",
+    [bool] $skipGracePeriod = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
-Logging Caller
+# Logging Caller
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
-
-# User wants to resize to the same size? Syke.
-if ($currentLicWin365GroupName -eq $newLicWin365GroupName) {
-    "## Same size as the current one has been selected: '$newLicWin365GroupName'. Will not proceed. Choose a different size."
-    throw "new licWin365 equals current"
-}
 
 # User exists?
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
@@ -110,27 +122,84 @@ if (-not $targetUser) {
     throw ("User $UserName not found.")
 }
 
-# Fetch the currently used license and the new one and save as objects 
-$currentLicWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$currentLicWin365GroupName'"
-$newLicWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$newLicWin365GroupName'"
+# User wants to resize to the same size? Denied.
+if ($currentLicWin365GroupName -eq $newLicWin365GroupName) {
+    "## Same size as the current one has been selected: '$newLicWin365GroupName'. Will not proceed. Choose a different size."
+    throw "new licWin365 equals current one"
+}
 
-# Find which of the Users have the current License assigned to them
+# Verify Windows 365 license group
+$currentLicWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "DisplayName eq '$currentLicWin365GroupName'"
+if (-not $currentLicWin365GroupObj) {
+    "## Could not find Windows 365 license group '$currentLicWin365GroupName'."
+    throw "licWin365 not found"
+}
+
+# Check the to-be-resized CPC exists
 $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($currentLicWin365GroupObj.id)/members"
-
-# Check if the Users in $result are the same as the $targetUser, aka if the User has that License => CPC
 if ($result -and ($result.userPrincipalName -contains $UserName)) {
-    $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($currentlicWin365GroupObj.id)/assignedLicenses"
-    if(([array]$assignedLicenses).count -gt 1) {
-        "## User has suffiecient licenses assigned. "
-        $skuId = $currentLicWin365GroupObj.skuId
-        $SKUs = Invoke-RjRbRestMethodGraph -Resource "subscribedSkus"
+    # Find Cloud PC via SKU
+    $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($currentLicWin365GroupObj.id)/assignedLicenses"
+    if (([array]$assignedLicenses).count -eq 1) {
+        $skuId = $assignedLicenses.skuId 
+        $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
         $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
-        $cloudPCs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq $UserName"
+        $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
         $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
-
-
+    } elseif ($assignedLicenses.count -gt 1) {
+        "## More than one license assigned to '$currentLicWin365GroupName'."
     }
 }
 else {
-    "## User does not have "
+    "## '$UserName' does not have '$currentLicWin365GroupName'." 
+    "## Can not resize."
+    throw "Cloud PC with license '$currentLicWin365GroupName' does not exist."
 }
+
+# Verify new Windows 365 license group has an available/unassigned license for the user
+# Grab the to-be-assigned License group
+$newLicWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "DisplayName eq '$newLicWin365GroupName'"
+
+# Get License / SKU data
+$assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($newLicWin365GroupObj.id)/assignedLicenses"
+$skuId = $assignedLicenses.skuId 
+$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+$skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
+
+# Are licenses available?
+if ($skuObj.prepaidUnits.enabled -le $skuObj.consumedUnits) {
+    "## Not enough licenses avaible to assign '$newLicWin365GroupName'. Consider stocking up on this particular license."
+    throw "No available free licenses in '$newLicWin365GroupName'."
+}
+
+# Fetch the currently used configuration policies
+$allCfgUserSettingsGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgUserSettingsGroupPrefix')"
+foreach ($group in $allCfgUserSettingsGroups) {
+    $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+    if ($result -and ($result.userPrincipalName -contains $UserName)) {
+        $currentUserSettingsPolicy = $group.displayName
+        "## '$UserName' has the following Setting Group: '$currentUserSettingPolicy'."
+    }
+    elseif (-not $result -and ($result.userPrincipalName -contains $UserName)) {
+        "## '$UserName' has no Setting Group assigned to them."
+    }
+}
+
+$allCfgProvisioningGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgProvisioningGroupPrefix')"
+foreach ($group in $allCfgProvisioningGroups) {
+    $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+    if ($result -and ($result.userPrincipalName -contains $UserName)) {
+        $currentProvisioningPolicy = $group.displayName
+        "## '$UserName' has the following Provisioning Group: '$currentProvisioningPolicy'."
+    }
+    else {
+        "## '$UserName' has no Provisioning Group assigned to them."
+    }
+}
+
+# Calling Runbooks 
+Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ;licWin365GroupName = $currentLicWin365GroupName ;skipGracePeriod = $skipGracePeriod ;CallerName = $CallerName ;}
+"
+## License '$currentLicWin365GroupName' has been removed from '$UserName'. Proceeeding with assigning '$newLicWin365GroupName' and provisioning a Cloud PC."
+
+Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ;licWin365GroupName = $newLicWin365GroupName ;cfgProvisioningGroupName = $currentProvisioningPolicy ;cfgUserSettingsGroupName = $currentUserSettingsPolicy ;sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ;}
