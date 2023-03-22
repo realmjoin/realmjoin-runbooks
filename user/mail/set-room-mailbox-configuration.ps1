@@ -71,7 +71,8 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.MaximumDurationInMinutes" } )]
     [int] $MaximumDurationInMinutes = 1440,                       
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
-    [bool] $AllowConflicts = $false,                              
+    [bool] $AllowConflicts = $false,
+    [int] $Capacity=0,                              
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -101,6 +102,10 @@ try {
 
     if ((-not $AllBookInPolicy) -and $BookInPolicyGroup ) {
         $invokeParams.BookInPolicy = $BookInPolicyGroup
+    }
+
+    if ($Capacity -gt 0) {
+        Set-Place -Identity $UserName -Capacity $Capacity
     }
 
     "## Will update '$UserName' with the following parameters:"
