@@ -106,15 +106,14 @@ try {
     }
 
     if ($Capacity -gt 0) {
+        "## Updating Room Capacity to $Capacity"
         Set-Place -Identity $UserName -Capacity $Capacity
     }
 
     "## Will update '$UserName' with the following parameters:"
-    [PSCustomObject]$invokeParams | Format-List | Out-String 
-    
-    "## Updating Room Capacity to $Capacity"
+    [PSCustomObject]$invokeParams | Format-List | Out-String
     Set-CalendarProcessing -Identity $UserName @invokeParams
-
+    ""
     "## Room Mailbox '$UserName' has been updated."
 }
 finally {
