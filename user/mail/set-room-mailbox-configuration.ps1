@@ -72,6 +72,7 @@ param (
     [int] $MaximumDurationInMinutes = 1440,                       
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
     [bool] $AllowConflicts = $false,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Capacity (will only update on values greater 0)" } )]
     [int] $Capacity=0,                              
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
