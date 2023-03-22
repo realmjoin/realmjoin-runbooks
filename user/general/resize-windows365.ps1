@@ -199,7 +199,7 @@ foreach ($group in $allCfgProvisioningGroups) {
 
 # Calling Runbooks 
 Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ;licWin365GroupName = $currentLicWin365GroupName ;skipGracePeriod = $skipGracePeriod ;CallerName = $CallerName ;}
-"
-## License '$currentLicWin365GroupName' has been removed from '$UserName'. Proceeeding with assigning '$newLicWin365GroupName' and provisioning a Cloud PC."
+
+"## License '$currentLicWin365GroupName' has been removed from '$UserName'. Proceeeding with assigning '$newLicWin365GroupName' and provisioning a Cloud PC."
 
 Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ;licWin365GroupName = $newLicWin365GroupName ;cfgProvisioningGroupName = $currentProvisioningPolicy ;cfgUserSettingsGroupName = $currentUserSettingsPolicy ;sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ;}
