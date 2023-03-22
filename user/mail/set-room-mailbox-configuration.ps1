@@ -111,6 +111,7 @@ try {
     "## Will update '$UserName' with the following parameters:"
     [PSCustomObject]$invokeParams | Format-List | Out-String 
     
+    "## Updating Room Capacity to $Capacity"
     Set-CalendarProcessing -Identity $UserName @invokeParams
 
     "## Room Mailbox '$UserName' has been updated."
