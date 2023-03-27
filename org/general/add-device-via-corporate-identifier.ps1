@@ -70,6 +70,7 @@ $body = @{
     importedDeviceIdentities = [array]@{
         importedDeviceIdentifier = $CorpIdentifier
         importedDeviceIdentityType = $CorpIdentifierType
+        description = $DeviceDescripton
         enrollmentState = "enrolled"    
     }
     overwriteImportedDeviceIdentities = $OverwriteExistingEntry
