@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-03-28
+* New Runbook: Create a report on a tenant's Intune and Conditional Access Policies
+
 ## 2023-03-23
 * Configure Room Mailboxes: Allows setting Capacity
 * Reprovision and Resize available for Windows 365 management
