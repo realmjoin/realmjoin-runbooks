@@ -2,6 +2,13 @@
 .SYNOPSIS 
     Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
 
+.NOTES
+ Permissions (Graph):
+    - DeviceManagementConfiguration.Read.All
+    - Policy.Read.All
+ Permissions AzureRM:
+    - Storage Account Contributor
+
 .INPUTS
   RunbookCustomization: {
         "Parameters": {
