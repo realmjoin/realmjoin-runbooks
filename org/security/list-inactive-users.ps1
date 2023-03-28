@@ -42,7 +42,7 @@ Connect-RjRbGraph
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 $filter = 'signInActivity/lastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 try {
-  $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta
+  $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta -FollowPaging
 }
 catch {
   "## Getting list of users and guests failed. Maybe missing permissions?"
