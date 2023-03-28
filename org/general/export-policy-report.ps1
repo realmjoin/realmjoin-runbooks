@@ -1,6 +1,15 @@
 <#
 .SYNOPSIS 
     Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
+
+.INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules Microsoft.Graph.Authentication
@@ -329,7 +338,7 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
 "## Authenticating to Microsoft Graph..."
 
 # Temporary file for markdown output
-$outputFileMarkdown = "$env:TEMP\policy-report.md"
+$outputFileMarkdown = "$env:TEMP\$(get-date -Format "yyyy-MM-dd")-policy-report.md"
 
 ## Auth (directly calling auth endpoint)
 $resourceURL = "https://graph.microsoft.com/" 
@@ -435,7 +444,7 @@ if (-not $container) {
 $EndTime = (Get-Date).AddDays(6)
 
 # Upload markdown file
-$blobname = "policy-report.md"
+$blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
 $blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force
 if ($produceLinks) {
     #Create signed (SAS) link
