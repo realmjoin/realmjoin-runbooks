@@ -42,7 +42,7 @@ Connect-RjRbGraph
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 $filter = 'signInActivity/lastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
 try {
-  $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -FollowPaging -UriQueryRaw "`$select=userPrincipalName,accountEnabled,mail,signinactivity,userType&`$filter=$filter"
+  $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -OdFilter $filter -Beta -FollowPaging
 }
 catch {
   "## Getting list of users and guests failed. Maybe missing permissions?"
@@ -61,9 +61,9 @@ if (-not $showBlockedUsers) {
 
 "## Inactive Users (No SignIn since at least $Days days.)"
 ""
-$userObjects | Where-Object { $_.userType -eq "Member" } | Sort-Object -Property @{E={$_.signInActivity.lastSignInDateTime}} | Format-Table UserPrincipalName,@{L=’Last Signin’;E={$_.signInActivity.lastSignInDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
+$userObjects | Where-Object { $_.userType -eq "Member" } | Select-Object -Property UserPrincipalName, signInSessionsValidFromDateTime, accountEnabled | Sort-Object -Property signInSessionsValidFromDateTime | Format-Table UserPrincipalName,@{L=’Last Signin’;E={$_.signInSessionsValidFromDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
 ""
 
 "## Inactive Guests (No SignIn since at least $Days days.)"
 ""
-$userObjects | Where-Object { $_.userType -eq "Guest" } | Sort-Object -Property @{E={$_.signInActivity.lastSignInDateTime}} | Format-Table Mail,@{L=’Last Signin’;E={$_.signInActivity.lastSignInDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
+$userObjects | Where-Object { $_.userType -eq "Guest" } | Select-Object -Property Mail, signInSessionsValidFromDateTime, accountEnabled | Sort-Object -Property signInSessionsValidFromDateTime | Format-Table Mail,@{L=’Last Signin’;E={$_.signInSessionsValidFromDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
