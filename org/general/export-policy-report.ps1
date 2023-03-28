@@ -348,7 +348,8 @@ $headers = @{'X-IDENTITY-HEADER' = "$env:IDENTITY_HEADER"}
 $AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$($resourceURL)" -Method 'GET' -Headers $headers
 $accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
 
-Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All" -AccessToken $accessToken
+#Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All"
+Connect-MgGraph -AccessToken $accessToken
 
 "## Creating Report..."
 
@@ -427,7 +428,7 @@ if (-not $ContainerName) {
 $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
 if (-not $storAccount) {
     "## Creating Azure Storage Account $($StorageAccountName)"
-    $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+    $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
 }
 
 # Get access to the Storage Account
