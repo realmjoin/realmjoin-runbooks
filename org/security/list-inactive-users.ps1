@@ -20,6 +20,8 @@
         }
     }
 
+  .PARAMETER showUsersThatNeverLoggedIn
+  Beware: This has to enumerate all users / Can take a long time.
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
@@ -29,6 +31,8 @@ param(
   [int] $Days = 30,
   [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in" } )]
   [bool] $showBlockedUsers = $true,
+  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that never logged in" } )]
+  [bool] $showUsersThatNeverLoggedIn = $false,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
   [string] $CallerName
@@ -40,9 +44,19 @@ Connect-RjRbGraph
 
 # Calculate "last sign in date"
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
-$filter = 'signInActivity/lastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
+$userObjects = $null
+$usersThatNeverLoggedIn = $null
 try {
-  $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -FollowPaging -UriQueryRaw "`$select=userPrincipalName,accountEnabled,mail,signinactivity,userType&`$filter=$filter"
+  if (-not $showUsersThatNeverLoggedIn) {
+    $filter = 'signInActivity/lastSignInDateTime le ' + $lastSignInDate + 'T00:00:00Z'
+    $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -FollowPaging -UriQueryRaw "`$select=userPrincipalName,accountEnabled,mail,signinactivity,userType&`$filter=$filter"
+  }
+  else {
+    $userObjects = Invoke-RjRbRestMethodGraph -Resource '/users' -FollowPaging -UriQueryRaw "`$select=userPrincipalName,accountEnabled,mail,signinactivity,userType"
+    $usersThatNeverLoggedIn = $userObjects | Where-Object { $_.signInActivity -eq $null }
+    $userObjects = $userObjects | Where-Object { ($_.signInActivity -ne $null) -and ($_.signInActivity.lastSignInDateTime -lt $lastSignInDate) }
+    # $userObjects += $usersThatNeverLoggedIn
+  }
 }
 catch {
   "## Getting list of users and guests failed. Maybe missing permissions?"
@@ -61,9 +75,24 @@ if (-not $showBlockedUsers) {
 
 "## Inactive Users (No SignIn since at least $Days days.)"
 ""
-$userObjects | Where-Object { $_.userType -eq "Member" } | Sort-Object -Property @{E={$_.signInActivity.lastSignInDateTime}} | Format-Table UserPrincipalName,@{L=’Last Signin’;E={$_.signInActivity.lastSignInDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
+$userObjects | Where-Object { $_.userType -eq "Member" } | Sort-Object -Property @{E = { $_.signInActivity.lastSignInDateTime } } | Format-Table UserPrincipalName, @{L = ’Last Signin’; E = { $_.signInActivity.lastSignInDateTime } }, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
 ""
+
+if ($showUsersThatNeverLoggedIn) {
+  "## Users that never logged in"
+  ""
+  $usersThatNeverLoggedIn | Where-Object { $_.userType -eq "Member" } | Format-Table UserPrincipalName, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
+  ""
+}
 
 "## Inactive Guests (No SignIn since at least $Days days.)"
 ""
-$userObjects | Where-Object { $_.userType -eq "Guest" } | Sort-Object -Property @{E={$_.signInActivity.lastSignInDateTime}} | Format-Table Mail,@{L=’Last Signin’;E={$_.signInActivity.lastSignInDateTime}},@{L=’Account Enabled’;E={$_.accountEnabled}} | Out-String
+$userObjects | Where-Object { $_.userType -eq "Guest" } | Sort-Object -Property @{E = { $_.signInActivity.lastSignInDateTime } } | Format-Table Mail, @{L = ’Last Signin’; E = { $_.signInActivity.lastSignInDateTime } }, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
+""
+
+if ($showUsersThatNeverLoggedIn) {
+  "## Guests that never logged in"
+  ""
+  $usersThatNeverLoggedIn | Where-Object { $_.userType -eq "Guest" } | Format-Table Mail, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
+  ""
+}
