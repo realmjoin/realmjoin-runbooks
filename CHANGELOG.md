@@ -2,6 +2,7 @@
 
 ## 2023-03-29
 * List inactive users: Supports listing users that have never logged on.
+* New runbook: List PIM groups wiothout owners
 
 ## 2023-03-28
 * New Runbook: Create a report on a tenant's Intune and Conditional Access Policies
