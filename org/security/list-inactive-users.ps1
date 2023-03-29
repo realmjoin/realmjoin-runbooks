@@ -32,7 +32,6 @@ param(
   [int] $Days = 30,
   [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in" } )]
   [bool] $showBlockedUsers = $true,
-  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that never signed in." } )]
   [bool] $showUsersThatNeverLoggedIn = $false,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
@@ -83,14 +82,17 @@ if ($showUsersThatNeverLoggedIn) {
   "## Users that never logged in"
   ""
   $usersThatNeverLoggedIn | Where-Object { $_.userType -eq "Member" } | Format-Table UserPrincipalName, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
+  ""
 }
 
 "## Inactive Guests (No SignIn since at least $Days days.)"
 ""
 $userObjects | Where-Object { $_.userType -eq "Guest" } | Sort-Object -Property @{E = { $_.signInActivity.lastSignInDateTime } } | Format-Table Mail, @{L = ’Last Signin’; E = { $_.signInActivity.lastSignInDateTime } }, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
+""
 
 if ($showUsersThatNeverLoggedIn) {
   "## Guests that never logged in"
   ""
   $usersThatNeverLoggedIn | Where-Object { $_.userType -eq "Guest" } | Format-Table Mail, @{L = ’Account Enabled’; E = { $_.accountEnabled } } | Out-String
+  ""
 }
