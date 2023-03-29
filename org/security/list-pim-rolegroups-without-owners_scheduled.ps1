@@ -13,7 +13,7 @@
 #>
 
 param(
-    [bool] $sendeMailIfFound = $true,
+    [bool] $sendEmailIfFound = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Sender mail address" } )]
     [string] $From = "reports@contoso.com",
     [ValidateScript( { Use-RJInterface -DisplayName "Send mail to" } )]
@@ -41,7 +41,7 @@ $groups | ForEach-Object {
 }
 ""
 
-if ($sendeMailIfFound -and ($result.Count -gt 0)) {
+if ($sendEmailIfFound -and ($result.Count -gt 0)) {
     $tenant = Invoke-RjRbRestMethodGraph -Resource "/organization"
     $tenantName = ($tenant.verifiedDomains | Where-Object { $_.isInitial }).name
 
