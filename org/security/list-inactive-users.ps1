@@ -21,7 +21,6 @@
     }
 
   .PARAMETER showUsersThatNeverLoggedIn
-  Include users/guests that never signed in.
   Beware: This has to enumerate all users / Can take a long time.
 #>
 
@@ -32,6 +31,7 @@ param(
   [int] $Days = 30,
   [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in" } )]
   [bool] $showBlockedUsers = $true,
+  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that never logged in" } )]
   [bool] $showUsersThatNeverLoggedIn = $false,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
