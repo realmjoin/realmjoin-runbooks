@@ -71,6 +71,7 @@ catch {
 
 if (-not $showBlockedUsers) {
   $userObjects = $userObjects | Where-Object { $_.accountEnabled }
+  $usersThatNeverLoggedIn = $usersThatNeverLoggedIn | Where-Object { $_.accountEnabled }
 }
 
 "## Inactive Users (No SignIn since at least $Days days.)"
