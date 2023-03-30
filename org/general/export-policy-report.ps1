@@ -58,7 +58,7 @@ function ConvertToMarkdown-CompliancePolicy {
     ""
 
     #$propHash = Get-Content -Path ".\compliancePolicyPropertiesHashtable.json" | ConvertFrom-Json -Depth 100
-    $propHash = @'
+    $propHashJSON = @'
     {
         "#microsoft.graph.aospDeviceOwnerCompliancePolicy": {
           "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \required, \numeric, \numericComplex, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, customPassword.",
@@ -314,6 +314,8 @@ function ConvertToMarkdown-CompliancePolicy {
         }
       }      
 '@
+    # convert the JSON to a Hash
+    $propHash = ConvertFrom-Json -InputObject $propHashJSON
 
     # This can be MASSIVELY improved :)
     "|Setting|Value|Description|"
