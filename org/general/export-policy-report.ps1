@@ -57,18 +57,286 @@ function ConvertToMarkdown-CompliancePolicy {
     "### $($policy.displayName)"
     ""
 
+    #$propHash = Get-Content -Path ".\compliancePolicyPropertiesHashtable.json" | ConvertFrom-Json -Depth 100
+    $propHash = @'
+    {
+        "#microsoft.graph.aospDeviceOwnerCompliancePolicy": {
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \required, \numeric, \numericComplex, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, customPassword.",
+          "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "osMinimumVersion": "Minimum Android version.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
+          "passwordRequired": "Require a password to unlock device.",
+          "osMaximumVersion": "Maximum Android version.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required. Valid values 1 to 8640.",
+          "storageRequireEncryption": "Require encryption on Android devices.",
+          "passwordMinimumLength": "Minimum password length. Valid values 4 to 16."
+        },
+        "#microsoft.graph.macOSCompliancePolicy": {
+          "passwordRequired": "Whether or not to require a password.",
+          "osMinimumVersion": "Minimum MacOS version.",
+          "passwordBlockSimple": "Indicates whether or not to block simple passwords.",
+          "osMaximumVersion": "Maximum MacOS version.",
+          "systemIntegrityProtectionEnabled": "Require that devices have enabled system integrity protection.",
+          "gatekeeperAllowedAppSource": "System and Privacy setting that determines which download locations apps can be run from on a macOS device. Possible values are: \notConfigured, macAppStore, macAppStoreAndIdentifiedDevelopers, \u0007nywhere.",
+          "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "osMinimumBuildVersion": "Minimum MacOS build version.",
+          "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 65535.",
+          "firewallEnabled": "Whether the firewall should be enabled or not.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "passwordMinimumCharacterSetCount": "The number of character sets required in the password.",
+          "storageRequireEncryption": "Require encryption on Mac OS devices.",
+          "osMaximumBuildVersion": "Maximum MacOS build version.",
+          "firewallBlockAllIncoming": "Corresponds to the Block all incoming connections option.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "firewallEnableStealthMode": "Corresponds to Enable stealth mode.",
+          "passwordMinimumLength": "Minimum length of password. Valid values 4 to 14.",
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric."
+        },
+        "#microsoft.graph.windows10MobileCompliancePolicy": {
+          "passwordRequireToUnlockFromIdle": "Require a password to unlock an idle device.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "passwordRequired": "Require a password to unlock Windows Phone device.",
+          "activeFirewallRequired": "Require active firewall on Windows devices.",
+          "validOperatingSystemBuildRanges": " The valid operating system build ranges on Windows devices. This collection can contain a maximum of 10000 elements.",
+          "osMinimumVersion": "Minimum Windows Phone version.",
+          "passwordMinimumCharacterSetCount": "The number of character sets required in the password.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "earlyLaunchAntiMalwareDriverEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation - early launch antimalware driver is enabled.",
+          "passwordPreviousPasswordBlockCount": "The number of previous passwords to prevent re-use of.",
+          "bitLockerEnabled": "Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled",
+          "passwordMinimumLength": "Minimum password length. Valid values 4 to 16",
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric.",
+          "secureBootEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation - secure boot is enabled.",
+          "osMaximumVersion": "Maximum Windows Phone version.",
+          "codeIntegrityEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation.",
+          "storageRequireEncryption": "Require encryption on windows devices.",
+          "passwordExpirationDays": "Number of days before password expiration. Valid values 1 to 255",
+          "passwordBlockSimple": " Whether or not to block syncing the calendar.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required."
+        },
+        "#microsoft.graph.androidDeviceOwnerCompliancePolicy": {
+          "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
+          "osMinimumVersion": "Minimum Android version.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "osMaximumVersion": "Maximum Android version.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \required, \numeric, \numericComplex, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, customPassword.",
+          "passwordMinimumSymbolCharacters": "Indicates the minimum number of symbol characters required for device password. Valid values 1 to 16.",
+          "passwordMinimumNumericCharacters": "Indicates the minimum number of numeric characters required for device password. Valid values 1 to 16.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
+          "storageRequireEncryption": "Require encryption on Android devices.",
+          "passwordMinimumLetterCharacters": "Indicates the minimum number of letter characters required for device password. Valid values 1 to 16.",
+          "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 365.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "passwordMinimumNonLetterCharacters": "Indicates the minimum number of non-letter characters required for device password. Valid values 1 to 16.",
+          "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
+          "passwordMinimumLowerCaseCharacters": "Indicates the minimum number of lower case characters required for device password. Valid values 1 to 16.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "securityRequireIntuneAppIntegrity": "If setting is set to true, checks that the Intune app installed on fully managed, dedicated, or corporate-owned work profile Android Enterprise enrolled devices, is the one provided by Microsoft from the Managed Google Playstore. If the check fails, the device will be reported as non-compliant.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "passwordMinimumUpperCaseCharacters": "Indicates the minimum number of upper case letter characters required for device password. Valid values 1 to 16.",
+          "passwordPreviousPasswordCountToBlock": "Number of previous passwords to block. Valid values 1 to 24.",
+          "passwordMinimumLength": "Minimum password length. Valid values 4 to 16.",
+          "passwordRequired": "Require a password to unlock device."
+        },
+        "#microsoft.graph.defaultDeviceCompliancePolicy": {
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)"
+        },
+        "#microsoft.graph.windows10CompliancePolicy": {
+          "passwordExpirationDays": "The password expiration in days.",
+          "validOperatingSystemBuildRanges": "The valid operating system build ranges on Windows devices. This collection can contain a maximum of 10000 elements.",
+          "bitLockerEnabled": "Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled.",
+          "rtpEnabled": "Require Windows Defender Antimalware Real-Time Protection on Windows devices.",
+          "requireHealthyDeviceReport": "Require devices to be reported as healthy by Windows Device Health Attestation.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "passwordBlockSimple": "Indicates whether or not to block simple password.",
+          "defenderEnabled": "Require Windows Defender Antimalware on Windows devices.",
+          "mobileOsMinimumVersion": "Minimum Windows Phone version.",
+          "passwordMinimumCharacterSetCount": "The number of character sets required in the password.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "defenderVersion": "Require Windows Defender Antimalware minimum version on Windows devices.",
+          "tpmRequired": "Require Trusted Platform Module(TPM) to be present.",
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, alphanumeric', numeric.",
+          "mobileOsMaximumVersion": "Maximum Windows Phone version.",
+          "antiSpywareRequired": "Require any AntiSpyware solution registered with Windows Decurity Center to be on and monitoring (e.g. Symantec, Windows Defender).",
+          "osMinimumVersion": "Minimum Windows 10 version.",
+          "passwordRequiredToUnlockFromIdle": "Require a password to unlock an idle device.",
+          "storageRequireEncryption": "Require encryption on windows devices.",
+          "passwordPreviousPasswordBlockCount": "The number of previous passwords to prevent re-use of.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from deviceCompliancePolicy",
+          "passwordMinimumLength": "The minimum password length.",
+          "antivirusRequired": "Require any Antivirus solution registered with Windows Decurity Center to be on and monitoring (e.g. Symantec, Windows Defender).",
+          "secureBootEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation - secure boot is enabled.",
+          "description": "Admin provided description of the Device Configuration. Inherited from deviceCompliancePolicy",
+          "signatureOutOfDate": "Require Windows Defender Antimalware Signature to be up to date on Windows devices.",
+          "activeFirewallRequired": "Require active firewall on Windows devices.",
+          "codeIntegrityEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation.",
+          "configurationManagerComplianceRequired": "Require to consider SCCM Compliance state into consideration for Intune Compliance State.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "earlyLaunchAntiMalwareDriverEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation - early launch antimalware driver is enabled.",
+          "deviceCompliancePolicyScript": "Not yet documented.",
+          "osMaximumVersion": "Maximum Windows 10 version.",
+          "passwordRequired": "Require a password to unlock Windows device."
+        },
+        "#microsoft.graph.androidWorkProfileCompliancePolicy": {
+          "passwordRequired": "Require a password to unlock device.",
+          "osMinimumVersion": "Minimum Android version.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "osMaximumVersion": "Maximum Android version.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "securityRequiredAndroidSafetyNetEvaluationType": "Require a specific SafetyNet evaluation type for compliance. Possible values are: \basic, hardwareBacked.",
+          "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24",
+          "requiredPasswordComplexity": "Indicates the required device password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android API 12+. Possible values are: \none, low, medium, high.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
+          "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
+          "passwordSignInFailureCountBeforeFactoryReset": "Number of sign-in failures allowed before factory reset. Valid values 1 to 16",
+          "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 365",
+          "securityRequireVerifyApps": "Require the Android Verify apps feature is turned on.",
+          "securityPreventInstallAppsFromUnknownSources": "Require that devices disallow installation of apps from unknown sources.",
+          "securityRequireUpToDateSecurityProviders": "Require the device to have up to date security providers. The device will require Google Play Services to be enabled and up to date.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
+          "securityRequireCompanyPortalAppIntegrity": "Require the device to pass the Company Portal client app runtime integrity check.",
+          "storageRequireEncryption": "Require encryption on Android devices.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
+          "securityDisableUsbDebugging": "Disable USB debugging on Android devices.",
+          "securityRequireGooglePlayServices": "Require Google Play Services to be installed and enabled on the device.",
+          "passwordMinimumLength": "Minimum password length. Valid values 4 to 16",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, \numeric, \numericComplex, \u0007ny."
+        },
+        "#microsoft.graph.iosCompliancePolicy": {
+          "osMinimumVersion": "Minimum IOS version.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "osMaximumVersion": "Maximum IOS version.",
+          "passcodeRequiredType": "The required passcode type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "passcodeBlockSimple": "Indicates whether or not to block simple passcodes.",
+          "passcodeMinutesOfInactivityBeforeLock": "Minutes of inactivity before a passcode is required.",
+          "passcodeMinutesOfInactivityBeforeScreenTimeout": "Minutes of inactivity before the screen times out.",
+          "managedEmailProfileRequired": "Indicates whether or not to require a managed email profile.",
+          "passcodePreviousPasscodeBlockCount": "Number of previous passcodes to block. Valid values 1 to 24.",
+          "osMaximumBuildVersion": "Maximum IOS build version.",
+          "passcodeExpirationDays": "Number of days before the passcode expires. Valid values 1 to 65535.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "passcodeMinimumLength": "Minimum length of passcode. Valid values 4 to 14.",
+          "passcodeRequired": "Indicates whether or not to require a passcode.",
+          "osMinimumBuildVersion": "Minimum IOS build version.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "passcodeMinimumCharacterSetCount": "The number of character sets required in the password.",
+          "restrictedApps": "Require the device to not have the specified apps installed. This collection can contain a maximum of 100 elements."
+        },
+        "#microsoft.graph.androidCompliancePolicy": {
+          "conditionStatementId": "Condition statement id.",
+          "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, \numeric, \numericComplex, \u0007ny.",
+          "securityPreventInstallAppsFromUnknownSources": "Require that devices disallow installation of apps from unknown sources.",
+          "storageRequireEncryption": "Require encryption on Android devices.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "osMaximumVersion": "Maximum Android version.",
+          "osMinimumVersion": "Minimum Android version.",
+          "securityRequireGooglePlayServices": "Require Google Play Services to be installed and enabled on the device.",
+          "securityRequireVerifyApps": "Require the Android Verify apps feature is turned on.",
+          "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "securityRequireCompanyPortalAppIntegrity": "Require the device to pass the Company Portal client app runtime integrity check.",
+          "passwordRequired": "Require a password to unlock device.",
+          "passwordMinimumLength": "Minimum password length. Valid values 4 to 16",
+          "passwordSignInFailureCountBeforeFactoryReset": "Number of sign-in failures allowed before factory reset. Valid values 1 to 16.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "securityRequireUpToDateSecurityProviders": "Require the device to have up to date security providers. The device will require Google Play Services to be enabled and up to date.",
+          "requiredPasswordComplexity": "Indicates the required password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android 11+. Possible values are: \none, low, medium, high.",
+          "securityDisableUsbDebugging": "Disable USB debugging on Android devices.",
+          "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 365.",
+          "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24.",
+          "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
+          "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "securityBlockDeviceAdministratorManagedDevices": "Block device administrator managed devices.",
+          "restrictedApps": "Require the device to not have the specified apps installed. This collection can contain a maximum of 100 elements."
+        },
+        "#microsoft.graph.androidForWorkCompliancePolicy": {
+          "passwordRequired": "Require a password to unlock device.",
+          "osMinimumVersion": "Minimum Android version.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "osMaximumVersion": "Maximum Android version.",
+          "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
+          "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24.",
+          "requiredPasswordComplexity": "Indicates the required device password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android API 12+. Possible values are: \none, low, medium, high.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
+          "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
+          "passwordSignInFailureCountBeforeFactoryReset": "Number of sign-in failures allowed before factory reset. Valid values 1 to 16.",
+          "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 365.",
+          "securityRequireVerifyApps": "Require the Android Verify apps feature is turned on.",
+          "securityPreventInstallAppsFromUnknownSources": "Require that devices disallow installation of apps from unknown sources.",
+          "securityRequireUpToDateSecurityProviders": "Require the device to have up to date security providers. The device will require Google Play Services to be enabled and up to date.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
+          "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
+          "securityRequireCompanyPortalAppIntegrity": "Require the device to pass the Company Portal client app runtime integrity check.",
+          "storageRequireEncryption": "Require encryption on Android devices.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "securityRequiredAndroidSafetyNetEvaluationType": "Require a specific SafetyNet evaluation type for compliance. Possible values are: \basic, hardwareBacked.",
+          "securityDisableUsbDebugging": "Disable USB debugging on Android devices.",
+          "securityRequireGooglePlayServices": "Require Google Play Services to be installed and enabled on the device.",
+          "passwordMinimumLength": "Minimum password length. Valid values 4 to 16.",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, \numeric, \numericComplex, \u0007ny."
+        },
+        "#microsoft.graph.windows81CompliancePolicy": {
+          "passwordExpirationDays": "Password expiration in days.",
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric.",
+          "passwordMinimumLength": "The minimum password length.",
+          "passwordPreviousPasswordBlockCount": "The number of previous passwords to prevent re-use of. Valid values 0 to 24.",
+          "passwordMinimumCharacterSetCount": "The number of character sets required in the password.",
+          "storageRequireEncryption": "Indicates whether or not to require encryption on a windows 8.1 device.",
+          "osMinimumVersion": "Minimum Windows 8.1 version.",
+          "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "passwordRequired": "Require a password to unlock Windows device.",
+          "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
+          "osMaximumVersion": "Maximum Windows 8.1 version.",
+          "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
+          "passwordBlockSimple": "Indicates whether or not to block simple password."
+        }
+      }      
+'@
+
     # This can be MASSIVELY improved :)
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
+    # go thru every property (key) of the policy
     foreach ($key in $policy.keys) { 
-        if ($($null -ne $policy.$key) -and ($key -notin ("@odata.type","id","createdDateTime","lastModifiedDateTime","displayName","version"))) {
-            "|$key|$($policy.$key)||" 
+        # check if the property exists (not null) and is not one of the following types, bc they r selfexplanatory and we dont need the description
+        if (($null -ne $policy.$key) -and ($key -notin ("@odata.type", "id", "createdDateTime", "lastModifiedDateTime", "displayName", "version"))) {
+            # check if the property exists in the nested Hash
+            if ($null -ne $policy.$key) {
+                # save the @odata.type to use as key1 of the Hash
+                $odataType = $policy.'@odata.type'
+                #print the setting(property name) | its' value | Description as stored in key2 of the Hash
+                "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"         #work ffs! Edit: It WORKS!
+            }
+            # check if the property is not in the hash  and print description as "Not documented yet."
+            elseif ($null -eq $propHash.$policy.$key) {
+                "|$key|$($policy.$key)|Not documented yet.|"
+            }
         }
     }
     ""
-
 }
-
 function ConvertToMarkdown-ConditionalAccessPolicy {
     param(
         $policy
@@ -356,7 +624,14 @@ $AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$(
 $accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
 
 #Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All"
+try {
 Connect-MgGraph -AccessToken $accessToken
+} catch {
+    "## Error connecting to Microsoft Graph."
+    ""
+    "## Probably: Managed Identity is not configured."
+    throw("Auth failed")
+}
 
 "## Creating Report..."
 
