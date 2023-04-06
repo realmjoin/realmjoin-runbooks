@@ -39,6 +39,67 @@ param(
     [string] $CallerName
 )
 
+function ConvertToMarkdown-PolicyAssignments {
+    param(
+        $assignments
+    )
+
+    "| Assignment | Target |"
+    "|-|-|"
+    # enumerate the assignments, will not do anything if there are no assignments
+    foreach ($assignment in $assignments.value) {
+        if (($assignment.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeDeviceGroupsAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeUsersAssignmentTarget")) {
+            try {
+                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName" 
+            }
+            catch {}
+            if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
+                $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
+                "| Included Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+            }
+            else {
+                "| Included Groups | $($groupID.displayName) |"
+            }
+        }
+        #Include all users
+        elseif ($assignment.target.'@odata.type' -eq "#microsoft.graph.allLicensedUsersAssignmentTarget") {
+            if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
+                $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
+                "| Included | All Users, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+            }
+            else {
+                "| Included | All Users |"
+            }
+        }
+        # Include all devices
+        elseif ($assignment.target.'@odata.type' -eq "#microsoft.graph.allDevicesAssignmentTarget") {
+            if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
+                $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
+                "| Included | All Devices, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+            }
+            else {
+                "| Included | All Devices |"
+            }
+        }
+        elseif (($assignment.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "microsoft.graph.allDevicesExcludingGroupsAssignmentTarget")) {
+            try {
+                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName" 
+            }
+            catch {}
+            if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
+                $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
+                "| Excluded Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+            }
+            else {
+                "| Excluded Groups | $($groupID.displayName) |"
+            }
+        
+        }
+
+    }
+
+}
+
 function ConvertToMarkdown-CompliancePolicy {
     # https://graph.microsoft.com/v1.0/deviceManagement/deviceCompliancePolicies
 
@@ -61,7 +122,7 @@ function ConvertToMarkdown-CompliancePolicy {
     $propHashJSON = @'
     {
         "#microsoft.graph.aospDeviceOwnerCompliancePolicy": {
-          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \required, \numeric, \numericComplex, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, customPassword.",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, required, numeric, numericComplex, alphabetic, alphanumeric, alphanumericWithSymbols, lowSecurityBiometric, customPassword.",
           "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "osMinimumVersion": "Minimum Android version.",
@@ -79,11 +140,11 @@ function ConvertToMarkdown-CompliancePolicy {
           "passwordBlockSimple": "Indicates whether or not to block simple passwords.",
           "osMaximumVersion": "Maximum MacOS version.",
           "systemIntegrityProtectionEnabled": "Require that devices have enabled system integrity protection.",
-          "gatekeeperAllowedAppSource": "System and Privacy setting that determines which download locations apps can be run from on a macOS device. Possible values are: \notConfigured, macAppStore, macAppStoreAndIdentifiedDevelopers, \u0007nywhere.",
+          "gatekeeperAllowedAppSource": "System and Privacy setting that determines which download locations apps can be run from on a macOS device. Possible values are: notConfigured, macAppStore, macAppStoreAndIdentifiedDevelopers, anywhere.",
           "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24.",
           "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "osMinimumBuildVersion": "Minimum MacOS build version.",
           "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 65535.",
           "firewallEnabled": "Whether the firewall should be enabled or not.",
@@ -92,11 +153,11 @@ function ConvertToMarkdown-CompliancePolicy {
           "storageRequireEncryption": "Require encryption on Mac OS devices.",
           "osMaximumBuildVersion": "Maximum MacOS build version.",
           "firewallBlockAllIncoming": "Corresponds to the Block all incoming connections option.",
-          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
           "firewallEnableStealthMode": "Corresponds to Enable stealth mode.",
           "passwordMinimumLength": "Minimum length of password. Valid values 4 to 14.",
-          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric."
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, alphanumeric, numeric."
         },
         "#microsoft.graph.windows10MobileCompliancePolicy": {
           "passwordRequireToUnlockFromIdle": "Require a password to unlock an idle device.",
@@ -111,7 +172,7 @@ function ConvertToMarkdown-CompliancePolicy {
           "passwordPreviousPasswordBlockCount": "The number of previous passwords to prevent re-use of.",
           "bitLockerEnabled": "Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled",
           "passwordMinimumLength": "Minimum password length. Valid values 4 to 16",
-          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric.",
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, alphanumeric, numeric.",
           "secureBootEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation - secure boot is enabled.",
           "osMaximumVersion": "Maximum Windows Phone version.",
           "codeIntegrityEnabled": "Require devices to be reported as healthy by Windows Device Health Attestation.",
@@ -126,7 +187,7 @@ function ConvertToMarkdown-CompliancePolicy {
           "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
           "osMaximumVersion": "Maximum Android version.",
           "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
-          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \required, \numeric, \numericComplex, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, customPassword.",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, required, numeric, numericComplex, alphabetic, alphanumeric, alphanumericWithSymbols, lowSecurityBiometric, customPassword.",
           "passwordMinimumSymbolCharacters": "Indicates the minimum number of symbol characters required for device password. Valid values 1 to 16.",
           "passwordMinimumNumericCharacters": "Indicates the minimum number of numeric characters required for device password. Valid values 1 to 16.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
@@ -138,9 +199,9 @@ function ConvertToMarkdown-CompliancePolicy {
           "passwordMinimumNonLetterCharacters": "Indicates the minimum number of non-letter characters required for device password. Valid values 1 to 16.",
           "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
           "passwordMinimumLowerCaseCharacters": "Indicates the minimum number of lower case characters required for device password. Valid values 1 to 16.",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "securityRequireIntuneAppIntegrity": "If setting is set to true, checks that the Intune app installed on fully managed, dedicated, or corporate-owned work profile Android Enterprise enrolled devices, is the one provided by Microsoft from the Managed Google Playstore. If the check fails, the device will be reported as non-compliant.",
-          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "passwordMinimumUpperCaseCharacters": "Indicates the minimum number of upper case letter characters required for device password. Valid values 1 to 16.",
           "passwordPreviousPasswordCountToBlock": "Number of previous passwords to block. Valid values 1 to 24.",
           "passwordMinimumLength": "Minimum password length. Valid values 4 to 16.",
@@ -156,7 +217,7 @@ function ConvertToMarkdown-CompliancePolicy {
           "bitLockerEnabled": "Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled.",
           "rtpEnabled": "Require Windows Defender Antimalware Real-Time Protection on Windows devices.",
           "requireHealthyDeviceReport": "Require devices to be reported as healthy by Windows Device Health Attestation.",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "passwordBlockSimple": "Indicates whether or not to block simple password.",
           "defenderEnabled": "Require Windows Defender Antimalware on Windows devices.",
           "mobileOsMinimumVersion": "Minimum Windows Phone version.",
@@ -192,9 +253,9 @@ function ConvertToMarkdown-CompliancePolicy {
           "passwordMinutesOfInactivityBeforeLock": "Minutes of inactivity before a password is required.",
           "osMaximumVersion": "Maximum Android version.",
           "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
-          "securityRequiredAndroidSafetyNetEvaluationType": "Require a specific SafetyNet evaluation type for compliance. Possible values are: \basic, hardwareBacked.",
+          "securityRequiredAndroidSafetyNetEvaluationType": "Require a specific SafetyNet evaluation type for compliance. Possible values are: basic, hardwareBacked.",
           "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24",
-          "requiredPasswordComplexity": "Indicates the required device password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android API 12+. Possible values are: \none, low, medium, high.",
+          "requiredPasswordComplexity": "Indicates the required device password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android API 12+. Possible values are: none, low, medium, high.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
           "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
@@ -204,22 +265,22 @@ function ConvertToMarkdown-CompliancePolicy {
           "securityPreventInstallAppsFromUnknownSources": "Require that devices disallow installation of apps from unknown sources.",
           "securityRequireUpToDateSecurityProviders": "Require the device to have up to date security providers. The device will require Google Play Services to be enabled and up to date.",
           "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
-          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
           "securityRequireCompanyPortalAppIntegrity": "Require the device to pass the Company Portal client app runtime integrity check.",
           "storageRequireEncryption": "Require encryption on Android devices.",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
           "securityDisableUsbDebugging": "Disable USB debugging on Android devices.",
           "securityRequireGooglePlayServices": "Require Google Play Services to be installed and enabled on the device.",
           "passwordMinimumLength": "Minimum password length. Valid values 4 to 16",
-          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, \numeric, \numericComplex, \u0007ny."
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, alphabetic, alphanumeric, alphanumericWithSymbols, lowSecurityBiometric, numeric, numericComplex, any."
         },
         "#microsoft.graph.iosCompliancePolicy": {
           "osMinimumVersion": "Minimum IOS version.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "osMaximumVersion": "Maximum IOS version.",
-          "passcodeRequiredType": "The required passcode type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric.",
+          "passcodeRequiredType": "The required passcode type. Possible values are: deviceDefault, alphanumeric, numeric.",
           "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
           "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
           "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
@@ -230,36 +291,36 @@ function ConvertToMarkdown-CompliancePolicy {
           "passcodePreviousPasscodeBlockCount": "Number of previous passcodes to block. Valid values 1 to 24.",
           "osMaximumBuildVersion": "Maximum IOS build version.",
           "passcodeExpirationDays": "Number of days before the passcode expires. Valid values 1 to 65535.",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "passcodeMinimumLength": "Minimum length of passcode. Valid values 4 to 14.",
           "passcodeRequired": "Indicates whether or not to require a passcode.",
           "osMinimumBuildVersion": "Minimum IOS build version.",
-          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "passcodeMinimumCharacterSetCount": "The number of character sets required in the password.",
           "restrictedApps": "Require the device to not have the specified apps installed. This collection can contain a maximum of 100 elements."
         },
         "#microsoft.graph.androidCompliancePolicy": {
           "conditionStatementId": "Condition statement id.",
           "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
-          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, \numeric, \numericComplex, \u0007ny.",
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, alphabetic, alphanumeric, alphanumericWithSymbols, lowSecurityBiometric, numeric, numericComplex, any.",
           "securityPreventInstallAppsFromUnknownSources": "Require that devices disallow installation of apps from unknown sources.",
           "storageRequireEncryption": "Require encryption on Android devices.",
           "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
           "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "osMaximumVersion": "Maximum Android version.",
           "osMinimumVersion": "Minimum Android version.",
           "securityRequireGooglePlayServices": "Require Google Play Services to be installed and enabled on the device.",
           "securityRequireVerifyApps": "Require the Android Verify apps feature is turned on.",
           "securityBlockJailbrokenDevices": "Devices must not be jailbroken or rooted.",
-          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
+          "advancedThreatProtectionRequiredSecurityLevel": "MDATP Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
           "securityRequireCompanyPortalAppIntegrity": "Require the device to pass the Company Portal client app runtime integrity check.",
           "passwordRequired": "Require a password to unlock device.",
           "passwordMinimumLength": "Minimum password length. Valid values 4 to 16",
           "passwordSignInFailureCountBeforeFactoryReset": "Number of sign-in failures allowed before factory reset. Valid values 1 to 16.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "securityRequireUpToDateSecurityProviders": "Require the device to have up to date security providers. The device will require Google Play Services to be enabled and up to date.",
-          "requiredPasswordComplexity": "Indicates the required password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android 11+. Possible values are: \none, low, medium, high.",
+          "requiredPasswordComplexity": "Indicates the required password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android 11+. Possible values are: none, low, medium, high.",
           "securityDisableUsbDebugging": "Disable USB debugging on Android devices.",
           "passwordExpirationDays": "Number of days before the password expires. Valid values 1 to 365.",
           "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24.",
@@ -276,7 +337,7 @@ function ConvertToMarkdown-CompliancePolicy {
           "osMaximumVersion": "Maximum Android version.",
           "deviceThreatProtectionEnabled": "Require that devices have enabled device threat protection.",
           "passwordPreviousPasswordBlockCount": "Number of previous passwords to block. Valid values 1 to 24.",
-          "requiredPasswordComplexity": "Indicates the required device password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android API 12+. Possible values are: \none, low, medium, high.",
+          "requiredPasswordComplexity": "Indicates the required device password complexity on Android. One of: NONE, LOW, MEDIUM, HIGH. This is a new API targeted to Android API 12+. Possible values are: none, low, medium, high.",
           "description": "Admin provided description of the Device Configuration. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "minAndroidSecurityPatchLevel": "Minimum Android security patch level.",
           "securityRequireSafetyNetAttestationBasicIntegrity": "Require the device to pass the SafetyNet basic integrity check.",
@@ -290,16 +351,16 @@ function ConvertToMarkdown-CompliancePolicy {
           "securityRequireSafetyNetAttestationCertifiedDevice": "Require the device to pass the SafetyNet certified device check.",
           "securityRequireCompanyPortalAppIntegrity": "Require the device to pass the Company Portal client app runtime integrity check.",
           "storageRequireEncryption": "Require encryption on Android devices.",
-          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: `unavailable, secured, low, medium, high, \notSet.",
-          "securityRequiredAndroidSafetyNetEvaluationType": "Require a specific SafetyNet evaluation type for compliance. Possible values are: \basic, hardwareBacked.",
+          "deviceThreatProtectionRequiredSecurityLevel": "Require Mobile Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
+          "securityRequiredAndroidSafetyNetEvaluationType": "Require a specific SafetyNet evaluation type for compliance. Possible values are: basic, hardwareBacked.",
           "securityDisableUsbDebugging": "Disable USB debugging on Android devices.",
           "securityRequireGooglePlayServices": "Require Google Play Services to be installed and enabled on the device.",
           "passwordMinimumLength": "Minimum password length. Valid values 4 to 16.",
-          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, \u0007lphabetic, \u0007lphanumeric, \u0007lphanumericWithSymbols, lowSecurityBiometric, \numeric, \numericComplex, \u0007ny."
+          "passwordRequiredType": "Type of characters in password. Possible values are: deviceDefault, alphabetic, alphanumeric, alphanumericWithSymbols, lowSecurityBiometric, numeric, numericComplex, any."
         },
         "#microsoft.graph.windows81CompliancePolicy": {
           "passwordExpirationDays": "Password expiration in days.",
-          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, \u0007lphanumeric, \numeric.",
+          "passwordRequiredType": "The required password type. Possible values are: deviceDefault, alphanumeric, numeric.",
           "passwordMinimumLength": "The minimum password length.",
           "passwordPreviousPasswordBlockCount": "The number of previous passwords to prevent re-use of. Valid values 0 to 24.",
           "passwordMinimumCharacterSetCount": "The number of character sets required in the password.",
@@ -312,12 +373,11 @@ function ConvertToMarkdown-CompliancePolicy {
           "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "passwordBlockSimple": "Indicates whether or not to block simple password."
         }
-      }      
+      }          
 '@
     # convert the JSON to a Hash
     $propHash = ConvertFrom-Json -InputObject $propHashJSON
 
-    # This can be MASSIVELY improved :)
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
     # go thru every property (key) of the policy
@@ -338,7 +398,14 @@ function ConvertToMarkdown-CompliancePolicy {
         }
     }
     ""
+
+    # "#### Assignments"
+    # get the policy's assignments
+    $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"
+
+    ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
+
 function ConvertToMarkdown-ConditionalAccessPolicy {
     param(
         $policy
@@ -418,8 +485,10 @@ function ConvertToMarkdown-ConfigurationPolicy {
     )
 
     "### $($policy.name)"
-    ""
     "$($policy.description)"
+    ""
+    "|Setting|Value|Description|"
+    "|-------|-----|-----------|"
     $settings = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings`?`$expand=settingDefinitions`&top=1000"
     foreach ($setting in $settings.value) {
 
@@ -429,11 +498,7 @@ function ConvertToMarkdown-ConfigurationPolicy {
             $setting.settingInstance.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
                 $displayValue += "<br/>$_"
             }
-            ""
-            "|Setting|Value|Description|"
-            "|-------|-----|-----------|"
             "|$($definition.displayName)|$displayValue|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
-            ""
         }
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance") {
             foreach ($groupSetting in $setting.settingInstance.groupSettingCollectionValue.children) {
@@ -443,11 +508,7 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     $groupSetting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
                         $displayValue += "<br/>$_"
                     }
-                    ""
-                    "|Setting|Value|Description|"
-                    "|-------|-----|-----------|"
                     "|$($definition.displayName)|$displayValue|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
-                    ""
                 }
 
                 if ($groupSetting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance") {
@@ -458,34 +519,34 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             $group2Setting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
                                 $displayValue += "<br/>$_"
                             }
-                            ""
-                            "|Setting|Value|Description|"
-                            "|-------|-----|-----------|"
                             "|$($definition.displayName)|$displayValue|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
-                            ""
                         }
                         elseif ($group2Setting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance") {
                             #"TYPE: DEBUG: Choice Setting Collection"
-                            "|Setting|Value|Description|"
-                            "|-------|-----|-----------|"
                             "|$($definition.displayName)|$(
                             foreach ($value in $group2Setting.choiceSettingCollectionValue.value) {
                                 ($definition.options | Where-Object { $_.itemId -eq $value }).displayName
                             }
-                            )|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")"
+                            )|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
                         }
                         else {
-                            "TYPE: $($group2Setting."@odata.type") not yet supported"
+                            "| TYPE: $($group2Setting."@odata.type") not yet supported ||"
                         }
                     }
                 }
             }
         }
         else {
-            "TYPE: $($setting.settingInstance."@odata.type") not yet supported"
+            "| TYPE: $($setting.settingInstance."@odata.type") not yet supported ||"
         }
     }
     ""
+
+    # "#### Assignments"
+    # get the policy's assignments
+    $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
+
+    ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
 
 function ConvertToMarkdown-DeviceConfiguration {
@@ -546,6 +607,12 @@ function ConvertToMarkdown-DeviceConfiguration {
         }
     }
     ""
+
+    # "#### Assignments"
+    # get the policy's assignments
+    $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
+
+    ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
 
 function ConvertToMarkdown-GroupPolicyConfiguration {
@@ -593,6 +660,12 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         }
         ""
     }
+
+    # "#### Assignments"
+    # get the policy's assignments
+    $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
+
+    ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
