@@ -592,14 +592,22 @@ function ConvertToMarkdown-DeviceConfiguration {
                             } else { 
                             foreach ($subkey in $value.keys) {
                                 if ($null -ne $value.$subkey) {
-                                    "$subkey : $($value.$subkey)<br/>"
+                                    if ($value.$subkey.length -gt 200) {
+                                        "$subkey : $($value.$subkey.Substring(0,199))...<br/>"
+                                    } else {
+                                        "$subkey : $($value.$subkey)<br/>"
+                                    }
                                 }
                             }  
                         }
                         }
                         else
                         {
-                            "$value<br/>" 
+                            if ($value.length -gt 200) {
+                                "$($value.Substring(0,199))...<br/>"
+                            } else {
+                                "$value<br/>" 
+                            }
                         }
                     }) | |"
             }
