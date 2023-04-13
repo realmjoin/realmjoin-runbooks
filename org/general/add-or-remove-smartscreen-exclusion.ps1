@@ -83,7 +83,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbDefenderATP
 
-$indicators = Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" | Where-Object { $_.indicatorType -eq "DomainName" }
+$indicators = Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" -FollowPaging | Where-Object { $_.indicatorType -eq "DomainName" }
 
 if ($action -eq 0) {
     "## Listing all current URL indicators from Security Center:"

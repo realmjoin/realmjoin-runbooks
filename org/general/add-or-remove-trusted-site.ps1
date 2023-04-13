@@ -89,7 +89,7 @@ Connect-RjRbGraph
 
 # Print all policies and exit
 if ($Action -eq 2) {
-    $AllPol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Beta
+    $AllPol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Beta -FollowPaging
     [array]$pol = $AllPol | Where-Object { $_.omaSettings.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList" }
 
     if ($pol.count -eq 0) {
