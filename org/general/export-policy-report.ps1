@@ -24,6 +24,8 @@
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
+    [ValidateScript( { Use-RJInterface -DisplayName "Also export raw JSON policies?" } )]
+    [bool] $exportJson = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
@@ -707,8 +709,11 @@ $AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$(
 $accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
 
 #Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All"
+
+"## Connecting to Microsoft Graph..."
+
 try {
-Connect-MgGraph -AccessToken $accessToken
+Connect-MgGraph -AccessToken $accessToken | Out-Null
 } catch {
     "## Error connecting to Microsoft Graph."
     ""
@@ -716,70 +721,108 @@ Connect-MgGraph -AccessToken $accessToken
     throw("Auth failed")
 }
 
+""
 "## Creating Report..."
+
+if ($exportJson) {
+    mkdir "$($env:TEMP)\json-export" | Out-Null
+}
 
 # Header
 "# Report" > $outputFileMarkdown
 "" >> $outputFileMarkdown
 
 #region Configuration Policy (Settings Catalog, Endpoint Sec.)
+"## - Configuration Policies (Settings Catalog)"
 "## Configuration Policies (Settings Catalog)" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$policies = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies" 
+$policies = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies`?`$top=1000" 
 
 foreach ($policy in $policies.value) {
+    if ($exportJson) {
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8 
+        $settings = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings`?`$expand=settingDefinitions`&top=1000"
+        $settings | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-settings.json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"	
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
+    }
     (ConvertToMarkdown-ConfigurationPolicy -policy $policy).replace('\','\\') >> $outputFileMarkdown    
     # TODO: Assignments
 }
 #endregion
 
 #region Device Configurations
+"## - Device Configurations"
 "## Device Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$deviceConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations"
+$deviceConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations`?`$top=1000"
 
 foreach ($policy in $deviceConfigurations.value) {
+    if ($exportJson) {
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id).json" -Encoding UTF8 
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"	
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
+    }
     ConvertToMarkdown-DeviceConfiguration -policy $policy >> $outputFileMarkdown
 }
 #endregion
 
 #region Group Policy Configurations
+"## - Group Policy Configurations"
 "## Group Policy Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$groupPolicyConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations"
+$groupPolicyConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations`?`$top=1000"
 
 foreach ($policy in $groupPolicyConfigurations.value) {
+    if ($exportJson) {
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id).json" -Encoding UTF8 
+        $definitionValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues?`$expand=definition,presentationValues"
+        $definitionValues | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-definitionValues.json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"	
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
+    }
     ConvertToMarkdown-GroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
 }
 #endregion
 
 #region Compliance Policies
+"## - Compliance Policies"
 "## Compliance Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$compliancePolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies"
+$compliancePolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies`?`$top=1000"
 
 foreach ($policy in $compliancePolicies.value) {
+    if ($exportJson) {
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id).json" -Encoding UTF8 
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"	
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
+    }
     ConvertToMarkdown-CompliancePolicy -policy $policy >> $outputFileMarkdown
 }
 #endregion
 
 #region Conditional Access Policies
+"## - Conditional Access Policies"
 "## Conditional Access Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$conditionalAccessPolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
+$conditionalAccessPolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies`?`$top=1000"
 
 foreach ($policy in $conditionalAccessPolicies.value) {
+    if ($exportJson) {
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8 
+    }	
     ConvertToMarkdown-ConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
 }
 #endregion
 
 # Footer
 "" >> $outputFileMarkdown
+""
 
 "## Uploading to Azure Storage Account..."
 
@@ -809,16 +852,36 @@ if (-not $container) {
 
 $EndTime = (Get-Date).AddDays(6)
 
+# Create a ZIP file of the JSON export
+if ($exportJson) {
+    "## Creating ZIP file of JSON export"
+    $zipFile = "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-policy-report.zip"
+    Compress-Archive -Path "$($env:TEMP)\json-export\*.json" -DestinationPath $zipFile
+}
+
+# Upload JSON archive
+if ($exportJson) {
+    $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.zip"
+    $blob = Set-AzStorageBlobContent -File "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-policy-report.zip" -Container $ContainerName -Blob $blobname -Context $context -Force
+    if ($produceLinks) {
+        #Create signed (SAS) link
+        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
+        "## Raw JSON export"
+        " $SASLink"
+        ""
+    }
+}
+
 # Upload markdown file
 $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
 $blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force
 if ($produceLinks) {
     #Create signed (SAS) link
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
-    "## $($_.Name)"
+    "## Markdown report"
     " $SASLink"
     ""
 }
 
-Disconnect-AzAccount
-Disconnect-MgGraph
+Disconnect-AzAccount | Out-Null
+Disconnect-MgGraph | Out-Null
