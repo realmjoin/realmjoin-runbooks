@@ -524,11 +524,14 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     ""
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
-    if ($policy.sessionControls.applicationEnforcedRestrictions) {
-        "|Application enforced restrictions|$(foreach ($restriction in $policy.sessionControls.applicationEnforcedRestrictions) { $restriction + "<br/>"})||"
+    if ($policy.sessionControls.applicationEnforcedRestrictions.isEnabled) {
+        "|Session control enabled|$True||"
     }	
     if ($policy.sessionControls.cloudAppSecurity) {
-        "|Cloud app security|$(foreach ($app in $policy.sessionControls.cloudAppSecurity) { $app + "<br/>"})||"
+        foreach ($app in $policy.sessionControls.cloudAppSecurity) {
+            "|Cloud app securit is enabled|$($app.isEnabled)||"
+            "|Cloud app security type|$($app.cloudAppSecurityType)||"
+        }
     }	
     if ($policy.sessionControls.signinFrequency.isEnabled) {
         "|Sign-in frequency enabled|$($policy.sessionControls.signinFrequency.isEnabled)||"	
@@ -556,6 +559,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }
 
 }
+
 function ConvertToMarkdown-ConfigurationPolicy {
     # Still missing
     # - assignments
