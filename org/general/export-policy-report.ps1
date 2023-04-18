@@ -491,7 +491,9 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
         "|Exclude devices|$(foreach ($device in $policy.conditions.devices.excludeDevices) { $device + "<br/>"})||"
     }
     if ($policy.conditions.devices.deviceFilter) {
-        "|Device filter|$(foreach ($filter in $policy.conditions.devices.deviceFilter) { $filter + "<br/>"})||"
+        foreach ($filter in $policy.conditions.devices.deviceFilter) {
+            "|Device filter|Mode: $($filter.mode)<br/>Rule: $($filter.rule)||"
+        }
     }
     ""
 
@@ -554,7 +556,6 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }
 
 }
-
 function ConvertToMarkdown-ConfigurationPolicy {
     # Still missing
     # - assignments
