@@ -748,7 +748,7 @@ foreach ($policy in $policies.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     (ConvertToMarkdown-ConfigurationPolicy -policy $policy).replace('\','\\') >> $outputFileMarkdown    
-    # TODO: Assignments
+    "" >> $outputFileMarkdown
 }
 #endregion
 
@@ -766,6 +766,7 @@ foreach ($policy in $deviceConfigurations.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-DeviceConfiguration -policy $policy >> $outputFileMarkdown
+    "" >> $outputFileMarkdown
 }
 #endregion
 
@@ -785,6 +786,7 @@ foreach ($policy in $groupPolicyConfigurations.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-GroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
+    "" >> $outputFileMarkdown
 }
 #endregion
 
@@ -802,6 +804,7 @@ foreach ($policy in $compliancePolicies.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-CompliancePolicy -policy $policy >> $outputFileMarkdown
+    "" >> $outputFileMarkdown
 }
 #endregion
 
@@ -817,6 +820,7 @@ foreach ($policy in $conditionalAccessPolicies.value) {
         $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8 
     }	
     ConvertToMarkdown-ConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
+    "" >> $outputFileMarkdown
 }
 #endregion
 
