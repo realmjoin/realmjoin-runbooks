@@ -415,6 +415,10 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
     "### $($policy.displayName)"
     ""
+    "|Setting|Value|"
+    "|-------|-----|"
+    "|State|$($policy.state)|"
+    ""
 
     "#### Conditions"
     ""
@@ -474,7 +478,80 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     if ($policy.conditions.userRiskLevels) {
         "|User risk levels|$(foreach ($risklevel in $policy.conditions.userRiskLevels) { $risklevel + "<br/>"})||"
     }
+    if ($policy.conditions.deviceStates.includeStates) {
+        "|Include device states|$(foreach ($state in $policy.conditions.deviceStates.includeStates) { $state + "<br/>"})||"
+    }
+    if ($policy.conditions.deviceStates.excludeStates) {
+        "|Exclude device states|$(foreach ($state in $policy.conditions.deviceStates.excludeStates) { $state + "<br/>"})||"
+    }
+    if ($policy.conditions.devices.includeDevices) {
+        "|Include devices|$(foreach ($device in $policy.conditions.devices.includeDevices) { $device + "<br/>"})||"
+    }
+    if ($policy.conditions.devices.excludeDevices) {
+        "|Exclude devices|$(foreach ($device in $policy.conditions.devices.excludeDevices) { $device + "<br/>"})||"
+    }
+    if ($policy.conditions.devices.deviceFilter) {
+        "|Device filter|$(foreach ($filter in $policy.conditions.devices.deviceFilter) { $filter + "<br/>"})||"
+    }
     ""
+
+    "#### Grant controls"
+    ""
+    "|Setting|Value|Description|"
+    "|-------|-----|-----------|"
+    if ($policy.grantControls.operator) {
+        "|Operator|$($policy.grantControls.operator)||"
+    }
+    if ($policy.grantControls.builtInControls) {
+        "|Built-in controls|$(foreach ($control in $policy.grantControls.builtInControls) { $control + "<br/>"})||"
+    }
+    if ($policy.grantControls.customAuthenticationFactors) {
+        "|Custom authentication factors|$(foreach ($factor in $policy.grantControls.customAuthenticationFactors) { $factor + "<br/>"})||"
+    }
+    if ($policy.grantControls.termsOfUse) {
+        "|Terms of use|$(foreach ($term in $policy.grantControls.termsOfUse) { $term + "<br/>"})||"
+    }
+    if ($policy.grantControls.authenticationStrength) {
+        foreach ($strength in $policy.grantControls.authenticationStrength) {
+            "|Authentication strength: $($strength.displayName)|Allowed combinations:<br/>$(foreach ($combination in $strength.allowedCombinations) {$combination + "<br/>"})|$($strength.description)|"
+        }
+    }
+    ""
+
+    "#### Session controls"
+    ""
+    "|Setting|Value|Description|"
+    "|-------|-----|-----------|"
+    if ($policy.sessionControls.applicationEnforcedRestrictions) {
+        "|Application enforced restrictions|$(foreach ($restriction in $policy.sessionControls.applicationEnforcedRestrictions) { $restriction + "<br/>"})||"
+    }	
+    if ($policy.sessionControls.cloudAppSecurity) {
+        "|Cloud app security|$(foreach ($app in $policy.sessionControls.cloudAppSecurity) { $app + "<br/>"})||"
+    }	
+    if ($policy.sessionControls.signinFrequency.isEnabled) {
+        "|Sign-in frequency enabled|$($policy.sessionControls.signinFrequency.isEnabled)||"	
+    }
+    if ($policy.sessionControls.signinFrequency.frequencyInterval) {
+        "|Sign-in frequency interval|$($policy.sessionControls.signinFrequency.frequencyInterval)|Enforce reauth every time, or only after a certain time|"
+    }
+    if ($policy.sessionControls.signinFrequency.value) {
+        "|Sign-in frequency interval value|$($policy.sessionControls.signinFrequency.value)|Amount of time between reauthentications|"
+    }
+    if ($policy.sessionControls.signinFrequency.type) {
+        "|Sign-in frequency interval type|$($policy.sessionControls.signinFrequency.type)|Days or Hours|"
+    }
+    if ($policy.sessionControls.signinFrequency.authenticationType) {
+        "|Sign-in frequency authentication type|$($policy.sessionControls.signinFrequency.authenticationType)|Which kind of auth. to inforce after interval passes|"
+    }
+    if ($policy.sessionControls.persistentBrowser.isEnabled) {
+        "|Persistent browser enabled|$($policy.sessionControls.persistentBrowser.isEnabled)||"
+    }
+    if ($policy.sessionControls.persistentBrowser.mode) {
+        "|Persistent browser mode|$($policy.sessionControls.persistentBrowser.mode)|Allow or Deny persistent browser sessions|"
+    }
+    if ($policy.sessionControls.disableResilienceDefaults) {
+        "|Disable resilience defaults|$($policy.sessionControls.disableResilienceDefaults)||"
+    }
 
 }
 
