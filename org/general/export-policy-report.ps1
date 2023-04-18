@@ -958,6 +958,12 @@ if ($exportJson) {
     }
 }
 
+# Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
+$content = Get-Content $outputFileMarkdown 
+$content = $content -replace '([0-9a-zA-z])(\\+)([0-9a-zA-z])','$1\\$3'
+$content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
+$content | Set-Content $outputFileMarkdown -Encoding UTF8
+
 # Upload markdown file
 $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
 $blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force
