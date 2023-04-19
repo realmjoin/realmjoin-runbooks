@@ -750,21 +750,22 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         $definition = $null
         try {
             $definition = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
+            "#### $($definition.displayName)"
         } catch {}
-        "#### $($definition.displayName)"
         ""
         #"$($definition.explainText)"
         #""
         "|Setting|Value|Description|"
         "|---|---|---|"
+        $explainText = ""
         if ($definition) {
             # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
             $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>"
             if ($explainText.Length -gt 700) {
                 $explainText = $explainText.Substring(0,700) + "..."
             }
-            "| Enabled | $($_.enabled) | $explainText |"
         }
+        "| Enabled | $($definitionValue.enabled) | $explainText |"
         $presentationValues = $null 
         try {
             $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
