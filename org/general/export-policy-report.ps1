@@ -560,6 +560,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
 }
 
+
 function ConvertToMarkdown-ConfigurationPolicy {
     # Still missing
     # - assignments
@@ -582,7 +583,11 @@ function ConvertToMarkdown-ConfigurationPolicy {
             $setting.settingInstance.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
                 $displayValue += "<br/>$_"
             }
-            "|$($definition.displayName)|$displayValue|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
+            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+            if ($description.Length -gt 700) {
+                $description = $description.Substring(0, 700) + "..."
+            }
+            "|$($definition.displayName)|$displayValue|$description|"
         }
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance") {
             foreach ($groupSetting in $setting.settingInstance.groupSettingCollectionValue.children) {
@@ -592,7 +597,11 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     $groupSetting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
                         $displayValue += "<br/>$_"
                     }
-                    "|$($definition.displayName)|$displayValue|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
+                    $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                    if ($description.Length -gt 700) {
+                        $description = $description.Substring(0, 700) + "..."
+                    }
+                    "|$($definition.displayName)|$displayValue|$description|"
                 }
 
                 if ($groupSetting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance") {
@@ -603,7 +612,11 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             $group2Setting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
                                 $displayValue += "<br/>$_"
                             }
-                            "|$($definition.displayName)|$displayValue|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
+                            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                            if ($description.Length -gt 700) {
+                                $description = $description.Substring(0, 700) + "..."
+                            }
+                            "|$($definition.displayName)|$displayValue|$description|"
                         }
                         elseif ($group2Setting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance") {
                             #"TYPE: DEBUG: Choice Setting Collection"
@@ -611,7 +624,11 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             foreach ($value in $group2Setting.choiceSettingCollectionValue.value) {
                                 ($definition.options | Where-Object { $_.itemId -eq $value }).displayName
                             }
-                            )|$($definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>")|"
+                            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                            if ($description.Length -gt 700) {
+                                $description = $description.Substring(0, 700) + "..."
+                            }
+                            )|$description|"
                         }
                         else {
                             "| TYPE: $($group2Setting."@odata.type") not yet supported ||"
@@ -742,7 +759,11 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         "|---|---|---|"
         if ($definition) {
             # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
-            "| Enabled | $($_.enabled) | $($definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>") |"
+            $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>"
+            if ($explainText.Length -gt 700) {
+                $explainText = $explainText.Substring(0,700) + "..."
+            }
+            "| Enabled | $($_.enabled) | $explainText |"
         }
         $presentationValues = $null 
         try {
