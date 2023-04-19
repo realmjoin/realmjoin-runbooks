@@ -826,7 +826,7 @@ titlepage: true
 titlepage-text-color: "000000"
 titlepage-rule-color: "360049"
 titlepage-rule-height: 0
-titlepage-background: "template/latex/gkgab.pdf"
+titlepage-background: "template/latex/gkgab-landscape.pdf"
 toc-own-page: true
 ---
 
