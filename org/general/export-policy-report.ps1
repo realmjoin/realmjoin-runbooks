@@ -829,7 +829,7 @@ foreach ($policy in $policies.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"	
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    (ConvertToMarkdown-ConfigurationPolicy -policy $policy).replace('\','\\') >> $outputFileMarkdown    
+    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown    
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -960,7 +960,7 @@ if ($exportJson) {
 
 # Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
 $content = Get-Content $outputFileMarkdown 
-$content = $content -replace '([0-9a-zA-z])(\\+)([0-9a-zA-z])','$1\\$3'
+$content = $content -replace '(^|[0-9a-zA-z ])(\\+)([0-9a-zA-z ]|$)','$1\\$3'
 $content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
 $content | Set-Content $outputFileMarkdown -Encoding UTF8
 
