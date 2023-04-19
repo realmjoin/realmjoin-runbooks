@@ -642,8 +642,8 @@ function ConvertToMarkdown-DeviceConfiguration {
     "### $($policy.displayName)" 
     ""
 
-    "| Setting | Value | Description |"
-    "| ------- | ----- | ----------- |"
+    "| Setting | Value |"
+    "| ------- | ----- |"
     foreach ($key in $policy.keys) {
         if ($key -notin @("id", "displayName", "version", "lastModifiedDateTime", "createdDateTime", "@odata.type")) {
             if ($null -ne $policy.$key) {
@@ -693,7 +693,7 @@ function ConvertToMarkdown-DeviceConfiguration {
                                 "$value<br/>" 
                             }
                         }
-                    }) | |"
+                    }) |"
             }
             
         }
@@ -811,8 +811,28 @@ if ($exportJson) {
 }
 
 # Header
-"# Report" > $outputFileMarkdown
-"" >> $outputFileMarkdown
+@'
+---
+title: 2 Modern Workplace Blueprint
+subtitle: Report - v1.0.0
+header-center: v1.0.0
+description: v1.0.0
+author: glueckkanja-gab AG
+date: "April 2023"
+keywords: [sla, services]
+geometry: landscape
+collapse: true
+titlepage: true
+titlepage-text-color: "000000"
+titlepage-rule-color: "360049"
+titlepage-rule-height: 0
+titlepage-background: "template/latex/gkgab.pdf"
+toc-own-page: true
+---
+
+# Report
+
+'@ > $outputFileMarkdown
 
 #region Configuration Policy (Settings Catalog, Endpoint Sec.)
 "## - Configuration Policies (Settings Catalog)"
@@ -829,7 +849,7 @@ foreach ($policy in $policies.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"	
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    (ConvertToMarkdown-ConfigurationPolicy -policy $policy).replace('\','\\') >> $outputFileMarkdown    
+    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown    
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -957,6 +977,12 @@ if ($exportJson) {
         ""
     }
 }
+
+# Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
+$content = Get-Content $outputFileMarkdown 
+$content = $content -replace '(^|[0-9a-zA-z ])(\\+)([0-9a-zA-z ]|$)','$1\\$3'
+$content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
+$content | Set-Content $outputFileMarkdown -Encoding UTF8
 
 # Upload markdown file
 $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
