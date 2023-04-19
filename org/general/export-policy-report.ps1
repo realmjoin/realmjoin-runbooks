@@ -759,7 +759,11 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         "|---|---|---|"
         if ($definition) {
             # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
-            "| Enabled | $($_.enabled) | $($definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>") |"
+            $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>"
+            if ($explainText.Length -gt 700) {
+                $explainText = $explainText.Substring(0,700) + "..."
+            }
+            "| Enabled | $($_.enabled) | $explainText |"
         }
         $presentationValues = $null 
         try {
