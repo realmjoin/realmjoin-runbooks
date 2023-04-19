@@ -724,29 +724,49 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         ""
     }
 
-    $definitionValues = (Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues").value
-    $definitionValues | ForEach-Object {
-        $definitionValue = $_
-        $definition = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
+    $definitionValues = $null
+    try {
+        $definitionValues = (Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues").value
+    }
+    catch {}
+    foreach ($definitionValue in $definitionValues) {
+        $definition = $null
+        try {
+            $definition = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
+        } catch {}
         "#### $($definition.displayName)"
         ""
         #"$($definition.explainText)"
         #""
         "|Setting|Value|Description|"
         "|---|---|---|"
-        # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
-        "| Enabled | $($_.enabled) | $($definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>") |"
-        $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
+        if ($definition) {
+            # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
+            "| Enabled | $($_.enabled) | $($definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>") |"
+        }
+        $presentationValues = $null 
+        try {
+            $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
+        } catch {}
         foreach ($presentationValue in $presentationValues.value) {
-            $presentation = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues/$($presentationValue.id)/presentation"
-            # "Label: " + $($presentation.label)
-            $item = ($presentation.items | Where-Object { $_.value -eq $presentationValue.value })
-            if ($item) {
-                "| $($presentation.label) | $($item.displayName) ||"
-                #"Value: " + $($item.displayName)
+            $presentation = $null
+            try {
+                $presentation = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues/$($presentationValue.id)/presentation"
             }
-            else {
-                "| $($presentation.label) | $($presentationValue.value) ||"
+            catch {}
+            if ($null -ne $presentation) {
+                # "Label: " + $($presentation.label)
+                $item = ($presentation.items | Where-Object { $_.value -eq $presentationValue.value })
+                if ($item) {
+                    "| $($presentation.label) | $($item.displayName) ||"
+                    #"Value: " + $($item.displayName)
+                }
+                else {
+                    "| $($presentation.label) | $($presentationValue.value) ||"
+                    #"Value: " + $($presentationValue.value)
+                }
+            } else {
+                "| Value | $($presentationValue.value) ||"
                 #"Value: " + $($presentationValue.value)
             }
         }
@@ -755,9 +775,10 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
 
     # "#### Assignments"
     # get the policy's assignments
-    $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
-
-    ConvertToMarkdown-PolicyAssignments -assignments $assignments
+    try {
+        $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
+        ConvertToMarkdown-PolicyAssignments -assignments $assignments
+    } catch {}
 }
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -785,7 +806,7 @@ $outputFileMarkdown = "$env:TEMP\$(get-date -Format "yyyy-MM-dd")-policy-report.
 ## Auth (directly calling auth endpoint)
 $resourceURL = "https://graph.microsoft.com/" 
 $authUri = $env:IDENTITY_ENDPOINT
-$headers = @{'X-IDENTITY-HEADER' = "$env:IDENTITY_HEADER"}
+$headers = @{'X-IDENTITY-HEADER' = "$env:IDENTITY_HEADER" }
 
 $AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$($resourceURL)" -Method 'GET' -Headers $headers
 $accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
@@ -795,8 +816,9 @@ $accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
 "## Connecting to Microsoft Graph..."
 
 try {
-Connect-MgGraph -AccessToken $accessToken | Out-Null
-} catch {
+    Connect-MgGraph -AccessToken $accessToken | Out-Null
+}
+catch {
     "## Error connecting to Microsoft Graph."
     ""
     "## Probably: Managed Identity is not configured."
@@ -980,7 +1002,7 @@ if ($exportJson) {
 
 # Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
 $content = Get-Content $outputFileMarkdown 
-$content = $content -replace '(^|[0-9a-zA-z ])(\\+)([0-9a-zA-z ]|$)','$1\\$3'
+$content = $content -replace '(^|[0-9a-zA-z :_-])(\\+)([0-9a-zA-z :_-]|$)', '$1\\$3'
 $content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
 $content | Set-Content $outputFileMarkdown -Encoding UTF8
 
