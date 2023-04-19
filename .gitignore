@@ -2,3 +2,4 @@
 private
 *.code-workspace
 /.vs
+deploy-all.ps1
