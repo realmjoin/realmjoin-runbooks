@@ -425,70 +425,114 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
     if ($policy.conditions.applications.includeApplications) {
-        "|Include applications|$(foreach ($app in $policy.conditions.applications.includeApplications) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.includeApplications) {
+            "|Include application|$app||"
+        }
     }
     if ($policy.conditions.applications.excludeApplications) {
-        "|Exclude applications|$(foreach ($app in $policy.conditions.applications.excludeApplications) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.excludeApplications) {
+            "|Exclude application|$app||"
+        }
     }
     if ($policy.conditions.applications.includeUserActions) {
-        "|Include user actions|$(foreach ($app in $policy.conditions.applications.includeUserActions) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.includeUserActions) {
+            "|Include user action|$app||"
+        }
     }
     if ($policy.conditions.applications.excludeUserActions) {
-        "|Exclude user actions|$(foreach ($app in $policy.conditions.applications.excludeUserActions) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.excludeUserActions) {
+            "|Exclude user action|$app||"
+        }
     }
     if ($policy.conditions.platforms.includePlatforms) {
-        "|Include platforms|$(foreach ($platform in $policy.conditions.platforms.includePlatforms) { $platform + "<br/>"})||"
+        foreach ($platform in $policy.conditions.platforms.includePlatforms) {
+            "|Include platform|$platform||"
+        }
     }
     if ($policy.conditions.platforms.excludePlatforms) {
-        "|Exclude platforms|$(foreach ($platform in $policy.conditions.platforms.excludePlatforms) { $platform + "<br/>"})||"
+        foreach ($platform in $policy.conditions.platforms.excludePlatforms) {
+            "|Exclude platform|$platform||"
+        }
     }
     if ($policy.conditions.locations.includeLocations) {
-        "|Include locations|$(foreach ($location in $policy.conditions.locations.includeLocations) { $location + "<br/>"})||"
+        foreach ($location in $policy.conditions.locations.includeLocations) {
+            "|Include location|$location||"
+        }
     }
     if ($policy.conditions.locations.excludeLocations) {
-        "|Exclude locations|$(foreach ($location in $policy.conditions.locations.excludeLocations) { $location + "<br/>"})||"
+        foreach ($location in $policy.conditions.locations.excludeLocations) {
+            "|Exclude location|$location||"
+        }	
     }
     if ($policy.conditions.users.includeGroups) {
-        "|Include groups|$(foreach ($group in $policy.conditions.users.includeGroups) { $group + "<br/>"})||"
+        foreach ($group in $policy.conditions.users.includeGroups) {
+            "|Include group|$group||"
+        }
     }
     if ($policy.conditions.users.excludeGroups) {
-        "|Exclude groups|$(foreach ($group in $policy.conditions.users.excludeGroups) { $group + "<br/>"})||"
+        foreach ($group in $policy.conditions.users.excludeGroups) {
+            "|Exclude group|$group||"
+        }
     }
     if ($policy.conditions.users.includeRoles) {
-        "|Include roles|$(foreach ($role in $policy.conditions.users.includeRoles) { $role + "<br/>"})||"
+        foreach ($role in $policy.conditions.users.includeRoles) {
+            "|Include role|$role||"
+        }
     }  
     if ($policy.conditions.users.excludeRoles) {
-        "|Exclude roles|$(foreach ($role in $policy.conditions.users.excludeRoles) { $role + "<br/>"})||"
+        foreach ($role in $policy.conditions.users.excludeRoles) {
+            "|Exclude role|$role||"
+        }
     }  
     if ($policy.conditions.users.includeUsers) {
-        "|Include users|$(foreach ($user in $policy.conditions.users.includeUsers) { $user + "<br/>"})||"
+        foreach ($user in $policy.conditions.users.includeUsers) {
+            "|Include user|$user||"
+        }
     }
     if ($policy.conditions.users.excludeUsers) {
-        "|Exclude users|$(foreach ($user in $policy.conditions.users.excludeUsers) { $user + "<br/>"})||"
+        foreach ($user in $policy.conditions.users.excludeUsers) {
+            "|Exclude user|$user||"
+        }
     }
     if ($policy.conditions.clientAppTypes) {
-        "|Client app types|$(foreach ($app in $policy.conditions.clientAppTypes) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.clientAppTypes) {
+            "|Client app type|$app||"
+        }
     }
     if ($policy.conditions.servicePrincipalRiskLevels) {
-        "|Service principal risk levels|$(foreach ($risklevel in $policy.conditions.servicePrincipalRiskLevels) { $risklevel + "<br/>"})||"
+        foreach ($risklevel in $policy.conditions.servicePrincipalRiskLevels) {
+            "|Service principal risk level|$risklevel||"
+        }
     }
     if ($policy.conditions.signInRiskLevels) {
-        "|Sign-in risk levels|$(foreach ($risklevel in $policy.conditions.signInRiskLevels) { $risklevel + "<br/>"})||"
+        foreach ($risklevel in $policy.conditions.signInRiskLevels) {
+            "|Sign-in risk level|$risklevel||"
+        }
     }
     if ($policy.conditions.userRiskLevels) {
-        "|User risk levels|$(foreach ($risklevel in $policy.conditions.userRiskLevels) { $risklevel + "<br/>"})||"
+        foreach ($risklevel in $policy.conditions.userRiskLevels) {
+            "|User risk level|$risklevel||"
+        }
     }
     if ($policy.conditions.deviceStates.includeStates) {
-        "|Include device states|$(foreach ($state in $policy.conditions.deviceStates.includeStates) { $state + "<br/>"})||"
+        foreach ($state in $policy.conditions.deviceStates.includeStates) {
+            "|Include device state|$state||"
+        }
     }
     if ($policy.conditions.deviceStates.excludeStates) {
-        "|Exclude device states|$(foreach ($state in $policy.conditions.deviceStates.excludeStates) { $state + "<br/>"})||"
+        foreach ($state in $policy.conditions.deviceStates.excludeStates) {
+            "|Exclude device state|$state||"
+        }
     }
     if ($policy.conditions.devices.includeDevices) {
-        "|Include devices|$(foreach ($device in $policy.conditions.devices.includeDevices) { $device + "<br/>"})||"
+        foreach ($device in $policy.conditions.devices.includeDevices) {
+            "|Include device|$device||"
+        }
     }
     if ($policy.conditions.devices.excludeDevices) {
-        "|Exclude devices|$(foreach ($device in $policy.conditions.devices.excludeDevices) { $device + "<br/>"})||"
+        foreach ($device in $policy.conditions.devices.excludeDevices) {
+            "|Exclude device|$device||"
+        }
     }
     if ($policy.conditions.devices.deviceFilter) {
         foreach ($filter in $policy.conditions.devices.deviceFilter) {
@@ -515,7 +559,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }
     if ($policy.grantControls.authenticationStrength) {
         foreach ($strength in $policy.grantControls.authenticationStrength) {
-            "|Authentication strength: $($strength.displayName)|Allowed combinations:<br/>$(foreach ($combination in $strength.allowedCombinations) {$combination + "<br/>"})|$($strength.description)|"
+            "|Authentication strength|$($strength.displayName)|$($strength.description)|"
         }
     }
     ""
@@ -718,72 +762,79 @@ function ConvertToMarkdown-DeviceConfiguration {
     foreach ($key in $policy.keys) {
         if ($key -notin @("id", "displayName", "version", "lastModifiedDateTime", "createdDateTime", "@odata.type")) {
             if ($null -ne $policy.$key) {
-                "| $($key) | $(foreach ($value in $policy.$key) { 
-                        if (($value -is [System.Collections.Hashtable])) 
-                        {
-                            # Handle encryption of SiteToZone Assignments
-                            if ($value.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList") {
-                                $decryptedValue = invoke-mggraphrequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($value.secretReferenceValueId)')"
-                                $decryptedValue = ($decryptedValue.value.split('"')[3]) -replace '&#xF000;',';'
-                                "displayName : $($value.displayName)<br/>"
-                                [array]$pairs = $decryptedValue.Split(';')
-                                if (($pairs.Count % 2) -eq 0) {
-                                    [int]$i = 0;
-                                    do {
-                                        switch ($pairs[$i + 1]) {
-                                            0 { $value = "My Computer (0)" }
-                                            1 { $value = "Local Intranet Zone (1)" }
-                                            2 { $value = "Trusted sites Zone (2)" }
-                                            3 { $value = "Internet Zone (3)" }
-                                            4 { $value = "Restricted Sites Zone (4)" }
-                                            Default { $value = $pairs[$i + 1] }
-                                        }
-                                        "$($pairs[$i]) : $value<br/>"
-                                        $i = $i + 2
-                                    } while ($i -lt $pairs.Count)
-                                } else {
-                                    "Error in parsing SiteToZone Assignments"
-                                }
-                            } else { 
+                foreach ($value in $policy.$key) {
+                    if (($value -is [System.Collections.Hashtable])) {
+                        # Handle encryption of SiteToZone Assignments
+                        if ($value.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList") {
+                            $decryptedValue = invoke-mggraphrequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($value.secretReferenceValueId)')"
+                            $decryptedValue = ($decryptedValue.value.split('"')[3]) -replace '&#xF000;', ';'
+                            [array]$pairs = $decryptedValue.Split(';')
+                            if (($pairs.Count % 2) -eq 0) {
+                                [int]$i = 0;
+                                do {
+                                    switch ($pairs[$i + 1]) {
+                                        0 { $value = "My Computer (0)" }
+                                        1 { $value = "Local Intranet Zone (1)" }
+                                        2 { $value = "Trusted sites Zone (2)" }
+                                        3 { $value = "Internet Zone (3)" }
+                                        4 { $value = "Restricted Sites Zone (4)" }
+                                        Default { $value = $pairs[$i + 1] }
+                                    }
+                                    "| SiteToZone Assignments | $($pairs[$i]): $value |"
+                                    $i = $i + 2
+                                } while ($i -lt $pairs.Count)
+                            }
+                            else {
+                                "| SiteToZone Assignments | Error in parsing SiteToZone Assignments |"
+                            }
+                        }
+                        else {
                                 foreach ($subkey in $value.keys) {
                                     if ($null -ne $value.$subkey) {
                                         $result = "$subkey : "
                                         $valueString = $value.$subkey -split (" ")
                                         foreach ($token in $valueString) {
                                             if ($token.length -gt 50) {
-                                                $result += $token.Substring(0,49) + "... "
-                                            } else {
+                                                $result += $token.Substring(0, 49) + "... "
+                                            }
+                                            else {
                                                 $result += $token + " "
                                             }
                                         }
-                                        $result + "<br/>"
+                                        if ($value.displayName) {
+                                            if ($subkey -notin ("displayName", "@odata.type" )) {
+                                                "| $key ($($value.displayName)) | $result<br/> |"
+                                            }
+                                        } else {
+                                            "| $key | $result<br/> |"
+                                        }
                                     }
-                                }  
                             }
-                        } 
-                        else {
-                            $result = ''
-                            $valueString = $value -split (" ")
-                            foreach ($token in $valueString) {
-                                if ($token.length -gt 50) {
-                                    $result += $token.Substring(0,49) + "... "
-                                } else {
-                                    $result += $token + " "
-                                }
-                            }
-                            $result + "<br/>"
                         }
-                    })|" 
+                    }
+                    else {
+                        $result = ''
+                        $valueString = $value -split (" ")
+                        foreach ($token in $valueString) {
+                            if ($token.length -gt 50) {
+                                $result += $token.Substring(0, 49) + "... "
+                            }
+                            else {
+                                $result += $token + " "
+                            }
+                        }
+                        "| $key | $result<br/> |"
+                    }   
+                }
             }
-            
         }
     }
     ""
-
+            
     # "#### Assignments"
     # get the policy's assignments
     $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
-
+            
     ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
 
