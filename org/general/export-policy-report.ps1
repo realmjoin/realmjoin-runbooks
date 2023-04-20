@@ -26,6 +26,8 @@ param(
     [bool] $produceLinks = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Also export raw JSON policies?" } )]
     [bool] $exportJson = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Render Latex Pagebreaks?" } )]
+    [bool] $renderLatexPagebreaks = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
@@ -391,11 +393,19 @@ function ConvertToMarkdown-CompliancePolicy {
                 # save the @odata.type to use as key1 of the Hash
                 $odataType = $policy.'@odata.type'
                 #print the setting(property name) | its' value | Description as stored in key2 of the Hash
-                "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"         #work ffs! Edit: It WORKS!
+                if ($key.length -gt 35) {
+                    "|$($key.Substring(0, 34))...|$($policy.$key)|$($propHash.$odataType.$key)|"
+                } else {
+                    "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"       
+                }
             }
             # check if the property is not in the hash  and print description as "Not documented yet."
             elseif ($null -eq $propHash.$policy.$key) {
-                "|$key|$($policy.$key)|Not documented yet.|"
+                if ($key.length -gt 35) {
+                    "|$($key.Substring(0, 34))...|$($policy.$key)|Not documented yet.|"
+                } else {
+                    "|$key|$($policy.$key)|Not documented yet.|"
+                }
             }
         }
     }
@@ -794,7 +804,7 @@ function ConvertToMarkdown-DeviceConfiguration {
                                     $result = "$subkey : "
                                     $valueString = $value.$subkey -split (" ")
                                     foreach ($token in $valueString) {
-                                        if ($token.length -gt 50) {
+                                        if ($token.length -gt 40) {
                                             $result += $token.Substring(0, 39) + "... "
                                         }
                                         else {
@@ -814,8 +824,8 @@ function ConvertToMarkdown-DeviceConfiguration {
                                         }
                                     }
                                     else {
-                                        if ($key.length -gt 50) {
-                                            "| $($key.Substring(0, 49))... | $result<br/> |" 
+                                        if ($key.length -gt 40) {
+                                            "| $($key.Substring(0, 39))... | $result<br/> |" 
                                         }
                                         else {
                                             "| $key | $result<br/> |"
@@ -829,15 +839,15 @@ function ConvertToMarkdown-DeviceConfiguration {
                         $result = ''
                         $valueString = $value -split (" ")
                         foreach ($token in $valueString) {
-                            if ($token.length -gt 50) {
+                            if ($token.length -gt 40) {
                                 $result += $token.Substring(0, 39) + "... "
                             }
                             else {
                                 $result += $token + " "
                             }
                         }
-                        if ($key.length -gt 50) {
-                            "| $($key.Substring(0, 49))... | $result<br/> |" 
+                        if ($key.length -gt 40) {
+                            "| $($key.Substring(0, 39))... | $result<br/> |" 
                         }
                         else {
                             "| $key | $result<br/> |"
@@ -883,7 +893,8 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         try {
             $definition = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
             "#### $($definition.displayName)"
-        } catch {}
+        }
+        catch {}
         ""
         #"$($definition.explainText)"
         #""
@@ -892,16 +903,17 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         $explainText = ""
         if ($definition) {
             # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
-            $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>"
+            $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
             if ($explainText.Length -gt 700) {
-                $explainText = $explainText.Substring(0,700) + "..."
+                $explainText = $explainText.Substring(0, 700) + "..."
             }
         }
         "| Enabled | $($definitionValue.enabled) | $explainText |"
         $presentationValues = $null 
         try {
             $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
-        } catch {}
+        }
+        catch {}
         foreach ($presentationValue in $presentationValues.value) {
             $presentation = $null
             try {
@@ -912,16 +924,29 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
                 # "Label: " + $($presentation.label)
                 $item = ($presentation.items | Where-Object { $_.value -eq $presentationValue.value })
                 if ($item) {
-                    "| $($presentation.label) | $($item.displayName) ||"
-                    #"Value: " + $($item.displayName)
+                    if ($item.displayName.length -gt 700) {
+                        "| $($presentation.label) | $($item.displayName.Substring(0,700) + "...") ||"
+                    }
+                    else {
+                        "| $($presentation.label) | $($item.displayName) ||"
+                    }
                 }
                 else {
-                    "| $($presentation.label) | $($presentationValue.value) ||"
-                    #"Value: " + $($presentationValue.value)
+                    if ($presentationValue.value.length -gt 700) {
+                        "| $($presentation.label) | $($presentationValue.value.Substring(0,700) + "...") ||"
+                    }
+                    else {
+                        "| $($presentation.label) | $($presentationValue.value) ||"
+                    }
                 }
-            } else {
-                "| Value | $($presentationValue.value) ||"
-                #"Value: " + $($presentationValue.value)
+            }
+            else {
+                if ($presentationValue.value.length -gt 700) {
+                    "| Value | $($presentationValue.value.Substring(0,700) + "...") ||"
+                }
+                else {
+                    "| Value | $($presentationValue.value) ||"
+                }
             }
         }
         ""
@@ -932,8 +957,11 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
     try {
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
         ConvertToMarkdown-PolicyAssignments -assignments $assignments
-    } catch {}
+    }
+    catch {}
 }
+
+
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
@@ -1025,7 +1053,11 @@ foreach ($policy in $policies.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"	
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown    
+    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown  
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1044,6 +1076,10 @@ foreach ($policy in $deviceConfigurations.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-DeviceConfiguration -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1064,6 +1100,10 @@ foreach ($policy in $groupPolicyConfigurations.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-GroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1082,6 +1122,10 @@ foreach ($policy in $compliancePolicies.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-CompliancePolicy -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1098,6 +1142,10 @@ foreach ($policy in $conditionalAccessPolicies.value) {
         $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8 
     }	
     ConvertToMarkdown-ConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1156,7 +1204,7 @@ if ($exportJson) {
 
 # Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
 $content = Get-Content $outputFileMarkdown 
-$content = $content -replace '(^|[0-9a-zA-z :_-])(\\+)([0-9a-zA-z :_-]|$)', '$1\\$3'
+$content = $content -replace '([0-9a-zA-z :_-])(\\+)([0-9a-zA-z :_-]|$)', '$1\\$3'
 $content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
 $content | Set-Content $outputFileMarkdown -Encoding UTF8
 
