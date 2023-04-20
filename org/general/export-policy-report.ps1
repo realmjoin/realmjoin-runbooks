@@ -26,6 +26,8 @@ param(
     [bool] $produceLinks = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Also export raw JSON policies?" } )]
     [bool] $exportJson = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Render Latex Pagebreaks?" } )]
+    [bool] $renderLatexPagebreaks = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
@@ -391,11 +393,19 @@ function ConvertToMarkdown-CompliancePolicy {
                 # save the @odata.type to use as key1 of the Hash
                 $odataType = $policy.'@odata.type'
                 #print the setting(property name) | its' value | Description as stored in key2 of the Hash
-                "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"         #work ffs! Edit: It WORKS!
+                if ($key.length -gt 35) {
+                    "|$($key.Substring(0, 34))...|$($policy.$key)|$($propHash.$odataType.$key)|"
+                } else {
+                    "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"       
+                }
             }
             # check if the property is not in the hash  and print description as "Not documented yet."
             elseif ($null -eq $propHash.$policy.$key) {
-                "|$key|$($policy.$key)|Not documented yet.|"
+                if ($key.length -gt 35) {
+                    "|$($key.Substring(0, 34))...|$($policy.$key)|Not documented yet.|"
+                } else {
+                    "|$key|$($policy.$key)|Not documented yet.|"
+                }
             }
         }
     }
@@ -425,70 +435,114 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
     if ($policy.conditions.applications.includeApplications) {
-        "|Include applications|$(foreach ($app in $policy.conditions.applications.includeApplications) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.includeApplications) {
+            "|Include application|$app||"
+        }
     }
     if ($policy.conditions.applications.excludeApplications) {
-        "|Exclude applications|$(foreach ($app in $policy.conditions.applications.excludeApplications) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.excludeApplications) {
+            "|Exclude application|$app||"
+        }
     }
     if ($policy.conditions.applications.includeUserActions) {
-        "|Include user actions|$(foreach ($app in $policy.conditions.applications.includeUserActions) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.includeUserActions) {
+            "|Include user action|$app||"
+        }
     }
     if ($policy.conditions.applications.excludeUserActions) {
-        "|Exclude user actions|$(foreach ($app in $policy.conditions.applications.excludeUserActions) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.applications.excludeUserActions) {
+            "|Exclude user action|$app||"
+        }
     }
     if ($policy.conditions.platforms.includePlatforms) {
-        "|Include platforms|$(foreach ($platform in $policy.conditions.platforms.includePlatforms) { $platform + "<br/>"})||"
+        foreach ($platform in $policy.conditions.platforms.includePlatforms) {
+            "|Include platform|$platform||"
+        }
     }
     if ($policy.conditions.platforms.excludePlatforms) {
-        "|Exclude platforms|$(foreach ($platform in $policy.conditions.platforms.excludePlatforms) { $platform + "<br/>"})||"
+        foreach ($platform in $policy.conditions.platforms.excludePlatforms) {
+            "|Exclude platform|$platform||"
+        }
     }
     if ($policy.conditions.locations.includeLocations) {
-        "|Include locations|$(foreach ($location in $policy.conditions.locations.includeLocations) { $location + "<br/>"})||"
+        foreach ($location in $policy.conditions.locations.includeLocations) {
+            "|Include location|$location||"
+        }
     }
     if ($policy.conditions.locations.excludeLocations) {
-        "|Exclude locations|$(foreach ($location in $policy.conditions.locations.excludeLocations) { $location + "<br/>"})||"
+        foreach ($location in $policy.conditions.locations.excludeLocations) {
+            "|Exclude location|$location||"
+        }	
     }
     if ($policy.conditions.users.includeGroups) {
-        "|Include groups|$(foreach ($group in $policy.conditions.users.includeGroups) { $group + "<br/>"})||"
+        foreach ($group in $policy.conditions.users.includeGroups) {
+            "|Include group|$group||"
+        }
     }
     if ($policy.conditions.users.excludeGroups) {
-        "|Exclude groups|$(foreach ($group in $policy.conditions.users.excludeGroups) { $group + "<br/>"})||"
+        foreach ($group in $policy.conditions.users.excludeGroups) {
+            "|Exclude group|$group||"
+        }
     }
     if ($policy.conditions.users.includeRoles) {
-        "|Include roles|$(foreach ($role in $policy.conditions.users.includeRoles) { $role + "<br/>"})||"
+        foreach ($role in $policy.conditions.users.includeRoles) {
+            "|Include role|$role||"
+        }
     }  
     if ($policy.conditions.users.excludeRoles) {
-        "|Exclude roles|$(foreach ($role in $policy.conditions.users.excludeRoles) { $role + "<br/>"})||"
+        foreach ($role in $policy.conditions.users.excludeRoles) {
+            "|Exclude role|$role||"
+        }
     }  
     if ($policy.conditions.users.includeUsers) {
-        "|Include users|$(foreach ($user in $policy.conditions.users.includeUsers) { $user + "<br/>"})||"
+        foreach ($user in $policy.conditions.users.includeUsers) {
+            "|Include user|$user||"
+        }
     }
     if ($policy.conditions.users.excludeUsers) {
-        "|Exclude users|$(foreach ($user in $policy.conditions.users.excludeUsers) { $user + "<br/>"})||"
+        foreach ($user in $policy.conditions.users.excludeUsers) {
+            "|Exclude user|$user||"
+        }
     }
     if ($policy.conditions.clientAppTypes) {
-        "|Client app types|$(foreach ($app in $policy.conditions.clientAppTypes) { $app + "<br/>"})||"
+        foreach ($app in $policy.conditions.clientAppTypes) {
+            "|Client app type|$app||"
+        }
     }
     if ($policy.conditions.servicePrincipalRiskLevels) {
-        "|Service principal risk levels|$(foreach ($risklevel in $policy.conditions.servicePrincipalRiskLevels) { $risklevel + "<br/>"})||"
+        foreach ($risklevel in $policy.conditions.servicePrincipalRiskLevels) {
+            "|Service principal risk level|$risklevel||"
+        }
     }
     if ($policy.conditions.signInRiskLevels) {
-        "|Sign-in risk levels|$(foreach ($risklevel in $policy.conditions.signInRiskLevels) { $risklevel + "<br/>"})||"
+        foreach ($risklevel in $policy.conditions.signInRiskLevels) {
+            "|Sign-in risk level|$risklevel||"
+        }
     }
     if ($policy.conditions.userRiskLevels) {
-        "|User risk levels|$(foreach ($risklevel in $policy.conditions.userRiskLevels) { $risklevel + "<br/>"})||"
+        foreach ($risklevel in $policy.conditions.userRiskLevels) {
+            "|User risk level|$risklevel||"
+        }
     }
     if ($policy.conditions.deviceStates.includeStates) {
-        "|Include device states|$(foreach ($state in $policy.conditions.deviceStates.includeStates) { $state + "<br/>"})||"
+        foreach ($state in $policy.conditions.deviceStates.includeStates) {
+            "|Include device state|$state||"
+        }
     }
     if ($policy.conditions.deviceStates.excludeStates) {
-        "|Exclude device states|$(foreach ($state in $policy.conditions.deviceStates.excludeStates) { $state + "<br/>"})||"
+        foreach ($state in $policy.conditions.deviceStates.excludeStates) {
+            "|Exclude device state|$state||"
+        }
     }
     if ($policy.conditions.devices.includeDevices) {
-        "|Include devices|$(foreach ($device in $policy.conditions.devices.includeDevices) { $device + "<br/>"})||"
+        foreach ($device in $policy.conditions.devices.includeDevices) {
+            "|Include device|$device||"
+        }
     }
     if ($policy.conditions.devices.excludeDevices) {
-        "|Exclude devices|$(foreach ($device in $policy.conditions.devices.excludeDevices) { $device + "<br/>"})||"
+        foreach ($device in $policy.conditions.devices.excludeDevices) {
+            "|Exclude device|$device||"
+        }
     }
     if ($policy.conditions.devices.deviceFilter) {
         foreach ($filter in $policy.conditions.devices.deviceFilter) {
@@ -515,7 +569,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }
     if ($policy.grantControls.authenticationStrength) {
         foreach ($strength in $policy.grantControls.authenticationStrength) {
-            "|Authentication strength: $($strength.displayName)|Allowed combinations:<br/>$(foreach ($combination in $strength.allowedCombinations) {$combination + "<br/>"})|$($strength.description)|"
+            "|Authentication strength|$($strength.displayName)|$($strength.description)|"
         }
     }
     ""
@@ -560,6 +614,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
 }
 
+
 function ConvertToMarkdown-ConfigurationPolicy {
     # Still missing
     # - assignments
@@ -580,7 +635,12 @@ function ConvertToMarkdown-ConfigurationPolicy {
             $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
             $displayValue = ($definition.options | Where-Object { $_.itemId -eq $setting.settingInstance.choiceSettingValue.value }).displayName
             $setting.settingInstance.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
-                $displayValue += "<br/>$_"
+                if ($_.length -gt 50) {
+                    $displayValue += "<br/>" + $_.Substring(0, 49) + "..."
+                }
+                else {
+                    $displayValue += "<br/>$_"
+                }
             }
             $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
             if ($description.Length -gt 700) {
@@ -594,7 +654,12 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $groupSetting.settingDefinitionId }
                     $displayValue = ($definition.options | Where-Object { $_.itemId -eq $groupSetting.choiceSettingValue.value }).displayName
                     $groupSetting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
-                        $displayValue += "<br/>$_"
+                        if ($_.length -gt 50) {
+                            $displayValue += "<br/>" + $_.Substring(0, 49) + "..."
+                        }
+                        else {
+                            $displayValue += "<br/>$_"
+                        }
                     }
                     $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
                     if ($description.Length -gt 700) {
@@ -609,7 +674,12 @@ function ConvertToMarkdown-ConfigurationPolicy {
                         if ($group2Setting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance") {
                             $displayValue = ($definition.options | Where-Object { $_.itemId -eq $group2Setting.choiceSettingValue.value }).displayName
                             $group2Setting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
-                                $displayValue += "<br/>$_"
+                                if ($_.length -gt 50) {
+                                    $displayValue += "<br/>" + $_.Substring(0, 49) + "..."
+                                }
+                                else {
+                                    $displayValue += "<br/>$_"
+                                }
                             }
                             $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
                             if ($description.Length -gt 700) {
@@ -618,7 +688,6 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             "|$($definition.displayName)|$displayValue|$description|"
                         }
                         elseif ($group2Setting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance") {
-                            #"TYPE: DEBUG: Choice Setting Collection"
                             "|$($definition.displayName)|$(
                             foreach ($value in $group2Setting.choiceSettingCollectionValue.value) {
                                 ($definition.options | Where-Object { $_.itemId -eq $value }).displayName
@@ -643,7 +712,18 @@ function ConvertToMarkdown-ConfigurationPolicy {
                 if ($description.Length -gt 700) {
                     $description = $description.Substring(0, 700) + "..."
                 }
-                "|$($definition.displayName)|$value|$description|"
+                $valueString = ""
+                $valueCollection = $value -split (" ")
+                foreach ($token in $valueCollection) {
+                    if ($token.Length -gt 50) {
+                        $valueString += $token.Substring(0, 49) + "..."
+                    }
+                    else {
+                        $valueString += $token
+                    }
+                    $valueString += " "
+                }
+                "|$($definition.displayName)|$valueString|$description|"
             }
         }
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance") {
@@ -652,7 +732,18 @@ function ConvertToMarkdown-ConfigurationPolicy {
             if ($description.Length -gt 700) {
                 $description = $description.Substring(0, 700) + "..."
             }
-            "|$($definition.displayName)|$($setting.settingInstance.simpleSettingValue.value)|$description|"
+            $valueString = ""
+            $valueCollection = $setting.settingInstance.simpleSettingValue.value -split (" ")
+            foreach ($token in $valueCollection) {
+                if ($token.Length -gt 50) {
+                    $valueString += $token.Substring(0, 49) + "..."
+                }
+                else {
+                    $valueString += $token
+                }
+                $valueString += " "
+            }
+            "|$($definition.displayName)|$valueString|$description|"
         }
         else {
             "| TYPE: $($setting.settingInstance."@odata.type") not yet supported ||"
@@ -681,63 +772,97 @@ function ConvertToMarkdown-DeviceConfiguration {
     foreach ($key in $policy.keys) {
         if ($key -notin @("id", "displayName", "version", "lastModifiedDateTime", "createdDateTime", "@odata.type")) {
             if ($null -ne $policy.$key) {
-                "| $($key) | $(foreach ($value in $policy.$key) { 
-                        if (($value -is [System.Collections.Hashtable]))
-                        {
-                            # Handle encryption of SiteToZone Assignments
-                            if ($value.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList") {
-                                $decryptedValue = invoke-mggraphrequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($value.secretReferenceValueId)')"
-                                $decryptedValue = ($decryptedValue.value.split('"')[3]) -replace '&#xF000;',';'
-                                "displayName : $($value.displayName)<br/>"
-                                [array]$pairs = $decryptedValue.Split(';')
-                                if (($pairs.Count % 2) -eq 0) {
-                                    [int]$i = 0;
-                                    do {
-                                        switch ($pairs[$i + 1]) {
-                                            0 { $value = "My Computer (0)" }
-                                            1 { $value = "Local Intranet Zone (1)" }
-                                            2 { $value = "Trusted sites Zone (2)" }
-                                            3 { $value = "Internet Zone (3)" }
-                                            4 { $value = "Restricted Sites Zone (4)" }
-                                            Default { $value = $pairs[$i + 1] }
-                                        }
-                                        "$($pairs[$i]) : $value<br/>"
-                                        $i = $i + 2
-                                    } while ($i -lt $pairs.Count)
-                                } else {
-                                    "Error in parsing SiteToZone Assignments"
-                                }
-                            } else { 
-                            foreach ($subkey in $value.keys) {
-                                if ($null -ne $value.$subkey) {
-                                    if ($value.$subkey.length -gt 200) {
-                                        "$subkey : $($value.$subkey.Substring(0,199))...<br/>"
-                                    } else {
-                                        "$subkey : $($value.$subkey)<br/>"
+                foreach ($value in $policy.$key) {
+                    if (($value -is [System.Collections.Hashtable])) {
+                        # Handle encryption of SiteToZone Assignments
+                        if ($value.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList") {
+                            $decryptedValue = invoke-mggraphrequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($value.secretReferenceValueId)')"
+                            $decryptedValue = ($decryptedValue.value.split('"')[3]) -replace '&#xF000;', ';'
+                            [array]$pairs = $decryptedValue.Split(';')
+                            if (($pairs.Count % 2) -eq 0) {
+                                [int]$i = 0;
+                                do {
+                                    switch ($pairs[$i + 1]) {
+                                        0 { $value = "My Computer (0)" }
+                                        1 { $value = "Local Intranet Zone (1)" }
+                                        2 { $value = "Trusted sites Zone (2)" }
+                                        3 { $value = "Internet Zone (3)" }
+                                        4 { $value = "Restricted Sites Zone (4)" }
+                                        Default { $value = $pairs[$i + 1] }
                                     }
-                                }
-                            }  
-                        }
-                        }
-                        else
-                        {
-                            if ($value.length -gt 200) {
-                                "$($value.Substring(0,199))...<br/>"
-                            } else {
-                                "$value<br/>" 
+                                    "| SiteToZone Assignments | $($pairs[$i]): $value |"
+                                    $i = $i + 2
+                                } while ($i -lt $pairs.Count)
+                            }
+                            else {
+                                "| SiteToZone Assignments | Error in parsing SiteToZone Assignments |"
                             }
                         }
-                    }) |"
+                        else {
+                            foreach ($subkey in $value.keys) {
+                                if ($null -ne $value.$subkey) {
+                                    $result = "$subkey : "
+                                    $valueString = $value.$subkey -split (" ")
+                                    foreach ($token in $valueString) {
+                                        if ($token.length -gt 40) {
+                                            $result += $token.Substring(0, 39) + "... "
+                                        }
+                                        else {
+                                            $result += $token + " "
+                                        }
+                                    }
+                                    # OmaSettings
+                                    if ($value.displayName) {
+                                        if ($subkey -notin ("displayName", "@odata.type" )) {
+                                            "| $key ($($value.displayName)) | $result<br/> |"
+                                        }
+                                        # appsVisibilityList
+                                    }
+                                    elseif ($value.name) {
+                                        if ($subkey -notin ("name" )) {
+                                            "| $key ($($value.name)) | $result<br/> |"
+                                        }
+                                    }
+                                    else {
+                                        if ($key.length -gt 40) {
+                                            "| $($key.Substring(0, 39))... | $result<br/> |" 
+                                        }
+                                        else {
+                                            "| $key | $result<br/> |"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $result = ''
+                        $valueString = $value -split (" ")
+                        foreach ($token in $valueString) {
+                            if ($token.length -gt 40) {
+                                $result += $token.Substring(0, 39) + "... "
+                            }
+                            else {
+                                $result += $token + " "
+                            }
+                        }
+                        if ($key.length -gt 40) {
+                            "| $($key.Substring(0, 39))... | $result<br/> |" 
+                        }
+                        else {
+                            "| $key | $result<br/> |"
+                        }
+                    }   
+                }
             }
-            
         }
     }
     ""
-
+            
     # "#### Assignments"
     # get the policy's assignments
     $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
-
+            
     ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
 
@@ -768,7 +893,8 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         try {
             $definition = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
             "#### $($definition.displayName)"
-        } catch {}
+        }
+        catch {}
         ""
         #"$($definition.explainText)"
         #""
@@ -777,16 +903,17 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
         $explainText = ""
         if ($definition) {
             # replace newlines in $($definition.explainText) with `<br/>` to get a proper markdown table
-            $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>","<br/>" -replace "<br/><br/>","<br/>"
+            $explainText = $definition.explainText.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
             if ($explainText.Length -gt 700) {
-                $explainText = $explainText.Substring(0,700) + "..."
+                $explainText = $explainText.Substring(0, 700) + "..."
             }
         }
         "| Enabled | $($definitionValue.enabled) | $explainText |"
         $presentationValues = $null 
         try {
             $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
-        } catch {}
+        }
+        catch {}
         foreach ($presentationValue in $presentationValues.value) {
             $presentation = $null
             try {
@@ -797,16 +924,29 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
                 # "Label: " + $($presentation.label)
                 $item = ($presentation.items | Where-Object { $_.value -eq $presentationValue.value })
                 if ($item) {
-                    "| $($presentation.label) | $($item.displayName) ||"
-                    #"Value: " + $($item.displayName)
+                    if ($item.displayName.length -gt 700) {
+                        "| $($presentation.label) | $($item.displayName.Substring(0,700) + "...") ||"
+                    }
+                    else {
+                        "| $($presentation.label) | $($item.displayName) ||"
+                    }
                 }
                 else {
-                    "| $($presentation.label) | $($presentationValue.value) ||"
-                    #"Value: " + $($presentationValue.value)
+                    if ($presentationValue.value.length -gt 700) {
+                        "| $($presentation.label) | $($presentationValue.value.Substring(0,700) + "...") ||"
+                    }
+                    else {
+                        "| $($presentation.label) | $($presentationValue.value) ||"
+                    }
                 }
-            } else {
-                "| Value | $($presentationValue.value) ||"
-                #"Value: " + $($presentationValue.value)
+            }
+            else {
+                if ($presentationValue.value.length -gt 700) {
+                    "| Value | $($presentationValue.value.Substring(0,700) + "...") ||"
+                }
+                else {
+                    "| Value | $($presentationValue.value) ||"
+                }
             }
         }
         ""
@@ -817,8 +957,11 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
     try {
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
         ConvertToMarkdown-PolicyAssignments -assignments $assignments
-    } catch {}
+    }
+    catch {}
 }
+
+
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
@@ -910,7 +1053,11 @@ foreach ($policy in $policies.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"	
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown    
+    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown  
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -929,6 +1076,10 @@ foreach ($policy in $deviceConfigurations.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-DeviceConfiguration -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -949,6 +1100,10 @@ foreach ($policy in $groupPolicyConfigurations.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-GroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -967,6 +1122,10 @@ foreach ($policy in $compliancePolicies.value) {
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-CompliancePolicy -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -983,6 +1142,10 @@ foreach ($policy in $conditionalAccessPolicies.value) {
         $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8 
     }	
     ConvertToMarkdown-ConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
+    if ($renderLatexPagebreaks) {
+        "" >> $outputFileMarkdown
+        "\pagebreak" >> $outputFileMarkdown
+    }  
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1041,7 +1204,7 @@ if ($exportJson) {
 
 # Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
 $content = Get-Content $outputFileMarkdown 
-$content = $content -replace '(^|[0-9a-zA-z :_-])(\\+)([0-9a-zA-z :_-]|$)', '$1\\$3'
+$content = $content -replace '([0-9a-zA-z :_-])(\\+)([0-9a-zA-z :_-]|$)', '$1\\$3'
 $content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
 $content | Set-Content $outputFileMarkdown -Encoding UTF8
 
