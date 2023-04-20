@@ -789,32 +789,39 @@ function ConvertToMarkdown-DeviceConfiguration {
                             }
                         }
                         else {
-                                foreach ($subkey in $value.keys) {
-                                    if ($null -ne $value.$subkey) {
-                                        $result = "$subkey : "
-                                        $valueString = $value.$subkey -split (" ")
-                                        foreach ($token in $valueString) {
-                                            if ($token.length -gt 50) {
-                                                $result += $token.Substring(0, 39) + "... "
-                                            }
-                                            else {
-                                                $result += $token + " "
-                                            }
+                            foreach ($subkey in $value.keys) {
+                                if ($null -ne $value.$subkey) {
+                                    $result = "$subkey : "
+                                    $valueString = $value.$subkey -split (" ")
+                                    foreach ($token in $valueString) {
+                                        if ($token.length -gt 50) {
+                                            $result += $token.Substring(0, 39) + "... "
                                         }
-                                        # OmaSettings
-                                        if ($value.displayName) {
-                                            if ($subkey -notin ("displayName", "@odata.type" )) {
-                                                "| $key ($($value.displayName)) | $result<br/> |"
-                                            }
+                                        else {
+                                            $result += $token + " "
+                                        }
+                                    }
+                                    # OmaSettings
+                                    if ($value.displayName) {
+                                        if ($subkey -notin ("displayName", "@odata.type" )) {
+                                            "| $key ($($value.displayName)) | $result<br/> |"
+                                        }
                                         # appsVisibilityList
-                                        } elseif ($value.name) {
-                                            if ($subkey -notin ("name" )) {
-                                                "| $key ($($value.name)) | $result<br/> |"
-                                            }
-                                        } else {
+                                    }
+                                    elseif ($value.name) {
+                                        if ($subkey -notin ("name" )) {
+                                            "| $key ($($value.name)) | $result<br/> |"
+                                        }
+                                    }
+                                    else {
+                                        if ($key.length -gt 50) {
+                                            "| $($key.Substring(0, 49))... | $result<br/> |" 
+                                        }
+                                        else {
                                             "| $key | $result<br/> |"
                                         }
                                     }
+                                }
                             }
                         }
                     }
@@ -829,7 +836,12 @@ function ConvertToMarkdown-DeviceConfiguration {
                                 $result += $token + " "
                             }
                         }
-                        "| $key | $result<br/> |"
+                        if ($key.length -gt 50) {
+                            "| $($key.Substring(0, 49))... | $result<br/> |" 
+                        }
+                        else {
+                            "| $key | $result<br/> |"
+                        }
                     }   
                 }
             }
