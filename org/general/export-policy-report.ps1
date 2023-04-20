@@ -560,7 +560,6 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
 }
 
-
 function ConvertToMarkdown-ConfigurationPolicy {
     # Still missing
     # - assignments
@@ -574,9 +573,9 @@ function ConvertToMarkdown-ConfigurationPolicy {
     ""
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
+
     $settings = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings`?`$expand=settingDefinitions`&top=1000"
     foreach ($setting in $settings.value) {
-
         if ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance") {
             $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
             $displayValue = ($definition.options | Where-Object { $_.itemId -eq $setting.settingInstance.choiceSettingValue.value }).displayName
@@ -636,6 +635,24 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     }
                 }
             }
+        } 
+        elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance") {
+            foreach ($value in $setting.simpleSettingCollectionValue.value) {
+                $definition = $setting.settingDefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
+                $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                if ($description.Length -gt 700) {
+                    $description = $description.Substring(0, 700) + "..."
+                }
+                "|$($definition.displayName)|$value|$description|"
+            }
+        }
+        elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance") {
+            $definition = $setting.settingDefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
+            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+            if ($description.Length -gt 700) {
+                $description = $description.Substring(0, 700) + "..."
+            }
+            "|$($definition.displayName)|$($setting.settingInstance.simpleSettingValue.value)|$description|"
         }
         else {
             "| TYPE: $($setting.settingInstance."@odata.type") not yet supported ||"
