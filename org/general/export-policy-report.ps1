@@ -560,6 +560,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
 }
 
+
 function ConvertToMarkdown-ConfigurationPolicy {
     # Still missing
     # - assignments
@@ -580,7 +581,12 @@ function ConvertToMarkdown-ConfigurationPolicy {
             $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
             $displayValue = ($definition.options | Where-Object { $_.itemId -eq $setting.settingInstance.choiceSettingValue.value }).displayName
             $setting.settingInstance.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
-                $displayValue += "<br/>$_"
+                if ($_.length -gt 50) {
+                    $displayValue += "<br/>" + $_.Substring(0, 49) + "..."
+                }
+                else {
+                    $displayValue += "<br/>$_"
+                }
             }
             $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
             if ($description.Length -gt 700) {
@@ -594,7 +600,12 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $groupSetting.settingDefinitionId }
                     $displayValue = ($definition.options | Where-Object { $_.itemId -eq $groupSetting.choiceSettingValue.value }).displayName
                     $groupSetting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
-                        $displayValue += "<br/>$_"
+                        if ($_.length -gt 50) {
+                            $displayValue += "<br/>" + $_.Substring(0, 49) + "..."
+                        }
+                        else {
+                            $displayValue += "<br/>$_"
+                        }
                     }
                     $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
                     if ($description.Length -gt 700) {
@@ -609,7 +620,12 @@ function ConvertToMarkdown-ConfigurationPolicy {
                         if ($group2Setting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance") {
                             $displayValue = ($definition.options | Where-Object { $_.itemId -eq $group2Setting.choiceSettingValue.value }).displayName
                             $group2Setting.choiceSettingValue.children.simpleSettingCollectionValue.value | ForEach-Object {
-                                $displayValue += "<br/>$_"
+                                if ($_.length -gt 50) {
+                                    $displayValue += "<br/>" + $_.Substring(0, 49) + "..."
+                                }
+                                else {
+                                    $displayValue += "<br/>$_"
+                                }
                             }
                             $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
                             if ($description.Length -gt 700) {
@@ -618,7 +634,6 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             "|$($definition.displayName)|$displayValue|$description|"
                         }
                         elseif ($group2Setting."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance") {
-                            #"TYPE: DEBUG: Choice Setting Collection"
                             "|$($definition.displayName)|$(
                             foreach ($value in $group2Setting.choiceSettingCollectionValue.value) {
                                 ($definition.options | Where-Object { $_.itemId -eq $value }).displayName
@@ -643,7 +658,18 @@ function ConvertToMarkdown-ConfigurationPolicy {
                 if ($description.Length -gt 700) {
                     $description = $description.Substring(0, 700) + "..."
                 }
-                "|$($definition.displayName)|$value|$description|"
+                $valueString = ""
+                $valueCollection = $value -split (" ")
+                foreach ($token in $valueCollection) {
+                    if ($token.Length -gt 50) {
+                        $valueString += $token.Substring(0, 49) + "..."
+                    }
+                    else {
+                        $valueString += $token
+                    }
+                    $valueString += " "
+                }
+                "|$($definition.displayName)|$valueString|$description|"
             }
         }
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance") {
@@ -652,7 +678,18 @@ function ConvertToMarkdown-ConfigurationPolicy {
             if ($description.Length -gt 700) {
                 $description = $description.Substring(0, 700) + "..."
             }
-            "|$($definition.displayName)|$($setting.settingInstance.simpleSettingValue.value)|$description|"
+            $valueString = ""
+            $valueCollection = $setting.settingInstance.simpleSettingValue.value -split (" ")
+            foreach ($token in $valueCollection) {
+                if ($token.Length -gt 50) {
+                    $valueString += $token.Substring(0, 49) + "..."
+                }
+                else {
+                    $valueString += $token
+                }
+                $valueString += " "
+            }
+            "|$($definition.displayName)|$valueString|$description|"
         }
         else {
             "| TYPE: $($setting.settingInstance."@odata.type") not yet supported ||"
@@ -682,7 +719,7 @@ function ConvertToMarkdown-DeviceConfiguration {
         if ($key -notin @("id", "displayName", "version", "lastModifiedDateTime", "createdDateTime", "@odata.type")) {
             if ($null -ne $policy.$key) {
                 "| $($key) | $(foreach ($value in $policy.$key) { 
-                        if (($value -is [System.Collections.Hashtable]))
+                        if (($value -is [System.Collections.Hashtable])) 
                         {
                             # Handle encryption of SiteToZone Assignments
                             if ($value.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList") {
@@ -708,26 +745,35 @@ function ConvertToMarkdown-DeviceConfiguration {
                                     "Error in parsing SiteToZone Assignments"
                                 }
                             } else { 
-                            foreach ($subkey in $value.keys) {
-                                if ($null -ne $value.$subkey) {
-                                    if ($value.$subkey.length -gt 200) {
-                                        "$subkey : $($value.$subkey.Substring(0,199))...<br/>"
-                                    } else {
-                                        "$subkey : $($value.$subkey)<br/>"
+                                foreach ($subkey in $value.keys) {
+                                    if ($null -ne $value.$subkey) {
+                                        $result = "$subkey : "
+                                        $valueString = $value.$subkey -split (" ")
+                                        foreach ($token in $valueString) {
+                                            if ($token.length -gt 50) {
+                                                $result += $token.Substring(0,49) + "... "
+                                            } else {
+                                                $result += $token + " "
+                                            }
+                                        }
+                                        $result + "<br/>"
                                     }
-                                }
-                            }  
-                        }
-                        }
-                        else
-                        {
-                            if ($value.length -gt 200) {
-                                "$($value.Substring(0,199))...<br/>"
-                            } else {
-                                "$value<br/>" 
+                                }  
                             }
+                        } 
+                        else {
+                            $result = ''
+                            $valueString = $value -split (" ")
+                            foreach ($token in $valueString) {
+                                if ($token.length -gt 50) {
+                                    $result += $token.Substring(0,49) + "... "
+                                } else {
+                                    $result += $token + " "
+                                }
+                            }
+                            $result + "<br/>"
                         }
-                    }) |"
+                    })|" 
             }
             
         }
