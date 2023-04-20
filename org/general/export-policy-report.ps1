@@ -795,15 +795,21 @@ function ConvertToMarkdown-DeviceConfiguration {
                                         $valueString = $value.$subkey -split (" ")
                                         foreach ($token in $valueString) {
                                             if ($token.length -gt 50) {
-                                                $result += $token.Substring(0, 49) + "... "
+                                                $result += $token.Substring(0, 39) + "... "
                                             }
                                             else {
                                                 $result += $token + " "
                                             }
                                         }
+                                        # OmaSettings
                                         if ($value.displayName) {
                                             if ($subkey -notin ("displayName", "@odata.type" )) {
                                                 "| $key ($($value.displayName)) | $result<br/> |"
+                                            }
+                                        # appsVisibilityList
+                                        } elseif ($value.name) {
+                                            if ($subkey -notin ("name" )) {
+                                                "| $key ($($value.name)) | $result<br/> |"
                                             }
                                         } else {
                                             "| $key | $result<br/> |"
@@ -817,7 +823,7 @@ function ConvertToMarkdown-DeviceConfiguration {
                         $valueString = $value -split (" ")
                         foreach ($token in $valueString) {
                             if ($token.length -gt 50) {
-                                $result += $token.Substring(0, 49) + "... "
+                                $result += $token.Substring(0, 39) + "... "
                             }
                             else {
                                 $result += $token + " "
