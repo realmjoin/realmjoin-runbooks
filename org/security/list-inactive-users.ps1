@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  List users, that have no recent signins.
+  List users, that have no recent interactive signins.
 
   .DESCRIPTION
-  List users, that have no recent signins.
+  List users, that have no recent interactive signins.
 
   .NOTES
   Permissions: MS Graph
