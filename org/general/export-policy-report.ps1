@@ -47,7 +47,7 @@ function ConvertToMarkdown-PolicyAssignments {
     param(
         $assignments
     )
-
+    
     "| Assignment | Target |"
     "|-|-|"
     # enumerate the assignments, will not do anything if there are no assignments
@@ -69,20 +69,20 @@ function ConvertToMarkdown-PolicyAssignments {
         elseif ($assignment.target.'@odata.type' -eq "#microsoft.graph.allLicensedUsersAssignmentTarget") {
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
-                "| Included | All Users, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+                "| Included Groups | All Users, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
             }
             else {
-                "| Included | All Users |"
+                "| Included Groups | All Users |"
             }
         }
         # Include all devices
         elseif ($assignment.target.'@odata.type' -eq "#microsoft.graph.allDevicesAssignmentTarget") {
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
-                "| Included | All Devices, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+                "| Included Groups | All Devices, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
             }
             else {
-                "| Included | All Devices |"
+                "| Included Groups | All Devices |"
             }
         }
         elseif (($assignment.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "microsoft.graph.allDevicesExcludingGroupsAssignmentTarget")) {
@@ -395,7 +395,8 @@ function ConvertToMarkdown-CompliancePolicy {
                 #print the setting(property name) | its' value | Description as stored in key2 of the Hash
                 if ($key.length -gt 35) {
                     "|$($key.Substring(0, 34))...|$($policy.$key)|$($propHash.$odataType.$key)|"
-                } else {
+                }
+                else {
                     "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"       
                 }
             }
@@ -403,7 +404,8 @@ function ConvertToMarkdown-CompliancePolicy {
             elseif ($null -eq $propHash.$policy.$key) {
                 if ($key.length -gt 35) {
                     "|$($key.Substring(0, 34))...|$($policy.$key)|Not documented yet.|"
-                } else {
+                }
+                else {
                     "|$key|$($policy.$key)|Not documented yet.|"
                 }
             }
@@ -436,12 +438,44 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     "|-------|-----|-----------|"
     if ($policy.conditions.applications.includeApplications) {
         foreach ($app in $policy.conditions.applications.includeApplications) {
-            "|Include application|$app||"
+            if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
+                try {
+                    $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
+                    if ($null -ne $displayApp.value.appDescription) {
+                        "|Include application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
+                    }
+                    else {
+                        "|Include application|$($displayApp.value.displayName)||"
+                    }
+                }
+                catch {
+                    "|Include application|$app||"
+                }
+            }
+            else {
+                "|Include application|$app||"
+            }
         }
     }
     if ($policy.conditions.applications.excludeApplications) {
         foreach ($app in $policy.conditions.applications.excludeApplications) {
-            "|Exclude application|$app||"
+            if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
+                try {
+                    $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
+                    if ($null -ne $displayCloudApp.value.appDescription) {
+                        "|Exclude application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
+                    }
+                    else {
+                        "|Exclude application|$($displayApp.value.displayName)||"
+                    } 
+                }
+                catch {
+                    "|Exclude application|$app||"
+                }
+            }
+            else {
+                "|Exclude application|$app||"
+            }
         }
     }
     if ($policy.conditions.applications.includeUserActions) {
@@ -476,32 +510,78 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }
     if ($policy.conditions.users.includeGroups) {
         foreach ($group in $policy.conditions.users.includeGroups) {
-            "|Include group|$group||"
+            try {
+                $displayGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$group"
+                "|Include group|$($displayGroup.displayName)||"
+            }
+            catch {
+                "|Include group|$group||"
+            }
         }
     }
     if ($policy.conditions.users.excludeGroups) {
         foreach ($group in $policy.conditions.users.excludeGroups) {
-            "|Exclude group|$group||"
+            try {
+                $displayGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$group"
+                "|Exclude group|$($displayGroup.displayName)||"
+            }
+            catch {
+                "|Exclude group|$group||"
+            }
         }
     }
     if ($policy.conditions.users.includeRoles) {
         foreach ($role in $policy.conditions.users.includeRoles) {
-            "|Include role|$role||"
+            try {
+                $displayRole = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$role"
+                "|Include role|$($displayRole.displayName)|$($displayRole.description)|"
+            }
+            catch {
+                "|Include role|$role||"
+            }
         }
     }  
     if ($policy.conditions.users.excludeRoles) {
         foreach ($role in $policy.conditions.users.excludeRoles) {
-            "|Exclude role|$role||"
+            try {
+                $displayRole = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$role"
+                "|Exclude role|$($displayRole.displayName)|$($displayRole.description)|"
+            }
+            catch {
+                "|Exclude role|$role||"
+            }
         }
     }  
     if ($policy.conditions.users.includeUsers) {
         foreach ($user in $policy.conditions.users.includeUsers) {
-            "|Include user|$user||"
+            try {
+                if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
+                    $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
+                    "|Include user|$($displayUser.displayName)||"
+                }
+                else {
+                    "|Include user|$user||"
+                }
+            }
+            catch {
+                "|Include user|$user||"
+            }
         }
     }
     if ($policy.conditions.users.excludeUsers) {
         foreach ($user in $policy.conditions.users.excludeUsers) {
-            "|Exclude user|$user||"
+            try {
+                if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
+                    $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
+                    "|Exclude user|$($displayUser.displayName)||"
+                }
+                else {
+                    "|Exclude user|$user||"
+                }
+            } 
+            catch {
+                "|Exclude user|$user||"
+            }
         }
     }
     if ($policy.conditions.clientAppTypes) {
@@ -614,10 +694,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
 }
 
-
 function ConvertToMarkdown-ConfigurationPolicy {
-    # Still missing
-    # - assignments
 
     param(
         $policy
@@ -961,8 +1038,6 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
     catch {}
 }
 
-
-
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Sanity checks
@@ -993,7 +1068,7 @@ $headers = @{'X-IDENTITY-HEADER' = "$env:IDENTITY_HEADER" }
 $AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$($resourceURL)" -Method 'GET' -Headers $headers
 $accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
 
-#Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All"
+#Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All,Group.Read.All,User.Read.All,RoleManagement.Read.Directory"
 
 "## Connecting to Microsoft Graph..."
 
