@@ -436,12 +436,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     "|-------|-----|-----------|"
     if ($policy.conditions.applications.includeApplications) {
         foreach ($app in $policy.conditions.applications.includeApplications) {
-            if ($app -in ("Office365", "All")) {
-                "|Include application|$app||"
-            }
-            else {
-                <# Action when all if and elseif conditions are false #>
-            
+            if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
                 $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
                 if ($null -ne $displayApp.value.appDescription) {
                     "|Include application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
@@ -449,17 +444,14 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
                 else {
                     "|Include application|$($displayApp.value.displayName)||"
                 }
+            } else {
+                "|Include application|$app||"
             }
         }
     }
     if ($policy.conditions.applications.excludeApplications) {
         foreach ($app in $policy.conditions.applications.excludeApplications) {
-            if ($app -in ("Office365", "All")) {
-                "|Exclude application|$app||"
-            }
-            else {
-                <# Action when all if and elseif conditions are false #>
-            
+            if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
                 $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
                 if ($null -ne $displayCloudApp.value.appDescription) {
                     "|Exclude application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
@@ -467,6 +459,9 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
                 else {
                     "|Exclude application|$($displayApp.value.displayName)||"
                 }
+            }
+            else {
+                "|Exclude application|$app||"
             }
         }
     }
@@ -526,23 +521,23 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }  
     if ($policy.conditions.users.includeUsers) {
         foreach ($user in $policy.conditions.users.includeUsers) {
-            if ($user -eq "All") {
-                "|Include user|$user||"
-            }
-            else {
+            if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
                 $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
                 "|Include user|$($displayUser.displayName)||"
+            }
+            else {
+                "|Include user|$user||"
             }
         }
     }
     if ($policy.conditions.users.excludeUsers) {
         foreach ($user in $policy.conditions.users.excludeUsers) {
-            if ($user -eq "All") {
-                "|Include user|$user||"
-            }
-            else {
+            if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
                 $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
                 "|Exclude user|$($displayUser.displayName)||"
+            }
+            else {
+                "|Exclude user|$user||"
             }
         }
     }
