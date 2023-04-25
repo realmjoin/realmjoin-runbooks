@@ -395,7 +395,8 @@ function ConvertToMarkdown-CompliancePolicy {
                 #print the setting(property name) | its' value | Description as stored in key2 of the Hash
                 if ($key.length -gt 35) {
                     "|$($key.Substring(0, 34))...|$($policy.$key)|$($propHash.$odataType.$key)|"
-                } else {
+                }
+                else {
                     "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"       
                 }
             }
@@ -403,7 +404,8 @@ function ConvertToMarkdown-CompliancePolicy {
             elseif ($null -eq $propHash.$policy.$key) {
                 if ($key.length -gt 35) {
                     "|$($key.Substring(0, 34))...|$($policy.$key)|Not documented yet.|"
-                } else {
+                }
+                else {
                     "|$key|$($policy.$key)|Not documented yet.|"
                 }
             }
@@ -437,14 +439,20 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     if ($policy.conditions.applications.includeApplications) {
         foreach ($app in $policy.conditions.applications.includeApplications) {
             if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
-                $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
-                if ($null -ne $displayApp.value.appDescription) {
-                    "|Include application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
+                try {
+                    $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
+                    if ($null -ne $displayApp.value.appDescription) {
+                        "|Include application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
+                    }
+                    else {
+                        "|Include application|$($displayApp.value.displayName)||"
+                    }
                 }
-                else {
-                    "|Include application|$($displayApp.value.displayName)||"
+                catch {
+                    "|Include application|$app||"
                 }
-            } else {
+            }
+            else {
                 "|Include application|$app||"
             }
         }
@@ -452,12 +460,17 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     if ($policy.conditions.applications.excludeApplications) {
         foreach ($app in $policy.conditions.applications.excludeApplications) {
             if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
-                $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
-                if ($null -ne $displayCloudApp.value.appDescription) {
-                    "|Exclude application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
+                try {
+                    $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
+                    if ($null -ne $displayCloudApp.value.appDescription) {
+                        "|Exclude application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
+                    }
+                    else {
+                        "|Exclude application|$($displayApp.value.displayName)||"
+                    } 
                 }
-                else {
-                    "|Exclude application|$($displayApp.value.displayName)||"
+                catch {
+                    "|Exclude application|$app||"
                 }
             }
             else {
@@ -497,46 +510,76 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     }
     if ($policy.conditions.users.includeGroups) {
         foreach ($group in $policy.conditions.users.includeGroups) {
-            $displayGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$group"
-            "|Include group|$($displayGroup.displayName)||"
+            try {
+                $displayGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$group"
+                "|Include group|$($displayGroup.displayName)||"
+            }
+            catch {
+                "|Include group|$group||"
+            }
         }
     }
     if ($policy.conditions.users.excludeGroups) {
         foreach ($group in $policy.conditions.users.excludeGroups) {
-            $displayGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$group"
-            "|Exclude group|$($displayGroup.displayName)||"
+            try {
+                $displayGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$group"
+                "|Exclude group|$($displayGroup.displayName)||"
+            }
+            catch {
+                "|Exclude group|$group||"
+            }
         }
     }
     if ($policy.conditions.users.includeRoles) {
         foreach ($role in $policy.conditions.users.includeRoles) {
-            $displayRole = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$role"
-            "|Include role|$($displayRole.displayName)|$($displayRole.description)|"
+            try {
+                $displayRole = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$role"
+                "|Include role|$($displayRole.displayName)|$($displayRole.description)|"
+            }
+            catch {
+                "|Include role|$role||"
+            }
         }
     }  
     if ($policy.conditions.users.excludeRoles) {
         foreach ($role in $policy.conditions.users.excludeRoles) {
-            $displayRole = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$role"
-            "|Exclude role|$($displayRole.displayName)|$($displayRole.description)|"
+            try {
+                $displayRole = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$role"
+                "|Exclude role|$($displayRole.displayName)|$($displayRole.description)|"
+            }
+            catch {
+                "|Exclude role|$role||"
+            }
         }
     }  
     if ($policy.conditions.users.includeUsers) {
         foreach ($user in $policy.conditions.users.includeUsers) {
-            if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
-                $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
-                "|Include user|$($displayUser.displayName)||"
+            try {
+                if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
+                    $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
+                    "|Include user|$($displayUser.displayName)||"
+                }
+                else {
+                    "|Include user|$user||"
+                }
             }
-            else {
+            catch {
                 "|Include user|$user||"
             }
         }
     }
     if ($policy.conditions.users.excludeUsers) {
         foreach ($user in $policy.conditions.users.excludeUsers) {
-            if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
-                $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
-                "|Exclude user|$($displayUser.displayName)||"
-            }
-            else {
+            try {
+                if ($user -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
+                    $displayUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$user"
+                    "|Exclude user|$($displayUser.displayName)||"
+                }
+                else {
+                    "|Exclude user|$user||"
+                }
+            } 
+            catch {
                 "|Exclude user|$user||"
             }
         }
