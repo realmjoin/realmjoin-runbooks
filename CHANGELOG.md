@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-04-25
+* New Runbook: Create an Application Registration
+
 ## 2023-03-29
 * List inactive users: Supports listing users that have never logged on.
 * New runbook: List PIM groups wiothout owners
