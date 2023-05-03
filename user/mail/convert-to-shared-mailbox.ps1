@@ -170,7 +170,8 @@ try {
                         "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.ExternalDirectoryObjectId)"
                     }
                     Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members/`$ref" -Method Post -Body $body | Out-Null
-                } else {
+                }
+                else {
                     "## License group '$RegularLicenseGroup' already assigned to mailbox '$UserName'"
                 }
             }
@@ -194,7 +195,14 @@ try {
             $memberships = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/memberOf"
             $memberships | ForEach-Object {
                 "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($user.ExternalDirectoryObjectId)/`$ref" -Method Delete | Out-Null
+                if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
+                    "## .. using Graph API"
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($user.ExternalDirectoryObjectId)/`$ref" -Method Delete | Out-Null
+                }
+                else {
+                    "## .. using Exchange Online PowerShell"
+                    Remove-DistributionGroupMember -Identity $_.id -Member $UserName -BypassSecurityGroupManagerCheck -Confirm:$false | Out-Null
+                }
             }
         }
 
@@ -209,7 +217,8 @@ try {
                         "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.ExternalDirectoryObjectId)"
                     }
                     Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members/`$ref" -Method Post -Body $body | Out-Null
-                } else {
+                }
+                else {
                     "## License group '$ArchivalLicenseGroup' already assigned to mailbox '$UserName'"
                 }
             }
