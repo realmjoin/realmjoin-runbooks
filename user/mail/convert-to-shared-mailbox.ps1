@@ -194,6 +194,10 @@ try {
             # Remove all group memberships
             $memberships = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/memberOf"
             $memberships | ForEach-Object {
+                if ($_.GroupTypes -contains "DynamicMembership") {
+                    "## Skipping dynamic group '$($_.displayName)'"
+                    continue;
+                }
                 "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"
                 if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
                     "## .. using Graph API"
