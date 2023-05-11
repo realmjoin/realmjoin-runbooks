@@ -43,7 +43,7 @@
 
 #>
 
-#Requires -Modules PnP.PowerShell,RealmJoin.RunbookHelper
+#Requires -Modules RealmJoin.RunbookHelper,@{ModuleName = "PnP.PowerShell"; ModuleVersion = "1.12.0" }
 
 param(
     [string]$fromUser = "RoboReports@contoso.com",
