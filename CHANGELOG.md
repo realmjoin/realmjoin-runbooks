@@ -1,7 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
 ## 2023-05-11
-* Shared Links Report: Avoid problems on module import.
+* Convert to shared mailbox: Skip removing on-prem synced groups
 
 ## 2023-04-25
 * New Runbook: Create an Application Registration
