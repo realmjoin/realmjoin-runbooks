@@ -237,7 +237,10 @@ else {
     $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
 
     "## Waiting for Cloud PC to begin provisioning."
-    while (([array]$cloudPC).count -ne 1) {
+    [int]$maxCount = 90
+    [int]$count = 0
+    while ((([array]$cloudPC).count -ne 1) -and ($count -lt $maxCount)) {
+        $count++
         Start-Sleep -Seconds 15
         $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
         $cloudPC = $cloudPCs | Where-Object { (($_.servicePlanId -in $skuObj.servicePlans.servicePlanId) -and ($_.status -in @("notProvisioned","provisioning"))) }
@@ -247,11 +250,14 @@ else {
     "## Provisioning started. Waiting for Cloud PC to be ready."
     $cloudPCId = $cloudPC.id
     
+    [int]$maxCount = 90
+    [int]$count = 0
     do  {
-        $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$cloudPCId" -Beta
+        $count++
+        $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$cloudPCId" -Beta -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 60
         "."
-    } while ($cloudPC.status -notin @("provisioned", "failed"))
+    } while ($cloudPC.status -notin @("provisioned", "failed") -and $count -lt $maxCount)
  
     if ($cloudPC.status -eq "provisioned") {
         "## Cloud PC provisioned."
