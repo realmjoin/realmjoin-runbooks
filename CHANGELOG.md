@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-05-11
+* Shared Links Report: Avoid problems on module import.
+
 ## 2023-04-25
 * New Runbook: Create an Application Registration
 
