@@ -1,6 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
 ## 2023-05-11
+* Assign Win365: Support long deployment times
 * Convert to shared mailbox: Skip removing on-prem synced groups
 
 ## 2023-04-25
