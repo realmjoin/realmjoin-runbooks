@@ -198,6 +198,11 @@ try {
                     "## Skipping dynamic group '$($_.displayName)'"
                     continue;
                 }
+                if ($_.onPremisesSyncEnabled) {
+                    "## Skipping on-premises group '$($_.displayName)'"
+                    "## - please remove manually"
+                    continue;
+                }
                 "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"
                 if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
                     "## .. using Graph API"
