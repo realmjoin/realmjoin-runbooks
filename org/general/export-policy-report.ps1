@@ -1097,7 +1097,11 @@ subtitle: Report - v1.0.0
 header-center: v1.0.0
 description: v1.0.0
 author: glueckkanja-gab AG
-date: "April 2023"
+'@ > $outputFileMarkdown
+
+"date: $(get-date -Format 'MMMM yyyy')" >> $outputFileMarkdown
+
+@'
 keywords: [sla, services]
 geometry: landscape
 collapse: true
@@ -1111,7 +1115,7 @@ toc-own-page: true
 
 # Report
 
-'@ > $outputFileMarkdown
+'@ >> $outputFileMarkdown
 
 #region Configuration Policy (Settings Catalog, Endpoint Sec.)
 "## - Configuration Policies (Settings Catalog)"
