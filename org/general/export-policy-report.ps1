@@ -1277,9 +1277,9 @@ if ($exportJson) {
     }
 }
 
-# Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash
+# Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
 $content = Get-Content $outputFileMarkdown 
-$content = $content -replace '([0-9a-zA-z :_-])(\\+)([0-9a-zA-z :_-]|$)', '$1\\$3'
+$content = $content -replace '(?!^)([\\%])', '\$1'
 $content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
 $content | Set-Content $outputFileMarkdown -Encoding UTF8
 
