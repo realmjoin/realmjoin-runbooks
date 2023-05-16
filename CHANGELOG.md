@@ -30,8 +30,15 @@
 ## 2023-02-07
 * New Runbook: Export CloudPC Usage Statistics
 
+## 2023-02-01
+* New Runbook: Remove Room/Shared/Booking Mailbox
+
 ## 2023-01-31
 * New Feature: Assign/Unassign Windows365 Cloud PCs
+
+## 2023-01-30
+* New Feature: Manage MS Bookings
+* New Runbook: set-booking-config: Enable Bookings (tenant-wide)
 
 ## 2023-01-13
 * New Runbook: Sync all Intune Devices
