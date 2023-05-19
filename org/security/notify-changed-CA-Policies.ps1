@@ -46,7 +46,7 @@ Connect-RjRbGraph
 
 $Subject = "Created or modified Conditional Access Policies on " + (get-date -Format yyyy-MM-dd)
 $Body = "Hi Team,
-in the attachment of this Mail you find the list of Conditional Access Policies that are created or modified in the last 24 hours
+in the attachment of this Mail you will find the list of Conditional Access Policies that have been created or modified in the last 24 hours.
   
 Thanks,
 O365 Automation
@@ -60,7 +60,7 @@ foreach ($Policy in $AllPolicies) {
     $policyModifieddate = $Policy.modifiedDateTime
     $policyCreationdate = $Policy.createdDateTime 
     if (($policyModifieddate -gt $Currentdate) -or ($policyCreationdate -gt $Currentdate)) {
-        write-host "------There are policies updated in the last 24 hours, please refer txt file." -ForegroundColor Green
+        write-host "------There are policies updated in the last 24 hours, please refer to txt file." -ForegroundColor Green
         IF (($policyModifieddate)) {
             #$Modifiedpolicies += $policy
             $Modifiedpolicies += "PolicyID:$($policy.ID) & Name:$($policy.DisplayName) & Modified date:$policyModifieddate"
