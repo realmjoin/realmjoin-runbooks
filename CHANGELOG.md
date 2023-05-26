@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-05-26
+* New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
+
 ## 2023-05-11
 * Assign Win365: Support long deployment times
 * Convert to shared mailbox: Skip removing on-prem synced groups
