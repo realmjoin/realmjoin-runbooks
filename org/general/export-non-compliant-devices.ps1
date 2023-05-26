@@ -171,7 +171,7 @@ foreach ($device in $deviceToPolicy.Keys) {
 # Output full CSV
 if ($produceLinks) {
     $filename = "$(get-date -Format "yyyy-MM-dd")-non-compliant-devices.csv"
-    $fullCsv | convertto-csv -NoTypeInformation > $filename
+    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" > $filename
     
     Write-RjRbLog "Upload Full CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
@@ -184,7 +184,7 @@ if ($produceLinks) {
     $SASLink | Out-String
 }
 else {
-    $fullCsv | convertto-csv -NoTypeInformation | Out-String
+    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" | Out-String
 }
 ""
 
@@ -204,10 +204,10 @@ foreach ($device in $deviceToPolicy.Keys) {
 # Output statistics, sorted by number of non-compliant devices
 if ($produceLinks) {
     $filename = "$(get-date -Format "yyyy-MM-dd")-non-compliant-policies.csv"
-    "PolicyName, NonCompliantDevices, PolicyId" > $filename
+    "PolicyName;NonCompliantDevices;PolicyId" > $filename
     foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
         $policyObject = $policyStatistics[$policy][0]
-        "$($policyObject.PolicyName),$($policyStatistics[$policy][1]),$($policyObject.PolicyId)" >> $filename
+        "$($policyObject.PolicyName);$($policyStatistics[$policy][1]);$($policyObject.PolicyId)" >> $filename
     }
 
     Write-RjRbLog "Upload Policy CSV Report"
@@ -221,10 +221,10 @@ if ($produceLinks) {
     $SASLink | Out-String
 }
 else {
-    "PolicyName, NonCompliantDevices, PolicyId"
+    "PolicyName;NonCompliantDevices;PolicyId"
     foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
         $policyObject = $policyStatistics[$policy][0]
-        "$($policyObject.PolicyName),$($policyStatistics[$policy][1]),$($policyObject.PolicyId)"
+        "$($policyObject.PolicyName);$($policyStatistics[$policy][1]);$($policyObject.PolicyId)"
     }
 }
 ""
@@ -248,10 +248,10 @@ foreach ($device in $deviceToPolicy.Keys) {
 # Output statistics, sorted by number of non-compliant devices
 if ($produceLinks) {
     $filename = "$(get-date -Format "yyyy-MM-dd")-non-compliant-settings.csv"
-    "SettingName,NonCompliantDevices,SettingId" > $filename
+    "SettingName;NonCompliantDevices;SettingId" > $filename
     foreach ($setting in $settingStatistics.Keys | Sort-Object { $settingStatistics[$_][1] } -Descending) {
         $settingObject = $settingStatistics[$setting][0]
-        "$($settingObject.SettingName),$($settingStatistics[$setting][1]),$($settingObject.SettingId)" >> $filename
+        "$($settingObject.SettingName);$($settingStatistics[$setting][1]);$($settingObject.SettingId)" >> $filename
     }
 
     Write-RjRbLog "Upload Settings CSV Report"
@@ -265,10 +265,10 @@ if ($produceLinks) {
     $SASLink | Out-String
 }
 else {
-    "SettingName,NonCompliantDevices,SettingId"
+    "SettingName;NonCompliantDevices;SettingId"
     foreach ($setting in $settingStatistics.Keys | Sort-Object { $settingStatistics[$_][1] } -Descending) {
         $settingObject = $settingStatistics[$setting][0]
-        "$($settingObject.SettingName),$($settingStatistics[$setting][1]),$($settingObject.SettingId)"
+        "$($settingObject.SettingName);$($settingStatistics[$setting][1]);$($settingObject.SettingId)"
     }
 }
 ""
