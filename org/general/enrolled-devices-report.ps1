@@ -326,10 +326,10 @@ try {
     }
 
     if ($groupingSource -eq 0) {
-      $data | Sort-Object -Property $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
+      $data | Sort-Object -Property $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute | ConvertTo-Csv -NoTypeInformation -Delimiter ";" > enrolled-devices.csv
     }
     else {
-      $data | Sort-Object -Property $groupingAttribute, $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute, $groupingAttribute | ConvertTo-Csv -NoTypeInformation > enrolled-devices.csv
+      $data | Sort-Object -Property $groupingAttribute, $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute, $groupingAttribute | ConvertTo-Csv -NoTypeInformation -Delimiter ";" > enrolled-devices.csv
     }
 
     ""
@@ -353,6 +353,8 @@ try {
     }
  
     # Upload
+    $content = get-content -Path "enrolled-devices.csv"
+    Set-Content -Path "enrolled-devices.csv" -Value $content -Encoding UTF8
     Set-AzStorageBlobContent -File "enrolled-devices.csv" -Container $ContainerName -Blob "enrolled-devices.csv" -Context $context -Force | Out-Null
  
     #Create signed (SAS) link

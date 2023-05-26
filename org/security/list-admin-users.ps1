@@ -185,28 +185,30 @@ if ($exportToFile) {
     $filename = "AdminRoleOverview.csv"
     [string]$output = "UPN,"
     $roles | ForEach-Object {
-        $output += $_.displayName + ","
+        $output += $_.displayName + ";"
     }
     $output > $filename
 
     $AdminUsers | ForEach-Object {
         $AdminUPN = $_
         $AdminObject = Invoke-RjRbRestMethodGraph -Resource "/users/$AdminUPN"
-        [string]$output = $AdminUPN + ","
+        [string]$output = $AdminUPN + ";"
         $roles | ForEach-Object {
             $roleDefinitionId = $_.id
             if ($allRoleHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminObject.id) }) {
-                $output += "x,"
+                $output += "x;"
             }
             elseif ($allPimHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminObject.id) }) {
-                $output += "p,"
+                $output += "p;"
             }
             else {
-                $output += ","
+                $output += ";"
             }
         }
         $output >> $filename
     }
+    $content = Get-Content $filename
+    set-content -Path $filename -Value $content -Encoding utf8
 
     Connect-RjRbAzAccount
   
