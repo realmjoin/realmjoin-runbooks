@@ -3,6 +3,7 @@
 ## 2023-05-26
 * New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
 * Bugfix: List Admin Users: Some roleassignments were not listed
+* Change Exports to use ";" as delimiter and UTF8 file format for all runbooks
 
 ## 2023-05-11
 * Assign Win365: Support long deployment times
