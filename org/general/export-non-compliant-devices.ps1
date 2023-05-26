@@ -171,7 +171,7 @@ foreach ($device in $deviceToPolicy.Keys) {
 # Output full CSV
 if ($produceLinks) {
     $filename = "$(get-date -Format "yyyy-MM-dd")-non-compliant-devices.csv"
-    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" -Encoding Unicode > $filename
+    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" > $filename
     
     Write-RjRbLog "Upload Full CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
@@ -184,7 +184,7 @@ if ($produceLinks) {
     $SASLink | Out-String
 }
 else {
-    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" -Encoding Unicode | Out-String
+    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" | Out-String
 }
 ""
 
