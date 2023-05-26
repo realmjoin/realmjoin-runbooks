@@ -25,7 +25,7 @@
 
 param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.Container" } )]
-    [string] $ContainerName,
+    [string] $ContainerName="IntuneDevicesReport",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.StorageAccount.Name" } )]
@@ -99,7 +99,9 @@ try {
     }
 
     $fileName = "intune-devices-$(get-date -Format "yyyy-MM-dd").csv"
-    $Exportdevices | ConvertTo-Csv > $fileName
+    $Exportdevices | ConvertTo-Csv -Delimiter ";" -NoTypeInformation > $fileName
+    $content = Get-Content $fileName
+    Set-Content -Path $fileName -Value $content -Encoding utf8
 
     Write-RjRbLog "Upload"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null

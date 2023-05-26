@@ -167,6 +167,8 @@ try {
         
         }
     }
+    $content = Get-Content -Path "enterpriseApps.csv"
+    set-content -Path "enterpriseApps.csv" -Value $content -Encoding UTF8
 
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue

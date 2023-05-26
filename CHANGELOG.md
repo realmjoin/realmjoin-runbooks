@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-05-26
+* New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
+* Bugfix: List Admin Users: Some roleassignments were not listed
+* Change Exports to use ";" as delimiter and UTF8 file format for all runbooks
+
 ## 2023-05-11
 * Assign Win365: Support long deployment times
 * Convert to shared mailbox: Skip removing on-prem synced groups
@@ -30,8 +35,15 @@
 ## 2023-02-07
 * New Runbook: Export CloudPC Usage Statistics
 
+## 2023-02-01
+* New Runbook: Remove Room/Shared/Booking Mailbox
+
 ## 2023-01-31
 * New Feature: Assign/Unassign Windows365 Cloud PCs
+
+## 2023-01-30
+* New Feature: Manage MS Bookings
+* New Runbook: set-booking-config: Enable Bookings (tenant-wide)
 
 ## 2023-01-13
 * New Runbook: Sync all Intune Devices
