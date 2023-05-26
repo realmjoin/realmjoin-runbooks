@@ -95,7 +95,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph
 
 ## Get builtin AzureAD Roles
-$roles = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
+$roles = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true" -FollowPaging
 
 if ([array]$roles.count -eq 0) {
     "## Error - No AzureAD roles found. Missing permissions?"
@@ -103,8 +103,8 @@ if ([array]$roles.count -eq 0) {
 }
 
 ## Performance issue - Get all role assignments at once
-$allRoleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -ErrorAction SilentlyContinue
-$allPimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -ErrorAction SilentlyContinue
+$allRoleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -FollowPaging -ErrorAction SilentlyContinue
+$allPimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -FollowPaging -ErrorAction SilentlyContinue
 
 $AdminUsers = @()
 
