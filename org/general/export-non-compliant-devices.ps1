@@ -172,6 +172,8 @@ foreach ($device in $deviceToPolicy.Keys) {
 if ($produceLinks) {
     $filename = "$(get-date -Format "yyyy-MM-dd")-non-compliant-devices.csv"
     $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" > $filename
+    $content = Get-Content $filename
+    Set-Content -Path $filename -Value $content -Encoding UTF8
     
     Write-RjRbLog "Upload Full CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
@@ -209,6 +211,8 @@ if ($produceLinks) {
         $policyObject = $policyStatistics[$policy][0]
         "$($policyObject.PolicyName);$($policyStatistics[$policy][1]);$($policyObject.PolicyId)" >> $filename
     }
+    $content = Get-Content $filename
+    Set-Content -Path $filename -Value $content -Encoding UTF8
 
     Write-RjRbLog "Upload Policy CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
@@ -253,6 +257,8 @@ if ($produceLinks) {
         $settingObject = $settingStatistics[$setting][0]
         "$($settingObject.SettingName);$($settingStatistics[$setting][1]);$($settingObject.SettingId)" >> $filename
     }
+    $content = Get-Content $filename
+    Set-Content -Path $filename -Value $content -Encoding UTF8
 
     Write-RjRbLog "Upload Settings CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
