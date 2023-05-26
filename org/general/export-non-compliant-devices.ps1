@@ -12,6 +12,8 @@
     Storage Account (optional)
 #>
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "IntuneDevicesReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
