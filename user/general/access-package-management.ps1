@@ -99,35 +99,45 @@ Connect-RjRbGraph
 ## User
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
-    throw ("## User $UserName not found. Try again.")
+    throw ("## User '$UserName' not found. Check spelling and try again.")
 }
 
 ## Catalog
 $targetCatalog = Invoke-RjRbRestMethodGraph -Method GET -Resource "/identityGovernance/entitlementManagement/accessPackageCatalogs" -OdFilter "displayName eq '$Catalog'" -Beta
+if (!($targetCatalog.id -eq "2f3f7d4b-f2c2-4cf7-9493-607976ec418f")){
+    ## Instone specific setting
+    "## Doesn't match Instone Catalog 'Bauprojekte'."
+}
 if (-not $targetCatalog) {
-    throw ("## Catalog $Catalog not found. Try again.")
+    throw ("## Catalog '$Catalog' not found. Check spelling and try again.")
 }
 
 ## Access Package
-$targetPackage = Invoke-RjRbRestMethodGraph -Method Get -Resource "/identityGovernance/entitlementManagement/accessPackages" -OdFilter "displayName eq '$accessPackage'" -Beta
+$targetPackage = Invoke-RjRbRestMethodGraph -Method Get -Resource "/identityGovernance/entitlementManagement/accessPackages" -OdFilter "displayName eq '$accessPackage'"
 if (-not $targetPackage) {
-    throw ("## Access Package $accessPackage not found in catalog. Try again.")
+    throw ("## Access Package '$accessPackage' not found in catalog. Check spelling and try again.")
+}
+
+## Assignment Policy
+$targetPolicy = Invoke-RjRbRestMethodGraph -Method Get -Resource "/identityGovernance/entitlementManagement/assignmentPolicies" -OdFilter "displayName eq '$Policy'"
+if (-not $targetPolicy) {
+    throw ("## Assignment Policy '$Policy' not found. Check spelling and try again.")
 }
 
 ## --------------end region--------------- 
 
 
 ## Find the request of the User 
-$requests = Invoke-RjRbRestMethodGraph -Method Get -Resource "/identityGovernance/entitlementManagement/assignmentRequests" -UriQueryRaw "`?`$expand=requestor"
+$requests = Invoke-RjRbRestMethodGraph -Method Get -Resource "/identityGovernance/entitlementManagement/accessPackageAssignmentRequests" -UriQueryRaw "`?`$expand=accessPackage,requestor" -Beta
 foreach ($request in $requests) {
-    if ($request.requestor.objectId -eq $targetUser.id) {
+    if ($request.requestor.objectId -eq $targetUser.id -and $request.requestState -eq "pendingApproval" -and $request.accessPackage.id -eq $targetPackage.id) {
         "## Request found. Proceeding with action."
-        $request ##delete later, just want to see output
-        ##TODO: process the chosen action and send notification email if chosen.
-
+        $request ## Delete later, for dev purposes only 
         if ($Action) {
             "## Approving Request $($request.id) and assigning the resources of the package to User $UserName."
-            ##TODO: Graph POST query to approve the request and assign the resources. Set $request.state to 
+            ##TODO: Graph POST query to approve the request and assign the resources. Set $request.state to resolved(?)
+
+            
 
             ## Send mail?
             if ($sendNotificationMail) {
@@ -190,7 +200,7 @@ foreach ($request in $requests) {
             }
         }
     }
-    else {
+    elseif($null -eq $request) {
         throw ("## User's Assignment Request could not be found. Double check with User if the request has been made.")
     }
 }
