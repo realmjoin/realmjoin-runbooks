@@ -12,6 +12,8 @@
     }
 #>
 
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+
 param(
     [bool] $sendEmailIfFound = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Sender mail address" } )]
