@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-15
+* Require update of RealmJoin.RunbookHelper to 0.8.1 prevent potential token leakage.
+
 ## 2023-05-26
 * New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
 * Bugfix: List Admin Users: Some roleassignments were not listed
