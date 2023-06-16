@@ -2,6 +2,7 @@
 
 ## 2023-06-15
 * Require update of RealmJoin.RunbookHelper to 0.8.1 prevent potential token leakage.
+* New Runbook: Add Viva Engage (Yammer) Community
 
 ## 2023-05-26
 * New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
