@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-16
+* Add equipment/room/shared mailbox: AAD user object is disabled by default.
+
 ## 2023-06-15
 * Require update of RealmJoin.RunbookHelper to 0.8.1 prevent potential token leakage.
 * New Runbook: Add Viva Engage (Yammer) Community
