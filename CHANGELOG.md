@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-19
+* Convert to Shared Mailbox - Dis-/Enable User on cornversion and fixed potential issue with missing steps  
+
 ## 2023-06-16
 * Add equipment/room/shared mailbox: AAD user object is disabled by default.
 
