@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-20
+* Wipe Device: Support for Protected Wipe
+
 ## 2023-06-19
 * Convert to Shared Mailbox - Dis-/Enable User on cornversion and fixed potential issue with missing steps  
 
