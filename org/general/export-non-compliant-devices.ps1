@@ -77,18 +77,25 @@ $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevice
 $deviceToPolicy = @{}
 foreach ($id in $devices.id) {
     $body = @{
-        select  = @(
-        )
         skip    = 0
         top     = 100
-        filter  = "(DeviceId eq '$id')"
+        filter  = "(DeviceId eq '4aa8685b-5aac-4a9b-89e0-8a7245d1b165')"
         orderBy = @(
             "PolicyName asc"
         )
         search  = ""
     }
     #"## DeviceId: $id"
-    $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+    $result = $null
+    try {
+        $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+    }
+    catch {
+        "## Throttling exceeded - Waiting/Cooldown 2min"
+        Start-Sleep -Seconds 120
+        Connect-RjRbGraph -Force
+        $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+    }
     $policies = @{}
     foreach ($row in $result.Values) {
         $properties = @{}
@@ -108,7 +115,16 @@ foreach ($id in $devices.id) {
                 )
                 search  = ""
             }
-            $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+            $settingsResult = $null
+            try {
+                $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+            }
+            catch {
+                "## Throttling exceeded - Waiting/Cooldown 2min"
+                Start-Sleep -Seconds 120
+                Connect-RjRbGraph -Force
+                $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+            }
             $settings = @{}
             foreach ($settingsRow in $settingsResult.Values) {
                 $settingsProperties = @{}
