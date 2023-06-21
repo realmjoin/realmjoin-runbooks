@@ -1281,10 +1281,16 @@ if ($exportJson) {
     }
 }
 
-# Make sure Markdown is UTF8 and make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
-$content = Get-Content $outputFileMarkdown 
+# Remove harmfull characters
+
+# Read Markdown into variable
+$content = Get-Content $outputFileMarkdown
+# Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
 $content = $content -replace '(?!^)([\\%])', '\$1'
-$content = $content -replace '^| TYPE: #(.*) not yet supported ||$', ''
+# Replace all cyrillic characters with "." (unless intended LaTeX)
+$content = $content -replace '[\u0400-\u04FF]', '.'
+
+# Make sure Markdown is UTF8
 $content | Set-Content $outputFileMarkdown -Encoding UTF8
 
 # Upload markdown file

@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-21
+* Export Policy Report - Ignore cyrillic characters (as PanDocs does not support them).
+
+## 2023-06-20
+* Wipe Device: Support for Protected Wipe
+
 ## 2023-06-19
 * Convert to Shared Mailbox - Dis-/Enable User on cornversion and fixed potential issue with missing steps  
 
