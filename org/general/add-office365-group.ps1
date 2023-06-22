@@ -63,7 +63,7 @@ param(
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # How long to wait in seconds for a group to propagate to the Teams service
-[int]$teamsTimer = 15
+[int]$teamsTimer = 75
 
 # Input Validations - from user feedback.
 if ($MailNickname.GetEnumerator() -contains " ") {
