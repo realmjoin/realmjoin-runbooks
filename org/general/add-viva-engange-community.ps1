@@ -11,6 +11,14 @@
 .PARAMETER CommunityOwners
     The owners of the community. Comma seperated list of UPNs.
 
+.INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules "RealmJoin.RunbookHelper"
@@ -20,8 +28,14 @@ param(
     [string]$CommunityName = "Sample Community",
     [bool]$CommunityPrivate = $false,
     [bool]$CommunityShowInDirectory = $true,
-    [string]$CommunityOwners = ""
+    [string]$CommunityOwners = "",
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove initial API user/owner from group." } )]
+    [bool]$removeCreatorFromGroup = $true,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # "Authenticate" to Yammer
 #viva engage / yammer dev token - Create one at: https://www.yammer.com/client_applications/
@@ -80,64 +94,72 @@ try {
     "## Group '$($aadGroup.DisplayName)' found in Azure AD."
 }
 catch {
-    Write-Error "Could not create group"
+    "## Could not create group - Exiting..."
+    $_
     throw "Group creation failed"
 }
 
 if ($CommunityOwners) {
     try {
+        $currentOwners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/owners" -ErrorAction SilentlyContinue
         # Parse owners
-        $paramCommunityOwnersArray = $CommunityOwners.Split(',');
-        $paramCommunityOwnersArray | ForEach-Object {
-            $ownerUpn = $_;
-            $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$ownerUpn" -ErrorAction SilentlyContinue
-
-            if ($targetUser -eq $null) {
-                "## User '$ownerUpn' not found in Azure AD - Skipping."
-            }
-            else {
-                $body = @{
-                    "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
+        $paramCommunityOwnersArray = @()
+        $CommunityOwners.Split(',') | ForEach-Object {
+            $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$_" -ErrorAction SilentlyContinue
+            if ($targetUser) {
+                if ($removeCreatorFromGroup -and ($currentOwners.userPrincipalName -contains $targetUser.userPrincipalName)) {
+                    "## Community Creator '$($targetUser.userPrincipalName)' appointed as owner. Will not remove API user..."
+                    $removeCreatorFromGroup = $false
+                } elseif ($paramCommunityOwnersArray.userPrincipalName -notcontains $targetUser.userPrincipalName) {
+                    $paramCommunityOwnersArray += $targetUser
                 }
-
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/owners/`$ref" -Method Post -Body $body | Out-Null
-                "## '$ownerUpn' is added to '$($aadGroup.DisplayName)' owners."  
-        
-                # Owners also have to be members
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/members/`$ref" -Method Post -Body $body | Out-Null
-                "## '$ownerUpn' is added to '$($aadGroup.DisplayName)' members." 
             }
+        }
+        $paramCommunityOwnersArray | ForEach-Object {
+            $targetUser = $_
+            $body = @{
+                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
+            }
+
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/owners/`$ref" -Method Post -Body $body | Out-Null
+            "## '$($targetUser.userPrincipalName)' is added to '$($aadGroup.DisplayName)' owners."  
+        
+            # Owners also have to be members
+            Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/members/`$ref" -Method Post -Body $body | Out-Null
+            "## '$($targetUser.userPrincipalName)' is added to '$($aadGroup.DisplayName)' members." 
         }
     }
     catch {
         "## Could not add owners to group. Exiting..."
+        $_
         throw "Group owner assignment failed"
     }
 
-    #remove api user from group. Will only work if there is at least one other owner!
-    $retryCount = 0
-    $requestFailed = $true 
-    while ($requestFailed -and ($retryCount -lt 10)) {
-        $requestFailed = $false            
-        try {
-            $result = Invoke-RestMethod -Method delete -Headers $headers -Uri ($apiGroupMembershipUri + '?group_id=' + $apiCreateGroupResponse.id + '&user_id=' + $apiCreateGroupResponse.creator_id) -UserAgent $scriptUserAgent 
-        }
-        catch {
-            "## Could not remove API user from group. Waiting 10 seconds and retrying."
-            $requestFailed = $true
-            $retryCount++
-            Start-Sleep -Seconds 10
+    if ($removeCreatorFromGroup) {
+        #remove api user from group. Will only work if there is at least one other owner!
+        $retryCount = 0
+        $requestFailed = $true 
+        while ($requestFailed -and ($retryCount -lt 10)) {
+            $requestFailed = $false            
+            try {
+                $result = Invoke-RestMethod -Method delete -Headers $headers -Uri ($apiGroupMembershipUri + '?group_id=' + $apiCreateGroupResponse.id + '&user_id=' + $apiCreateGroupResponse.creator_id) -UserAgent $scriptUserAgent 
+            }
+            catch {
+                "## Could not remove API user from group. Waiting 10 seconds and retrying."
+                $requestFailed = $true
+                $retryCount++
+                Start-Sleep -Seconds 10
+            } 
         } 
+        if ($requestFailed) {
+            "## Could not remove API user from group. Exiting..."
+            $_
+            throw "Could not remove API user from group"
+        }
+        else {
+            "## Removed API user from group."
+        }
     } 
-    if ($requestFailed) {
-        "## Could not remove API user from group. Exiting..."
-        throw "Could not remove API user from group"
-    }
-    else {
-        "## Removed API user from group."
-    }
-
-}
-else {
-    "## No owners specified. API user will remain owner of group."
+} else {
+    "## No owners specified. Skipping owner assignment/removal."
 }
