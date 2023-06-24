@@ -79,7 +79,7 @@ foreach ($id in $devices.id) {
     $body = @{
         skip    = 0
         top     = 100
-        filter  = "(DeviceId eq '4aa8685b-5aac-4a9b-89e0-8a7245d1b165')"
+        filter  = "(DeviceId eq '$id')"
         orderBy = @(
             "PolicyName asc"
         )
@@ -91,10 +91,15 @@ foreach ($id in $devices.id) {
         $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
     }
     catch {
-        "## Throttling exceeded - Waiting/Cooldown 2min"
-        Start-Sleep -Seconds 120
-        Connect-RjRbGraph -Force
-        $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+        if ($_.Exception.Response.StatusCode.value__ -eq 429) {
+            "## Throttling exceeded - Waiting/Cooldown 2min"
+            Start-Sleep -Seconds 120
+            Connect-RjRbGraph -Force
+            $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging    
+        }
+        else {
+            throw $_
+        }
     }
     $policies = @{}
     foreach ($row in $result.Values) {
@@ -120,10 +125,15 @@ foreach ($id in $devices.id) {
                 $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
             }
             catch {
-                "## Throttling exceeded - Waiting/Cooldown 2min"
-                Start-Sleep -Seconds 120
-                Connect-RjRbGraph -Force
-                $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+                if ($_.Exception.Response.StatusCode.value__ -eq 429) {
+                    "## Throttling exceeded - Waiting/Cooldown 2min"
+                    Start-Sleep -Seconds 120
+                    Connect-RjRbGraph -Force
+                    $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+                }
+                else {
+                    throw $_ 
+                }
             }
             $settings = @{}
             foreach ($settingsRow in $settingsResult.Values) {
