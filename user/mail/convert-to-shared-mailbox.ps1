@@ -66,7 +66,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
 
 param
 (
@@ -122,7 +122,6 @@ try {
     }
 
     [bool] $archivalLicNeeded = $false
-    ""
     "## Check Mailbox Size"
     $stats = Get-EXOMailboxStatistics -Identity $UserName
     if ($stats.TotalItemSize.Value -gt 50GB) {
@@ -130,7 +129,6 @@ try {
         $archivalLicNeeded = $true
     }
 
-    ""
     "## Check for litigation hold"
     $result = Get-Mailbox -Identity $UserName
     if ($result.LitigationHoldEnabled) {
@@ -138,7 +136,6 @@ try {
         $archivalLicNeeded = $true
     }    
 
-    ""
     "## Check for Mailbox Archive"
     # Not using "ArchiveState", see https://docs.microsoft.com/en-us/office365/troubleshoot/archive-mailboxes/archivestatus-set-none 
     if (($result.ArchiveGuid -and ($result.ArchiveGuid.GUID -ne "00000000-0000-0000-0000-000000000000")) -or ($result.ArchiveDatabase)) {
@@ -177,12 +174,29 @@ try {
             }
         }        
     
+        "## Enabling user object '$UserName'"
+        $userObj = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
+        $body = @{
+            accountEnabled = $true
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/users/$($userObj.id)" -Method Patch -Body $body | Out-Null
+
         "## Turning mailbox '$UserName' into regular user mailbox"
-        Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null
+        Set-Mailbox $UserName -Type regular -GrantSendOnBehalfTo $null | Out-Null
+
+        ""
+        "## Success: Mailbox '$UserName' is now a regular mailbox."
     }
     else {
+        "## Disabling user object '$UserName' (no login for shared mailboxes)"
+        $userObj = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
+        $body = @{
+            accountEnabled = $false
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/users/$($userObj.id)" -Method Patch -Body $body | Out-Null
+
         "## Turning mailbox '$UserName' into shared mailbox"
-        Set-Mailbox $UserName -Type shared
+        Set-Mailbox $UserName -Type shared | Out-Null
         # Add access
         if ($delegateTo) {
             $delegateObj = Invoke-RjRbRestMethodGraph -Resource "/users/$delegateTo"
@@ -196,21 +210,21 @@ try {
             $memberships | ForEach-Object {
                 if ($_.GroupTypes -contains "DynamicMembership") {
                     "## Skipping dynamic group '$($_.displayName)'"
-                    continue;
                 }
-                if ($_.onPremisesSyncEnabled) {
+                elseif ($_.onPremisesSyncEnabled) {
                     "## Skipping on-premises group '$($_.displayName)'"
                     "## - please remove manually"
-                    continue;
-                }
-                "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"
-                if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
-                    "## .. using Graph API"
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($user.ExternalDirectoryObjectId)/`$ref" -Method Delete | Out-Null
                 }
                 else {
-                    "## .. using Exchange Online PowerShell"
-                    Remove-DistributionGroupMember -Identity $_.id -Member $UserName -BypassSecurityGroupManagerCheck -Confirm:$false | Out-Null
+                    "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"
+                    if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
+                        "## .. using Graph API"
+                        Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($user.ExternalDirectoryObjectId)/`$ref" -Method Delete | Out-Null
+                    }
+                    else {
+                        "## .. using Exchange Online PowerShell"
+                        Remove-DistributionGroupMember -Identity $_.id -Member $UserName -BypassSecurityGroupManagerCheck -Confirm:$false | Out-Null
+                    }
                 }
             }
         }
@@ -231,7 +245,10 @@ try {
                     "## License group '$ArchivalLicenseGroup' already assigned to mailbox '$UserName'"
                 }
             }
-        }        
+        } 
+
+        ""
+        "## Success: Mailbox '$UserName' is now a shared mailbox."
     }
 
     ""

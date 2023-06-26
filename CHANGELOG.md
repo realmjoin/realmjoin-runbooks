@@ -1,5 +1,26 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-21
+* Export Policy Report - Ignore cyrillic characters (as PanDocs does not support them).
+
+## 2023-06-20
+* Wipe Device: Support for Protected Wipe
+
+## 2023-06-19
+* Convert to Shared Mailbox - Dis-/Enable User on cornversion and fixed potential issue with missing steps  
+
+## 2023-06-16
+* Add equipment/room/shared mailbox: AAD user object is disabled by default.
+
+## 2023-06-15
+* Require update of RealmJoin.RunbookHelper to 0.8.1 prevent potential token leakage.
+* New Runbook: Add Viva Engage (Yammer) Community
+
+## 2023-05-26
+* New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
+* Bugfix: List Admin Users: Some roleassignments were not listed
+* Change Exports to use ";" as delimiter and UTF8 file format for all runbooks
+
 ## 2023-05-11
 * Assign Win365: Support long deployment times
 * Convert to shared mailbox: Skip removing on-prem synced groups
@@ -30,8 +51,15 @@
 ## 2023-02-07
 * New Runbook: Export CloudPC Usage Statistics
 
+## 2023-02-01
+* New Runbook: Remove Room/Shared/Booking Mailbox
+
 ## 2023-01-31
 * New Feature: Assign/Unassign Windows365 Cloud PCs
+
+## 2023-01-30
+* New Feature: Manage MS Bookings
+* New Runbook: set-booking-config: Enable Bookings (tenant-wide)
 
 ## 2023-01-13
 * New Runbook: Sync all Intune Devices

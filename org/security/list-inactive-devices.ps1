@@ -63,7 +63,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Number of days without Sync/Login being considered inactive." } )]
@@ -198,12 +198,15 @@ if ($ExportToFile) {
     
         if ($Sync) {
             $FileName = "$(Get-Date -Format "yyyy-MM-dd")-stale-sync-devices.csv"
-            $Exportdevices | ConvertTo-Csv > $FileName
+            $Exportdevices | ConvertTo-Csv -Delimiter ";" > $FileName
         }
         else {
             $FileName = "$(Get-Date -Format "yyyy-MM-dd")-stale-login-devices.csv"
-            $Exportdevices | ConvertTo-Csv > $FileName
+            $Exportdevices | ConvertTo-Csv -Delimiter ";" > $FileName
         }
+        $content = Get-Content -Path $FileName 
+        set-content -Path $FileName -Value $content -Encoding utf8
+        
         # Upload
         Set-AzStorageBlobContent -File $FileName -Container $ContainerName -Blob $FileName -Context $context -Force | Out-Null
     

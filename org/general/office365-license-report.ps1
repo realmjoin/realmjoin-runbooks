@@ -56,7 +56,7 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
@@ -202,7 +202,9 @@ function Get-LicenseOverviewReport {
     ""
     if ($TXTPath) {
         #$results | sort-object -property Name | format-table > "$($TXTPath)\office-licensing.txt"
-        $results | sort-object -property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation 
+        $results | sort-object -property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation -Delimiter ";"
+        $content = Get-Content -Path "$($TXTPath)\office-licensing.csv"
+        set-content -Path "$($TXTPath)\office-licensing.csv" -Value $content -Encoding utf8
     }
 }
 
@@ -212,10 +214,12 @@ function Get-UnusedLicenseReport {
     )
     try {
         $Path = $CSVPath + "\unusedlicense.csv"
-        '"skuPartNumber","ActiveUnits","ConsumedUnits","LockedOutUnits"' > $Path
+        '"skuPartNumber";"ActiveUnits";"ConsumedUnits";"LockedOutUnits"' > $Path
         $SKUs | ForEach-Object {
-            $_.skuPartNumber + "," + $_.prepaidUnits.enabled + "," + $_.consumedUnits + "," + $_.prepaidUnits.suspended >> $Path
+            $_.skuPartNumber + ";" + $_.prepaidUnits.enabled + ";" + $_.consumedUnits + ";" + $_.prepaidUnits.suspended >> $Path
         } 
+        $content = Get-Content -Path $Path
+        set-content -Path $Path -Value $content -Encoding utf8
     }
     catch {
         "## Error fetching unused licenses"
@@ -232,9 +236,11 @@ function Get-SharedMailboxLicensing {
     $mailbox = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox 
     foreach ($mail in $mailbox) {
         if (Invoke-RjRbRestMethodGraph -Resource "/users/$($mail.UserPrincipalName)/licenseDetails" -ErrorAction SilentlyContinue) {
-            Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation
+            Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
         }
     }
+    $content = Get-Content -Path $CSVPath
+    set-content -Path $CSVPath -Value $content -Encoding utf8
 }
 
 function Get-GraphReports {
@@ -294,12 +300,13 @@ function Get-LoginLogs {
 
     foreach ($app in $Applications) {
         "## ... $app"
+        $appFileName = $app.Replace(" ", "")
         # Slow down to avoid http 429 errors
         Start-Sleep -Seconds 5
         $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"        
         $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter 
-        $outputFile = $CSVPath + "\" + "Audit-" + $app + ".csv"
-        $logs | ConvertTo-Csv -NoTypeInformation | Add-Content -Path $outputFile
+        $outputFile = $CSVPath + "\" + "Audit-" + $appFileName + ".csv"
+        $logs | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Add-Content -Path $outputFile -Encoding utf8
     }
 }
 
@@ -317,7 +324,7 @@ function Get-AssignedPlans {
         $thisUser = $_
         #        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
         (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
-    } | ConvertTo-Csv -NoTypeInformation | Out-File $Path -Append
+    } | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Out-File $Path -Append -Encoding utf8
 }   
 function Get-LicenseAssignmentPath {
     [cmdletbinding()]
@@ -339,9 +346,11 @@ function Get-LicenseAssignmentPath {
             $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force 
             $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -value $UserHasLicenseAssignedDirectly -Force
             $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -value $UserHasLicenseAssignedFromGroup -Force
-            $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation
+            $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation -Delimiter ";"
         }
     }
+    $content = Get-Content $Path
+    set-content -Path $Path -value $content -Encoding utf8
 }  
 function Get-LicensingGroups {
     [cmdletbinding()]
@@ -354,14 +363,16 @@ function Get-LicensingGroups {
     foreach ($group in $groups) {
         $LicenseString = ""
         foreach ($assignedLicense in  $group.assignedLicenses) {
-            $LicenseString += $SkuHashtable[$assignedLicense.skuId] + "; "
+            $LicenseString += $SkuHashtable[$assignedLicense.skuId] + ", "
         }
         $obj = New-Object pscustomobject -Property @{
             GroupLicense = $LicenseString
             GroupName    = $group.displayName
             GroupId      = $group.id
         }
-        $obj | Export-Csv $Path -Append -NoTypeInformation
+        $obj | Export-Csv $Path -Append -NoTypeInformation -Delimiter ";"
+        $content = Get-Content $Path
+        set-content -Path $Path -value $content -Encoding utf8
     } 
 }   
 
@@ -400,7 +411,9 @@ function Get-AdminReport {
             }
         }
     }
-    $msolUserResults | Select-Object -Property * | Export-Csv -notypeinformation -Path $Path 
+    $msolUserResults | Select-Object -Property * | Export-Csv -notypeinformation -Path $Path -Delimiter ";"
+    $content = Get-Content $Path
+    set-content -Path $Path -value $content -Encoding utf8
 }
 
 # start of main script
@@ -431,7 +444,9 @@ if ($exportToFile) {
     Get-LoginLogs -CSVPath $OutPutPath
 
     "## Collecting: All user objects"
-    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation
+    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
+    $content = Get-Content $OutPutPath"\AllUser.csv"
+    set-content -Path $OutPutPath"\AllUser.csv" -value $content -Encoding utf8
 
     "## Collecting: Assigned License Plans"
     Get-AssignedPlans -CSVPath $OutPutPath
