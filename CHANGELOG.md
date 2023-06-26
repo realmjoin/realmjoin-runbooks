@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-06-26 
+* Resize Windows 365 - Bugfix: Will not remove User Setting / Provisioning Policy
+
 ## 2023-06-21
 * Export Policy Report - Ignore cyrillic characters (as PanDocs does not support them).
 
