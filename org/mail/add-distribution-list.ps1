@@ -19,7 +19,7 @@
                 "Hide": true
             },
             "Alias": {
-                "DisplayName": "Alias: a shorter, more concise name for the distribution list that is usually the first part of the email address (before the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG@company.com\" for convenience."
+                "DisplayName": "Alias: a shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG@company.com\" for convenience."
             },
             "GroupName": {
                 "DisplayName": "Group Name as displayed in the address book of your mailing system for easier searching."
