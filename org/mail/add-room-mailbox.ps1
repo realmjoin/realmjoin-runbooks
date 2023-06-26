@@ -23,7 +23,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)] 
@@ -38,6 +38,8 @@ param (
     [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
     # CallerName is tracked purely for auditing purposes
+    [ValidateScript( { Use-RJInterface -DisplayName "Disable AAD User" } )]
+    [bool] $DisableUser = $true,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -45,6 +47,7 @@ param (
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
+    Connect-RjRbGraph
     Connect-RjRbExchangeOnline
 
     $invokeParams = @{
@@ -75,6 +78,24 @@ try {
 
     if ($AutoAccept) {
         Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept" -AllRequestInPolicy $true -AllBookInPolicy $true
+    }
+
+    if ($DisableUser) {
+        # Deactive the user account using the Graph API
+        $user = $null
+        $retryCount = 0
+        while (($null -eq $user) -and ($retryCount -lt 10)) {
+            $user = Invoke-RjRbRestMethodGraph -Resource "/users" -Method Get -OdFilter "mailNickname eq '$MailboxName'" -ErrorAction Stop
+            if ($null -eq $user) {
+                $retryCount++
+                ".. Waiting for user object to be created..."
+                Start-Sleep -Seconds 5
+            }
+        }
+        $body = @{
+            accountEnabled = $false
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -Method Patch -Body $body -ErrorAction Stop
     }
 
     "## Room Mailbox '$MailboxName' has been created."

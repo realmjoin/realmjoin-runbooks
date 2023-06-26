@@ -12,7 +12,7 @@
     Storage Account (optional)
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "IntuneDevicesReport.CreateLinks" } )]
@@ -77,8 +77,6 @@ $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevice
 $deviceToPolicy = @{}
 foreach ($id in $devices.id) {
     $body = @{
-        select  = @(
-        )
         skip    = 0
         top     = 100
         filter  = "(DeviceId eq '$id')"
@@ -88,7 +86,21 @@ foreach ($id in $devices.id) {
         search  = ""
     }
     #"## DeviceId: $id"
-    $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+    $result = $null
+    try {
+        $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+    }
+    catch {
+        if ($_.Exception.Response.StatusCode.value__ -eq 429) {
+            "## Throttling exceeded - Waiting/Cooldown 2min"
+            Start-Sleep -Seconds 120
+            Connect-RjRbGraph -Force
+            $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging    
+        }
+        else {
+            throw $_
+        }
+    }
     $policies = @{}
     foreach ($row in $result.Values) {
         $properties = @{}
@@ -108,7 +120,21 @@ foreach ($id in $devices.id) {
                 )
                 search  = ""
             }
-            $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+            $settingsResult = $null
+            try {
+                $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+            }
+            catch {
+                if ($_.Exception.Response.StatusCode.value__ -eq 429) {
+                    "## Throttling exceeded - Waiting/Cooldown 2min"
+                    Start-Sleep -Seconds 120
+                    Connect-RjRbGraph -Force
+                    $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+                }
+                else {
+                    throw $_ 
+                }
+            }
             $settings = @{}
             foreach ($settingsRow in $settingsResult.Values) {
                 $settingsProperties = @{}

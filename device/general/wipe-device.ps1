@@ -45,11 +45,19 @@
                     },
                     {
                         "Display": "Do not wipe device",
-                        "Value": false
+                        "Value": false,
+                        "Customization": {
+                            "Hide": [
+                                "useProtectedWipe"
+                            ]
+                        }
                     }
                 ],
                 "ShowValue": false
             }
+        },
+        "useProtectedWipe": {
+            "DisplayName": "Use protected wipe?"
         },
         "removeIntuneDevice": {
             "DisplayName": "Delete device from Intune?",
@@ -72,12 +80,13 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param (
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [bool] $wipeDevice = $true,
+    [bool] $useProtectedWipe = $false,
     [bool] $removeIntuneDevice = $false,
     [bool] $removeAutopilotDevice = $false,
     [bool] $removeAADDevice = $false,
@@ -150,9 +159,10 @@ if ($mgdDevice) {
         $body = @{
             "keepEnrollmentData" = $false
             "keepUserData"       = $false
+            "useProtectedWipe"   = $useProtectedWipe
         }
         try {
-            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body
+            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body -Beta | Out-Null
         }
         catch {
             "## Error Message: $($_.Exception.Message)"
