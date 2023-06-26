@@ -61,6 +61,7 @@ param(
     [string] $licWin365GroupPrefix = "lic - Windows 365 Enterprise - ",
     [ValidateScript( { Use-RJInterface -DisplayName "Remove Cloud PC immediately" } )]
     [bool] $skipGracePeriod = $true,
+    [bool] $KeepUserSettingsAndProvisioningGroups = $false,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -90,7 +91,8 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
         $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
         $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
         $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
-    } elseif ($assignedLicenses.count -gt 1) {
+    }
+    elseif ($assignedLicenses.count -gt 1) {
         "## More than one license assigned to '$licWin365GroupName'"
     }
     Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
@@ -120,28 +122,31 @@ else {
     "## Can not deprovision."
 }
 
-# Are any other Cloud PCs assigned to this user?
-$licWin365GroupIsAssigned = $false
-$allLicWin365Groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$licWin365GroupPrefix')"
-foreach ($group in $allLicWin365Groups) {
-    $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
-    if ($result -and ($result.userPrincipalName -contains $UserName)) {
-        $licWin365GroupIsAssigned = $true
-        "## Other Cloud PCs are assigned to this user. Will not remove Prov. or User Settings policies."
-    }
-}
-if (-not $licWin365GroupIsAssigned) {
-    "## No other Cloud PCs exists for '$UserName'."
-    "## Removing Provisinging Policy and User Settings."
-
-    [array]$groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgProvisioningGroupPrefix')"
-    $groups += Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgUserSettingsGroupPrefix')"
-    foreach ($group in $groups) {
+if (-not $keepUserSettingsAndProvisioningGroups) {
+    # Are any other Cloud PCs assigned to this user?
+    $licWin365GroupIsAssigned = $false
+    $allLicWin365Groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$licWin365GroupPrefix')"
+    foreach ($group in $allLicWin365Groups) {
         $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
         if ($result -and ($result.userPrincipalName -contains $UserName)) {
-            "## Removing '$($group.displayName)' from '$UserName'."
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+            $licWin365GroupIsAssigned = $true
+            "## Other Cloud PCs are assigned to this user. Will not remove Prov. or User Settings policies."
         }
     }
-}
+    if (-not $licWin365GroupIsAssigned) {
+        "## No other Cloud PCs exists for '$UserName'."
+        "## Removing Provisinging Policy and User Settings."
+
+        [array]$groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgProvisioningGroupPrefix')"
+        $groups += Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgUserSettingsGroupPrefix')"
+        foreach ($group in $groups) {
+            $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+            if ($result -and ($result.userPrincipalName -contains $UserName)) {
+                "## Removing '$($group.displayName)' from '$UserName'."
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+            }
+        }
+    }
+} else {
+    "## Keeping Provisinging Policy and User Settings."}
 
