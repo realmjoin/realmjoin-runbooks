@@ -14,24 +14,24 @@
 
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "Alias": {
-                "DisplayName": "Alias of the Distribution List. Shorter, more concise name for the distribution list. \nExample: "MarketingTeam@company.com" could have an alias "MKTG@company.com" for convenience."
-            },
-            "GroupName": {
-                "DisplayName": "Group Name as displayed in the address book of your mailing system for easier searching."
-            },
-            "Owner": {
-                "DisplayName": "Group Owner that will manage the members of the Distribution List (add, remove, etc.)."
-            },
-            "PrimarySMTPAddress": {
-                "DisplayName": "Primary email address of the Distribution List that will be used to send emails from."
-            }
+    "Parameters": {
+        "CallerName": {
+            "Hide": true
+        },
+        "Alias": {
+            "DisplayName": "Alias: Shorter, more concise name for the distribution list. \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG@company.com\" for convenience."
+        },
+        "GroupName": {
+            "DisplayName": "Group Name as displayed in the address book of your mailing system for easier searching."
+        },
+        "Owner": {
+            "DisplayName": "Group Owner that will manage the members of the Distribution List (add, remove, etc.)."
+        },
+        "PrimarySMTPAddress": {
+            "DisplayName": "Primary email address of the Distribution List that will be used to send emails from."
         }
     }
+}
 
 #>
 
