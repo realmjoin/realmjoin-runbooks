@@ -182,7 +182,7 @@ foreach ($group in $allCfgUserSettingsGroups) {
         $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
         if ($result -and ($result.userPrincipalName -contains $UserName)) {
             $currentUserSettingsPolicy = $group.displayName
-            "## '$UserName' has the following Setting Group: '$currentUserSettingPolicy'."
+            "## '$UserName' has the following Setting Group: '$currentUserSettingsPolicy'."
         }
     }
 }
