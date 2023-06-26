@@ -206,8 +206,8 @@ if (-not $currentProvisioningPolicy) {
 }
 
 # Calling Runbooks 
+"## Starting Runbook Job to remove '$currentLicWin365GroupName' from '$UserName':"
 Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $currentLicWin365GroupName ; skipGracePeriod = $skipGracePeriod ; keepUserSettingsAndProvisioningGroups = $true; CallerName = $CallerName ; }
-
-"## License '$currentLicWin365GroupName' has been removed from '$UserName'. Proceeeding with assigning '$newLicWin365GroupName' and provisioning a Cloud PC."
-
+""
+"## Starting Runbook Job to assign '$newLicWin365GroupName' to '$UserName':"
 Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $newLicWin365GroupName ; cfgProvisioningGroupName = $currentProvisioningPolicy ; cfgUserSettingsGroupName = $currentUserSettingsPolicy ; sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ; }

@@ -61,7 +61,7 @@ param(
     [string] $licWin365GroupPrefix = "lic - Windows 365 Enterprise - ",
     [ValidateScript( { Use-RJInterface -DisplayName "Remove Cloud PC immediately" } )]
     [bool] $skipGracePeriod = $true,
-    [bool] $keepUserSettingsAndProvisioningGroups = $false,
+    [bool] $KeepUserSettingsAndProvisioningGroups = $false,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
