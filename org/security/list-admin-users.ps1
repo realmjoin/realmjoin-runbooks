@@ -60,7 +60,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Export Admin-to-Role Report to Az Storage Account?" } )]
@@ -95,7 +95,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph
 
 ## Get builtin AzureAD Roles
-$roles = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
+$roles = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true" -FollowPaging
 
 if ([array]$roles.count -eq 0) {
     "## Error - No AzureAD roles found. Missing permissions?"
@@ -103,8 +103,8 @@ if ([array]$roles.count -eq 0) {
 }
 
 ## Performance issue - Get all role assignments at once
-$allRoleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -ErrorAction SilentlyContinue
-$allPimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -ErrorAction SilentlyContinue
+$allRoleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -FollowPaging -ErrorAction SilentlyContinue
+$allPimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -FollowPaging -ErrorAction SilentlyContinue
 
 $AdminUsers = @()
 
@@ -185,28 +185,30 @@ if ($exportToFile) {
     $filename = "AdminRoleOverview.csv"
     [string]$output = "UPN,"
     $roles | ForEach-Object {
-        $output += $_.displayName + ","
+        $output += $_.displayName + ";"
     }
     $output > $filename
 
     $AdminUsers | ForEach-Object {
         $AdminUPN = $_
         $AdminObject = Invoke-RjRbRestMethodGraph -Resource "/users/$AdminUPN"
-        [string]$output = $AdminUPN + ","
+        [string]$output = $AdminUPN + ";"
         $roles | ForEach-Object {
             $roleDefinitionId = $_.id
             if ($allRoleHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminObject.id) }) {
-                $output += "x,"
+                $output += "x;"
             }
             elseif ($allPimHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminObject.id) }) {
-                $output += "p,"
+                $output += "p;"
             }
             else {
-                $output += ","
+                $output += ";"
             }
         }
         $output >> $filename
     }
+    $content = Get-Content $filename
+    set-content -Path $filename -Value $content -Encoding utf8
 
     Connect-RjRbAzAccount
   

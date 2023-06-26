@@ -30,7 +30,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
@@ -167,6 +167,8 @@ try {
         
         }
     }
+    $content = Get-Content -Path "enterpriseApps.csv"
+    set-content -Path "enterpriseApps.csv" -Value $content -Encoding UTF8
 
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue

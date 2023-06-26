@@ -35,7 +35,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -63,7 +63,7 @@ param(
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # How long to wait in seconds for a group to propagate to the Teams service
-[int]$teamsTimer = 15
+[int]$teamsTimer = 75
 
 # Input Validations - from user feedback.
 if ($MailNickname.GetEnumerator() -contains " ") {

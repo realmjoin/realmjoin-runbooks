@@ -45,7 +45,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Save report to CSV file (instead of printing it to console)?" } )]
@@ -165,7 +165,10 @@ if ($ExportToFile) {
         }
         $filename = "AffectedAppRegs.csv"
         $blobname = "$(get-date -Format yyyy-MM-dd)-AffectedAppRegs.csv"
-        $AffectedAppRegs | ConvertTo-Csv > $filename
+        $AffectedAppRegs | ConvertTo-Csv -Delimiter ";" > $filename
+        $content = Get-Content -Path $filename 
+        set-content -Value $content -Path $filename -Encoding UTF8
+        
         Write-RjRbLog "Upload"
         Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
 
