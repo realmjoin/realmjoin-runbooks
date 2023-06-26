@@ -93,10 +93,10 @@ param(
     [string] $UserName,
     [ValidateScript( { Use-RJInterface -DisplayName "The to-be-resized Cloud PC uses the following Windows365 license: " } )]
     [Parameter(Mandatory = $true)]
-    [string] $currentLicWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+    [string] $currentLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [ValidateScript( { Use-RJInterface -DisplayName "Resizing to following license: " } )]
     [Parameter(Mandatory = $true)]
-    [string] $newLicWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
+    [string] $newLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
     [ValidateScript( { Use-RJInterface -DisplayName "Notify User once the Cloud PC has finished resizing?" } )]
     [bool] $sendMailWhenDoneResizing = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
@@ -147,7 +147,8 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
         $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
         $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
         $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
-    } elseif ($assignedLicenses.count -gt 1) {
+    }
+    elseif ($assignedLicenses.count -gt 1) {
         "## More than one license assigned to '$currentLicWin365GroupName'."
     }
 }
@@ -174,33 +175,39 @@ if ($skuObj.prepaidUnits.enabled -le $skuObj.consumedUnits) {
 }
 
 # Fetch the currently used configuration policies
+$currentUserSettingsPolicy = $null
 $allCfgUserSettingsGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgUserSettingsGroupPrefix')"
 foreach ($group in $allCfgUserSettingsGroups) {
-    $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
-    if ($result -and ($result.userPrincipalName -contains $UserName)) {
-        $currentUserSettingsPolicy = $group.displayName
-        "## '$UserName' has the following Setting Group: '$currentUserSettingPolicy'."
+    if (-not $currentUserSettingsPolicy) {       
+        $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+        if ($result -and ($result.userPrincipalName -contains $UserName)) {
+            $currentUserSettingsPolicy = $group.displayName
+            "## '$UserName' has the following Setting Group: '$currentUserSettingsPolicy'."
+        }
     }
-    elseif (-not $result -and ($result.userPrincipalName -contains $UserName)) {
-        "## '$UserName' has no Setting Group assigned to them."
-    }
+}
+if (-not $currentUserSettingsPolicy) {
+    "## Warning: '$UserName' has no Setting Group assigned."
 }
 
 $allCfgProvisioningGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgProvisioningGroupPrefix')"
+$currentProvisioningPolicy = $null
 foreach ($group in $allCfgProvisioningGroups) {
-    $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
-    if ($result -and ($result.userPrincipalName -contains $UserName)) {
-        $currentProvisioningPolicy = $group.displayName
-        "## '$UserName' has the following Provisioning Group: '$currentProvisioningPolicy'."
+    if (-not $currentProvisioningPolicy) {
+        $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+        if ($result -and ($result.userPrincipalName -contains $UserName)) {
+            $currentProvisioningPolicy = $group.displayName
+            "## '$UserName' has the following Provisioning Group: '$currentProvisioningPolicy'."
+        }
     }
-    else {
-        "## '$UserName' has no Provisioning Group assigned to them."
-    }
+}
+if (-not $currentProvisioningPolicy) {
+    "## Warning: '$UserName' has no Provisioning Group assigned."
 }
 
 # Calling Runbooks 
-Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ;licWin365GroupName = $currentLicWin365GroupName ;skipGracePeriod = $skipGracePeriod ;CallerName = $CallerName ;}
-
-"## License '$currentLicWin365GroupName' has been removed from '$UserName'. Proceeeding with assigning '$newLicWin365GroupName' and provisioning a Cloud PC."
-
-Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ;licWin365GroupName = $newLicWin365GroupName ;cfgProvisioningGroupName = $currentProvisioningPolicy ;cfgUserSettingsGroupName = $currentUserSettingsPolicy ;sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ;}
+"## Starting Runbook Job to remove '$currentLicWin365GroupName' from '$UserName':"
+Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $currentLicWin365GroupName ; skipGracePeriod = $skipGracePeriod ; keepUserSettingsAndProvisioningGroups = $true; CallerName = $CallerName ; }
+""
+"## Starting Runbook Job to assign '$newLicWin365GroupName' to '$UserName':"
+Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $newLicWin365GroupName ; cfgProvisioningGroupName = $currentProvisioningPolicy ; cfgUserSettingsGroupName = $currentUserSettingsPolicy ; sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ; }
