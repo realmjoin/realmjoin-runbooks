@@ -29,7 +29,7 @@
             },
             "PrimarySMTPAddress": {
                 "DisplayName": "Primary email address of the Distribution List that will be used to send emails from."
-            },
+            }
         }
     }
 
