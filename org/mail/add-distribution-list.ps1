@@ -19,13 +19,13 @@
                 "Hide": true
             },
             "Alias": {
-                "DisplayName": "Alias: a shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG@company.com\" for convenience."
+                "DisplayName": "Alias\nA shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG@company.com\" for convenience."
             },
             "GroupName": {
-                "DisplayName": "Group Name as displayed in the address book of your mailing system for easier searching."
+                "DisplayName": "Group Name\nAs displayed in the address book of your mailing system for easier searching."
             },
             "Owner": {
-                "DisplayName": "Group Owner that will manage the members of the Distribution List (add, remove, etc.)."
+                "DisplayName": "Group Owner\nUser that will manage the members of the Distribution List (add, remove, etc.)."
             },
             "PrimarySMTPAddress": {
                 "DisplayName": "Primary email address of the Distribution List that will be used to send emails from."
