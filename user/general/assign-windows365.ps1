@@ -91,7 +91,7 @@ Connect-RjRbGraph
 # Verify Provisioning configuration policy and test if it uses provisioningType "shared" (for Frontline Workers)
 $cfgProvisioningPolObj = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/provisioningPolicies" -OdFilter "displayName eq '$cfgProvisioningGroupName'" -UriQueryRaw '$expand=assignments' -Beta
 
-if ($cfgProvisioningPolObj -and ($cfgProvisioningPolObj.provisioningType -eq "shared")) {
+if ($cfgProvisioningPolObj -and ($cfgProvisioningPolObj[0].provisioningType -eq "shared")) {
     "## Provisioning policy '$cfgProvisioningGroupName' uses provisioning type 'shared' (FrontLine Worker)."
     # Get the shared use service plan and assignment group from the assignments object of the policy
     $cfgProvisioningGroupId = $null
