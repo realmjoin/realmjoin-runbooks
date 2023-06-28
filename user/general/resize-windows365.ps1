@@ -141,15 +141,8 @@ $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($currentLicWin365Group
 if ($result -and ($result.userPrincipalName -contains $UserName)) {
     # Find Cloud PC via SKU
     $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($currentLicWin365GroupObj.id)/assignedLicenses"
-    if (([array]$assignedLicenses).count -eq 1) {
-        $skuId = $assignedLicenses.skuId 
-        $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
-        $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
-        $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
-        $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
-    }
-    elseif ($assignedLicenses.count -gt 1) {
-        "## More than one license assigned to '$currentLicWin365GroupName'."
+    if (([array]$assignedLicenses).count -gt 1) {
+        "## Warning: More than one license assigned to '$currentLicWin365GroupName'."
     }
 }
 else {
