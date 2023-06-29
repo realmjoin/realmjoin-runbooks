@@ -19,16 +19,16 @@
                 "Hide": true
             },
             "Alias": {
-                "DisplayName": "Alias\nA shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG\" for convenience."
+                "DisplayName": "Alias: A shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG\" for convenience."
             },
             "GroupName": {
-                "DisplayName": "Group Name\nAs displayed in the address book of your mailing system for easier searching."
+                "DisplayName": "Group Name: As displayed in the address book of your mailing system for easier searching."
             },
             "Owner": {
-                "DisplayName": "Group Owner\nUser that will manage the members of the Distribution List (add, remove, etc.)."
+                "DisplayName": "Group Owner: User that will manage the members of the Distribution List (add, remove, etc.)."
             },
             "PrimarySMTPAddress": {
-                "DisplayName": "Primary email address of the Distribution List that will be used to send emails from."
+                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use \"<alias>@<tenant>.onmicrosoft.com\" as a primary SMTP address."
             }
         }
     }
@@ -40,11 +40,11 @@
 param (
     [Parameter(Mandatory = $true)] 
     [string] $Alias,
+    [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
+    [string] $PrimarySMTPAddress,
     [string] $GroupName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
-    [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
-    [string] $PrimarySMTPAddress,
     [ValidateScript( { Use-RJInterface -DisplayName "Create as Roomlist" } )]
     [bool] $Roomlist = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
