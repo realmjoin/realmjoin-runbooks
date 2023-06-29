@@ -28,7 +28,7 @@
                 "DisplayName": "Group Owner: User that will manage the members of the Distribution List (add, remove, etc.)."
             },
             "PrimarySMTPAddress": {
-                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use \"<alias>@<tenant>.onmicrosoft.com\" as a primary SMTP address."
+                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use <alias>@<tenant>.onmicrosoft.com as a primary SMTP address."
             }
         }
     }
