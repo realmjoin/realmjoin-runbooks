@@ -147,10 +147,12 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
     # if more than 1 license 
     elseif ($assignedLicenses.count -gt 1) {
         "## More than one license assigned to '$licWin365GroupName'. Taking no action."
+        throw "Multiple Licenses assigned to group."
     }
     # if the selected license is not applicable to the user
 }
 else {
     "## '$UserName' does not have '$licWin365GroupName'." 
     "## Can not reprovision."
+    throw "Wrong license selected."
 }
