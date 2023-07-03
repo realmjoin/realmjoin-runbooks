@@ -13,7 +13,6 @@
   - Exchange.ManageAsApp
   MS Graph (API):
   -Oranization.Read.All
-  -Domains
 
   .INPUTS
   RunbookCustomization: {
