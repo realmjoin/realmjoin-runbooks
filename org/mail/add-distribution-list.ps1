@@ -11,6 +11,9 @@
   - Exchange administrator
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
+  MS Graph (API):
+  -Oranization.Read.All
+  -Domains
 
   .INPUTS
   RunbookCustomization: {
@@ -28,7 +31,7 @@
                 "DisplayName": "Group Owner: User that will manage the members of the Distribution List (add, remove, etc.)."
             },
             "PrimarySMTPAddress": {
-                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use <alias>@<tenant>.onmicrosoft.com as a primary SMTP address."
+                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use the default domain as a primary SMTP address."
             }
         }
     }
@@ -89,6 +92,19 @@ try {
     if ($PrimarySMTPAddress) {
         $invokeParams += @{ 
             PrimarySMTPAddress = $PrimarySMTPAddress
+        }
+    }
+    else {
+        Connect-RjRbGraph
+        $verifiedDomains = Invoke-RjRbRestMethodGraph -Resource "/organization" -OdSelect "verifiedDomains"
+        foreach ($verifiedDomain in $verifiedDomains.verifiedDomains) {
+            if ($verifiedDomain.isDefault -eq 'true'){
+                $defaultDomain=$verifiedDomain
+            }
+        }
+        $DesiredPrimarySMTPAddress = $Alias + "@" + $defaultDomain.name
+        $invokeParams += @{ 
+            PrimarySMTPAddress = $DesiredPrimarySMTPAddress
         }
     }
 
