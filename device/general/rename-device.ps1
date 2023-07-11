@@ -54,6 +54,7 @@ if (-not $intuneDevice) {
     deviceName = $NewDeviceName
   }
   "## Renaming device '$($targetDevice.displayName)' to '$NewDeviceName' in Intune"
+  "## This will trigger a local rename of the client."
   Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($intuneDevice.id)/setDeviceName" -Method Post -Body $body -Beta | Out-Null
 }
 
