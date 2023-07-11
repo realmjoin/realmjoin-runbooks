@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-07-11
+* New Runbook: Rename Device in Intune and Autopilot
+
 ## 2023-06-28
 * Assign Windows 365 - Support FrontLine Worker (Shared Use Service Plan) Cloud PCs
 * Unassign Windows 365 - Support FrontLine Worker (Shared Use Service Plan) Cloud PCs
@@ -8,13 +11,13 @@
 * Resize Windows 365 - Bugfix: Will not remove User Setting / Provisioning Policy
 
 ## 2023-06-21
-* Export Policy Report - Ignore cyrillic characters (as PanDocs does not support them).
+* Export Policy Report - Ignore Cyrillic characters (as PanDocs does not support them).
 
 ## 2023-06-20
 * Wipe Device: Support for Protected Wipe
 
 ## 2023-06-19
-* Convert to Shared Mailbox - Dis-/Enable User on cornversion and fixed potential issue with missing steps  
+* Convert to Shared Mailbox - Dis-/Enable User on conversion and fixed potential issue with missing steps  
 
 ## 2023-06-16
 * Add equipment/room/shared mailbox: AAD user object is disabled by default.
@@ -25,7 +28,7 @@
 
 ## 2023-05-26
 * New Runbook: List/Export all non-compliant devices in Intune and corresponding compliance policies/settings 
-* Bugfix: List Admin Users: Some roleassignments were not listed
+* Bugfix: List Admin Users: Some role assignments were not listed
 * Change Exports to use ";" as delimiter and UTF8 file format for all runbooks
 
 ## 2023-05-11
@@ -37,7 +40,7 @@
 
 ## 2023-03-29
 * List inactive users: Supports listing users that have never logged on.
-* New runbook: List PIM groups wiothout owners
+* New runbook: List PIM groups without owners
 
 ## 2023-03-28
 * New Runbook: Create a report on a tenant's Intune and Conditional Access Policies
@@ -50,7 +53,7 @@
 * Added audit logging info to phone runbooks
 
 ## 2023-03-07
-* Teams Phone: Update all user/phone runbook. Update to Teams Module v5. Better Errorhandling.
+* Teams Phone: Update all user/phone runbook. Update to Teams Module v5. Better error handling.
 
 ## 2023-02-14 
 * Update User: Support User Templates, Group Management, PW Reset
@@ -72,7 +75,7 @@
 * New Runbook: Sync all Intune Devices
 
 ## 2022-12-22
-* Add Autopilot Device: Support assigning (optinal) GroupTag
+* Add Autopilot Device: Support assigning (optional) GroupTag
 
 ## 2022-12-02
 * Report SPO Shared Links: Support anon. links
@@ -88,13 +91,13 @@
 * Report SPO Shared Links: Support for private channels added
 
 ## 2022-11-28
-* New runbook: Report extern. shared links in all teams to the repective teams owners
+* New runbook: Report extern. shared links in all teams to the respective teams owners
 
 ## 2022-11-25
 * Bugfix - List Room Mailbox Config - Could not read config, if room UPN was not the same as primary eMail address
 * Bugfix - Add/Remove eMail Address - Adding an address failed if mailbox has exactly one email address
 ## 2022-10-27
-* Isolate Device / Restrict Device Code exec.: Bug fixed, incorrect behaviour if device is not yet available in DefenderATP service.
+* Isolate Device / Restrict Device Code exec.: Bug fixed, incorrect behavior if device is not yet available in DefenderATP service.
 
 ## 2022-10-20
 * Convert to shared mailbox:
@@ -124,7 +127,7 @@
 
 ## 2022-08-02
 * merge Teams Voice Runbook into master branch
-* List mailbox permissions: add support for mail enbled groups as trustee
+* List mailbox permissions: add support for mail enabled groups as trustee
 
 ## 2022-07-22
 * new runbook: List groups that have license assignment errors
@@ -143,10 +146,10 @@
 
 ## 2022-06-08
 * rewriting RBs to have max. one active "Customizing" block per Runbook
-  * ouffboard-user-*
+  * offboard-user-*
 
 ## 2022-06-03
-* moved all teams phone/voice related runbooks to brach "feature-teamsvoice".
+* moved all teams phone/voice related runbooks to branch "feature-teamsvoice".
 
 ## 2022-06-01
 * rewriting RBs to have max. one active "Customizing" block per Runbook
@@ -180,7 +183,7 @@
 
 ## 2022-05-16
 * Many runbooks: Improve output 
-* device wipe and deveice outphase: Show owner/user UPN for the device
+* device wipe and device outphase: Show owner/user UPN for the device
 
 ## 2022-05-12
 * Add User: Supports adding users to Exchange Distr. Lists / mail enabled groups
@@ -200,7 +203,7 @@
 
 ## 2022-05-05
 
-* New Runbooks using MDE / Defenter ATP
+* New Runbooks using MDE / Defender ATP
   * Isolate Device
   * Restrict Code Execution
 
@@ -226,7 +229,7 @@
 
 ## 2022-04-11
 
-* moved to lincensing report v2 
+* moved to licensing report v2 
 * report "SendAs" and "SendOnBehalf" in List Mailbox Permissions
 
 ## 2022-03-30
@@ -244,7 +247,7 @@
 
 ## 2022-02-16
 
-* New Runbook: Set PAL / Azure Management Parner Link
+* New Runbook: Set PAL / Azure Management Partner Link
 
 ## 2022-02-14
 
@@ -261,6 +264,6 @@
 
 * Official release of Runbook Library for RealmJoin and start of ongoing change tracking.
 * User assignment in `org/general/add-autopilot-device` hidden by default as Microsoft is not supporting that feature anymore
-* When autocreating UPNs in `org/general/add-user` german umlauts are automatically transcribed.
+* When auto creating UPNs in `org/general/add-user` German umlauts are automatically transcribed.
 * All runbooks that were using the AzureAD module have been ported to use MS Graph natively
 * Enabling/Disabling devices in Graph is currently limited to Windows devices. (MS limitation)
