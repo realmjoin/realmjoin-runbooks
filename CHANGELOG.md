@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-07-13
+* New Runbook: Submit Defender Threat Indicator / Hash
+
 ## 2023-07-11
 * New Runbook: Rename Device in Intune and Autopilot
 
