@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-07-19
+* Export CloudPC Usage: Updated to reflect API changes.
+
 ## 2023-07-13
 * New Runbook: Submit Defender Threat Indicator / Hash
 
