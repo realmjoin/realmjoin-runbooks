@@ -24,12 +24,12 @@
 
 param(
     # CallerName is tracked purely for auditing purposes
-    [string] $Table = 'CloudPCUsage',
+    [string] $Table = 'CloudPCUsageV2',
     [Parameter(Mandatory = $true)]
     [string] $ResourceGroupName,
     [Parameter(Mandatory = $true)]
     [string] $StorageAccountName,
-    [int] $days = 1,
+    [int] $days = 2,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -171,37 +171,8 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph 
 Connect-RjRbAzAccount
 
-$ReportDateUpper = Get-Date -Format 'yyyy-MM-dd'
 $ReportDateLower = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format 'yyyy-MM-dd'
-
-$params = @{
-    filter = "(EventDateTime ge datetime'$ReportDateLower')"
-    Select = @(
-        "EventDateTime"
-        "CloudPcId"
-        "ManagedDeviceName"
-        "UsageInHour"
-        "RoundTripTimeInMsP50"
-        "AvailableBandwidthInMBpsP50"
-        "RemoteSignInTimeInSecP50"
-        "UserPrincipalName"
-    )
-}
-
 $TenantId = (invoke-RjRbRestMethodGraph -Resource "/organization").id
-$rawConnectionsReport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/reports/getDailyAggregatedRemoteConnectionReports" -Body $params -Method Post -Beta
-$rawPerformanceReport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/userExperienceAnalyticsResourcePerformance" -Beta
-
-$allCloudPcs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -FollowPaging
-
-$reportedByDate = @{}
-for ($i = 1; $i -le $days; $i++) {
-    $ReportDate = (get-date) - (New-TimeSpan -Days $i) | Get-Date -Format 'yyyy-MM-dd'
-    $reportedByDate[$ReportDate] = @{}
-    foreach ($cloudPc in $allCloudPcs) {
-        $reportedByDate[$ReportDate][$cloudPc.ManagedDeviceName] = $false
-    }
-}
 
 $StorageTables = Get-StorageTables -tables $Table
 
@@ -213,24 +184,42 @@ $DataTable = @{
     Merge        = $true
 }
 
-foreach ($row in $rawConnectionsReport.Values) {
-    $properties = @{}
-    for ($i = 0; $i -lt $rawConnectionsReport.Schema.Column.count; $i++) {
-        $properties.add($rawConnectionsReport.Schema.Column[$i], $row[$i])
+# Get all Cloud PCs
+$allCloudPcs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -FollowPaging
+foreach ($cloudPc in $allCloudPcs) {
+
+    # Fetch this CloudPCs usage data
+    $params = @{
+        filter  = "CloudPcId eq '$($cloudPc.id)' and SignInDateTime gt datetime'$($ReportDateLower)T00:00:00.000Z'"
+        select  = @(
+            "SignInDateTime"
+            "SignOutDateTime"
+            "RoundTripTimeInMsP50"
+            "RemoteSignInTimeInSec"
+            "UsageInHour"
+        )
+        orderBy = @(
+            "SignInDateTime desc"
+        )
+        skip    = 0
+        top     = 50
     }
+    $rawConnectionsReport = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/reports/getRemoteConnectionHistoricalReports" -Body $params -Method Post -Beta
 
-    if (($properties["EventDateTime"] -ge $ReportDateLower) -and ($properties["EventDateTime"] -lt $ReportDateUpper)) {
-        $ReportDate = (get-date -Date $properties["EventDateTime"] -Format 'yyyy-MM-dd')
-        $reportedByDate[$ReportDate][$properties["ManagedDeviceName"]] = $true
-
-        $performanceData = $rawPerformanceReport | Where-Object { $_.deviceName -eq $properties["ManagedDeviceName"] }
-        if ($performanceData) {
-            foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore","model")) {
-                $properties[$property] = $performanceData.$property
-            }
+    if ($rawConnectionsReport.TotalRowCount -eq 0) {
+        $properties = @{
+            SignInDateTime         = "$($ReportDateLower)T00:00:00"
+            SignOutDateTime        = "$($ReportDateLower)T00:00:00"
+            RoundTripTimeInMsP50   = $null
+            RemoteSignInTimeInSec  = $null
+            UsageInHour            = 0
         }
 
-        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDate + "_" + $properties["ManagedDeviceName"])
+        # Add CloudPC metadata
+        $properties.Add("managedDeviceName", $cloudPc.managedDeviceName)
+        $properties.Add("model", $cloudPc.servicePlanName)
+        $properties.Add("userPrincipalName", $cloudPc.userPrincipalName)
+        $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $properties.SignInDateTime + "_" + $cloudPC.managedDeviceName)
 
         try {
             Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
@@ -240,32 +229,30 @@ foreach ($row in $rawConnectionsReport.Values) {
             Write-Error "Failed to save CloudPC stats for '$($properties.ManagedDeviceName)' to table. $PSItem" -ErrorAction Continue
         }
     }
-} 
-
-for ($i = 1; $i -le $days; $i++) {
-    $ReportDate = (get-date) - (New-TimeSpan -Days $i) | Get-Date -Format 'yyyy-MM-dd'
-    foreach ($ManagedDeviceName in $allCloudPcs.managedDeviceName) {
-        if ($reportedByDate[$ReportDate][$ManagedDeviceName] -eq $false) {
-            $cloudPc = $allCloudPcs | Where-Object { $_.ManagedDeviceName -eq $ManagedDeviceName }
-            $properties = @{
-                EventDateTime               = $ReportDate + "T00:00:00"
-                CloudPcId                   = $cloudPc.id
-                ManagedDeviceName           = $ManagedDeviceName
-                UsageInHour                 = "0"
-                RoundTripTimeInMsP50        = ""
-                RemoteSignInTimeInSecP50    = ""
-                UserPrincipalName           = $cloudpc.userPrincipalName
-                AvailableBandwidthInMBpsP50 = ""
-            }
-            $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $ReportDate + "_" + $ManagedDeviceName)
-
-            $performanceData = $rawPerformanceReport | Where-Object { $_.deviceName -eq $properties["ManagedDeviceName"] }
-            if ($performanceData) {
-                foreach ($property in ("cpuSpikeTimePercentage", "ramSpikeTimePercentage", "cpuSpikeTimeScore", "cpuSpikeTimePercentageThreshold", "ramSpikeTimeScore", "ramSpikeTimePercentageThreshold", "deviceResourcePerformanceScore", "averageSpikeTimeScore","model")) {
-                    $properties[$property] = $performanceData.$property
+    else {
+        # Write each row to the table
+        foreach ($row in $rawConnectionsReport.Values) {    
+            $properties = @{}
+            for ($i = 0; $i -lt $rawConnectionsReport.Schema.Column.count; $i++) {
+                if ($row[$i] -eq $null) {
+                    $properties.add($rawConnectionsReport.Schema.Column[$i], 0 )
                 }
-            }    
+                else {
+                    $properties.add($rawConnectionsReport.Schema.Column[$i], $row[$i])
+                }
+            }
 
+            # Add CloudPC metadata
+            $properties.Add("managedDeviceName", $cloudPc.managedDeviceName)
+            $properties.Add("model", $cloudPc.servicePlanName)
+            $properties.Add("userPrincipalName", $cloudPc.userPrincipalName)
+            $RowKey = Get-SanitizedRowKey -RowKey ($TenantId + '_' + $properties.SignInDateTime + "_" + $cloudPC.managedDeviceName)
+
+            # DEBUG OUTPUT
+            #$RowKey
+            #$properties | ConvertTo-Json | Out-String
+            #""
+    
             try {
                 Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
                 $rowsWritten++
@@ -276,5 +263,4 @@ for ($i = 1; $i -le $days; $i++) {
         }
     }
 }
-
 "## Wrote $($rowsWritten) rows to table '$Table'"
