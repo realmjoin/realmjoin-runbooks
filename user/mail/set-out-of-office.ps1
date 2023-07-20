@@ -41,7 +41,9 @@
                                     "Start",
                                     "End",
                                     "MessageInternal",
-                                    "MessageExternal"
+                                    "MessageExternal",
+                                    "CreateEvent",
+                                    "EventSubject"
                                 ]
                             }
                         }
@@ -79,6 +81,10 @@ param
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageExternal = "Sorry, this person is currently not able to receive your message.",
+    [ValidateScript( { Use-RJInterface -DisplayName "Create calendar entry for the Out-Of-Office?" } )]
+    [bool] $CreateEvent = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Clendar entry subject" } )]
+    [string] $EventSubject = "Out of Office",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -95,13 +101,15 @@ try {
     Connect-RjRbExchangeOnline
 
     if ($Disable) {
-        Write-RjRbLog "Disable Out Of Office settings for '$UserName'"
+        "## Disabling Out Of Office settings for '$UserName'"
         Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
+        "## Be aware: If a calendar entry was created for the Out-Of-Office, it will not be removed."
+
     }
     else {
-        Write-RjRbLog "Enabling Out Of Office settings for '$UserName'"
+        "## Enabling Out Of Office settings for '$UserName'"
         Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled `
-            -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End
+            -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End -CreateOOFEvent $CreateEvent -OOFEventSubject $EventSubject
     }
 
     Write-RjRbLog "## Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"
