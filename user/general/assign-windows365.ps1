@@ -27,6 +27,30 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "sendMailWhenProvisioned": {
+                "DisplayName": "Notify user once the CloudPC is done provisioning?",
+                "Default": false
+            },
+            "customizeMail": {
+                "DisplayName": "Would you like to customize the mail sent to the user? (Works only if \"Notify user\" switch is on)",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Do not customize the email.",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "customMailMessage"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Customize the email.",
+                            "ParameterValue": true
+                        }
+                    ]
+                }
             }
         }
     }
@@ -72,6 +96,10 @@ param(
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [ValidateScript( { Use-RJInterface -DisplayName "Notify user when CloudPC is ready?" } )]
     [bool] $sendMailWhenProvisioned = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Would you like to customize the email?" } )]
+    [bool] $customizeMail = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "The custom email to be sent to the user: " } )]
+    [string] $customMailMessage = "Insert Custom Message here",
     [ValidateScript( { Use-RJInterface -DisplayName "Create a service ticket (email) if not enough licenses/FrontLine seats are available?" } )]
     [bool] $createTicketOutOfLicenses = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Where to open a service ticket (via email)" } )]
@@ -213,7 +241,7 @@ if ($ProvPolIsDedicated) {
             Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
             "## Support Request to '$ticketQueueAddress' sent."
         }
-        throw "Not enough licenses"
+        throw "Not enough licenses. Aborting..."
     }
 
     $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members"
@@ -348,31 +376,75 @@ if ($sendMailWhenProvisioned) {
         "."
     } while ($cloudPC.status -notin @("provisioned", "failed") -and $count -lt $maxCount)
  
-    if ($cloudPC.status -eq "provisioned") {
-        "## Cloud PC provisioned."
-        $message = @{
-            subject = "[Automated eMail] Cloud PC is provisioned."
-            body    = @{
-                contentType = "HTML"
-                content     = @"
-            <p>This is an automated message, no reply is possible.</p>
-            <p>Your Cloud PC is ready. Access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
-"@
+    ## customizing email is switched on (true)
+    if($customizeMail) {
+        if ($cloudPC.status -eq "provisioned") {
+            "## Cloud PC provisioned."
+            $message = @{
+                subject = "[Customized Automated eMail] Cloud PC is provisioned."
+                body    = @{
+                    contentType = "HTML"
+                    content     = $customMailMessage
+                }
             }
-        }
-
-        $message.toRecipients = [array]@{
-            emailAddress = @{
-                address = $UserName
+    
+            $message.toRecipients = [array]@{
+                emailAddress = @{
+                    address = $UserName
+                }
             }
+            
+            ## Check if user has a mailbox. If not do not send an email but continue the RB
+            try {
+                $existingMailbox = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/mailboxSettings" -Method Get
+
+                Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+                "## Mail to '$UserName' sent."
+            }
+            catch {
+                    "## User $UserName has no mailbox. No email will be sent." 
+            }
+            
+    
         }
-
-        Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
-        "## Mail to '$UserName' sent."
-
+        else {
+            "## Cloud PC provisioning failed."
+            throw ("Cloud PC failed.")
+        }
     }
     else {
-        "## Cloud PC provisioning failed."
-        throw ("Cloud PC failed.")
+        if ($cloudPC.status -eq "provisioned") {
+            "## Cloud PC provisioned."
+            $message = @{
+                subject = "[Automated eMail] Cloud PC is provisioned."
+                body    = @{
+                    contentType = "HTML"
+                    content     = @"
+                <p>This is an automated message, no reply is possible.</p>
+                <p>Your Cloud PC is ready. Access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
+"@
+                }
+            }
+    
+            $message.toRecipients = [array]@{
+                emailAddress = @{
+                    address = $UserName
+                }
+            }
+    
+            Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+            "## Mail to '$UserName' sent."
+    
+        }
+        else {
+            "## Cloud PC provisioning failed."
+            throw ("Cloud PC failed.")
+        }
     }
+
+
+
+
+
+    
 }
