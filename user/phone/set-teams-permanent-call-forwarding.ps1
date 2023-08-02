@@ -7,21 +7,8 @@
   
   .NOTES
   Permissions: 
-   The MicrosoftTeams PS module requires to use a "real user account" for some operations.
-   This user will need the Azure AD roles: 
-    - "Teams Administrator"
-    - "Skype for Business Administrator"
-   If you want to use this runbook, you will have to
-   - Create an ADM-User object, e.g. "ADM-ServiceUser.TeamsAutomation"
-   - Assign a password to the user
-   - Set the password to never expire (or track the password changes accordingly)
-   - Disable MFA for this user / make sure conditional access is not blocking the user
-   - Add the following AzureAD roles permanently to the user:
-     "Teams Administrator"
-     "Skype for Business Administrator"
-   - Create a credentials object in the Azure Automation Account you use for the RealmJoin Runbooks, call the credentials "teamsautomation".
-   - Store the credentials (username and password) in "teamsautomation".
-   This is not a recommended situation and will be fixed as soon as a technical solution is known. 
+  The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
+  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. However, it should be switched to Managed Identity as soon as possible.
 
   .INPUTS
   RunbookCustomization: {
@@ -150,7 +137,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }            
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }            
             
 param(
     [Parameter(Mandatory = $true)]
@@ -172,6 +159,18 @@ param(
 )
 
 ########################################################
+##             function declaration
+##          
+########################################################
+function Get-AccessToken($URI) {
+    $IdentityEndpoint = $env:IDENTITY_ENDPOINT
+    $IdentityHeader = $env:IDENTITY_HEADER    
+    $Result = [System.Text.Encoding]::Default.GetString((Invoke-WebRequest -UseBasicParsing  -Uri "$($IdentityEndpoint)?resource=$URI&api-version=2019-08-01" -Method 'GET' -Headers @{'X-IDENTITY-HEADER' = "$IdentityHeader"; 'Metadata' = 'True'}).RawContentStream.ToArray()) | ConvertFrom-Json
+    return $Result.access_token    
+}
+
+
+########################################################
 ##             Connect Part
 ##          
 ########################################################
@@ -179,11 +178,18 @@ param(
 
 Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
 
-$CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
-$VerbosePreference = "SilentlyContinue"
-$Connect = Connect-MicrosoftTeams -Credential $CredAutomation 
-Write-Verbose $Connect
-$VerbosePreference = "Continue"
+try {
+    $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
+}
+catch {
+    Write-Error 'Connection - No automation credentials "teamsautomation" stored. Since the PowerShell functions for the call forwarding of users via Managed Identity variant is not available, the script is being stopped now!'
+}
+
+if ($CredAutomation -notlike "") {
+    $VerbosePreference = "SilentlyContinue"
+    Connect-MicrosoftTeams -Credential $CredAutomation 
+    $VerbosePreference = "Continue"
+}
 
 # Check if Teams connection is active
 try {
@@ -219,7 +225,16 @@ Write-Output "Get StatusQuo"
 Write-Output "---------------------"
 Write-Output "Getting StatusQuo for user with submitted ID:  $UserName"
 
-$StatusQuo = Get-CsUserCallingSettings -Identity $UserName
+try {
+    $StatusQuo = Get-CsUserCallingSettings -Identity $UserName
+}
+catch {
+    $message = $_
+    if ($message -like "userId was not found") {
+        Write-Error "User information could not be retrieved because the UserID was not found. Often this is the case when the user is not enabled for Teams."
+    }
+    Write-Error "$message"
+}
 
 if (($StatusQuo.IsForwardingEnabled -eq $true) -and ($StatusQuo.ForwardingType -like "Immediate")) {
     Write-Output "Immediate call forward is active"
