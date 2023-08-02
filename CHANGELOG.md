@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-08-02
+* Updated Phone Runbooks
+
 ## 2023-07-20
 * Set Out-of-Office: Allow blocking calendar for the Out-of-Office period
 
