@@ -99,7 +99,7 @@ param(
     [ValidateScript( { Use-RJInterface -DisplayName "Would you like to customize the email?" } )]
     [bool] $customizeMail = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "The custom email to be sent to the user: " } )]
-    [string] $customMailMessage = "Insert Custom Message here",
+    [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",
     [ValidateScript( { Use-RJInterface -DisplayName "Create a service ticket (email) if not enough licenses/FrontLine seats are available?" } )]
     [bool] $createTicketOutOfLicenses = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Where to open a service ticket (via email)" } )]
@@ -376,8 +376,8 @@ if ($sendMailWhenProvisioned) {
         "."
     } while ($cloudPC.status -notin @("provisioned", "failed") -and $count -lt $maxCount)
  
-    ## customizing email is switched on (true)
-    if($customizeMail) {
+    ## customizing email is switched on (true) 
+    if ($customizeMail) {
         if ($cloudPC.status -eq "provisioned") {
             "## Cloud PC provisioned."
             $message = @{
@@ -395,25 +395,25 @@ if ($sendMailWhenProvisioned) {
             }
             
             ## Check if user has a mailbox. If not do not send an email but continue the RB
-            try {
-                $existingMailbox = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/mailboxSettings" -Method Get
-
+            $checkMailboxExists = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Get -OdSelect mail
+            if ($null -ne $checkMailboxExists.mail) {
                 Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+
                 "## Mail to '$UserName' sent."
             }
-            catch {
-                    "## User $UserName has no mailbox. No email will be sent." 
+            else {
+                "## User $UserName has no mailbox. No email will be sent."
             }
-            
-    
         }
         else {
             "## Cloud PC provisioning failed."
             throw ("Cloud PC failed.")
         }
     }
+    ## customize mail is switched off (false) => standard automated mail
     else {
         if ($cloudPC.status -eq "provisioned") {
+            
             "## Cloud PC provisioned."
             $message = @{
                 subject = "[Automated eMail] Cloud PC is provisioned."
@@ -431,10 +431,18 @@ if ($sendMailWhenProvisioned) {
                     address = $UserName
                 }
             }
-    
-            Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
-            "## Mail to '$UserName' sent."
-    
+
+            ## Check if user has a mailbox. If not do not send an email but continue the RB
+            $checkMailboxExists = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Get -OdSelect mail
+            if ($null -ne $checkMailboxExists.mail) {
+                Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+
+                "## Mail to '$UserName' sent."
+            }
+            else {
+                "## User $UserName has no mailbox. No email will be sent."
+            }
+
         }
         else {
             "## Cloud PC provisioning failed."
@@ -442,9 +450,4 @@ if ($sendMailWhenProvisioned) {
         }
     }
 
-
-
-
-
-    
 }
