@@ -231,9 +231,10 @@ try {
 catch {
     $message = $_
     if ($message -like "userId was not found") {
-        Write-Error "User information could not be retrieved because the UserID was not found. Often this is the case when the user is not enabled for Teams."
+        Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
+    }else {
+        Write-Error "$message"
     }
-    Write-Error "$message"
 }
 
 if (($StatusQuo.IsForwardingEnabled -eq $true) -and ($StatusQuo.ForwardingType -like "Immediate")) {
