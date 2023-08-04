@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-08-04
+* Updated Phone Runbooks
+
 ## 2023-08-02
 * Updated Phone Runbooks
 
