@@ -57,27 +57,27 @@
 
    .EXAMPLE
    "rjgit-user_general_assign-windows365": {
-            "Parameters": {
-                "cfgProvisioningGroupName": {
-                    "SelectSimple": {
-                        "cfg - Windows 365 - Provisioning - Win11": "cfg - Windows 365 - Provisioning - Win11",
-                        "cfg - Windows 365 - Provisioning - Win10": "cfg - Windows 365 - Provisioning - Win10"
-                    }
-                },
-                "cfgUserSettingsGroupName": {
-                    "SelectSimple": {
-                        "cfg - Windows 365 - User Settings - restore allowed": "cfg - Windows 365 - User Settings - restore allowed",
-                        "cfg - Windows 365 - User Settings - no restore": "cfg - Windows 365 - User Settings - no restore"
-                    }
-                },
-                "licWin365GroupName": {
-                    "SelectSimple": {
-                        "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                        "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                    }
+        "Parameters": {
+            "cfgProvisioningGroupName": {
+                "SelectSimple": {
+                    "cfg - Windows 365 - Provisioning - Win11": "cfg - Windows 365 - Provisioning - Win11",
+                    "cfg - Windows 365 - Provisioning - Win10": "cfg - Windows 365 - Provisioning - Win10"
+                }
+            },
+            "cfgUserSettingsGroupName": {
+                "SelectSimple": {
+                    "cfg - Windows 365 - User Settings - restore allowed": "cfg - Windows 365 - User Settings - restore allowed",
+                    "cfg - Windows 365 - User Settings - no restore": "cfg - Windows 365 - User Settings - no restore"
+                }
+            },
+            "licWin365GroupName": {
+                "SelectSimple": {
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
                 }
             }
         }
+    }
 #>
 
 #Requires -Modules "RealmJoin.RunbookHelper"
@@ -371,7 +371,7 @@ if ($sendMailWhenProvisioned) {
     [int]$count = 0
     do {
         $count++
-        $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$cloudPCId" -Beta -ErrorAction SilentlyContinue
+        $cloudPC = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$cloudPCId" -Beta -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 60
         "."
     } while ($cloudPC.status -notin @("provisioned", "failed") -and $count -lt $maxCount)
@@ -413,7 +413,6 @@ if ($sendMailWhenProvisioned) {
     ## customize mail is switched off (false) => standard automated mail
     else {
         if ($cloudPC.status -eq "provisioned") {
-            
             "## Cloud PC provisioned."
             $message = @{
                 subject = "[Automated eMail] Cloud PC is provisioned."
@@ -449,5 +448,4 @@ if ($sendMailWhenProvisioned) {
             throw ("Cloud PC failed.")
         }
     }
-
 }
