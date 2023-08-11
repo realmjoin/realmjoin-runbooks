@@ -1040,6 +1040,9 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+# Suppress verbose messages from the Microsoft Graph PowerShell SDK an Azure PowerShell
+$VerbosePreference = "SilentlyContinue"
+
 # Sanity checks
 if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
     "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
@@ -1073,6 +1076,8 @@ catch {
 if ($exportJson) {
     mkdir "$($env:TEMP)\json-export" | Out-Null
 }
+
+$outputFileMarkdown = ".\report.md"
 
 # Header
 @'
@@ -1220,7 +1225,7 @@ foreach ($policy in $conditionalAccessPolicies.value) {
 
 "## Uploading to Azure Storage Account..."
 
-Connect-RjRbAzAccount
+Connect-AzAccount -Identity | Out-Null
 
 if (-not $ContainerName) {
     $ContainerName = "tenant-policy-report-" + (get-date -Format "yyyy-MM-dd")
@@ -1269,14 +1274,14 @@ if ($exportJson) {
 # Remove harmfull characters
 
 # Read Markdown into variable
-$content = Get-Content $outputFileMarkdown
+$content = Get-Content -Path $outputFileMarkdown
 # Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
 $content = $content -replace '(?!^)([\\%])', '\$1'
 # Replace all cyrillic characters with "." (unless intended LaTeX)
 $content = $content -replace '[\u0400-\u04FF]', '.'
 
 # Make sure Markdown is UTF8
-$content | Set-Content $outputFileMarkdown -Encoding UTF8
+$content | Set-Content -Path $outputFileMarkdown -Encoding UTF8
 
 # Upload markdown file
 $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
