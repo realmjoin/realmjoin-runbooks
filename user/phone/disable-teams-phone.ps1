@@ -160,12 +160,32 @@ if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
-Write-Output "Current LineUri: $CurrentLineUri"
+if ($StatusQuo.OnlineVoicemailPolicy -like "") {
+    $CurrentOnlineVoicemailPolicy = "Global"
+}else {
+    $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
+}
+
+if ($StatusQuo.TeamsMeetingPolicy -like "") {
+    $CurrentTeamsMeetingPolicy = "Global"
+}else {
+    $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
+}
+
+if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
+    $CurrentTeamsMeetingBroadcastPolicy = "Global"
+}else {
+    $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
+}
+
 Write-Output "Current OnlineVoiceRoutingPolicy: $CurrentOnlineVoiceRoutingPolicy"
 Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
 Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
+Write-Output "Current OnlineVoicemailPolicy: $CurrentOnlineVoicemailPolicy"
+Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
+Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
 
 ########################################################
 ##             Remove Number from User
@@ -213,6 +233,16 @@ catch {
     $message = $_
     Write-Error -Message "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
     throw "Teams - Error: Removing the of Teams IP-Phone Policy for $UPN could not be completed!"
+}
+
+Write-Output "Remove Teams Online Voicemail Policy (Set to ""global"")"
+try {
+    Grant-CsOnlineVoicemailPolicy -Identity $UserName -PolicyName $null
+}
+catch {
+    $message = $_
+    Write-Error -Message "Teams - Error: Removing the of OnlineVoicemailPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
+    throw "Teams - Error: Removing the of OnlineVoicemailPolicy for $UPN could not be completed!"
 }
 
 Write-Output ""

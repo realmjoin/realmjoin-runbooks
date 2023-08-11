@@ -23,9 +23,12 @@
         "TeamsCallingPolicy": {
             "DisplayName": "Microsoft Teams Calling Policy Name"
         },
-        "TeamsIPPhonePolicy": {
-            "DisplayName": "Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users)"
+        "OnlineVoicemailPolicy": {
+            "DisplayName": "Microsoft Teams Online Voicemail Policy Name"
         },
+        "TeamsIPPhonePolicy": {
+            "DisplayName": "Microsoft Teams IP-Phone Policy Name (a.o. for Common Area Phone Users)"
+        },        
         "TeamsMeetingPolicy": {
             "DisplayName": "Microsoft Teams Meeting Policy Name"
         },
@@ -49,6 +52,7 @@ param(
     [String] $TenantDialPlan,
     [String] $TeamsCallingPolicy,
     [String] $TeamsIPPhonePolicy,
+    [String] $OnlineVoicemailPolicy,
     [String] $TeamsMeetingPolicy,
     [String] $TeamsMeetingBroadcastPolicy,
 
@@ -173,6 +177,12 @@ if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
+if ($StatusQuo.OnlineVoicemailPolicy -like "") {
+    $CurrentOnlineVoicemailPolicy = "Global"
+}else {
+    $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
+}
+
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
 }else {
@@ -190,12 +200,16 @@ Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
 Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
+Write-Output "Current OnlineVoicemailPolicy: $CurrentOnlineVoicemailPolicy"
 Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
 Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
 
 Write-Output ""
 Write-Output "Preflight-Check"
 Write-Output "---------------------"
+
+# Init $TMP for "Global (Org Wide Default) Case"
+$TMP = $null
 
 # Check if specified Online Voice Routing Policy exists, if submitted
 if ($OnlineVoiceRoutingPolicy -notlike "") {
@@ -262,6 +276,23 @@ if ($TeamsIPPhonePolicy -notlike "") {
     catch {
         Write-Error -Message  "Teams - Error: The specified Teams IP-Phone Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy" -ErrorAction Continue
         throw "The specified Teams IP-Phone Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy"
+    }
+    Clear-Variable TMP
+}
+
+# Check if specified Teams IP-Phone Policy exists, if submitted
+if ($OnlineVoicemailPolicy -notlike "") {
+    try {
+        if ($OnlineVoicemailPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Teams Online Voicemail Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsOnlineVoicemailPolicy $OnlineVoicemailPolicy -ErrorAction Stop
+            Write-Output "The specified Teams Online Voicemail Policy exists"
+        }
+    }
+    catch {
+        Write-Error -Message  "Teams - Error: The specified Teams Online Voicemail Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoicemailPolicy" -ErrorAction Continue
+        throw "The specified Teams Online Voicemail Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $OnlineVoicemailPolicy"
     }
     Clear-Variable TMP
 }
@@ -376,6 +407,23 @@ if ($TeamsIPPhonePolicy -notlike "") {
         $message = $_
         Write-Error -Message "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
+    }
+}
+
+# Grant OnlineVoicemailPolicy, if submitted
+if ($OnlineVoicemailPolicy -notlike "") {
+    Write-Output "OnlineVoicemailPolicy: $OnlineVoicemailPolicy"
+    try {
+        if ($OnlineVoicemailPolicy -like "Global (Org Wide Default)") {
+            Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
+        }else {
+            Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop  
+        }  
+    }
+    catch {        
+        $message = $_
+        Write-Error -Message "Teams - Error: The assignment of OnlineVoicemailPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
+        throw "Teams - Error: The assignment of OnlineVoicemailPolicy for $UPN could not be completed!"
     }
 }
 
