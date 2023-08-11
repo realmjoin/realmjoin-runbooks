@@ -1289,7 +1289,8 @@ $blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $Container
 if ($produceLinks) {
     #Create signed (SAS) link
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
-    "## Markdown report"
+    ""
+    "## Markdown report:"
     " $SASLink"
     ""
 }
