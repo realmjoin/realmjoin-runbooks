@@ -19,7 +19,7 @@
     }
 #>
 
-#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.2.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
@@ -1055,30 +1055,15 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     ""
 }
 
-"## Authenticating to Microsoft Graph..."
-
-# Temporary file for markdown output
-$outputFileMarkdown = "$env:TEMP\$(get-date -Format "yyyy-MM-dd")-policy-report.md"
-
-## Auth (directly calling auth endpoint)
-$resourceURL = "https://graph.microsoft.com/" 
-$authUri = $env:IDENTITY_ENDPOINT
-$headers = @{'X-IDENTITY-HEADER' = "$env:IDENTITY_HEADER" }
-
-$AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$($resourceURL)" -Method 'GET' -Headers $headers
-$accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
-
-#Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All,Group.Read.All,User.Read.All,RoleManagement.Read.Directory"
-
-"## Connecting to Microsoft Graph..."
-
 try {
-    Connect-MgGraph -AccessToken $accessToken | Out-Null
+    Connect-MgGraph -Identity | Out-Null
 }
 catch {
     "## Error connecting to Microsoft Graph."
     ""
     "## Probably: Managed Identity is not configured."
+    ""
+    $_
     throw("Auth failed")
 }
 
