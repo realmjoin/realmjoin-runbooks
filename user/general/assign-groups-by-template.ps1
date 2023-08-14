@@ -70,13 +70,15 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
 
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
+    # GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
     [string] $GroupsTemplate,
+    [Parameter(Mandatory = $true)]
     [string] $GroupsString,
     # $UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames
     [bool] $UseDisplaynames = $true,
@@ -92,17 +94,35 @@ Connect-RjRbGraph
 if (-not $GroupsString) {
     "## Please prepare Groups Templates before using this runbook."
     "## See this runbooks source for an example."
+    throw("No GroupsString provided")
 }
 
 $GroupNames = $GroupsString.Split(',')
 
 $AADGroups = @()
-foreach ($GroupName in $GroupNames) {
-    if ($UseDisplaynames) {
+if ($UseDisplaynames) {
+    foreach ($GroupName in $GroupNames) {
         $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupName'"
     }
-    else {
-        $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupName"
+    if (-not $targetGroup) {
+        "## Group with name '$GroupName' not found in Azure AD."
+        throw("Group not found");
+    }
+    if ($targetGroup.count -gt 1) {
+        "## Multiple groups with name '$GroupName' found in Azure AD."
+        "## Recommendation: Use Group object ids instead of displayNames."
+        throw("Group not unique")
+    }
+    if ($AADGroups.id -notcontains $targetGroup.Id) {
+        $AADGroups += $targetGroup
+    }
+} else {
+    foreach ($GroupId in $GroupNames) {
+        $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId" -ErrorAction SilentlyContinue
+    }
+    if (-not $targetGroup) {
+        "## Group with ID '$GroupId' not found in Azure AD."
+        throw("Group not found");
     }
     if ($AADGroups.id -notcontains $targetGroup.Id) {
         $AADGroups += $targetGroup
@@ -117,7 +137,7 @@ foreach ($AADGroup in $AADGroups) {
         $bindingString = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
         $bindings += $bindingString
     } else {
-        "## User is already member of '$($AADGroup.displayName)'"
+        "## User is already member of '$($AADGroup.displayName)'. Skipping."
     }
     
     if ($bindings) {
