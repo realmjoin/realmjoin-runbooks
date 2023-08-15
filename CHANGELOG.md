@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-08-15
+Assign by Template: Fixed: Would only assign one group
+
 ## 2023-08-14
 * Assign Groups by Template: Improved Error / Edge Case handling
 

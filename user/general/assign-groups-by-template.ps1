@@ -103,29 +103,30 @@ $AADGroups = @()
 if ($UseDisplaynames) {
     foreach ($GroupName in $GroupNames) {
         $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupName'"
+        if (-not $targetGroup) {
+            "## Group with name '$GroupName' not found in Azure AD."
+            throw("Group not found");
+        }
+        if ($targetGroup.count -gt 1) {
+            "## Multiple groups with name '$GroupName' found in Azure AD."
+            "## Recommendation: Use Group object ids instead of displayNames."
+            throw("Group not unique")
+        }
+        if ($AADGroups.id -notcontains $targetGroup.Id) {
+            $AADGroups += $targetGroup
+        }
     }
-    if (-not $targetGroup) {
-        "## Group with name '$GroupName' not found in Azure AD."
-        throw("Group not found");
-    }
-    if ($targetGroup.count -gt 1) {
-        "## Multiple groups with name '$GroupName' found in Azure AD."
-        "## Recommendation: Use Group object ids instead of displayNames."
-        throw("Group not unique")
-    }
-    if ($AADGroups.id -notcontains $targetGroup.Id) {
-        $AADGroups += $targetGroup
-    }
-} else {
+}
+else {
     foreach ($GroupId in $GroupNames) {
         $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId" -ErrorAction SilentlyContinue
-    }
-    if (-not $targetGroup) {
-        "## Group with ID '$GroupId' not found in Azure AD."
-        throw("Group not found");
-    }
-    if ($AADGroups.id -notcontains $targetGroup.Id) {
-        $AADGroups += $targetGroup
+        if (-not $targetGroup) {
+            "## Group with ID '$GroupId' not found in Azure AD."
+            throw("Group not found");
+        }
+        if ($AADGroups.id -notcontains $targetGroup.Id) {
+            $AADGroups += $targetGroup
+        }
     }
 }
 
@@ -136,7 +137,8 @@ foreach ($AADGroup in $AADGroups) {
     if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $UserId)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $UserId))) {    
         $bindingString = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
         $bindings += $bindingString
-    } else {
+    }
+    else {
         "## User is already member of '$($AADGroup.displayName)'. Skipping."
     }
     
