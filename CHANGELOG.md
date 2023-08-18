@@ -2,6 +2,7 @@
 
 ## 2023-08-18
 * New Runbook: Assign groups by template (user and group scope)
+* New Runbook: Reset mobile device PIN
 
 ## 2023-08-11
 * Export Policy Report - Compatibility with Microsoft Graph PowerShell Module 2.x
