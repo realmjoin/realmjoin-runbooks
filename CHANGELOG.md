@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-08-18
+* New Runbook: Assign groups by template (user and group scope)
+
 ## 2023-08-11
 * Export Policy Report - Compatibility with Microsoft Graph PowerShell Module 2.x
 * Updated Phone Runbooks
