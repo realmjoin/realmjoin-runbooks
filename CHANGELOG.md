@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-08-11
+* Export Policy Report - Compatibility with Microsoft Graph PowerShell Module 2.x
+* Updated Phone Runbooks
+
 ## 2023-08-04
 * Updated Phone Runbooks
 

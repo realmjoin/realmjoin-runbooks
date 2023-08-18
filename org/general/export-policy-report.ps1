@@ -19,7 +19,7 @@
     }
 #>
 
-#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.2.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
@@ -1040,6 +1040,9 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+# Suppress verbose messages from the Microsoft Graph PowerShell SDK an Azure PowerShell
+$VerbosePreference = "SilentlyContinue"
+
 # Sanity checks
 if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
     "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
@@ -1055,30 +1058,15 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     ""
 }
 
-"## Authenticating to Microsoft Graph..."
-
-# Temporary file for markdown output
-$outputFileMarkdown = "$env:TEMP\$(get-date -Format "yyyy-MM-dd")-policy-report.md"
-
-## Auth (directly calling auth endpoint)
-$resourceURL = "https://graph.microsoft.com/" 
-$authUri = $env:IDENTITY_ENDPOINT
-$headers = @{'X-IDENTITY-HEADER' = "$env:IDENTITY_HEADER" }
-
-$AuthResponse = Invoke-WebRequest -UseBasicParsing -Uri "$($authUri)?resource=$($resourceURL)" -Method 'GET' -Headers $headers
-$accessToken = ($AuthResponse.content | ConvertFrom-Json).access_token
-
-#Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All,Policy.Read.All,Group.Read.All,User.Read.All,RoleManagement.Read.Directory"
-
-"## Connecting to Microsoft Graph..."
-
 try {
-    Connect-MgGraph -AccessToken $accessToken | Out-Null
+    Connect-MgGraph -Identity | Out-Null
 }
 catch {
     "## Error connecting to Microsoft Graph."
     ""
     "## Probably: Managed Identity is not configured."
+    ""
+    $_
     throw("Auth failed")
 }
 
@@ -1088,6 +1076,8 @@ catch {
 if ($exportJson) {
     mkdir "$($env:TEMP)\json-export" | Out-Null
 }
+
+$outputFileMarkdown = ".\report.md"
 
 # Header
 @'
@@ -1235,7 +1225,7 @@ foreach ($policy in $conditionalAccessPolicies.value) {
 
 "## Uploading to Azure Storage Account..."
 
-Connect-RjRbAzAccount
+Connect-AzAccount -Identity | Out-Null
 
 if (-not $ContainerName) {
     $ContainerName = "tenant-policy-report-" + (get-date -Format "yyyy-MM-dd")
@@ -1284,14 +1274,14 @@ if ($exportJson) {
 # Remove harmfull characters
 
 # Read Markdown into variable
-$content = Get-Content $outputFileMarkdown
+$content = Get-Content -Path $outputFileMarkdown
 # Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
 $content = $content -replace '(?!^)([\\%])', '\$1'
 # Replace all cyrillic characters with "." (unless intended LaTeX)
 $content = $content -replace '[\u0400-\u04FF]', '.'
 
 # Make sure Markdown is UTF8
-$content | Set-Content $outputFileMarkdown -Encoding UTF8
+$content | Set-Content -Path $outputFileMarkdown -Encoding UTF8
 
 # Upload markdown file
 $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
@@ -1299,7 +1289,8 @@ $blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $Container
 if ($produceLinks) {
     #Create signed (SAS) link
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
-    "## Markdown report"
+    ""
+    "## Markdown report:"
     " $SASLink"
     ""
 }

@@ -160,6 +160,12 @@ if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
+if ($StatusQuo.OnlineVoicemailPolicy -like "") {
+    $CurrentOnlineVoicemailPolicy = "Global"
+}else {
+    $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
+}
+
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
 }else {
@@ -178,6 +184,7 @@ Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
 Write-Output "Current TenantDialPlan: $CurrentTenantDialPlan"
 Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
+Write-Output "Current OnlineVoicemailPolicy: $CurrentOnlineVoicemailPolicy"
 Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
 Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
 
