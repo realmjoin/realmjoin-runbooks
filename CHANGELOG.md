@@ -1,10 +1,7 @@
 # RealmJoin Runbooks Changelog 
 
-## 2023-08-15
-Assign by Template: Fixed: Would only assign one group
-
-## 2023-08-14
-* Assign Groups by Template: Improved Error / Edge Case handling
+## 2023-08-18
+* New Runbook: Assign groups by template (user and group scope)
 
 ## 2023-08-11
 * Export Policy Report - Compatibility with Microsoft Graph PowerShell Module 2.x
