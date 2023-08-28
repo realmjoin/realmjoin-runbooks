@@ -29,8 +29,7 @@
                 "Hide": true
             },
             "sendMailWhenProvisioned": {
-                "DisplayName": "Notify user once the CloudPC is done provisioning?",
-                "Default": false
+                "DisplayName": "Notify user once the CloudPC is done provisioning?"
             },
             "customizeMail": {
                 "DisplayName": "Would you like to customize the mail sent to the user? (Works only if \"Notify user\" switch is on)",
@@ -95,7 +94,7 @@ param(
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [ValidateScript( { Use-RJInterface -DisplayName "Notify user when CloudPC is ready?" } )]
-    [bool] $sendMailWhenProvisioned = $false,
+    [bool] $sendMailWhenProvisioned,
     [ValidateScript( { Use-RJInterface -DisplayName "Would you like to customize the email?" } )]
     [bool] $customizeMail = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "The custom email to be sent to the user: " } )]
