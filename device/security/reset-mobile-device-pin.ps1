@@ -7,7 +7,8 @@
 
   .NOTES
   Permissions needed:
- - DeviceManagementManagedDevices.PrivilegedOperations.All
+  - DeviceManagementManagedDevices.Read.All,
+  - DeviceManagementManagedDevices.PrivilegedOperations.All
 
   .INPUTS
   RunbookCustomization: {
