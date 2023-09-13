@@ -31,7 +31,7 @@
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try{
-    Connect-RjRbExchangeOnline -AutomationConnectionName "ToydariaRunAsConnection"
+    Connect-RjRbExchangeOnline
 
     ## Check the mailbox exists
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
