@@ -35,7 +35,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" },Az.ManagementPartner
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" },Az.ManagementPartner
 
 param(
     [Parameter(Mandatory = $true)]
