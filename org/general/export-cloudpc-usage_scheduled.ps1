@@ -20,7 +20,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" },"Az.Storage","Az.Resources"
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" },"Az.Storage","Az.Resources"
 
 param(
     # CallerName is tracked purely for auditing purposes
