@@ -64,7 +64,7 @@
 }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Action to execute" } )]
