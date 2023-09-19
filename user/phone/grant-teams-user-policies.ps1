@@ -46,7 +46,6 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
     [String] $OnlineVoiceRoutingPolicy,
     [String] $TenantDialPlan,

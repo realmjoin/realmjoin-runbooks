@@ -30,7 +30,6 @@
 
 param
 (
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] 
     [string] $UserName,
     [Parameter(Mandatory = $true)]

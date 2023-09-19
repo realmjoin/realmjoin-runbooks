@@ -19,6 +19,7 @@
                 "Hide": true
             },
             "HideMailbox": {
+                "DisplayName": "Hide the Mailbox",
                 "Hide": true
             }
         },
@@ -60,9 +61,8 @@
 
 param
 (
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
-    [Parameter(Mandatory = $true)] [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Hide the mailbox" } )]
+    [Parameter(Mandatory = $true)] 
+    [string] $UserName,
     [bool] $HideMailbox = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

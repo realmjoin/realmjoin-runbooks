@@ -17,7 +17,16 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
-            }
+            },
+            "AutoAccept": {
+                "DisplayName": "Automatically accept meeting requests"
+            },
+            "AutoMapping": {
+                "DisplayName": "Automatically map mailbox in Outlook"
+            },
+            "DisableUser": {
+                "DisplayName": "Disable AAD User"
+            },
         }
     }
   
@@ -31,11 +40,8 @@ param (
     [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically accept meeting requests" } )]
     [bool] $AutoAccept = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable AAD User" } )]
     [bool] $DisableUser = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
