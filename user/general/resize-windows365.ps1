@@ -37,12 +37,14 @@
         "Hide": true
     },
     "currentLicWin365GroupName": {
+        "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",
         "SelectSimple": {
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
         }
     },
     "newLicWin365GroupName": {
+        "DisplayName": "Resizing to following license: ",
         "SelectSimple": {
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
@@ -68,6 +70,12 @@
                 ]
             }
         }
+    },
+    "fromMailAddress": {
+        "DisplayName": "(Shared) Mailbox to send mail from: "
+    },
+    "skipGracePeriod": {
+        "DisplayName": "Remove the old Cloud PC immediately?"
     }
  }
  
@@ -89,23 +97,17 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJRbInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "The to-be-resized Cloud PC uses the following Windows365 license: " } )]
     [Parameter(Mandatory = $true)]
     [string] $currentLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-    [ValidateScript( { Use-RJInterface -DisplayName "Resizing to following license: " } )]
     [Parameter(Mandatory = $true)]
     [string] $newLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
-    [ValidateScript( { Use-RJInterface -DisplayName "Notify User once the Cloud PC has finished resizing?" } )]
     [bool] $sendMailWhenDoneResizing = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
     [string] $fromMailAddress = "reports@contoso.com",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [string] $unassignRunbook = "rjgit-user_general_unassign-windows365",
     [string] $assignRunbook = "rjgit-user_general_assign-windows365",
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove the old Cloud PC immediately?" } )]
     [bool] $skipGracePeriod = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

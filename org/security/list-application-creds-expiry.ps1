@@ -34,6 +34,9 @@
                     }
                 ]
               }
+            },
+            "Days": {
+                "DisplayName": "Days before credential expiry"
             }
         }
     }
@@ -44,7 +47,6 @@
 
 param(
     [bool] $listOnlyExpiring = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Days before credential expiry" } )]
     [int] $Days = 30,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

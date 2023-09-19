@@ -30,7 +30,10 @@
             },
             "CallerName": {
                 "Hide": true
-            }
+            },
+            "DisplayName": {
+                "DisplayName": "Name in Address Book"
+            },
         }
     }
 #>
@@ -40,14 +43,10 @@
 param
 (
     [Parameter(Mandatory = $true)]    
-    [ValidateScript( { Use-RJInterface -DisplayName "Real address" } )]
     [string] $RealAddress,
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -DisplayName "Desired address" } )]
     [string] $DesiredAddress,
-    [ValidateScript( { Use-RJInterface -DisplayName "Name in Address Book" } )]
     [string] $DisplayName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove this contact" } )]
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -16,6 +16,9 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "removeCreatorFromGroup": {
+                "DisplayName": "Remove initial API user/owner from group."
             }
         }
     }
@@ -29,7 +32,6 @@ param(
     [bool]$CommunityPrivate = $false,
     [bool]$CommunityShowInDirectory = $true,
     [string]$CommunityOwners = "",
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove initial API user/owner from group." } )]
     [bool]$removeCreatorFromGroup = $true,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
