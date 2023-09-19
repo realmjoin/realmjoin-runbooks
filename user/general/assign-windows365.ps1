@@ -50,6 +50,36 @@
                         }
                     ]
                 }
+            },
+            "cfgProvisioningGroupName": {
+                "DisplayName": "Provisioning Policy / FrontLine Assignment to use"
+            },
+            "cfgUserSettingsGroupName": {
+                "DisplayName": "User Settings Policy to use"
+            },
+            "licWin365GroupName": {
+                "DisplayName": "Windows 365 license to assign (if not FrontLine)"
+            },
+            "sendMailWhenProvisioned": {
+                "DisplayName": "Notify user once the CloudPC is done provisioning?"
+            },
+            "customizeMail": {
+                "DisplayName": "Would you like to customize the mail sent to the user?"
+            },
+            "customMailMessage": {
+                "DisplayName": "Custom message to be sent to the user."
+            },
+            "createTicketOutOfLicenses": {
+                "DisplayName": "Create a service ticket (email) if not enough licenses/FrontLine seats are available?"
+            },
+            "ticketQueueAddress": {
+                "DisplayName": "Where to open a service ticket (via email)"
+            },
+            "fromMailAddress": {
+                "DisplayName": "(Shared) Mailbox to send mail from"
+            },
+            "ticketCustomerId": {
+                "DisplayName": "Customer ID string for service tickets"
             }
         }
     }
@@ -83,29 +113,18 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Provisioning Policy / FrontLine Assignment to use" } )]
     [string] $cfgProvisioningGroupName = "cfg - Windows 365 - Provisioning - Win11",
-    [ValidateScript( { Use-RJInterface -DisplayName "User Settings Policy to use" } )]
     [string] $cfgUserSettingsGroupName = "cfg - Windows 365 - User Settings - restore allowed",
-    [ValidateScript( { Use-RJInterface -DisplayName "Windows 365 license to assign (if not FrontLine)" } )]
     [string] $licWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
-    [ValidateScript( { Use-RJInterface -DisplayName "Notify user when CloudPC is ready?" } )]
     [bool] $sendMailWhenProvisioned,
-    [ValidateScript( { Use-RJInterface -DisplayName "Would you like to customize the email?" } )]
     [bool] $customizeMail = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "The custom email to be sent to the user: " } )]
     [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",
-    [ValidateScript( { Use-RJInterface -DisplayName "Create a service ticket (email) if not enough licenses/FrontLine seats are available?" } )]
     [bool] $createTicketOutOfLicenses = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Where to open a service ticket (via email)" } )]
     [string] $ticketQueueAddress = "support@glueckkanja-gab.com",
-    [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from" } )]
     [string] $fromMailAddress = "runbooks@contoso.com",
-    [ValidateScript( { Use-RJInterface -DisplayName "Customer ID string for service tickets" } )]
     [string] $ticketCustomerId = "Contoso",
     [Parameter(Mandatory = $true)]
     [string] $CallerName

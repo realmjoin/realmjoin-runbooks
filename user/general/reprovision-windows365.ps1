@@ -25,6 +25,7 @@
         "Hide": true
     },
     "licWin365GroupName": {
+        "DisplayName": "Select the Windows 365 license to be used for reprovisioning",
         "SelectSimple": {
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
             "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
@@ -50,6 +51,9 @@
                 ]
             }
         }
+    },
+    "fromMailAddress": {
+        "DisplayName": "(Shared) Mailbox to send mail from: "
     }
  }
  
@@ -70,13 +74,10 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJRbInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "The to-be-reprovisioned Cloud PC uses the following Windows365 license: " } )]
     [Parameter(Mandatory = $true)]
     [string] $licWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [bool] $sendMailWhenReprovisioning = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "(Shared) Mailbox to send mail from: " } )]
     [string] $fromMailAddress = "reports@contoso.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

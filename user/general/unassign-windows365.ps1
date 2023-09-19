@@ -30,6 +30,12 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "licWin365GroupName": {
+                "DisplayName": "Windows 365 license/Frontline prov. policy to remove from"
+            },
+            "skipGracePeriod": {
+                "DisplayName": "Remove Cloud PC immediately"
             }
         }
     }
@@ -52,14 +58,11 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Windows 365 license/Frontline prov. policy to remove from" } )]
     [string] $licWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [string] $licWin365GroupPrefix = "lic - Windows 365 Enterprise - ",
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove Cloud PC immediately" } )]
     [bool] $skipGracePeriod = $true,
     [bool] $KeepUserSettingsAndProvisioningGroups = $false,
     [Parameter(Mandatory = $true)]

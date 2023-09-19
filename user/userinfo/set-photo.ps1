@@ -20,6 +20,9 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "PhotoURI": {
+                "DisplayName": "Photo Source URL:"
             }
         }
     }
@@ -27,11 +30,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     # If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Source URL" } )]
     [string]$PhotoURI = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

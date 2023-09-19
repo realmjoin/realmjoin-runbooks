@@ -133,6 +133,12 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "DefaultLicense": {
+                "DisplayName": "License group to assign"
+            },
+            "EnableEXOArchive": {
+                "DisplayName": "Create Exchange Online Archive Mailbox"
             }
         }
     }
@@ -163,11 +169,9 @@ param (
     [string]$State,
     [string]$Country,
     [string]$UsageLocation,
-    [ValidateScript( { Use-RJInterface -DisplayName "License group to assign" } )]
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [String]$InitialPassword = "",
-    [ValidateScript( { Use-RJInterface -DisplayName "Create Exchange Online Archive Mailbox" } )]
     [bool]$EnableEXOArchive = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

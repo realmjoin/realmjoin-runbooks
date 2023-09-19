@@ -20,6 +20,12 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "From": {
+                "DisplayName": "Sender Mail Address"
+            },
+            "To": {
+                "DisplayName": "Recipient Mail Address"
             }
         }
     }

@@ -7,6 +7,12 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "From": {
+                "DisplayName": "Sender mail address"
+            },
+            "To": {
+                "DisplayName": "Send mail to"
             }
         }
     }
@@ -16,9 +22,7 @@
 
 param(
     [bool] $sendEmailIfFound = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Sender mail address" } )]
     [string] $From = "reports@contoso.com",
-    [ValidateScript( { Use-RJInterface -DisplayName "Send mail to" } )]
     [string] $To = "support@glueckkanja-gab.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

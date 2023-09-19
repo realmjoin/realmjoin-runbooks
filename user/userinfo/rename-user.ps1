@@ -20,6 +20,15 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "NewUpn": {
+                "DisplayName": "New UserPrincipalName"
+            },
+            "ChangeMailnickname": {
+                "DisplayName": "Change MailNickname based on new UPN"
+            },
+            "UpdatePrimaryAddress": {
+                "DisplayName": "Update primary eMail address"
             }
         }
     }
@@ -30,14 +39,10 @@
 
 param(
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "New UserPrincipalName" } )]
     [string] $NewUpn,
-    [ValidateScript( { Use-RJInterface -DisplayName "Change MailNickname based on new UPN" } )]
     [bool] $ChangeMailnickname = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Update primary eMail address" } )]
     [bool] $UpdatePrimaryAddress = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
