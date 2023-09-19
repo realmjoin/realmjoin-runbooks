@@ -179,6 +179,12 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "DisplayName": {
+                "DisplayName": "DisplayName"
+            },
+            "DefaultLicense": {
+                "DisplayName": "License group to assign"
             }
         }
     }
@@ -189,11 +195,9 @@
 
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string]$UserName,
     [string]$GivenName,
     [string]$Surname,
-    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
     [string]$DisplayName,
     [string]$CompanyName,
     [string]$City,
@@ -208,7 +212,6 @@ param (
     [string]$State,
     [string]$StreetAddress,
     [string]$UsageLocation,
-    [ValidateScript( { Use-RJInterface -DisplayName "License group to assign" } )]
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [bool]$EnableEXOArchive = $false,

@@ -33,7 +33,6 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     [ValidateScript( { Use-RJInterface -Type Textarea -DisplayName "Dismiss risk" } )]
     [boolean] $Dismiss = $false,

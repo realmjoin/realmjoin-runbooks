@@ -27,7 +27,6 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Device -DisplayName "Mobile Device" } )]
     [String] $DeviceId,
     [Parameter(Mandatory = $true)]
     [string] $CallerName

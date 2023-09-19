@@ -29,7 +29,6 @@
 
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Mailbox" } )]
     [String] $UserName,
     [Parameter(Mandatory = $true)]
     [string] $OwaPolicyName = "OwaMailboxPolicy-Default",

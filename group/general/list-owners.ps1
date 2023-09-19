@@ -27,7 +27,6 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupID,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

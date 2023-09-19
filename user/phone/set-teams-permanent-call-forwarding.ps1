@@ -141,7 +141,6 @@
             
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
 
     [String] $ForwardTargetPhoneNumber,

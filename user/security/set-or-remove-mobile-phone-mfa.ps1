@@ -36,11 +36,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String]$UserName,
     [Parameter(Mandatory = $true)]
     [String]$phoneNumber,
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove this mobile phone MFA factor" } )]
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
