@@ -27,9 +27,7 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Enable this user object, if disabled" } )]
     [bool] $EnableUserIfNeeded = $true,
     [bool] $ForceChangePasswordNextSignIn = $true,
     # CallerName is tracked purely for auditing purposes

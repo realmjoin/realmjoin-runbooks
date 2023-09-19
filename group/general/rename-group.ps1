@@ -18,6 +18,15 @@
             "CallerName": {
                 "Hide": true
             }
+            "DisplayName": {
+                "DisplayName": "New DisplayName / Team Name"
+            },
+            "MailNickname": {
+                "DisplayName": "New MailNickname"
+            },
+            "Description": {
+                "DisplayName": "New Description"
+            }
         }
     }
 
@@ -27,13 +36,9 @@
 
 param(
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
     [string] $GroupId,
-    [ValidateScript( { Use-RJInterface -DisplayName "New DisplayName / Team Name" } )]
     [string] $DisplayName,
-    [ValidateScript( { Use-RJInterface -DisplayName "New MailNickname" } )]
     [string] $MailNickname,
-    [ValidateScript( { Use-RJInterface -DisplayName "New Description" } )]
     [string] $Description,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -26,6 +26,9 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "Enable": {
+                "DisplayName": "Disable or Enable Device"
             }
         }
     }
@@ -36,7 +39,6 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable or Enable Device" } )]
     [bool] $Enable = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

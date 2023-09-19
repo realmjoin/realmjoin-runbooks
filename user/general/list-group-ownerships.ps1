@@ -29,7 +29,6 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -21,6 +21,9 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "CorpIdentifier": {
+                "DisplayName": "Corporate Identifier Value"
             }
         }
     }
@@ -32,7 +35,6 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CorpIdentifierType = "serialNumber",
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "Corporate Identifier Value" } )]
     [string] $CorpIdentifier,
     [string] $DeviceDescripton = "",
     [bool] $OverwriteExistingEntry = $true,
