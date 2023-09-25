@@ -133,13 +133,19 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "DefaultLicense": {
+                "DisplayName": "License group to assign"
+            },
+            "EnableEXOArchive": {
+                "DisplayName": "Create Exchange Online Archive Mailbox"
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param (
@@ -163,11 +169,9 @@ param (
     [string]$State,
     [string]$Country,
     [string]$UsageLocation,
-    [ValidateScript( { Use-RJInterface -DisplayName "License group to assign" } )]
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [String]$InitialPassword = "",
-    [ValidateScript( { Use-RJInterface -DisplayName "Create Exchange Online Archive Mailbox" } )]
     [bool]$EnableEXOArchive = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

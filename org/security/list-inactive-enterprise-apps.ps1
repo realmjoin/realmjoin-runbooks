@@ -17,15 +17,17 @@
             "CallerName": {
                 "Hide": true
             }
+        },
+        "Days": {
+            "DisplayName": "Days without user logon"
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-    [ValidateScript( { Use-RJInterface -DisplayName "Days without user logon" } )]
     [int] $Days = 90,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -59,23 +59,26 @@
             },
             "CallerName": {
                 "Hide": true
-            }
+            },
+            "Start": {
+                "DisplayName": "Start Date"
+            },
+            "End": {
+                "DisplayName": "End Date"
+            },
+            
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office" } )]
     [bool] $Disable = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Start Date" } )]
     [System.DateTime] $Start = (get-date),
-    [ValidateScript( { Use-RJInterface -DisplayName "End Date" } )]
     [System.DateTime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",

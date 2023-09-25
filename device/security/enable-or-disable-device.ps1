@@ -26,17 +26,19 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "Enable": {
+                "DisplayName": "Disable or Enable Device"
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable or Enable Device" } )]
     [bool] $Enable = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

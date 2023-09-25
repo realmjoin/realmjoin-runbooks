@@ -48,24 +48,29 @@
             },
             {
                 "Name": "AddPublicFolder",
-                "Hide": true
+                "Hide": true,
+                "DisplayName": "Add a Public Folder"
+            },
+            {
+                "Name": "PublicFolderName",
+                "DisplayName": "Name of the Public Folder"
+            },{
+                "Name": "MailboxName",
+                "DisplayName": "Target Public Folder Mailbox (optional)",
             }
         ]
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -DisplayName "Name of the Public Folder" } )]
     [string] $PublicFolderName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Target Public Folder Mailbox (optional)" } )]
     [string] $MailboxName,
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -DisplayName "Add a Public Folder" } )]
     [bool] $AddPublicFolder,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

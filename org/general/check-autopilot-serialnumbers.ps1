@@ -14,15 +14,17 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "SerialNumbers": {
+                "DisplayName": "Serial Numbers of the Devices, separated by ','"
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-    [ValidateScript( { Use-RJInterface -DisplayName "Serial Numbers of the Devices, separated by ','" } )]
     [Parameter(Mandatory = $true)]
     [string] $SerialNumbers,
     # CallerName is tracked purely for auditing purposes

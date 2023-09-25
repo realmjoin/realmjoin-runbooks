@@ -46,7 +46,8 @@
             },
             {
                 "Name": "moveGroup",
-                "Hide": true
+                "Hide": true,
+                "DisplayName": "Put devices owned by group members in specified AAD (device) Group"
             },
             {
                 "Name": "GroupID",
@@ -56,13 +57,11 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group to inspect" } )]
     [String] $GroupID,
-    [ValidateScript( { Use-RJInterface -DisplayName "Put devices owned by group members in specified AAD (device) Group" } )]
     [bool]$moveGroup = $false,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Device group" } )]
     [String] $targetgroup,

@@ -26,11 +26,10 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.2.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.2.0" }
 
 param
 (
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] 
     [string] $UserName,
     [Parameter(Mandatory = $true)]

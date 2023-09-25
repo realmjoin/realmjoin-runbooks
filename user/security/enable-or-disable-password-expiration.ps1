@@ -18,19 +18,20 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "DisablePasswordExpiration": {
+                "DisplayName": "Disable Password Expiration?",
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable Password Expiration?"} )]
     [boolean] $DisablePasswordExpiration = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

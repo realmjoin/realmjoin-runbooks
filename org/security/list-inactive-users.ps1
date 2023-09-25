@@ -16,6 +16,15 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "Days": {
+                "DisplayName": "Days without signin"
+            },
+            "showBlockedUsers": {
+                "DisplayName": "Include users/guests that can not sign in"
+            },
+            "showUsersThatNeverLoggedIn": {
+                "DisplayName": "Include users/guests that never logged in"
             }
         }
     }
@@ -24,14 +33,11 @@
   Beware: This has to enumerate all users / Can take a long time.
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-  [ValidateScript( { Use-RJInterface -DisplayName "Days without signin" } )]
   [int] $Days = 30,
-  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that can not sign in" } )]
   [bool] $showBlockedUsers = $true,
-  [ValidateScript( { Use-RJInterface -DisplayName "Include users/guests that never logged in" } )]
   [bool] $showUsersThatNeverLoggedIn = $false,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]

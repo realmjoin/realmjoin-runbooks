@@ -30,26 +30,26 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "DisplayName": {
+                "DisplayName": "DisplayName - will use MailNickname if left empty"
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "MailNickname" } )]
     [string] $MailNickname,
-    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName - will use MailNickname if left empty" } )]
     [string] $DisplayName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Create a team" } )]
     [bool] $CreateTeam = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Group is private" } )]
+    #[ValidateScript( { Use-RJInterface -DisplayName "Group is private" } )]
     [bool] $Private = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Group is mail-enabled" } )]
+    #[ValidateScript( { Use-RJInterface -DisplayName "Group is mail-enabled" } )]
     [bool] $MailEnabled = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Group is security-enabled" } )]
+    #[ValidateScript( { Use-RJInterface -DisplayName "Group is security-enabled" } )]
     [bool] $SecurityEnabled = $true,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,

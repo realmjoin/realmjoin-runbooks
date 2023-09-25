@@ -33,19 +33,16 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "'Device Serial Number' from Get-WindowsAutopilotInfo" } )]
     [string] $SerialNumber,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -DisplayName "'Hardware Hash' from Get-WindowsAutopilotInfo" } )]
     [string] $HardwareIdentifier,
     ## MS removed the ability to assign users directly via Autopilot
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)"  -Filter "userType eq 'Member'" } )]
     [string] $AssignedUser = "",
-    [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
     [bool] $Wait = $true,
     [string] $GroupTag = "",
     # CallerName is tracked purely for auditing purposes

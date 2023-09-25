@@ -46,7 +46,6 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
     [String] $OnlineVoiceRoutingPolicy,
     [String] $TenantDialPlan,
@@ -225,7 +224,9 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy" -ErrorAction Continue
         throw "The specified Online Voice Routing Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 # Check if specified Tenant Dial Plan exists, if submitted
@@ -242,7 +243,9 @@ if ($TenantDialPlan -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Tenant Dial Plan could not be found in the tenant. Please check the specified policy! Submitted policy name: $TenantDialPlan" -ErrorAction Continue
         throw "The specified Tenant Dial Plan could not be found in the tenant! Please check the specified policy! Submitted policy name: $TenantDialPlan"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 
@@ -260,7 +263,9 @@ if ($TeamsCallingPolicy -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Teams Calling Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsCallingPolicy" -ErrorAction Continue
         throw "The specified Teams Calling Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsCallingPolicy"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 # Check if specified Teams IP-Phone Policy exists, if submitted
@@ -277,7 +282,9 @@ if ($TeamsIPPhonePolicy -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Teams IP-Phone Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy" -ErrorAction Continue
         throw "The specified Teams IP-Phone Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsIPPhonePolicy"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 # Check if specified Teams IP-Phone Policy exists, if submitted
@@ -294,7 +301,9 @@ if ($OnlineVoicemailPolicy -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Teams Online Voicemail Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoicemailPolicy" -ErrorAction Continue
         throw "The specified Teams Online Voicemail Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $OnlineVoicemailPolicy"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 # Check if specified Teams Meeting Policy exists, if submitted
@@ -311,7 +320,9 @@ if ($TeamsMeetingPolicy -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Teams Meeting Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingPolicy" -ErrorAction Continue
         throw "The specified Teams Meeting Policy could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsMeetingPolicy"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 
@@ -329,7 +340,9 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
         Write-Error -Message  "Teams - Error: The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant. Please check the specified policy! Submitted policy name: $TeamsMeetingBroadcastPolicy" -ErrorAction Continue
         throw "The specified Teams Meeting Broadcast Policy (Live Event Policy) could not be found in the tenant! Please check the specified policy! Submitted policy name: $TeamsMeetingBroadcastPolicy"
     }
-    Clear-Variable TMP
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
+    }
 }
 
 

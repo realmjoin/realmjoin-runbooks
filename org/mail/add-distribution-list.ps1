@@ -31,25 +31,28 @@
             },
             "PrimarySMTPAddress": {
                 "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use the default domain as a primary SMTP address."
+            },
+            "Roomlist": {
+                "DisplayName": "Create as Roomlist"
+            },
+            "AllowExternalSenders": {
+                "DisplayName": "Can receive external mail"
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)] 
     [string] $Alias,
-    [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
     [string] $PrimarySMTPAddress,
     [string] $GroupName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
-    [ValidateScript( { Use-RJInterface -DisplayName "Create as Roomlist" } )]
     [bool] $Roomlist = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
     [bool] $AllowExternalSenders = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -49,29 +49,29 @@
             "Hide": true
         },
         "Remove": {
+            "DisplayName": "Remove this address",
             "Default": false,
             "Hide": true
         },
         "CallerName": {
             "Hide": true
+        },
+        "asPrimary": {
+            "DisplayName": "Set as primary address",
         }
     }
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -DisplayName "eMail Address" } )]
     [string] $eMailAddress,
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove this address" } )]
     [bool] $Remove = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Set as primary address" } )]
     [bool] $asPrimary = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

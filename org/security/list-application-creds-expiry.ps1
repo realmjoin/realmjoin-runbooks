@@ -34,17 +34,19 @@
                     }
                 ]
               }
+            },
+            "Days": {
+                "DisplayName": "Days before credential expiry"
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [bool] $listOnlyExpiring = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Days before credential expiry" } )]
     [int] $Days = 30,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

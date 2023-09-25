@@ -15,16 +15,18 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "Days": {
+                "DisplayName": "Maximum days before expiry"
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-  [ValidateScript( { Use-RJInterface -DisplayName "Maximum days before expiry" } )]
   [int] $Days = 30,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]

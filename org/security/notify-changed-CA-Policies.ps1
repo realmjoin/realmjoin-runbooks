@@ -20,13 +20,19 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "From": {
+                "DisplayName": "Sender Mail Address"
+            },
+            "To": {
+                "DisplayName": "Recipient Mail Address"
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]

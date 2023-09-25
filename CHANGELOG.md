@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-09-18
+* Update to RJRBHelper v0.8.3 - Fix problems with newer Azure Automation Containers
+
+## 2023-09-07 
+* Teams Phone Runbooks: Bugfix (variables cleanup)
+
 ## 2023-08-18
 * New Runbook: Assign groups by template (user and group scope)
 * New Runbook: Reset mobile device PIN

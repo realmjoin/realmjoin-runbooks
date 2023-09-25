@@ -26,9 +26,7 @@
 param(
     [Parameter(Mandatory = $true)]
     # User which should be cleared
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
