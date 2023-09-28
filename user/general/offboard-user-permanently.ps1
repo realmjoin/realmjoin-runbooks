@@ -189,39 +189,39 @@
 
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.deleteUser" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.deleteUser" } )]
     [bool] $DeleteUser = $false,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.disableUser" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.disableUser" } )]
     [bool] $DisableUser = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountName" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountName" } )]
     [String] $exportStorAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountLocation" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountLocation" } )]
     [String] $exportStorAccountLocation,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountSKU" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountSKU" } )]
     [String] $exportStorAccountSKU,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorContainerGroupMembershipExports" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorContainerGroupMembershipExports" } )]
     [String] $exportStorContainerGroupMembershipExports,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.licensesMode" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.licensesMode" } )]
     [int] $ChangeLicensesSelector = 0,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsMode" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsMode" } )]
     [int] $ChangeGroupsSelector = 0,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupToAdd" -DisplayName "Group to add or keep" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
     [String] $GroupsToRemovePrefix,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships" })]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships" })]
     [bool] $RevokeGroupOwnership = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Grant ownership of the user's resources to the user's manager?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Grant ownership of the user's resources to the user's manager?" } )]
     [bool] $ManagerAsReplacementOwner = $true,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Who should step in as group/resource owner?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Who should step in as group/resource owner?" } )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
