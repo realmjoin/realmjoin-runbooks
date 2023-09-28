@@ -206,7 +206,7 @@ param (
     [string]$Department,
     # think "physicalDeliveryOfficeName" if you are coming from on-prem
     [string]$OfficeLocation,
-    [ValidateScript( { Use-RJInterface -Type Number } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number } )]
     [string]$PostalCode,
     [string]$PreferredLanguage,
     [string]$State,

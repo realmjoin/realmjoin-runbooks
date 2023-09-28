@@ -63,7 +63,7 @@ param(
     [Parameter(Mandatory = $true)]
     [String] $GroupID,
     [bool]$moveGroup = $false,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Device group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Device group" } )]
     [String] $targetgroup,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -29,16 +29,16 @@ param (
     [Parameter(Mandatory = $true)] 
     [string] $MailboxName,
     [string] $DisplayName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
-    [ValidateScript( { Use-RJInterface -DisplayName "Room capacity (people)" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Room capacity (people)" } )]
     [int] $Capacity,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically accept meeting requests" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Automatically accept meeting requests" } )]
     [bool] $AutoAccept = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
     # CallerName is tracked purely for auditing purposes
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable AAD User" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Disable AAD User" } )]
     [bool] $DisableUser = $true,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
