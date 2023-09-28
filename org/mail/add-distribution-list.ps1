@@ -50,7 +50,7 @@ param (
     [string] $Alias,
     [string] $PrimarySMTPAddress,
     [string] $GroupName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
     [bool] $Roomlist = $false,
     [bool] $AllowExternalSenders = $false,

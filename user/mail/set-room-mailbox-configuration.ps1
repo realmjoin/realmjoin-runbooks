@@ -58,21 +58,21 @@
 param (
     [Parameter(Mandatory = $true)] 
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Allow BookIn for everyone" -Type Setting -Attribute "RoomMailbox.AllBookInPolicy" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Allow BookIn for everyone" -Type Setting -Attribute "RoomMailbox.AllBookInPolicy" } )]
     [bool] $AllBookInPolicy = $true,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Allow BookIn for members of this group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Allow BookIn for members of this group" } )]
     [string] $BookInPolicyGroup,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowRecurringMeetings" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowRecurringMeetings" } )]
     [bool] $AllowRecurringMeetings = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.AutomateProcessing" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AutomateProcessing" } )]
     [string] $AutomateProcessing = "AutoAccept",                               
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.BookingWindowInDays" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.BookingWindowInDays" } )]
     [int] $BookingWindowInDays = 180,                               
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.MaximumDurationInMinutes" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.MaximumDurationInMinutes" } )]
     [int] $MaximumDurationInMinutes = 1440,                       
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
     [bool] $AllowConflicts = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Capacity (will only update on values greater 0)" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Capacity (will only update on values greater 0)" } )]
     [int] $Capacity=0,                              
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

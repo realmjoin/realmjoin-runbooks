@@ -38,7 +38,7 @@ param (
     [Parameter(Mandatory = $true)] 
     [string] $MailboxName,
     [string] $DisplayName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
     [bool] $AutoAccept = $false,
     [bool] $AutoMapping = $false,

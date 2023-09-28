@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-09-28
+* Avoid failed runs due to a known issue in Azure Automation / Avoid module dependency in param block
+
 ## 2023-09-18
 * Update to RJRBHelper v0.8.3 - Fix problems with newer Azure Automation Containers
 

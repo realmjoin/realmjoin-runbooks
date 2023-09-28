@@ -63,27 +63,27 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-    [ValidateScript( { Use-RJInterface -DisplayName "Export Admin-to-Role Report to Az Storage Account?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export Admin-to-Role Report to Az Storage Account?" } )]
     [bool] $exportToFile = $true,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
     [string] $ContainerName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Name" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Location" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Sku" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
-    [ValidateScript( { Use-RJInterface -DisplayName "Check every admin's MFA state" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Check every admin's MFA state" } )]
     [bool]$QueryMfaState = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Regard eMail as a valid MFA Method" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Regard eMail as a valid MFA Method" } )]
     [bool]$TrustEmailMfa = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Regard Phone/SMS as a valid MFA Method" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Regard Phone/SMS as a valid MFA Method" } )]
     [bool]$TrustPhoneMfa = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Regard Software OATH Token as a valid MFA Method" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Regard Software OATH Token as a valid MFA Method" } )]
     [bool]$TrustSoftwareOathMfa = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Regard Win. Hello f.B. as a valid MFA Method" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Regard Win. Hello f.B. as a valid MFA Method" } )]
     [bool]$TrustWinHelloMFA = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

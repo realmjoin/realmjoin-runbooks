@@ -71,19 +71,19 @@
 param
 (
     [Parameter(Mandatory = $true)] 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
-    [ValidateScript( { Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
     [bool] $Remove = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Remove existing group memberships (incl. license groups)?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Remove existing group memberships (incl. license groups)?" } )]
     [bool] $RemoveGroups = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Assign this group (DisplayName) if an Ex. Online Plan 2 is required" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Assign this group (DisplayName) if an Ex. Online Plan 2 is required" } )]
     [string] $ArchivalLicenseGroup = "",
-    [ValidateScript( { Use-RJInterface -DisplayName "Assign this group (DisplayName) when converting to regular mailbox" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Assign this group (DisplayName) when converting to regular mailbox" } )]
     [string] $RegularLicenseGroup = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
