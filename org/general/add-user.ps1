@@ -130,13 +130,16 @@
             },
             "DisplayName": {
                  "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param (
@@ -160,14 +163,21 @@ param (
     [string]$State,
     [string]$Country,
     [string]$UsageLocation,
+    [ValidateScript( { Use-RJInterface -DisplayName "License group to assign" } )]
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [String]$InitialPassword = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Create Exchange Online Archive Mailbox" } )]
-    [bool]$EnableEXOArchive = $false
+    [bool]$EnableEXOArchive = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
-Connect-RjRbAzureAD
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+Connect-RjRbGraph
+Connect-RjRbExchangeOnline
 
 # AzureAD Module is broken in regards to ErrorAction, so...
 $ErrorActionPreference = "SilentlyContinue"
@@ -177,17 +187,29 @@ if ($InitialPassword -eq "") {
     $InitialPassword = ("Start" + (Get-Random -Minimum 10000 -Maximum 99999) + "!")
 }
 
+# Collect information about this tenant, like verified domains
+$tenantDetail = Invoke-RjRbRestMethodGraph -Resource "/organization"
+
 #"Choosing UPN, if not given"
 if ($UserPrincipalName -eq "") {
-    $tenantDetail = Get-AzureADTenantDetail
-    $UPNSuffix = ($tenantDetail.VerifiedDomains | Where-Object { $_._Default }).Name
+    $UPNSuffix = ($tenantDetail.verifiedDomains | Where-Object { $_.isDefault }).name
     if ($MailNickname -ne "") {
         # Try to base it on mailnickname...
         $UserPrincipalName = ($MailNickname + "@" + $UPNSuffix).ToLower()
     }
     elseif (($GivenName -ne "") -and ($Surname -ne "")) {
         # Try to create it from the real name...
-        $UserPrincipalName = ($GivenName + "." + $Surname + "@" + $UPNSuffix).ToLower()
+        $prefix = ($GivenName + "." + $Surname).ToLower()
+        # Filter/Replace illeagal characters. List is not complete.
+        $prefix = $prefix.Replace(" ", "")
+        $prefix = $prefix.Replace("´", "'")
+        $prefix = $prefix.Replace("``", "'")
+        $prefix = $prefix.Replace("ä", "ae")
+        $prefix = $prefix.Replace("ö", "oe")
+        $prefix = $prefix.Replace("ü", "ue")
+        $prefix = $prefix.Replace("ß", "ss")
+
+        $UserPrincipalName = ($prefix + "@" + $UPNSuffix).ToLower()
     }
     else {
         throw "Please provide a userPrincipalName"
@@ -196,7 +218,7 @@ if ($UserPrincipalName -eq "") {
 }
 
 #"Check if the username $UserPrincipalName is available" 
-$targetUser = Get-AzureADUser -ObjectId $UserPrincipalName 
+$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserPrincipalName" -ErrorAction SilentlyContinue
 if ($null -ne $targetUser) {
     throw ("Username $UserPrincipalName is already taken.")
 }
@@ -219,90 +241,128 @@ if ($DisplayName -eq "") {
 }
 
 if ($CompanyName -eq "") {
-    $CompanyName = (Get-AzureADTenantDetail).DisplayName
+    $CompanyName = $tenantDetail.displayName
     #"Setting companyName to `"$CompanyName`"."
 }
 
 
+
 $newUserArgs = [ordered]@{
-    UserPrincipalName = $UserPrincipalName
-    MailNickName      = $MailNickname
-    DisplayName       = $DisplayName
-    AccountEnabled    = $true
-    PasswordProfile   = [Microsoft.Open.AzureAD.Model.PasswordProfile]::new($initialPassword, $true <# ForceChangePasswordNextLogin #>)
+    userPrincipalName = $UserPrincipalName
+    mailNickName      = $MailNickname
+    displayName       = $DisplayName
+    accountEnabled    = $true
+    passwordProfile   = @{
+        forceChangePasswordNextSignIn = $true
+        password                      = $initialPassword
+    }
 }
 
 if ($givenName) {
-    $newUserArgs += @{ GivenName = $givenName }
+    $newUserArgs += @{ givenName = $givenName }
 }
 
 if ($surname) {
-    $newUserArgs += @{ Surname = $surname }
+    $newUserArgs += @{ surname = $surname }
 }
 
 if ($CompanyName) {
-    $newUserArgs += @{ CompanyName = $CompanyName }
+    $newUserArgs += @{ companyName = $CompanyName }
 }
 
 if ($Department) {
-    $newUserArgs += @{ Department = $Department }
+    $newUserArgs += @{ department = $Department }
 }
 
 if ($LocationName) {
-    $newUserArgs += @{ PhysicalDeliveryOfficeName = $LocationName }
+    $newUserArgs += @{ officeLocation = $LocationName }
 }
 
 if ($Country) {
-    $newUserArgs += @{ Country = $Country }
+    $newUserArgs += @{ country = $Country }
 }
 
 if ($State) {
-    $newUserArgs += @{ State = $State }
+    $newUserArgs += @{ state = $State }
 }
 
 if ($postalCode) {
-    $newUserArgs += @{ PostalCode = $postalCode }
+    $newUserArgs += @{ postalCode = $postalCode }
 }
 
 if ($city) {
-    $newUserArgs += @{ City = $city }
+    $newUserArgs += @{ city = $city }
 }
 
 if ($streetAddress) {
-    $newUserArgs += @{ StreetAddress = $streetAddress }
+    $newUserArgs += @{ streetAddress = $streetAddress }
 }
 
 if ($JobTitle) {
-    $newUserArgs += @{ JobTitle = $JobTitle }
+    $newUserArgs += @{ jobTitle = $JobTitle }
 }
 
 if ($MobilePhone) {
-    $newUserArgs += @{ Mobile = $MobilePhone }
+    $newUserArgs += @{ mobilePhone = $MobilePhone }
 }
 
 if ($UsageLocation) {
-    $newUserArgs += @{ UsageLocation = $UsageLocation }
+    $newUserArgs += @{ usageLocation = $UsageLocation }
 }
 
 # $newUserArgs | Format-Table | Out-String
 
 "## Creating user object '$UserPrincipalName'"
-$ErrorActionPreference = "Stop"
-$userObject = New-AzureADUser @newUserArgs -ErrorAction Stop 
-$ErrorActionPreference = "SilentlyContinue"
+$userObject = Invoke-RjRbRestMethodGraph -Resource "/users" -Method Post -Body $newUserArgs
 
+
+# Assign a manager 
+if ($ManagerId) {
+    $body = @{
+        "@odata.id" = "https://graph.microsoft.com/v1.0/users/$($ManagerId)"
+    }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($userObject.id)/manager/`$ref" -Method Put -Body $body | Out-Null
+}
 
 # Assign the default license. Continue even if this fails.
 if ($DefaultLicense -ne "") {
     #"Searching license group $DefaultLicense."
-    $group = Get-AzureADGroup -Filter "displayName eq `'$DefaultLicense`'" -ErrorAction SilentlyContinue
+    $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$DefaultLicense'" -OdSelect "displayName, assignedLicenses, id" -ErrorAction SilentlyContinue
+
     if (-not $group) {
-        "License group $DefaultLicense not found!"
-        Write-Error "License group $DefaultLicense not found!"
+        "## License group '$DefaultLicense' not found!"
+        Write-Error "License group '$DefaultLicense' not found!"
     }
     else {
-        "## Adding to license group '$($group.displayName)'"
-        Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
+        $licenses = $group.assignedLicenses
+        $enoughlicenses = $true
+        foreach ($license in $licenses) {
+            $sku = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" | Where-Object { $_.skuID -eq $license.skuId }
+            $SkuRemaining = $sku.prepaidUnits.enabled - $sku.consumedUnits
+            if ($SkuRemaining -le 0) {
+                $enoughlicenses = $false
+            }
+        }
+        if ($enoughlicenses) {
+            "## Adding to license group '$($group.displayName)'"
+            $body = @{
+                "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)" 
+            }
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+            }
+            catch {
+                "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                Write-RjRbLog $_
+            }
+        }
+        else {
+            "## WARNING - Licensegroup '$DefaultLicense' lacks sufficient licenses! Not provisioning license / group membership."
+
+        }
+        
+        
     }
 }
 
@@ -311,38 +371,62 @@ $groupsArray = $DefaultGroups.split(',').Trim()
 foreach ($groupname in $groupsArray) {
     if ($groupname -ne "") {
         #"Searching default group $groupname."
-        $group = Get-AzureADGroup -Filter "displayName eq `'$groupname`'" -ErrorAction SilentlyContinue
+        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$groupname'" -ErrorAction SilentlyContinue
         if (-not $group) {
-            "Group $groupname not found!" 
-            Write-Error "Group $groupname not found!"
+            "## Group '$groupname' not found!" 
+            Write-Error "Group '$groupname' not found!"
         }
         else {
-            "Adding to group '$($group.displayName)'"
-            Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $userObject.ObjectId | Out-Null
+            if (($group.GroupTypes -contains "Unified") -or (-not $group.MailEnabled)) {
+                "## Adding to group '$($group.displayName)'"
+                $body = @{
+                    "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($userObject.id)"
+                }
+                try {
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+                    #"## '$($group.displayName)' is assigned to '$UserPrincipalName'"
+                }
+                catch {
+                    "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                    Write-RjRbLog $_
+                }
+            }
+            else {
+                try {
+                    "## Adding to exchange group/list '$($group.displayName)'"
+                    # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
+                    $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue
+                    if (-not $mbox) {
+                        $MaxRuns = 30
+                        "## - Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
+                        $mbox = $null; 
+                        $counter = 0
+                        while ((-not $mbox) -and ($counter -le $MaxRuns)) {
+                            $counter++;
+                            Start-Sleep 30; 
+                            $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue; 
+                        }; 
+                    }
+                    Add-DistributionGroupMember -Identity $group.id -Member $UserPrincipalName -BypassSecurityGroupManagerCheck:$true -Confirm:$false
+                }
+                catch {
+                    "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                    Write-RjRbLog $_
+                }
+            }
         }
     }
 }
 
-# Assign Manager
-if ($ManagerId) {
-    $ErrorActionPreference = "Stop"
-    $Manager = Get-AzureADUser -ObjectId $ManagerId
-    "## Assigning Manager '$($Manager.DisplayName)'"
-    Set-AzureADUserManager -ObjectId $userObject.ObjectId -RefObjectId $ManagerId | Out-Null
-    $ErrorActionPreference = "SilentlyContinue"
-}
-
 # Enable Exchange Online Archive
 if ($EnableEXOArchive) {
-    $ErrorActionPreference = "Stop"
     try {
-        Connect-RjRbExchangeOnline
-        
+        "## Enabling EXO Archive Mailbox"
         # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
         $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue
         if (-not $mbox) {
             $MaxRuns = 30
-            Write-RjRbLog -Message "Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
+            "## - Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
             $mbox = $null; 
             $counter = 0
             while ((-not $mbox) -and ($counter -le $MaxRuns)) {
@@ -351,22 +435,16 @@ if ($EnableEXOArchive) {
                 $mbox = get-exomailbox -Identity $UserPrincipalName -ErrorAction SilentlyContinue; 
             }; 
         }
-        "## Enabling EXO Archive Mailbox"
         Enable-Mailbox -Archive -Identity $UserPrincipalName | Out-Null
     }
     catch {
         Write-Error "Enabling Mail Archive for '$UserPrincipalName' failed"
         Write-Error $_
     }
-    finally {
-        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-    }
-    $ErrorActionPreference = "SilentlyContinue"
 }
 
-"## User $UserPrincipalName successfully created. Initial PW:" 
-"$InitialPassword"
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 
-# "Disconnecting from AzureAD."
-Disconnect-AzureAD -confirm:$false | Out-Null
+"## User '$UserPrincipalName' successfully created. Initial PW:" 
+"$InitialPassword"
 

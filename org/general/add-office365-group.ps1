@@ -35,7 +35,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -49,15 +49,21 @@ param(
     [bool] $Private = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Group is mail-enabled" } )]
     [bool] $MailEnabled = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Group is securiry-enabled" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Group is security-enabled" } )]
     [bool] $SecurityEnabled = $true,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Second Owner" -Filter "userType eq 'Member'" } )]
+    [string] $Owner2,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 # How long to wait in seconds for a group to propagate to the Teams service
-[int]$teamsTimer = 15
+[int]$teamsTimer = 75
 
 # Input Validations - from user feedback.
 if ($MailNickname.GetEnumerator() -contains " ") {
@@ -104,8 +110,25 @@ if ($CreateTeam) {
 
 if ($Owner) {
     $OwnerObj = Invoke-RjRbRestMethodGraph -Resource "/users/$Owner"
-    $groupDescription["owners@odata.bind"] = [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+    if ($OwnerObj) {
+        $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+        $groupDescription["members@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($OwnerObj.id)")
+    }
+    else {
+        "## User '$Owner' not found. Skipping setting this owner."
+    }
 }
+if ($Owner2 -and ($Owner -ne $Owner2)) {
+    $Owner2Obj = Invoke-RjRbRestMethodGraph -Resource "/users/$Owner2"
+    if ($Owner2Obj) {
+        $groupDescription["owners@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($Owner2Obj.id)")
+        $groupDescription["members@odata.bind"] += [array]("https://graph.microsoft.com/v1.0/users/$($Owner2Obj.id)")
+    }
+    else {
+        "## User '$Owner2' not found. Skipping setting this owner."
+    }
+}
+
 
 "## Creating group '$MailNickname'"
 $groupObj = Invoke-RjRbRestMethodGraph -Method POST -resource "/groups" -body $groupDescription
@@ -138,7 +161,7 @@ if ($CreateTeam) {
     if (-not $success) {
         "## Timeout on Team creation. The group has been created, but could not be promoted to a Team."
         ""
-        throw (timeout)
+        throw ("timeout")
     }
 }
 

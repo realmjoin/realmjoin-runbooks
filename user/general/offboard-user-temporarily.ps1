@@ -10,7 +10,13 @@
   AzureAD Roles
   - User administrator
   Azure IaaS: "Contributor" access on subscription or resource group used for the export
- 
+  
+  .Parameter ChangeGroupsSelector
+  "Change" and "Remove all" will both honour "groupToAdd"
+
+  .PARAMETER ReplacementOwnerName
+  Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -57,12 +63,6 @@
                         {
                             "Display": "Do not change assigned groups",
                             "Value": 0,
-                            "Customization": {
-                                "Hide": [
-                                    "GroupToAdd",
-                                    "GroupsToRemovePrefix"
-                                ]
-                            }
                         },
                         {
                             "Display": "Change the user's groups",
@@ -70,16 +70,26 @@
                         },
                         {
                             "Display": "Remove all groups",
-                            "Value": 2,
-                            "Customization": {
-                                "Hide": [
-                                    "GroupsToRemovePrefix"
-                                ]
-                            }
+                            "Value": 2
                         }    
                     ]
                 }
-            }
+            },
+            "RevokeGroupOwnership": {
+                "DisplayName": "Handle group ownerships",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "User will remain owner / Do not change",
+                            "Value": false
+                        },
+                        {
+                            "Display": "Remove/Replace this user's group ownerships",
+                            "Value": true
+                        }
+                    ]
+                }
+            },
         }
     }
 
@@ -128,23 +138,37 @@
                 {
                     "Name": "GroupsToRemovePrefix",
                     "Hide": true
+                },
+                {
+                    "Name": "CallerName",
+                    "Hide": true
                 }
             ]
         }
     }
 }
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {            
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
-    [bool] $DisableUser = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
+    [bool] $DisableUser = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportResourceGroupName" } )]
     [String] $exportResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportStorAccountName" } )]
@@ -158,14 +182,23 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licensesMode" } )]
-    [int] $ChangeLicensesSelector,
+    [int] $ChangeLicensesSelector=0,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsMode" } )]
-    [int] $ChangeGroupsSelector,
+    [int] $ChangeGroupsSelector=0,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" } )]
-    [String] $GroupsToRemovePrefix
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix"} )]
+    [String] $GroupsToRemovePrefix, 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships"} )]
+    [bool] $RevokeGroupOwnership = $false,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" -DisplayName "Who should step in as group owner?"} )]
+    [String] $ReplacementOwnerName,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Sanity checks
 if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {
@@ -183,6 +216,9 @@ if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exp
 }
 
 Connect-RjRbGraph
+Connect-RjRbExchangeOnline
+
+"## Trying to temporarily offboard user '$UserName'"
 
 "## Finding the user object $UserName"
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
@@ -203,13 +239,12 @@ if ($RevokeAccess) {
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
 }
 
-# "Getting list of group and role memberships for user $UserName." 
+Write-RjRbLog "Getting list of group and role memberships for user '$UserName'." 
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
 $membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
 $memberships = $membershipIds | ForEach-Object {
     Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
 }
-
 $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
 
 # "Connectint to Azure Storage Account"
@@ -235,6 +270,45 @@ if ($exportGroupMemberships) {
     Disconnect-AzAccount -Confirm:$false | Out-Null
 }
 
+# Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
+if ($RevokeGroupOwnership) {
+    $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
+    if ($OwnedGroups) {
+        foreach ($OwnedGroup in $OwnedGroups) {
+            $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
+            if (([array]$owners).Count -eq 1) {
+                "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
+                $ReplacementOwner = $null
+                if ($ReplacementOwnerName) {
+                    $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
+                }
+                if ($ReplacementOwner) {
+                    $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
+                    $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody | Out-Null
+                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                    "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.userPrincipalName)'"
+                }
+                else {
+                    if ($ReplacementOwnerName) {
+                        "## Replacement Owner '$ReplacementOwnerName' not found."
+                    }
+                    else {
+                        "## No Replacement Owner given."
+                    }
+                    "## Skipping ownership change for group '$($OwnedGroup.displayName)'." 
+                    "## Please verify owners of group '$($OwnedGroup.displayName)' manually!"
+                }
+            }
+            else {
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                "## Revoked Ownership of group '$($OwnedGroup.displayName)'"
+            }
+            
+        }
+    }
+}
+
 if ($ChangeGroupsSelector -ne 0) {
     # Add new licensing group, if not already assigned
     if ($GroupToAdd -and ($memberships.DisplayName -notcontains $GroupToAdd)) {
@@ -247,7 +321,7 @@ if ($ChangeGroupsSelector -ne 0) {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
         }
         else {
-            "## Could not resove group name '$GroupToAdd', skipping..."
+            "## Could not resolve group name '$GroupToAdd', skipping..."
         }
     }
     
@@ -262,20 +336,39 @@ if ($ChangeGroupsSelector -ne 0) {
         $groupsToRemove = $memberships 
     }
 
+    
     # Remove group memberships
     $groupsToRemove | ForEach-Object {
         if ($GroupToAdd -ne $_.DisplayName) {
-            "## Removing group '$($_.DisplayName)' from $UserName"
             if ($_.groupTypes -contains "DynamicMembership") {
-                "## ... group is a dynamic group - skipping. Not an error."
+                "## Group '$($_.DisplayName)' is a dynamic group - skipping."
             }
             else {
-                try {
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                "## Removing group '$($_.DisplayName)' from $UserName"
+                if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
+                    # group is AAD group
+                    try {
+                        Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                    }
+                    catch {
+                        "## ... group removal failed. Please check."
+                    }
                 }
-                catch {
-                    "## ... group removal failed. Please check."
+                else {
+                    # Handle Exchange Distr. Lists etc.
+                    if ($_.mail) {
+                        try {
+                            Remove-DistributionGroupMember -Identity $_.mail -Member $UserName -BypassSecurityGroupManagerCheck -Confirm:$false
+                        }
+                        catch {
+                            "## ... group removal failed. Please check."
+                        }   
+                    }
+                    else {
+                        "## ... failed - '$($_.DisplayName)' is neither an AAD group, nor has an eMail-Address"
+                    }           
                 }
+            
             }
         }
     }
@@ -306,29 +399,7 @@ if ($ChangeLicensesSelector -ne 0) {
     }
 }
 
-if ($grantAccessToMailbox) {
-    ##TODO
-}
 
-if ($hideFromAddresslist) {
-    ##TODO
-}
-
-if ($setOutOfOffice) {
-    ##TODO
-}
-
-## remove teams / M365 group ownerships?
-## Assumption: Self healing process - either team is active or not. Team members will ask for help if needed.
-
-if ($removeMFAMethods) {
-    ##TODO    
-}
-
-# de-associate client
-##TODO
-
-# wipe client
-##TODO
+Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 
 "## Temporary offboarding of $($UserName) successful."

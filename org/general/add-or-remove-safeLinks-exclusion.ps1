@@ -56,12 +56,15 @@
         },
         "DefaultPolicyName": {
             "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Action to execute" } )]
@@ -74,7 +77,10 @@ param(
     # Using "PolicyName" will overwrite the defaults
     [ValidateScript( { Use-RJInterface -DisplayName "Safe Links policy name" } )]
     [String] $PolicyName,
-    [boolean] $CreateNewPolicyIfNeeded = $true
+    [boolean] $CreateNewPolicyIfNeeded = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 function createGroupFromPolicyName {
@@ -133,6 +139,8 @@ function createSafeLinksPolicy {
 
     return $policy
 }
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
     Connect-RjRbExchangeOnline

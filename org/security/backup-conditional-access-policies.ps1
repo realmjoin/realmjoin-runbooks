@@ -14,9 +14,18 @@
    - Policy.Read.All
    Azure IaaS: Access to the given Azure Storage Account / Resource Group
 
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
+
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, Az.Storage
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage
 
 param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPoliciesExport.Container" } )]
@@ -28,7 +37,10 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPoliciesExport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "CaPoliciesExport.StorageAccount.Sku" } )]
-    [string] $StorageAccountSku
+    [string] $StorageAccountSku,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 # Write a JSON file from a Policy / group description object
@@ -51,6 +63,7 @@ function Export-PolicyObjects {
 
 }
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 if (-not $ContainerName) {
     $ContainerName = "conditional-policy-backup-" + (get-date -Format "yyyy-MM-dd")

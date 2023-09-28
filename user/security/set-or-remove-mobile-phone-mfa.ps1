@@ -24,12 +24,15 @@
                     "Add this number as Mobile Phone MFA Factor'": false,
                     "Remove this number / mobile phone MFA factor": true
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -38,10 +41,21 @@ param(
     [Parameter(Mandatory = $true)]
     [String]$phoneNumber,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this mobile phone MFA factor" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 Connect-RjRbGraph
+
+if ($Remove) {
+    "## Trying to remove phone MFA number '$phoneNumber' from user '$UserName'."
+} else {
+    "## Trying to add phone MFA number '$phoneNumber' to user '$UserName'."
+}
 
 # Sanity check 
 if (-not $phoneNumber.startswith("+")) {
@@ -57,21 +71,21 @@ $body = @{
 if ($phoneAM) {
     if ($remove) {
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Delete -Beta | Out-Null
-        "## Successfully removed mobile phone authentication number $phoneNumber from user $UserName."
+        "## Successfully removed mobile phone authentication number '$phoneNumber' from user '$UserName'."
     }
     else {
         # "Mobile Phone method found. Updating entry."
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Put -Body $body -Beta | Out-Null
-        "## Successfully updated mobile phone authentication number $phoneNumber for user $UserName."
+        "## Successfully updated mobile phone authentication number '$phoneNumber' for user '$UserName'."
     }
 }
 else {
     if ($Remove) {
-        "## Number $phoneNumber not found as mobile phone MFA factor for $UserName."
+        "## Number '$phoneNumber' not found as mobile phone MFA factor for '$UserName'."
     }
     else {
         # "No phone methods found. Will add a new one."
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/phoneMethods" -Method Post -Body $body -Beta | Out-Null
-        "## Successfully added mobile phone authentication number $phoneNumber to user $UserName."
+        "## Successfully added mobile phone authentication number '$phoneNumber' to user '$UserName'."
     }
 }

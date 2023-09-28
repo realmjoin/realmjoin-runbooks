@@ -18,13 +18,16 @@
         "Parameters": {
              "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -33,8 +36,15 @@ param(
     [ValidateScript( { Use-RJInterface -Type Number -DisplayName "Lifetime"} )]
     [int] $LifetimeInMinutes = 240,
     [ValidateScript( { Use-RJInterface -Type Number -DisplayName "One time use only"} )]
-    [bool] $OneTimeUseOnly = $true
+    [bool] $OneTimeUseOnly = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+"## Trying to create an Temp. Access Pass (TAP) for user '$UserName'"
 
 Connect-RjRbGraph
 
@@ -65,7 +75,7 @@ if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
     ""
 }
 
-"## New Temporary access pass for $UserName with a lifetime of $LifetimeInMinutes minutes has been created:" 
+"## New Temporary access pass for '$UserName' with a lifetime of $LifetimeInMinutes minutes has been created:" 
 ""
 "$($pass.temporaryAccessPass)"
 } catch {

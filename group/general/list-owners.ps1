@@ -15,22 +15,38 @@
         "Parameters": {
             "GroupId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
-    [String] $GroupID
+    [String] $GroupID,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
-$owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners" -ErrorAction SilentlyContinue
+$group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID" -ErrorAction SilentlyContinue
+if ($group) {
+    "## Listing all owners of group '$($group.displayName)'"
+} else {
+    "## Group '$GroupID' not found"
+    throw ("Group not found")
+}
+
+$owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners" -ErrorAction SilentlyContinue -FollowPaging
 
 if ($owners) {
     $owners | Format-Table -AutoSize -Property "displayName","userPrincipalName" | Out-String

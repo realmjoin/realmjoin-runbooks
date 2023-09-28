@@ -45,13 +45,17 @@
                     ]
                 },
                 "Default": "Delegate 'Send On Behalf Of'"
+            },
+            {
+                "Name": "CallerName",
+                "Hide": true
             }
         ]
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
@@ -60,8 +64,13 @@ param
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
     Connect-RjRbExchangeOnline
@@ -70,31 +79,44 @@ try {
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-        throw "User $userName has no mailbox."
+        throw "User '$UserName' has no mailbox."
     }
 
     $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue 
     # Check if trustee has a mailbox
     if (-not $trustee) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-        throw "Trustee $delegateTo has no mailbox."
+        throw "Trustee '$delegateTo' has no mailbox."
     }
 
     if ($Remove) {
+        "## Trying to remove SendOnBehalf permission for mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
+    }
+    else {
+        "## Trying to give SendOnBehalf permission for mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
+    }
+    
+    if ($Remove) {
         #Remove permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Remove = "$delegateTo" } -Confirm:$false | Out-Null
-        "## SendOnBehalf Permission for $($trustee.UserPrincipalName) removed from mailbox $($user.UserPrincipalName)"
+        "## SendOnBehalf Permission for '$($trustee.UserPrincipalName)' removed from mailbox '$($user.UserPrincipalName)'"
     }
     else {
         #Add permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Add = "$delegateTo" } -Confirm:$false | Out-Null
-        "## SendOnBehalf Permission for $($trustee.UserPrincipalName) added to mailbox $($user.UserPrincipalName)"
+        "## SendOnBehalf Permission for '$($trustee.UserPrincipalName)' added to mailbox '$($user.UserPrincipalName)'"
     }
 
     ""
-    "## Dump Mailbox Permission Details"
-    Get-MailboxPermission -Identity $UserName
-
+    "## Dump SendOnBehalf Permissions for '$UserName'"
+    (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
+        $sobTrustee = Get-EXOMailbox -Identity $_
+        $result = @{}
+        $result.Identity = $user.Identity
+        $result.Trustee = $sobTrustee.UserPrincipalName
+        $result.AccessRights = "{SendOnBehalf}"
+        [PsCustomObject]$result
+    } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null

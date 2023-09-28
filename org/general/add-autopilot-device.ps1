@@ -20,16 +20,20 @@
                 "DisplayName": "'Hardware Hash' from Get-WindowsAutopilotInfo"
             },
             "AssignedUser": {
-                "DisplayName": "Assign device to this user (optional)"
+                "DisplayName": "Assign device to this user (optional)",
+                "Hide": true // MS removed the ability to assign users directly via Autopilot
             },
             "Wait": {
                 "DisplayName": "Wait for job to finish"
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -38,12 +42,19 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -DisplayName "'Hardware Hash' from Get-WindowsAutopilotInfo" } )]
     [string] $HardwareIdentifier,
+    ## MS removed the ability to assign users directly via Autopilot
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Assign device to this user (optional)"  -Filter "userType eq 'Member'" } )]
     [string] $AssignedUser = "",
     [ValidateScript( { Use-RJInterface -DisplayName "Wait for job to finish" } )]
-    [bool] $Wait = $true
+    [bool] $Wait = $true,
+    [string] $GroupTag = "",
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
@@ -53,10 +64,15 @@ $body = @{
     # groupTag = ""
 }
 
-# Find assigned user's name
+## MS removed the abaility to assign users directly via Autopilot
 if ($AssignedUser) {
+    ## Find assigned user's name
     $username = (Invoke-RjRbRestMethodGraph -Resource "/users/$AssignedUser").UserPrincipalName
     $body += @{ assignedUserPrincipalName = $username }
+}
+
+if ($groupTag) {
+    $body += @{ groupTag = $GroupTag }
 }
 
 # Start the import
@@ -79,4 +95,3 @@ if ($Wait) {
         throw "Import of device $SerialNumber failed."
     }
 }
-

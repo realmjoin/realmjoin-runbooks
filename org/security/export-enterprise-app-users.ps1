@@ -21,13 +21,16 @@
                     "List only Enterprise Apps": true,
                     "List all Service Principals / Apps": false
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
@@ -41,8 +44,13 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Sku" } )]
-    [string] $StorageAccountSku
+    [string] $StorageAccountSku,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 if (-not $ContainerName) {
     $ContainerName = "enterprise-apps-" + (get-date -Format "yyyy-MM-dd")
@@ -159,6 +167,8 @@ try {
         
         }
     }
+    $content = Get-Content -Path "enterpriseApps.csv"
+    set-content -Path "enterpriseApps.csv" -Value $content -Encoding UTF8
 
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue

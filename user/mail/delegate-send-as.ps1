@@ -45,13 +45,17 @@
                     ]
                 },
                 "Default": "Delegate 'Send As'"
+            },
+            {
+                "Name": "CallerName",
+                "Hide": true
             }
         ]
     }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 ( 
@@ -62,32 +66,51 @@ param
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
+
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
     Connect-RjRbExchangeOnline
 
     # Check if User has a mailbox
-    # No need to check trustee for a mailbox with "SendAs"
     $user = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if (-not $user) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-        throw "User $userName has no mailbox."
+        throw "User '$userName' has no mailbox."
+    }
+
+    $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue
+    # Check if trustee has a mailbox
+    if (-not $trustee) {
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+        throw "Trustee '$delegateTo' has no mailbox."
     }
 
     if ($Remove) {
+        "## Trying to remove SendAs permission for mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
+    }
+    else {
+        "## Trying to give SendAs permission for mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
+    }
+    
+    if ($Remove) {
         Remove-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "## SendAs Permission for $delegateTo removed from mailbox $UserName"
+        "## SendAs Permission for '$($trustee.UserPrincipalName)' removed from mailbox '$UserName'"
     }
     else {
         Add-RecipientPermission -Identity $UserName -Trustee $delegateTo -AccessRights SendAs -confirm:$false | Out-Null
-        "## SendAs Permission for $delegateTo added to mailbox  $UserName"
+        "## SendAs Permission for '$($trustee.UserPrincipalName)' added to mailbox '$UserName'"
     }
 
     ""
-    "## Dump Mailbox Permission Details"
-    Get-MailboxPermission -Identity $UserName
+    "## Dump Recipient/Sender (SendAs) Permissions for '$UserName'"
+    Get-RecipientPermission -Identity $UserName | Where-Object { ($_.Trustee -like '*@*') } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
 
 }
 finally {

@@ -11,22 +11,52 @@
   - Exchange administrator
   Office 365 Exchange Online API
   - Exchange.ManageAsApp
+  MS Graph (API):
+  -Oranization.Read.All
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "Alias": {
+                "DisplayName": "Alias: A shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG\" for convenience."
+            },
+            "GroupName": {
+                "DisplayName": "Group Name: As displayed in the address book of your mailing system for easier searching."
+            },
+            "Owner": {
+                "DisplayName": "Group Owner: User that will manage the members of the Distribution List (add, remove, etc.)."
+            },
+            "PrimarySMTPAddress": {
+                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use the default domain as a primary SMTP address."
+            }
+        }
+    }
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)] 
     [string] $Alias,
+    [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
+    [string] $PrimarySMTPAddress,
     [string] $GroupName,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Group owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
+    [ValidateScript( { Use-RJInterface -DisplayName "Create as Roomlist" } )]
+    [bool] $Roomlist = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Can receive external mail" } )]
     [bool] $AllowExternalSenders = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Desired email address" } )]
-    [string] $PrimarySMTPAddress 
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName 
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
     $script:Alias = ([mailaddress]"$Alias@demo.com").user 
@@ -48,6 +78,7 @@ try {
         Type = "Distribution"
         MemberDepartRestriction = "Closed"
         MemberJoinRestriction = "Closed"
+        RoomList = $Roomlist
     }
 
     if ($Owner) {
@@ -60,6 +91,19 @@ try {
     if ($PrimarySMTPAddress) {
         $invokeParams += @{ 
             PrimarySMTPAddress = $PrimarySMTPAddress
+        }
+    }
+    else {
+        Connect-RjRbGraph
+        $verifiedDomains = Invoke-RjRbRestMethodGraph -Resource "/organization" -OdSelect "verifiedDomains"
+        foreach ($verifiedDomain in $verifiedDomains.verifiedDomains) {
+            if ($verifiedDomain.isDefault -eq 'true'){
+                $defaultDomain=$verifiedDomain
+            }
+        }
+        $DesiredPrimarySMTPAddress = $Alias + "@" + $defaultDomain.name
+        $invokeParams += @{ 
+            PrimarySMTPAddress = $DesiredPrimarySMTPAddress
         }
     }
 

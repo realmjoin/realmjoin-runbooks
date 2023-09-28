@@ -1,15 +1,16 @@
 <#
   .SYNOPSIS
-  Remove/Outphase a windows device
+  Wipe a windows device
 
   .DESCRIPTION
-  Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+  Wipe a windows device. 
 
   .NOTES
   PERMISSIONS
    DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
    DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
    DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
+   Device.Read.All
   ROLES
    Cloud device administrator
 
@@ -44,11 +45,19 @@
                     },
                     {
                         "Display": "Do not wipe device",
-                        "Value": false
+                        "Value": false,
+                        "Customization": {
+                            "Hide": [
+                                "useProtectedWipe"
+                            ]
+                        }
                     }
                 ],
                 "ShowValue": false
             }
+        },
+        "useProtectedWipe": {
+            "DisplayName": "Use protected wipe?"
         },
         "removeIntuneDevice": {
             "DisplayName": "Delete device from Intune?",
@@ -63,23 +72,31 @@
                 "Remove the device from AutoPilot (the device can leave the tenant)": true,
                 "Keep device / do not care": false
             }
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param (
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [bool] $wipeDevice = $true,
-    [bool] $removeIntuneDevice = $true,
-    [bool] $removeAutopilotDevice = $true,
+    [bool] $useProtectedWipe = $false,
+    [bool] $removeIntuneDevice = $false,
+    [bool] $removeAutopilotDevice = $false,
     [bool] $removeAADDevice = $false,
-    [bool] $disableAADDevice = $true
-
+    [bool] $disableAADDevice = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
@@ -88,20 +105,32 @@ $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "devic
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found in AzureAD.")
 } 
+$owner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)/registeredOwners" -ErrorAction SilentlyContinue
+
+"## Processing device '$($targetDevice.displayName)' (DeviceId '$DeviceId')"
+if ($owner) {
+    "## Device owner: '$($owner.UserPrincipalName)'"
+}
+
 
 if ($disableAADDevice) {
-    "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in AzureAD"
-    try {
-        $body = @{
-            "accountEnabled" = $false
+    # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
+    if ($targetDevice.operatingSystem -eq "Windows") {
+        "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in AzureAD"
+        try {
+            $body = @{
+                "accountEnabled" = $false
+            }
+            Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Patch -Body $body | Out-Null
         }
-        Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Patch -Body $body | Out-Null
-    }
-    catch {
-        "## Error Message: $($_.Exception.Message)"
-        "## Please see 'All logs' for more details."
-        "## Execution stopped." 
-        throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
+        catch {
+            "## Error Message: $($_.Exception.Message)"
+            "## Please see 'All logs' for more details."
+            "## Execution stopped." 
+            throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
+        }
+    } else {
+        "## Disabling non-windows devices in AzureAD is currently not supported. Skipping."
     }
 }
 
@@ -130,9 +159,10 @@ if ($mgdDevice) {
         $body = @{
             "keepEnrollmentData" = $false
             "keepUserData"       = $false
+            "useProtectedWipe"   = $useProtectedWipe
         }
         try {
-            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body
+            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body -Beta | Out-Null
         }
         catch {
             "## Error Message: $($_.Exception.Message)"
@@ -152,10 +182,12 @@ if ($mgdDevice) {
             "## Execution stopped."     
             throw "Deleting Intune ID: $($mgdDevice.id) from Intune failed!"
         }
-    } else {
+    }
+    else {
         "## Skipping Intune operations."
     }
-} else {
+}
+else {
     "## Device not found in Intune. Skipping."
 }
 
@@ -172,10 +204,12 @@ if ($removeAutopilotDevice) {
             "## Execution stopped."     
             throw "Deleting Autopilot ID: $($apDevice.id) from Autopilot failed!"
         }
-    } else {
+    }
+    else {
         "## Device not found in AutoPilot database. Skipping."
     }
-} else {
+}
+else {
     "## Skipping AutoPilot operations."
 }
 

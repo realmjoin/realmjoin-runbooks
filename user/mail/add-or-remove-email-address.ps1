@@ -51,12 +51,15 @@
         "Remove": {
             "Default": false,
             "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
         }
     }
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
@@ -69,10 +72,29 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this address" } )]
     [bool] $Remove = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Set as primary address" } )]
-    [bool] $asPrimary = $false
+    [bool] $asPrimary = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
 $VerbosePreference = "SilentlyContinue"
+
+$outputString = "Trying to "
+if ($Remove) {
+    $outputString += "remove alias '$eMailAddress' from"
+}
+else {
+    $outputString += "add alias '$eMailAddress' to"
+}
+$outputString += " user '$UserName'"
+if ((-not $Remove) -and $asPrimary) {
+    $outputString += " and setting it as primary"
+}
+
+$outputString
 
 try {
     "## Trying to connect and check for $UserName"
@@ -91,9 +113,9 @@ try {
             if ($eMailAddress -eq $mailbox.UserPrincipalName) {
                 throw "Cannot remove the UserPrincipalName from the list of eMail-Addresses. Please rename the user for that."
             }
-            $eMailAddressList = $mailbox.EmailAddresses | Where-Object { $_ -ne "smtp:$eMailAddress" }
+            $eMailAddressList = [array]($mailbox.EmailAddresses | Where-Object { $_ -ne "smtp:$eMailAddress" })
             # Remove email address
-            Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
+            Set-Mailbox -Identity $UserName -EmailAddresses [array]$eMailAddressList
             "## Alias $eMailAddress is removed from user $UserName"
             "## Waiting for Exchange to update the mailbox..."
             Start-Sleep -Seconds 30
@@ -104,8 +126,8 @@ try {
             }
             else {
                 "## Update primary address"
-                $eMailAddressList = @($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$eMailAddress" })
-                $eMailAddressList += "SMTP:$eMailAddress" 
+                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$eMailAddress" }) + [array]("SMTP:$eMailAddress")
+                #$eMailAddressList += "SMTP:$eMailAddress" 
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
                 "## Successfully updated primary eMail address"
                 ""
@@ -119,7 +141,7 @@ try {
         if (-not $Remove) {
             # Add email address    
             if ($asPrimary) {
-                $eMailAddressList = $mailbox.EmailAddresses.toLower() + "SMTP:$eMailAddress" 
+                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower()) + [array]("SMTP:$eMailAddress") 
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
             }
             else {

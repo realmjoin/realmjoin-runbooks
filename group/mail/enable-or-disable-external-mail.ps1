@@ -28,20 +28,28 @@
             },
             "GroupId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param
 (
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group } )]
     [String] $GroupId,
-    [int] $Action = 0
+    [int] $Action = 0,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
     $ProgressPreference = "SilentlyContinue"
@@ -49,7 +57,8 @@ try {
     Connect-RjRbExchangeOnline
 
     # "Checking"  if group is universal group
-    if (-not (Get-UnifiedGroup -Identity $GroupId -ErrorAction SilentlyContinue)) {
+    $group = Get-UnifiedGroup -Identity $GroupId -ErrorAction SilentlyContinue
+    if (-not $group) {
         throw "`'$GroupId`' is not a unified (O365) group. Can not proceed."
     }
     
@@ -61,7 +70,7 @@ try {
         catch {
             throw "Couldn't disable external mailing! `r`n $_"
         }
-        "## External mailing successfully disabled for `'$GroupId`'"
+        "## External mailing successfully disabled for '$($group.displayName)'"
     }
     
     if ($Action -eq 0) {
@@ -72,11 +81,11 @@ try {
         catch {
             throw "Couldn't enable external mailing! `r`n $_"
         }
-        "## External mailing successfully enabled for `'$GroupId`'"
+        "## External mailing successfully enabled for '$($group.displayName)'"
     }
 
     if ($Action -eq 2) {
-        "## External Mailing for this group is enabled: $( -not (Get-UnifiedGroup -Identity $GroupId).RequireSenderAuthenticationEnabled)"
+        "## External Mailing for group '$($group.displayName)' is enabled: $( -not (Get-UnifiedGroup -Identity $GroupId).RequireSenderAuthenticationEnabled)"
     }
 }
 finally {

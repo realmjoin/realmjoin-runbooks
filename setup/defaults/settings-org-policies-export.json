@@ -1,6 +1,0 @@
-{
-  "exportResourceGroupName": "rjrb-runbooks-01",
-  "exportStorAccountName": "rjrbrunbookexports01",
-  "exportStorAccountLocation": "West Europe",
-  "exportStorAccountSKU": "Standard_LRS"
-}

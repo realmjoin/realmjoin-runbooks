@@ -23,20 +23,27 @@
             },
             "DeviceId": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [ValidateScript( { Use-RJInterface -DisplayName "Disable or Enable Device" } )]
-    [bool] $Enable = $false
+    [bool] $Enable = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
@@ -45,6 +52,12 @@ $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "devic
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
 } 
+
+if ($targetDevice.operatingSystem -ne "Windows") {
+    # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
+    "## Can not en-/disable non-windows devices currently in AzureAD. "
+    throw ("OS not supported")
+}
 
 $body = @{ accountEnabled = $Enable }
 
@@ -55,7 +68,6 @@ if ($targetDevice.accountEnabled) {
     else {
         "## Disabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
-            # Set-AzureADDevice -AccountEnabled $false -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
         }
         catch {
@@ -68,7 +80,6 @@ else {
     if ($Enable) { 
         "## Enabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
-            # Set-AzureADDevice -AccountEnabled $true -ObjectId $targetDevice.id -ErrorAction Stop | Out-Null
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
         }
         catch {

@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Disable or a user and revoke all tokens or re-enable this user.
+  Revoke user access and all active tokens or re-enable user.
 
   .DESCRIPTION
-  Disable or a user and revoke all tokens or re-enable this user.
+  Revoke user access and all active tokens or re-enable user.
 
   .NOTES
   Permissions:
@@ -24,46 +24,54 @@
                     "(Re-)Enable User": false,
                     "Revoke Access": true
                 } 
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 
 #>
 
-#Requires -Modules AzureAD, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [bool] $Revoke = $true
+    [bool] $Revoke = $true,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
-Connect-RjRbAzureAD
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "SilentlyContinue"
+Connect-RjRbGraph
 
-# "Find the user object $UserName"
-$targetUser = Get-AzureADUser -ObjectId $UserName 
-if ($null -eq $targetUser) {
-    throw ("User $UserName not found.")
+if ($Revoke) {
+    "## Trying to revoke access and block signin for user '$UserName'."
+} else {
+    "## Trying to enable signing for user '$UserName'."
 }
 
-# Bug in AzureAD Module when using ErrorAction
-$ErrorActionPreference = "Stop"
+# "Find the user object $UserName"
+$targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -ErrorAction SilentlyContinue 
+if ($null -eq $targetUser) {
+    throw ("User '$UserName' not found.")
+}
 
 # "Block/Enable user sign in"
-Set-AzureADUser -ObjectId $targetUser.ObjectId -AccountEnabled (-not $Revoke) | Out-Null
+$body = @{
+    accountEnabled = (-not $Revoke)
+}
+Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 
 if ($Revoke) {
     # "Revoke all refresh tokens"
-    Revoke-AzureADUserAllRefreshToken -ObjectId $targetUser.ObjectId | Out-Null
-
-    "## User access for " + $UserName + " has been revoked."
+    $body = @{ }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
+    "## User access for '$UserName' has been revoked."
 }
 else {
-    "## User " + $UserName + " has been enabled."
+    "## User '$UserName' has been enabled."
 }
-
-# "Sign out from AzureAD"
-Disconnect-AzureAD -Confirm:$false | Out-Null

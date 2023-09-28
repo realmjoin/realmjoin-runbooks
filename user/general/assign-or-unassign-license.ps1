@@ -24,12 +24,15 @@
                     "Assign License to User": false,
                     "Remove License from User": true
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -40,8 +43,13 @@ param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -Filter "startswith(DisplayName, 'LIC_')" -DisplayName "License group" } )]
     [String] $GroupID_License,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove license" } )]
-    [boolean] $Remove = $false
+    [boolean] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
@@ -53,6 +61,8 @@ $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License"
 if (-not $group.displayName.startswith($groupPrefix)) {
     throw "'$($group.displayName)' is not a license assignment group. Will not proceed."
 }
+
+"## Trying to assign license group '$($group.displayName)' to '$UserName'"
 
 # "Find the user object " + $UserName) 
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue

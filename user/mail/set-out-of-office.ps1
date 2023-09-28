@@ -41,7 +41,9 @@
                                     "Start",
                                     "End",
                                     "MessageInternal",
-                                    "MessageExternal"
+                                    "MessageExternal",
+                                    "CreateEvent",
+                                    "EventSubject"
                                 ]
                             }
                         }
@@ -54,31 +56,43 @@
             },
             "UserName": {
                 "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
     [Parameter(Mandatory = $true)] 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Enable or Disable Out-of-Office" } )]
     [bool] $Disable = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Start Date"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Start Date" } )]
     [System.DateTime] $Start = (get-date),
-    [ValidateScript( { Use-RJInterface -DisplayName "End Date"} )]
+    [ValidateScript( { Use-RJInterface -DisplayName "End Date" } )]
     [System.DateTime] $End = ((get-date) + (new-timespan -Days 3650)),
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageInternal = "Sorry, this person is currently not able to receive your message.",
     [ValidateScript( { Use-RJInterface -Type Textarea } )]
     [string] $MessageExternal = "Sorry, this person is currently not able to receive your message.",
+    [ValidateScript( { Use-RJInterface -DisplayName "Create calendar entry for the Out-Of-Office?" } )]
+    [bool] $CreateEvent = $false,
+    [ValidateScript( { Use-RJInterface -DisplayName "Clendar entry subject" } )]
+    [string] $EventSubject = "Out of Office",
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+"## Configuring Out Of Office settings on mailbox '$UserName'."
 
 $VerbosePreference = "SilentlyContinue"
 try {
@@ -87,13 +101,15 @@ try {
     Connect-RjRbExchangeOnline
 
     if ($Disable) {
-        Write-RjRbLog "Disable Out Of Office settings for '$UserName'"
+        "## Disabling Out Of Office settings for '$UserName'"
         Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Disabled
+        "## Be aware: If a calendar entry was created for the Out-Of-Office, it will not be removed."
+
     }
     else {
-        Write-RjRbLog "Enabling Out Of Office settings for '$UserName'"
+        "## Enabling Out Of Office settings for '$UserName'"
         Set-MailboxAutoReplyConfiguration -Identity $UserName -AutoReplyState Scheduled `
-            -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End
+            -ExternalMessage $MessageExternal -InternalMessage $MessageInternal -StartTime $Start -EndTime $End -CreateOOFEvent $CreateEvent -OOFEventSubject $EventSubject
     }
 
     Write-RjRbLog "## Resulting MailboxAutoReplyConfiguration for user '$UserName': $(Get-MailboxAutoReplyConfiguration $UserName | Format-List | Out-String)"

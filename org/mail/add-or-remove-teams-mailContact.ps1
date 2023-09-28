@@ -27,12 +27,15 @@
                     "Relay the desired address to the real address": false,
                     "Stop the relay and remove desired address": true
                 }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
 
 param
 (
@@ -45,8 +48,13 @@ param
     [ValidateScript( { Use-RJInterface -DisplayName "Name in Address Book" } )]
     [string] $DisplayName,
     [ValidateScript( { Use-RJInterface -DisplayName "Remove this contact" } )]
-    [bool] $Remove = $false
+    [bool] $Remove = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $VerbosePreference = "SilentlyContinue"
 
