@@ -159,7 +159,7 @@ param (
     [string]$CompanyName = "",
     [string]$JobTitle = "",
     [string]$Department = "",
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
     [string]$ManagerId = "",
     [string]$MobilePhone = "",
     [string]$LocationName = "",

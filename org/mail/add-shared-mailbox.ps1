@@ -58,19 +58,19 @@
 param (
     [Parameter(Mandatory = $true)] 
     [string] $MailboxName,
-    [ValidateScript( { Use-RJInterface -DisplayName "DisplayName" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "DisplayName" } )]
     [string] $DisplayName,
     [string] $DomainName,
     [string] $Language = "en-US",
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
-    [ValidateScript( { Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
     [bool] $AutoMapping = $false,
-    [ValidateScript( { Use-RJInterface -DisplayName "Save a copy of sent mails into shared mailbox's Sent Item folder for Send As Delegates" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save a copy of sent mails into shared mailbox's Sent Item folder for Send As Delegates" } )]
     [bool] $MessageCopyForSentAsEnabled = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Save a copy of sent mails into shared mailbox's Sent Item folder for Send On behalf Delegates" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save a copy of sent mails into shared mailbox's Sent Item folder for Send On behalf Delegates" } )]
     [bool]$MessageCopyForSendOnBehalfEnabled = $true,
-    [ValidateScript( { Use-RJInterface -DisplayName "Disable AAD User" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Disable AAD User" } )]
     [bool] $DisableUser = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
