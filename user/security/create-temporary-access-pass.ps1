@@ -32,9 +32,9 @@
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName,
-    [ValidateScript( { Use-RJInterface -Type Number -DisplayName "Lifetime"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "Lifetime"} )]
     [int] $LifetimeInMinutes = 240,
-    [ValidateScript( { Use-RJInterface -Type Number -DisplayName "One time use only"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "One time use only"} )]
     [bool] $OneTimeUseOnly = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

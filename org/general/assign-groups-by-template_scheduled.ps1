@@ -68,9 +68,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Source Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Source Group" } )]
     [String] $SourceGroupId,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Do not operate on Users from this Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Do not operate on Users from this Group" } )]
     [string] $ExclusionGroupId,
     # GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
     [string] $GroupsTemplate,

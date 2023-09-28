@@ -45,15 +45,15 @@ param(
     [string] $MailNickname,
     [string] $DisplayName,
     [bool] $CreateTeam = $false,
-    #[ValidateScript( { Use-RJInterface -DisplayName "Group is private" } )]
+    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Group is private" } )]
     [bool] $Private = $false,
-    #[ValidateScript( { Use-RJInterface -DisplayName "Group is mail-enabled" } )]
+    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Group is mail-enabled" } )]
     [bool] $MailEnabled = $false,
-    #[ValidateScript( { Use-RJInterface -DisplayName "Group is security-enabled" } )]
+    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Group is security-enabled" } )]
     [bool] $SecurityEnabled = $true,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Second Owner" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Second Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner2,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
