@@ -52,8 +52,24 @@ catch {
 "## Reporting LAPS credentials for DeviceId '$DeviceId'"
 "## Please ensure, the passwords are rotated after use."
 ""
-"AccountName;Password"
+[string] $accountName = ""
+[string] $password = ""
+[datetime] $backupDateTime = [datetime]::MinValue
 $result.credentials | ForEach-Object { 
-    $password = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_.passwordBase64))
-    "$($_.accountName);$password" 
+    if ($_.backupDateTime -gt $backupDateTime) {
+        $accountName = $_.accountName
+        $backupDateTime = $_.backupDateTime
+        $password = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_.passwordBase64))
+    }
 }
+"## AccountName"
+"$accountName"
+""
+"## Password"
+"$password" 
+""
+"## Time of Backup / Last Rotation"
+get-date -Format 'dd.MM.yyyy HH:mm' -Date $backupDateTime
+""
+"## Time of Refresh / Next Rotation"
+get-date -Format 'dd.MM.yyyy HH:mm' -Date $result.refreshDateTime
