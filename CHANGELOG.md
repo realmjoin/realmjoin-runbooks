@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-10-17
+* New Runbook: List a device's LAPS credentials (i.e. local admin passwords)
+
 ## 2023-09-28
 * Avoid failed runs due to a known issue in Azure Automation / Avoid module dependency in param block
 
