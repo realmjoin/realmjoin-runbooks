@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-10-20
+* Set User Photo: (fixed) Updated API Call
+
 ## 2023-10-17
 * New Runbook: List a device's LAPS credentials (i.e. local admin passwords)
 
