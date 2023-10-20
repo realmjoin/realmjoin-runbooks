@@ -145,7 +145,7 @@ param(
 
     [String] $ForwardTargetPhoneNumber,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Forward Target Teams user" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Forward Target Teams user" } )]
     [String] $ForwardTargetTeamsUser,
 
     [bool] $ForwardToVoicemail,
