@@ -70,7 +70,7 @@ catch {
 # "Set profile picture for user"
 # "ImageByteArray" is broken in PS5, so will use a file.
 try {
-    Invoke-RjRbRestMethodGraph -resource "/users/$($targetUser.id)/photo" -inFile ($env:TEMP + "\photo.jpg") -Method Put -ContentType "image/jpeg"
+    Invoke-RjRbRestMethodGraph -resource "/users/$($targetUser.id)/photo/`$value" -inFile ($env:TEMP + "\photo.jpg") -Method Put -ContentType "image/jpeg"
 } catch {
     "## Can't update user photo in Exchange. Maybe the user has no mailbox?"
     ""
