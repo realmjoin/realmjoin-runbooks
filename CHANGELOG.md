@@ -1,7 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
 ## 2023-10-26
-* Fixed: List Inactive Devices failed if the primary owner has been deleted from AAD.
+* List Inactive Devices: Fixed: Failed if the primary owner has been deleted from AAD.
+* Assign groups by template: Performance improvements
 
 ## 2023-10-20
 * Set User Photo: (fixed) Updated API Call
