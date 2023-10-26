@@ -67,7 +67,7 @@
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Number of days without Sync/Login being considered inactive." } )]
-    [int] $Days=30,
+    [int] $Days = 30,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Last Login or Last Intune Sync" } )]
     [bool] $Sync = $true,
     [bool] $ExportToFile = $false,
@@ -155,11 +155,22 @@ else {
 }
 
 foreach ($Device in $Devices) {
+    $primaryOwner = $null
     if ($Sync) {
-        $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/Users/$($Device.userPrincipalName)" -OdSelect "city, country, department, usageLocation"
+        try {
+            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/Users/$($Device.userPrincipalName)" -OdSelect "city, country, department, usageLocation"
+        }
+        catch {
+            "## User '$($Device.userPrincipalName)' not found. Maybe deleted?"
+        }
     }
     else {
-        $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($Device.id)/registeredOwners" -OdSelect "userPrincipalName,city,department,usageLocation"
+        try {
+            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($Device.id)/registeredOwners" -OdSelect "userPrincipalName,city,department,usageLocation"
+        }
+        catch {
+            "## Querying registered owners failed. Skipping."
+        }
     }
     $Exportdevice = @()
     $Exportdevice += $Device
@@ -226,10 +237,10 @@ if ($ExportToFile) {
 }
 else {
     if ($Sync) {
-        $Exportdevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSize -Property @{name="LastSync"; expression={get-date $_.lastSyncDateTime -Format yyyy-MM-dd}}, @{name="deviceName";expression={if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0,14) + ".." } else { $_.deviceName}}}, userPrincipalName, @{name="serialNumber";expression = {if ($_.serialNumber.Length -gt 15) { $_.serialNumber.substring(0,14) + ".." } else { $_.serialNumber}}}, manufacturer, model, complianceState | Out-String
+        $Exportdevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSize -Property @{name = "LastSync"; expression = { get-date $_.lastSyncDateTime -Format yyyy-MM-dd } }, @{name = "deviceName"; expression = { if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0, 14) + ".." } else { $_.deviceName } } }, userPrincipalName, @{name = "serialNumber"; expression = { if ($_.serialNumber.Length -gt 15) { $_.serialNumber.substring(0, 14) + ".." } else { $_.serialNumber } } }, manufacturer, model, complianceState | Out-String
     }
     else {
-        $Exportdevices | Sort-Object -Property approximateLastSignInDateTime | Format-Table -AutoSize -Property @{name="LastSignIn"; expression={get-date $_.approximateLastSignInDateTime -Format yyyy-MM-dd}}, @{name="displayName";expression={if ($_.displayName.Length -gt 15) { $_.displayName.substring(0,14) + ".." } else { $_.displayName}}}, deviceId, manufacturer, model, isCompliant  | Out-String
+        $Exportdevices | Sort-Object -Property approximateLastSignInDateTime | Format-Table -AutoSize -Property @{name = "LastSignIn"; expression = { get-date $_.approximateLastSignInDateTime -Format yyyy-MM-dd } }, @{name = "displayName"; expression = { if ($_.displayName.Length -gt 15) { $_.displayName.substring(0, 14) + ".." } else { $_.displayName } } }, deviceId, manufacturer, model, isCompliant  | Out-String
     }
 }
 
