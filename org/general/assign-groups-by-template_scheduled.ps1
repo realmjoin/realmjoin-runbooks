@@ -98,7 +98,7 @@ if (-not $SourceGroup) {
     "## Source Group with ID '$SourceGroupId' not found in Azure AD."
     throw("Source Group not found");
 }
-$SourceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$SourceGroupId/members" -OdSelect "Id" -FollowPaging
+$SourceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$SourceGroupId/members" -OdSelect "Id,userPrincipalName" -FollowPaging
 
 $ExclusionGroupMembers = @()
 if ($ExclusionGroupId) {
@@ -143,32 +143,38 @@ else {
     }
 }
 
-foreach ($UserId in $SourceGroupMembers.id) {
-    if ($ExclusionGroupMembers.id -notcontains $UserId) {  
-        $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -OdSelect "id,userPrincipalName" -ErrorAction SilentlyContinue
-        if (-not $targetUser) {
-            "## User with ID '$UserId' not found in Azure AD."
-            throw("User not found");
-        }
-        "## Processing user '$($targetUser.userPrincipalName)'"
-        foreach ($AADGroup in $TargetAADGroups) {
-            $AADGroupMembers = @()
-            $AADGroupMembers += (Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)/members" -OdSelect "Id" -FollowPaging).id
-            [array] $bindings = @()
-            if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $UserId)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $UserId))) {    
-                $bindingString = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
-                $bindings += $bindingString
+foreach ($AADGroup in $TargetAADGroups) {
+    "## Processing Group '$($AADGroup.displayName)'"
+    $AADGroupMembers = @()
+    $AADGroupMembers += (Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)/members" -OdSelect "Id" -FollowPaging).id
+
+    [array] $bindings = @()
+    foreach ($targetUser in $SourceGroupMembers) {
+        if ($ExclusionGroupMembers.id -notcontains $targetUser.Id) {
+            #"## Processing user '$($targetUser.userPrincipalName)'"
+            if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $targetUser.id)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $targetUser.id))) {    
+                "## - Adding user '$($targetUser.userPrincipalName)'"
+                $bindings += "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
             }
-            else {
-                "## User is already member of '$($AADGroup.displayName)'. Skipping."
-            }
-    
-            if ($bindings) {
+            #else {
+                #"## User is already member of '$($AADGroup.displayName)'. Skipping."
+            #}    
+            if ($bindings.count -gt 15) {
                 $GroupJson = @{"members@odata.bind" = $bindings }
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)" -Method Patch -Body $GroupJson | Out-Null
-                "## Added user to group '$($AADGroup.displayName)'" 
+                #"## Updated group '$($AADGroup.displayName)'" 
+                $bindings = @()
             }
+            #else {
+            #    "## Pending: $($bindings.count)"
+            #}
         }
-        ""
     }
+    
+    if ($bindings) {
+        $GroupJson = @{"members@odata.bind" = $bindings }
+        Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)" -Method Patch -Body $GroupJson | Out-Null
+        #"## Updated group '$($AADGroup.displayName)'." 
+    }
+    ""
 }
