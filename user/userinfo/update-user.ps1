@@ -219,7 +219,6 @@ param (
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
-
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -279,10 +278,11 @@ try {
 
         if (-not $group) {
             "## License group '$DefaultLicense' not found!"
-            Write-Error "License group '$DefaultLicense' not found!"
+            "## Reauth..."
+            Connect-RjRbGraph -force
         }
         else {
-            $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+            $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members" -FollowPaging
             if ($members.id -contains $targetUser.id) {
                 "## License Group '$DefaultLicense' is already assigned tp '$Username'. Skipping."
             }
@@ -306,8 +306,10 @@ try {
                         #"## '$($group.displayName)' assigned to '$Username'"
                     }
                     catch {
-                        "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                        "## ... failed. Skipping '$($group.displayName)'."
                         Write-RjRbLog $_
+                        "## Reauth..."
+                        Connect-RjRbGraph -force
                     }
                 }
                 else {
@@ -326,26 +328,28 @@ try {
             $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$groupname'" -ErrorAction SilentlyContinue
             if (-not $group) {
                 "## Group '$groupname' not found!" 
-                Write-Error "Group '$groupname' not found!"
+                "## Reauth..."
+                Connect-RjRbGraph -force
             }
             else {
                 if (($group.GroupTypes -contains "Unified") -or (-not $group.MailEnabled)) {
-                    $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
+                    $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members" -FollowPaging
                     if ($members.id -contains $targetUser.id) {
-                        "## License Group '$($group.displayName)' is already assigned tp '$Username'. Skipping."
+                        "## Group '$($group.displayName)' is already assigned tp '$Username'. Skipping."
                     }
                     else {
-                        "## Adding '$Username' to license group '$($group.displayName)'"
+                        "## Adding '$Username' to group '$($group.displayName)'"
                         $body = @{
                             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
                         }
                         try {
                             Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
-                            #"## '$($group.displayName)' is assigned to '$Username'"
                         }
                         catch {
-                            "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                            "## ... failed. Skipping '$($group.displayName)'."
                             Write-RjRbLog $_
+                            "## Reauth..."
+                            Connect-RjRbGraph -force    
                         }
                     }
                 }
@@ -368,7 +372,7 @@ try {
                         Add-DistributionGroupMember -Identity $group.id -Member $Username -BypassSecurityGroupManagerCheck:$true -Confirm:$false
                     }
                     catch {
-                        "## ... failed. Skipping '$($group.displayName)'. See Errorlog."
+                        "## ... failed. Skipping '$($group.displayName)'."
                         Write-RjRbLog $_
                     }
                 }
@@ -443,6 +447,5 @@ if ($ResetPassword) {
         "## '$UserName' already has MFA in place. Will not reset PW."
     }
 }
-
 
 "## User '$UserName' successfully updated."

@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-11-13
+* (Un)Assign License: (fixed) Group prefix was case sensitive.
+* Update User: (fixed) Fails if a group is not found.
+
 ## 2023-10-26
 * List Inactive Devices: Fixed: Failed if the primary owner has been deleted from AAD.
 * Assign groups by template: Performance improvements

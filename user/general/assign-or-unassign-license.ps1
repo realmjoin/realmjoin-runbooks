@@ -58,7 +58,7 @@ $groupPrefix = "LIC_"
 
 # "Find select group from Object ID " + $GroupID_License
 $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License"
-if (-not $group.displayName.startswith($groupPrefix)) {
+if (-not $group.displayName.startswith($groupPrefix,'CurrentCultureIgnoreCase')) {
     throw "'$($group.displayName)' is not a license assignment group. Will not proceed."
 }
 
