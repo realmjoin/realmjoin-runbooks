@@ -2,6 +2,7 @@
 
 ## 2023-11-14
 * List Mailbox Permissions: Only list Trustees with a mailbox in this tenant.
+* Reset MFA: Handle token becoming invalid after failed auth. method deletion
 
 ## 2023-11-13
 * (Un)Assign License: (fixed) Group prefix was case sensitive.
