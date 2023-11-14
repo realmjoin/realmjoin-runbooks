@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-11-14
+* List Mailbox Permissions: Only list Trustees with a mailbox in this tenant.
+
 ## 2023-11-13
 * (Un)Assign License: (fixed) Group prefix was case sensitive.
 * Update User: (fixed) Fails if a group is not found.
