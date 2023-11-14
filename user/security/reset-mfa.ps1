@@ -62,6 +62,8 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
         }
         catch {
             "## Failed or not found. "
+            "## Reauth..."
+            Connect-RjRbGraph -force
         }
     }
 
@@ -72,6 +74,8 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
         }
         catch {
             "## Failed or not found. "
+            "## Reauth..."
+            Connect-RjRbGraph -force
         }
     }
 
@@ -82,6 +86,8 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
         }
         catch {
             "## Failed or not found. "
+            "## Reauth..."
+            Connect-RjRbGraph -force
         }
     }
 
@@ -92,6 +98,8 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
         }
         catch {
             "## Failed or not found. "
+            "## Reauth..."
+            Connect-RjRbGraph -force
         }
     }
 
