@@ -1,5 +1,20 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-11-14
+* List Mailbox Permissions: Only list Trustees with a mailbox in this tenant.
+* Reset MFA: Handle token becoming invalid after failed auth. method deletion
+
+## 2023-11-13
+* (Un)Assign License: (fixed) Group prefix was case sensitive.
+* Update User: (fixed) Fails if a group is not found.
+
+## 2023-10-26
+* List Inactive Devices: Fixed: Failed if the primary owner has been deleted from AAD.
+* Assign groups by template: Performance improvements
+
+## 2023-10-20
+* Set User Photo: (fixed) Updated API Call
+
 ## 2023-10-17
 * New Runbook: List a device's LAPS credentials (i.e. local admin passwords)
 

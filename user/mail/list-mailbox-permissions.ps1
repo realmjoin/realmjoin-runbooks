@@ -59,16 +59,14 @@ try {
     ""
     "## SendOnBehalf Permissions"
     (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
-        $sobTrustee = Get-Recipient -Identity $_
-        $result = @{}
-        $result.Identity = $user.Identity
-        if ($sobTrustee.RecipientType -eq "UserMailbox") {
-            $result.Trustee = $sobTrustee.PrimarySmtpAddress
-        } else {
-            $result.Trustee = $sobTrustee.Identity
+        $sobTrustee = Get-Recipient -Identity $_ | Where-Object { $_.RecipientType -eq "UserMailbox" }
+        foreach ($trustee in [array]$sobTrustee) {
+            $result = @{}   
+            $result.Identity = $user.Identity
+            $result.Trustee = $trustee.PrimarySmtpAddress
+            $result.AccessRights = "{SendOnBehalf}"
+            [PsCustomObject]$result
         }
-        $result.AccessRights = "{SendOnBehalf}"
-        [PsCustomObject]$result
     } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String
 
 }
