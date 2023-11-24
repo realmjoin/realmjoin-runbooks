@@ -67,6 +67,17 @@ try {
     # Create the mailbox
     $mailbox = New-Mailbox @invokeParams
 
+    $found = $false
+    while (-not $found) {
+        $mailbox = Get-Mailbox -Identity $MailboxName -ErrorAction SilentlyContinue
+        if ($null -eq $mailbox) {
+            ".. Waiting for mailbox to be created..."
+            Start-Sleep -Seconds 5
+        } else {
+            $found = $true
+        }
+    } 
+
     if ($DelegateTo) {
         # "Grant SendOnBehalf"
         $mailbox | Set-Mailbox -GrantSendOnBehalfTo $DelegateTo | Out-Null
