@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-11-24
+* Add Shread/Room/Equip. Mailbox: Add mailbox creation wait logic
+
 ## 2023-11-14
 * List Mailbox Permissions: Only list Trustees with a mailbox in this tenant.
 * Reset MFA: Handle token becoming invalid after failed auth. method deletion
