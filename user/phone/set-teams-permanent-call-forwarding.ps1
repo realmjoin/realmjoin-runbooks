@@ -137,15 +137,16 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.6.0" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.0.0" }            
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.8.0" }            
             
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
 
     [String] $ForwardTargetPhoneNumber,
 
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Forward Target Teams user" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Forward Target Teams user" } )]
     [String] $ForwardTargetTeamsUser,
 
     [bool] $ForwardToVoicemail,
@@ -181,12 +182,20 @@ try {
     $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
 }
 catch {
-    Write-Error 'Connection - No automation credentials "teamsautomation" stored. Since the PowerShell functions for the call forwarding of users via Managed Identity variant is not available, the script is being stopped now!'
+    Write-Output "Connection - No automation credentials "teamsautomation" stored. Try newer managed identity approach now"
 }
 
 if ($CredAutomation -notlike "") {
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Credential $CredAutomation 
+    $VerbosePreference = "Continue"
+}else {
+    Write-Output "Connection - Get Access Token"
+    $graphToken = Get-AccessToken -URI "https://graph.microsoft.com"
+    $teamsToken = Get-AccessToken -URI "48ac35b8-9aa8-4d74-927d-1f4a14a0b239"
+    Write-Output "Connection - Connect via Access Token (as RealmJoin managed identity)"
+    $VerbosePreference = "SilentlyContinue"
+    Connect-MicrosoftTeams -AccessTokens @("$graphToken", "$teamsToken") -ErrorAction Stop
     $VerbosePreference = "Continue"
 }
 
@@ -199,13 +208,12 @@ catch {
         Start-Sleep -Seconds 5
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
-    catch {
+    catch {        
         Write-Error -Message "Teams PowerShell session could not be established. Stopping script!" -ErrorAction Continue
         throw "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
-Write-Output "Connect Ok!"
 
 # Add Caller in Verbose output
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
