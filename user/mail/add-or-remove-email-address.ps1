@@ -115,7 +115,7 @@ try {
             }
             $eMailAddressList = [array]($mailbox.EmailAddresses | Where-Object { $_ -ne "smtp:$eMailAddress" })
             # Remove email address
-            Set-Mailbox -Identity $UserName -EmailAddresses [array]$eMailAddressList
+            Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
             "## Alias $eMailAddress is removed from user $UserName"
             "## Waiting for Exchange to update the mailbox..."
             Start-Sleep -Seconds 30
