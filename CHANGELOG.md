@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog 
 
+## 2023-12-07
+* Add/Remove Mail Address: Fix - Could not remove address
+
+## 2023-12-05
+* All Phone Runbooks: Update module versions and add validation for user input
+
 ## 2023-11-24
 * Add Shread/Room/Equip. Mailbox: Add mailbox creation wait logic
 
