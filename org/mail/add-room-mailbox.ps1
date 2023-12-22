@@ -29,6 +29,8 @@ param (
     [Parameter(Mandatory = $true)] 
     [string] $MailboxName,
     [string] $DisplayName,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Custom domain suffix (will use standard domain if left unfilled)" } )]
+    [string] $customDomain,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Room capacity (people)" } )]
@@ -64,6 +66,32 @@ try {
         $invokeParams += @{ ResourceCapacity = $Capacity }
     }
 
+    ## check if the input contains a @, if so, split and keep the pure domain part
+    if ($customDomain -like "*@*") {
+        $customDomain = $customDomain.Split("@")[1] 
+    }
+
+    ## fetch all domains and check if the custom domain is present in the tenant
+    $domains = Invoke-RjRbRestMethodGraph -Resource "/domains" -Method Get -OdSelect "id, supportedServices, isDefault" -ErrorAction Stop
+    $found = $false
+    $defaultDomain = ""
+    foreach ($domain in $domains) {
+        if ($domain.isDefault -eq $true) {
+            $defaultDomain = $domain.id
+        }
+        if ($domain.supportedServices -contains "Email" -and $customDomain) {
+            if ($domain.id -eq $customDomain) {
+                $invokeParams.Name = $MailboxName + "@" + $customDomain
+                $found = $true
+                break
+            }
+        }
+    }
+    if (-not $found) {
+        Write-Output "## Custom domain '$customDomain' not found in tenant, using default domain."
+        $invokeParams.Name = $MailboxName + "@" + $defaultDomain
+    }
+
     # Create the mailbox
     $mailbox = New-Mailbox @invokeParams
 
@@ -73,7 +101,8 @@ try {
         if ($null -eq $mailbox) {
             ".. Waiting for mailbox to be created..."
             Start-Sleep -Seconds 5
-        } else {
+        }
+        else {
             $found = $true
         }
     } 
@@ -110,6 +139,7 @@ try {
     }
 
     "## Room Mailbox '$MailboxName' has been created."
+
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
