@@ -17,45 +17,51 @@
 
  .INPUTS
  RunbookCustomization: {
- "Parameters": {
-    "UserName": {
-        "Hide": true
-    },
-    "CallerName": {
-        "Hide": true
-    },
-    "licWin365GroupName": {
-        "DisplayName": "Select the Windows 365 license to be used for reprovisioning",
-        "SelectSimple": {
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+        "Parameters": {
+           "UserName": {
+               "Hide": true
+           },
+           "CallerName": {
+               "Hide": true
+           },
+           "licWin365GroupName": {
+               "DisplayName": "Select the Windows 365 license to be used for reprovisioning",
+               "SelectSimple": {
+                   "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                   "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+               }
+           },
+           "sendMailWhenReprovisioning": {
+                "DisplayName": "Notify user when CloudPC reprovisioning has begun?"
+            },
+           "customizeMail" : {
+               "DisplayName": "Customize the mail sent to the user when reprovisioning has begun? (works only if \"Notify user\" switch is on)",
+               "Select": {
+                   "Options": [
+                       {
+                           "Display" : "Do not customize the email",
+                           "Value" : "false",
+                           "Customization" : {
+                               "Hide" : [
+                                   "customMailMessage"
+                               ]
+                           }
+                       },
+                       {
+                           "Display" : "Customize the email",
+                           "Value" : "true"
+                       }
+                   ]
+               }
+           },
+           "customMailMessage": {
+               "DisplayName": "Custom mail sent to the user when reprovisioning has begun: (Capped at 3000 characters)"
+           },
+           "fromMailAddress": {
+               "DisplayName": "(Shared) Mailbox to send mail from: "
+           }
         }
-    },
-    "sendMailWhenReprovisioning": {
-            "DisplayName": "Notify user when CloudPC reprovisioning has begun?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Do not send an Email.",
-                        "ParameterValue": false,
-                        "Customization": {
-                            "Hide": [
-                                "fromMailAddress"
-                            ]
-                        }
-                    },
-                    {
-                        "Display": "Send an Email.",
-                        "ParameterValue": true
-                    }
-                ]
-            }
-        }
-    },
-    "fromMailAddress": {
-        "DisplayName": "(Shared) Mailbox to send mail from: "
     }
- }
  
  .EXAMPLE
  "user_general_reprovision-windows365": {
@@ -77,7 +83,9 @@ param(
     [string] $UserName,
     [Parameter(Mandatory = $true)]
     [string] $licWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-    [bool] $sendMailWhenReprovisioning = $false,
+    [bool] $sendMailWhenReprovisioning,
+    [bool] $customizeMail = $false,
+    [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",
     [string] $fromMailAddress = "reports@contoso.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -117,8 +125,9 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
         "## Starting reprovision for: " + $cloudPC.managedDeviceName + " with the service plan: " + $cloudPC.servicePlanName
         Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/reprovision" -Beta -Method Post -Body $body
         
-        # check if "Notify user when CloudPC reprovisioning has begun?" switch has been set to true and send email to the User
-        if ($sendMailWhenReprovisioning) {
+        ## check if mail is to be sent and if customization has been selected, if not send generic email
+        ## generic email
+        if ($sendMailWhenReprovisioning -and ($customizeMail -eq $false)) {
             "## Cloud PC Reprovisioning has been triggered. Informing User."
             $message = @{
                 subject = "[Automated eMail] Cloud PC is being reprovisioned."
@@ -141,6 +150,26 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
             Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
             "## Mail to '$UserName' sent."
         }
+        ## customized email
+        elseif($sendMailWhenReprovisioning -and $customizeMail) {
+            "## Cloud PC Reprovisioning has been triggered. Informing User via custom mail."
+            $message = @{
+                subject = "[Customized Automated eMail] Cloud PC is being reprovisioned."
+                body    = @{
+                    contentType = "HTML"
+                    content     = $customMailMessage
+                }
+            }
+
+            $message.toRecipients = [array]@{
+                emailAddress = @{
+                    address = $UserName
+                }
+            }
+    
+            Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+            "## Custom Mail to '$UserName' sent."
+        }
         else {
             "## User has chosen not to send Mail to '$UserName'. " 
         }
@@ -153,7 +182,7 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
     # if the selected license is not applicable to the user
 }
 else {
-    "## '$UserName' does not have '$licWin365GroupName'." 
+    "## '$UserName' does not have '$licWin365GroupName' assigned." 
     "## Can not reprovision."
     throw "Wrong license selected."
 }
