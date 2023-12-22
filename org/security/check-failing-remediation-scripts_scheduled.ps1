@@ -61,15 +61,21 @@ foreach ($script in $ProRemScripts) {
 
     ## check for active assignments, if none the script is not in use and doesnt need to be evaluated
     if ($script.assignments.Count -eq 0) {
-        Write-Host "## No assignments for Script '$($script.displayName)' found. Skipping..."
+        Write-Output "## No assignments for Script '$($script.displayName)' found. Skipping..."
+        continue
+    }
+    ## if the failure rate is < 30% inform the user and skip the script
+    elseif (($script.assignments.Count -ne 0) -and ($script.runSummary.issueReoccurredDeviceCount) -lt $totalDeviceCount * 0.3) {
+        Write-Output "## Script '$($script.displayName)' failure rate under 30%. Skipping..."
         continue
     }
     ## otherwise check the failure rate and if > 30% save the script object in $results
     elseif (($script.runSummary.issueReoccurredDeviceCount) -gt $totalDeviceCount * 0.3) {
         
-        Write-Host "## Script '$($script.displayName)' added to list."
+        Write-Output "## Script '$($script.displayName)' added to list."
         $results += $script
     }
+    
 }
 
 
@@ -113,5 +119,8 @@ if ($sendEmailIfFound -and ($results.Count -gt 0)) {
     }
 
     Invoke-RjRbRestMethodGraph -Resource "/users/$From/sendMail" -Method POST -Body @{ message = $message }
-    Write-Host "## Alert sent to '$To'."
+    Write-Output "## Alert sent to '$To'."
+}
+elseif ($sendEmailIfFound -and ($results.Count -eq 0)) {    
+    Write-Output "## No failing Proactive Remediation Scripts have been found. Terminating..."
 }
