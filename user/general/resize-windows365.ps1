@@ -16,68 +16,75 @@
  - User.SendMail
 
  .INPUTS
- RunbookCustomization: {
- "Parameters": {
-    "UserName": {
-        "Hide": true
-    },
-    "CallerName": {
-        "Hide": true
-    },
-    "unassignRunbook": {
-        "Hide": true
-    },
-    "assignRunbook": {
-        "Hide": true
-    },
-    "cfgProvisioningGroupPrefix": {
-        "Hide": true
-    },
-    "cfgUserSettingsGroupPrefix": {
-        "Hide": true
-    },
-    "currentLicWin365GroupName": {
-        "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",
-        "SelectSimple": {
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-        }
-    },
-    "newLicWin365GroupName": {
-        "DisplayName": "Resizing to following license: ",
-        "SelectSimple": {
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-        }
-    },
-    "sendMailWhenDoneResizing": {
-            "DisplayName": "Notify User once the Cloud PC has finished resizing?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Do not send an Email.",
-                        "ParameterValue": false,
-                        "Customization": {
-                            "Hide": [
-                                "fromMailAddress"
-                            ]
+ RunbookCustomization": {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "unassignRunbook": {
+                "Hide": true
+            },
+            "assignRunbook": {
+                "Hide": true
+            },
+            "cfgProvisioningGroupPrefix": {
+                "Hide": true
+            },
+            "cfgUserSettingsGroupPrefix": {
+                "Hide": true
+            },
+            "currentLicWin365GroupName": {
+                "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",
+                "SelectSimple": {
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                }
+            },
+            "newLicWin365GroupName": {
+                "DisplayName": "Resizing to following license: ",
+                "SelectSimple": {
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                }
+            },
+            "fromMailAddress": {
+                "DisplayName": "(Shared) Mailbox to send mail from: ",
+                "ParameterValue": "reports@contoso.com"
+            },
+            "sendMailWhenDoneResizing": {
+                "DisplayName": "Notify User once the Cloud PC has finished resizing?"
+            },
+            "customizeMail": {
+                "DisplayName": "Customize the mail sent to the user? (Works only if \"Notify user\" switch is on)",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Do not customize the email",
+                            "ParameterValue": "false",
+                            "Customization": {
+                                "Hide": [
+                                    "customMailMessage"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Customize the email",
+                            "ParameterValue": "true"
                         }
-                    },
-                    {
-                        "Display": "Send an Email.",
-                        "ParameterValue": true
-                    }
-                ]
+                    ]
+                }
+            },
+            "customMailMessage": {
+                "DisplayName": "Custom message to be sent to the user."
+            },
+            "skipGracePeriod": {
+                "DisplayName": "Remove the old Cloud PC immediately?"
             }
         }
-    },
-    "fromMailAddress": {
-        "DisplayName": "(Shared) Mailbox to send mail from: "
-    },
-    "skipGracePeriod": {
-        "DisplayName": "Remove the old Cloud PC immediately?"
     }
- }
  
  .EXAMPLE
  "user_general_resizing-windows365": {
@@ -103,6 +110,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $newLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
     [bool] $sendMailWhenDoneResizing = $false,
+    [bool] $customizeMail = $false,
+    [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",
     [string] $fromMailAddress = "reports@contoso.com",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
@@ -200,9 +209,10 @@ if (-not $currentProvisioningPolicy) {
     "## Warning: '$UserName' has no Provisioning Group assigned."
 }
 
-# Calling Runbooks 
+## Calling Runbook to unassign the old license
 "## Starting Runbook Job to remove '$currentLicWin365GroupName' from '$UserName':"
 Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $currentLicWin365GroupName ; skipGracePeriod = $skipGracePeriod ; keepUserSettingsAndProvisioningGroups = $true; CallerName = $CallerName ; }
 ""
+## check if custom mail message is selected
 "## Starting Runbook Job to assign '$newLicWin365GroupName' to '$UserName':"
 Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $newLicWin365GroupName ; cfgProvisioningGroupName = $currentProvisioningPolicy ; cfgUserSettingsGroupName = $currentUserSettingsPolicy ; sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ; }

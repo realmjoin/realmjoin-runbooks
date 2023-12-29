@@ -146,4 +146,15 @@
      [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",[m
      [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",[m
 [36m@@ -200,9 +209,10 @@[m [mif (-not $currentProvisioningPolicy) {[m
-     "## Warning: '$UserName' has no Provisioning
+     "## Warning: '$UserName' has no Provisioning Group assigned."[m
+ }[m
+ [m
+[31m-# Calling Runbooks [m
+[32m+[m[32m## Calling Runbook to unassign the old license[m[41m[m
+ "## Starting Runbook Job to remove '$currentLicWin365GroupName' from '$UserName':"[m
+ Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $currentLicWin365GroupName ; skipGracePeriod = $skipGracePeriod ; keepUserSettingsAndProvisioningGroups = $true; CallerName = $CallerName ; }[m
+ ""[m
+[32m+[m[32m## check if custom mail message is selected[m[41m[m
+ "## Starting Runbook Job to assign '$newLicWin365GroupName' to '$UserName':"[m
+ Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $newLicWin365GroupName ; cfgProvisioningGroupName = $currentProvisioningPolicy ; cfgUserSettingsGroupName = $currentUserSettingsPolicy ; sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ; }[m
+\ No newline at end of file[m
