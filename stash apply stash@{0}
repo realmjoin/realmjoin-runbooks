@@ -1,0 +1,149 @@
+[1mdiff --git a/user/general/resize-windows365.ps1 b/user/general/resize-windows365.ps1[m
+[1mindex c8f1ed9..b973b33 100644[m
+[1m--- a/user/general/resize-windows365.ps1[m
+[1m+++ b/user/general/resize-windows365.ps1[m
+[36m@@ -16,68 +16,75 @@[m
+  - User.SendMail[m
+ [m
+  .INPUTS[m
+[31m- RunbookCustomization: {[m
+[31m- "Parameters": {[m
+[31m-    "UserName": {[m
+[31m-        "Hide": true[m
+[31m-    },[m
+[31m-    "CallerName": {[m
+[31m-        "Hide": true[m
+[31m-    },[m
+[31m-    "unassignRunbook": {[m
+[31m-        "Hide": true[m
+[31m-    },[m
+[31m-    "assignRunbook": {[m
+[31m-        "Hide": true[m
+[31m-    },[m
+[31m-    "cfgProvisioningGroupPrefix": {[m
+[31m-        "Hide": true[m
+[31m-    },[m
+[31m-    "cfgUserSettingsGroupPrefix": {[m
+[31m-        "Hide": true[m
+[31m-    },[m
+[31m-    "currentLicWin365GroupName": {[m
+[31m-        "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",[m
+[31m-        "SelectSimple": {[m
+[31m-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",[m
+[31m-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"[m
+[31m-        }[m
+[31m-    },[m
+[31m-    "newLicWin365GroupName": {[m
+[31m-        "DisplayName": "Resizing to following license: ",[m
+[31m-        "SelectSimple": {[m
+[31m-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",[m
+[31m-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"[m
+[31m-        }[m
+[31m-    },[m
+[31m-    "sendMailWhenDoneResizing": {[m
+[31m-            "DisplayName": "Notify User once the Cloud PC has finished resizing?",[m
+[31m-            "Select": {[m
+[31m-                "Options": [[m
+[31m-                    {[m
+[31m-                        "Display": "Do not send an Email.",[m
+[31m-                        "ParameterValue": false,[m
+[31m-                        "Customization": {[m
+[31m-                            "Hide": [[m
+[31m-                                "fromMailAddress"[m
+[31m-                            ][m
+[32m+[m[32m RunbookCustomization": {[m[41m[m
+[32m+[m[32m        "Parameters": {[m[41m[m
+[32m+[m[32m            "UserName": {[m[41m[m
+[32m+[m[32m                "Hide": true[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "CallerName": {[m[41m[m
+[32m+[m[32m                "Hide": true[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "unassignRunbook": {[m[41m[m
+[32m+[m[32m                "Hide": true[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "assignRunbook": {[m[41m[m
+[32m+[m[32m                "Hide": true[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "cfgProvisioningGroupPrefix": {[m[41m[m
+[32m+[m[32m                "Hide": true[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "cfgUserSettingsGroupPrefix": {[m[41m[m
+[32m+[m[32m                "Hide": true[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "currentLicWin365GroupName": {[m[41m[m
+[32m+[m[32m                "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",[m[41m[m
+[32m+[m[32m                "SelectSimple": {[m[41m[m
+[32m+[m[32m                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",[m[41m[m
+[32m+[m[32m                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"[m[41m[m
+[32m+[m[32m                }[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "newLicWin365GroupName": {[m[41m[m
+[32m+[m[32m                "DisplayName": "Resizing to following license: ",[m[41m[m
+[32m+[m[32m                "SelectSimple": {[m[41m[m
+[32m+[m[32m                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",[m[41m[m
+[32m+[m[32m                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"[m[41m[m
+[32m+[m[32m                }[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "fromMailAddress": {[m[41m[m
+[32m+[m[32m                "DisplayName": "(Shared) Mailbox to send mail from: ",[m[41m[m
+[32m+[m[32m                "ParameterValue": "reports@contoso.com"[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "sendMailWhenDoneResizing": {[m[41m[m
+[32m+[m[32m                "DisplayName": "Notify User once the Cloud PC has finished resizing?"[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "customizeMail": {[m[41m[m
+[32m+[m[32m                "DisplayName": "Customize the mail sent to the user? (Works only if \"Notify user\" switch is on)",[m[41m[m
+[32m+[m[32m                "Select": {[m[41m[m
+[32m+[m[32m                    "Options": [[m[41m[m
+[32m+[m[32m                        {[m[41m[m
+[32m+[m[32m                            "Display": "Do not customize the email",[m[41m[m
+[32m+[m[32m                            "ParameterValue": "false",[m[41m[m
+[32m+[m[32m                            "Customization": {[m[41m[m
+[32m+[m[32m                                "Hide": [[m[41m[m
+[32m+[m[32m                                    "customMailMessage"[m[41m[m
+[32m+[m[32m                                ][m[41m[m
+[32m+[m[32m                            }[m[41m[m
+[32m+[m[32m                        },[m[41m[m
+[32m+[m[32m                        {[m[41m[m
+[32m+[m[32m                            "Display": "Customize the email",[m[41m[m
+[32m+[m[32m                            "ParameterValue": "true"[m[41m[m
+                         }[m
+[31m-                    },[m
+[31m-                    {[m
+[31m-                        "Display": "Send an Email.",[m
+[31m-                        "ParameterValue": true[m
+[31m-                    }[m
+[31m-                ][m
+[32m+[m[32m                    ][m[41m[m
+[32m+[m[32m                }[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "customMailMessage": {[m[41m[m
+[32m+[m[32m                "DisplayName": "Custom message to be sent to the user."[m[41m[m
+[32m+[m[32m            },[m[41m[m
+[32m+[m[32m            "skipGracePeriod": {[m[41m[m
+[32m+[m[32m                "DisplayName": "Remove the old Cloud PC immediately?"[m[41m[m
+             }[m
+         }[m
+[31m-    },[m
+[31m-    "fromMailAddress": {[m
+[31m-        "DisplayName": "(Shared) Mailbox to send mail from: "[m
+[31m-    },[m
+[31m-    "skipGracePeriod": {[m
+[31m-        "DisplayName": "Remove the old Cloud PC immediately?"[m
+     }[m
+[31m- }[m
+  [m
+  .EXAMPLE[m
+  "user_general_resizing-windows365": {[m
+[36m@@ -103,6 +110,8 @@[m [mparam([m
+     [Parameter(Mandatory = $true)][m
+     [string] $newLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",[m
+     [bool] $sendMailWhenDoneResizing = $false,[m
+[32m+[m[32m    [bool] $customizeMail = $false,[m[41m[m
+[32m+[m[32m    [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",[m[41m[m
+     [string] $fromMailAddress = "reports@contoso.com",[m
+     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",[m
+     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",[m
+[36m@@ -200,9 +209,10 @@[m [mif (-not $currentProvisioningPolicy) {[m
+     "## Warning: '$UserName' has no Provisioning
