@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-01-12
+* Wipe Device: Support MacOS Obliteration Modes
+
 ## 2023-12-07
 * Add/Remove Mail Address: Fix - Could not remove address
 

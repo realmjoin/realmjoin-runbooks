@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Wipe a windows device
+  Wipe a Windows or MacOS device
 
   .DESCRIPTION
-  Wipe a windows device. 
+  Wipe a Windows or MacOS device. 
 
   .NOTES
   PERMISSIONS
@@ -35,7 +35,7 @@
             "Select": {
                 "Options": [
                     {
-                        "Display": "Completely wipe device (not keeping user or enrollment data)",
+                        "Display": "Completely wipe device (Windows: not keeping user or enrollment data)",
                         "Value": true,
                         "Customization": {
                             "Hide": [
@@ -57,7 +57,7 @@
             }
         },
         "useProtectedWipe": {
-            "DisplayName": "Use protected wipe?"
+            "DisplayName": "Windows: Use protected wipe?"
         },
         "removeIntuneDevice": {
             "DisplayName": "Delete device from Intune?",
@@ -67,10 +67,23 @@
             }
         },
         "removeAutopilotDevice": {
-            "DisplayName": "Delete device from AutoPilot database?",
+            "DisplayName": "Windows: Delete device from AutoPilot database?",
             "SelectSimple": {
                 "Remove the device from AutoPilot (the device can leave the tenant)": true,
                 "Keep device / do not care": false
+            }
+        },
+        "macOsRecevoryCode": {
+            "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
+            "Hide": true
+        },
+        "macOsObliterationBehavior": {
+            "DisplayName": "MacOS: OS Obliteration Behavior",
+            "SelectSimple": {
+                "Default: Try to erase user date (EACS), obliterate OS if this fails": "default",
+                "Try to erase user data (EACS), do not obliterate the OS": "doNotObliterate",
+                "Try to erase user data (EACS), else warn and obliterate the OS": "obliterateWithWarning",
+                "Always obliterate OS": "always"
             }
         },
         "CallerName": {
@@ -91,6 +104,10 @@ param (
     [bool] $removeAutopilotDevice = $false,
     [bool] $removeAADDevice = $false,
     [bool] $disableAADDevice = $false,
+    # Only for old MacOS devices. Newer devices can be wiped without a recovery code.
+    [string] $macOsRecevoryCode = "123456",
+    # "default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
+    [string] $macOsObliterationBehavior = "default",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -129,7 +146,8 @@ if ($disableAADDevice) {
             "## Execution stopped." 
             throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
         }
-    } else {
+    }
+    else {
         "## Disabling non-windows devices in AzureAD is currently not supported. Skipping."
     }
 }
@@ -157,9 +175,17 @@ if ($mgdDevice) {
     if ($wipeDevice) {
         "## Wiping DeviceId $DeviceID (Intune ID: $($mgdDevice.id))"
         $body = @{
-            "keepEnrollmentData" = $false
-            "keepUserData"       = $false
-            "useProtectedWipe"   = $useProtectedWipe
+            "keepEnrollmentData" = "false"
+            "keepUserData"       = "false"
+        }
+        if ($mgdDevice.operatingSystem -eq "macOS") {
+            "## MacOS device detected."
+            $body["macOsUnlockCode"] = $macOsRecevoryCode
+            $body["obliterationBehavior"] = $macOsObliterationBehavior
+        }
+        if ($mgdDevice.operatingSystem -eq "Windows") {
+            "## Windows device detected."
+            $body["useProtectedWipe"] = $useProtectedWipe
         }
         try {
             Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body -Beta | Out-Null
