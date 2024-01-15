@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-01-15
+* New Runbook: Export all AutoPilot devices
+
 ## 2024-01-12
 * Wipe Device: Support MacOS Obliteration Modes
 
