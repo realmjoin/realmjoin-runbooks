@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-02-20
+* Export all Intune Devices: Added more fields (CompanyName and JobTitle)
+
 ## 2024-01-15
 * New Runbook: Export all AutoPilot devices
 
