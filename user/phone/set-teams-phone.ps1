@@ -5,12 +5,12 @@
   .DESCRIPTION
   Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
   If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-  Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook.
   
   .NOTES
   Permissions: 
   The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
-  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. However, it should be switched to Managed Identity as soon as possible.
+  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. 
+  However, it should be switched to Managed Identity as soon as possible!
 
   .INPUTS
   RunbookCustomization: {
@@ -38,7 +38,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.8.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -48,7 +48,7 @@ param(
     [parameter(Mandatory = $true)]
     [String] $PhoneNumber,
 
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $false)]
     [String] $OnlineVoiceRoutingPolicy,
 
     [parameter(Mandatory = $false)]
@@ -311,21 +311,28 @@ if ($CallingPlanNumber.Count -gt 0) {
     $CallingPlanCheck = $false
 }
 
-# Check if specified Online Voice Routing Policy exists
-try {
-    if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
-        Write-Output "The specified Online Voice Routing Policy exists - (Global (Org Wide Default))"
-    }else{
-        $TMP = Get-CsOnlineVoiceRoutingPolicy $OnlineVoiceRoutingPolicy -ErrorAction Stop
-        Write-Output "The specified Online Voice Routing Policy exists"
+if ($OnlineVoiceRoutingPolicy -notlike "") {
+    Write-Output "Check if Online Voice Routing Policy exist"
+    # Check if specified Online Voice Routing Policy exists
+    try {
+        if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+            Write-Output "The specified Online Voice Routing Policy exists - (Global (Org Wide Default))"
+        }else{
+            $TMP = Get-CsOnlineVoiceRoutingPolicy $OnlineVoiceRoutingPolicy -ErrorAction Stop
+            Write-Output "The specified Online Voice Routing Policy exists"
+        }
+    }
+    catch {
+        Write-Error -Message  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy" -ErrorAction Continue
+        throw "The specified Online Voice Routing Policy could not be found in the tenant!"
+    }
+    if ($TMP -notlike "") {
+        Clear-Variable TMP
     }
 }
-catch {
-    Write-Error -Message  "Teams - Error: The specified Online Voice Routing Policy could not be found in the tenant. Please check the specified policy! Submitted policy name: $OnlineVoiceRoutingPolicy" -ErrorAction Continue
-    throw "The specified Online Voice Routing Policy could not be found in the tenant!"
-}
-if ($TMP -notlike "") {
-    Clear-Variable TMP
+
+if ($CallingPlanCheck -eq $false -and ($OnlineVoiceRoutingPolicy -like "")) {
+    Write-Warning "NOTE! - the number is not a Calling Plan number and should therefore be a Direct Routing number. However, no online voice routing policy was submitted! For outgoing telephony to work, the routing MUST be defined in the global online voice routing policy!"
 }
 
 # Check if specified Tenant Dial Plan exists, if submitted
