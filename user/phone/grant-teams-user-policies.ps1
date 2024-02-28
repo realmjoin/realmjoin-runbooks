@@ -3,13 +3,14 @@
   Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
   
   .DESCRIPTION
-  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-  Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook. 
+  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
+  If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
   
   .NOTES
   Permissions: 
   The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
-  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. However, it should be switched to Managed Identity as soon as possible.
+  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. 
+  However, it should be switched to Managed Identity as soon as possible!
 
   .INPUTS
   RunbookCustomization: {
@@ -43,7 +44,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.8.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
