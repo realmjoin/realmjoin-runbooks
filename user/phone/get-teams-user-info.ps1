@@ -4,12 +4,12 @@
   
   .DESCRIPTION
   Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
-  Note: A Microsoft Teams service account must be available and stored - details can be found in the runbook.
   
   .NOTES
   Permissions: 
   The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
-  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. However, it should be switched to Managed Identity as soon as possible.
+  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. 
+  However, it should be switched to Managed Identity as soon as possible!
 
   .INPUTS
   RunbookCustomization: {
@@ -22,7 +22,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.8.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -105,6 +105,8 @@ Write-Output "---------------------"
 Write-Output "Getting StatusQuo for user with submitted ID:  $UserName"
 try {
     $StatusQuo = Get-CsOnlineUser $UserName
+    $StatusQuo_Forward = Get-CsUserCallingSettings -Identity $UserName
+    $StatusQuo_PhoneNumber = Get-CsPhoneNumberAssignment -AssignedPstnTargetId $UserName
 }
 catch {
     $message = $_
@@ -115,6 +117,17 @@ catch {
     }
 }
 
+try {
+    
+}
+catch {
+    $message = $_
+    if ($message -like "userId was not found") {
+        Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
+    }else {
+        Write-Error "$message"
+    }
+}
 
 $UPN = $StatusQuo.UserPrincipalName
 Write-Output "UPN from user: $UPN"
@@ -178,7 +191,15 @@ if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
     $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
 }
 
-Write-Output "Current LineUri: $CurrentLineUri"
+if ($StatusQuo_PhoneNumber.NumberType -like "") {
+    $CurrentNumberType = "none"
+}else {
+    $CurrentNumberType = $StatusQuo_PhoneNumber.NumberType
+}
+
+Write-Output ""
+Write-Output "Policies:"
+Write-Output "---------------------"
 Write-Output "Current OnlineVoiceRoutingPolicy: $CurrentOnlineVoiceRoutingPolicy"
 Write-Output "Current CallingPolicy: $CurrentCallingPolicy"
 Write-Output "Current DialPlan: $CurrentDialPlan"
@@ -187,9 +208,34 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Current OnlineVoicemailPolicy: $CurrentOnlineVoicemailPolicy"
 Write-Output "Current TeamsMeetingPolicy: $CurrentTeamsMeetingPolicy"
 Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
+Write-Output ""
+Write-Output "Voice:"
+Write-Output "---------------------"
+Write-Output "Current LineUri: $CurrentLineUri"
+Write-Output "Current Number Type: $CurrentNumberType"
+Write-Output ""
+Write-Output "Current immediate call forwarding:"
+if (($StatusQuo_Forward.IsForwardingEnabled -eq $true) -and ($StatusQuo_Forward.ForwardingType -like "Immediate")) {
+    Write-Output "Immediate call forward is active"
+    if ($StatusQuo_Forward.ForwardingTargetType -like "SingleTarget" ) {
+        Write-Output "Target: $($StatusQuo_Forward.ForwardingTarget )"
+    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "Voicemail") {
+        Write-Output "Target: Voicemail"
+    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "Group") {
+        Write-Output "Target: Call group"
+        Write-Output "Group membership details:"
+        Write-Output "$($StatusQuo_Forward.GroupMembershipDetails)"
+    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "MyDelegates") {
+        Write-Output "Target: Delegates"
+        Write-Output "Current delegates and delegate Settings:"
+        Write-Output "$($StatusQuo_Forward.Delegates)"
+    }
+}else {
+    Write-Output "No immediate call forwarding is active"
+}
 
 Write-Output ""
-Write-Output "Enterprise Voice (for PSTN) License check:"
+Write-Output "Enterprise Voice (for PSTN) - License check:"
 Write-Output "---------------------"
 
 $AssignedPlan = $StatusQuo.AssignedPlan
