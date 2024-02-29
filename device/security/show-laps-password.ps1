@@ -36,7 +36,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph
 
 try {
-    $result = Invoke-RjRbRestMethodGraph -Resource "/deviceLocalCredentials/$DeviceId" -Method GET -Beta -OdSelect "credentials"
+    $result = Invoke-RjRbRestMethodGraph -Resource "/deviceLocalCredentials/$DeviceId" -Method GET -Beta -OdSelect "deviceName,credentials"
 }
 catch {
     "## Querying LAPS credentials on DeviceId '$DeviceId' failed. `n## Aborting..."
@@ -49,14 +49,15 @@ catch {
     throw ("credential query failed")
 }
 
-"## Reporting LAPS credentials for DeviceId '$DeviceId'"
+"## Reporting LAPS credentials for Device $($result.deviceName) (DeviceId '$DeviceId')"
 "## Please ensure, the passwords are rotated after use."
 ""
 [string] $accountName = ""
 [string] $password = ""
 [datetime] $backupDateTime = [datetime]::MinValue
 $result.credentials | ForEach-Object { 
-    if ($_.backupDateTime -gt $backupDateTime) {
+    [datetime] $newBackupDateTime = [datetime]$_.backupDateTime
+    if ($newBackupDateTime -gt $backupDateTime) {
         $accountName = $_.accountName
         $backupDateTime = $_.backupDateTime
         $password = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_.passwordBase64))
