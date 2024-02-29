@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-02-29
+* Show LAPS PW: Fix LAPS password retrieval and display device name
+
 ## 2024-02-28 
 * Updates to Teams Phone Runbooks
 
