@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-03-01
+* Fix: Convert to Shared Mailbox: Did not remove all groups
+* Fix: Offboard User: Did not remove all groups
+
 ## 2024-02-29
 * Show LAPS PW: Fix LAPS password retrieval and display device name
 
