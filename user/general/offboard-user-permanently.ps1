@@ -270,7 +270,7 @@ if ($RevokeAccess) {
 
 Write-RjRbLog "Getting list of group memberships for user '$UserName'." 
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
-$membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false }
+$membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false } -FollowPaging
 $memberships = $membershipIds | ForEach-Object {
     Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
 }
@@ -310,10 +310,10 @@ if ($ManagerAsReplacementOwner) {
 
 # Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
 if ($RevokeGroupOwnership) {
-    $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/"
+    $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/" -FollowPaging
     if ($OwnedGroups) {
         foreach ($OwnedGroup in $OwnedGroups) {
-            $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners"
+            $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners" -FollowPaging
             if (([array]$owners).Count -eq 1) {
                 "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
                 if ($ReplacementOwnerName -and -not $ReplacementOwner) {
