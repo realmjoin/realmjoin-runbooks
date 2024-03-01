@@ -206,7 +206,7 @@ try {
 
         if ($RemoveGroups) {
             # Remove all group memberships
-            $memberships = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/memberOf"
+            $memberships = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/memberOf" -FollowPaging
             $memberships | ForEach-Object {
                 if ($_.GroupTypes -contains "DynamicMembership") {
                     "## Skipping dynamic group '$($_.displayName)'"
