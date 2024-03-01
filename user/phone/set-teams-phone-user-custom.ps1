@@ -273,10 +273,15 @@ Write-Output "Block 2 - Check basic parameter"
 $UPN = (Get-CsOnlineUser -Identity $UserName).UserPrincipalName
 
 # Check if number is E.164
-if ($PhoneNumber -notmatch "^\+\d{8,13}") {
-    Write-Output "Number needs to be in E.164 format ( '+#######...' )."
-    throw "Number needs to be in E.164 format ( '+#######...' )."
-    Exit
+if ($PhoneNumber -notmatch "^\+\d{8,15}(;ext=\d{1,10})?") {
+    Write-Error -Message  "Error: Phone number needs to be in E.164 format ( '+#######...' )." -ErrorAction Continue
+    throw "Phone number needs to be in E.164 format ( '+#######...' )."
+}else {
+    if ($PhoneNumber -match "^\+\d{8,15}") {
+        Write-Output "Phone number is in the correct E.164 format (Number: $PhoneNumber)."
+    }else {
+        Write-Output "Phone number is in the correct E.164 with extension format (Number: $PhoneNumber)."
+    }
 }
 
 # Check if number is already assigned
