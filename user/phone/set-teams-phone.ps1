@@ -270,11 +270,15 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
 
 
 # Check if number is E.164
-if ($PhoneNumber -notmatch "^\+\d{8,15}") {
+if ($PhoneNumber -notmatch "^\+\d{8,15}(;ext=\d{1,10})?") {
     Write-Error -Message  "Error: Phone number needs to be in E.164 format ( '+#######...' )." -ErrorAction Continue
     throw "Phone number needs to be in E.164 format ( '+#######...' )."
 }else {
-    Write-Output "Phone number is in the correct E.164 format (Number: $PhoneNumber)."
+    if ($PhoneNumber -match "^\+\d{8,15}") {
+        Write-Output "Phone number is in the correct E.164 format (Number: $PhoneNumber)."
+    }else {
+        Write-Output "Phone number is in the correct E.164 with extension format (Number: $PhoneNumber)."
+    }
 }
 
 # Check if number is already assigned
