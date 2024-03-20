@@ -1,5 +1,18 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-04-06
+* Fix: Teams Phone Runbooks: Update phone number validation to include extension format
+
+## 2024-03-01
+* Fix: Convert to Shared Mailbox: Did not remove all groups
+* Fix: Offboard User: Did not remove all groups
+
+## 2024-02-29
+* Show LAPS PW: Fix LAPS password retrieval and display device name
+
+## 2024-02-28 
+* Updates to Teams Phone Runbooks
+
 ## 2024-02-20
 * Export all Intune Devices: Added more fields (CompanyName and JobTitle)
 
