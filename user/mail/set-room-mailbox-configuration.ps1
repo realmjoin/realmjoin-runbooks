@@ -84,8 +84,10 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 "## Configuring Room Mailbox settings for '$UserName'."
 
 try {
+    Connect-RjRbGraph
     Connect-RjRbExchangeOnline
 
+    Write-RjRbLog -Message "Get Mailbox" -Verbose
     $room = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
     if ($room.RecipientTypeDetails -ne "RoomMailbox") {
         "## '$UserName' is not a room resource mailbox."
@@ -102,6 +104,11 @@ try {
     }
 
     if ((-not $AllBookInPolicy) -and $BookInPolicyGroup ) {
+        Write-RjRbLog -Message "Get BookInPolicyGroup" -Verbose
+        $group = Invoke-RjRbRestMethodGraph -resource "/groups/$BookInPolicyGroup" -odselect "displayname,mailenabled,securityenabled"
+        if (-not $group.mailenabled -or -not $group.securityenabled) {
+            throw "Group '$($group.DisplayName) ($BookInPolicyGroup)' is not mail-enabled or security-enabled."
+        }
         $invokeParams.BookInPolicy = $BookInPolicyGroup
     }
 
