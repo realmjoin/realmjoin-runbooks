@@ -1,6 +1,9 @@
 # RealmJoin Runbooks Changelog 
 
-## 2024-04-06
+## 2024-04-05
+* Set Room Mailbox Configuration: Only allow MailEnabled groups
+
+## 2024-03-06
 * Fix: Teams Phone Runbooks: Update phone number validation to include extension format
 
 ## 2024-03-01
