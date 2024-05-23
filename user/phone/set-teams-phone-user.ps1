@@ -440,7 +440,7 @@ $TPI_AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPILis
 Write-Output "Items in $SharepointTPIList SharePoint List: $($TPI_AllItems.Count)"
 Write-Output "Check for next free number"
 
-$NextFreeNumber = ($TPI_AllItems | Where-Object {($_.ExtensionRangeIndex -Like $ExtensionRangeIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber-Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2})\;.*') -and ($_.Status -notmatch '.*BlockNumber-Permanent.*')} | Sort-Object FullLineUri | Select-Object Title,ID -First 1)
+$NextFreeNumber = ($TPI_AllItems | Where-Object {($_.ExtensionRangeIndex -Like $ExtensionRangeIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2})\;.*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object FullLineUri | Select-Object Title,ID -First 1)
 
 if (($NextFreeNumber| Measure-Object).Count -eq 0) {
     Write-Error "Error: No free number for the choosen location available"

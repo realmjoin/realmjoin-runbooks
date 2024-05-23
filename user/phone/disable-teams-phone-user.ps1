@@ -381,7 +381,7 @@ if($AddDays -like ""){
 }
 
 $BlockDay = (([datetime]::now).AddDays($AddDays)).tostring("dd.MM.yyyy")
-$Status = "TMP-BlockNumber-Until_" + $BlockDay
+$Status = "TMP-BlockNumber_Until_" + $BlockDay
 
 $HTTPBody_UpdateElement = @{
     "fields" = @{
