@@ -247,7 +247,7 @@ $AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList
 Write-Output "Analysis - Items in $SharepointTPIList SharePoint List: $($AllItems.Count)"
 Write-Output "Analysis - Check for next free number"
 
-$NextFreeNumber = ($AllItems | Where-Object {($_.Country -Like $Country) -and ($_.City -Like $City) -and ($_.Company -Like $Company) -and ($_.ExtensionRangeName -Like $ExtensionRangeName) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2})\;.*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object LineUri | Select-Object Title,DID,NumberRangeName,ExtensionRangeName,Country,City,Company -First 1)
+$NextFreeNumber = ($AllItems | Where-Object {($_.Country -Like $Country) -and ($_.City -Like $City) -and ($_.Company -Like $Company) -and ($_.ExtensionRangeName -Like $ExtensionRangeName) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object LineUri | Select-Object Title,DID,NumberRangeName,ExtensionRangeName,Country,City,Company -First 1)
 
 if ($NextFreeNumber.count -eq 0) {
     $NextFreeNumber = "NoFreeNumberAvailable"
