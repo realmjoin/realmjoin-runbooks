@@ -123,7 +123,7 @@ else {
         if ($Remove) {
             if ($exgroup.ManagedBy -contains $exuser.Name) {
                 $managedBy = $exgroup.ManagedBy | Where-Object { $_ -ne $exuser.Name }
-                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy
+                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
                 "## Removed '$($targetUser.UserPrincipalName)' from the list of owners for '$($targetGroup.DisplayName)'."
             }
             else {
@@ -136,7 +136,7 @@ else {
             }
             else {
                 $managedBy = $exgroup.ManagedBy + $UserId
-                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy
+                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
                 "## Added '$($targetUser.UserPrincipalName)' to the list of owners for '$($targetGroup.DisplayName)'."
             }
         }    
