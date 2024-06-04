@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-06-04
+* Fixed: Failed to add/remove owners from groups.
+
 ## 2024-04-05
 * Set Room Mailbox Configuration: Only allow MailEnabled groups
 
