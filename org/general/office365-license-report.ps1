@@ -459,8 +459,8 @@ if ($exportToFile) {
     "## Collecting: Directly vs. Group assigned Licenses"
     Get-LicenseAssignmentPath -CSVPath $OutPutPath
 
-    "## Collecting: Licensed Admin Accounts"
-    Get-AdminReport -CSVPath $OutPutPath
+    #"## Collecting: Licensed Admin Accounts"
+    #Get-AdminReport -CSVPath $OutPutPath
 
     ""
     Connect-RjRbAzAccount
