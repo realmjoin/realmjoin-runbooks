@@ -27,6 +27,8 @@ param(
     [string] $StorageAccountLocation,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.SubscriptionId" } )]
+    [string] $SubscriptionId,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -49,6 +51,9 @@ if ($produceLinks -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
 Connect-RjRbGraph
 if ($produceLinks) {
     Connect-RjRbAzAccount
+    if ($SubscriptionId) {
+        Set-AzContext -Subscription $SubscriptionId
+    }
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "## Creating Azure Storage Account $($StorageAccountName)"
