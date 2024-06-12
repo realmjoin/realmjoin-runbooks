@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog 
 
+## 2024-06-12
+* Office365 Support: Supprt for custom Azure Subscription ID
+* Export Non Compliant Devices: Support for custom Azure Subscription ID
+* Export All Intune Devices: Support for custom Azure Subscription ID
+
 ## 2024-06-04
 * Fixed: Failed to add/remove owners from groups.
 
