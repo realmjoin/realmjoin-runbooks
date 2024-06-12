@@ -113,6 +113,7 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 # Static / internal defaults
 $OutPutPath = "CloudEconomics\"
 
+Import-Module Az.Accounts
 Connect-RjRbExchangeOnline
 Connect-RjRbGraph
 
