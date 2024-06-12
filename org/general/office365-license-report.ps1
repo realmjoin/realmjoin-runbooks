@@ -80,6 +80,8 @@ param(
     [string] $StorageAccountLocation,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
+    [string] $SubscriptionId,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -462,6 +464,9 @@ if ($exportToFile) {
 
     ""
     Connect-RjRbAzAccount
+    if ($SubscriptionId) {
+        Set-AzContext -Subscription $SubscriptionId
+    }
   
     if (-not $ContainerName) {
         $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
