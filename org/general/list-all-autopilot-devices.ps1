@@ -37,17 +37,17 @@ if ($autopilotDevices.value) {
             LastContactedDateTime           = $device.lastContactedDateTime
         }
 
-        # Display device information
-        Write-Host "Id: $($deviceInfo.Id)"
-        Write-Host "SerialNumber: $($deviceInfo.SerialNumber)"
-        Write-Host "GroupTag: $($deviceInfo.GroupTag)"
-        Write-Host "EnrollmentState: $($deviceInfo.EnrollmentState)"
-        Write-Host "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
-        Write-Host "RemediationState: $($deviceInfo.RemediationState)"
-        Write-Host "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
-        Write-Host "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
-        Write-Host "-----------------------------"
+        "## Display device information"
+        "Id: $($deviceInfo.Id)"
+        "SerialNumber: $($deviceInfo.SerialNumber)"
+        "GroupTag: $($deviceInfo.GroupTag)"
+        "EnrollmentState: $($deviceInfo.EnrollmentState)"
+        "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
+        "RemediationState: $($deviceInfo.RemediationState)"
+        "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
+        "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
+        "-----------------------------"
     }
 } else {
-    Write-Host "No AutoPilot devices found."
+    "No AutoPilot devices found."
 }
