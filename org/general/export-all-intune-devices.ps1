@@ -62,11 +62,13 @@ if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageA
     throw "Missing Storage Account Configuration."
 }
 
+# Manually import this ahead of MgGraph module to avoid conflicts
+Import-Module Az.Accounts
 
 Connect-RjRbGraph
 Connect-RjRbAzAccount
 if ($SubscriptionId) {
-    Set-AzContext -Subscription $SubscriptionId
+    Set-AzContext -Subscription $SubscriptionId | Out-Null
 }
 try {
     $Exportdevices = @()
