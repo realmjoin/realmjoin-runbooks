@@ -16,15 +16,19 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
 
-param()
+param(
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
+)
 
 Connect-RjRbGraph
 
 # Retrieve all Autopilot devices
-$autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/beta/deviceManagement/windowsAutopilotDeviceIdentities" -ErrorAction SilentlyContinue
+$autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -ErrorAction SilentlyContinue -FollowPaging
 
-if ($autopilotDevices.value) {
-    foreach ($device in $autopilotDevices.value) {
+if ($autopilotDevices) {
+    foreach ($device in $autopilotDevices) {
 
         $deviceInfo = [PSCustomObject]@{
             Id                              = $device.id
@@ -37,17 +41,17 @@ if ($autopilotDevices.value) {
             LastContactedDateTime           = $device.lastContactedDateTime
         }
 
-        # Display device information
-        Write-Host "Id: $($deviceInfo.Id)"
-        Write-Host "SerialNumber: $($deviceInfo.SerialNumber)"
-        Write-Host "GroupTag: $($deviceInfo.GroupTag)"
-        Write-Host "EnrollmentState: $($deviceInfo.EnrollmentState)"
-        Write-Host "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
-        Write-Host "RemediationState: $($deviceInfo.RemediationState)"
-        Write-Host "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
-        Write-Host "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
-        Write-Host "-----------------------------"
+        "## Display device information"
+        "Id: $($deviceInfo.Id)"
+        "SerialNumber: $($deviceInfo.SerialNumber)"
+        "GroupTag: $($deviceInfo.GroupTag)"
+        "EnrollmentState: $($deviceInfo.EnrollmentState)"
+        "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
+        "RemediationState: $($deviceInfo.RemediationState)"
+        "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
+        "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
+        "-----------------------------"
     }
 } else {
-    Write-Host "No AutoPilot devices found."
+    "No AutoPilot devices found."
 }
