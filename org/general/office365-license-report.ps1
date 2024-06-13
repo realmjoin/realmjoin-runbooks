@@ -11,6 +11,7 @@
     "Settings": {
         "OfficeLicensingReport": {
             "ResourceGroup": "rj-test-runbooks-01",
+            "SubscriptionId": "00000000-0000-0000-0000-000000000000",
             "StorageAccount": {
                 "Name": "rbexports01",
                 "Location": "West Europe",
@@ -46,6 +47,10 @@
         },
         {
             "Name": "StorageAccountSku",
+            "Hide": true
+        },
+        {
+            "Name": "SubscriptionId",
             "Hide": true
         },
         {   
@@ -95,6 +100,7 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     ""
     "## Please configure the following attributes in the RJ central datastore:"
     "## - OfficeLicensingReport.ResourceGroup"
+    "## - OfficeLicensingReport.SubscriptionId"
     "## - OfficeLicensingReport.StorageAccount.Name"
     "## - OfficeLicensingReport.StorageAccount.Location"
     "## - OfficeLicensingReport.StorageAccount.Sku"
@@ -113,7 +119,9 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 # Static / internal defaults
 $OutPutPath = "CloudEconomics\"
 
+# Manually import this ahead of MgGraph module to avoid conflicts
 Import-Module Az.Accounts
+
 Connect-RjRbExchangeOnline
 Connect-RjRbGraph
 
@@ -466,7 +474,7 @@ if ($exportToFile) {
     ""
     Connect-RjRbAzAccount
     if ($SubscriptionId) {
-        Set-AzContext -Subscription $SubscriptionId
+        Set-AzContext -Subscription $SubscriptionId | Out-Null
     }
   
     if (-not $ContainerName) {
