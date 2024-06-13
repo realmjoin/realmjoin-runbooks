@@ -20,7 +20,7 @@
 param(
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
-    [string] $CallerName
+    [string] $CallerName,
     [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
     [string] $sendAlertFrom = "support@glueckkanja.com"
 )
