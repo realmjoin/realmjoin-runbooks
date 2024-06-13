@@ -74,4 +74,6 @@ if ($HTMLBody) {
 
     Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body (@{ message = $message } | ConvertTo-Json -Depth 4) -ContentType "application/json" | Out-Null
     "## Alert sent to '$sendAlertTo'."
+} else {
+    "## No alerts found."
 }
