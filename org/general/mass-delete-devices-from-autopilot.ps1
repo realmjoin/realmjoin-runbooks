@@ -27,18 +27,22 @@ Connect-RjRbGraph
 # Retrieve all Autopilot devices
 $autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -ErrorAction SilentlyContinue
 
-if ($autopilotDevices) {
-    foreach ($device in $autopilotDevices) {
-        if ($SerialNumberArray -contains $device.serialNumber) {
-            "Deleting Autopilot device with Serial Number: $($device.serialNumber)"
+if ($autopilotDevices.value) {
+    foreach ($serialNumber in $SerialNumberArray) {
+        $device = $autopilotDevices.value | Where-Object { $_.serialNumber -eq $serialNumber }
+        if ($device) {
+            "Deleting Autopilot device with Serial Number: $($serialNumber)"
             $deviceId = $device.id
             try {
                 Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$deviceId" -Method DELETE -ErrorAction Stop
-                "Deleted Autopilot device with Serial Number: $($device.serialNumber) and Device ID: $deviceId"
+                "Deleted Autopilot device with Serial Number: $($serialNumber) and Device ID: $deviceId"
             }
             catch {
-                "Failed to delete Autopilot device with Serial Number: $($device.serialNumber). Error: $($_.Exception.Message)"
+                "Failed to delete Autopilot device with Serial Number: $($serialNumber). Error: $($_.Exception.Message)"
             }
+        }
+        else {
+            "Autopilot device with Serial Number: $($serialNumber) not found."
         }
     }
 } else {
