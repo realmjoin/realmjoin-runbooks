@@ -21,21 +21,25 @@ param(
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
-    [string] $sendAlertTo = "ulimuli92@googlemail.com",
+    [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
     [string] $sendAlertFrom = "support@contoso.com"
 )
 
+Write-Host "Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
+Write-Host "Connection established."
 
 # Retrieve PIM activation audit logs for the last month
 $startDate = (Get-Date).AddMonths(-1).ToString("yyyy-MM-ddTHH:mm:ssZ")
 $endDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssZ")
+Write-Host "Retrieving PIM activation logs from $startDate to $endDate..."
 $pimActivations = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/directoryAudits?`$filter=activityDisplayName eq 'Add member to role completed (PIM activation)' and activityDateTime ge $startDate and activityDateTime le $endDate" -Beta -ErrorAction SilentlyContinue
 
 $HTMLBody = "<h2>PIM Activations Report</h2>"
 $HTMLBody += "<table border='1'><tr><th>Date</th><th>Requestor</th><th>UPN</th><th>Role</th><th>Primary Target</th><th>PIM Group</th><th>Reason</th><th>Status</th></tr>"
 
 if ($pimActivations.value) {
+    Write-Host "PIM activations found. Processing logs..."
     foreach ($activation in $pimActivations.value) {
         $logEntry = [PSCustomObject]@{
             Date        = $activation.activityDateTime
@@ -59,6 +63,9 @@ if ($pimActivations.value) {
         $HTMLBody += "<td>$($logEntry.Status)</td>"
         $HTMLBody += "</tr>"
     }
+    Write-Host "Logs processed."
+} else {
+    Write-Host "No PIM activations found."
 }
 
 $HTMLBody += "</table>"
@@ -81,8 +88,9 @@ if ($pimActivations.value) {
 
     $jsonBody = @{ message = $message } | ConvertTo-Json -Depth 4
 
+    Write-Host "Sending report to '$sendAlertTo'..."
     Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body $jsonBody -ContentType "application/json" | Out-Null
-    "Report sent to '$sendAlertTo'."
+    Write-Host "Report sent to '$sendAlertTo'."
 } else {
-    "No PIM activations found."
+    Write-Host "No report sent as no PIM activations were found."
 }
