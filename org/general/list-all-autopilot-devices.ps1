@@ -19,17 +19,47 @@
 param(
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
-    [string] $CallerName
+    [string] $CallerName,
+    [bool] $exportCsv = $true,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.Container" } )]
+    [string] $ContainerName,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.ResourceGroup" } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Name" } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Location" } )]
+    [string] $StorageAccountLocation,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Sku" } )]
+    [string] $StorageAccountSku
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+# Sanity checks for CSV export
+if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
+  Write-Host "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+  Write-Host "## Please configure the following attributes in the RJ central datastore:"
+  Write-Host "## - EnrolledDevicesReport.ResourceGroup"
+  Write-Host "## - EnrolledDevicesReport.StorageAccount.Name"
+  Write-Host "## - EnrolledDevicesReport.StorageAccount.Location"
+  Write-Host "## - EnrolledDevicesReport.StorageAccount.Sku"
+  Write-Host "## Disabling CSV export."
+  $exportCsv = $false
+  Write-Host ""
+}
+
+Write-Host "Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
+Write-Host "Connection established."
 
 # Retrieve all Autopilot devices
+Write-Host "Retrieving all Autopilot devices..."
 $autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -ErrorAction SilentlyContinue -FollowPaging
+
+$deviceList = @()
 
 if ($autopilotDevices) {
     foreach ($device in $autopilotDevices) {
-
         $deviceInfo = [PSCustomObject]@{
             Id                              = $device.id
             SerialNumber                    = $device.serialNumber
@@ -41,17 +71,60 @@ if ($autopilotDevices) {
             LastContactedDateTime           = $device.lastContactedDateTime
         }
 
-        "## Display device information"
-        "Id: $($deviceInfo.Id)"
-        "SerialNumber: $($deviceInfo.SerialNumber)"
-        "GroupTag: $($deviceInfo.GroupTag)"
-        "EnrollmentState: $($deviceInfo.EnrollmentState)"
-        "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
-        "RemediationState: $($deviceInfo.RemediationState)"
-        "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
-        "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
-        "-----------------------------"
+        $deviceList += $deviceInfo
+
+        Write-Host "## Display device information"
+        Write-Host "Id: $($deviceInfo.Id)"
+        Write-Host "SerialNumber: $($deviceInfo.SerialNumber)"
+        Write-Host "GroupTag: $($deviceInfo.GroupTag)"
+        Write-Host "EnrollmentState: $($deviceInfo.EnrollmentState)"
+        Write-Host "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
+        Write-Host "RemediationState: $($deviceInfo.RemediationState)"
+        Write-Host "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
+        Write-Host "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
+        Write-Host "-----------------------------"
     }
 } else {
-    "No AutoPilot devices found."
+    Write-Host "No AutoPilot devices found."
+}
+
+if ($exportCsv -and $deviceList.Count -gt 0) {
+    Write-Host "## Exporting data to CSV..."
+    Connect-RjRbAzAccount
+
+    if (-not $ContainerName) {
+        $ContainerName = "autopilot-devices-" + (Get-Date -Format "yyyy-MM-dd")
+    }
+
+    $deviceList | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Set-Content -Path "autopilot-devices.csv" -Encoding UTF8
+
+    # Ensure storage account exists
+    $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
+    if (-not $storAccount) {
+        Write-Host "## Creating Azure Storage Account $($StorageAccountName)"
+        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+    }
+ 
+    # Get access to the Storage Account
+    $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
+    $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
+
+    # Ensure container exists
+    $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
+    if (-not $container) {
+        Write-Host "## Creating Azure Storage Account Container $($ContainerName)"
+        $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+    }
+ 
+    # Upload CSV
+    Write-Host "## Uploading CSV to Azure Storage..."
+    Set-AzStorageBlobContent -File "autopilot-devices.csv" -Container $ContainerName -Blob "autopilot-devices.csv" -Context $context -Force | Out-Null
+ 
+    # Create signed (SAS) link
+    $EndTime = (Get-Date).AddDays(6)
+    $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "autopilot-devices.csv" -FullUri -ExpiryTime $EndTime
+
+    Write-Host "## AutoPilot devices CSV report created."
+    Write-Host "## Expiry of Link: $EndTime"
+    $SASLink | Out-String
 }
