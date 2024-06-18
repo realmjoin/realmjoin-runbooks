@@ -34,7 +34,7 @@ if ($autopilotDevices) {
             $deviceId = $device.id
             try {
                 Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$deviceId" -Method DELETE -ErrorAction Stop
-                "Deleted Autopilot device with Serial Number: $($device.serialNumber)"
+                "Deleted Autopilot device with Serial Number: $($device.serialNumber) and Device ID: $deviceId"
             }
             catch {
                 "Failed to delete Autopilot device with Serial Number: $($device.serialNumber). Error: $($_.Exception.Message)"
