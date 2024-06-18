@@ -16,11 +16,11 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string[]] $SerialNumbers
+    [string] $SerialNumbers
 )
 
-# Azure Automation does not support string array parameters, split them up
-$SerialNumbers = $SerialNumbers -split ","
+# Split the comma-separated serial numbers into an array
+$SerialNumberArray = $SerialNumbers -split ","
 
 Connect-RjRbGraph
 
@@ -29,7 +29,7 @@ $autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/wind
 
 if ($autopilotDevices.value) {
     foreach ($device in $autopilotDevices.value) {
-        if ($SerialNumbers -contains $device.serialNumber) {
+        if ($SerialNumberArray -contains $device.serialNumber) {
             "Deleting Autopilot device with Serial Number: $($device.serialNumber)"
             $deviceId = $device.id
             try {
