@@ -37,8 +37,8 @@ $organization = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorActio
 $HTMLBody = "<h2>Azure AD Connect Sync Status</h2>"
 $sendEmail = $false
 
-if ($organization.value) {
-    foreach ($org in $organization.value) {
+if ($organization) {
+    foreach ($org in $organization) {
         $syncEnabled = $org.onPremisesSyncEnabled
         $lastSyncDate = $org.onPremisesLastSyncDateTime
         
