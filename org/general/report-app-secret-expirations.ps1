@@ -18,27 +18,29 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
 
 param(
-    [int] $Days = 30, # Können wir das hier als Dropdown-Wert anbieten?
-    [string] $sendAlertTo = "ulimuli92@googlemail.com",
-    # Please make sure this from-Adress exists in Exchange Online
-    [string] $sendAlertFrom = "runbooks@contoso.com"
+    [int] $Days = 30, # Number of days to check for upcoming expiry
+    [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
+    [string] $sendAlertFrom = "administrator@sl6ll.onmicrosoft.com"
 )
 
+"Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
+"Connection established."
 
-$minDate = (get-date) + (New-TimeSpan -Day $Days)
+$minDate = (Get-Date).AddDays($Days)
 $HTMLBody = ""
 
+"Retrieving Azure AD applications..."
 $applications = Invoke-RjRbRestMethodGraph -Resource "/applications" -ErrorAction SilentlyContinue
 
-if ($applications.value) {
-    foreach ($application in $applications.value) {
+if ($applications) {
+    foreach ($application in $applications) {
         $passwordCredentials = Invoke-RjRbRestMethodGraph -Resource "/applications/$($application.id)/passwordCredentials" -ErrorAction SilentlyContinue
         
-        if ($passwordCredentials.value) {
-            foreach ($secret in $passwordCredentials.value) {
-                $expiryDate = (get-date -date $secret.endDateTime)
-                $daysUntilExpiry = ($expiryDate - (get-date)).Days
+        if ($passwordCredentials) {
+            foreach ($secret in $passwordCredentials) {
+                $expiryDate = (Get-Date -Date $secret.endDateTime)
+                $daysUntilExpiry = ($expiryDate - (Get-Date)).Days
 
                 "Application Name: $($application.displayName)"
                 "Application ID: $($application.id)"
@@ -72,7 +74,8 @@ if ($HTMLBody) {
         )
     }
 
-    Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body (@{ message = $message } | ConvertTo-Json -Depth 4) -ContentType "application/json" | Out-Null
+    "Sending alert to '$sendAlertTo'..."
+    Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body @{ message = $message } -ContentType "application/json" | Out-Null
     "## Alert sent to '$sendAlertTo'."
 } else {
     "## No alerts found."
