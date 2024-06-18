@@ -33,7 +33,9 @@ Connect-RjRbGraph
 $startDate = (Get-Date).AddMonths(-1).ToString("yyyy-MM-ddTHH:mm:ssZ")
 $endDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssZ")
  "Retrieving PIM activation logs from $startDate to $endDate..."
-$pimActivations = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/directoryAudits?`$filter=activityDisplayName eq 'Add member to role completed (PIM activation)' and activityDateTime ge $startDate and activityDateTime le $endDate" -Beta -FollowPaging
+
+$filter = "activityDisplayName eq 'Add member to role completed (PIM activation)' and activityDateTime ge $startDate and activityDateTime le $endDate"
+$pimActivations = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/directoryAudits" -OdFilter $filter -Beta -ErrorAction SilentlyContinue
 
 "## PIM Activations:"
 $pimActivations
