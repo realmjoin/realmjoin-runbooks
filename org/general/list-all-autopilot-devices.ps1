@@ -37,23 +37,23 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Sanity checks for CSV export
 if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
-  Write-Host "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
-  Write-Host "## Please configure the following attributes in the RJ central datastore:"
-  Write-Host "## - EnrolledDevicesReport.ResourceGroup"
-  Write-Host "## - EnrolledDevicesReport.StorageAccount.Name"
-  Write-Host "## - EnrolledDevicesReport.StorageAccount.Location"
-  Write-Host "## - EnrolledDevicesReport.StorageAccount.Sku"
-  Write-Host "## Disabling CSV export."
+  "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+  "## Please configure the following attributes in the RJ central datastore:"
+  "## - EnrolledDevicesReport.ResourceGroup"
+  "## - EnrolledDevicesReport.StorageAccount.Name"
+  "## - EnrolledDevicesReport.StorageAccount.Location"
+  "## - EnrolledDevicesReport.StorageAccount.Sku"
+  "## Disabling CSV export."
   $exportCsv = $false
-  Write-Host ""
+  ""
 }
 
-Write-Host "Connecting to RJ Runbook Graph..."
+"Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
-Write-Host "Connection established."
+"Connection established."
 
 # Retrieve all Autopilot devices
-Write-Host "Retrieving all Autopilot devices..."
+"Retrieving all Autopilot devices..."
 $autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -ErrorAction SilentlyContinue -FollowPaging
 
 $deviceList = @()
@@ -73,23 +73,23 @@ if ($autopilotDevices) {
 
         $deviceList += $deviceInfo
 
-        Write-Host "## Display device information"
-        Write-Host "Id: $($deviceInfo.Id)"
-        Write-Host "SerialNumber: $($deviceInfo.SerialNumber)"
-        Write-Host "GroupTag: $($deviceInfo.GroupTag)"
-        Write-Host "EnrollmentState: $($deviceInfo.EnrollmentState)"
-        Write-Host "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
-        Write-Host "RemediationState: $($deviceInfo.RemediationState)"
-        Write-Host "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
-        Write-Host "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
-        Write-Host "-----------------------------"
+        "## Display device information"
+        "Id: $($deviceInfo.Id)"
+        "SerialNumber: $($deviceInfo.SerialNumber)"
+        "GroupTag: $($deviceInfo.GroupTag)"
+        "EnrollmentState: $($deviceInfo.EnrollmentState)"
+        "DeploymentProfileAssignmentStatus: $($deviceInfo.DeploymentProfileAssignmentStatus)"
+        "RemediationState: $($deviceInfo.RemediationState)"
+        "DeploymentProfileAssignmentDate: $($deviceInfo.DeploymentProfileAssignmentDate)"
+        "LastContactedDateTime: $($deviceInfo.LastContactedDateTime)"
+        "-----------------------------"
     }
 } else {
-    Write-Host "No AutoPilot devices found."
+    "No AutoPilot devices found."
 }
 
 if ($exportCsv -and $deviceList.Count -gt 0) {
-    Write-Host "## Exporting data to CSV..."
+    "## Exporting data to CSV..."
     Connect-RjRbAzAccount
 
     if (-not $ContainerName) {
@@ -101,7 +101,7 @@ if ($exportCsv -and $deviceList.Count -gt 0) {
     # Ensure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
-        Write-Host "## Creating Azure Storage Account $($StorageAccountName)"
+        "## Creating Azure Storage Account $($StorageAccountName)"
         $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
     }
  
@@ -112,19 +112,19 @@ if ($exportCsv -and $deviceList.Count -gt 0) {
     # Ensure container exists
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
-        Write-Host "## Creating Azure Storage Account Container $($ContainerName)"
+        "## Creating Azure Storage Account Container $($ContainerName)"
         $container = New-AzStorageContainer -Name $ContainerName -Context $context 
     }
  
     # Upload CSV
-    Write-Host "## Uploading CSV to Azure Storage..."
+    "## Uploading CSV to Azure Storage..."
     Set-AzStorageBlobContent -File "autopilot-devices.csv" -Container $ContainerName -Blob "autopilot-devices.csv" -Context $context -Force | Out-Null
  
     # Create signed (SAS) link
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "autopilot-devices.csv" -FullUri -ExpiryTime $EndTime
 
-    Write-Host "## AutoPilot devices CSV report created."
-    Write-Host "## Expiry of Link: $EndTime"
+    "## AutoPilot devices CSV report created."
+    "## Expiry of Link: $EndTime"
     $SASLink | Out-String
 }
