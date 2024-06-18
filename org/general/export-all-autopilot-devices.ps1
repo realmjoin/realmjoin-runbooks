@@ -130,7 +130,12 @@ foreach ($apDevice in $APDevices) {
     $result["manufacturer"] = $apDevice.manufacturer
     $result["autoPilotIdEnrollmentState"] = $apDevice.enrollmentState
     #$result["autoPilotIdUserPrincipalName"] = $apDevice.userPrincipalName
-    $result["systemFamily"] = $apDevice.systemFamily 
+    $result["systemFamily"] = $apDevice.systemFamily
+    $result["deploymentProfileAssignmentStatus"] = $apDevice.deploymentProfileAssignmentStatus
+    $result["remediationState"] = $apDevice.remediationState
+    $result["deploymentProfileAssignmentDate"] = $apDevice.deploymentProfileAssignedDateTime
+    $result["lastContactedDateTime"] = $apDevice.lastContactedDateTime
+
 
     $azureActiveDirectoryDeviceId = $apDevice.azureActiveDirectoryDeviceId
     if ($azureActiveDirectoryDeviceId) {
