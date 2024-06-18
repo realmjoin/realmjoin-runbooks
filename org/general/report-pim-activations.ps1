@@ -43,9 +43,9 @@ $pimActivations
 $HTMLBody = "<h2>PIM Activations Report</h2>"
 $HTMLBody += "<table border='1'><tr><th>Date</th><th>Requestor</th><th>UPN</th><th>Role</th><th>Primary Target</th><th>PIM Group</th><th>Reason</th><th>Status</th></tr>"
 
-if ($pimActivations.value) {
+if ($pimActivations) {
      "PIM activations found. Processing logs..."
-    foreach ($activation in $pimActivations.value) {
+    foreach ($activation in $pimActivations) {
         $logEntry = [PSCustomObject]@{
             Date        = $activation.activityDateTime
             Requestor   = $activation.targetResources[2].displayName
@@ -75,7 +75,7 @@ if ($pimActivations.value) {
 
 $HTMLBody += "</table>"
 
-if ($pimActivations.value) {
+if ($pimActivations) {
     $message = @{
         subject = "[Automated Report] PIM Activations Report"
         body    = @{
