@@ -1,5 +1,3 @@
-# https://gitlab.c4a8.net/modern-workplace-code/RJRunbookBacklog/-/issues/89
-
 <#
   .SYNOPSIS
   Mass-Delete Autopilot objects based on Serial Number.
@@ -16,13 +14,12 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
 
-
-
 param(
+    [Parameter(Mandatory = $true)]
     [string[]] $SerialNumbers
 )
 
-# Azure Automation does not string array parameters, split them up
+# Azure Automation does not support string array parameters, split them up
 $SerialNumbers = $SerialNumbers -split ","
 
 Connect-RjRbGraph
@@ -35,9 +32,17 @@ if ($autopilotDevices.value) {
         if ($SerialNumbers -contains $device.serialNumber) {
             "Deleting Autopilot device with Serial Number: $($device.serialNumber)"
             $deviceId = $device.id
-            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$deviceId" -Method DELETE -ErrorAction SilentlyContinue
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$deviceId" -Method DELETE -ErrorAction Stop
+                "Deleted Autopilot device with Serial Number: $($device.serialNumber)"
+            }
+            catch {
+                "Failed to delete Autopilot device with Serial Number: $($device.serialNumber). Error: $($_.Exception.Message)"
+            }
         }
     }
+} else {
+    "No Autopilot devices found."
 }
 
 "Mass deletion of Autopilot objects based on Serial Number is complete."
