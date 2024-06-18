@@ -19,8 +19,8 @@ param(
     [string] $SerialNumbers
 )
 
-# Split the comma-separated serial numbers into an array
-$SerialNumberArray = $SerialNumbers -split ","
+# Split the comma-separated serial numbers into an array and trim whitespace
+$SerialNumberArray = $SerialNumbers -split "," | ForEach-Object { $_.Trim() }
 
 Connect-RjRbGraph
 
