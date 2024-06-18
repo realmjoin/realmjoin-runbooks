@@ -22,7 +22,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
     [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
-    [string] $sendAlertFrom = "support@contoso.com"
+    [string] $sendAlertFrom = "administrator@sl6ll.onmicrosoft.com"
 )
 
  "Connecting to RJ Runbook Graph..."

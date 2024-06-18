@@ -21,20 +21,23 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
     [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
-    [string] $sendAlertFrom = "runbooks@contoso.com"
+    [string] $sendAlertFrom = "administrator@sl6ll.onmicrosoft.com"
 )
+
+"Connecting to RJ Runbook Graph..."
+Connect-RjRbGraph
+"Connection established."
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-Connect-RjRbGraph
-
 # Retrieve organization information
+"Retrieving organization information..."
 $organization = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorAction SilentlyContinue
 
 $HTMLBody = "<h2>Azure AD Connect Sync Status</h2>"
 
-if ($organization.value) {
-    foreach ($org in $organization.value) {
+if ($organization) {
+    foreach ($org in $organization) {
         $syncEnabled = $org.onPremisesSyncEnabled
         $lastSyncDate = $org.onPremisesLastSyncDateTime
         
@@ -49,7 +52,7 @@ if ($organization.value) {
     "No organization data found."
 }
 
-if ($HTMLBody) {
+if ($organization) {
     $message = @{
         subject = "[Automated Report] Azure AD Connect Sync Status"
         body    = @{
@@ -65,10 +68,9 @@ if ($HTMLBody) {
         )
     }
 
-    $jsonBody = @{ message = $message } | ConvertTo-Json -Depth 4
-
-    Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body $jsonBody -ContentType "application/json" | Out-Null
-    "## Report sent to '$sendAlertTo'."
+    "Sending report to '$sendAlertTo'..."
+    Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body @{ message = $message } -ContentType "application/json" | Out-Null
+    "Report sent to '$sendAlertTo'."
 } else {
-    "No organization data found."
+    "No report sent as no organization data was found."
 }
