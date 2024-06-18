@@ -91,11 +91,9 @@ if ($pimActivations) {
         )
     }
 
-    $jsonBody = @{ message = $message } | ConvertTo-Json -Depth 4
-
-     "Sending report to '$sendAlertTo'..."
-    Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body $jsonBody -ContentType "application/json" | Out-Null
-     "Report sent to '$sendAlertTo'."
+    "Sending report to '$sendAlertTo'..."
+    Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body @{ message = $message } -ContentType "application/json" | Out-Null
+    "Report sent to '$sendAlertTo'."
 } else {
      "No report sent as no PIM activations were found."
 }
