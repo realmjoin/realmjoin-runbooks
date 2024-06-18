@@ -113,7 +113,7 @@ Connect-RjRbGraph
 
 # Get all Autopilot devices
 #$SelectString = "id, azureActiveDirectoryDeviceId, managedDeviceId, groupTag, purchaseOrderIdentifier, serialNumber, model, manufacturer, enrollmentState, userPrincipalName, systemFamily"
-$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -FollowPaging
+$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -FollowPaging
 
 "## Response:"
 $APDevices
