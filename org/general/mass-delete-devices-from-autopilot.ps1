@@ -27,9 +27,9 @@ Connect-RjRbGraph
 # Retrieve all Autopilot devices
 $autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -ErrorAction SilentlyContinue
 
-if ($autopilotDevices.value) {
+if ($autopilotDevices) {
     foreach ($serialNumber in $SerialNumberArray) {
-        $device = $autopilotDevices.value | Where-Object { $_.serialNumber -eq $serialNumber }
+        $device = $autopilotDevices | Where-Object { $_.serialNumber -eq $serialNumber }
         if ($device) {
             "Deleting Autopilot device with Serial Number: $($serialNumber)"
             $deviceId = $device.id
