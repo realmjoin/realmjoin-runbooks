@@ -35,9 +35,10 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $organization = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorAction SilentlyContinue
 
 $HTMLBody = "<h2>Azure AD Connect Sync Status</h2>"
+$sendEmail = $false
 
-if ($organization) {
-    foreach ($org in $organization) {
+if ($organization.value) {
+    foreach ($org in $organization.value) {
         $syncEnabled = $org.onPremisesSyncEnabled
         $lastSyncDate = $org.onPremisesLastSyncDateTime
         
@@ -46,13 +47,14 @@ if ($organization) {
             $HTMLBody += "<p>Last sync date and time: $lastSyncDate</p>"
         } else {
             $HTMLBody += "<p>Azure AD Connect sync is not enabled.</p>"
+            $sendEmail = $true
         }
     }
 } else {
     "No organization data found."
 }
 
-if ($organization) {
+if ($sendEmail) {
     $message = @{
         subject = "[Automated Report] Azure AD Connect Sync Status"
         body    = @{
@@ -72,5 +74,5 @@ if ($organization) {
     Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body @{ message = $message } -ContentType "application/json" | Out-Null
     "Report sent to '$sendAlertTo'."
 } else {
-    "No report sent as no organization data was found."
+    "No report sent as sync is enabled or no organization data was found."
 }
