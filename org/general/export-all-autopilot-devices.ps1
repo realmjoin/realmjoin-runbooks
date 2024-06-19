@@ -113,7 +113,7 @@ Connect-RjRbGraph
 
 # Get all Autopilot devices
 #$SelectString = "id, azureActiveDirectoryDeviceId, managedDeviceId, groupTag, purchaseOrderIdentifier, serialNumber, model, manufacturer, enrollmentState, userPrincipalName, systemFamily"
-$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -FollowPaging
+$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -FollowPaging
 
 $Exportdevices = @()
 
@@ -130,7 +130,12 @@ foreach ($apDevice in $APDevices) {
     $result["manufacturer"] = $apDevice.manufacturer
     $result["autoPilotIdEnrollmentState"] = $apDevice.enrollmentState
     #$result["autoPilotIdUserPrincipalName"] = $apDevice.userPrincipalName
-    $result["systemFamily"] = $apDevice.systemFamily 
+    $result["systemFamily"] = $apDevice.systemFamily
+    $result["deploymentProfileAssignmentStatus"] = $apDevice.deploymentProfileAssignmentStatus
+    $result["remediationState"] = $apDevice.remediationState
+    $result["deploymentProfileAssignmentDate"] = $apDevice.deploymentProfileAssignedDateTime
+    $result["lastContactedDateTime"] = $apDevice.lastContactedDateTime
+
 
     $azureActiveDirectoryDeviceId = $apDevice.azureActiveDirectoryDeviceId
     if ($azureActiveDirectoryDeviceId) {
@@ -149,9 +154,10 @@ foreach ($apDevice in $APDevices) {
 
     if (-not $ExportToFile) {
         "## AutoPilot Device $($apDevice.id)"
-        foreach ($key in $result.keys) {
-            "$($key): $($result[$key])"
+        $tempresult = foreach ($key in $result.keys)  {
+            "$($key): $($result[$key])" 
         }
+        $tempresult | Format-List | Out-String
         ""
         #$result | Format-List | Out-String
     }
