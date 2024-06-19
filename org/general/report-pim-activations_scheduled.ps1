@@ -25,6 +25,8 @@ param(
     [string] $sendAlertFrom = "administrator@sl6ll.onmicrosoft.com"
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
  "Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
  "Connection established."
@@ -36,9 +38,6 @@ $endDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 $filter = "activityDisplayName eq 'Add member to role completed (PIM activation)' and activityDateTime ge $startDate and activityDateTime le $endDate"
 $pimActivations = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/directoryAudits" -OdFilter $filter -Beta -ErrorAction SilentlyContinue
-
-"## PIM Activations:"
-$pimActivations
 
 $HTMLBody = "<h2>PIM Activations Report</h2>"
 $HTMLBody += "<table border='1'><tr><th>Date</th><th>Requestor</th><th>UPN</th><th>Role</th><th>Primary Target</th><th>PIM Group</th><th>Reason</th><th>Status</th></tr>"

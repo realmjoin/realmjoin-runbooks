@@ -18,6 +18,8 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
 
 param(
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName,
     [int] $Days = 30, # Number of days to check for upcoming expiry
     [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
     [string] $sendAlertFrom = "administrator@sl6ll.onmicrosoft.com"
@@ -26,6 +28,8 @@ param(
 "Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
 "Connection established."
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $minDate = (Get-Date).AddDays($Days)
 $HTMLBody = ""
