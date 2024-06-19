@@ -115,9 +115,6 @@ Connect-RjRbGraph
 #$SelectString = "id, azureActiveDirectoryDeviceId, managedDeviceId, groupTag, purchaseOrderIdentifier, serialNumber, model, manufacturer, enrollmentState, userPrincipalName, systemFamily"
 $APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -FollowPaging
 
-"## Response:"
-$APDevices
-
 $Exportdevices = @()
 
 foreach ($apDevice in $APDevices) {
@@ -157,9 +154,9 @@ foreach ($apDevice in $APDevices) {
 
     if (-not $ExportToFile) {
         "## AutoPilot Device $($apDevice.id)"
-        foreach ($key in $result.keys) {
-            "$($key): $($result[$key])"
-        }
+        foreach ($key in $result.keys)  {
+            "$($key): $($result[$key])" 
+        } | Format-List | Out-String
         ""
         #$result | Format-List | Out-String
     }
