@@ -154,9 +154,10 @@ foreach ($apDevice in $APDevices) {
 
     if (-not $ExportToFile) {
         "## AutoPilot Device $($apDevice.id)"
-        foreach ($key in $result.keys)  {
+        $tempresult = foreach ($key in $result.keys)  {
             "$($key): $($result[$key])" 
-        } | Format-List | Out-String
+        }
+        $tempresult | Format-List | Out-String
         ""
         #$result | Format-List | Out-String
     }
