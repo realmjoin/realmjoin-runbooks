@@ -2,6 +2,7 @@
 
 ## 2024-06-19
 
+- Moved "Check Device Onboarding Exlusion" into to repo
 - Bulk Delete Devices From Autopilot
 - Check AAD Sync Status
 - Report Pim Activations
