@@ -11,6 +11,7 @@
     "Settings": {
         "OfficeLicensingReport": {
             "ResourceGroup": "rj-test-runbooks-01",
+            "SubscriptionId": "00000000-0000-0000-0000-000000000000",
             "StorageAccount": {
                 "Name": "rbexports01",
                 "Location": "West Europe",
@@ -48,6 +49,10 @@
             "Name": "StorageAccountSku",
             "Hide": true
         },
+        {
+            "Name": "SubscriptionId",
+            "Hide": true
+        },
         {   
             "Name": "CallerName",
             "Hide": true
@@ -80,6 +85,8 @@ param(
     [string] $StorageAccountLocation,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
+    [string] $SubscriptionId,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -93,6 +100,7 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     ""
     "## Please configure the following attributes in the RJ central datastore:"
     "## - OfficeLicensingReport.ResourceGroup"
+    "## - OfficeLicensingReport.SubscriptionId"
     "## - OfficeLicensingReport.StorageAccount.Name"
     "## - OfficeLicensingReport.StorageAccount.Location"
     "## - OfficeLicensingReport.StorageAccount.Sku"
@@ -110,6 +118,9 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 
 # Static / internal defaults
 $OutPutPath = "CloudEconomics\"
+
+# Manually import this ahead of MgGraph module to avoid conflicts
+Import-Module Az.Accounts
 
 Connect-RjRbExchangeOnline
 Connect-RjRbGraph
@@ -457,11 +468,14 @@ if ($exportToFile) {
     "## Collecting: Directly vs. Group assigned Licenses"
     Get-LicenseAssignmentPath -CSVPath $OutPutPath
 
-    "## Collecting: Licensed Admin Accounts"
-    Get-AdminReport -CSVPath $OutPutPath
+    #"## Collecting: Licensed Admin Accounts"
+    #Get-AdminReport -CSVPath $OutPutPath
 
     ""
     Connect-RjRbAzAccount
+    if ($SubscriptionId) {
+        Set-AzContext -Subscription $SubscriptionId | Out-Null
+    }
   
     if (-not $ContainerName) {
         $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
