@@ -1,6 +1,6 @@
 <#
   .SYNOPSIS
-  List expiry date of all AppRegistration  credentials
+  List expiry date of all AppRegistration credentials
 
   .DESCRIPTION
   List expiry date of all AppRegistration credentials
@@ -37,6 +37,11 @@
             },
             "Days": {
                 "DisplayName": "Days before credential expiry"
+            },
+            "ApplicationIds": {
+                "DisplayName": "Application IDs",
+                "Type": "string",
+                "Description": "Comma-separated list of Application IDs to check"
             }
         }
     }
@@ -48,10 +53,15 @@
 param(
     [bool] $listOnlyExpiring = $true,
     [int] $Days = 30,
+    [Parameter(Mandatory = $true)]
+    [string] $ApplicationIds,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+# Split the comma-separated application IDs into an array and trim whitespace
+$ApplicationIdArray = $ApplicationIds -split "," | ForEach-Object { $_.Trim() }
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
@@ -63,6 +73,10 @@ $apps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals"
 $date = Get-Date
 
 foreach ($app in $apps) {
+    if ($ApplicationIdArray -and ($app.appId -notin $ApplicationIdArray)) {
+        continue
+    }
+
     if (($app.keyCredentials) -or ($app.passwordCredentials)) {
     
         $app.keyCredentials | ForEach-Object {

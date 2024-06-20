@@ -21,8 +21,8 @@ param(
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
-    [string] $sendAlertTo = "ugur.koc@glueckkanja.com",
-    [string] $sendAlertFrom = "administrator@sl6ll.onmicrosoft.com"
+    [string] $sendAlertTo = "support@glueckkanja.com",
+    [string] $sendAlertFrom = "runbook@glueckkanja.com"
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
