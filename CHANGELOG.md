@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-06-20
+
+- Add Devices Of Users To Group (Scheduled)
+- Report Apple Mdm Cert Expiry
+- List Application Creds Expiry - Supports App ID Filtering
+
 ## 2024-06-19
 
 - Bulk Delete Devices From Autopilot
