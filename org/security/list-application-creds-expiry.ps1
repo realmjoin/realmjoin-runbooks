@@ -53,7 +53,6 @@
 param(
     [bool] $listOnlyExpiring = $true,
     [int] $Days = 30,
-    [Parameter(Mandatory = $true)]
     [string] $ApplicationIds,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -81,31 +80,34 @@ foreach ($app in $apps) {
     
         $app.keyCredentials | ForEach-Object {
             $enddate = [datetime]$_.endDateTime
-            if ((New-TimeSpan -Start $date -End $enddate).days -le $Days) {
-                "## App DisplayName: $($app.displayName)"
-                "## App Id: $($app.appId)"
-                ""
-                "Cert DisplayName: $($_.displayName)"
-                "Cert ID: $($_.keyId)"
-                #"Cert EndDateTime: $($_.endDateTime)"
-
-                "Days left: $((New-TimeSpan -Start $date -End $enddate).days)"
-                ""
+            $daysLeft = (New-TimeSpan -Start $date -End $enddate).days
+            if ($listOnlyExpiring -and $daysLeft -gt $Days) {
+                continue
             }
+            "## App DisplayName: $($app.displayName)"
+            "## App Id: $($app.appId)"
+            ""
+            "Cert DisplayName: $($_.displayName)"
+            "Cert ID: $($_.keyId)"
+            #"Cert EndDateTime: $($_.endDateTime)"
+            "Days left: $daysLeft"
+            ""
         }
+
         $app.passwordCredentials | ForEach-Object {
             $enddate = [datetime]$_.endDateTime
-            if ((New-TimeSpan -Start $date -End $enddate).days -le $Days) {
-                "## App DisplayName: $($app.displayName)"
-                "## App Id: $($app.appId)"
-                ""
-                "Client Secret DisplayName: $($_.displayName)"
-                "Client Secret ID: $($_.keyId)"
-                #"Client Secret EndDateTime: $($_.endDateTime)"
-            
-                "Days left: $((New-TimeSpan -Start $date -End $enddate).days)"
-                ""
+            $daysLeft = (New-TimeSpan -Start $date -End $enddate).days
+            if ($listOnlyExpiring -and $daysLeft -gt $Days) {
+                continue
             }
+            "## App DisplayName: $($app.displayName)"
+            "## App Id: $($app.appId)"
+            ""
+            "Client Secret DisplayName: $($_.displayName)"
+            "Client Secret ID: $($_.keyId)"
+            #"Client Secret EndDateTime: $($_.endDateTime)"
+            "Days left: $daysLeft"
+            ""
         }
     }
 }
