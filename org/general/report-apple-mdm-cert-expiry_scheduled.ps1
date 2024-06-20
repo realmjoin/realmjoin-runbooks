@@ -20,7 +20,7 @@
 param(    
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
-    [int] $Days = 30,
+    [int] $Days = 300,
     [string] $sendAlertTo = "support@glueckkanja.com",
     # Please make sure this from-Adress exists in Exchange Online
     [string] $sendAlertFrom = "runbook@glueckkanja.com"
@@ -30,8 +30,12 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 
+# Retrieve tenant ID
+$tenantDetails = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorAction SilentlyContinue
+$tenantId = $tenantDetails[0].id
+
 $minDate = (get-date) + (New-TimeSpan -Day $Days)
-$HTMLBody = ""
+$HTMLBody = "<p>Tenant ID: $tenantId</p>"
 
 $applePushCerts = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/applePushNotificationCertificate" -ErrorAction SilentlyContinue
 if ($applePushCerts) {
@@ -46,7 +50,6 @@ if ($applePushCerts) {
         ""
     }
 }
-
 
 $vppTokens = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/vppTokens" -ErrorAction SilentlyContinue
 if ($vppTokens) {
