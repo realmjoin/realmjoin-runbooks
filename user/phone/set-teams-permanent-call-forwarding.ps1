@@ -138,7 +138,8 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.2.0" }            
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }          
             
 param(
     [Parameter(Mandatory = $true)]
