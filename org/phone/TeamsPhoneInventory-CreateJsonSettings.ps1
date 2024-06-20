@@ -7,43 +7,16 @@
   This is stored in the runbook customizations and controls the runbooks and their options. The output must then be adapted respectively consolidated with the existing settings.
   In order to use this runbook, a few variables must be stored in the Automation account.
   The runbook is part of the TeamsPhoneInventory.
+
+  .NOTES
+  Runbook requires PS-Version 7.2 and does not work with 5.1!
 #>
 
 #Require: PS-Version 7.2
-#Require: PS-Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }, @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.14.1" }
-
-# Tenant Domain
-# Example $global:TenantDomainName = "TENANT.onmicrosoft.com"
-try {
-    $global:TenantDomainName = Get-AutomationVariable -Name TPI_TenantDomainName -ErrorAction Stop
-}
-catch {
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name does not exist! Variable: TPI_TenantDomainName" 
-    Exit
-}
-if ($global:TenantDomainName -like "") {
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name is empty! Variable: TPI_TenantDomainName" 
-    Exit
-}
+#Require: PS-Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }, @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.19.0" }
 
 # Define Sharepoint Parameters
 # Example:
-# $SharepointURL = "TENANT.sharepoint.com"
-try {
-    $SharepointURL = Get-AutomationVariable -Name TPI_SharepointURL -ErrorAction Stop
-}
-catch {
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name does not exist! Variable: TPI_SharepointURL" 
-    Exit
-}
-if (SharepointURL -like "") {
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name is empty! Variable: TPI_SharepointURL" 
-    Exit
-}
 # $SharepointSite = "SiteName"
 try {
     $SharepointSite = Get-AutomationVariable -Name TPI_SharepointSite -ErrorAction Stop
@@ -222,16 +195,38 @@ function Get-TPIList {
         [String]
         $ListName # Only for easier logging
     )
+
+    #Limit access to 2000 items (Default is 200)
+    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
+    try {
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+    }
+    catch {
+        Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
+        
+        try {
+            Connect-MgGraph -Identity
+            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+        }
+        catch {
+            Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
+            Exit
+        }
+        
+    }
     
-    #Get fresh status quo of the SharePoint List after updating
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Output "$TimeStamp - GraphAPI - Get fresh StatusQuo of the SharePoint List $ListName"
-
-    #Setup URL variables
-    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?top=2000&expand=fields'
-
-    $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get
     $AllItems = $AllItemsResponse.value.fields
+
+    #Check if response is paged:
+    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+
+    while ($null -ne $AllItemsResponseNextLink) {
+
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
+        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+        $AllItems += $AllItemsResponse.value.fields
+
+    }
 
     return $AllItems
 
@@ -379,24 +374,14 @@ catch {
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Initiate Graph Session"
 try {
-    Connect-MgGraph -Identity -ErrorAction Stop
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
     Exit 
 }
 
-
-########################################################
-##             End Region - Customization depending on the implemented version
-##             Current Version: RJ Runbook
-##
-########################################################################################################################################################################
 #endregion
-
-
-
-
 #region RampUp Connection Details
 ########################################################
 ##             Block 0 - RampUp Connection Details
@@ -737,7 +722,7 @@ $AllElements += $ER_jsonBase
 $Options_jsonBase = @{}
 $Options_jsonBase.Add("Options",$AllElements)
 
-$jsonBase = @{}
+$jsonBase = [ordered]@{}
 $jsonBase.Add("Settings",$Settings_jsonBase)
 $jsonBase.Add("Templates",$Options_jsonBase)
 $jsonBase.Add("Runbooks",$Runbooks)
