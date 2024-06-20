@@ -24,27 +24,30 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $UserGroup,
-    
     [Parameter(Mandatory = $true)]
-    [string] $DeviceGroup
+    [string] $DeviceGroup,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
-Write-Host -Message "Syncing devices from User Group: '$UserGroup' to Device Group: '$DeviceGroup'" -Verbose
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+"Syncing devices from User Group: '$UserGroup' to Device Group: '$DeviceGroup'" 
 
 Connect-RjRbGraph
 
 # Get user group members
-Write-Host -Message "Retrieving members of the user group: $UserGroup" -Verbose
+"Retrieving members of the user group: $UserGroup" 
 $UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroup/members" -FollowPaging
 
 if ($UserGroupMembers.Count -eq 0) {
-    Write-Host -Message "No members found in the user group: $UserGroup" -ErrorAction Stop
+    "No members found in the user group: $UserGroup" -ErrorAction Stop
 } else {
-    Write-Host -Message "Found $($UserGroupMembers.Count) members in the user group: $UserGroup" -Verbose
+    "Found $($UserGroupMembers.Count) members in the user group: $UserGroup" 
 }
 
 # Get current devices in the device group
-Write-Host -Message "Retrieving current members of the device group: $DeviceGroup" -Verbose
+"Retrieving current members of the device group: $DeviceGroup" 
 $DeviceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members" -FollowPaging
 
 $DeviceGroupMemberIds = $DeviceGroupMembers | ForEach-Object { $_.id }
@@ -53,36 +56,36 @@ $DeviceGroupMemberIds = $DeviceGroupMembers | ForEach-Object { $_.id }
 foreach ($User in $UserGroupMembers) {
     $UserId = $User.id
 
-    Write-Host -Message "Retrieving owned devices for user: $($User.displayName), ID: $UserId" -Verbose
+    "Retrieving owned devices for user: $($User.displayName), ID: $UserId" 
     $UserDevices = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId/ownedDevices" -FollowPaging | Where-Object {
         ($_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
         ($_.operatingSystem -eq "MacMDM")
     }
 
     if ($UserDevices.Count -eq 0) {
-        Write-Host -Message "No devices found for user: $($User.displayName)" -Verbose
+        "No devices found for user: $($User.displayName)" 
         continue
     } else {
-        Write-Host -Message "Found $($UserDevices.Count) devices for user: $($User.displayName)" -Verbose
+        "Found $($UserDevices.Count) devices for user: $($User.displayName)" 
     }
 
     foreach ($Device in $UserDevices) {
         if ($DeviceGroupMemberIds -notcontains $Device.id) {
-            Write-Host "DeviceID: $($Device.id)"
-            Write-Host -Message "Adding device $($Device.displayName) of user $($User.displayName) to device group" -Verbose
+             "DeviceID: $($Device.id)"
+            "Adding device $($Device.displayName) of user $($User.displayName) to device group" 
             $body = @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($Device.id)"
             }
             try {
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members/\$ref" -Method POST -Body $body 
-                Write-Host -Message "Successfully added device $($Device.displayName) to device group" -Verbose
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members/`$ref" -Method POST -Body $body 
+                "Successfully added device $($Device.displayName) to device group" 
             } catch {
-                Write-Host -Message "Failed to add device $($Device.displayName) to device group. Error: $_" -Verbose
+                "Failed to add device $($Device.displayName) to device group. Error: $_" 
             }
         } else {
-            Write-Host -Message "Device $($Device.displayName) of user $($User.displayName) already in device group" -Verbose
+            "Device $($Device.displayName) of user $($User.displayName) already in device group" 
         }
     }
 }
 
-Write-Host -Message "Device sync completed successfully" -Verbose
+"Device sync completed successfully" 
