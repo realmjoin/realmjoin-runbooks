@@ -81,33 +81,53 @@ foreach ($app in $apps) {
         $app.keyCredentials | ForEach-Object {
             $enddate = [datetime]$_.endDateTime
             $daysLeft = (New-TimeSpan -Start $date -End $enddate).days
-            if ($listOnlyExpiring -and $daysLeft -gt $Days) {
-                continue
+            if ($listOnlyExpiring) {
+                if ($daysLeft -le $Days) {
+                    "## App DisplayName: $($app.displayName)"
+                    "## App Id: $($app.appId)"
+                    ""
+                    "Cert DisplayName: $($_.displayName)"
+                    "Cert ID: $($_.keyId)"
+                    #"Cert EndDateTime: $($_.endDateTime)"
+                    "Days left: $daysLeft"
+                    ""
+                }
+            } else {
+                "## App DisplayName: $($app.displayName)"
+                "## App Id: $($app.appId)"
+                ""
+                "Cert DisplayName: $($_.displayName)"
+                "Cert ID: $($_.keyId)"
+                #"Cert EndDateTime: $($_.endDateTime)"
+                "Days left: $daysLeft"
+                ""
             }
-            "## App DisplayName: $($app.displayName)"
-            "## App Id: $($app.appId)"
-            ""
-            "Cert DisplayName: $($_.displayName)"
-            "Cert ID: $($_.keyId)"
-            #"Cert EndDateTime: $($_.endDateTime)"
-            "Days left: $daysLeft"
-            ""
         }
 
         $app.passwordCredentials | ForEach-Object {
             $enddate = [datetime]$_.endDateTime
             $daysLeft = (New-TimeSpan -Start $date -End $enddate).days
-            if ($listOnlyExpiring -and $daysLeft -gt $Days) {
-                continue
+            if ($listOnlyExpiring) {
+                if ($daysLeft -le $Days) {
+                    "## App DisplayName: $($app.displayName)"
+                    "## App Id: $($app.appId)"
+                    ""
+                    "Client Secret DisplayName: $($_.displayName)"
+                    "Client Secret ID: $($_.keyId)"
+                    #"Client Secret EndDateTime: $($_.endDateTime)"
+                    "Days left: $daysLeft"
+                    ""
+                }
+            } else {
+                "## App DisplayName: $($app.displayName)"
+                "## App Id: $($app.appId)"
+                ""
+                "Client Secret DisplayName: $($_.displayName)"
+                "Client Secret ID: $($_.keyId)"
+                #"Client Secret EndDateTime: $($_.endDateTime)"
+                "Days left: $daysLeft"
+                ""
             }
-            "## App DisplayName: $($app.displayName)"
-            "## App Id: $($app.appId)"
-            ""
-            "Client Secret DisplayName: $($_.displayName)"
-            "Client Secret ID: $($_.keyId)"
-            #"Client Secret EndDateTime: $($_.endDateTime)"
-            "Days left: $daysLeft"
-            ""
         }
     }
 }
