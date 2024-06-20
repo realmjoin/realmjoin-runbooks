@@ -1,7 +1,6 @@
 #region Customization depending on the implemented version
 ########################################################################################################################################################################
 ##             Start Region - Customization depending on the implemented version
-##             Current Version: RJ Runbook
 ##
 ########################################################
 
@@ -103,8 +102,8 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.2.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.18.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.19.0" }
 
 
 ########################################################
@@ -381,14 +380,7 @@ Write-RjRbLog -Message "SharepointLocationMappingList: '$SharepointLocationMappi
 Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'" -Verbose
 Write-RjRbLog -Message "BlockExtensionDays: '$BlockExtensionDays'" -Verbose
 
-
-########################################################
-##             End Region - Customization depending on the implemented version
-##             Current Version: RJ Runbook
-##
-########################################################################################################################################################################
 #endregion
-
 #region RampUp Connection Details
 ########################################################
 ##             Block 0 - RampUp Connection Details
