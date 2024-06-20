@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-06-20
+
+- Allow "Enrolled Devices Report" to be scheduled
+
 ## 2024-06-19
 
 - Moved "Check Device Onboarding Exlusion" into to repo
