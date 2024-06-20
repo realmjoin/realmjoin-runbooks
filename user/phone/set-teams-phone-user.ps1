@@ -36,7 +36,7 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.2.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -402,7 +402,6 @@ Write-Output "Block 4 - Get StatusQuo of the Location Defaults SharePoint List"
 $TPILocationDefaultsListURL = $BaseURL + $SharepointLocationDefaultsList
 
 $TPI_LocationDefaults_AllItems = Get-TPIList -ListBaseURL $TPILocationDefaultsListURL -ListName $SharepointLocationDefaultsList | Where-Object Title -notlike ""
-
 Write-Output "Items in $SharepointLocationDefaultsList SharePoint List: $($TPI_LocationDefaults_AllItems.Count)"
 
 $RecievedLocationDefaults = $TPI_LocationDefaults_AllItems | Where-Object Title -Like $CurrentLocationIdentifier
@@ -410,12 +409,27 @@ $RecievedLocationDefaults = $TPI_LocationDefaults_AllItems | Where-Object Title 
 Write-Verbose "Current Location Identifier: $CurrentLocationIdentifier"
 
 if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
-    if ($RecievedLocationDefaults.ExtensionRangeIndex -notlike "" -or $RecievedLocationDefaults.OnlineVoiceRoutingPolicy -notlike "") {
+    if ($RecievedLocationDefaults.ExtensionRangeIndex -notlike "" -or $RecievedLocationDefaults.CivicAddressMappingIndex -notlike "") {
         Write-Output ""
+
+        $CivicAddressMappingIndex = $RecievedLocationDefaults.CivicAddressMappingIndex
+        if (($RecievedLocationDefaults.ExtensionRangeIndex -notlike "" -and $RecievedLocationDefaults.CivicAddressMappingIndex -notlike "")) {
+            Write-Warning "For the current Location Identifier: $CurrentLocationIdentifier both values (ExtensionRange and CivicAdressMapping(CallingPlan)) is filled!"
+            Write-Warning "Prefer ExtensionRange and clearing CivicAdressMapping now!"
+            $CivicAddressMappingIndex = ""
+        }
         Write-Output "Recieved values:"
         $ExtensionRangeIndex = $RecievedLocationDefaults.ExtensionRangeIndex
-        Write-Output "The ExtensionRangeIndex of the user is $ExtensionRangeIndex"
+        if ($ExtensionRangeIndex -notlike "") {
+            Write-Output "The ExtensionRangeIndex of the user is $ExtensionRangeIndex"
+        }elseif ($CivicAddressMappingIndex -notlike "") {
+            Write-Output "The CivicAddressMappingIndex of the user is $CivicAddressMappingIndex"
+        }
+       
         $OnlineVoiceRoutingPolicy = $RecievedLocationDefaults.OnlineVoiceRoutingPolicy
+        if ($OnlineVoiceRoutingPolicy -like "") {
+            $OnlineVoiceRoutingPolicy = "Global (Org Wide Default)"
+        }
         Write-Output "The OnlineVoiceRoutingPolicy of the user is $OnlineVoiceRoutingPolicy"
         $TenantDialPlan = $RecievedLocationDefaults.TenantDialPlan
         if ($TenantDialPlan -like "") {
@@ -429,9 +443,9 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         Write-Output "The CallingPolicy of the user is $CallingPolicy"
     }else {
         Write-Output ""
-        Write-Error "Error: There is an entry for the users location in the location default list, but there are empty values in it. The script will therefore be terminated!"
+        Write-Error "Error: There is an entry for the current location identifier, but no phone number ranges or civic address mappings are defined for it. The script will therefore be terminated!"
         Write-Output ""
-        throw "There is an entry for the users location in the location default list, but there are empty values in it. The script will therefore be terminated!"
+        throw "There is an entry for the current location identifier, but no phone number ranges or civic address mappings are defined for it. The script will therefore be terminated!"
         Exit
     }   
 }elseif (($RecievedLocationDefaults | Measure-Object).Count -eq 0) {
@@ -454,7 +468,13 @@ $TPI_AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPILis
 Write-Output "Items in $SharepointTPIList SharePoint List: $($TPI_AllItems.Count)"
 Write-Output "Check for next free number"
 
-$NextFreeNumber = ($TPI_AllItems | Where-Object {($_.ExtensionRangeIndex -Like $ExtensionRangeIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object FullLineUri | Select-Object Title,ID -First 1)
+if ($ExtensionRangeIndex -notlike "") {
+    $NextFreeNumber = ($TPI_AllItems | Where-Object {($_.ExtensionRangeIndex -Like $ExtensionRangeIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object FullLineUri | Select-Object Title,ID -First 1)
+}elseif ($CivicAddressMappingIndex -notlike "") {
+    $NextFreeNumber = ($TPI_AllItems | Where-Object {($_.CivicAddressMappingIndex -Like $CivicAddressMappingIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object FullLineUri | Select-Object Title,ID -First 1)
+}else {
+    Write-Error "Error: Both entries ExtensionRangeIndex and CivicAddressMappingIndex are empty, therefore it is not possible to search for a free number!"
+}
 
 if (($NextFreeNumber| Measure-Object).Count -eq 0) {
     Write-Error "Error: No free number for the choosen location available"
@@ -537,34 +557,54 @@ Write-Output "Block 7 - Pre flight check"
 $NumberCheck = "Empty"
 $CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
 $NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber*").UserPrincipalName
+$PhoneNumberAssignment = Get-CsPhoneNumberAssignment | Where-Object { $_.TelephoneNumber -like "$PhoneNumber" }
+$PstnAssignmentStatus = $PhoneNumberAssignment.PstnAssignmentStatus
+
 $NumberAlreadyAssigned = 0
 
-if ($NumberCheck -notlike "") {
+if ($PstnAssignmentStatus -like "" -or $PstnAssignmentStatus -like "Unassigned") {
+    Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
+}else {
     if ($UPN -like $Numbercheck) { #Check if number is already assigned to the target user
         $NumberAlreadyAssigned = 1
         Write-Output "Phone number is already assigned to the user!"
+    }elseif ($PhoneNumberAssignment.AssignmentCategory -like "Private") {
+        $CurrentPrivateLineUser = (Get-CsOnlineUser $PhoneNumberAssignment.AssignedPstnTargetId).UserPrincipalName
+        Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already as private line assigned to $CurrentPrivateLineUser"
+        throw "The assignment for could not be performed. PhoneNumber is already assigned!"
+        
     }else{
         Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
         throw "The assignment for could not be performed. PhoneNumber is already assigned!"
     }
-}else {
-    Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
 }
 
-#Check if number is a calling plan number
-Write-Output "Check if LineUri is a Calling Plan number"
+#Check if number is a calling plan or operator connect number
+Write-Output "Check if LineUri is a Calling Plan, Operator Connect or Direct Routing number"
 $CallingPlanNumber = (Get-CsPhoneNumberAssignment -NumberType CallingPlan).TelephoneNumber
+$OperatorConnectNumber = (Get-CsPhoneNumberAssignment -NumberType OperatorConnect).TelephoneNumber
 if (($CallingPlanNumber| Measure-Object).Count -gt 0) {
     if ($CallingPlanNumber -contains $PhoneNumber) {
         $CallingPlanCheck = $true
         Write-Output "Phone number is a Calling Plan number"
     }else{
         $CallingPlanCheck = $false
+        $OperatorConnectCheck = $false
+        Write-Output "Phone number is a Direct Routing number"
+    }
+}elseif (($OperatorConnectNumber | Measure-Object).Count -gt 0) {
+    if ($OperatorConnectNumber -contains $PhoneNumber) {
+        $OperatorConnectCheck = $true
+        Write-Output "Phone number is a Operator Connect number"
+    }else{
+        $CallingPlanCheck = $false
+        $OperatorConnectCheck = $false
         Write-Output "Phone number is a Direct Routing number"
     }
 }else{
     Write-Output "Phone number is a Direct Routing number"
     $CallingPlanCheck = $false
+    $OperatorConnectCheck = $false
 }
 
 # Check if specified Online Voice Routing Policy exists
@@ -639,13 +679,14 @@ if ($NumberAlreadyAssigned -like 1) {
     try {
         if ($CallingPlanCheck) {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
-        }else {
+        }elseif (OperatorConnectCheck) {
+            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType OperatorConnect -ErrorAction Stop
+        } else {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
         }
     }catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment for $UPN could not be performed!"
-        Write-Error "Error Message: $message"
+        Write-Error "Teams - Error: The assignment for $UPN could not be performed! - Error Message: $message"
         throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
     }
 }
@@ -667,8 +708,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
         }
     }
@@ -685,8 +725,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
         }
     }
@@ -703,8 +742,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
         }
     }
@@ -728,7 +766,7 @@ $HTTPBody_UpdateElement = @{
         "OnlineVoiceRoutingPolicy"= $OnlineVoiceRoutingPolicy
         "TeamsCallingPolicy"= $TeamsCallingPolicy
         "TenantDialPlan"= $TenantDialPlan
-        "Status"= "Filled by Set Teams Phone Runbook - $TimeStamp"
+        "Status"= "Filled by Set Teams Phone User Runbook - $TimeStamp"
     }
 }
 Write-Output "Update entry: $PhoneNumber"

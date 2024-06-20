@@ -12,7 +12,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.2.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
@@ -309,18 +309,26 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}(;ext=\d{1,10})?") {
 $NumberCheck = "Empty"
 $CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
 $NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber*").UserPrincipalName
+$PhoneNumberAssignment = Get-CsPhoneNumberAssignment | Where-Object { $_.TelephoneNumber -like "$PhoneNumber" }
+$PstnAssignmentStatus = $PhoneNumberAssignment.PstnAssignmentStatus
+
 $NumberAlreadyAssigned = 0
 
-if ($NumberCheck -notlike "") {
+if ($PstnAssignmentStatus -like "" -or $PstnAssignmentStatus -like "Unassigned") {
+    Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
+}else {
     if ($UPN -like $Numbercheck) { #Check if number is already assigned to the target user
         $NumberAlreadyAssigned = 1
         Write-Output "Phone number is already assigned to the user!"
+    }elseif ($PhoneNumberAssignment.AssignmentCategory -like "Private") {
+        $CurrentPrivateLineUser = (Get-CsOnlineUser $PhoneNumberAssignment.AssignedPstnTargetId).UserPrincipalName
+        Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already as private line assigned to $CurrentPrivateLineUser"
+        throw "The assignment for could not be performed. PhoneNumber is already assigned!"
+        
     }else{
         Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
         throw "The assignment for could not be performed. PhoneNumber is already assigned!"
     }
-}else {
-    Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
 }
 
 ########################################################
@@ -454,23 +462,33 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 Write-Output ""
 Write-Output "Block 7 - Pre flight check"
 
-#Check if number is a calling plan number
-Write-Output "Check if LineUri is a Calling Plan number"
+#Check if number is a calling plan or operator connect number
+Write-Output "Check if LineUri is a Calling Plan, Operator Connect or Direct Routing number"
 $CallingPlanNumber = (Get-CsPhoneNumberAssignment -NumberType CallingPlan).TelephoneNumber
-if ($CallingPlanNumber.Count -gt 0) {
+$OperatorConnectNumber = (Get-CsPhoneNumberAssignment -NumberType OperatorConnect).TelephoneNumber
+if (($CallingPlanNumber| Measure-Object).Count -gt 0) {
     if ($CallingPlanNumber -contains $PhoneNumber) {
         $CallingPlanCheck = $true
         Write-Output "Phone number is a Calling Plan number"
     }else{
         $CallingPlanCheck = $false
+        $OperatorConnectCheck = $false
+        Write-Output "Phone number is a Direct Routing number"
+    }
+}elseif (($OperatorConnectNumber | Measure-Object).Count -gt 0) {
+    if ($OperatorConnectNumber -contains $PhoneNumber) {
+        $OperatorConnectCheck = $true
+        Write-Output "Phone number is a Operator Connect number"
+    }else{
+        $CallingPlanCheck = $false
+        $OperatorConnectCheck = $false
         Write-Output "Phone number is a Direct Routing number"
     }
 }else{
     Write-Output "Phone number is a Direct Routing number"
     $CallingPlanCheck = $false
+    $OperatorConnectCheck = $false
 }
-
-
 
 # Check if specified Online Voice Routing Policy exists
 try {
@@ -536,13 +554,14 @@ if ($NumberAlreadyAssigned -like 1) {
     try {
         if ($CallingPlanCheck) {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
-        }else {
+        }elseif (OperatorConnectCheck) {
+            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType OperatorConnect -ErrorAction Stop
+        } else {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
         }
     }catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment for $UPN could not be performed!"
-        Write-Error "Error Message: $message"
+        Write-Error "Teams - Error: The assignment for $UPN could not be performed! - Error Message: $message"
         throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
     }
 }
@@ -564,8 +583,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
         }
     }
@@ -582,8 +600,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
         }
     }
@@ -600,8 +617,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
         }
     }
