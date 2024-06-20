@@ -32,23 +32,42 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-"Syncing devices from User Group: '$UserGroup' to Device Group: '$DeviceGroup'" 
-
 Connect-RjRbGraph
 
+# Function to resolve group name to ID
+function Resolve-GroupId($Group) {
+    if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+        return $Group
+        Write-Host $Group
+    } else {
+        $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
+        if ($resolvedGroup.Count -eq 1) {
+            return $resolvedGroup[0].id
+        } elseif ($resolvedGroup.Count -gt 1) {
+            throw "Multiple groups found with name '$Group'. Please specify the Object ID."
+        } else {
+            throw "No group found with name '$Group'."
+        }
+    }
+}
+
+# Resolve group IDs
+$UserGroupId = Resolve-GroupId $UserGroup
+$DeviceGroupId = Resolve-GroupId $DeviceGroup
+
 # Get user group members
-"Retrieving members of the user group: $UserGroup" 
-$UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroup/members" -FollowPaging
+"Retrieving members of the user group: $UserGroupId" 
+$UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroupId/members" -FollowPaging
 
 if ($UserGroupMembers.Count -eq 0) {
-    "No members found in the user group: $UserGroup"
+    "No members found in the user group: $UserGroupId"
 } else {
-    "Found $($UserGroupMembers.Count) members in the user group: $UserGroup" 
+    "Found $($UserGroupMembers.Count) members in the user group: $UserGroupId" 
 }
 
 # Get current devices in the device group
-"Retrieving current members of the device group: $DeviceGroup" 
-$DeviceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members" -FollowPaging
+"Retrieving current members of the device group: $DeviceGroupId" 
+$DeviceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroupId/members" -FollowPaging
 
 $DeviceGroupMemberIds = $DeviceGroupMembers | ForEach-Object { $_.id }
 
@@ -77,7 +96,7 @@ foreach ($User in $UserGroupMembers) {
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($Device.id)"
             }
             try {
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members/`$ref" -Method POST -Body $body 
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroupId/members/`$ref" -Method POST -Body $body
                 "Successfully added device $($Device.displayName) to device group" 
             } catch {
                 "Failed to add device $($Device.displayName) to device group. Error: $_" 
@@ -87,5 +106,3 @@ foreach ($User in $UserGroupMembers) {
         }
     }
 }
-
-"Device sync completed successfully" 
