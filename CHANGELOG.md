@@ -5,9 +5,11 @@
 - Add Devices Of Users To Group (Scheduled)
 - Report Apple Mdm Cert Expiry
 - List Application Creds Expiry - Supports App ID Filtering
+- Allow "Enrolled Devices Report" to be scheduled
 
 ## 2024-06-19
 
+- Moved "Check Device Onboarding Exlusion" into to repo
 - Bulk Delete Devices From Autopilot
 - Check AAD Sync Status
 - Report Pim Activations
