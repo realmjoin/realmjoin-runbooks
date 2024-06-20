@@ -41,7 +41,7 @@ Connect-RjRbGraph
 $UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroup/members" -FollowPaging
 
 if ($UserGroupMembers.Count -eq 0) {
-    "No members found in the user group: $UserGroup" -ErrorAction Stop
+    "No members found in the user group: $UserGroup"
 } else {
     "Found $($UserGroupMembers.Count) members in the user group: $UserGroup" 
 }
