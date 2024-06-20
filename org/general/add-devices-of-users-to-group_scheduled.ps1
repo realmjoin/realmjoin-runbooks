@@ -47,7 +47,7 @@ if ($UserGroupMembers.Count -eq 0) {
 Write-Host -Message "Retrieving current members of the device group: $DeviceGroup" -Verbose
 $DeviceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members" -FollowPaging
 
-$DeviceGroupMemberIds = $DeviceGroupMembers | ForEach-Object { $_.deviceId }
+$DeviceGroupMemberIds = $DeviceGroupMembers | ForEach-Object { $_.id }
 
 # Process each user in the user group
 foreach ($User in $UserGroupMembers) {
@@ -73,9 +73,8 @@ foreach ($User in $UserGroupMembers) {
             $body = @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($Device.id)"
             }
-            $jsonBody = $body | ConvertTo-Json -Depth 4
             try {
-                Invoke-RjRbRestMethodGraph -Method POST -Resource "/groups/$DeviceGroup/members/\$ref" -Body $jsonBody
+                Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroup/members/\$ref" -Method POST -Body $body 
                 Write-Host -Message "Successfully added device $($Device.displayName) to device group" -Verbose
             } catch {
                 Write-Host -Message "Failed to add device $($Device.displayName) to device group. Error: $_" -Verbose
