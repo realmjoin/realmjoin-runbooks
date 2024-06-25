@@ -41,7 +41,7 @@ function Resolve-GroupId($Group) {
         "Input Group Name: '$Group'"
     } else {
         $encodedGroupName = [System.Web.HttpUtility]::UrlEncode($Group)
-        "Encoded Group Name: '$encodedGroupName'"
+        Write-RjRbLog -Message "Encoded Group Name: '$encodedGroupName'" -Verbose
         $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$encodedGroupName'" -FollowPaging
         if ($resolvedGroup.Count -eq 1) {
             return $resolvedGroup[0].id
