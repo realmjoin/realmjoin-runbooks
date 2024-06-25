@@ -48,7 +48,7 @@ function Resolve-GroupId {
         Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroup'" -Verbose
         
         if ($resolvedGroup.Count -eq 1) {
-            return $resolvedGroup[0].id
+            return $resolvedGroup.id
         } elseif ($resolvedGroup.Count -gt 1) {
             throw "Multiple groups found with name '$Group'. Please specify the Object ID."
         } else {
