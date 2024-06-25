@@ -38,10 +38,10 @@ Connect-RjRbGraph
 function Resolve-GroupId($Group) {
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
-        "Input Groupname: $Group"
+        "Input Group Name: '$Group'"
     } else {
-        $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
-        "Resolved Group: $resolvedGroup"
+        $encodedGroupName = [System.Web.HttpUtility]::UrlEncode($Group)
+        $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$encodedGroupName'" -FollowPaging
         if ($resolvedGroup.Count -eq 1) {
             return $resolvedGroup[0].id
         } elseif ($resolvedGroup.Count -gt 1) {
