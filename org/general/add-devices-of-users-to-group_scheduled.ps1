@@ -35,14 +35,15 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph
 
 # Function to resolve group name to ID
-function Resolve-GroupId($Group) {
+function Resolve-GroupId {
+    param (
+        [string]$Group
+    )
+    
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
-        "Input Group Name: '$Group'"
     } else {
-        $encodedGroupName = [System.Web.HttpUtility]::UrlEncode($Group)
-        Write-RjRbLog -Message "Encoded Group Name: '$encodedGroupName'" -Verbose
-        $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$encodedGroupName'" -FollowPaging
+        $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
         if ($resolvedGroup.Count -eq 1) {
             return $resolvedGroup[0].id
         } elseif ($resolvedGroup.Count -gt 1) {
@@ -58,53 +59,49 @@ $UserGroupId = Resolve-GroupId $UserGroup
 $DeviceGroupId = Resolve-GroupId $DeviceGroup
 
 # Get user group members
-"Retrieving members of the user group: $UserGroupId" 
 $UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroupId/members" -FollowPaging
 
 if ($UserGroupMembers.Count -eq 0) {
-    "No members found in the user group: $UserGroupId"
+    Write-RjRbLog -Message "No members found in the user group: $UserGroupId" -Verbose
 } else {
-    "Found $($UserGroupMembers.Count) members in the user group: $UserGroupId" 
+    Write-RjRbLog -Message "Found $($UserGroupMembers.Count) members in the user group: $UserGroupId" -Verbose
 }
 
 # Get current devices in the device group
-"Retrieving current members of the device group: $DeviceGroupId" 
 $DeviceGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroupId/members" -FollowPaging
-
 $DeviceGroupMemberIds = $DeviceGroupMembers | ForEach-Object { $_.id }
 
 # Process each user in the user group
 foreach ($User in $UserGroupMembers) {
     $UserId = $User.id
 
-    "Retrieving owned devices for user: $($User.displayName), ID: $UserId" 
+    Write-RjRbLog -Message "Retrieving owned devices for user: $($User.displayName), ID: $UserId" -Verbose
     $UserDevices = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId/ownedDevices" -FollowPaging | Where-Object {
         ($_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
         ($_.operatingSystem -eq "MacMDM")
     }
 
     if ($UserDevices.Count -eq 0) {
-        "No devices found for user: $($User.displayName)" 
+        Write-RjRbLog -Message "No devices found for user: $($User.displayName)" -Verbose
         continue
     } else {
-        "Found $($UserDevices.Count) devices for user: $($User.displayName)" 
+        Write-RjRbLog -Message "Found $($UserDevices.Count) devices for user: $($User.displayName)" -Verbose
     }
 
     foreach ($Device in $UserDevices) {
         if ($DeviceGroupMemberIds -notcontains $Device.id) {
-             "DeviceID: $($Device.id)"
-            "Adding device $($Device.displayName) of user $($User.displayName) to device group" 
+            Write-RjRbLog -Message "Adding device $($Device.displayName) of user $($User.displayName) to device group" -Verbose
             $body = @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($Device.id)"
             }
             try {
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroupId/members/`$ref" -Method POST -Body $body
-                "Successfully added device $($Device.displayName) to device group" 
+                Write-RjRbLog -Message "Successfully added device $($Device.displayName) to device group" -Verbose
             } catch {
-                "Failed to add device $($Device.displayName) to device group. Error: $_" 
+                Write-RjRbLog -Message "Failed to add device $($Device.displayName) to device group. Error: $_" -Verbose
             }
         } else {
-            "Device $($Device.displayName) of user $($User.displayName) already in device group" 
+            Write-RjRbLog -Message "Device $($Device.displayName) of user $($User.displayName) already in device group" -Verbose
         }
     }
 }
