@@ -43,13 +43,13 @@ function Resolve-GroupId {
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
     } else {
-        Write-RjRbLog -Message "Resolving group '$Group' to ID" -Verbose
-        $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
-        Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroup'" -Verbose
+        Write-RjRbLog -Message "Resolving group '$Group' to Group ID" -Verbose
+        $resolvedGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
+        Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroups'" -Verbose
         
-        if ($resolvedGroup.Count -eq 1) {
-            return $resolvedGroup.id
-        } elseif ($resolvedGroup.Count -gt 1) {
+        if ($resolvedGroups.value.Count -eq 1) {
+            return $resolvedGroups.value[0].id
+        } elseif ($resolvedGroups.value.Count -gt 1) {
             throw "Multiple groups found with name '$Group'. Please specify the Object ID."
         } else {
             throw "No group found with name '$Group'."
