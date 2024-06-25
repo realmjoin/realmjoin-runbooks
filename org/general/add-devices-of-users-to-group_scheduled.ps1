@@ -48,12 +48,20 @@ function Resolve-GroupId {
         Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroups'" -Verbose
         Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
         
-        if ($resolvedGroups.value.Count -eq 1) {
-            return $resolvedGroups.value[0].id
-        } elseif ($resolvedGroups.value.Count -gt 1) {
-            throw "Multiple groups found with name '$Group'. Please specify the Object ID."
+        if ($resolvedGroups -is [System.Collections.IEnumerable]) {
+            if ($resolvedGroups.Count -eq 1) {
+                return $resolvedGroups[0].id
+            } elseif ($resolvedGroups.Count -gt 1) {
+                throw "Multiple groups found with name '$Group'. Please specify the Object ID."
+            } else {
+                throw "No group found with name '$Group'."
+            }
         } else {
-            throw "No group found with name '$Group'."
+            if ($resolvedGroups.id) {
+                return $resolvedGroups.id
+            } else {
+                throw "No group found with name '$Group'."
+            }
         }
     }
 }
