@@ -44,6 +44,8 @@ function Resolve-GroupId {
         return $Group
     } else {
         $resolvedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
+        Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroup'" -Verbose
+        
         if ($resolvedGroup.Count -eq 1) {
             return $resolvedGroup[0].id
         } elseif ($resolvedGroup.Count -gt 1) {
