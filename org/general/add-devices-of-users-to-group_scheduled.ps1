@@ -43,9 +43,9 @@ function Resolve-GroupId {
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
     } else {
-        Write-RjRbLog -Message "Resolving group '$Group' to Group ID" -Verbose
+        #Write-RjRbLog -Message "Resolving group '$Group' to Group ID" -Verbose
         $resolvedGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
-        Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroups'" -Verbose
+        #Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroups'" -Verbose
         Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
         
         if ($resolvedGroups -is [System.Collections.IEnumerable]) {
