@@ -44,7 +44,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
     [bool] $IncludeWindowsDevice = $false,
-    [bool] $IncludeMacDevice = $false,
+    [bool] $IncludeMacOSDevice = $false,
     [bool] $IncludeLinuxDevice = $false,
     [bool] $IncludeAndroidDevice = $false,
     [bool] $IncludeIOSDevice = $false
@@ -54,7 +54,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Log the selected OS options
 if ($IncludeWindowsDevice) { Write-RjRbLog -Message "Selected OS: Windows" -Verbose }
-if ($IncludeMacDevice) { Write-RjRbLog -Message "Selected OS: MacOS" -Verbose }
+if ($IncludeMacOSDevice) { Write-RjRbLog -Message "Selected OS: MacOS" -Verbose }
 if ($IncludeLinuxDevice) { Write-RjRbLog -Message "Selected OS: Linux" -Verbose }
 if ($IncludeAndroidDevice) { Write-RjRbLog -Message "Selected OS: Android" -Verbose }
 if ($IncludeIOSDevice) { Write-RjRbLog -Message "Selected OS: iOS" -Verbose }
@@ -115,7 +115,7 @@ foreach ($User in $UserGroupMembers) {
     Write-RjRbLog -Message "Retrieving owned devices for user: $($User.displayName), ID: $UserId" -Verbose
     $UserDevices = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId/ownedDevices" -FollowPaging | Where-Object {
         ($IncludeWindowsDevice -and $_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
-        ($IncludeMacDevice -and $_.operatingSystem -eq "MacMDM") -or 
+        ($IncludeMacOSDevice -and $_.operatingSystem -eq "MacMDM") -or 
         ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
         ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or 
         ($IncludeIOSDevice -and $_.operatingSystem -eq "iOS")
