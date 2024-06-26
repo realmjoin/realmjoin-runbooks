@@ -29,6 +29,9 @@
             "IncludeIOSDevice": {
                 "DisplayName": "Include iOS Devices"
             }
+            "IncludeIPadOSDevice": {
+                "DisplayName": "Include iPadOS Devices"
+            }
         }
     }
 
@@ -47,7 +50,8 @@ param(
     [bool] $IncludeMacOSDevice = $false,
     [bool] $IncludeLinuxDevice = $false,
     [bool] $IncludeAndroidDevice = $false,
-    [bool] $IncludeIOSDevice = $false
+    [bool] $IncludeIOSDevice = $false,
+    [bool] $IncludeIPadOSDevice = $false
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -58,6 +62,7 @@ if ($IncludeMacOSDevice) { Write-RjRbLog -Message "Selected OS: MacOS" -Verbose 
 if ($IncludeLinuxDevice) { Write-RjRbLog -Message "Selected OS: Linux" -Verbose }
 if ($IncludeAndroidDevice) { Write-RjRbLog -Message "Selected OS: Android" -Verbose }
 if ($IncludeIOSDevice) { Write-RjRbLog -Message "Selected OS: iOS" -Verbose }
+if ($IncludeIPadOSDevice) { Write-RjRbLog -Message "Selected OS: iPadOS" -Verbose }
 
 Connect-RjRbGraph
 
@@ -118,7 +123,8 @@ foreach ($User in $UserGroupMembers) {
         ($IncludeMacOSDevice -and $_.operatingSystem -eq "MacMDM") -or 
         ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
         ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or 
-        ($IncludeIOSDevice -and $_.operatingSystem -eq "iOS")
+        ($IncludeIOSDevice -and $_.operatingSystem -eq "iOS") -or
+        ($IncludeIPadOSDevice -and $_.operatingSystem -eq "iPadOS")
     }
 
     if ($UserDevices.Count -eq 0) {
