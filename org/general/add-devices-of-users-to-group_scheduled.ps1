@@ -76,7 +76,7 @@ function Resolve-GroupId {
         return $Group
     } else {
         $resolvedGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
-        Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
+        #Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
         
         if ($resolvedGroups -is [System.Collections.IEnumerable]) {
             if ($resolvedGroups.Count -eq 1) {
