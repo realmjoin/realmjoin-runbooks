@@ -13,6 +13,21 @@
             },
             "DeviceGroup": {
                 "DisplayName": "Name or Object ID of the Devices Group"
+            },
+            "IncludeWindowsDevice": {
+                "DisplayName": "Include Windows Devices"
+            },
+            "IncludeMacOSDevice": {
+                "DisplayName": "Include MacOS Devices"
+            },
+            "IncludeLinuxDevice": {
+                "DisplayName": "Include Linux Devices"
+            },
+            "IncludeAndroidDevice": {
+                "DisplayName": "Include Android Devices"
+            },
+            "IncludeIOSDevice": {
+                "DisplayName": "Include iOS Devices"
             }
         }
     }
@@ -27,10 +42,22 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceGroup,
     [Parameter(Mandatory = $true)]
-    [string] $CallerName
+    [string] $CallerName,
+    [bool] $IncludeWindowsDevice = $false,
+    [bool] $IncludeMacDevice = $false,
+    [bool] $IncludeLinuxDevice = $false,
+    [bool] $IncludeAndroidDevice = $false,
+    [bool] $IncludeIOSDevice = $false
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+# Log the selected OS options
+if ($IncludeWindowsDevice) { Write-RjRbLog -Message "Selected OS: Windows" -Verbose }
+if ($IncludeMacDevice) { Write-RjRbLog -Message "Selected OS: MacOS" -Verbose }
+if ($IncludeLinuxDevice) { Write-RjRbLog -Message "Selected OS: Linux" -Verbose }
+if ($IncludeAndroidDevice) { Write-RjRbLog -Message "Selected OS: Android" -Verbose }
+if ($IncludeIOSDevice) { Write-RjRbLog -Message "Selected OS: iOS" -Verbose }
 
 Connect-RjRbGraph
 
@@ -43,9 +70,7 @@ function Resolve-GroupId {
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
     } else {
-        #Write-RjRbLog -Message "Resolving group '$Group' to Group ID" -Verbose
         $resolvedGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
-        #Write-RjRbLog -Message "Resolved group '$Group' to '$resolvedGroups'" -Verbose
         Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
         
         if ($resolvedGroups -is [System.Collections.IEnumerable]) {
@@ -89,8 +114,11 @@ foreach ($User in $UserGroupMembers) {
 
     Write-RjRbLog -Message "Retrieving owned devices for user: $($User.displayName), ID: $UserId" -Verbose
     $UserDevices = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId/ownedDevices" -FollowPaging | Where-Object {
-        ($_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
-        ($_.operatingSystem -eq "MacMDM")
+        ($IncludeWindowsDevice -and $_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
+        ($IncludeMacDevice -and $_.operatingSystem -eq "MacMDM") -or 
+        ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
+        ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or 
+        ($IncludeIOSDevice -and $_.operatingSystem -eq "iOS")
     }
 
     if ($UserDevices.Count -eq 0) {
