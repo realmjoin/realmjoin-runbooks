@@ -124,7 +124,7 @@ foreach ($User in $UserGroupMembers) {
         ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
         ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or 
         ($IncludeIOSDevice -and $_.operatingSystem -eq "iOS") -or
-        ($IncludeIPadOSDevice -and $_.operatingSystem -eq "iPadOS")
+        ($IncludeIPadOSDevice -and $_.operatingSystem -eq "iOS" -and $_.deviceType -eq "iPad")
     }
 
     if ($UserDevices.Count -eq 0) {
