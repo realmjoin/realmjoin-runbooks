@@ -15,22 +15,22 @@
                 "DisplayName": "Name or Object ID of the Devices Group"
             },
             "IncludeWindowsDevice": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows Devices (Default: False)"
             },
             "IncludeMacOSDevice": {
-                "DisplayName": "Include MacOS Devices"
+                "DisplayName": "Include MacOS-Devices (Default: False)"
             },
             "IncludeLinuxDevice": {
-                "DisplayName": "Include Linux Devices"
+                "DisplayName": "Include Linux Devices (Default: False)"
             },
             "IncludeAndroidDevice": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android Devices (Default: False)"
             },
             "IncludeIOSDevice": {
-                "DisplayName": "Include iOS Devices"
+                "DisplayName": "Include iOS-Devices (Default: False)"
             }
             "IncludeIPadOSDevice": {
-                "DisplayName": "Include iPadOS Devices"
+                "DisplayName": "Include iPadOS-Devices (Default: False)"
             }
         }
     }
