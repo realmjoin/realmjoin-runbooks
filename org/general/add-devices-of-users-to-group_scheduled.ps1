@@ -28,6 +28,9 @@
             },
             "IncludeIOSDevice": {
                 "DisplayName": "Include iOS-Devices (Default: False)"
+            },
+            "IncludeIPadOSDevice": {
+                "DisplayName": "Include iPadOS-Devices (Default: False)"
             }
 
         }
