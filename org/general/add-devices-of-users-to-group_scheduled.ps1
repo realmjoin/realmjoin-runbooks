@@ -15,23 +15,24 @@
                 "DisplayName": "Name or Object ID of the Devices Group"
             },
             "IncludeWindowsDevice": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows Devices (Default: False)"
             },
             "IncludeMacOSDevice": {
-                "DisplayName": "Include MacOS Devices"
+                "DisplayName": "Include MacOS-Devices (Default: False)"
             },
             "IncludeLinuxDevice": {
-                "DisplayName": "Include Linux Devices"
+                "DisplayName": "Include Linux Devices (Default: False)"
             },
             "IncludeAndroidDevice": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android Devices (Default: False)"
             },
             "IncludeIOSDevice": {
-                "DisplayName": "Include iOS Devices"
-            }
+                "DisplayName": "Include iOS-Devices (Default: False)"
+            },
             "IncludeIPadOSDevice": {
-                "DisplayName": "Include iPadOS Devices"
+                "DisplayName": "Include iPadOS-Devices (Default: False)"
             }
+
         }
     }
 
@@ -106,6 +107,7 @@ $UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroupId/m
 if ($UserGroupMembers.Count -eq 0) {
     Write-RjRbLog -Message "No members found in the user group: $UserGroupId" -Verbose
 } else {
+    "## Found $($UserGroupMembers.Count) members in the user group: $UserGroupId"
     Write-RjRbLog -Message "Found $($UserGroupMembers.Count) members in the user group: $UserGroupId" -Verbose
 }
 
@@ -131,6 +133,7 @@ foreach ($User in $UserGroupMembers) {
         Write-RjRbLog -Message "No devices found for user: $($User.displayName)" -Verbose
         continue
     } else {
+        "## Found $($UserDevices.Count) devices for user: $($User.displayName)"
         Write-RjRbLog -Message "Found $($UserDevices.Count) devices for user: $($User.displayName)" -Verbose
     }
 
@@ -142,11 +145,13 @@ foreach ($User in $UserGroupMembers) {
             }
             try {
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroupId/members/`$ref" -Method POST -Body $body
+                "## Successfully added device $($Device.displayName) to device group"
                 Write-RjRbLog -Message "Successfully added device $($Device.displayName) to device group" -Verbose
             } catch {
                 Write-RjRbLog -Message "Failed to add device $($Device.displayName) to device group. Error: $_" -Verbose
             }
         } else {
+            "## Device $($Device.displayName) of user $($User.displayName) already in device group"
             Write-RjRbLog -Message "Device $($Device.displayName) of user $($User.displayName) already in device group" -Verbose
         }
     }

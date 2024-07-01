@@ -15,7 +15,7 @@
 param(
   # EntraID exclusion group for Defender Compliance.
   [string]$exclusionGroupName = "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
-  [int] $maxAgeInDays = 10,
+  [int] $maxAgeInDays = 1,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
   [string]$CallerName    
