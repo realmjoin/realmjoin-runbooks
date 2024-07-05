@@ -73,6 +73,9 @@
             ]
         }
     },
+    "customizeMail": {
+        "DisplayName": "Would you like to customize the mail sent to the user?"
+    },
     "customMailMessage": {
         "DisplayName": "Custom message to be sent to the user."
     },
