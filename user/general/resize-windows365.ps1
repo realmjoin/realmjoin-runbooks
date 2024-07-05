@@ -59,7 +59,9 @@
                         "ParameterValue": false,
                         "Customization": {
                             "Hide": [
-                                "fromMailAddress"
+                                "fromMailAddress",
+                                "customizeMail",
+                                "customMailMessage"
                             ]
                         }
                     },
@@ -69,7 +71,29 @@
                     }
                 ]
             }
+        },
+    "customizeMail": {
+        "DisplayName": "Would you like to customize the mail sent to the user?",
+        "Select": {
+            "Options": [
+                {
+                    "Display": "Do not customize the email.",
+                    "ParameterValue": false,
+                    "Customization": {
+                        "Hide": [
+                            "customMailMessage"
+                        ]
+                    }
+                },
+                {
+                    "Display": "Customize the email.",
+                    "ParameterValue": true
+                }
+            ]
         }
+    },
+    "customMailMessage": {
+        "DisplayName": "Custom message to be sent to the user."
     },
     "fromMailAddress": {
         "DisplayName": "(Shared) Mailbox to send mail from: "
@@ -104,6 +128,8 @@ param(
     [string] $newLicWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
     [bool] $sendMailWhenDoneResizing = $false,
     [string] $fromMailAddress = "reports@contoso.com",
+    [bool] $customizeMail = $false,
+    [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",
     [string] $cfgProvisioningGroupPrefix = "cfg - Windows 365 - Provisioning - ",
     [string] $cfgUserSettingsGroupPrefix = "cfg - Windows 365 - User Settings - ",
     [string] $unassignRunbook = "rjgit-user_general_unassign-windows365",
@@ -205,4 +231,4 @@ if (-not $currentProvisioningPolicy) {
 Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $currentLicWin365GroupName ; skipGracePeriod = $skipGracePeriod ; keepUserSettingsAndProvisioningGroups = $true; CallerName = $CallerName ; }
 ""
 "## Starting Runbook Job to assign '$newLicWin365GroupName' to '$UserName':"
-Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $newLicWin365GroupName ; cfgProvisioningGroupName = $currentProvisioningPolicy ; cfgUserSettingsGroupName = $currentUserSettingsPolicy ; sendMailWhenProvisioned = $sendMailWhenDoneResizing; CallerName = $CallerName ; }
+Start-AutomationRunbook -Name $assignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $newLicWin365GroupName ; cfgProvisioningGroupName = $currentProvisioningPolicy ; cfgUserSettingsGroupName = $currentUserSettingsPolicy ; sendMailWhenProvisioned = $sendMailWhenDoneResizing; customizeMail = $customizeMail; customMailMessage = $customMailMessage; CallerName = $CallerName ; }

@@ -40,7 +40,9 @@
                         "ParameterValue": false,
                         "Customization": {
                             "Hide": [
-                                "fromMailAddress"
+                                "fromMailAddress",
+                                "customizeMail",
+                                "customMailMessage"
                             ]
                         }
                     },
@@ -50,7 +52,29 @@
                     }
                 ]
             }
+        },
+    "customizeMail": {
+        "DisplayName": "Would you like to customize the mail sent to the user?",
+        "Select": {
+            "Options": [
+                {
+                    "Display": "Do not customize the email.",
+                    "ParameterValue": false,
+                    "Customization": {
+                        "Hide": [
+                            "customMailMessage"
+                        ]
+                    }
+                },
+                {
+                    "Display": "Customize the email.",
+                    "ParameterValue": true
+                }
+            ]
         }
+    },
+    "customMailMessage": {
+        "DisplayName": "Custom message to be sent to the user."
     },
     "fromMailAddress": {
         "DisplayName": "(Shared) Mailbox to send mail from: "
@@ -76,9 +100,11 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
-    [string] $licWin365GroupName="lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+    [string] $licWin365GroupName = "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
     [bool] $sendMailWhenReprovisioning = $false,
     [string] $fromMailAddress = "reports@contoso.com",
+    [bool] $customizeMail = $false,
+    [string] $customMailMessage = "Insert Custom Message here. (Capped at 3000 characters)",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -120,15 +146,27 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
         # check if "Notify user when CloudPC reprovisioning has begun?" switch has been set to true and send email to the User
         if ($sendMailWhenReprovisioning) {
             "## Cloud PC Reprovisioning has been triggered. Informing User."
-            $message = @{
-                subject = "[Automated eMail] Cloud PC is being reprovisioned."
-                body    = @{
-                    contentType = "HTML"
-                    content     = @"
-                <p>This is an automated message, no reply is possible.</p>
-                <p>Your Cloud PC is being reprovisioned and will be unavailable for the next ~hour, please plan accordingly. The Cloud PC will be accessible shortly after the process has finished.</p>
-                <p>You can then access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
+
+            if ($customizeMail) {
+                $message = @{
+                    subject = "[Customized Automated eMail] Cloud PC is being reprovisioned."
+                    body    = @{
+                        contentType = "HTML"
+                        content     = $customMailMessage
+                    }
+                }
+            }
+            else {
+                $message = @{
+                    subject = "[Automated eMail] Cloud PC is being reprovisioned."
+                    body    = @{
+                        contentType = "HTML"
+                        content     = @"
+                    <p>This is an automated message, no reply is possible.</p>
+                    <p>Your Cloud PC is being reprovisioned and will be unavailable for the next ~hour, please plan accordingly. The Cloud PC will be accessible shortly after the process has finished.</p>
+                    <p>You can then access it via <a href="https://windows365.microsoft.com">windows365.microsoft.com</a>.</p>
 "@
+                    }
                 }
             }
     
@@ -138,8 +176,15 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
                 }
             }
     
-            Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
-            "## Mail to '$UserName' sent."
+            ## Check if user has a mailbox. If not do not send an email but continue the RB
+            $checkMailboxExists = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Get -OdSelect mail
+            if ($null -ne $checkMailboxExists.mail) {
+                Invoke-RjRbRestMethodGraph -Resource "/users/$fromMailAddress/sendMail" -Method POST -Body @{ message = $message } | Out-Null
+                "## Mail to '$UserName' sent."
+            }
+            else {
+                "## User $UserName has no mailbox. No email will be sent."
+            }
         }
         else {
             "## User has chosen not to send Mail to '$UserName'. " 
