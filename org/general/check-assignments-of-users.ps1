@@ -43,29 +43,29 @@ Connect-RjRbGraph
 $UPNs = $UPN.Split(',') | ForEach-Object { $_.Trim() }
 
 foreach ($userUPN in $UPNs) {
-    Write-Host "Processing UPN: $userUPN" -ForegroundColor Green
+    Write-RjRbLog "Processing UPN: $userUPN" -ForegroundColor Green
 
     # Get User ID from Microsoft Entra based on UPN
-    Write-Host "Fetching User Details for $userUPN" -ForegroundColor Yellow
+    Write-RjRbLog "Fetching User Details for $userUPN" -ForegroundColor Yellow
     $userDetailsUri = "https://graph.microsoft.com/v1.0/users?`$filter=userPrincipalName eq '$userUPN'"
     $userResponse = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$userUPN'"
     $userId = $userResponse.id
     if ($userId) {
         Write-RjRbLog -Message "User Found! -> User ID: $userId" -Verbose
-        Write-Host "User Found! -> User ID: $userId" -ForegroundColor Green
+        Write-RjRbLog "User Found! -> User ID: $userId" -ForegroundColor Green
     } else {
         Write-RjRbLog -Message "User Not Found: $userUPN" -ErrorAction Stop
-        Write-Host "User Not Found: $userUPN" -ForegroundColor Red
+        Write-RjRbLog "User Not Found: $userUPN" -ForegroundColor Red
     }
 
     # Get User Group Memberships
-    Write-Host "Fetching Group Memberships for $userUPN" -ForegroundColor Yellow
+    Write-RjRbLog "Fetching Group Memberships for $userUPN" -ForegroundColor Yellow
     $groupResponse = Invoke-RjRbRestMethodGraph -Resource "/users/$userId/transitiveMemberOf"
     $userGroupIds = $groupResponse | ForEach-Object { $_.id }
     $userGroupNames = $groupResponse | ForEach-Object { $_.displayName }
 
     Write-RjRbLog -Message "User Group Memberships: $($userGroupNames -join ', ')" -Verbose
-    Write-Host "User Group Memberships: $($userGroupNames -join ', ')" -ForegroundColor Green
+    Write-RjRbLog "User Group Memberships: $($userGroupNames -join ', ')" -ForegroundColor Green
 
     # Initialize collections to hold relevant policies and applications
     $userRelevantPolicies = @()
@@ -75,7 +75,7 @@ foreach ($userUPN in $UPNs) {
     $userRelevantAppsUninstall = @()
 
     # Get Intune Configuration Policies
-    Write-Host "Fetching Intune Configuration Policies" -ForegroundColor Yellow
+    Write-RjRbLog "Fetching Intune Configuration Policies" -ForegroundColor Yellow
     $policiesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies" -Beta -FollowPaging
 
     # Check each configuration policy for assignments that match user's groups
@@ -83,7 +83,7 @@ foreach ($userUPN in $UPNs) {
         $policyName = $policy.name
         $policyId = $policy.id
 
-        Write-Host "Processing Policy: $policyName" -ForegroundColor Blue
+        Write-RjRbLog "Processing Policy: $policyName" -ForegroundColor Blue
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies('$policyId')/assignments" -Beta
 
@@ -107,7 +107,7 @@ foreach ($userUPN in $UPNs) {
     }
 
     # Get Intune Group Policy Configurations
-    Write-Host "Fetching Intune Group Policy Configurations" -ForegroundColor Yellow
+    Write-RjRbLog "Fetching Intune Group Policy Configurations" -ForegroundColor Yellow
     $groupPoliciesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations" -Beta -FollowPaging
 
     # Check each group policy for assignments that match user's groups
@@ -115,7 +115,7 @@ foreach ($userUPN in $UPNs) {
         $groupPolicyName = $grouppolicy.displayName
         $groupPolicyId = $grouppolicy.id
 
-        Write-Host "Processing Group Policy: $groupPolicyName" -ForegroundColor Blue
+        Write-RjRbLog "Processing Group Policy: $groupPolicyName" -ForegroundColor Blue
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments" -Beta
 
@@ -138,7 +138,7 @@ foreach ($userUPN in $UPNs) {
     }
 
     # Get Intune Device Configurations
-    Write-Host "Fetching Intune Device Configurations" -ForegroundColor Yellow
+    Write-RjRbLog "Fetching Intune Device Configurations" -ForegroundColor Yellow
     $deviceConfigsResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations" -Beta -FollowPaging
 
     # Check each device configuration for assignments that match user's groups or all licensed users
@@ -146,7 +146,7 @@ foreach ($userUPN in $UPNs) {
         $configName = $config.displayName
         $configId = $config.id
 
-        Write-Host "Processing Device Configuration: $configName" -ForegroundColor Blue
+        Write-RjRbLog "Processing Device Configuration: $configName" -ForegroundColor Blue
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations('$configId')/assignments" -Beta
 
@@ -170,7 +170,7 @@ foreach ($userUPN in $UPNs) {
     }
 
     # Get Intune Compliance Policies
-    Write-Host "Fetching Intune Compliance Policies" -ForegroundColor Yellow
+    Write-RjRbLog "Fetching Intune Compliance Policies" -ForegroundColor Yellow
     $complianceResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies" -Beta -FollowPaging
 
     # Check each compliance policy for assignments that match user's groups
@@ -178,7 +178,7 @@ foreach ($userUPN in $UPNs) {
         $compliancepolicyName = $compliancepolicy.displayName
         $compliancepolicyId = $compliancepolicy.id
 
-        Write-Host "Processing Compliance Policy: $compliancepolicyName" -ForegroundColor Blue
+        Write-RjRbLog "Processing Compliance Policy: $compliancepolicyName" -ForegroundColor Blue
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments" -Beta
 
@@ -192,7 +192,7 @@ foreach ($userUPN in $UPNs) {
 
     if ($IncludeApps) {
         # Get Intune Applications
-        Write-Host "Fetching Intune Applications" -ForegroundColor Yellow
+        Write-RjRbLog "Fetching Intune Applications" -ForegroundColor Yellow
         $appResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps" -Beta -FollowPaging
 
         # Iterate over each application
@@ -200,7 +200,7 @@ foreach ($userUPN in $UPNs) {
             $appName = $app.displayName
             $appId = $app.id
 
-            Write-Host "Processing Application: $appName"
+            Write-RjRbLog "Processing Application: $appName"
 
  -ForegroundColor Blue
             # Construct the URI to get assignments for the current app
@@ -245,38 +245,37 @@ foreach ($userUPN in $UPNs) {
 
     # Generating Results for User
     Write-RjRbLog -Message "Generating Results for $userUPN..." -Verbose
-    Write-Host "Generating Results for $userUPN..." -ForegroundColor Yellow
 
     # Output the results
-    Write-Host "------- Assigned Configuration Profiles for $userUPN -------" -ForegroundColor Cyan
+    Write-RjRbLog "------- Assigned Configuration Profiles for $userUPN -------" -ForegroundColor Cyan
     foreach ($policy in $userRelevantPolicies) {
         $policyName = if ([string]::IsNullOrWhiteSpace($policy.name)) { $policy.displayName } else { $policy.name }
-        Write-Host "Configuration Profile Name: $policyName, Policy ID: $($policy.id), Assignment Reason: $($policy.AssignmentReason)" -ForegroundColor White
+        Write-RjRbLog "Configuration Profile Name: $policyName, Policy ID: $($policy.id), Assignment Reason: $($policy.AssignmentReason)" -ForegroundColor White
     }
 
-    Write-Host "------- Assigned Compliance Policies for $userUPN -------" -ForegroundColor Cyan
+    Write-RjRbLog "------- Assigned Compliance Policies for $userUPN -------" -ForegroundColor Cyan
     foreach ($compliancepolicy in $userRelevantCompliancePolicies) {
         $compliancepolicyName = if ([string]::IsNullOrWhiteSpace($compliancepolicy.name)) { $compliancepolicy.displayName } else { $compliancepolicy.name }
-        Write-Host "Compliance Policy Name: $compliancepolicyName, Policy ID: $($compliancepolicy.id)" -ForegroundColor White
+        Write-RjRbLog "Compliance Policy Name: $compliancepolicyName, Policy ID: $($compliancepolicy.id)" -ForegroundColor White
     }
 
     if ($IncludeApps) {
-        Write-Host "------- Assigned Apps (Required) for $userUPN -------" -ForegroundColor Cyan
+        Write-RjRbLog "------- Assigned Apps (Required) for $userUPN -------" -ForegroundColor Cyan
         foreach ($app in $userRelevantAppsRequired) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            Write-Host "App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
+            Write-RjRbLog "App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
         }
 
-        Write-Host "------- Assigned Apps (Available) for $userUPN -------" -ForegroundColor Cyan
+        Write-RjRbLog "------- Assigned Apps (Available) for $userUPN -------" -ForegroundColor Cyan
         foreach ($app in $userRelevantAppsAvailable) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            Write-Host "App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
+            Write-RjRbLog "App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
         }
 
-        Write-Host "------- Assigned Apps (Uninstall) for $userUPN -------" -ForegroundColor Cyan
+        Write-RjRbLog "------- Assigned Apps (Uninstall) for $userUPN -------" -ForegroundColor Cyan
         foreach ($app in $userRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            Write-Host "App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
+            Write-RjRbLog "App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
         }
     }
 }
