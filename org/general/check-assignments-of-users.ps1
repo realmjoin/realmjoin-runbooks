@@ -43,24 +43,22 @@ Connect-RjRbGraph
 $UPNs = $UPN.Split(',') | ForEach-Object { $_.Trim() }
 
 foreach ($userUPN in $UPNs) {
-    Write-RjRbLog "Processing UPN: $userUPN" -ForegroundColor Green
+    Write-RjRbLog -Message "Processing UPN: $userUPN" -Verbose
 
     # Get User ID from Microsoft Entra based on UPN
-    Write-RjRbLog "Fetching User Details for $userUPN" -ForegroundColor Yellow
+    Write-RjRbLog -Message "Fetching User Details for $userUPN" -Verbose
     "## Fetching User Details for $userUPN"
     $userDetailsUri = "https://graph.microsoft.com/v1.0/users?`$filter=userPrincipalName eq '$userUPN'"
     $userResponse = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$userUPN'"
     $userId = $userResponse.id
     if ($userId) {
         Write-RjRbLog -Message "User Found! -> User ID: $userId" -Verbose
-        Write-RjRbLog "User Found! -> User ID: $userId" -ForegroundColor Green
     } else {
         Write-RjRbLog -Message "User Not Found: $userUPN" -ErrorAction Stop
-        Write-RjRbLog "User Not Found: $userUPN" -ForegroundColor Red
     }
 
     # Get User Group Memberships
-    Write-RjRbLog "Fetching Group Memberships for $userUPN" -ForegroundColor Yellow
+    Write-RjRbLog -Message "Fetching Group Memberships for $userUPN" -Verbose
     $groupResponse = Invoke-RjRbRestMethodGraph -Resource "/users/$userId/transitiveMemberOf"
     $userGroupIds = $groupResponse | ForEach-Object { $_.id }
     $userGroupNames = $groupResponse | ForEach-Object { $_.displayName }
@@ -76,7 +74,7 @@ foreach ($userUPN in $UPNs) {
     $userRelevantAppsUninstall = @()
 
     # Get Intune Configuration Policies
-    Write-RjRbLog "Fetching Intune Configuration Policies" -ForegroundColor Yellow
+    Write-RjRbLog -Message "Fetching Intune Configuration Policies" -Verbose
     "## Fetching Intune Configuration Policies" 
     $policiesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies" -Beta -FollowPaging
 
@@ -85,7 +83,7 @@ foreach ($userUPN in $UPNs) {
         $policyName = $policy.name
         $policyId = $policy.id
 
-        Write-RjRbLog "Processing Policy: $policyName" -ForegroundColor Blue
+        Write-RjRbLog -Message "Processing Policy: $policyName" -Verbose
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies('$policyId')/assignments" -Beta
 
@@ -109,7 +107,7 @@ foreach ($userUPN in $UPNs) {
     }
 
     # Get Intune Group Policy Configurations
-    Write-RjRbLog "Fetching Intune Group Policy Configurations" -ForegroundColor Yellow
+    Write-RjRbLog -Message "Fetching Intune Group Policy Configurations" -Verbose
     "## Fetching Intune Group Policy Configurations"
     $groupPoliciesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations" -Beta -FollowPaging
 
@@ -118,7 +116,7 @@ foreach ($userUPN in $UPNs) {
         $groupPolicyName = $grouppolicy.displayName
         $groupPolicyId = $grouppolicy.id
 
-        Write-RjRbLog "Processing Group Policy: $groupPolicyName" -ForegroundColor Blue
+        Write-RjRbLog -Message "Processing Group Policy: $groupPolicyName" -Verbose
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments" -Beta
 
@@ -141,7 +139,7 @@ foreach ($userUPN in $UPNs) {
     }
 
     # Get Intune Device Configurations
-    Write-RjRbLog "Fetching Intune Device Configurations" -ForegroundColor Yellow
+    Write-RjRbLog -Message "Fetching Intune Device Configurations" -Verbose
     "## Fetching Intune Device Configurations"
     $deviceConfigsResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations" -Beta -FollowPaging
 
@@ -150,7 +148,7 @@ foreach ($userUPN in $UPNs) {
         $configName = $config.displayName
         $configId = $config.id
 
-        Write-RjRbLog "Processing Device Configuration: $configName" -ForegroundColor Blue
+        Write-RjRbLog -Message "Processing Device Configuration: $configName" -Verbose
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations('$configId')/assignments" -Beta
 
@@ -174,7 +172,7 @@ foreach ($userUPN in $UPNs) {
     }
 
     # Get Intune Compliance Policies
-    Write-RjRbLog "Fetching Intune Compliance Policies" -ForegroundColor Yellow
+    Write-RjRbLog -Message "Fetching Intune Compliance Policies" -Verbose
     "## Fetching Intune Compliance Policies"
     $complianceResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies" -Beta -FollowPaging
 
@@ -183,7 +181,7 @@ foreach ($userUPN in $UPNs) {
         $compliancepolicyName = $compliancepolicy.displayName
         $compliancepolicyId = $compliancepolicy.id
 
-        Write-RjRbLog "Processing Compliance Policy: $compliancepolicyName" -ForegroundColor Blue
+        Write-RjRbLog -Message "Processing Compliance Policy: $compliancepolicyName" -Verbose
         $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments" -Beta
 
@@ -197,7 +195,7 @@ foreach ($userUPN in $UPNs) {
 
     if ($IncludeApps) {
         # Get Intune Applications
-        Write-RjRbLog "Fetching Intune Applications" -ForegroundColor Yellow
+        Write-RjRbLog -Message "Fetching Intune Applications" -Verbose
         $appResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps" -Beta -FollowPaging
 
         # Iterate over each application
@@ -205,7 +203,7 @@ foreach ($userUPN in $UPNs) {
             $appName = $app.displayName
             $appId = $app.id
 
-            Write-RjRbLog "Processing Application: $appName"
+            Write-RjRbLog -Message "Processing Application: $appName" -Verbose
 
             # Construct the URI to get assignments for the current app
             $assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
