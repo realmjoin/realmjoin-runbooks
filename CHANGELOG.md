@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-07-09
+
+- New runbook: Check Assignments Of Users
+- New runbook: Check Assignments Of Groups
+- New runbook: Check Assignments Of Devices
+- Resize W365: Added mail customization
+- Resize W365: Fixed Info box
+- Reporovision W365: Added mail customization
+
 ## 2024-06-20
 
 - Add Devices Of Users To Group (Scheduled)
