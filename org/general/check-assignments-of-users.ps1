@@ -77,6 +77,7 @@ foreach ($userUPN in $UPNs) {
 
     # Get Intune Configuration Policies
     Write-RjRbLog "Fetching Intune Configuration Policies" -ForegroundColor Yellow
+    "## Fetching Intune Configuration Policies" 
     $policiesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies" -Beta -FollowPaging
 
     # Check each configuration policy for assignments that match user's groups
@@ -109,6 +110,7 @@ foreach ($userUPN in $UPNs) {
 
     # Get Intune Group Policy Configurations
     Write-RjRbLog "Fetching Intune Group Policy Configurations" -ForegroundColor Yellow
+    "## Fetching Intune Group Policy Configurations"
     $groupPoliciesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations" -Beta -FollowPaging
 
     # Check each group policy for assignments that match user's groups
@@ -140,6 +142,7 @@ foreach ($userUPN in $UPNs) {
 
     # Get Intune Device Configurations
     Write-RjRbLog "Fetching Intune Device Configurations" -ForegroundColor Yellow
+    "## Fetching Intune Device Configurations"
     $deviceConfigsResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations" -Beta -FollowPaging
 
     # Check each device configuration for assignments that match user's groups or all licensed users
@@ -172,6 +175,7 @@ foreach ($userUPN in $UPNs) {
 
     # Get Intune Compliance Policies
     Write-RjRbLog "Fetching Intune Compliance Policies" -ForegroundColor Yellow
+    "## Fetching Intune Compliance Policies"
     $complianceResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies" -Beta -FollowPaging
 
     # Check each compliance policy for assignments that match user's groups
