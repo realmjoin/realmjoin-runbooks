@@ -16,20 +16,23 @@
   .PARAMETER UPN
   User Principal Names of the users to check assignments for, separated by commas.
 
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
+
   .PARAMETER IncludeApps
   Boolean to specify whether to include application assignments in the search.
 
   .INPUTS
-  UPN and IncludeApps
+  UPN, CallerName, and IncludeApps
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $UPN,
-    [Parameter(Mandatory = $true)]
     [string] $CallerName,
+    [Parameter(Mandatory = $true)]
+    [string] $UPN,
     [bool] $IncludeApps = $false
 )
 
