@@ -282,5 +282,3 @@ foreach ($deviceName in $DeviceNamesArray) {
         }
     }
 }
-
-Write-Host "Script execution completed." -ForegroundColor Green
