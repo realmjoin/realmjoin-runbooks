@@ -248,35 +248,35 @@ foreach ($userUPN in $UPNs) {
     "## Generating Results for $userUPN..."
 
     # Output the results
-    "## ------- Assigned Configuration Profiles for $userUPN -------" -ForegroundColor Cyan
+    "## ------- Assigned Configuration Profiles for $userUPN -------"
     foreach ($policy in $userRelevantPolicies) {
         $policyName = if ([string]::IsNullOrWhiteSpace($policy.name)) { $policy.displayName } else { $policy.name }
-        "## Configuration Profile Name: $policyName, Policy ID: $($policy.id), Assignment Reason: $($policy.AssignmentReason)" -ForegroundColor White
+        "## Configuration Profile Name: $policyName, Policy ID: $($policy.id), Assignment Reason: $($policy.AssignmentReason)"
     }
 
-    "## ------- Assigned Compliance Policies for $userUPN -------" -ForegroundColor Cyan
+    "## ------- Assigned Compliance Policies for $userUPN -------"
     foreach ($compliancepolicy in $userRelevantCompliancePolicies) {
         $compliancepolicyName = if ([string]::IsNullOrWhiteSpace($compliancepolicy.name)) { $compliancepolicy.displayName } else { $compliancepolicy.name }
-        "## Compliance Policy Name: $compliancepolicyName, Policy ID: $($compliancepolicy.id)" -ForegroundColor White
+        "## Compliance Policy Name: $compliancepolicyName, Policy ID: $($compliancepolicy.id)"
     }
 
     if ($IncludeApps) {
-        "## ------- Assigned Apps (Required) for $userUPN -------" -ForegroundColor Cyan
+        "## ------- Assigned Apps (Required) for $userUPN -------"
         foreach ($app in $userRelevantAppsRequired) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
 
-        "## ------- Assigned Apps (Available) for $userUPN -------" -ForegroundColor Cyan
+        "## ------- Assigned Apps (Available) for $userUPN -------"
         foreach ($app in $userRelevantAppsAvailable) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" 
         }
 
-        "## ------- Assigned Apps (Uninstall) for $userUPN -------" -ForegroundColor Cyan
+        "## ------- Assigned Apps (Uninstall) for $userUPN -------" 
         foreach ($app in $userRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-           "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" -ForegroundColor White
+           "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
     }
 }
