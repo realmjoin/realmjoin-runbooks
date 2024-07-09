@@ -47,6 +47,7 @@ foreach ($userUPN in $UPNs) {
 
     # Get User ID from Microsoft Entra based on UPN
     Write-RjRbLog "Fetching User Details for $userUPN" -ForegroundColor Yellow
+    "## Fetching User Details for $userUPN"
     $userDetailsUri = "https://graph.microsoft.com/v1.0/users?`$filter=userPrincipalName eq '$userUPN'"
     $userResponse = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$userUPN'"
     $userId = $userResponse.id
@@ -65,7 +66,7 @@ foreach ($userUPN in $UPNs) {
     $userGroupNames = $groupResponse | ForEach-Object { $_.displayName }
 
     Write-RjRbLog -Message "User Group Memberships: $($userGroupNames -join ', ')" -Verbose
-    Write-RjRbLog "User Group Memberships: $($userGroupNames -join ', ')" -ForegroundColor Green
+    "## User Group Memberships: $($userGroupNames -join ', ')"
 
     # Initialize collections to hold relevant policies and applications
     $userRelevantPolicies = @()
@@ -202,7 +203,6 @@ foreach ($userUPN in $UPNs) {
 
             Write-RjRbLog "Processing Application: $appName"
 
- -ForegroundColor Blue
             # Construct the URI to get assignments for the current app
             $assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
 
