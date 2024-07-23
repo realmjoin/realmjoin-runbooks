@@ -13,7 +13,7 @@
 #>
 
 #Require: PS-Version 7.2
-#Require: PS-Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }, @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.19.0" }
+#Require: PS-Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }, @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.20.0" }
 
 # Define Sharepoint Parameters
 # Example:
@@ -649,7 +649,6 @@ $RunbookRAW = '
             {
                 "Name": "OnlineVoiceRoutingPolicy",
                 "DisplayAfter" : "Location",
-                "Mandatory" : true,
                 "DisplayName": "Online Voice Routing Policy",
                 "Select": {
                     "Options": {
