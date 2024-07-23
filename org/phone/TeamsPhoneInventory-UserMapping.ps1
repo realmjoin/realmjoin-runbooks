@@ -98,40 +98,39 @@
 ########################################################
 
 Param(
-        # App Registration for Update regulary TeamsPhoneInventory List - not for initializing (scoped site permission)
-        # Define Sharepoint Parameters
-        [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointURL" } )]
-        [string] $SharepointURL,
-        
+        # Define Sharepoint Parameters       
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
         [string] $SharepointSite,
         
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointTPIList" } )]
-        [string] $SharepointTPIList,
+        [string] $SharepointTPIList = "TeamsPhoneInventory",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointNumberRangeList" } )]
-        [String] $SharepointNumberRangeList,
+        [String] $SharepointNumberRangeList = "TPI-NumberRange",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointExtensionRangeList" } )]
-        [String] $SharepointExtensionRangeList,
+        [String] $SharepointExtensionRangeList = "TPI-ExtensionRange",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLegacyList" } )]
-        [String] $SharepointLegacyList,
+        [String] $SharepointLegacyList = "TPI-Legacy",
         
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointBlockExtensionList" } )]
-        [String] $SharepointBlockExtensionList,
+        [String] $SharepointBlockExtensionList = "TPI-BlockExtension",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLocationDefaultsList" } )]
-        [String] $SharepointLocationDefaultsList,
+        [String] $SharepointLocationDefaultsList = "TPI-LocationDefaults",
+
+        [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointCivicAddressMappingList" } )]
+        [string] $SharepointCivicAddressMappingList = "TPI-CivicAddressMapping",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLocationMappingList" } )]
-        [String] $SharepointLocationMappingList,
+        [String] $SharepointLocationMappingList = "TPI-LocationMapping",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointUserMappingList" } )]
-        [String] $SharepointUserMappingList,
+        [String] $SharepointUserMappingList = "TPI-UserMapping",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.BlockExtensionDays" } )]
-        [int] $BlockExtensionDays,
+        [int] $BlockExtensionDays = 30,
 
         # CallerName is tracked purely for auditing purposes
         [string] $CallerName
@@ -378,7 +377,6 @@ Write-RjRbLog -Message "BlockExtensionDays: '$BlockExtensionDays'" -Verbose
 ##          
 ########################################################
 
-
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Check basic connection to TPI List"
 
@@ -410,6 +408,7 @@ catch {
 }
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
+
 #endregion
 
 #region Get StatusQuo
@@ -422,7 +421,7 @@ Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Get StatusQuo"
 Write-Output "$TimeStamp - Block 1 - Get all Teams User..."
-$AllUsers = get-csonlineuser  | Where-Object {($_.City -notlike '') -and ($_.Street -notlike '') -and ($_.Company -notlike '')} | select-Object UserPrincipalName,Displayname,LineUri,City,Street,Company
+$AllUsers = Get-CsOnlineUser -Filter {City -notlike '' -and Street -notlike '' -and Company -notlike ''}  | select-Object UserPrincipalName,Displayname,LineUri,City,Street,Company
 
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
