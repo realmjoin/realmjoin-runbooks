@@ -3,7 +3,7 @@
   Microsoft Teams telephony offboarding
   
   .DESCRIPTION
-  Remove the phone number and specific policies from a teams-enabled user. The runbook is part of the TeamsPhoneInventory.
+  Remove the phone number and specific policies from a teams-enabled user. If "Delay possible re-assignment of the current call number" is activated, the phone number is blocked for a defined number of days so that it is not assigned to a new user for this period. The number of days is stored in the RealmJoin settings. The runbook is part of the TeamsPhoneInventory.
 
   .NOTES
   Permissions: 
@@ -46,7 +46,8 @@ param(
     #Number of days the phone number is blocked for a new assignment
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.BlockNumberforDays" } )]
     [String] $AddDays,
-    
+    [ValidateScript( { Use-RJInterface -DisplayName "Delay possible re-assignment of the current call number" } )]
+    [bool] $BlockNumber = $true,
     # Define TeamsPhoneInventory SharePoint List
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
     [string] $SharepointSite,
@@ -61,6 +62,10 @@ param(
 )
 
 
+########################################################
+##             function declaration
+##          
+########################################################
 ########################################################
 ##             function declaration
 ##          
@@ -248,10 +253,16 @@ catch {
     }
 }
 
-# Initiate RealmJoin Graph Session
+# Initiate Graph Session
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Initiate RealmJoin Graph Session"
-Connect-RjRbGraph
+Write-Output "$TimeStamp - Connection - Initiate MGGraph Session"
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "MGGraph Connect failed - stopping script"
+    Exit 
+}
 
 ########################################################
 ##             Block 1 - Setup base URL
@@ -287,7 +298,6 @@ catch {
     }
 }
 Write-Output "Connection - SharePoint TPI List URL: $TPIListURL"
-
 
 ########################################################
 ##             Block 2 - Getting StatusQuo
@@ -393,12 +403,31 @@ Write-Output "List Analysis - Items in SharePoint List: $($AllItems.Count)"
 $ID = ($AllItems | Where-Object Title -like $CurrentLineUri).ID
 $GraphAPIUrl_UpdateElement = $TPIListURL + '/items/'+ $ID
 
-if($AddDays -like ""){
-    $AddDays = 30
-}
+if (($AddDays -like "") -or ($BlockNumber -eq $false) -or ($AddDays -eq 0)) {
+    if($AddDays -like ""){
+        $AddDays = 0
+        Write-Warning "Block 4 - GraphAPI Part - No number of days defined for which a number is blocked by default before reassignment! Number will not be blocked!"
+    }
+    if ($AddDays -eq 0) {
+        Write-Warning "Block 4 - GraphAPI Part - The number of days defined for how long the current phone number is blocked before reassignment is zero! Number will not be blocked!"
+    }
 
-$BlockDay = (([datetime]::now).AddDays($AddDays)).tostring("dd.MM.yyyy")
-$Status = "TMP-BlockNumber_Until_" + $BlockDay
+    $HTTPBody_UpdateElement = @{
+        "fields" = @{
+            "Status" = ""
+            "TeamsEXT" = ""
+            "UPN" = ""
+            "Display_Name" = ""
+            "OnlineVoiceRoutingPolicy" = ""
+            "TeamsCallingPolicy" = ""
+            "DialPlan" = ""
+            "TenantDialPlan" = ""
+        }
+    }
+        Write-Output "Clear current entry for $CurrentLineUri in TPI"
+}else {
+    $BlockDay = (([datetime]::now).AddDays($AddDays)).tostring("dd.MM.yyyy")
+    $Status = "TMP-BlockNumber_Until_" + $BlockDay
 
 $HTTPBody_UpdateElement = @{
     "fields" = @{
@@ -412,21 +441,24 @@ $HTTPBody_UpdateElement = @{
         "TenantDialPlan" = ""
     }
 }
-Write-Output "Clear and block current entry for $CurrentLineUri in TPI"
+    Write-Output "Clear and block current entry for $CurrentLineUri in TPI"
+}
+
 $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_UpdateElement -Method Patch -Body $HTTPBody_UpdateElement -ProcessPart "TPI List - Update item: $CurrentLineUri"
 
 $HTTPBody_UpdateElement = $null
 
 ###################################################################################
 
-$BlockReason = "OffboardedUser_" + $UserName
-$TPIBlockExtensionListURL = $BaseURL + $SharepointBlockExtensionList
-$GraphAPIUrl_NewElement = $TPIBlockExtensionListURL + "/items"
+if (($AddDays -ne 0) -and ($BlockNumber -eq $true)) {
+    $BlockReason = "OffboardedUser_" + $UserName
+    $TPIBlockExtensionListURL = $BaseURL + $SharepointBlockExtensionList
+    $GraphAPIUrl_NewElement = $TPIBlockExtensionListURL + "/items"
 
-#Remove teams extension if existing
-if ($CurrentLineUri -like "*;ext=*") {
-    $CurrentLineUri = $CurrentLineUri.Substring(0,($CurrentLineUri.Length-($CurrentLineUri.IndexOf(";ext=")-3)))
-}
+    #Remove teams extension if existing
+    if ($CurrentLineUri -like "*;ext=*") {
+        $CurrentLineUri = $CurrentLineUri.Substring(0,($CurrentLineUri.Length-($CurrentLineUri.IndexOf(";ext=")-3)))
+    }
 
 $HTTPBody_NewElement = @{
     "fields" = @{
@@ -436,11 +468,11 @@ $HTTPBody_NewElement = @{
     }
 }
 
-Write-Output "Add a temporary entry in the BlockExtension list which blocks the phone number $CurrentLineUri until $BlockDay"
-$TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_NewElement -Method Post -Body $HTTPBody_NewElement -ProcessPart "BlockExtension List - add item: $CurrentLineUri"
+    Write-Output "Add a temporary entry in the BlockExtension list which blocks the phone number $CurrentLineUri until $BlockDay"
+    $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_NewElement -Method Post -Body $HTTPBody_NewElement -ProcessPart "BlockExtension List - add item: $CurrentLineUri"
 
-$HTTPBody_NewElement = $null
-
+    $HTTPBody_NewElement = $null
+}
 
 Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
 Get-PSSession | Remove-PSSession | Out-Null

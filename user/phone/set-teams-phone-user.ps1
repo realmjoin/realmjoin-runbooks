@@ -247,10 +247,16 @@ catch {
     }
 }
 
-# Initiate RealmJoin Graph Session
+# Initiate Graph Session
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Initiate RealmJoin Graph Session"
-Connect-RjRbGraph
+Write-Output "$TimeStamp - Connection - Initiate MGGraph Session"
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "MGGraph Connect failed - stopping script"
+    Exit 
+}
 
 ########################################################
 ##             Block 1 - License check
