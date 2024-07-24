@@ -44,7 +44,9 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }   
+
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -67,12 +69,6 @@ param(
 ##             function declaration
 ##          
 ########################################################
-function Get-AccessToken($URI) {
-    $IdentityEndpoint = $env:IDENTITY_ENDPOINT
-    $IdentityHeader = $env:IDENTITY_HEADER    
-    $Result = [System.Text.Encoding]::Default.GetString((Invoke-WebRequest -UseBasicParsing  -Uri "$($IdentityEndpoint)?resource=$URI&api-version=2019-08-01" -Method 'GET' -Headers @{'X-IDENTITY-HEADER' = "$IdentityHeader"; 'Metadata' = 'True'}).RawContentStream.ToArray()) | ConvertFrom-Json
-    return $Result.access_token    
-}
 
 
 ########################################################
@@ -95,12 +91,9 @@ if ($CredAutomation -notlike "") {
     Connect-MicrosoftTeams -Credential $CredAutomation 
     $VerbosePreference = "Continue"
 }else {
-    Write-Output "Connection - Get Access Token"
-    $graphToken = Get-AccessToken -URI "https://graph.microsoft.com"
-    $teamsToken = Get-AccessToken -URI "48ac35b8-9aa8-4d74-927d-1f4a14a0b239"
-    Write-Output "Connection - Connect via Access Token (as RealmJoin managed identity)"
+    Write-Output "Connection - Connect as RealmJoin managed identity"
     $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -AccessTokens @("$graphToken", "$teamsToken") -ErrorAction Stop
+    Connect-MicrosoftTeams -Identity -ErrorAction Stop
     $VerbosePreference = "Continue"
 }
 

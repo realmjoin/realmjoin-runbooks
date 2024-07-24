@@ -88,7 +88,9 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.19.0" }
 
 ########################################################
 ##             Variable/Parameter declaration
@@ -96,40 +98,39 @@
 ########################################################
 
 Param(
-        # App Registration for Update regulary TeamsPhoneInventory List - not for initializing (scoped site permission)
-        # Define Sharepoint Parameters
-        [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointURL" } )]
-        [string] $SharepointURL,
-        
+        # Define Sharepoint Parameters       
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
         [string] $SharepointSite,
         
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointTPIList" } )]
-        [string] $SharepointTPIList,
+        [string] $SharepointTPIList = "TeamsPhoneInventory",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointNumberRangeList" } )]
-        [String] $SharepointNumberRangeList,
+        [String] $SharepointNumberRangeList = "TPI-NumberRange",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointExtensionRangeList" } )]
-        [String] $SharepointExtensionRangeList,
+        [String] $SharepointExtensionRangeList = "TPI-ExtensionRange",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLegacyList" } )]
-        [String] $SharepointLegacyList,
+        [String] $SharepointLegacyList = "TPI-Legacy",
         
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointBlockExtensionList" } )]
-        [String] $SharepointBlockExtensionList,
+        [String] $SharepointBlockExtensionList = "TPI-BlockExtension",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLocationDefaultsList" } )]
-        [String] $SharepointLocationDefaultsList,
+        [String] $SharepointLocationDefaultsList = "TPI-LocationDefaults",
+
+        [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointCivicAddressMappingList" } )]
+        [string] $SharepointCivicAddressMappingList = "TPI-CivicAddressMapping",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLocationMappingList" } )]
-        [String] $SharepointLocationMappingList,
+        [String] $SharepointLocationMappingList = "TPI-LocationMapping",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointUserMappingList" } )]
-        [String] $SharepointUserMappingList,
+        [String] $SharepointUserMappingList = "TPI-UserMapping",
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.BlockExtensionDays" } )]
-        [int] $BlockExtensionDays,
+        [int] $BlockExtensionDays = 30,
 
         # CallerName is tracked purely for auditing purposes
         [string] $CallerName
@@ -139,11 +140,6 @@ Param(
 ##             Variable/Parameter declaration
 ##          
 ########################################################
-
-# Define RunMode
-# Possible Values - "AppBased", "Runbook" or "RealmJoinRunbook"
-# Functions has to be replaced to the regarding RunMode variants
-$RunMode = "RealmJoinRunbook"
 
 ########################################################
 ##             function declaration
@@ -158,16 +154,38 @@ function Get-TPIList {
         [String]
         $ListName # Only for easier logging
     )
+
+    #Limit access to 2000 items (Default is 200)
+    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
+    try {
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+    }
+    catch {
+        Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
+        
+        try {
+            Connect-MgGraph -Identity
+            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+        }
+        catch {
+            Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
+            Exit
+        }
+        
+    }
     
-    #Get fresh status quo of the SharePoint List after updating
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Output "$TimeStamp - GraphAPI - Get fresh StatusQuo of the SharePoint List $ListName"
+    $AllItems = $AllItemsResponse.value.fields
 
-    #Setup URL variables
-    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items'
+    #Check if response is paged:
+    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
 
-    $AllItemsResponse = Invoke-RjRbRestMethodGraph -Resource $GraphAPIUrl_StatusQuoSharepointList -Method Get -UriQueryRaw 'expand=columns,items(expand=fields)' -FollowPaging
-    $AllItems = $AllItemsResponse.fields
+    while ($null -ne $AllItemsResponseNextLink) {
+
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
+        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+        $AllItems += $AllItemsResponse.value.fields
+
+    }
 
     return $AllItems
 
@@ -182,15 +200,10 @@ function Invoke-TPIRestMethod {
         [String]
         $Method,
         [parameter(Mandatory = $false)]
-        [hashtable]
         $Body,
         [parameter(Mandatory = $true)]
         [String]
-        $ProcessPart,
-        [parameter(Mandatory = $false)]
-        [String]
-        $SkipThrow = $false
-        
+        $ProcessPart
     )
 
     #ToFetchErrors (Throw)
@@ -198,7 +211,7 @@ function Invoke-TPIRestMethod {
 
     if (($Method -like "Post") -or ($Method -like "Patch")) {
         try {
-            $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method -Body $Body
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
         }
         catch {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -211,10 +224,11 @@ function Invoke-TPIRestMethod {
             Write-Output ""
 
             Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
-            Connect-RjRbGraph -Force
             Start-Sleep -Seconds 5
+            Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
+            #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method -Body $Body
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -231,9 +245,9 @@ function Invoke-TPIRestMethod {
         }
     }else{
         try {
-            #$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-            #Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
-            $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+            Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
         }
         catch {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -245,10 +259,11 @@ function Invoke-TPIRestMethod {
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
-            Connect-RjRbGraph -Force
             Start-Sleep -Seconds 5
+            Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
+            #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -296,7 +311,7 @@ Write-Output ''
 # Needs a Microsoft Teams Connection First!
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Connect to Microsoft Teams (PowerShell as RealmJoin managed identity)"
+Write-Output "$TimeStamp - Connection - Connect to Microsoft Teams (PowerShell as managed identity)"
 
 $VerbosePreference = "SilentlyContinue"
 Connect-MicrosoftTeams -Identity -ErrorAction Stop
@@ -318,10 +333,17 @@ catch {
     }
 }
 
-# Initiate RealmJoin Graph Session
+# Initiate Graph Session
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Initiate RealmJoin Graph Session"
-Connect-RjRbGraph
+Write-Output "$TimeStamp - Connection - Initiate MGGraph Session"
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "MGGraph Connect failed - stopping script"
+    Exit 
+}
+
 
 # Add Caller in Verbose output
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -335,6 +357,7 @@ Write-RjRbLog -Message "SharepointNumberRangeList: '$SharepointNumberRangeList'"
 Write-RjRbLog -Message "SharepointExtensionRangeList: '$SharepointExtensionRangeList'" -Verbose
 Write-RjRbLog -Message "SharepointLegacyList: '$SharepointLegacyList'" -Verbose
 Write-RjRbLog -Message "SharepointBlockExtensionList: '$SharepointBlockExtensionList'" -Verbose
+Write-RjRbLog -Message "SharepointCivicAddressMappingList: '$SharepointCivicAddressMappingList'" -Verbose
 Write-RjRbLog -Message "SharepointLocationDefaultsList: '$SharepointLocationDefaultsList'" -Verbose
 Write-RjRbLog -Message "SharepointLocationMappingList: '$SharepointLocationMappingList'" -Verbose
 Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'" -Verbose
@@ -354,54 +377,31 @@ Write-RjRbLog -Message "BlockExtensionDays: '$BlockExtensionDays'" -Verbose
 ##          
 ########################################################
 
-
-if ($RunMode -like "AppBased") {
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Output "$TimeStamp - Connection - Check if GraphAPI token and Teams PowerShell session belong to the same tenant" 
-    #Check if GraphAPI token and Teams PowerShell session belong to the same tenant
-    $TeamsTenantDomains = (Get-CsTenant).Domains
-    if ($TeamsTenantDomains -notcontains $global:TenantDomainName) {
-        if ($TeamsTenantDomains -like "") {
-            $TeamsTenantDomains = (Get-CsTenant).VerifiedDomains.Name
-            if ($TeamsTenantDomains -notcontains $global:TenantDomainName) {
-                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-                Write-Output "$TimeStamp - The tenant to which the Teams Powershell session was built does not contain the tenant domain used for GraphAPI - also even not as a verified Domain!"
-                Write-Output "Stopping script!"
-                Exit   
-            }
-        }else {
-            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-            Write-Output "$TimeStamp - The tenant to which the Teams Powershell session was built does not contain the tenant domain used for GraphAPI."   
-        }
-    }
-}
-
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Check basic connection to TPI List"
 
-# Setup Base URL - not only for NumberRange etc.
-if (($RunMode -like "AppBased") -or ($RunMode -like "Runbook")) {
-    $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
-}else{
-    $BaseURL = '/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/' 
+$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL" ).webUrl
+if ($SharepointURL -like "https://*") {
+  $SharepointURL = $SharepointURL.Replace("https://","")
+}elseif ($SharepointURL -like "http://*") {
+  $SharepointURL = $SharepointURL.Replace("http://","")
 }
+
+# Setup Base URL - not only for NumberRange etc.
+$BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
 $TPIListURL = $BaseURL + $SharepointTPIList
 try {
     Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop | Out-Null
 }
 catch {
-    if (($RunMode -like "AppBased") -or ($RunMode -like "Runbook")) {
-        $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/'
-    }else{
-        $BaseURL = '/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/' 
-    }
+    $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/'
     $TPIListURL = $BaseURL + $SharepointTPIList
     try {
-        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" | Out-Null
+        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List"  -ErrorAction Stop | Out-Null
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Output "$TimeStamp - Connection - Could not connect to SharePoint TPI List!"
+        Write-Error "$TimeStamp - Connection - Could not connect to SharePoint TPI List!"
         throw "$TimeStamp - Could not connect to SharePoint TPI List!"
         Exit
     }
@@ -421,7 +421,7 @@ Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Get StatusQuo"
 Write-Output "$TimeStamp - Block 1 - Get all Teams User..."
-$AllUsers = get-csonlineuser  | Where-Object {($_.City -notlike '') -and ($_.Street -notlike '') -and ($_.Company -notlike '')} | select-Object UserPrincipalName,Displayname,LineUri,City,Street,Company
+$AllUsers = Get-CsOnlineUser -Filter {City -notlike '' -and Street -notlike '' -and Company -notlike ''}  | select-Object UserPrincipalName,Displayname,LineUri,City,Street,Company
 
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")

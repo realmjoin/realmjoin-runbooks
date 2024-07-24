@@ -3,7 +3,7 @@
   Microsoft Teams telephony offboarding
   
   .DESCRIPTION
-  Remove the phone number and specific policies from a teams-enabled user. The runbook is part of the TeamsPhoneInventory.
+  Remove the phone number and specific policies from a teams-enabled user. If "Delay possible re-assignment of the current call number" is activated, the phone number is blocked for a defined number of days so that it is not assigned to a new user for this period. The number of days is stored in the RealmJoin settings. The runbook is part of the TeamsPhoneInventory.
 
   .NOTES
   Permissions: 
@@ -15,10 +15,6 @@
       "Parameters": {
           "AddDays": {
               "Hide": true
-          },
-          "SharepointURL": {
-              "Hide": true,
-              "Mandatory": true
           },
           "SharepointSite": {
               "Hide": true,
@@ -39,7 +35,9 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.19.0" }
 
 param(
     # User which should be cleared
@@ -48,10 +46,9 @@ param(
     #Number of days the phone number is blocked for a new assignment
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.BlockNumberforDays" } )]
     [String] $AddDays,
-    
+    [ValidateScript( { Use-RJInterface -DisplayName "Delay possible re-assignment of the current call number" } )]
+    [bool] $BlockNumber = $true,
     # Define TeamsPhoneInventory SharePoint List
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointURL" } )]
-    [string] $SharepointURL,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
     [string] $SharepointSite,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointTPIList" } )]
@@ -69,6 +66,10 @@ param(
 ##             function declaration
 ##          
 ########################################################
+########################################################
+##             function declaration
+##          
+########################################################
 function Get-TPIList {
     param (
         [parameter(Mandatory = $true)]
@@ -78,16 +79,38 @@ function Get-TPIList {
         [String]
         $ListName # Only for easier logging
     )
-    
-    #Get fresh status quo of the SharePoint List after updating
-    
-    Write-Output "GraphAPI - Get fresh StatusQuo of the SharePoint List $ListName"
 
-    #Setup URL variables
-    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items'
+    #Limit access to 2000 items (Default is 200)
+    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
+    try {
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+    }
+    catch {
+        Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
+        
+        try {
+            Connect-MgGraph -Identity
+            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+        }
+        catch {
+            Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
+            Exit
+        }
+        
+    }
+    
+    $AllItems = $AllItemsResponse.value.fields
 
-    $AllItemsResponse = Invoke-RjRbRestMethodGraph -Resource $GraphAPIUrl_StatusQuoSharepointList -Method Get -UriQueryRaw 'expand=columns,items(expand=fields)' -FollowPaging
-    $AllItems = $AllItemsResponse.fields
+    #Check if response is paged:
+    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+
+    while ($null -ne $AllItemsResponseNextLink) {
+
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
+        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+        $AllItems += $AllItemsResponse.value.fields
+
+    }
 
     return $AllItems
 
@@ -102,15 +125,10 @@ function Invoke-TPIRestMethod {
         [String]
         $Method,
         [parameter(Mandatory = $false)]
-        [hashtable]
         $Body,
         [parameter(Mandatory = $true)]
         [String]
-        $ProcessPart,
-        [parameter(Mandatory = $false)]
-        [String]
-        $SkipThrow = $false
-        
+        $ProcessPart
     )
 
     #ToFetchErrors (Throw)
@@ -118,72 +136,76 @@ function Invoke-TPIRestMethod {
 
     if (($Method -like "Post") -or ($Method -like "Patch")) {
         try {
-            $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method -Body $Body
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
         }
         catch {
-            
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
-            Write-Output "GraphAPI - Error! Process part: $ProcessPart"
+            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
             $StatusCode = $_.Exception.Response.StatusCode.value__ 
             $StatusDescription = $_.Exception.Response.ReasonPhrase
-            Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-            Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
             Write-Output ""
 
-            Write-Output "GraphAPI - One Retry after 5 seconds"
-            Connect-RjRbGraph -Force
+            Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
             Start-Sleep -Seconds 5
+            Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
+            #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method -Body $Body
-                Write-Output "GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
+                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
-                
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
                 $StatusCode = $_.Exception.Response.StatusCode.value__ 
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
-                Write-Output "GraphAPI - Error! Process part: $ProcessPart error is still present!"
-                Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-                Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
             } 
         }
     }else{
         try {
-            $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+            Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
         }
         catch {
-            
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
-            Write-Output "GraphAPI - Error! Process part: $ProcessPart"
+            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
             $StatusCode = $_.Exception.Response.StatusCode.value__ 
             $StatusDescription = $_.Exception.Response.ReasonPhrase
-            Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-            Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
             Write-Output ""
-            Write-Output "GraphAPI - One Retry after 5 seconds"
-            Connect-RjRbGraph -Force
+            Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
             Start-Sleep -Seconds 5
+            Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
+            #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method
-                Write-Output "GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
+                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
-                
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
                 $StatusCode = $_.Exception.Response.StatusCode.value__ 
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
-                Write-Output "GraphAPI - Error! Process part: $ProcessPart error is still present!"
-                Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-                Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
             } 
         }
     }
 
     if ($ExitError -eq 1) {
-        throw "GraphAPI - Error! Process part: $ProcessPart error is still present! StatusCode: $StatusCode StatusDescription: $StatusDescription"
+        throw "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present! StatusCode: $StatusCode StatusDescription: $StatusDescription"
         $StatusCode = $null
         $StatusDescription = $null
     }
@@ -191,6 +213,7 @@ function Invoke-TPIRestMethod {
     return $TPIRestMethod
     
 }
+
 
 ########################################################
 ##             Block 0 - Connect Part
@@ -230,10 +253,16 @@ catch {
     }
 }
 
-# Initiate RealmJoin Graph Session
+# Initiate Graph Session
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Initiate RealmJoin Graph Session"
-Connect-RjRbGraph
+Write-Output "$TimeStamp - Connection - Initiate MGGraph Session"
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "MGGraph Connect failed - stopping script"
+    Exit 
+}
 
 ########################################################
 ##             Block 1 - Setup base URL
@@ -242,25 +271,24 @@ Connect-RjRbGraph
 Write-Output ""
 Write-Output "Block 1 - Check basic connection to TPI List and build base URL"
 
-# Setup Base URL - not only for NumberRange etc.
-if (($RunMode -like "AppBased") -or ($RunMode -like "Runbook")) {
-    $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
-}else{
-    $BaseURL = '/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/' 
+$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL" ).webUrl
+if ($SharepointURL -like "https://*") {
+  $SharepointURL = $SharepointURL.Replace("https://","")
+}elseif ($SharepointURL -like "http://*") {
+  $SharepointURL = $SharepointURL.Replace("http://","")
 }
+
+# Setup Base URL - not only for NumberRange etc.
+$BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
 $TPIListURL = $BaseURL + $SharepointTPIList
 try {
     Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop | Out-Null
 }
 catch {
-    if (($RunMode -like "AppBased") -or ($RunMode -like "Runbook")) {
-        $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/'
-    }else{
-        $BaseURL = '/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/' 
-    }
+    $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/'
     $TPIListURL = $BaseURL + $SharepointTPIList
     try {
-        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" | Out-Null
+        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List"  -ErrorAction Stop | Out-Null
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -270,7 +298,6 @@ catch {
     }
 }
 Write-Output "Connection - SharePoint TPI List URL: $TPIListURL"
-
 
 ########################################################
 ##             Block 2 - Getting StatusQuo
@@ -376,12 +403,31 @@ Write-Output "List Analysis - Items in SharePoint List: $($AllItems.Count)"
 $ID = ($AllItems | Where-Object Title -like $CurrentLineUri).ID
 $GraphAPIUrl_UpdateElement = $TPIListURL + '/items/'+ $ID
 
-if($AddDays -like ""){
-    $AddDays = 30
-}
+if (($AddDays -like "") -or ($BlockNumber -eq $false) -or ($AddDays -eq 0)) {
+    if($AddDays -like ""){
+        $AddDays = 0
+        Write-Warning "Block 4 - GraphAPI Part - No number of days defined for which a number is blocked by default before reassignment! Number will not be blocked!"
+    }
+    if ($AddDays -eq 0) {
+        Write-Warning "Block 4 - GraphAPI Part - The number of days defined for how long the current phone number is blocked before reassignment is zero! Number will not be blocked!"
+    }
 
-$BlockDay = (([datetime]::now).AddDays($AddDays)).tostring("dd.MM.yyyy")
-$Status = "TMP-BlockNumber-Until_" + $BlockDay
+    $HTTPBody_UpdateElement = @{
+        "fields" = @{
+            "Status" = ""
+            "TeamsEXT" = ""
+            "UPN" = ""
+            "Display_Name" = ""
+            "OnlineVoiceRoutingPolicy" = ""
+            "TeamsCallingPolicy" = ""
+            "DialPlan" = ""
+            "TenantDialPlan" = ""
+        }
+    }
+        Write-Output "Clear current entry for $CurrentLineUri in TPI"
+}else {
+    $BlockDay = (([datetime]::now).AddDays($AddDays)).tostring("dd.MM.yyyy")
+    $Status = "TMP-BlockNumber_Until_" + $BlockDay
 
 $HTTPBody_UpdateElement = @{
     "fields" = @{
@@ -395,21 +441,24 @@ $HTTPBody_UpdateElement = @{
         "TenantDialPlan" = ""
     }
 }
-Write-Output "Clear and block current entry for $CurrentLineUri in TPI"
+    Write-Output "Clear and block current entry for $CurrentLineUri in TPI"
+}
+
 $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_UpdateElement -Method Patch -Body $HTTPBody_UpdateElement -ProcessPart "TPI List - Update item: $CurrentLineUri"
 
 $HTTPBody_UpdateElement = $null
 
 ###################################################################################
 
-$BlockReason = "OffboardedUser_" + $UserName
-$TPIBlockExtensionListURL = $BaseURL + $SharepointBlockExtensionList
-$GraphAPIUrl_NewElement = $TPIBlockExtensionListURL + "/items"
+if (($AddDays -ne 0) -and ($BlockNumber -eq $true)) {
+    $BlockReason = "OffboardedUser_" + $UserName
+    $TPIBlockExtensionListURL = $BaseURL + $SharepointBlockExtensionList
+    $GraphAPIUrl_NewElement = $TPIBlockExtensionListURL + "/items"
 
-#Remove teams extension if existing
-if ($CurrentLineUri -like "*;ext=*") {
-    $CurrentLineUri = $CurrentLineUri.Substring(0,($CurrentLineUri.Length-($CurrentLineUri.IndexOf(";ext=")-3)))
-}
+    #Remove teams extension if existing
+    if ($CurrentLineUri -like "*;ext=*") {
+        $CurrentLineUri = $CurrentLineUri.Substring(0,($CurrentLineUri.Length-($CurrentLineUri.IndexOf(";ext=")-3)))
+    }
 
 $HTTPBody_NewElement = @{
     "fields" = @{
@@ -419,11 +468,11 @@ $HTTPBody_NewElement = @{
     }
 }
 
-Write-Output "Add a temporary entry in the BlockExtension list which blocks the phone number $CurrentLineUri until $BlockDay"
-$TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_NewElement -Method Post -Body $HTTPBody_NewElement -ProcessPart "BlockExtension List - add item: $CurrentLineUri"
+    Write-Output "Add a temporary entry in the BlockExtension list which blocks the phone number $CurrentLineUri until $BlockDay"
+    $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_NewElement -Method Post -Body $HTTPBody_NewElement -ProcessPart "BlockExtension List - add item: $CurrentLineUri"
 
-$HTTPBody_NewElement = $null
-
+    $HTTPBody_NewElement = $null
+}
 
 Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
 Get-PSSession | Remove-PSSession | Out-Null

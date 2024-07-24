@@ -12,7 +12,9 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "MicrosoftTeams"; ModuleVersion = "5.9.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.20.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
@@ -27,8 +29,6 @@ param(
     [String] $TeamsCallingPolicy,
 
     # Define TeamsPhoneInventory SharePoint List
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointURL" } )]
-    [string] $SharepointURL,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
     [string] $SharepointSite,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointTPIList" } )]
@@ -51,16 +51,38 @@ function Get-TPIList {
         [String]
         $ListName # Only for easier logging
     )
-    
-    #Get fresh status quo of the SharePoint List after updating
-    
-    Write-Output "GraphAPI - Get fresh StatusQuo of the SharePoint List $ListName"
 
-    #Setup URL variables
-    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items'
+    #Limit access to 2000 items (Default is 200)
+    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
+    try {
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+    }
+    catch {
+        Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
+        
+        try {
+            Connect-MgGraph -Identity
+            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+        }
+        catch {
+            Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
+            Exit
+        }
+        
+    }
+    
+    $AllItems = $AllItemsResponse.value.fields
 
-    $AllItemsResponse = Invoke-RjRbRestMethodGraph -Resource $GraphAPIUrl_StatusQuoSharepointList -Method Get -UriQueryRaw 'expand=columns,items(expand=fields)' -FollowPaging
-    $AllItems = $AllItemsResponse.fields
+    #Check if response is paged:
+    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+
+    while ($null -ne $AllItemsResponseNextLink) {
+
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
+        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+        $AllItems += $AllItemsResponse.value.fields
+
+    }
 
     return $AllItems
 
@@ -75,15 +97,10 @@ function Invoke-TPIRestMethod {
         [String]
         $Method,
         [parameter(Mandatory = $false)]
-        [hashtable]
         $Body,
         [parameter(Mandatory = $true)]
         [String]
-        $ProcessPart,
-        [parameter(Mandatory = $false)]
-        [String]
-        $SkipThrow = $false
-        
+        $ProcessPart
     )
 
     #ToFetchErrors (Throw)
@@ -91,72 +108,76 @@ function Invoke-TPIRestMethod {
 
     if (($Method -like "Post") -or ($Method -like "Patch")) {
         try {
-            $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method -Body $Body
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
         }
         catch {
-            
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
-            Write-Output "GraphAPI - Error! Process part: $ProcessPart"
+            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
             $StatusCode = $_.Exception.Response.StatusCode.value__ 
             $StatusDescription = $_.Exception.Response.ReasonPhrase
-            Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-            Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
             Write-Output ""
 
-            Write-Output "GraphAPI - One Retry after 5 seconds"
-            Connect-RjRbGraph -Force
+            Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
             Start-Sleep -Seconds 5
+            Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
+            #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method -Body $Body
-                Write-Output "GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
+                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
-                
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
                 $StatusCode = $_.Exception.Response.StatusCode.value__ 
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
-                Write-Output "GraphAPI - Error! Process part: $ProcessPart error is still present!"
-                Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-                Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
             } 
         }
     }else{
         try {
-            $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+            Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
         }
         catch {
-            
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
-            Write-Output "GraphAPI - Error! Process part: $ProcessPart"
+            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
             $StatusCode = $_.Exception.Response.StatusCode.value__ 
             $StatusDescription = $_.Exception.Response.ReasonPhrase
-            Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-            Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
             Write-Output ""
-            Write-Output "GraphAPI - One Retry after 5 seconds"
-            Connect-RjRbGraph -Force
+            Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
             Start-Sleep -Seconds 5
+            Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
+            #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-RjRbRestMethodGraph -Resource $Uri -Method $Method
-                Write-Output "GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
+                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
-                
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
                 $StatusCode = $_.Exception.Response.StatusCode.value__ 
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
-                Write-Output "GraphAPI - Error! Process part: $ProcessPart error is still present!"
-                Write-Output "GraphAPI - Error! StatusCode: $StatusCode"
-                Write-Output "GraphAPI - Error! StatusDescription: $StatusDescription"
+                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
             } 
         }
     }
 
     if ($ExitError -eq 1) {
-        throw "GraphAPI - Error! Process part: $ProcessPart error is still present! StatusCode: $StatusCode StatusDescription: $StatusDescription"
+        throw "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present! StatusCode: $StatusCode StatusDescription: $StatusDescription"
         $StatusCode = $null
         $StatusDescription = $null
     }
@@ -164,6 +185,7 @@ function Invoke-TPIRestMethod {
     return $TPIRestMethod
     
 }
+
 
 ########################################################
 ##             Block 0 - Connect Part
@@ -202,11 +224,16 @@ catch {
     }
 }
 
-# Initiate RealmJoin Graph Session
+# Initiate Graph Session
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Initiate RealmJoin Graph Session"
-Connect-RjRbGraph
-
+Write-Output "$TimeStamp - Connection - Initiate MGGraph Session"
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "MGGraph Connect failed - stopping script"
+    Exit 
+}
 ########################################################
 ##             Block 1 - License check
 ##          
@@ -262,6 +289,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
     Exit
 }
 
+
 ########################################################
 ##             Block 2 - Checkup Part
 ##          
@@ -288,18 +316,26 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}(;ext=\d{1,10})?") {
 $NumberCheck = "Empty"
 $CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
 $NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber*").UserPrincipalName
+$PhoneNumberAssignment = Get-CsPhoneNumberAssignment | Where-Object { $_.TelephoneNumber -like "$PhoneNumber" }
+$PstnAssignmentStatus = $PhoneNumberAssignment.PstnAssignmentStatus
+
 $NumberAlreadyAssigned = 0
 
-if ($NumberCheck -notlike "") {
+if ($PstnAssignmentStatus -like "" -or $PstnAssignmentStatus -like "Unassigned") {
+    Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
+}else {
     if ($UPN -like $Numbercheck) { #Check if number is already assigned to the target user
         $NumberAlreadyAssigned = 1
         Write-Output "Phone number is already assigned to the user!"
+    }elseif ($PhoneNumberAssignment.AssignmentCategory -like "Private") {
+        $CurrentPrivateLineUser = (Get-CsOnlineUser $PhoneNumberAssignment.AssignedPstnTargetId).UserPrincipalName
+        Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already as private line assigned to $CurrentPrivateLineUser"
+        throw "The assignment for could not be performed. PhoneNumber is already assigned!"
+        
     }else{
         Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck"
         throw "The assignment for could not be performed. PhoneNumber is already assigned!"
     }
-}else {
-    Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
 }
 
 ########################################################
@@ -309,25 +345,29 @@ if ($NumberCheck -notlike "") {
 Write-Output ""
 Write-Output "Block 3 - Check basic connection to TPI List and build base URL"
 
+$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL" ).webUrl
+if ($SharepointURL -like "https://*") {
+  $SharepointURL = $SharepointURL.Replace("https://","")
+}elseif ($SharepointURL -like "http://*") {
+  $SharepointURL = $SharepointURL.Replace("http://","")
+}
+
 # Setup Base URL - not only for NumberRange etc.
-$BaseURL = '/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/' 
+$BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
 $TPIListURL = $BaseURL + $SharepointTPIList
 try {
     Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop | Out-Null
 }
 catch {
-    $BaseURL = '/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/' 
-
+    $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/'
     $TPIListURL = $BaseURL + $SharepointTPIList
     try {
-        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" | Out-Null
+        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List"  -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Output ""
-        Write-Output "Error:"
-        Write-Output "Could not connect to SharePoint TPI List!"
-        Write-Output ""
-        throw "Could not connect to SharePoint TPI List!"
+        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+        Write-Error "$TimeStamp - Connection - Could not connect to SharePoint TPI List!"
+        throw "$TimeStamp - Could not connect to SharePoint TPI List!"
         Exit
     }
 }
@@ -429,23 +469,33 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 Write-Output ""
 Write-Output "Block 7 - Pre flight check"
 
-#Check if number is a calling plan number
-Write-Output "Check if LineUri is a Calling Plan number"
+#Check if number is a calling plan or operator connect number
+Write-Output "Check if LineUri is a Calling Plan, Operator Connect or Direct Routing number"
 $CallingPlanNumber = (Get-CsPhoneNumberAssignment -NumberType CallingPlan).TelephoneNumber
-if ($CallingPlanNumber.Count -gt 0) {
+$OperatorConnectNumber = (Get-CsPhoneNumberAssignment -NumberType OperatorConnect).TelephoneNumber
+if (($CallingPlanNumber| Measure-Object).Count -gt 0) {
     if ($CallingPlanNumber -contains $PhoneNumber) {
         $CallingPlanCheck = $true
         Write-Output "Phone number is a Calling Plan number"
     }else{
         $CallingPlanCheck = $false
+        $OperatorConnectCheck = $false
+        Write-Output "Phone number is a Direct Routing number"
+    }
+}elseif (($OperatorConnectNumber | Measure-Object).Count -gt 0) {
+    if ($OperatorConnectNumber -contains $PhoneNumber) {
+        $OperatorConnectCheck = $true
+        Write-Output "Phone number is a Operator Connect number"
+    }else{
+        $CallingPlanCheck = $false
+        $OperatorConnectCheck = $false
         Write-Output "Phone number is a Direct Routing number"
     }
 }else{
     Write-Output "Phone number is a Direct Routing number"
     $CallingPlanCheck = $false
+    $OperatorConnectCheck = $false
 }
-
-
 
 # Check if specified Online Voice Routing Policy exists
 try {
@@ -511,13 +561,14 @@ if ($NumberAlreadyAssigned -like 1) {
     try {
         if ($CallingPlanCheck) {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
-        }else {
+        }elseif (OperatorConnectCheck) {
+            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType OperatorConnect -ErrorAction Stop
+        } else {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
         }
     }catch {
         $message = $_
-        Write-Error "Teams - Error: The assignment for $UPN could not be performed!"
-        Write-Error "Error Message: $message"
+        Write-Error "Teams - Error: The assignment for $UPN could not be performed! - Error Message: $message"
         throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
     }
 }
@@ -539,8 +590,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of OnlineVoiceRoutingPolicy for $UPN could not be completed!"
         }
     }
@@ -557,8 +607,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of TenantDialPlan for $UPN could not be completed!"
         }
     }
@@ -575,8 +624,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         }
         catch {
             $message = $_
-            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
-            Write-Error "Error Message: $message"
+            Write-Error "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed! - Error Message: $message"
             throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
         }
     }
