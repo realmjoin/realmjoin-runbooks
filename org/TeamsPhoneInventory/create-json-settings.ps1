@@ -16,6 +16,41 @@
 
 #>
 
+########################################################
+##             preflight-check
+##          
+########################################################
+
+
+$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+Write-Output "$TimeStamp - Check the PowerShell major version under which the runbook is currently running"
+
+# Get the current PowerShell major version
+$PSVersion = $PSVersionTable.PSVersion.Major
+
+Write-Verbose "Current PS major version: $PSVersion"
+# Check if the PowerShell version is 5 or 7
+if ($PSVersion -eq 5) {
+    # Output a message and exit if the version is 5
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Error "$TimeStamp - The runbook must be used with PowerShell 7 Runtime. Please copy the content of the PowerShell 5 Runtime Runbook into a PowerShell 7.2 Runtime Runbook and execute it again!. Exiting the script."
+    exit
+} elseif ($PSVersion -eq 7) {
+    # Output a message and continue if the version is 7
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - The runbook is running on PowerShell 7. Continuing..."
+} else {
+    # Output a message and exit if the version is neither 5 nor 7
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Error "$TimeStamp - The script is not running on PowerShell major version 5 or 7. Exiting the script."
+    exit
+}
+
+########################################################
+##             define variables
+##          
+########################################################
+
 # Define Sharepoint Parameters
 # Example:
 # $SharepointSite = "SiteName"
