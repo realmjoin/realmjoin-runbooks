@@ -437,7 +437,7 @@ Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 #
 #############################################################################
 
-$SettingsTPI = [PSCustomObject]@{
+$SettingsTPI = [PSCustomObject][ordered]@{
     'SharepointURL' = $SharepointURL;
     'SharepointSite' = $SharepointSite;
     'SharepointTPIList' = $SharepointTPIList;
@@ -452,7 +452,7 @@ $SettingsTPI = [PSCustomObject]@{
     'BlockExtensionDays' = $BlockExtensionDays;
 }
 
-$Settings_jsonBase = [PSCustomObject]@{
+$Settings_jsonBase = [PSCustomObject][ordered]@{
     'TPI' = $SettingsTPI
 }
 
@@ -475,7 +475,7 @@ $OnlineVoicemailPolicy = Get-CsOnlineVoicemailPolicy
 #
 #############################################################################
 
-$OVRP_jsonBase = @{}
+$OVRP_jsonBase = [ordered]@{}
 $OVRP_list = New-Object System.Collections.ArrayList
 
 foreach ($OVRP in $OnlineVoiceRoutingPolicy) {
@@ -484,8 +484,8 @@ foreach ($OVRP in $OnlineVoiceRoutingPolicy) {
     }
 }
 
-$OVRP_jsonBase.Add('$values',$OVRP_list)
 $OVRP_jsonBase.Add('$id','TPI-OnlineVoiceRoutingPolicy')
+$OVRP_jsonBase.Add('$values',$OVRP_list)
 
 #endregion
 #region TeamsCallingPolicy
@@ -494,7 +494,7 @@ $OVRP_jsonBase.Add('$id','TPI-OnlineVoiceRoutingPolicy')
 #
 #############################################################################
 
-$TCP_jsonBase = @{}
+$TCP_jsonBase = [ordered]@{}
 $TCP_list = New-Object System.Collections.ArrayList
 
 foreach ($TCP in $TeamsCallingPolicy) {
@@ -503,8 +503,8 @@ foreach ($TCP in $TeamsCallingPolicy) {
     }
 }
 
-$TCP_jsonBase.Add('$values',$TCP_list)
 $TCP_jsonBase.Add('$id','TPI-TeamsCallingPolicy')
+$TCP_jsonBase.Add('$values',$TCP_list)
 
 #endregion
 #region TenantDialPlan
@@ -513,7 +513,7 @@ $TCP_jsonBase.Add('$id','TPI-TeamsCallingPolicy')
 #
 #############################################################################
 
-$TDP_jsonBase = @{}
+$TDP_jsonBase = [ordered]@{}
 $TDP_list = New-Object System.Collections.ArrayList
 
 foreach ($TDP in $TenantDialPlan) {
@@ -522,8 +522,8 @@ foreach ($TDP in $TenantDialPlan) {
     }
 }
 
-$TDP_jsonBase.Add('$values',$TDP_list)
 $TDP_jsonBase.Add('$id','TPI-TenantDialPlan')
+$TDP_jsonBase.Add('$values',$TDP_list)
 
 #endregion
 #region OnlineVoicemailPolicy
@@ -532,7 +532,7 @@ $TDP_jsonBase.Add('$id','TPI-TenantDialPlan')
 #
 #############################################################################
 
-$OVMP_jsonBase = @{}
+$OVMP_jsonBase = [ordered]@{}
 $OVMP_list = New-Object System.Collections.ArrayList
 
 foreach ($OVMP in $OnlineVoicemailPolicy) {
@@ -541,8 +541,8 @@ foreach ($OVMP in $OnlineVoicemailPolicy) {
     }
 }
 
-$OVMP_jsonBase.Add('$values',$OVMP_list)
 $OVMP_jsonBase.Add('$id','TPI-OnlineVoicemailPolicy')
+$OVMP_jsonBase.Add('$values',$OVMP_list)
 
 #endregion
 #region ExtensionRange
@@ -555,9 +555,11 @@ $ExtensionRangeListURL = $BaseURL + $SharepointExtensionRangeList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Get StatusQuo of ExtensionRange SharePoint List - ListName: $SharepointExtensionRangeList"
-$ExtensionRangeList = Get-TPIList -ListBaseURL $ExtensionRangeListURL -ListName $SharepointExtensionRangeList | Select-Object ExtensionRangeName,BeginExtensionRange,EndExtensionRange
+$ExtensionRangeList = Get-TPIList -ListBaseURL $ExtensionRangeListURL -ListName $SharepointExtensionRangeList # Select does in problems using PowerShell5 | Select-Object ExtensionRangeName,BeginExtensionRange,EndExtensionRange
 
-$ER_jsonBase = @{}
+Write-Verbose "ExtensionRangeList: $ExtensionRangeList"
+
+$ER_jsonBase = [ordered]@{}
 $ER_list = New-Object System.Collections.ArrayList
 
 foreach ($ER in $ExtensionRangeList) {
@@ -566,8 +568,8 @@ foreach ($ER in $ExtensionRangeList) {
     }
 }
 
-$ER_jsonBase.Add('$values',$ER_list)
 $ER_jsonBase.Add('$id','TPI-ExtensionRange')
+$ER_jsonBase.Add('$values',$ER_list)
 
 #endregion
 #region CivicAddressMapping
@@ -580,9 +582,11 @@ $CivicAddressMappingListURL = $BaseURL + $SharepointCivicAddressMappingList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Get StatusQuo of CivicAddressMapping SharePoint List - ListName: $SharepointCivicAddressMappingList"
-$CivicAddressMappingList = Get-TPIList -ListBaseURL $CivicAddressMappingListURL -ListName $SharepointCivicAddressMappingList | Select-Object CivicAddressMappingIndex,CivicAddressMappingName,CivicAddressID
+$CivicAddressMappingList = Get-TPIList -ListBaseURL $CivicAddressMappingListURL -ListName $SharepointCivicAddressMappingList # Select does in problems using PowerShell5 | Select-Object CivicAddressMappingIndex,CivicAddressMappingName,CivicAddressID
 
-$CAM_jsonBase = @{}
+Write-Verbose "CivicAddressMappingList: $CivicAddressMappingList"
+
+$CAM_jsonBase = [ordered]@{}
 $CAM_list = New-Object System.Collections.ArrayList
 
 foreach ($CAM in $CivicAddressMappingList) {
@@ -591,8 +595,8 @@ foreach ($CAM in $CivicAddressMappingList) {
     }
 }
 
-$CAM_jsonBase.Add('$values',$CAM_list)
 $CAM_jsonBase.Add('$id','TPI-CivicAddressMapping')
+$CAM_jsonBase.Add('$values',$CAM_list)
 
 #endregion
 #region LocationDefaults
@@ -605,9 +609,11 @@ $LocationDefaultsListURL = $BaseURL + $SharepointLocationDefaultsList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Get StatusQuo of LocationDefaults SharePoint List - ListName: $SharepointLocationDefaultsList"
-$LocationDefaultsList = Get-TPIList -ListBaseURL $LocationDefaultsListURL -ListName $SharepointLocationDefaultsList | Select-Object Title,ExtensionRangeIndex,CivicAddressMappingIndex,OnlineVoiceRoutingPolicy,TeamsCallingPolicy,TenantDialPlan,TeamsIPPhonePolicy
+$LocationDefaultsList = Get-TPIList -ListBaseURL $LocationDefaultsListURL -ListName $SharepointLocationDefaultsList # Select does in problems using PowerShell5 | Select-Object Title,ExtensionRangeIndex,CivicAddressMappingIndex,OnlineVoiceRoutingPolicy,TeamsCallingPolicy,TenantDialPlan,TeamsIPPhonePolicy
 
-$LD_jsonBase = @{}
+Write-Verbose "LocationDefaultsList: $LocationDefaultsList"
+
+$LD_jsonBase = [ordered]@{}
 $subLocation = @()
 
 foreach ($LD in $LocationDefaultsList) {
@@ -641,9 +647,8 @@ foreach ($LD in $LocationDefaultsList) {
     }
 }
 
-
-$LD_jsonBase.Add('$values',$subLocation)
 $LD_jsonBase.Add('$id','TPI-Locations')
+$LD_jsonBase.Add('$values',$subLocation)
 
 #endregion
 #region Runbook Options
@@ -744,8 +749,9 @@ $AllElements += $TCP_jsonBase
 $AllElements += $TDP_jsonBase
 $AllElements += $OVMP_jsonBase
 $AllElements += $ER_jsonBase
+$AllElements += $CAM_jsonBase
 
-$Options_jsonBase = @{}
+$Options_jsonBase = [ordered]@{}
 $Options_jsonBase.Add("Options",$AllElements)
 
 $jsonBase = [ordered]@{}
