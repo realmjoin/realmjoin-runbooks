@@ -8,44 +8,216 @@
   In order to use this runbook, a few variables must be stored in the Automation account.
   The runbook is part of the TeamsPhoneInventory.
 
-  .NOTES
-  Runbook requires PS-Version 7.2 and does not work with 5.1!
-  Modules required: 
-  - MicrosoftTeams - 6.4.0
-  - Microsoft.Graph.Authentication - 2.20.0
-
 #>
 
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.20.0" }
+
+#region Functions
 ########################################################
-##             preflight-check
+##             function declaration
+##          
+########################################################
+function Get-TPIList {
+    param (
+        [parameter(Mandatory = $true)]
+        [String]
+        $ListBaseURL,
+        [parameter(Mandatory = $false)]
+        [String]
+        $ListName # Only for easier logging
+    )
+
+    #Limit access to 2000 items (Default is 200)
+    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
+    try {
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+    }
+    catch {
+        Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
+        
+        try {
+            Connect-MgGraph -Identity
+            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+        }
+        catch {
+            Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
+            Exit
+        }
+        
+    }
+    
+    $AllItems = $AllItemsResponse.value.fields
+
+    #Check if response is paged:
+    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+
+    while ($null -ne $AllItemsResponseNextLink) {
+
+        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
+        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
+        $AllItems += $AllItemsResponse.value.fields
+
+    }
+
+    return $AllItems
+
+}
+
+function Invoke-TPIRestMethod {
+    param (
+        [parameter(Mandatory = $true)]
+        [String]
+        $Uri,
+        [parameter(Mandatory = $true)]
+        [String]
+        $Method,
+        [parameter(Mandatory = $false)]
+        [hashtable]
+        $Body,
+        [parameter(Mandatory = $true)]
+        [String]
+        $ProcessPart,
+        [parameter(Mandatory = $false)]
+        [String]
+        $SkipThrow = $false
+        
+    )
+
+    #ToFetchErrors (Throw)
+    $ExitError = 0
+
+    if (($Method -like "Post") -or ($Method -like "Patch")) {
+        try {
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body $Body
+        }
+        catch {
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+            Write-Output ""
+            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
+            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusDescription = $_.Exception.Response.ReasonPhrase
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
+            Write-Output ""
+
+            try {
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body $Body
+                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
+            } catch {
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+                # $2ndLastError = $_.Exception
+                $ExitError = 1
+                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusDescription = $_.Exception.Response.ReasonPhrase
+                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
+                Write-Output ""
+                $ExitError = 1
+            } 
+        }
+    }else{
+        try {
+            #$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+            #Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
+            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
+        }
+        catch {
+            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+            Write-Output ""
+            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
+            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusDescription = $_.Exception.Response.ReasonPhrase
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
+            Write-Output ""
+            try {
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
+                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
+            } catch {
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+                # $2ndLastError = $_.Exception
+                $ExitError = 1
+                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusDescription = $_.Exception.Response.ReasonPhrase
+                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
+                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
+                Write-Output ""
+            } 
+        }
+    }
+
+    if ($ExitError -eq 1) {
+        throw "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present! StatusCode: $StatusCode StatusDescription: $StatusDescription"
+        $StatusCode = $null
+        $StatusDescription = $null
+    }
+
+    return $TPIRestMethod
+    
+}
+
+#endregion
+#region Logo Part
+########################################################
+##             Logo Part
 ##          
 ########################################################
 
+Write-Output ''
+Write-Output ' _____                                      ____    _                                ___                                  _                          '
+Write-Output '|_   _|   ___    __ _   _ __ ___    ___    |  _ \  | |__     ___    _ __     ___    |_ _|  _ __   __   __   ___   _ __   | |_    ___    _ __   _   _ '
+Write-Output '  | |    / _ \  / _` | |  _ ` _ \  / __|   | |_) | |  _ \   / _ \  |  _ \   / _ \    | |  |  _ \  \ \ / /  / _ \ |  _ \  | __|  / _ \  |  __| | | | |'
+Write-Output '  | |   |  __/ | (_| | | | | | | | \__ \   |  __/  | | | | | (_) | | | | | |  __/    | |  | | | |  \ V /  |  __/ | | | | | |_  | (_) | | |    | |_| |'
+Write-Output '  |_|    \___|  \__,_| |_| |_| |_| |___/   |_|     |_| |_|  \___/  |_| |_|  \___|   |___| |_| |_|   \_/    \___| |_| |_|  \__|  \___/  |_|     \__, |'
+Write-Output '                                                                                                                                               |___/ '
+Write-Output ''
 
+#endregion
+#region Connect Part
+########################################################
+##             Connect Part
+##          
+########################################################
+# Needs a Microsoft Teams Connection First!
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Check the PowerShell major version under which the runbook is currently running"
+Write-Output "$TimeStamp - Connection - Connect to Microsoft Teams (PowerShell as RealmJoin managed identity)"
 
-# Get the current PowerShell major version
-$PSVersion = $PSVersionTable.PSVersion.Major
+$VerbosePreference = "SilentlyContinue"
+Connect-MicrosoftTeams -Identity -ErrorAction Stop
+$VerbosePreference = "Continue"
 
-Write-Verbose "Current PS major version: $PSVersion"
-# Check if the PowerShell version is 5 or 7
-if ($PSVersion -eq 5) {
-    # Output a message and exit if the version is 5
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - The runbook must be used with PowerShell 7 Runtime. Please copy the content of the PowerShell 5 Runtime Runbook into a PowerShell 7.2 Runtime Runbook and execute it again!. Exiting the script."
-    exit
-} elseif ($PSVersion -eq 7) {
-    # Output a message and continue if the version is 7
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Output "$TimeStamp - The runbook is running on PowerShell 7. Continuing..."
-} else {
-    # Output a message and exit if the version is neither 5 nor 7
-    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - The script is not running on PowerShell major version 5 or 7. Exiting the script."
-    exit
+# Check if Teams connection is active
+try {
+    $Test = Get-CsTenant -ErrorAction Stop | Out-Null
+}
+catch {
+    try {
+        Start-Sleep -Seconds 5
+        $Test = Get-CsTenant -ErrorAction Stop |  Out-Null
+    }
+    catch {
+        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
+        Exit
+    }
 }
 
+# Initiate Graph Session
+$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+Write-Output "$TimeStamp - Connection - Initiate Graph Session"
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "MGGraph Connect failed - stopping script"
+    Exit 
+}
+
+#endregion
+#region define variables
 ########################################################
 ##             define variables
 ##          
@@ -218,205 +390,6 @@ catch {
     $RunbookNameSetTeamsTelephonyCustom = "rjgit_user_phone_set-teams-phone-user-custom"
 }
 
-########################################################
-##             function declaration
-##          
-########################################################
-function Get-TPIList {
-    param (
-        [parameter(Mandatory = $true)]
-        [String]
-        $ListBaseURL,
-        [parameter(Mandatory = $false)]
-        [String]
-        $ListName # Only for easier logging
-    )
-
-    #Limit access to 2000 items (Default is 200)
-    $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
-    try {
-        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
-    }
-    catch {
-        Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
-        try {
-            Connect-MgGraph -Identity
-            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
-        }
-        catch {
-            Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
-            Exit
-        }
-        
-    }
-    
-    $AllItems = $AllItemsResponse.value.fields
-
-    #Check if response is paged:
-    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
-
-    while ($null -ne $AllItemsResponseNextLink) {
-
-        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
-        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
-        $AllItems += $AllItemsResponse.value.fields
-
-    }
-
-    return $AllItems
-
-}
-
-function Invoke-TPIRestMethod {
-    param (
-        [parameter(Mandatory = $true)]
-        [String]
-        $Uri,
-        [parameter(Mandatory = $true)]
-        [String]
-        $Method,
-        [parameter(Mandatory = $false)]
-        [hashtable]
-        $Body,
-        [parameter(Mandatory = $true)]
-        [String]
-        $ProcessPart,
-        [parameter(Mandatory = $false)]
-        [String]
-        $SkipThrow = $false
-        
-    )
-
-    #ToFetchErrors (Throw)
-    $ExitError = 0
-
-    if (($Method -like "Post") -or ($Method -like "Patch")) {
-        try {
-            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body $Body
-        }
-        catch {
-            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-            Write-Output ""
-            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
-            $StatusDescription = $_.Exception.Response.ReasonPhrase
-            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
-            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
-            Write-Output ""
-
-            try {
-                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body $Body
-                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
-            } catch {
-                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-                # $2ndLastError = $_.Exception
-                $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
-                $StatusDescription = $_.Exception.Response.ReasonPhrase
-                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
-                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
-                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
-                Write-Output ""
-                $ExitError = 1
-            } 
-        }
-    }else{
-        try {
-            #$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-            #Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
-            $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
-        }
-        catch {
-            $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-            Write-Output ""
-            Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
-            $StatusDescription = $_.Exception.Response.ReasonPhrase
-            Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
-            Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
-            Write-Output ""
-            try {
-                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
-                Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
-            } catch {
-                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-                # $2ndLastError = $_.Exception
-                $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
-                $StatusDescription = $_.Exception.Response.ReasonPhrase
-                Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
-                Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
-                Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
-                Write-Output ""
-            } 
-        }
-    }
-
-    if ($ExitError -eq 1) {
-        throw "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present! StatusCode: $StatusCode StatusDescription: $StatusDescription"
-        $StatusCode = $null
-        $StatusDescription = $null
-    }
-
-    return $TPIRestMethod
-    
-}
-
-########################################################
-##             Logo Part
-##          
-########################################################
-
-Write-Output ''
-Write-Output ' _____                                      ____    _                                ___                                  _                          '
-Write-Output '|_   _|   ___    __ _   _ __ ___    ___    |  _ \  | |__     ___    _ __     ___    |_ _|  _ __   __   __   ___   _ __   | |_    ___    _ __   _   _ '
-Write-Output '  | |    / _ \  / _` | |  _ ` _ \  / __|   | |_) | |  _ \   / _ \  |  _ \   / _ \    | |  |  _ \  \ \ / /  / _ \ |  _ \  | __|  / _ \  |  __| | | | |'
-Write-Output '  | |   |  __/ | (_| | | | | | | | \__ \   |  __/  | | | | | (_) | | | | | |  __/    | |  | | | |  \ V /  |  __/ | | | | | |_  | (_) | | |    | |_| |'
-Write-Output '  |_|    \___|  \__,_| |_| |_| |_| |___/   |_|     |_| |_|  \___/  |_| |_|  \___|   |___| |_| |_|   \_/    \___| |_| |_|  \__|  \___/  |_|     \__, |'
-Write-Output '                                                                                                                                               |___/ '
-Write-Output ''
-
-
-########################################################
-##             Connect Part
-##          
-########################################################
-# Needs a Microsoft Teams Connection First!
-$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Connect to Microsoft Teams (PowerShell as RealmJoin managed identity)"
-
-$VerbosePreference = "SilentlyContinue"
-Connect-MicrosoftTeams -Identity -ErrorAction Stop
-$VerbosePreference = "Continue"
-
-# Check if Teams connection is active
-try {
-    $Test = Get-CsTenant -ErrorAction Stop | Out-Null
-}
-catch {
-    try {
-        Start-Sleep -Seconds 5
-        $Test = Get-CsTenant -ErrorAction Stop |  Out-Null
-    }
-    catch {
-        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
-        Exit
-    }
-}
-
-# Initiate Graph Session
-$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Connection - Initiate Graph Session"
-try {
-    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-}
-catch {
-    Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
-}
-
 #endregion
 #region RampUp Connection Details
 ########################################################
@@ -458,6 +431,7 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 
 #endregion
+#region Settings Block
 #############################################################################
 #           Settings Block
 #
@@ -482,6 +456,8 @@ $Settings_jsonBase = [PSCustomObject]@{
     'TPI' = $SettingsTPI
 }
 
+#endregion
+#region Get current Teams policies
 #############################################################################
 #           Get current Teams policies
 #
@@ -492,6 +468,8 @@ $TeamsCallingPolicy = Get-CsTeamsCallingPolicy
 $TenantDialPlan = Get-CsTenantDialPlan
 $OnlineVoicemailPolicy = Get-CsOnlineVoicemailPolicy
 
+#endregion
+#region OnlineVoiceRoutingPolicy
 #############################################################################
 #           OnlineVoiceRoutingPolicy - short version: OVRP
 #
@@ -509,6 +487,8 @@ foreach ($OVRP in $OnlineVoiceRoutingPolicy) {
 $OVRP_jsonBase.Add('$values',$OVRP_list)
 $OVRP_jsonBase.Add('$id','TPI-OnlineVoiceRoutingPolicy')
 
+#endregion
+#region TeamsCallingPolicy
 #############################################################################
 #           TeamsCallingPolicy - short version: TCP
 #
@@ -526,6 +506,8 @@ foreach ($TCP in $TeamsCallingPolicy) {
 $TCP_jsonBase.Add('$values',$TCP_list)
 $TCP_jsonBase.Add('$id','TPI-TeamsCallingPolicy')
 
+#endregion
+#region TenantDialPlan
 #############################################################################
 #           TenantDialPlan - short version: TDP
 #
@@ -543,6 +525,8 @@ foreach ($TDP in $TenantDialPlan) {
 $TDP_jsonBase.Add('$values',$TDP_list)
 $TDP_jsonBase.Add('$id','TPI-TenantDialPlan')
 
+#endregion
+#region OnlineVoicemailPolicy
 #############################################################################
 #           OnlineVoicemailPolicy - short version: OVMP
 #
@@ -560,6 +544,8 @@ foreach ($OVMP in $OnlineVoicemailPolicy) {
 $OVMP_jsonBase.Add('$values',$OVMP_list)
 $OVMP_jsonBase.Add('$id','TPI-OnlineVoicemailPolicy')
 
+#endregion
+#region ExtensionRange
 #############################################################################
 #           ExtensionRange - short version: ER
 #
@@ -583,7 +569,8 @@ foreach ($ER in $ExtensionRangeList) {
 $ER_jsonBase.Add('$values',$ER_list)
 $ER_jsonBase.Add('$id','TPI-ExtensionRange')
 
-
+#endregion
+#region CivicAddressMapping
 #############################################################################
 #           CivicAddressMapping - short version: CAM
 #
@@ -607,7 +594,8 @@ foreach ($CAM in $CivicAddressMappingList) {
 $CAM_jsonBase.Add('$values',$CAM_list)
 $CAM_jsonBase.Add('$id','TPI-CivicAddressMapping')
 
-
+#endregion
+#region LocationDefaults
 #############################################################################
 #           LocationDefaults - short version: LD
 #
@@ -657,28 +645,30 @@ foreach ($LD in $LocationDefaultsList) {
 $LD_jsonBase.Add('$values',$subLocation)
 $LD_jsonBase.Add('$id','TPI-Locations')
 
-
+#endregion
+#region Runbook Options
 #############################################################################
 #           Runbook Options
 #
 #############################################################################
 
-$RunbookRAW = '
+# Define the raw JSON string
+$RunbookRAW = @"
 {
-    "'+ $RunbookNameSetTeamsTelephonyCustom + '": {
+    "$($RunbookNameSetTeamsTelephonyCustom)": {
         "ParameterList": [
             {
                 "Name": "PhoneNumber",
                 "DisplayAfter" : "UserName",
                 "Mandatory" : true,
-                "DisplayName": "Phone number to assign (E.164 Format - Example:+49123987654)",               
+                "DisplayName": "Phone number to assign (E.164 Format - Example:+49123987654)"
             },
             {
                 "DisplayName": "Location",
                 "DisplayAfter" : "PhoneNumber",
                 "Select": {
                     "Options": {
-                        "$ref": "TPI-Locations"
+                        "`$ref": "TPI-Locations"
                     }
                 }
             },
@@ -688,10 +678,9 @@ $RunbookRAW = '
                 "DisplayName": "Online Voice Routing Policy",
                 "Select": {
                     "Options": {
-                        "$ref": "TPI-OnlineVoiceRoutingPolicy"
+                        "`$ref": "TPI-OnlineVoiceRoutingPolicy"
                     }
                 }
-                
             },
             {
                 "Name": "TeamsCallingPolicy",
@@ -699,10 +688,9 @@ $RunbookRAW = '
                 "DisplayName": "Teams Calling Policy",
                 "Select": {
                     "Options": {
-                        "$ref": "TPI-TeamsCallingPolicy"
+                        "`$ref": "TPI-TeamsCallingPolicy"
                     }
                 }
-                
             },
             {
                 "Name": "TenantDialPlan",
@@ -710,10 +698,9 @@ $RunbookRAW = '
                 "DisplayName": "Tenant DialPlan",
                 "Select": {
                     "Options": {
-                        "$ref": "TPI-TenantDialPlan"
+                        "`$ref": "TPI-TenantDialPlan"
                     }
                 }
-                
             },
             {
                 "Name": "SharepointURL",
@@ -738,9 +725,13 @@ $RunbookRAW = '
         ]
     }
 }
-'
+"@
+
+# Convert the JSON string to a PowerShell object
 $Runbooks = $RunbookRAW | ConvertFrom-Json
 
+#endregion
+#region Combine everything
 #############################################################################
 #           Combine everything
 #
@@ -770,3 +761,5 @@ Write-Output ""
 Write-Output "$TimeStamp - Final JSON Output:"
 
 $jsonBase | ConvertTo-Json -depth 10
+
+#endregion
