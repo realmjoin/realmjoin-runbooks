@@ -382,12 +382,12 @@ try {
     $RunbookNameSetTeamsTelephonyCustom = Get-AutomationVariable -Name TPI_RunbookNameSetTeamsTelephonyCustom -ErrorAction Stop
     if ($RunbookNameSetTeamsTelephonyCustom -like "") {
         Write-Verbose "Sharepoint TPI List variable TPI_RunbookNameSetTeamsTelephonyCustom is empty - use default value"
-        $RunbookNameSetTeamsTelephonyCustom = "rjgit_user_phone_set-teams-phone-user-custom"
+        $RunbookNameSetTeamsTelephonyCustom = "rjgit-user_phone_set-teams-phone-user-custom"
     }
 }
 catch {
     Write-Verbose "Sharepoint TPI List variable TPI_RunbookNameSetTeamsTelephonyCustom does not exist - use default value"
-    $RunbookNameSetTeamsTelephonyCustom = "rjgit_user_phone_set-teams-phone-user-custom"
+    $RunbookNameSetTeamsTelephonyCustom = "rjgit-user_phone_set-teams-phone-user-custom"
 }
 
 #endregion
@@ -725,6 +725,14 @@ $RunbookRAW = @"
             },
             {
                 "Name": "TeamsIPPhonePolicy",
+                "Hide": true
+            },
+            {
+                "Name": "OnlineVoicemailPolicy",
+                "Hide": true
+            },
+            {
+                "Name": "CivicAddressMappingIndex",
                 "Hide": true
             }
         ]
