@@ -10,9 +10,11 @@
 
   .NOTES
   Runbook requires PS-Version 7.2 and does not work with 5.1!
-#>
+  Modules required: 
+  - MicrosoftTeams - 6.4.0
+  - Microsoft.Graph.Authentication - 2.20.0
 
-#requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }, @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.20.0" }
+#>
 
 # Define Sharepoint Parameters
 # Example:
