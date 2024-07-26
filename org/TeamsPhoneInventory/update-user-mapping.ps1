@@ -1,10 +1,3 @@
-#region Customization depending on the implemented version
-########################################################################################################################################################################
-##             Start Region - Customization depending on the implemented version
-##             Current Version: RJ Runbook
-##
-########################################################
-
 <#
   .SYNOPSIS
   Teams Phone Inventory - User Mapping
@@ -12,10 +5,6 @@
   .DESCRIPTION
   This runbook updates the UserMapping list so that new users are mapped to their location and the runbooks can use the appropriate defaults.
   The runbook is part of the TeamsPhoneInventory.
-
-  .PARAMETER SharepointURL
-  URL of the SharePoint where the list is stored. 
-  Example: c4a8.sharepoint.com
 
   .PARAMETER SharepointSite
   The name of the SharePoint site in which the list is stored 
@@ -48,9 +37,6 @@
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
-            "SharepointURL": {
-                "Hide": true
-            },
             "SharepointSite": {
                 "Hide": true
             },
@@ -92,6 +78,7 @@
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.20.0" }
 
+#region Variable/Parameter declaration
 ########################################################
 ##             Variable/Parameter declaration
 ##          
@@ -136,11 +123,8 @@ Param(
         [string] $CallerName
 )
 
-########################################################
-##             Variable/Parameter declaration
-##          
-########################################################
-
+#endregion
+#region function declaration
 ########################################################
 ##             function declaration
 ##          
@@ -289,6 +273,8 @@ function Invoke-TPIRestMethod {
     
 }
 
+#endregion
+#region function declaration
 ########################################################
 ##             Logo Part
 ##          
@@ -303,7 +289,8 @@ Write-Output '  |_|    \___|  \__,_| |_| |_| |_| |___/   |_|     |_| |_|  \___/ 
 Write-Output '                                                                                                                                               |___/ '
 Write-Output ''
 
-
+#endregion
+#region function declaration
 ########################################################
 ##             Connect Part
 ##          
@@ -364,13 +351,7 @@ Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'"
 Write-RjRbLog -Message "BlockExtensionDays: '$BlockExtensionDays'" -Verbose
 
 
-########################################################
-##             End Region - Customization depending on the implemented version
-##             Current Version: RJ Runbook
-##
-########################################################################################################################################################################
 #endregion
-
 #region RampUp Connection Details
 ########################################################
 ##             Block 0 - RampUp Connection Details
@@ -410,7 +391,6 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 
 #endregion
-
 #region Get StatusQuo
 ########################################################
 ##             Block 1 - Get StatusQuo
@@ -437,8 +417,6 @@ $SharepointLocationMappingListURL = $BaseURL + $SharepointLocationMappingList
 $LocationMappingTable = Get-TPIList -ListBaseURL $SharepointLocationMappingListURL -ListName $SharepointLocationMappingList | Select-Object Title,City,Street,Company,id
 
 #endregion
-
-
 #region Build work table
 ########################################################
 ##             Block 2 - Create table of current user <-> location mapping
@@ -469,7 +447,6 @@ foreach ($User in $AllUsers) {
 
 }
 #endregion
-
 #region Compare
 ########################################################
 ##             Block 3 - Compare Sharepoint List with work table
@@ -490,7 +467,6 @@ if (($SharepointUserMappingListContent | Measure-Object).Count -gt 0) {
     $EntrysToAdd = $UserMappingTable
 }
 #endregion
-
 #region - Check if update is needed
 if (!(($EntrysToDelete | Measure-Object).Count -eq 0)) {
 
