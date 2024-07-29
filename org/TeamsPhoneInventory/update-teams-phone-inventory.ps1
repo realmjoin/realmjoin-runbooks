@@ -590,7 +590,10 @@ foreach ($ExtensionRange in $ExtensionRanges) {
 
 #region Fill Up MainArray (ExtensionRange)
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Output "$TimeStamp - Block 1 - List all numbers in defined Extension Ranges and fill MainArray"
+Write-Output "$TimeStamp - Block 1 - List all numbers in defined extension ranges and fill MainArray"
+$ExtensionRangeCounter = 0
+$ExtensionRangeAmount = ($ExtensionRanges | Measure-Object).Count
+
 [System.Collections.ArrayList]$MainArray = @()
 $Counter = 0
 
@@ -600,6 +603,11 @@ foreach ($ExtensionRange in $ExtensionRanges) {
     $ExtensionRangeName = $ExtensionRange.ExtensionRangeName
     $CurrentNumberRangeIndex = $ExtensionRange.NumberRangeIndex
     $CurrentExtensionRangeIndex = $ExtensionRange.ExtensionRangeIndex
+    
+    $ExtensionRangeCounter++
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - Block 1 - $($ExtensionRangeCounter.toString().PadLeft($($ExtensionRangeAmount.toString().length),'0'))/$($ExtensionRangeAmount) - Current extension range: $($ExtensionRangeName)"
+    
     foreach ($NumberRange in $NumberRanges) {
         if ($NumberRange.NumberRangeIndex -like $CurrentNumberRangeIndex) {
             $Country = $NumberRange.Country
@@ -628,12 +636,14 @@ foreach ($ExtensionRange in $ExtensionRanges) {
 #region Fill the NumberRangeArray with every single extension of the entire number ranges
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Fill the NumberRangeArray with every single extension of the entire number ranges"
+$NumberRangeCounter = 0
+$NumberRangeAmount = ($NumberRanges | Measure-Object).Count
+
 [System.Collections.ArrayList]$NumberRangeArray = @()
 
 $Counter = 0
 
 foreach ($NumberRange in $NumberRanges) {
-    
     $CurrentNumberRangeIndex = $NumberRange.NumberRangeIndex
     $CurrentName = $NumberRange.NumberRangeName
     $CurrentMainNumber =  $NumberRange.MainNumber
@@ -642,6 +652,10 @@ foreach ($NumberRange in $NumberRanges) {
     $CurrentCountry = $NumberRange.Country
     $CurrentCity = $NumberRange.City
     $CurrentCompany = $NumberRange.Company
+
+    $NumberRangeCounter++
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - Block 1 - $($NumberRangeCounter.toString().PadLeft($($NumberRangeAmount.toString().length),'0'))/$($NumberRangeAmount) - Current number range: $($CurrentName)"
 
     $EndNumberDigits = $CurrentEndNumber.ToString().Length 
 
@@ -788,10 +802,11 @@ if (($PhoneNumber.Capability | Measure-Object).Count -gt 1) {
     }
 }
 
-if ($PhoneNumber.CivicAddressId -like "") {
-    $TMPCivicAddressMappingIndex = "NoneDefined"
-    $TMPCivicAddressMappingName = "NoneDefined"
-}else {
+$TMPCivicAddressMappingIndex = "NoneDefined"
+$TMPCivicAddressMappingName = "NoneDefined"
+$TMPCivicAddressDescription = "NoneDefined"
+
+if ($PhoneNumber.CivicAddressId -notlike "") {
     if ($CurrentCivicAddressMapping.CivicAddressMappingIndex -notlike "") {
         $TMPCivicAddressMappingIndex = $CurrentCivicAddressMapping.CivicAddressMappingIndex
     }else {
