@@ -9,6 +9,9 @@
     Permissions: 
     The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
     If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. However, it should be switched to Managed Identity as soon as possible.
+    
+    RunbookCustomization:
+    RunbookCustomization is defined separately in the associated RealmJoin portal settings
 
 #>
 
