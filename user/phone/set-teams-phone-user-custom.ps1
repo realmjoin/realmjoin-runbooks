@@ -194,8 +194,7 @@ function Invoke-TPIRestMethod {
 # Add Caller in Verbose output
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-# Add Parameter in Verbose output
-Write-RjRbLog -Message "SharepointURL: '$SharepointURL'" -Verbose
+# Add Parameter in Verbose output:
 Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
 Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
 
