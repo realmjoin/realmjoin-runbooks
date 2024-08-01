@@ -787,10 +787,17 @@ if ($CurrentUser -notlike "") {
     $Teams_FullLineUri = $null
     $Teams_MainLineUri = $null
 }
+$IsTeamsPhoneMobile = $false
 $CurrentCapability = $null
 if (($PhoneNumber.Capability | Measure-Object).Count -gt 1) {
     if ($PhoneNumber.Capability -contains "UserAssignment") {
-        $CurrentCapability = "User and Service"
+        if ($PhoneNumber.Capability -contains "TeamsPhoneMobile") {
+            $CurrentCapability = "User"
+            $IsTeamsPhoneMobile = $true
+        }else {
+            $CurrentCapability = "User and Service"
+        }
+        
     }else {
         $CurrentCapability = "Service"
     }
@@ -832,12 +839,16 @@ if ($PhoneNumber.CivicAddressId -notlike "") {
     }
 }
 
-
+if ($IsTeamsPhoneMobile) {
+    $CurrentNumberType = "TeamsPhoneMobile"
+}else {
+    $CurrentNumberType = $($PhoneNumber.NumberType -replace $null,"")
+}
 
 $NewRow = [pscustomobject]@{
     'TelephoneNumber' = $($PhoneNumber.TelephoneNumber -replace $null,"");
     #'OperatorId' = $($PhoneNumber.OperatorId -replace $null,"");
-    'NumberType' = $($PhoneNumber.NumberType -replace $null,"");
+    'NumberType' = $CurrentNumberType;
     'ActivationState' = $($PhoneNumber.ActivationState -replace $null,"");
     'AssignedPstnTargetId' = $($PhoneNumber.AssignedPstnTargetId -replace $null,"");
     'AssignedPstnTargetUPN' = $CurrentUser.UserPrincipalName
@@ -891,11 +902,12 @@ $NewRow = [pscustomobject]@{
     'PstnPartnerId' = $($PhoneNumber.PstnPartnerId -replace $null,"");
     'PstnPartnerName' = $($PhoneNumber.PstnPartnerName -replace $null,"");
     'NumberSource' = $($PhoneNumber.NumberSource -replace $null,"");
+    'IsTeamsPhoneMobile' = $IsTeamsPhoneMobile;
 }
 $OnlinePhoneNumbers += $NewRow
 $NewRow = $null
 try {
-    Clear-Variable -Name ("CurrentUser","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","CurrentCapability","TMPCivicAddressMappingIndex","TMPCivicAddressMappingName","TMPCivicAddressID")
+    Clear-Variable -Name ("CurrentUser","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","CurrentCapability","TMPCivicAddressMappingIndex","TMPCivicAddressMappingName","TMPCivicAddressID","IsTeamsPhoneMobile")
 }
 catch {
 }
@@ -1057,16 +1069,29 @@ if ($CounterAllTeamsUser -gt 0) {
             $Teams_UserType = "DefaultUser"
         }
         if ($PhoneNumberExistInTenant) {
-            # Set all got from the tenant to this number
-            $CurrentCivicAddressMappingIndex = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingIndex -replace $null,""
-            $CurrentCivicAddressMappingName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingName -replace $null,""
-            $CurrentCivicAddressCity = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCity -replace $null,""
-            $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
-            $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCountryOrRegion -replace $null,""
-            $CurrentCivicAddressCompanyName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCompanyName -replace $null,""
-            $CurrentCivicAddressDescription = $CurrentPrimaryPhoneNumberAssignment.CivicAddressDescription -replace $null,""
-            # Handling?
-            # PstnAssignmentStatus
+            if ($CurrentPrimaryPhoneNumberAssignment.IsTeamsPhoneMobile) {
+                # Set all got from the tenant to this number
+                $CurrentCivicAddressMappingIndex = "NoneDefined"
+                $CurrentCivicAddressMappingName = "NoneDefined"
+                $CurrentCivicAddressCity = "Mobile"
+                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
+                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.IsoCountryCode -replace $null,""
+                $CurrentCivicAddressCompanyName = ""
+                $CurrentCivicAddressDescription = "NoneDefined"
+                # Handling?
+                # PstnAssignmentStatus
+            }else{
+                # Set all got from the tenant to this number
+                $CurrentCivicAddressMappingIndex = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingIndex -replace $null,""
+                $CurrentCivicAddressMappingName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingName -replace $null,""
+                $CurrentCivicAddressCity = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCity -replace $null,""
+                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
+                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCountryOrRegion -replace $null,""
+                $CurrentCivicAddressCompanyName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCompanyName -replace $null,""
+                $CurrentCivicAddressDescription = $CurrentPrimaryPhoneNumberAssignment.CivicAddressDescription -replace $null,""
+                # Handling?
+                # PstnAssignmentStatus
+            }
         }else {
             if ($Teams_VoiceType -like "DirectRouting") {
                 $CurrentCapability = "User and Service"
@@ -1171,11 +1196,13 @@ if ($CounterAllTeamsUser -gt 0) {
             }else {
                 $CurrentCity = "NoneDefined"
             }
+
             if ($CurrentCivicAddressCountryOrRegion -notlike "") {
                 $CurrentCountry = $CurrentCivicAddressCountryOrRegion
             }else {
                 $CurrentCountry = "NoneDefined"
             }
+
             if ($CurrentCivicAddressCompanyName -notlike "") {
                 $CurrentCompany = $CurrentCivicAddressCompanyName
             }else {
