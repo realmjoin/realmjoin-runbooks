@@ -66,10 +66,6 @@ param(
 ##             function declaration
 ##          
 ########################################################
-########################################################
-##             function declaration
-##          
-########################################################
 function Get-TPIList {
     param (
         [parameter(Mandatory = $true)]
@@ -223,7 +219,6 @@ function Invoke-TPIRestMethod {
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Add Parameter in Verbose output
-Write-RjRbLog -Message "SharepointURL: '$SharepointURL'" -Verbose
 Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
 Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
 Write-RjRbLog -Message "SharepointBlockExtensionList: '$SharepointBlockExtensionList'" -Verbose
