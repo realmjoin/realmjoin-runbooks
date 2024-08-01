@@ -731,6 +731,7 @@ $CounterAllTeamsUser = ($AllTeamsUser | Measure-Object).Count
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Received Microsoft Teams users, which have an LineUri: $CounterAllTeamsUser"
 
+#region Retrieve all phone numbers and LIS addresses from the tenant
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all phone numbers and LIS addresses from the tenant"
 # NumberType - Supported values are DirectRouting, CallingPlan, and OperatorConnect. "-Top" thing is required to get all entries.
@@ -915,11 +916,15 @@ catch {
 }
 
 $PhoneNumberAssignment = $null
-
+#endregion
+#region Retrieve all Microsoft Teams IP-Phone policies
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all Microsoft Teams IP-Phone policies"
 $TeamsIPPhonePolicies = Get-CsTeamsIPPhonePolicy
 
+
+#endregion
+    #region Merge all collected Microsoft Teams user in the main array
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Merge all collected Microsoft Teams user in the main array"
 
@@ -1106,6 +1111,7 @@ if ($CounterAllTeamsUser -gt 0) {
             $CurrentCivicAddressDescription = "NoneDefined"
         }
 
+        #region Fill MainArray
         #Check if FullLineUri Already in MainArray
         if ($MainArray.FullLineUri -contains $Teams_FullLineUri) {
             $ArrayIndex = [array]::indexof($MainArray.FullLineUri,$Teams_FullLineUri)
@@ -1215,7 +1221,7 @@ if ($CounterAllTeamsUser -gt 0) {
         }
         Clear-Variable -Name ("Teams_UPN","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","Teams_VoiceType","Teams_UserType")
     }
-
+    #endregion
 }else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Error "$TimeStamp - Error: No Teams user, which has a LineUri, was found. The script will be terminated now!"
@@ -1225,6 +1231,9 @@ if ($CounterAllTeamsUser -gt 0) {
 
 $AllTeamsUser = $null
 
+#endregion
+#endregion
+#region Check whether there are phone numbers in the tenant that are not assigned
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Check whether there are phone numbers in the tenant that are not assigned"
 $UnassignedOnlinePhoneNumbers = $OnlinePhoneNumbers | Where-Object PstnAssignmentStatus -NotLike "UserAssigned" |  Where-Object PstnAssignmentStatus -NotLike "VoiceApplicationAssigned"
