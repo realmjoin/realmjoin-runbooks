@@ -78,7 +78,7 @@ if ($DeviceName) {
     # Get Group Members
     Write-RjRbLog -Message "Fetching Group Members for Group ID: $GroupObjectId" -Verbose
     $groupMembersUri = "https://graph.microsoft.com/v1.0/groups/$GroupObjectId/members"
-    $groupMembersResponse = Invoke-RjRbReGraph -Resource $groupMembersUri
+    $groupMembersResponse = Invoke-RjRbRestMethodGraph -Resource $groupMembersUri
     $deviceIds = $groupMembersResponse | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' } | Select-Object -ExpandProperty id
 
     foreach ($deviceId in $deviceIds) {
