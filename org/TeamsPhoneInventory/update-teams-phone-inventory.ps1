@@ -731,6 +731,7 @@ $CounterAllTeamsUser = ($AllTeamsUser | Measure-Object).Count
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Received Microsoft Teams users, which have an LineUri: $CounterAllTeamsUser"
 
+#region Retrieve all phone numbers and LIS addresses from the tenant
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all phone numbers and LIS addresses from the tenant"
 # NumberType - Supported values are DirectRouting, CallingPlan, and OperatorConnect. "-Top" thing is required to get all entries.
@@ -787,10 +788,17 @@ if ($CurrentUser -notlike "") {
     $Teams_FullLineUri = $null
     $Teams_MainLineUri = $null
 }
+$IsTeamsPhoneMobile = $false
 $CurrentCapability = $null
 if (($PhoneNumber.Capability | Measure-Object).Count -gt 1) {
     if ($PhoneNumber.Capability -contains "UserAssignment") {
-        $CurrentCapability = "User and Service"
+        if ($PhoneNumber.Capability -contains "TeamsPhoneMobile") {
+            $CurrentCapability = "User"
+            $IsTeamsPhoneMobile = $true
+        }else {
+            $CurrentCapability = "User and Service"
+        }
+        
     }else {
         $CurrentCapability = "Service"
     }
@@ -832,12 +840,16 @@ if ($PhoneNumber.CivicAddressId -notlike "") {
     }
 }
 
-
+if ($IsTeamsPhoneMobile) {
+    $CurrentNumberType = "TeamsPhoneMobile"
+}else {
+    $CurrentNumberType = $($PhoneNumber.NumberType -replace $null,"")
+}
 
 $NewRow = [pscustomobject]@{
     'TelephoneNumber' = $($PhoneNumber.TelephoneNumber -replace $null,"");
     #'OperatorId' = $($PhoneNumber.OperatorId -replace $null,"");
-    'NumberType' = $($PhoneNumber.NumberType -replace $null,"");
+    'NumberType' = $CurrentNumberType;
     'ActivationState' = $($PhoneNumber.ActivationState -replace $null,"");
     'AssignedPstnTargetId' = $($PhoneNumber.AssignedPstnTargetId -replace $null,"");
     'AssignedPstnTargetUPN' = $CurrentUser.UserPrincipalName
@@ -891,11 +903,12 @@ $NewRow = [pscustomobject]@{
     'PstnPartnerId' = $($PhoneNumber.PstnPartnerId -replace $null,"");
     'PstnPartnerName' = $($PhoneNumber.PstnPartnerName -replace $null,"");
     'NumberSource' = $($PhoneNumber.NumberSource -replace $null,"");
+    'IsTeamsPhoneMobile' = $IsTeamsPhoneMobile;
 }
 $OnlinePhoneNumbers += $NewRow
 $NewRow = $null
 try {
-    Clear-Variable -Name ("CurrentUser","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","CurrentCapability","TMPCivicAddressMappingIndex","TMPCivicAddressMappingName","TMPCivicAddressID")
+    Clear-Variable -Name ("CurrentUser","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","CurrentCapability","TMPCivicAddressMappingIndex","TMPCivicAddressMappingName","TMPCivicAddressID","IsTeamsPhoneMobile")
 }
 catch {
 }
@@ -903,11 +916,15 @@ catch {
 }
 
 $PhoneNumberAssignment = $null
-
+#endregion
+#region Retrieve all Microsoft Teams IP-Phone policies
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all Microsoft Teams IP-Phone policies"
 $TeamsIPPhonePolicies = Get-CsTeamsIPPhonePolicy
 
+
+#endregion
+    #region Merge all collected Microsoft Teams user in the main array
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Merge all collected Microsoft Teams user in the main array"
 
@@ -1057,16 +1074,29 @@ if ($CounterAllTeamsUser -gt 0) {
             $Teams_UserType = "DefaultUser"
         }
         if ($PhoneNumberExistInTenant) {
-            # Set all got from the tenant to this number
-            $CurrentCivicAddressMappingIndex = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingIndex -replace $null,""
-            $CurrentCivicAddressMappingName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingName -replace $null,""
-            $CurrentCivicAddressCity = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCity -replace $null,""
-            $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
-            $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCountryOrRegion -replace $null,""
-            $CurrentCivicAddressCompanyName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCompanyName -replace $null,""
-            $CurrentCivicAddressDescription = $CurrentPrimaryPhoneNumberAssignment.CivicAddressDescription -replace $null,""
-            # Handling?
-            # PstnAssignmentStatus
+            if ($CurrentPrimaryPhoneNumberAssignment.IsTeamsPhoneMobile) {
+                # Set all got from the tenant to this number
+                $CurrentCivicAddressMappingIndex = "NoneDefined"
+                $CurrentCivicAddressMappingName = "NoneDefined"
+                $CurrentCivicAddressCity = "Mobile"
+                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
+                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.IsoCountryCode -replace $null,""
+                $CurrentCivicAddressCompanyName = ""
+                $CurrentCivicAddressDescription = "NoneDefined"
+                # Handling?
+                # PstnAssignmentStatus
+            }else{
+                # Set all got from the tenant to this number
+                $CurrentCivicAddressMappingIndex = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingIndex -replace $null,""
+                $CurrentCivicAddressMappingName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingName -replace $null,""
+                $CurrentCivicAddressCity = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCity -replace $null,""
+                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
+                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCountryOrRegion -replace $null,""
+                $CurrentCivicAddressCompanyName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCompanyName -replace $null,""
+                $CurrentCivicAddressDescription = $CurrentPrimaryPhoneNumberAssignment.CivicAddressDescription -replace $null,""
+                # Handling?
+                # PstnAssignmentStatus
+            }
         }else {
             if ($Teams_VoiceType -like "DirectRouting") {
                 $CurrentCapability = "User and Service"
@@ -1081,6 +1111,7 @@ if ($CounterAllTeamsUser -gt 0) {
             $CurrentCivicAddressDescription = "NoneDefined"
         }
 
+        #region Fill MainArray
         #Check if FullLineUri Already in MainArray
         if ($MainArray.FullLineUri -contains $Teams_FullLineUri) {
             $ArrayIndex = [array]::indexof($MainArray.FullLineUri,$Teams_FullLineUri)
@@ -1171,11 +1202,13 @@ if ($CounterAllTeamsUser -gt 0) {
             }else {
                 $CurrentCity = "NoneDefined"
             }
+
             if ($CurrentCivicAddressCountryOrRegion -notlike "") {
                 $CurrentCountry = $CurrentCivicAddressCountryOrRegion
             }else {
                 $CurrentCountry = "NoneDefined"
             }
+
             if ($CurrentCivicAddressCompanyName -notlike "") {
                 $CurrentCompany = $CurrentCivicAddressCompanyName
             }else {
@@ -1188,7 +1221,7 @@ if ($CounterAllTeamsUser -gt 0) {
         }
         Clear-Variable -Name ("Teams_UPN","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","Teams_VoiceType","Teams_UserType")
     }
-
+    #endregion
 }else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Error "$TimeStamp - Error: No Teams user, which has a LineUri, was found. The script will be terminated now!"
@@ -1198,6 +1231,9 @@ if ($CounterAllTeamsUser -gt 0) {
 
 $AllTeamsUser = $null
 
+#endregion
+#endregion
+#region Check whether there are phone numbers in the tenant that are not assigned
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Check whether there are phone numbers in the tenant that are not assigned"
 $UnassignedOnlinePhoneNumbers = $OnlinePhoneNumbers | Where-Object PstnAssignmentStatus -NotLike "UserAssigned" |  Where-Object PstnAssignmentStatus -NotLike "VoiceApplicationAssigned"
