@@ -43,8 +43,9 @@
 }
 #>
 
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.4.0" }   
 
 param(
     [Parameter(Mandatory = $true)]
@@ -62,6 +63,13 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+
+########################################################
+##             function declaration
+##          
+########################################################
+
 
 ########################################################
 ##             Connect Part
