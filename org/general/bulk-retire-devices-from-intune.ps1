@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Bulk retire iOS devices from Intune using serial numbers
+  Bulk retire devices from Intune using serial numbers
 
   .DESCRIPTION
-  This runbook retires multiple iOS devices from Intune based on a list of serial numbers.
+  This runbook retires multiple devices from Intune based on a list of serial numbers.
 
   .NOTES
   Permissions:
