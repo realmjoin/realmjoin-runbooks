@@ -272,33 +272,6 @@ try {
     Write-RjRbLog "Updating user object with the following properties" $userArgs
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $userArgs
 
-    # Handle x500 addresses
-    "## Checking and updating x500 addresses for user '$UserName'"
-    $mailbox = Get-EXOMailbox -Identity $UserName -ErrorAction SilentlyContinue
-    if ($mailbox) {
-        $currentX500Addresses = $mailbox.EmailAddresses | Where-Object { $_ -like "X500:*" }
-        
-        if ($currentX500Addresses) {
-            "## Current x500 addresses:"
-            $currentX500Addresses | ForEach-Object { "  - $_" }
-        } else {
-            "## No existing x500 addresses found."
-        }
-
-        # Add new x500 address if needed
-        $newX500Address = "X500:/o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=$($mailbox.Alias)"
-        if ($currentX500Addresses -notcontains $newX500Address) {
-            "## Adding new x500 address: $newX500Address"
-            $mailbox.EmailAddresses += $newX500Address
-            Set-Mailbox -Identity $UserName -EmailAddresses $mailbox.EmailAddresses
-            "## New x500 address added successfully."
-        } else {
-            "## The required x500 address already exists. No changes needed."
-        }
-    } else {
-        "## Warning: Mailbox not found for user '$UserName'. Unable to process x500 addresses."
-    }
-
     if ($DefaultLicense -ne "") {
         #"Searching license group $DefaultLicense."
         $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$DefaultLicense'" -OdSelect "displayName, assignedLicenses, id" -ErrorAction SilentlyContinue
