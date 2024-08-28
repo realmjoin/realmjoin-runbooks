@@ -85,7 +85,7 @@ try {
                 $prefix = $address.Split(":")[0] 
                 $mail = $address.Split(":")[1]
             
-                if ($prefix -eq "smtp") {
+                if ($prefix -notlike "sip") {
                     if ($mail -ne $NewUpn ) {
                         $newAdresses.Add($address.ToLower()) | Out-Null
                     }
