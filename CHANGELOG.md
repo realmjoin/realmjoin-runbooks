@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-08-27
+
+- New Runbook: Bulk retire devices from Intune
+- New Runbook: Check Updatable Assets
+
 ## 2024-07-09
 
 - New runbook: Check Assignments Of Users
