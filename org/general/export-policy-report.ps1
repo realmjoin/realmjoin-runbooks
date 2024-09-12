@@ -719,9 +719,14 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     $displayValue += "<br/>$_"
                 }
             }
-            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
-            if ($description.Length -gt 700) {
-                $description = $description.Substring(0, 700) + "..."
+            if ($definition.description) {
+                $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                if ($description.Length -gt 700) {
+                    $description = $description.Substring(0, 700) + "..."
+                }
+            }
+            else {
+                $description = ""
             }
             "|$($definition.displayName)|$displayValue|$description|"
         }
@@ -738,10 +743,15 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             $displayValue += "<br/>$_"
                         }
                     }
-                    $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
-                    if ($description.Length -gt 700) {
-                        $description = $description.Substring(0, 700) + "..."
+                    if ($definition.description) {
+                        $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                        if ($description.Length -gt 700) {
+                            $description = $description.Substring(0, 700) + "..."
+                        }
                     }
+                    else {
+                        $description = ""
+                    }                    
                     "|$($definition.displayName)|$displayValue|$description|"
                 }
 
@@ -758,9 +768,14 @@ function ConvertToMarkdown-ConfigurationPolicy {
                                     $displayValue += "<br/>$_"
                                 }
                             }
-                            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
-                            if ($description.Length -gt 700) {
-                                $description = $description.Substring(0, 700) + "..."
+                            if ($definition.description) {
+                                $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                                if ($description.Length -gt 700) {
+                                    $description = $description.Substring(0, 700) + "..."
+                                }
+                            }
+                            else {
+                                $description = ""
                             }
                             "|$($definition.displayName)|$displayValue|$description|"
                         }
@@ -769,10 +784,14 @@ function ConvertToMarkdown-ConfigurationPolicy {
                             foreach ($value in $group2Setting.choiceSettingCollectionValue.value) {
                                 ($definition.options | Where-Object { $_.itemId -eq $value }).displayName
                             }
+                            if ($definition.description) {
                             $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
                             if ($description.Length -gt 700) {
                                 $description = $description.Substring(0, 700) + "..."
                             }
+                        } else {
+                            $description = ''
+                        }
                             )|$description|"
                         }
                         else {
@@ -785,9 +804,14 @@ function ConvertToMarkdown-ConfigurationPolicy {
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance") {
             foreach ($value in $setting.simpleSettingCollectionValue.value) {
                 $definition = $setting.settingDefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
-                $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
-                if ($description.Length -gt 700) {
-                    $description = $description.Substring(0, 700) + "..."
+                if ($definition.description) {
+                    $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                    if ($description.Length -gt 700) {
+                        $description = $description.Substring(0, 700) + "..."
+                    }
+                }
+                else {
+                    $description = ""
                 }
                 $valueString = ""
                 $valueCollection = $value -split (" ")
@@ -805,9 +829,14 @@ function ConvertToMarkdown-ConfigurationPolicy {
         }
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance") {
             $definition = $setting.settingDefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
-            $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
-            if ($description.Length -gt 700) {
-                $description = $description.Substring(0, 700) + "..."
+            if ($definition.description) {
+                $description = $definition.description.split("`n").split("`r") -join "<br/>" -replace "<br/><br/>", "<br/>" -replace "<br/><br/>", "<br/>"
+                if ($description.Length -gt 700) {
+                    $description = $description.Substring(0, 700) + "..."
+                }
+            }
+            else {
+                $description = ""
             }
             $valueString = ""
             $valueCollection = $setting.settingInstance.simpleSettingValue.value -split (" ")
