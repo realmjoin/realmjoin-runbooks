@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-10-12
+- Fix: Export Policy Reports: Fixed issue where empty descriptions in settings would break the export.
+
 ## 2024-08-27
 
 - New Runbook: Bulk retire devices from Intune
