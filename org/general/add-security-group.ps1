@@ -7,11 +7,22 @@
     Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
     GraphAPI: 
     - Group.Create 
+
+    AssignableToRoles is currently deactivated, as extended rights are required. 
+    “RoleManagement.ReadWrite.Directory” permission is required to set the ‘isAssignableToRole’ property or update the membership of such groups. 
+    Reference is made to this in a comment in the course of the code.
+    (according to https://learn.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0&tabs=http#example-3-create-a-microsoft-365-group-that-can-be-assigned-to-a-microsoft-entra-role)
+    Also to reactivate this feature, the following extra is in the .INPUTS are required:
+    "AssignableToRoles": {
+        "DisplayName":  "Microsoft Entra roles can be assigned to the group"
+    },
+
     .PARAMETER GroupName
     The name of the security group.
     .PARAMETER GroupDescription
     The description of the security group.
     .PARAMETER AssignableToRoles
+    Currently deactivated, as extended rights are required. See info in “.Notes”
     Indicates whether Microsoft Entra roles can be assigned to the group.
     .PARAMETER Owner
     The owner of the security group.
@@ -24,9 +35,6 @@
             "GroupDescription": {
                 "DisplayName":  "Description of this security group",
             },
-            "AssignableToRoles": {
-                "DisplayName":  "Microsoft Entra roles can be assigned to the group"
-            },
             "CallerName": {
                 "Hide": true
             }
@@ -35,19 +43,21 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.23.0" }
 
 param (
     [Parameter(Mandatory=$true)]
     [string]$GroupName,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [string]$GroupDescription,
 
-    [Parameter(Mandatory=$false)]
-    [bool]$AssignableToRoles = $false,
+    # Currently deactivated, as extended rights are required. See info in “.Notes”
+    # [Parameter(Mandatory=$false)]
+    # [bool]$AssignableToRoles = $false,
 
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'"} )]
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [string]$Owner,
 
     # CallerName is tracked purely for auditing purposes
@@ -96,23 +106,40 @@ function Validate-GroupName {
 function Create-Group {
     param (
         [string]$GroupName,
+        [Parameter(Mandatory=$false)]
         [string]$GroupDescription,
-        [bool]$AssignableToRoles,
+        #[bool]$AssignableToRoles, # Currently deactivated, as extended rights are required. See info in “.Notes”
         [string]$MembershipType,
+        [Parameter(Mandatory=$false)]
         [string]$Owner
     )
     $OwnerString = "https://graph.microsoft.com/v1.0/users/$Owner"
     $uri = "https://graph.microsoft.com/v1.0/groups"
     $body = @{
         displayName = $GroupName
-        description = $GroupDescription
         mailEnabled = $false
         mailNickname = $GroupName.Replace(" ", "")
         securityEnabled = $true
         groupTypes = @()
         visibility = "Private"
-        'owners@odata.bind' = @($OwnerString)
     }
+
+    if (![string]::IsNullOrWhiteSpace($GroupDescription)) {
+        $body.description = $GroupDescription
+    }
+
+    if (![string]::IsNullOrWhiteSpace($Owner)) {
+        $body.'owners@odata.bind' = @($OwnerString)
+    }
+
+    # Currently deactivated, as extended rights are required. See info in “.Notes”
+    # if($AssignableToRoles) {
+    #     $body.isAssignableToRole = $true
+    # }else {
+    #     $body.isAssignableToRole = $false
+    # }
+
+
     $response = Invoke-MGGraphRequest -Method POST -Uri $uri -Body ($body | ConvertTo-Json)
     return $response
 }
@@ -153,7 +180,7 @@ try {
     if ($existingGroup.Count -gt 0) {
         Write-Error "Group '$GroupName' already exists."
     } else {
-        $newGroup = Create-Group -GroupName $GroupName -GroupDescription $GroupDescription -AssignableToRoles $AssignableToRoles -MembershipType $MembershipType -Owner $Owner
+        $newGroup = Create-Group -GroupName $GroupName -GroupDescription $GroupDescription -MembershipType $MembershipType -Owner $Owner # -AssignableToRoles $AssignableToRoles # Currently deactivated, as extended rights are required. See info in “.Notes”
         Write-Output "Group '$GroupName' created successfully."
     }
 } catch {
