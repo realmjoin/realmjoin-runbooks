@@ -54,7 +54,7 @@ function Get-Base64EncodedImage {
     }
 }
 
-# At the beginning of the script, add:
+# Initialize counters
 $totalApps = 0
 $updatedApps = 0
 $skippedApps = 0
