@@ -3,7 +3,7 @@
   Update logos of Microsoft Store Apps (new) in Intune.
 
   .DESCRIPTION
-  This script updates the logos for Microsoft Store Apps (new) by fetching them from the Microsoft Store.
+  This script updates the logos for Microsoft Store Apps (new) in Intune by fetching them from the Microsoft Store.
 
   .NOTES
   Permissions:
