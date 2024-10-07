@@ -1,6 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-10-07
+
+- New Runbook: Add Microsoft Store App Logos
+
 ## 2024-10-12
+
 - Fix: Export Policy Reports: Fixed issue where empty descriptions in settings would break the export.
 
 ## 2024-08-27
