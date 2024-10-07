@@ -54,16 +54,23 @@ function Get-Base64EncodedImage {
     }
 }
 
+# At the beginning of the script, add:
+$totalApps = 0
+$updatedApps = 0
+$skippedApps = 0
+$failedApps = 0
+
 # Get all Microsoft Store Apps (new)
 Write-RjRbLog -Message "Fetching Store apps from Intune" -Verbose
 $StoreApps = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps" -OdFilter "isof('microsoft.graph.winGetApp')" -Beta
 
-"## Store Apps in Intune:"
+"## Microsoft Store Apps in Intune:"
 foreach ($app in $StoreApps) {
-    "DisplayName: $($app.displayName)"
-    "PackageIdentifier: $($app.packageIdentifier)"
-    "---"
+    "- $($app.displayName) (PackageIdentifier: $($app.packageIdentifier))"
+    $totalApps++
 }
+
+"" # Empty line for better readability
 
 # Process each app
 foreach ($app in $StoreApps) {
@@ -73,8 +80,8 @@ foreach ($app in $StoreApps) {
     $appDetails = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps/$($app.id)" -UriQueryRaw '$expand=categories' -Beta
 
     if ($appDetails.largeIcon -and $appDetails.largeIcon.value) {
-        "## App $($app.displayName) already has a logo. Skipping..."
-        "---"
+        "## [$($app.displayName)] Already has a logo. Skipping..."
+        $skippedApps++
         continue
     }
 
@@ -107,17 +114,25 @@ foreach ($app in $StoreApps) {
 
             # Update the app
             Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps/$($app.id)" -Method Patch -Body $updatePayload -Beta
-            "## Updated logo for $($app.displayName)"
+            "## [$($app.displayName)] Successfully updated logo"
+            $updatedApps++
         }
         else {
-            "## No logo found for $($app.displayName)"
+            "## [$($app.displayName)] No logo found"
+            $failedApps++
         }
     }
     catch {
         Write-RjRbLog -Message "Error processing $($app.displayName): $_" -Verbose
+        "## [$($app.displayName)] Failed to update logo: $_"
+        $failedApps++
     }
 
-    "---"
+    "" # Empty line for better readability
 }
 
-"## Logo update process completed."
+"## Logo Update Process Summary:"
+"- Total apps processed: $totalApps"
+"- Apps updated: $updatedApps"
+"- Apps skipped (already had logo): $skippedApps"
+"- Apps failed to update: $failedApps"
