@@ -69,7 +69,7 @@ foreach ($app in $StoreApps) {
 foreach ($app in $StoreApps) {
     Write-RjRbLog -Message "Processing $($app.displayName)..." -Verbose
     
-    # Check if the app already has a logo
+    # Check if the app already has a logo 
     $appDetails = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps/$($app.id)" -UriQueryRaw '$expand=categories' -Beta
 
     if ($appDetails.largeIcon -and $appDetails.largeIcon.value) {
