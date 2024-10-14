@@ -36,7 +36,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph
 
 try {
-    $result = Invoke-RjRbRestMethodGraph -Resource "/deviceLocalCredentials/$DeviceId" -Method GET -Beta -OdSelect "deviceName,credentials"
+    $result = Invoke-RjRbRestMethodGraph -Resource "/directory/deviceLocalCredentials/$DeviceId" -Method GET -OdSelect "deviceName,credentials"
 }
 catch {
     "## Querying LAPS credentials on DeviceId '$DeviceId' failed. `n## Aborting..."
