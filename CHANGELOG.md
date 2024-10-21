@@ -1,8 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-10-21
+- Add Security Group: Allowed characters for security groups added, Update of the required PowerShell module (newer version)
+
 ## 2024-10-14
 
 - Fix: Show LAPS Password fails - MS Graph API change
+
+## 2024-10-01
+- New Runbook: Add Security Group
 
 ## 2024-10-07
 

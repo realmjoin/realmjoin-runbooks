@@ -43,7 +43,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.23.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.24.0" }
 
 param (
     [Parameter(Mandatory=$true)]
@@ -93,8 +93,8 @@ function Validate-GroupName {
     }
 
     # Check for invalid characters (example: only letters, numbers, hyphens, and underscores)
-    if ($name -notmatch '^[a-zA-Z0-9-_]+$') {
-        Write-Warning "Group name contains invalid characters. Only letters, numbers, hyphens, and underscores are allowed."
+    if ($name -notmatch '^[a-zA-Z0-9-_ ]+$') {
+        Write-Warning "Group name contains invalid characters. Only letters, numbers, blanks, hyphens, and underscores are allowed."
         return $false
     }
 
