@@ -1577,7 +1577,9 @@ $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList | F
         id = $_.id
     }
 }
-# This is used instead of Select-Object to avoid problems with powershell 5.1 which occurs in testing
+# This is used to solve compatibility issues between PowerShell 5.1 and PowerShell 7 when using Select-Object on hashtables.
+# This converts hashtables to custom objects, ensuring consistent behavior across different PowerShell versions and allowing 
+# Select-Object to work as expected.
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Verbose "$TimeStamp - Block 6 - Collected Items $(($TPIList|Measure-Object).Count)"
@@ -1860,7 +1862,39 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
 if ($NoUpdate -ne 1) {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - Get fresh StatusQuo of TPI SharePoint List - ListName: $SharepointTPIList"
-    $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList # Select does in problems using PowerShell5 | Select-Object Title,MainLineUri,DID,TeamsEXT,NumberRangeName,ExtensionRangeName,CivicAddressMappingName,UPN,Display_Name,OnlineVoiceRoutingPolicy,TeamsCallingPolicy,DialPlan,TenantDialPlan,TeamsPrivateLine,VoiceType,UserType,NumberCapability,NumberRangeIndex,ExtensionRangeIndex,CivicAddressMappingIndex,Country,City,Company,EmergencyAddressName,Status,id
+    $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList {
+        [pscustomobject]@{
+            Title = $_.Title
+            MainLineUri = $_.MainLineUri
+            DID = $_.DID
+            TeamsEXT = $_.TeamsEXT
+            NumberRangeName = $_.NumberRangeName
+            ExtensionRangeName = $_.ExtensionRangeName
+            CivicAddressMappingName = $_.CivicAddressMappingName
+            UPN = $_.UPN
+            Display_Name = $_.Display_Name
+            OnlineVoiceRoutingPolicy = $_.OnlineVoiceRoutingPolicy
+            TeamsCallingPolicy = $_.TeamsCallingPolicy
+            DialPlan = $_.DialPlan
+            TenantDialPlan = $_.TenantDialPlan
+            TeamsPrivateLine = $_.TeamsPrivateLine
+            VoiceType = $_.VoiceType
+            UserType = $_.UserType
+            NumberCapability = $_.NumberCapability
+            NumberRangeIndex = $_.NumberRangeIndex
+            ExtensionRangeIndex = $_.ExtensionRangeIndex
+            CivicAddressMappingIndex = $_.CivicAddressMappingIndex
+            Country = $_.Country
+            City = $_.City
+            Company = $_.Company
+            EmergencyAddressName = $_.EmergencyAddressName
+            Status = $_.Status
+            id = $_.id
+        }
+    }
+    # It is used to solve compatibility issues between PowerShell 5.1 and PowerShell 7 when using Select-Object on hashtables.
+    # This converts hashtables to custom objects, ensuring consistent behavior across different PowerShell versions and allowing 
+    # Select-Object to work as expected.
 
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - Transfer Response into an Array"
