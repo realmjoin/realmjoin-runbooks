@@ -276,6 +276,31 @@ function Invoke-TPIRestMethod {
     
 }
 
+# The Convert-HashtableToCustomObject function is introduced to address compatibility issues
+# between PowerShell 5.1 and PowerShell 7 when using Select-Object on hashtables.
+# This function converts hashtables to custom objects, ensuring consistent behavior across
+# different PowerShell versions and allowing Select-Object to work as expected.
+function Convert-HashtableToCustomObject {
+    param (
+        [Parameter(Mandatory=$true)]
+        [array]$HashtableArray,
+        
+        [Parameter(Mandatory=$true)]
+        [string[]]$Properties
+    )
+
+    $CustomObjects = @()
+    foreach ($item in $HashtableArray) {
+        $obj = New-Object PSObject
+        foreach ($key in $item.Keys) {
+            $obj | Add-Member -MemberType NoteProperty -Name $key -Value $item[$key]
+        }
+        $CustomObjects += $obj
+    }
+
+    return $CustomObjects | Select-Object -Property $Properties
+}
+
 #endregion
 #region function declaration
 ########################################################
@@ -410,14 +435,37 @@ $AllUsers = Get-CsOnlineUser -Filter {City -notlike '' -and Street -notlike '' -
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Get current mapping tables"
 
-#Setup URL for User Mapping and Location Mapping List
+#Setup URL for User Mapping List
 $SharepointUserMappingListURL = $BaseURL + $SharepointUserMappingList
-$SharepointUserMappingListContent = Get-TPIList -ListBaseURL $SharepointUserMappingListURL -ListName $SharepointUserMappingList | Select-Object Title,LocationIdentifier,id
+$SharepointUserMappingListContentRAW = Get-TPIList -ListBaseURL $SharepointUserMappingListURL -ListName $SharepointUserMappingList
+# Convert Hashtable to Custom Object only if not empty, otherwise just create an empty array
+if ($null -ne $SharepointUserMappingListContentRAW) {
+    $SharepointUserMappingListContent = Convert-HashtableToCustomObject -HashtableArray $SharepointUserMappingListContentRAW -Properties @('Title', 'LocationIdentifier', 'id')
+}else{
+    $SharepointUserMappingListContent = @()
+}
 
-
-#Setup URL for User Mapping and Location Mapping List
+#Setup URL for Location Mapping List
 $SharepointLocationMappingListURL = $BaseURL + $SharepointLocationMappingList
-$LocationMappingTable = Get-TPIList -ListBaseURL $SharepointLocationMappingListURL -ListName $SharepointLocationMappingList | Select-Object Title,City,Street,Company,id
+$LocationMappingTableListContentRAW = Get-TPIList -ListBaseURL $SharepointLocationMappingListURL -ListName $SharepointLocationMappingList
+
+# Convert Hashtable to Custom Object only if not empty, otherwise stop script, cause it is necessary to have the location mappings
+if ($null -ne $LocationMappingTableListContentRAW) {
+    $LocationMappingTableListContent = Convert-HashtableToCustomObject -HashtableArray $LocationMappingTableListContentRAW -Properties @('Title', 'City', 'Street', 'Company', 'id')
+}else{
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Error "$TimeStamp - Block 1 - Error! - The Location Mapping Table is empty, so no mapping can be done. Please add the location mappings to the SharePoint List first. Stopping script!"
+    throw "$TimeStamp - Block 1 - Error! - The Location Mapping Table is empty, so no mapping can be done. Please add the location mappings to the SharePoint List first. Stopping script!"
+    Exit
+}
+
+# Clear last RAW variables if they are not empty
+if ($null -ne $SharepointUserMappingListContentRAW) {
+    Clear-Variable SharepointUserMappingListContentRAW
+}
+if ($null -ne $LocationMappingTableListContentRAW) {
+    Clear-Variable LocationMappingTableListContentRAW
+}
 
 #endregion
 #region Build work table
@@ -433,8 +481,7 @@ Write-Output "$TimeStamp - Block 2 - Create table of current user <-> location m
 [System.Collections.ArrayList]$UserMappingTable = @()
 
 foreach ($User in $AllUsers) {
-
-    $CurrentLocationIdentifier = $($LocationMappingTable | Where-Object {($_.City -like $User.City) -and ($_.Street -like $User.Street) -and ($_.Company -like $User.Company)}).Title
+    $CurrentLocationIdentifier = $($LocationMappingTableListContent | Where-Object {($_.City -like $User.City) -and ($_.Street -like $User.Street) -and ($_.Company -like $User.Company)}).Title
     
     #Add item only if matching location identifier exists
     if ($CurrentLocationIdentifier -notlike '') {
@@ -482,30 +529,28 @@ if (!(($EntrysToDelete | Measure-Object).Count -eq 0)) {
     Write-Output "$TimeStamp - Block 4 - Delete wrong or outdated items"
     $EntrysToDeleteCount = ($EntrysToDelete | Measure-Object).Count
 
-    if ($EntrysToDeleteCount -gt 0) {
-        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Output "$TimeStamp - Block 4 - Number of items in the SharePoint List which will be removed: $EntrysToDeleteCount"
-              
-        foreach ($DeleteItem in $EntrysToDelete) {
-            if ($DeleteItem.Title -notlike "") {
-                $UPN = $DeleteItem.Title
-                $ID = ($SharepointUserMappingListContent | Where-Object Title -like $UPN).ID
-                $GraphAPIUrl_DeleteElement = $SharepointUserMappingListURL + '/items/'+ $ID
-    
-                if ($ID -notlike "") {
-                    $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_DeleteElement -Method Delete -ProcessPart "User Mapping List - Delete item: $UPN"
-                }else{
-                    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-                    Write-Output "$TimeStamp - Block 4 - Error! - Entry could not be removed - UPN: $UPN"
-                }
-    
-                Clear-Variable UPN,ID,GraphAPIUrl_DeleteElement
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - Block 4 - Number of items in the SharePoint List which will be removed: $EntrysToDeleteCount"
+            
+    foreach ($DeleteItem in $EntrysToDelete) {
+        if ($DeleteItem.Title -notlike "") {
+            $UPN = $DeleteItem.Title
+            $ID = ($SharepointUserMappingListContent | Where-Object Title -like $UPN).ID
+            $GraphAPIUrl_DeleteElement = $SharepointUserMappingListURL + '/items/'+ $ID
+
+            if ($ID -notlike "") {
+                $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_DeleteElement -Method Delete -ProcessPart "User Mapping List - Delete item: $UPN"
+            }else{
+                $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+                Write-Output "$TimeStamp - Block 4 - Error! - Entry could not be removed - UPN: $UPN"
             }
+
+            Clear-Variable UPN,ID,GraphAPIUrl_DeleteElement
         }
-    }else {
-        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Output "$TimeStamp - Block 4 - There are no items that need to be removed from the SharePoint User Mapping List."
     }
+}else {
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - Block 4 - There are no items that need to be removed from the SharePoint User Mapping List."
 }
     #endregion
 
@@ -519,34 +564,28 @@ if (!(($EntrysToAdd | Measure-Object).Count -eq 0)) {
     Write-Output "$TimeStamp - Block 5 - Add missing items"
     $EntrysToAddCount = ($EntrysToAdd | Measure-Object).Count
 
-    if ($EntrysToAddCount -gt 0) {
-        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Output "$TimeStamp - Block 5 - Number of items in the SharePoint List which will be added: $EntrysToAddCount"
-        $GraphAPIUrl = $SharepointUserMappingListURL + '/items'
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - Block 5 - Number of items in the SharePoint List which will be added: $EntrysToAddCount"
+    $GraphAPIUrl = $SharepointUserMappingListURL + '/items'
 
-        foreach ($AddItem in $EntrysToAdd) {
-            $UPN = $AddItem.Title
-            $LocationIdentifier = $AddItem.LocationIdentifier
-            $HTTPBody_NewElement = @{
-                "fields" = @{
-                    "Title"= $UPN
-                    "LocationIdentifier"= $LocationIdentifier
-                }
+    foreach ($AddItem in $EntrysToAdd) {
+        $UPN = $AddItem.Title
+        $LocationIdentifier = $AddItem.LocationIdentifier
+        $HTTPBody_NewElement = @{
+            "fields" = @{
+                "Title"= $UPN
+                "LocationIdentifier"= $LocationIdentifier
             }
-            $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl -Method Post -Body $HTTPBody_NewElement -ProcessPart "User Mapping List - Add item: $UPN"
-            Clear-Variable UPN,LocationIdentifier,HTTPBody_NewElement,TMP
         }
-
-
-    }else {
-        $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Output "$TimeStamp - Block 5 - There are no items that need to be added to the SharePoint User Mapping List."
+        $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl -Method Post -Body $HTTPBody_NewElement -ProcessPart "User Mapping List - Add item: $UPN"
+        Clear-Variable UPN,LocationIdentifier,HTTPBody_NewElement,TMP
     }
+
     #endregion
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Done!"
 }else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Output "$TimeStamp - Done! - no List update required"
+    Write-Output "$TimeStamp - Done! - no other List update required"
 }
 #endregion
