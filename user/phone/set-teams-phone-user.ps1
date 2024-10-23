@@ -482,7 +482,39 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
 Write-Output ""
 Write-Output "Block 6 - Get StatusQuo of the SharePoint List"
 
-$TPI_AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList
+$TPI_AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList | ForEach-Object {
+    [pscustomobject]@{
+        Title = $_.Title
+        MainLineUri = $_.MainLineUri
+        DID = $_.DID
+        TeamsEXT = $_.TeamsEXT
+        NumberRangeName = $_.NumberRangeName
+        ExtensionRangeName = $_.ExtensionRangeName
+        CivicAddressMappingName = $_.CivicAddressMappingName
+        UPN = $_.UPN
+        Display_Name = $_.Display_Name
+        OnlineVoiceRoutingPolicy = $_.OnlineVoiceRoutingPolicy
+        TeamsCallingPolicy = $_.TeamsCallingPolicy
+        DialPlan = $_.DialPlan
+        TenantDialPlan = $_.TenantDialPlan
+        TeamsPrivateLine = $_.TeamsPrivateLine
+        VoiceType = $_.VoiceType
+        UserType = $_.UserType
+        NumberCapability = $_.NumberCapability
+        NumberRangeIndex = $_.NumberRangeIndex
+        ExtensionRangeIndex = $_.ExtensionRangeIndex
+        CivicAddressMappingIndex = $_.CivicAddressMappingIndex
+        Country = $_.Country
+        City = $_.City
+        Company = $_.Company
+        EmergencyAddressName = $_.EmergencyAddressName
+        Status = $_.Status
+        id = $_.id
+    }
+}
+# This is used to solve compatibility issues between PowerShell 5.1 and PowerShell 7 when using Select-Object on hashtables.
+# This converts hashtables to custom objects, ensuring consistent behavior across different PowerShell versions and allowing 
+# Select-Object to work as expected.
 
 Write-Output "Items in $SharepointTPIList SharePoint List: $($TPI_AllItems.Count)"
 Write-Output "Check for next free number"
