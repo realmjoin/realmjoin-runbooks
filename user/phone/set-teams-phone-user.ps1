@@ -696,7 +696,7 @@ if ($NumberAlreadyAssigned -like 1) {
     try {
         if ($CallingPlanCheck) {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
-        }elseif (OperatorConnectCheck) {
+        }elseif ($OperatorConnectCheck) {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType OperatorConnect -ErrorAction Stop
         } else {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
