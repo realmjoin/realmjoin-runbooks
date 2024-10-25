@@ -1862,7 +1862,7 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
 if ($NoUpdate -ne 1) {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - Get fresh StatusQuo of TPI SharePoint List - ListName: $SharepointTPIList"
-    $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList {
+    $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList | ForEach-Object {
         [pscustomobject]@{
             Title = $_.Title
             MainLineUri = $_.MainLineUri
@@ -1892,7 +1892,7 @@ if ($NoUpdate -ne 1) {
             id = $_.id
         }
     }
-    # It is used to solve compatibility issues between PowerShell 5.1 and PowerShell 7 when using Select-Object on hashtables.
+    # This is used to solve compatibility issues between PowerShell 5.1 and PowerShell 7 when using Select-Object on hashtables.
     # This converts hashtables to custom objects, ensuring consistent behavior across different PowerShell versions and allowing 
     # Select-Object to work as expected.
 
