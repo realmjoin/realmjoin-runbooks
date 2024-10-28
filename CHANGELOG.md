@@ -1,4 +1,7 @@
 # RealmJoin Runbooks Changelog
+## 2024-10-28
+- Get Teams User Info: Voicemail and CallQueue status added. Extended license check - is the application active in the license?
+- All user/phone runbooks: Update MicrosoftTeams module
 
 ## 2024-10-21
 - Add Security Group: Allowed characters for security groups added, Update of the required PowerShell module (newer version)
