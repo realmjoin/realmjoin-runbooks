@@ -1,4 +1,9 @@
 # RealmJoin Runbooks Changelog
+
+## 2024-10-30
+- Check/Unenroll-UpdateAbleAssets: Relocated to groups and devices.
+- Unenroll-UpdateAbleAssets: Fix issue with JSON encoding.
+
 ## 2024-10-28
 - Get Teams User Info: Voicemail and CallQueue status added. Extended license check - is the application active in the license?
 - All user/phone runbooks: Update MicrosoftTeams module
