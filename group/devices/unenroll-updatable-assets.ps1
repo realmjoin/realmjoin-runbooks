@@ -7,7 +7,6 @@
 
   .NOTES
   Permissions (Graph):
-  - Device.Read.All
   - Group.Read.All
   - WindowsUpdates.ReadWrite.All
 
@@ -15,7 +14,7 @@
   Object ID of the group to unenroll its members.
 
   .PARAMETER UpdateCategory
-  Category of updates to unenroll from. Possible values are: driver, feature, quality.
+  Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
 
   .PARAMETER CallerName
   Caller name for auditing purposes.
@@ -32,8 +31,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $GroupId,
     [Parameter(Mandatory = $true)]
-    [ValidateSet("driver", "feature", "quality")]
-    [string] $UpdateCategory
+    [ValidateSet("driver", "feature", "quality", "all")]
+    [string] $UpdateCategory = "all"
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -47,7 +46,7 @@ function Unenroll-Device {
         [string]$UpdateCategory
     )
 
-    Write-RjRbLog -Message "Unenrolling device: $DeviceName (ID: $DeviceId) from $UpdateCategory updates" -Verbose
+    Write-Output "Unenrolling device '$DeviceName' (ID: $DeviceId) from $UpdateCategory updates"
 
     $unenrollBody = @{
         updateCategory = $UpdateCategory
@@ -59,23 +58,30 @@ function Unenroll-Device {
         )
     } 
 
-    try {
-        $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/unenrollAssets" -Method POST -Body $unenrollBody -Beta
-        Write-Output "Device '$DeviceName' (ID: $DeviceId) successfully unenrolled from $UpdateCategory updates."
-    }
-    catch {
-        $errorResponse = $_.ErrorDetails.Message | ConvertFrom-Json
-        Write-Output "Failed to unenroll device '$DeviceName' (ID: $DeviceId)."
-        Write-Output "Error: $($errorResponse.error.message)"
+    if($UpdateCategory -eq "all") {
+        $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method DELETE -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph
+        Write-Output "- Triggered unenroll from updatableAssets via deletion."   
+        if($errorGraph) {
+            Write-Output "- Error: $($errorGraph.message)"
+            Write-RjRbLog -Message "- Error: $($errorGraph)" -Verbose
+        }  
+    } else {
+        $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/unenrollAssets" -Method POST -Body $unenrollBody -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph
+        Write-Output "- Triggered unenroll from updatableAssets for category $UpdateCategory."
+        if($errorGraph) {
+            Write-Output "- Error: $($errorGraph.message)"
+            Write-RjRbLog -Message "- Error: $($errorGraph)" -Verbose
+        }
+        if(!$unenrollResponse) {
+            Write-Output "- Note: Empty Graph response (device probably already offboarded)"
+        }
     }
 }
 
-Write-RjRbLog -Message "Unenrolling group members of Group ID: $GroupId" -Verbose
-"## Unenrolling group members of Group ID: $GroupId"
+Write-Output "Unenrolling group members of Group ID: $GroupId"
 
 # Get Group Members
-Write-RjRbLog -Message "Fetching Group Members for Group ID: $GroupId" -Verbose
-"## Fetching Group Members for Group ID: $GroupId"
+Write-Output "Fetching Group Members for Group ID: $GroupId"
 
 $groupMembersResponse = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId/members" -Method GET
 $deviceObjects = $groupMembersResponse | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' } | Select-Object deviceId, displayName
@@ -86,4 +92,3 @@ foreach ($deviceObject in $deviceObjects) {
 
     Unenroll-Device -DeviceId $DeviceId -DeviceName $deviceName -UpdateCategory $UpdateCategory
 }
-
