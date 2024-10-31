@@ -8,19 +8,16 @@
   .NOTES
   Permissions (Graph):
   - Device.Read.All
-  - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementApps.Read.All
   - WindowsUpdates.ReadWrite.All
 
-  .PARAMETER DeviceName
-  Device Name of the device to check onboarding status for.
+  .PARAMETER DeviceId
+  DeviceId of the device to check onboarding status for.
 
   .PARAMETER CallerName
   Caller name for auditing purposes.
 
   .INPUTS
-  DeviceName and CallerName
+  DeviceId and CallerName
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
@@ -38,23 +35,18 @@ Connect-RjRbGraph -Force
 
 Write-RjRbLog -Message "Checking onboarding status for device: $DeviceId" -Verbose
 
-# Get Device ID from Microsoft Entra based on Device Name
 Write-RjRbLog -Message "Fetching Device Details for $DeviceId" -Verbose
 
-# $deviceDetailsUri = "https://graph.microsoft.com/v1.0/devices?`$filter=displayName eq '$DeviceName'"
 $deviceResponse = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
-if (-not $deviceResponse) {
-    "Device ID: $DeviceId not found in Entra ID."
-    throw "DeviceId not found."
-}
 $deviceName = $deviceResponse.displayName
-"Found device '$deviceName' (ID: $DeviceId) in Entra ID."
+Write-RjRbLog -Message "Found device '$deviceName' (ID: $DeviceId) in Entra ID." -Verbose
 
 # Check if device is onboarded
-Write-RjRbLog -Message "Checking onboarding status for Device ID: $DeviceId" -Verbose
-# $onboardingUri = "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/$DeviceId"
+Write-Output "Checking onboarding status for '$deviceName' (ID: $DeviceId)."
+
 try {
-    $onboardingResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method GET -Beta -ErrorAction SilentlyContinue
+    $onboardingResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method GET -Beta
+    Write-RjRbLog -Message "- onboardingResponse: $onboardingResponse" -Verbose
     if ($onboardingResponse) {
         $status = "Onboarded"
         $updateCategories = $onboardingResponse.enrollments.updateCategory -join ", "
@@ -64,21 +56,22 @@ try {
         else { 
             "None"
         }
-        Write-Output "Device '$DeviceName' (ID: $DeviceId) is $status."
-        Write-Output "Update Categories: $updateCategories"
-        Write-Output "Errors: $errors"
+        Write-Output "- Status: $status"
+        Write-Output "- Update categories: $updateCategories"
+        Write-Output "- Errors: $errors"
     }
     else {
-        Write-Output "Device '$DeviceName' (ID: $DeviceId) is not onboarded."
+        Write-Output "- Device '$DeviceName' (ID: $DeviceId) is not onboarded."
     }
 }
 catch {
-    $errorResponse = $_.ErrorDetails.Message | ConvertFrom-Json
-    if ($errorResponse.error.code -eq 'NotFound') {
-        Write-Output "Device '$DeviceName' (ID: $DeviceId) is not found. (possibly a non-Windows device)."
+    $errorResponse = $_
+    if ($errorResponse -match '404') {
+        Write-Output "- Device is not onboarded / not found (404)."
+        Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
     }
     else {
-        Write-Output "Device '$DeviceName' (ID: $DeviceId) is not onboarded."
-        Write-Output "Error: $($errorResponse.error.message)"
+        Write-Output "- Device is not onboarded - see details in the following."
+        Write-Output "- Error: $($errorResponse)"
     }
 }

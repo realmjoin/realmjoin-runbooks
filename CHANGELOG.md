@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-10-31
+- Check/Unenroll-UpdateAbleAssets: Added option to unenroll from all categories. Several improvements in output and error handling. Bug fixes.
+
 ## 2024-10-30
 - Check/Unenroll-UpdateAbleAssets: Relocated to groups and devices.
 - Unenroll-UpdateAbleAssets: Fix issue with JSON encoding.
