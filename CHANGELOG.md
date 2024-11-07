@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-11-07
+- Fix: Autopilot Bulk Delete: Not all devices found.
+
 ## 2024-11-05
 - New Runbook: Get BitLocker recovery key
 
