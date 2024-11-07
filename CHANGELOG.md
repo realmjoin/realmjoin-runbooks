@@ -3,6 +3,9 @@
 ## 2024-11-07
 - Fix: Autopilot Bulk Delete: Not all devices found.
 
+## 2024-11-05
+- New Runbook: Get BitLocker recovery key
+
 ## 2024-10-31
 - Check/Unenroll-UpdateAbleAssets: Added option to unenroll from all categories. Several improvements in output and error handling. Bug fixes.
 
