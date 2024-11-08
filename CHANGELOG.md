@@ -1,12 +1,10 @@
 # RealmJoin Runbooks Changelog
 
-<<<<<<< HEAD
 ## 2024-11-08
-- Updated runbook "Enroll updatableAssets" and moved to device 
-=======
+- Updated runbook "Enroll updatableAssets" and moved to device
+
 ## 2024-11-07
 - Fix: Autopilot Bulk Delete: Not all devices found.
->>>>>>> f5f59425011f7cf47a4081a6a25cc8eb6367b26f
 
 ## 2024-11-05
 - New Runbook: Get BitLocker recovery key
