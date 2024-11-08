@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-11-08
+- Updated runbook "Enroll updatableAssets" and moved to device 
+
 ## 2024-11-05
 - New Runbook: Get BitLocker recovery key
 
