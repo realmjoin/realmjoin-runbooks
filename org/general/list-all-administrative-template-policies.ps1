@@ -87,14 +87,13 @@ foreach ($policy in $adminTemplatesResponse) {
     }
 
     # Get policy settings
-    Write-RjRbLog -Message "Fetching settings for policy: $policyName" -Verbose
-    $definitionValues = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations('$policyId')/definitionValues?`$expand=definition" -Beta
+    Write-RjRbLog -Message "Processing settings for policy: $policyName" -Verbose
     
-    if ($definitionValues) {
-        Write-RjRbLog -Message "Found $($definitionValues.Count) settings for policy: $policyName" -Verbose
+    if ($policy.settingCount -gt 0) {
+        Write-RjRbLog -Message "Found $($policy.settingCount) settings for policy: $policyName" -Verbose
         "## Settings:"
-        foreach ($setting in $definitionValues) {
-            $settingName = $setting.definition.displayName
+        foreach ($setting in $policy.settings) {
+            $settingName = $setting.displayName
             $settingEnabled = if ($setting.enabled) { "Enabled" } else { "Disabled" }
             Write-RjRbLog -Message "Setting '$settingName' is $settingEnabled" -Verbose
             "## - $settingName : $settingEnabled"
