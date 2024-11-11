@@ -28,7 +28,7 @@ Connect-RjRbGraph
 # Get Administrative Template Policies
 Write-RjRbLog -Message "Starting Administrative Template Policies enumeration" -Verbose
 Write-RjRbLog -Message "Fetching Administrative Template Policies" -Verbose
-"## Fetching Administrative Template Policies"
+"## Administrative Template Policies"
 $adminTemplatesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations" -Beta -FollowPaging
 
 Write-RjRbLog -Message "Found $($adminTemplatesResponse.Count) Administrative Template policies" -Verbose
