@@ -1,23 +1,33 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-11-11
+
+- New Runbook: List all Administrative Template Policies
+
 ## 2024-11-07
+
 - Fix: Autopilot Bulk Delete: Not all devices found.
 
 ## 2024-11-05
+
 - New Runbook: Get BitLocker recovery key
 
 ## 2024-10-31
+
 - Check/Unenroll-UpdateAbleAssets: Added option to unenroll from all categories. Several improvements in output and error handling. Bug fixes.
 
 ## 2024-10-30
+
 - Check/Unenroll-UpdateAbleAssets: Relocated to groups and devices.
 - Unenroll-UpdateAbleAssets: Fix issue with JSON encoding.
 
 ## 2024-10-28
+
 - Get Teams User Info: Voicemail and CallQueue status added. Extended license check - is the application active in the license?
 - All user/phone runbooks: Update MicrosoftTeams module
 
 ## 2024-10-21
+
 - Add Security Group: Allowed characters for security groups added, Update of the required PowerShell module (newer version)
 
 ## 2024-10-14
@@ -25,6 +35,7 @@
 - Fix: Show LAPS Password fails - MS Graph API change
 
 ## 2024-10-01
+
 - New Runbook: Add Security Group
 
 ## 2024-10-07
