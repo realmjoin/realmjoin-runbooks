@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
-  Unenroll devices from Windows Update for Business.
+  Unenroll device from Windows Update for Business.
 
   .DESCRIPTION
-  This script unenrolls single or multiple devices (by Device Name or Group Object ID) from Windows Update for Business.
+  This script unenrolls devices from Windows Update for Business.
 
   .NOTES
   Permissions (Graph):
