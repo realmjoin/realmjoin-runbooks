@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-11-14
+- New Runbook: Add/remove a nested group to/from a group. 
+
 ## 2024-11-07
 - Fix: Autopilot Bulk Delete: Not all devices found.
 
