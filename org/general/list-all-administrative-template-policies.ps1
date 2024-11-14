@@ -12,6 +12,15 @@
 
   .PARAMETER CallerName
   Caller name for auditing purposes.
+
+  .INPUTS
+  RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
