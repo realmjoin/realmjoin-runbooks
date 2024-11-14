@@ -3,7 +3,7 @@
   Check if devices in a group are onboarded to Windows Update for Business.
 
   .DESCRIPTION
-  This script checks if single or multiple devices (by Group Object ID) are onboarded to Windows Update for Business.
+  This script checks if devices are onboarded to Windows Update for Business.
 
   .NOTES
   Permissions (Graph):

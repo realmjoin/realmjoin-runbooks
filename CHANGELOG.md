@@ -1,8 +1,16 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-11-14
+
+- New Runbook: Add/remove a nested group to/from a group. 
+
 ## 2024-11-11
 
 - New Runbook: List all Administrative Template Policies
+
+## 2024-11-08
+
+- Updated runbook "Enroll updatableAssets" and moved to device
 
 ## 2024-11-07
 
