@@ -270,6 +270,12 @@ Write-Output "Block 1 - License check"
 Write-Output "Getting StatusQuo for user with ID: $UserName"
 $StatusQuo = Get-CsOnlineUser $UserName
 
+if ($StatusQuo.UsageLocation -eq $null -or $StatusQuo.UsageLocation -eq "") {
+    Write-Error "Error: The user's Usage Location is not set. Please set the Usage Location for the user and try again."
+    throw "The user's Usage Location is not set. Please set the Usage Location for the user and try again."
+    Exit
+}
+
 $AssignedPlan = $StatusQuo.AssignedPlan
 
 if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
