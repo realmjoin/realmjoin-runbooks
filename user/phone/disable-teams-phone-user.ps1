@@ -4,11 +4,8 @@
   
   .DESCRIPTION
   Remove the phone number and specific policies from a teams-enabled user. 
-  If "Delay possible re-assignment of the current call number" is activated, the phone number is blocked for a defined number of days so that it is not assigned to a new user for this period. The number of days is stored in the RealmJoin settings. The runbook is part of the TeamsPhoneInventory.
-
-  .NOTES
-  Permissions: 
-  The connection of the Microsoft Teams PowerShell module is done through the Managed Identity of the Automation account of RealmJoin.
+  If "Delay possible re-assignment of the current call number" is activated, the phone number is blocked for a defined number of days so that it is not assigned to a new user for this period. The number of days is stored in the RealmJoin settings. 
+  The runbook is part of the TeamsPhoneInventory.
   
   .INPUTS
   RunbookCustomization: {

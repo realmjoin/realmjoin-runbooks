@@ -7,10 +7,6 @@
   The prerequisite for this is that the phone number has already been added to the tenant by the carrier and the user has the appropriate licenses.
   The runbook is part of the TeamsPhoneInventory.
 
-  .NOTES
-  Permissions: 
-  The connection of the Microsoft Teams PowerShell module is done through the Managed Identity of the Automation account of RealmJoin.
-
  .INPUTS
   RunbookCustomization: {
       "Parameters": {
