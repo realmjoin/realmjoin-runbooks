@@ -44,6 +44,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # "Find the group object " 
@@ -55,11 +58,11 @@ if (-not $targetGroup) {
 $body = @{}
     
 if ($Public) {
-    $body.Add("visibility","Public")
+    $body.Add("visibility", "Public")
     "## Setting the group '$($targetGroup.mailNickname)' to 'Public' visibility."
 }
 else {
-    $body.Add("visibility","Private")
+    $body.Add("visibility", "Private")
     "## Setting the group '$($targetGroup.mailNickname)'' to 'Private' visibility."
 }
 

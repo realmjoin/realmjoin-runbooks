@@ -36,6 +36,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph -Force
 
 function Enroll-Device {
@@ -60,7 +63,7 @@ function Enroll-Device {
         $enrollResponse = $null
         $enrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/enrollAssets" -Method POST -Body $enrollBody -Beta
         Write-Output "- Triggered enroll into updatableAssets for category $UpdateCategory."
-        if(!$enrollResponse) {
+        if (!$enrollResponse) {
             Write-Output "- Note: Empty Graph response (normally OK)."
         }
     }
