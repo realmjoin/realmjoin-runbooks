@@ -67,7 +67,7 @@
 
 param(
     # 0 - list, 1 - add, 2 - remove
-    [int] $action  = 0,
+    [int] $action = 0,
     [string] $Url,
     # 0 - allow, 1 - audit, 2 - warn, 3 - block
     [int] $mode = 0,
@@ -81,13 +81,16 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbDefenderATP
 
 $indicators = Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" -FollowPaging | Where-Object { $_.indicatorType -eq "DomainName" }
 
 if ($action -eq 0) {
     "## Listing all current URL indicators from Security Center:"
-    $indicators | Select-Object -Property @{name = "Domain"; expression = { $_.indicatorValue } },action | Format-Table -AutoSize | Out-String
+    $indicators | Select-Object -Property @{name = "Domain"; expression = { $_.indicatorValue } }, action | Format-Table -AutoSize | Out-String
     exit 
 }
 
@@ -96,23 +99,25 @@ $matchingIndicators = $indicators | Where-Object { $_.indicatorValue -eq $Url }
 if ($matchingIndicators) {
     if ($action -eq 1) {
         "## Trying to add indicator for URL '$Url' - alread exists:"
-        $matchingIndicators | Select-Object -Property @{name = "Domain"; expression = { $_.indicatorValue } },action | Format-Table -AutoSize | Out-String
+        $matchingIndicators | Select-Object -Property @{name = "Domain"; expression = { $_.indicatorValue } }, action | Format-Table -AutoSize | Out-String
         "## Stopping"
         exit 
-    } else {
+    }
+    else {
         "## Removing indicators for URL '$Url'."
-        foreach($match in $matchingIndicators) {
+        foreach ($match in $matchingIndicators) {
             Invoke-RjRbRestMethodDefenderATP -Resource "/indicators/$($match.id)" -Method Delete
         }
         exit
     }
-} else {
+}
+else {
     if ($action -eq 1) {
         $body = @{
             indicatorValue = $Url
-            indicatorType = "DomainName"
-            title = $explanationTitle
-            description = $explanationDescription
+            indicatorType  = "DomainName"
+            title          = $explanationTitle
+            description    = $explanationDescription
         }
         switch ($mode) {
             0 {
@@ -134,7 +139,8 @@ if ($matchingIndicators) {
         "## Adding indicator for URL '$Url' mode '$($body.action)'."
         Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" -Method POST -Body $body | Out-Null
         exit
-    } else {
+    }
+    else {
         "## Trying to remove indicators for URL '$Url' - no matches found. Stopping."
         exit
     }

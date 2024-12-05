@@ -41,6 +41,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # Check if an application with the same name already exists
@@ -53,7 +56,7 @@ if ($existingApp) {
 }
 
 $body = @{
-    "displayName" = $ApplicationName
+    "displayName"    = $ApplicationName
     "signInAudience" = $signInAudience
 }
 
@@ -90,7 +93,7 @@ if ($targetUserId) {
 
 if ($roleDefinition -and $targetUser) {
     $roleAssignment = @{
-        "principalId" = $targetUser.id
+        "principalId"      = $targetUser.id
         "roleDefinitionId" = $roleDefinition.id
         "directoryScopeId" = "/$($resultApp.id)"
     }

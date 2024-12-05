@@ -31,6 +31,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph -Force
 
 try {
@@ -38,11 +41,10 @@ try {
 
     $bitlockeryRecoveryKeyIdResponse = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/bitlocker/recoveryKeys/$($bitlockeryRecoveryKeyId)" -OdSelect "key" -Method GET
 
-    if($bitlockeryRecoveryKeyIdResponse) {
+    if ($bitlockeryRecoveryKeyIdResponse) {
         Write-Output "- bitlockeryRecoveryKey: $($bitlockeryRecoveryKeyIdResponse.key)"
         Write-Output "- created at: $($bitlockeryRecoveryKeyIdResponse.createdDateTime)"
-        switch ($bitlockeryRecoveryKeyIdResponse.volumeType)
-        {
+        switch ($bitlockeryRecoveryKeyIdResponse.volumeType) {
             1 { Write-Output "- volumeType: operatingSystemVolume" }
             2 { Write-Output "- volumeType: fixedDataVolume" }
             3 { Write-Output "- volumeType: removableDataVolume" }
@@ -58,23 +60,28 @@ try {
             Write-Output "- deviceName: $($deviceResponse.displayName)"
             Write-Output "- trustType: $($deviceResponse.trustType)"
             Write-Output "- isCompliant: $($deviceResponse.isCompliant)"
-        } catch {
+        }
+        catch {
             $errorResponseDevice = $_
             Write-Output "- Error getting device details: $($errorResponseDevice)"
         }
         
-    } else {
+    }
+    else {
         Write-Output "- No recovery key found (empty response)."    
     }
-} catch {
+}
+catch {
     $errorResponse = $_
     if ($errorResponse -match '404') {
         Write-Output "- No recovery key found."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
-    } elseif ($errorResponse -match '403') {
+    }
+    elseif ($errorResponse -match '403') {
         Write-Output "- Forbidden. Check Graph permissions of automation account."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
-    } elseif ($errorResponse -match '400') {
+    }
+    elseif ($errorResponse -match '400') {
         Write-Output "- Bad Request. Check format of submitted bitlockeryRecoveryKeyId."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
     }

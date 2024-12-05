@@ -46,11 +46,15 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 if ($Revoke) {
     "## Trying to revoke access and block signin for user '$UserName'."
-} else {
+}
+else {
     "## Trying to enable signing for user '$UserName'."
 }
 

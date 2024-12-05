@@ -31,6 +31,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # Query for license assignment errors
@@ -38,7 +41,8 @@ $result = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "hasMembersWi
 
 if (-not $result) {
     "## No groups with license assignment errors were found."
-} else {
+}
+else {
     "## The following groups have license assignment errors:"
     $result | ForEach-Object {
         "Group: '$($_.displayName)', ObjectId: $($_.id)"
