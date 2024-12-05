@@ -75,6 +75,9 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 try {
     Connect-RjRbExchangeOnline
 

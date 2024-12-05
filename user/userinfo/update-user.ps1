@@ -223,6 +223,9 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 "## Updating metadata of user '$UserName'."
 
 Connect-RjRbGraph

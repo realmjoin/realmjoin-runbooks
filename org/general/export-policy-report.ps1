@@ -43,6 +43,11 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 function ConvertToMarkdown-PolicyAssignments {
     param(
         $assignments
@@ -1066,8 +1071,6 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
     }
     catch {}
 }
-
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Suppress verbose messages from the Microsoft Graph PowerShell SDK an Azure PowerShell
 $VerbosePreference = "SilentlyContinue"

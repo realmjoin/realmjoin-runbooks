@@ -46,9 +46,12 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
-if ($CorpIdentifierType -notin @("imei","serialNumber")) {
+if ($CorpIdentifierType -notin @("imei", "serialNumber")) {
     "## 'CorpIdentifierType' is either 'imei' or 'serialNumber'."
     throw ("invalid input")
 }
@@ -69,11 +72,11 @@ if ($CorpIdentifierType -eq "serialNumber" -and (-not $CorpIdentifier -match $re
 }
 
 $body = @{
-    importedDeviceIdentities = [array]@{
-        importedDeviceIdentifier = $CorpIdentifier
+    importedDeviceIdentities          = [array]@{
+        importedDeviceIdentifier   = $CorpIdentifier
         importedDeviceIdentityType = $CorpIdentifierType
-        description = $DeviceDescripton
-        enrollmentState = "enrolled"    
+        description                = $DeviceDescripton
+        enrollmentState            = "enrolled"    
     }
     overwriteImportedDeviceIdentities = $OverwriteExistingEntry
 }

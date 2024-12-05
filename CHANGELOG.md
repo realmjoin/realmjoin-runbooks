@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2024-12-05
+- Add version info to all runbooks
+
+## 2024-11-19
+- Fix: Add devices of users to group: Filters for iOS/iPadOS updated
+
+## 2024-11-27
+- New Runbook: Multi-Device Outphasing
+
 ## 2024-11-14
 
 - New Runbook: Add/remove a nested group to/from a group. 

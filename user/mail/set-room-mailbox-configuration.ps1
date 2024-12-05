@@ -73,13 +73,16 @@ param (
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
     [bool] $AllowConflicts = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Capacity (will only update on values greater 0)" } )]
-    [int] $Capacity=0,                              
+    [int] $Capacity = 0,                              
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 "## Configuring Room Mailbox settings for '$UserName'."
 

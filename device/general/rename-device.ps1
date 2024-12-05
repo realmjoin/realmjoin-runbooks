@@ -39,6 +39,9 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 [bool]$isRenamed = $false
@@ -84,6 +87,7 @@ else {
 if ($isRenamed) {
   "## Successfully triggered rename of device '$($targetDevice.displayName)' to '$NewDeviceName'."
   "## Please check the Intune and AutoPilot portals for the status of the rename operation, as this does not happen immediately."
-} else {
+}
+else {
   "## No rename operation triggered."	
 }

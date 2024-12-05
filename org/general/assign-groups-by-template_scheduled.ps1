@@ -85,6 +85,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 if (-not $GroupsString) {
@@ -157,7 +160,7 @@ foreach ($AADGroup in $TargetAADGroups) {
                 $bindings += "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
             }
             #else {
-                #"## User is already member of '$($AADGroup.displayName)'. Skipping."
+            #"## User is already member of '$($AADGroup.displayName)'. Skipping."
             #}    
             if ($bindings.count -gt 15) {
                 $GroupJson = @{"members@odata.bind" = $bindings }

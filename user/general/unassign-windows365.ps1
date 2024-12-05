@@ -71,6 +71,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 
@@ -194,7 +197,7 @@ if (-not $keepUserSettingsAndProvisioningGroups) {
     # Are any other Frontline Worker Cloud PCs assigned to this user? (Shared)
     $licWin365GroupIsAssigned = $false
     $allProvPolicies = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/provisioningPolicies" -UriQueryRaw '$expand=assignments' -Beta
-    $allProvPolicies = $allProvPolicies | Where-Object { $_.provisioningType -eq "shared"}
+    $allProvPolicies = $allProvPolicies | Where-Object { $_.provisioningType -eq "shared" }
     foreach ($policy in $allProvPolicies) {
         foreach ($assignment in $policy.assignments) {
             if ((-not $licWin365GroupIsAssigned) -and $assignment.target.groupId) {

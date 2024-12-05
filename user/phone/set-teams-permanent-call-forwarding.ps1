@@ -159,6 +159,10 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 ########################################################
 ##             Connect Part
@@ -179,7 +183,8 @@ if ($CredAutomation -notlike "") {
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Credential $CredAutomation 
     $VerbosePreference = "Continue"
-}else {
+}
+else {
     Write-Output "Connection - Connect as RealmJoin managed identity"
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Identity -ErrorAction Stop
@@ -202,10 +207,6 @@ catch {
     }
 }
 
-# Add Caller in Verbose output
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-
-
 ########################################################
 ##             StatusQuo & Preflight-Check Part
 ##          
@@ -226,7 +227,8 @@ catch {
     $message = $_
     if ($message -like "userId was not found") {
         Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
-    }else {
+    }
+    else {
         Write-Error "$message"
     }
 }
@@ -235,18 +237,22 @@ if (($StatusQuo.IsForwardingEnabled -eq $true) -and ($StatusQuo.ForwardingType -
     Write-Output "Immediate call forward is active"
     if ($StatusQuo.ForwardingTargetType -like "SingleTarget" ) {
         Write-Output "Target: $($StatusQuo.ForwardingTarget )"
-    }elseif ($StatusQuo.ForwardingTargetType -like "Voicemail") {
+    }
+    elseif ($StatusQuo.ForwardingTargetType -like "Voicemail") {
         Write-Output "Target: Voicemail"
-    }elseif ($StatusQuo.ForwardingTargetType -like "Group") {
+    }
+    elseif ($StatusQuo.ForwardingTargetType -like "Group") {
         Write-Output "Target: Call group"
         Write-Output "Group membership details:"
         Write-Output "$($StatusQuo.GroupMembershipDetails)"
-    }elseif ($StatusQuo.ForwardingTargetType -like "MyDelegates") {
+    }
+    elseif ($StatusQuo.ForwardingTargetType -like "MyDelegates") {
         Write-Output "Target: Delegates"
         Write-Output "Current delegates and delegate Settings:"
         Write-Output "$($StatusQuo.Delegates)"
     }
-}else {
+}
+else {
     Write-Output "No immediate call forwarding is active"
 }
 
@@ -259,7 +265,8 @@ if ($ForwardTargetPhoneNumber -notlike "") {
     if ($ForwardTargetPhoneNumber -notmatch "^\+\d{8,15}") {
         Write-Error -Message  "Error: Phone number needs to be in E.164 format ( '+#######...' )." -ErrorAction Continue
         throw "Phone number needs to be in E.164 format ( '+#######...' )."
-    }else {
+    }
+    else {
         Write-Output "Phone number is in the correct E.164 format (Number: $ForwardTargetPhoneNumber)."
     }
 }
@@ -272,7 +279,8 @@ if ($ForwardToDelegates) {
     if ($CurrentDelegates -eq 0) {
         Write-Error -Message "If selecting call forward to My Delegates, there needs to be at least 1 delegate defined. Stopping script!" -ErrorAction Continue
         throw "If selecting call forward to My Delegates, there needs to be at least 1 delegate defined. Stopping script!"
-    }else {
+    }
+    else {
         Write-Output "There is at least one delegate - check ok!"
     }
     
@@ -287,16 +295,20 @@ Write-Output "---------------------"
 if ($TurnOffForward) {
     Write-Output "Turn off immediate forwarding"
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $false
-}elseif ($ForwardToVoicemail) {
+}
+elseif ($ForwardToVoicemail) {
     Write-Output "Set immediate forwarding to Voicemail"
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType Voicemail
-}elseif ($ForwardToDelegates) {
+}
+elseif ($ForwardToDelegates) {
     Write-Output "Set immediate forwarding to the delegates which are defined by the user"
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType MyDelegates
-}elseif ($ForwardTargetTeamsUser -notlike "" ) {
+}
+elseif ($ForwardTargetTeamsUser -notlike "" ) {
     Write-Output "Set immediate forwarding to Teams user"
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType SingleTarget -ForwardingTarget $ForwardTargetTeamsUser
-}elseif ($ForwardTargetPhoneNumber -notlike "" ) {
+}
+elseif ($ForwardTargetPhoneNumber -notlike "" ) {
     Write-Output "Set immediate forwarding to phone number"
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType SingleTarget -ForwardingTarget $ForwardTargetPhoneNumber
 }

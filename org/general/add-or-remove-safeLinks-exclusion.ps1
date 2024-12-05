@@ -83,6 +83,11 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 function createGroupFromPolicyName {
     param(
         [Parameter(Mandatory = $true)]
@@ -139,8 +144,6 @@ function createSafeLinksPolicy {
 
     return $policy
 }
-
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 try {
     Connect-RjRbExchangeOnline

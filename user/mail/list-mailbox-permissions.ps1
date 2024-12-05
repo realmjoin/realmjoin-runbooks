@@ -38,6 +38,9 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 "## Trying to list all mailbox access / send permissions granted on mailbox '$UserName'."
 
 try {

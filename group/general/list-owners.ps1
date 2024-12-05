@@ -35,12 +35,16 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID" -ErrorAction SilentlyContinue
 if ($group) {
     "## Listing all owners of group '$($group.displayName)'"
-} else {
+}
+else {
     "## Group '$GroupID' not found"
     throw ("Group not found")
 }
@@ -48,7 +52,8 @@ if ($group) {
 $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners" -ErrorAction SilentlyContinue -FollowPaging
 
 if ($owners) {
-    $owners | Format-Table -AutoSize -Property "displayName","userPrincipalName" | Out-String
-} else {
+    $owners | Format-Table -AutoSize -Property "displayName", "userPrincipalName" | Out-String
+}
+else {
     "## No owners found (or no access)."
 }

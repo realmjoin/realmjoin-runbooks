@@ -38,6 +38,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $DeviceNamesArray = $DeviceNames.Split(',') | ForEach-Object { $_.Trim() }
@@ -53,7 +56,8 @@ foreach ($deviceName in $DeviceNamesArray) {
     $deviceId = $deviceResponse.id
     if ($deviceId) {
         Write-RjRbLog -Message "Device Found! -> Device ID: $deviceId" -Verbose
-    } else {
+    }
+    else {
         Write-RjRbLog -Message "Device Not Found: $deviceName" -ErrorAction Stop
     }
 

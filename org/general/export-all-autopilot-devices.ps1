@@ -68,6 +68,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 if ((-not $ContainerName)) {
     $ContainerName = "autopilot-devices-list"
 }
@@ -154,7 +157,7 @@ foreach ($apDevice in $APDevices) {
 
     if (-not $ExportToFile) {
         "## AutoPilot Device $($apDevice.id)"
-        $tempresult = foreach ($key in $result.keys)  {
+        $tempresult = foreach ($key in $result.keys) {
             "$($key): $($result[$key])" 
         }
         $tempresult | Format-List | Out-String

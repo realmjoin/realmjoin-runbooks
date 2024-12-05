@@ -24,11 +24,14 @@ param(
     [string] $sendAlertFrom = "runbooks@glueckkanja.com"
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 "Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
 "Connection established."
-
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Retrieve organization information
 "Retrieving organization information..."
@@ -45,19 +48,21 @@ if ($organization) {
         if ($syncEnabled -eq $true) {
             $HTMLBody += "<p>Azure AD Connect sync is enabled.</p>"
             $HTMLBody += "<p>Last sync date and time: $lastSyncDate</p>"
-        } else {
+        }
+        else {
             $HTMLBody += "<p>Azure AD Connect sync is not enabled.</p>"
             $sendEmail = $true
         }
     }
-} else {
+}
+else {
     "No organization data found."
 }
 
 if ($sendEmail) {
     $message = @{
-        subject = "[Automated Report] Azure AD Connect Sync Status"
-        body    = @{
+        subject      = "[Automated Report] Azure AD Connect Sync Status"
+        body         = @{
             contentType = "HTML"
             content     = $HTMLBody
         }
@@ -73,6 +78,7 @@ if ($sendEmail) {
     "Sending report to '$sendAlertTo'..."
     Invoke-RjRbRestMethodGraph -Resource "/users/$sendAlertFrom/sendMail" -Method POST -Body @{ message = $message } -ContentType "application/json" | Out-Null
     "Report sent to '$sendAlertTo'."
-} else {
+}
+else {
     "No report sent as sync is enabled or no organization data was found."
 }

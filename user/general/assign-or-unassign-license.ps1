@@ -51,6 +51,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # Licensing group prefix
@@ -58,7 +61,7 @@ $groupPrefix = "LIC_"
 
 # "Find select group from Object ID " + $GroupID_License
 $group = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License"
-if (-not $group.displayName.startswith($groupPrefix,'CurrentCultureIgnoreCase')) {
+if (-not $group.displayName.startswith($groupPrefix, 'CurrentCultureIgnoreCase')) {
     throw "'$($group.displayName)' is not a license assignment group. Will not proceed."
 }
 

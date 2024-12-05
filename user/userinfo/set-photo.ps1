@@ -41,6 +41,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 "## Trying to update user photo of '$UserName' from URL:"
@@ -71,7 +74,8 @@ catch {
 # "ImageByteArray" is broken in PS5, so will use a file.
 try {
     Invoke-RjRbRestMethodGraph -resource "/users/$($targetUser.id)/photo/`$value" -inFile ($env:TEMP + "\photo.jpg") -Method Put -ContentType "image/jpeg"
-} catch {
+}
+catch {
     "## Can't update user photo in Exchange. Maybe the user has no mailbox?"
     ""
     "## Make sure, you have the following Graph API permission:"

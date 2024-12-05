@@ -24,6 +24,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # Split the comma-separated serial numbers into an array and trim whitespace
 $SerialNumberArray = $SerialNumbers -split "," | ForEach-Object { $_.Trim() }
 

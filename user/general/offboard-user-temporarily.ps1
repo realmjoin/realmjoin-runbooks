@@ -182,16 +182,16 @@ param (
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licensesMode" } )]
-    [int] $ChangeLicensesSelector=0,
+    [int] $ChangeLicensesSelector = 0,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsMode" } )]
-    [int] $ChangeGroupsSelector=0,
+    [int] $ChangeGroupsSelector = 0,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
     [String] $GroupsToRemovePrefix, 
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships" } )]
     [bool] $RevokeGroupOwnership = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" -DisplayName "Who should step in as group owner?"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.ReplacementOwnerName" -DisplayName "Who should step in as group owner?" } )]
     [String] $ReplacementOwnerName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -199,6 +199,9 @@ param (
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Sanity checks
 if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {

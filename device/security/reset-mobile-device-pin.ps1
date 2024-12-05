@@ -34,17 +34,20 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph 
 
 $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -Beta
 ## Checking device has been found
-if ($null -eq $targetDevice){
+if ($null -eq $targetDevice) {
     ## Highly unlikely
     throw "## Device not found. "
 }
 
 ## Checking the device's Owner Type. Reset Passcode works only with corporate-owned deivces.
-if ($targetDevice.managedDeviceOwnerType -eq "personal" -or $targetDevice.managedDeviceOwnerType -eq "unknown" ){
+if ($targetDevice.managedDeviceOwnerType -eq "personal" -or $targetDevice.managedDeviceOwnerType -eq "unknown" ) {
     throw "## Device '$($targetDevice.deviceName)' is not corporate-owned. Cannot reset Passcode. `n## Aborting..."
 }
 

@@ -46,6 +46,9 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 try {
     Connect-RjRbGraph
     Connect-RjRbExchangeOnline
@@ -73,7 +76,8 @@ try {
         if ($null -eq $mailbox) {
             ".. Waiting for mailbox to be created..."
             Start-Sleep -Seconds 5
-        } else {
+        }
+        else {
             $found = $true
         }
     } 

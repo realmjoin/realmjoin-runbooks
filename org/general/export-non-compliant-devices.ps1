@@ -49,6 +49,11 @@ if ($produceLinks -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
     $produceLinks = $false
 }
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # Manually import this ahead of MgGraph module to avoid conflicts
 Import-Module Az.Accounts
 

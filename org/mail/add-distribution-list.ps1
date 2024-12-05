@@ -61,9 +61,13 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 try {
     $script:Alias = ([mailaddress]"$Alias@demo.com").user 
-} catch {
+}
+catch {
     "## $Alias is not a valid alias." 
 }
 
@@ -75,18 +79,18 @@ try {
     Connect-RjRbExchangeOnline
 
     $invokeParams = @{
-        RequireSenderAuthenticationEnabled  = (-not $AllowExternalSenders)
-        Alias = $Alias
-        Name = $GroupName 
-        Type = "Distribution"
-        MemberDepartRestriction = "Closed"
-        MemberJoinRestriction = "Closed"
-        RoomList = $Roomlist
+        RequireSenderAuthenticationEnabled = (-not $AllowExternalSenders)
+        Alias                              = $Alias
+        Name                               = $GroupName 
+        Type                               = "Distribution"
+        MemberDepartRestriction            = "Closed"
+        MemberJoinRestriction              = "Closed"
+        RoomList                           = $Roomlist
     }
 
     if ($Owner) {
         $invokeParams += @{ 
-            ManagedBy = $Owner 
+            ManagedBy         = $Owner 
             CopyOwnerToMember = $true
         }
     }
@@ -100,8 +104,8 @@ try {
         Connect-RjRbGraph
         $verifiedDomains = Invoke-RjRbRestMethodGraph -Resource "/organization" -OdSelect "verifiedDomains"
         foreach ($verifiedDomain in $verifiedDomains.verifiedDomains) {
-            if ($verifiedDomain.isDefault -eq 'true'){
-                $defaultDomain=$verifiedDomain
+            if ($verifiedDomain.isDefault -eq 'true') {
+                $defaultDomain = $verifiedDomain
             }
         }
         $DesiredPrimarySMTPAddress = $Alias + "@" + $defaultDomain.name

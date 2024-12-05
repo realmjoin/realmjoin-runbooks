@@ -32,9 +32,9 @@
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "Lifetime"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "Lifetime" } )]
     [int] $LifetimeInMinutes = 240,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "One time use only"} )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "One time use only" } )]
     [bool] $OneTimeUseOnly = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -43,16 +43,21 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 "## Trying to create an Temp. Access Pass (TAP) for user '$UserName'"
 
 Connect-RjRbGraph
 
 try {
-# "Making sure, no old temp. access passes exist for $UserName"
-$OldPasses = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Beta
-$OldPasses | ForEach-Object {
-    Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods/$($_.id)" -Beta -Method Delete | Out-Null
-} } catch {
+    # "Making sure, no old temp. access passes exist for $UserName"
+    $OldPasses = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Beta
+    $OldPasses | ForEach-Object {
+        Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods/$($_.id)" -Beta -Method Delete | Out-Null
+    } 
+}
+catch {
     "Querying of existing Temp. Access Passes failed. Maybe you are missing Graph API permissions:"
     "- 'UserAuthenticationMethod.ReadWrite.All' (API)"
 
@@ -61,23 +66,24 @@ $OldPasses | ForEach-Object {
 
 try {
 
-# "Creating new temp. access pass"
-$body = @{
-    "@odata.type"       = "#microsoft.graph.temporaryAccessPassAuthenticationMethod";
-    "lifetimeInMinutes" = $LifetimeInMinutes;
-    "isUsableOnce"      = $OneTimeUseOnly
-}
-$pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
+    # "Creating new temp. access pass"
+    $body = @{
+        "@odata.type"       = "#microsoft.graph.temporaryAccessPassAuthenticationMethod";
+        "lifetimeInMinutes" = $LifetimeInMinutes;
+        "isUsableOnce"      = $OneTimeUseOnly
+    }
+    $pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
 
-if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
-    "## Beware: The use of Temporary access passes seems to be disabled for this user."
+    if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
+        "## Beware: The use of Temporary access passes seems to be disabled for this user."
+        ""
+    }
+
+    "## New Temporary access pass for '$UserName' with a lifetime of $LifetimeInMinutes minutes has been created:" 
     ""
+    "$($pass.temporaryAccessPass)"
 }
-
-"## New Temporary access pass for '$UserName' with a lifetime of $LifetimeInMinutes minutes has been created:" 
-""
-"$($pass.temporaryAccessPass)"
-} catch {
+catch {
     "Creation of a new Temp. Access Pass failed. Maybe you are missing Graph API permissions:"
     "- 'UserAuthenticationMethod.ReadWrite.All' (API)"
     throw ($_)

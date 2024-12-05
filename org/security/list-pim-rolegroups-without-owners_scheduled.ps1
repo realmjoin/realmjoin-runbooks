@@ -31,6 +31,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "isAssignableToRole eq true"

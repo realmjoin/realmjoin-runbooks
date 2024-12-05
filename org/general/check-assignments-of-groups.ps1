@@ -38,6 +38,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $GroupNamesArray = $GroupNames.Split(',') | ForEach-Object { $_.Trim() }
@@ -53,7 +56,8 @@ foreach ($groupName in $GroupNamesArray) {
     $groupId = $groupResponse.id
     if ($groupId) {
         Write-RjRbLog -Message "Group Found! -> Group ID: $groupId" -Verbose
-    } else {
+    }
+    else {
         Write-RjRbLog -Message "Group Not Found: $groupName" -ErrorAction Stop
     }
 
@@ -269,7 +273,7 @@ foreach ($groupName in $GroupNamesArray) {
         "## ------- Assigned Apps (Uninstall) for $groupName -------" 
         foreach ($app in $groupRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-           "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
     }
 }

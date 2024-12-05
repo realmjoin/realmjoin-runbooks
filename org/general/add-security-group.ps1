@@ -46,25 +46,30 @@
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.24.0" }
 
 param (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$GroupName,
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$GroupDescription,
 
     # Currently deactivated, as extended rights are required. See info in “.Notes”
     # [Parameter(Mandatory=$false)]
     # [bool]$AssignableToRoles = $false,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'"} )]
-    [Parameter(Mandatory=$false)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
+    [Parameter(Mandatory = $false)]
     [string]$Owner,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 #region fuction declaration
 # Function to check if the group name is valid
 function Validate-GroupName {
@@ -106,22 +111,22 @@ function Validate-GroupName {
 function Create-Group {
     param (
         [string]$GroupName,
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [string]$GroupDescription,
         #[bool]$AssignableToRoles, # Currently deactivated, as extended rights are required. See info in “.Notes”
         [string]$MembershipType,
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [string]$Owner
     )
     $OwnerString = "https://graph.microsoft.com/v1.0/users/$Owner"
     $uri = "https://graph.microsoft.com/v1.0/groups"
     $body = @{
-        displayName = $GroupName
-        mailEnabled = $false
-        mailNickname = $GroupName.Replace(" ", "")
+        displayName     = $GroupName
+        mailEnabled     = $false
+        mailNickname    = $GroupName.Replace(" ", "")
         securityEnabled = $true
-        groupTypes = @()
-        visibility = "Private"
+        groupTypes      = @()
+        visibility      = "Private"
     }
 
     if (![string]::IsNullOrWhiteSpace($GroupDescription)) {
@@ -168,22 +173,25 @@ $isValid = Validate-GroupName -name $GroupName
 # Output the result
 if ($isValid) {
     Write-Output "The group name '$GroupName' is suitable for an Entra ID Security Group."
-} else {
+}
+else {
     Write-Error "The group name '$GroupName' is not suitable for an Entra ID Security Group." -ErrorAction Stop
 }
 #endregion
 
 #region Main script logic
 try {
-    $uri = 'https://graph.microsoft.com/v1.0/groups?$filter=displayName eq ' + "'" + $($GroupName)+ "'" + '&?$select=id'
+    $uri = 'https://graph.microsoft.com/v1.0/groups?$filter=displayName eq ' + "'" + $($GroupName) + "'" + '&?$select=id'
     $existingGroup = (Invoke-MGGraphRequest -Method GET -Uri $uri).value
     if ($existingGroup.Count -gt 0) {
         Write-Error "Group '$GroupName' already exists."
-    } else {
+    }
+    else {
         $newGroup = Create-Group -GroupName $GroupName -GroupDescription $GroupDescription -MembershipType $MembershipType -Owner $Owner # -AssignableToRoles $AssignableToRoles # Currently deactivated, as extended rights are required. See info in “.Notes”
         Write-Output "Group '$GroupName' created successfully."
     }
-} catch {
+}
+catch {
     Write-Error "An error occurred: $_"
 }
 #endregion

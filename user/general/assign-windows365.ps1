@@ -132,6 +132,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # Verify Provisioning configuration policy and test if it uses provisioningType "shared" (for Frontline Workers)

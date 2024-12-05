@@ -38,6 +38,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $UPNs = $UPN.Split(',') | ForEach-Object { $_.Trim() }
@@ -53,7 +56,8 @@ foreach ($userUPN in $UPNs) {
     $userId = $userResponse.id
     if ($userId) {
         Write-RjRbLog -Message "User Found! -> User ID: $userId" -Verbose
-    } else {
+    }
+    else {
         Write-RjRbLog -Message "User Not Found: $userUPN" -ErrorAction Stop
     }
 
@@ -278,7 +282,7 @@ foreach ($userUPN in $UPNs) {
         "## ------- Assigned Apps (Uninstall) for $userUPN -------" 
         foreach ($app in $userRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-           "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
     }
 }

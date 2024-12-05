@@ -36,6 +36,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $User = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
@@ -48,6 +51,7 @@ if ($Manager) {
     "## Manager Job Title: '$($Manager.jobTitle)'"
     "## Manager Phone: '$($Manager.businessPhones[0])'"
     "## Manager Mobile: '$($Manager.mobilePhone)'"
-} else {
+}
+else {
     "No manager information found for this user."
 }

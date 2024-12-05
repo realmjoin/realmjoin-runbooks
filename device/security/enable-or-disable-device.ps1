@@ -47,6 +47,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # "Searching DeviceId $DeviceID."
@@ -88,7 +91,8 @@ else {
             write-error $_
             throw "Enabling of device $($targetDevice.displayName) failed"
         }
-    } else {
+    }
+    else {
         "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in AzureAD."        
     }
 }
