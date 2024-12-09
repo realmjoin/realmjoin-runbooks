@@ -35,6 +35,10 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 ########################################################
 ##             Connect Part
@@ -55,7 +59,8 @@ if ($CredAutomation -notlike "") {
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Credential $CredAutomation 
     $VerbosePreference = "Continue"
-}else {
+}
+else {
     Write-Output "Connection - Connect as RealmJoin managed identity"
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Identity -ErrorAction Stop
@@ -77,9 +82,6 @@ catch {
         Exit
     }
 }
-
-# Add Caller in Verbose output
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Add check symbol to variable, wich is compatible with powershell 5.1 
 $symbol_check = [char]0x2714
@@ -104,7 +106,8 @@ catch {
     $message = $_
     if ($message -like "userId was not found") {
         Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
-    }else {
+    }
+    else {
         Write-Error "$message"
     }
 }
@@ -114,7 +117,7 @@ $UPN = $StatusQuo.UserPrincipalName
 Write-Output "Get all Microsoft Teams Call Queues"
 $callQueues = Get-CsCallQueue | Select-Object -Property Name, Agents
 
-$CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
+$CurrentLineUri = $StatusQuo.LineURI -replace ("tel:", "")
 
 if (!($CurrentLineUri.ToString().StartsWith("+"))) {
     # Add prefix "+", if not there
@@ -127,61 +130,71 @@ if ($CurrentLineUri -like "+") {
 
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoiceRoutingPolicy = $StatusQuo.OnlineVoiceRoutingPolicy
 }
 
 if ($StatusQuo.CallingPolicy -like "") {
     $CurrentCallingPolicy = "Global"
-}else {
+}
+else {
     $CurrentCallingPolicy = $StatusQuo.CallingPolicy
 }
 
 if ($StatusQuo.DialPlan -like "") {
     $CurrentDialPlan = "Global"
-}else {
+}
+else {
     $CurrentDialPlan = $StatusQuo.DialPlan
 }
 
 if ($StatusQuo.TenantDialPlan -like "") {
     $CurrentTenantDialPlan = "Global"
-}else {
+}
+else {
     $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
 }
 
 if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
 if ($StatusQuo.OnlineVoicemailPolicy -like "") {
     $CurrentOnlineVoicemailPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
 }
 
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
 }
 
 if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
     $CurrentTeamsMeetingBroadcastPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
 }
 
 if ($StatusQuo_PhoneNumber.NumberType -like "") {
     $CurrentNumberType = "none"
-}else {
+}
+else {
     $CurrentNumberType = $StatusQuo_PhoneNumber.NumberType
 }
 
-if ($StatusQuo_Voicemail.VoicemailEnabled -eq $true){
+if ($StatusQuo_Voicemail.VoicemailEnabled -eq $true) {
     $CurrentVoicemailStatus = "enabled"
-}else {
+}
+else {
     $CurrentVoicemailStatus = "disabled"
 }
 
@@ -235,18 +248,22 @@ if (($StatusQuo_Forward.IsForwardingEnabled -eq $true) -and ($StatusQuo_Forward.
     Write-Output "Immediate call forward is active"
     if ($StatusQuo_Forward.ForwardingTargetType -like "SingleTarget" ) {
         Write-Output "Target: $($StatusQuo_Forward.ForwardingTarget )"
-    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "Voicemail") {
+    }
+    elseif ($StatusQuo_Forward.ForwardingTargetType -like "Voicemail") {
         Write-Output "Target: Voicemail"
-    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "Group") {
+    }
+    elseif ($StatusQuo_Forward.ForwardingTargetType -like "Group") {
         Write-Output "Target: Call group"
         Write-Output "Group membership details:"
         Write-Output "$($StatusQuo_Forward.GroupMembershipDetails)"
-    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "MyDelegates") {
+    }
+    elseif ($StatusQuo_Forward.ForwardingTargetType -like "MyDelegates") {
         Write-Output "Target: Delegates"
         Write-Output "Delegates and delegate Settings:"
         Write-Output "$($StatusQuo_Forward.Delegates)"
     }
-}else {
+}
+else {
     Write-Output "Immediate call forwarding is not active"
 }
 
@@ -265,7 +282,8 @@ foreach ($queue in $callQueues) {
 
 if ($userAssignedQueues.Count -gt 0) {
     $userAssignedQueues | ForEach-Object { Write-Output $_.Name }
-} else {
+}
+else {
     Write-Output "The user is not member of any call queue."
 }
 
@@ -299,10 +317,12 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                     if ($plan.ServicePlanId -eq "4828c8ec-dc2e-4779-b502-87ac9ce28ab7" -and $plan.CapabilityStatus -eq "Deleted") {
                         $TeamsPhoneSystemAppEnabled = $false
                         break
-                    }elseif ($plan.ServicePlanId -eq "4828c8ec-dc2e-4779-b502-87ac9ce28ab7" -and $plan.CapabilityStatus -eq "Enabled") {
+                    }
+                    elseif ($plan.ServicePlanId -eq "4828c8ec-dc2e-4779-b502-87ac9ce28ab7" -and $plan.CapabilityStatus -eq "Enabled") {
                         $TeamsPhoneSystemAppEnabled = $true
                         break
-                    }else {
+                    }
+                    else {
                         $TeamsPhoneSystemAppEnabled = $false
                         break
                     }
@@ -310,11 +330,13 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
 
                 if ($TeamsPhoneSystemAppEnabled) {
                     Write-Output "$($symbol_check) - The application Teams Phone System from the assigned license is enabled."
-                } else {
+                }
+                else {
                     Write-Output "WARNING: The application Teams Phone System from the assigned license is NOT enabled or could not be verified!"
                 }
                 
-            }else {
+            }
+            else {
                 Write-Output ""
                 Write-Warning "Error:"
                 Write-Warning "The user license (MCOEV - Microsoft O365 Phone Standard) should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
@@ -324,11 +346,13 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
         catch {
             Write-Warning "Warning: The time of license assignment could not be verified!"
         }
-    }else {
+    }
+    else {
         Write-Warning "Warning: The time of license assignment could not be verified!"
     }
 
-}else {
+}
+else {
     Write-Output ""
     Write-Output "License check - No License which includes Microsoft O365 Phone Standard is assigned to this user!"
 }

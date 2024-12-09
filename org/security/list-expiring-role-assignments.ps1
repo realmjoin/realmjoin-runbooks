@@ -35,6 +35,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $expiringDate = (get-date).AddDays($Days) | Get-Date -Format "yyyy-MM-dd"

@@ -59,10 +59,13 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # Split the comma-separated application IDs into an array and trim whitespace
 $ApplicationIdArray = $ApplicationIds -split "," | ForEach-Object { $_.Trim() }
-
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 Connect-RjRbGraph
 [array]$apps = @()
@@ -92,7 +95,8 @@ foreach ($app in $apps) {
                     "Days left: $daysLeft"
                     ""
                 }
-            } else {
+            }
+            else {
                 "## App DisplayName: $($app.displayName)"
                 "## App Id: $($app.appId)"
                 ""
@@ -118,7 +122,8 @@ foreach ($app in $apps) {
                     "Days left: $daysLeft"
                     ""
                 }
-            } else {
+            }
+            else {
                 "## App DisplayName: $($app.displayName)"
                 "## App Id: $($app.appId)"
                 ""

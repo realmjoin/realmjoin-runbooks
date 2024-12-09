@@ -63,6 +63,11 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 ########################################################
 ##             Connect Part
 ##          
@@ -82,7 +87,8 @@ if ($CredAutomation -notlike "") {
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Credential $CredAutomation 
     $VerbosePreference = "Continue"
-}else {
+}
+else {
     Write-Output "Connection - Connect as RealmJoin managed identity"
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Identity -ErrorAction Stop
@@ -105,9 +111,6 @@ catch {
     }
 }
 
-# Add Caller in Verbose output
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-
 ########################################################
 ##             StatusQuo & Preflight-Check Part
 ##          
@@ -125,7 +128,8 @@ catch {
     $message = $_
     if ($message -like "userId was not found") {
         Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
-    }else {
+    }
+    else {
         Write-Error "$message"
     }
 }
@@ -135,49 +139,57 @@ Write-Output "UPN from user: $UPN"
 
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoiceRoutingPolicy = $StatusQuo.OnlineVoiceRoutingPolicy
 }
 
 if ($StatusQuo.CallingPolicy -like "") {
     $CurrentCallingPolicy = "Global"
-}else {
+}
+else {
     $CurrentCallingPolicy = $StatusQuo.CallingPolicy
 }
 
 if ($StatusQuo.DialPlan -like "") {
     $CurrentDialPlan = "Global"
-}else {
+}
+else {
     $CurrentDialPlan = $StatusQuo.DialPlan
 }
 
 if ($StatusQuo.TenantDialPlan -like "") {
     $CurrentTenantDialPlan = "Global"
-}else {
+}
+else {
     $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
 }
 
 if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
 if ($StatusQuo.OnlineVoicemailPolicy -like "") {
     $CurrentOnlineVoicemailPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
 }
 
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
 }
 
 if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
     $CurrentTeamsMeetingBroadcastPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
 }
 
@@ -202,7 +214,8 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
     try {
         if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Online Voice Routing Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsOnlineVoiceRoutingPolicy $OnlineVoiceRoutingPolicy -ErrorAction Stop
             Write-Output "The specified Online Voice Routing Policy exists"
         }
@@ -221,7 +234,8 @@ if ($TenantDialPlan -notlike "") {
     try {
         if ($TenantDialPlan -like "Global (Org Wide Default)") {
             Write-Output "The specified Tenant Dial Plan exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTenantDialPlan $TenantDialPlan -ErrorAction Stop
             Write-Output "The specified Tenant Dial Plan exists"
         }
@@ -241,7 +255,8 @@ if ($TeamsCallingPolicy -notlike "") {
     try {
         if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams Calling Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTeamsCallingPolicy $TeamsCallingPolicy -ErrorAction Stop
             Write-Output "The specified Teams Calling Policy exists"
         }
@@ -260,7 +275,8 @@ if ($TeamsIPPhonePolicy -notlike "") {
     try {
         if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams IP-Phone Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTeamsIPPhonePolicy $TeamsIPPhonePolicy -ErrorAction Stop
             Write-Output "The specified Teams IP-Phone Policy exists"
         }
@@ -279,7 +295,8 @@ if ($OnlineVoicemailPolicy -notlike "") {
     try {
         if ($OnlineVoicemailPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams Online Voicemail Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsOnlineVoicemailPolicy $OnlineVoicemailPolicy -ErrorAction Stop
             Write-Output "The specified Teams Online Voicemail Policy exists"
         }
@@ -298,7 +315,8 @@ if ($TeamsMeetingPolicy -notlike "") {
     try {
         if ($TeamsMeetingPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams Meeting Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTeamsMeetingPolicy $TeamsMeetingPolicy -ErrorAction Stop
             Write-Output "The specified Teams Meeting Policy exists"
         }
@@ -318,7 +336,8 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
     try {
         if ($TeamsMeetingBroadcastPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams Meeting Broadcast Policy (Live Event Policy) exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTeamsMeetingBroadcastPolicy $TeamsMeetingBroadcastPolicy -ErrorAction Stop
             Write-Output "The specified Teams Meeting Broadcast Policy (Live Event Policy) exists"
         }
@@ -348,7 +367,8 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
     try {
         if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
             Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop   
         }
     }
@@ -365,7 +385,8 @@ if ($TenantDialPlan -notlike "") {
     try {
         if ($TenantDialPlan -like "Global (Org Wide Default)") {
             Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
         }
     }
@@ -382,7 +403,8 @@ if ($TeamsCallingPolicy -notlike "") {
     try {
         if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
             Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
         }  
     }
@@ -399,7 +421,8 @@ if ($TeamsIPPhonePolicy -notlike "") {
     try {
         if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
             Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop  
         }  
     }
@@ -416,7 +439,8 @@ if ($OnlineVoicemailPolicy -notlike "") {
     try {
         if ($OnlineVoicemailPolicy -like "Global (Org Wide Default)") {
             Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop  
         }  
     }
@@ -433,7 +457,8 @@ if ($TeamsMeetingPolicy -notlike "") {
     try {
         if ($TeamsMeetingPolicy -like "Global (Org Wide Default)") {
             Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $TeamsMeetingPolicy -ErrorAction Stop
         }    
     }
@@ -450,7 +475,8 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
     try {
         if ($TeamsMeetingBroadcastPolicy -like "Global (Org Wide Default)") {
             Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-        }else {
+        }
+        else {
             Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $TeamsMeetingBroadcastPolicy -ErrorAction Stop 
         }     
     }

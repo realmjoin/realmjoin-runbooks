@@ -25,6 +25,9 @@ Connect-RjRbGraph
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 $exclusionGroupId = (Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$exclusionGroupName'").id
 if (-not $exclusionGroupId) {
   "## Create the exclusion group"

@@ -43,6 +43,11 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # Write a JSON file from a Policy / group description object
 function Export-PolicyObjects {
     param (
@@ -62,8 +67,6 @@ function Export-PolicyObjects {
     }
 
 }
-
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 if (-not $ContainerName) {
     $ContainerName = "conditional-policy-backup-" + (get-date -Format "yyyy-MM-dd")

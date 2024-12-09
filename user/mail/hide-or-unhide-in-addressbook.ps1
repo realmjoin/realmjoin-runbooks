@@ -71,6 +71,9 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 if ($HideMailbox) {
     "## Trying to hide mailbox '$UserName' in addressbook."
 }

@@ -36,6 +36,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
 
@@ -75,13 +78,13 @@ try {
     $AllApps = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -FollowPaging
     $unusedApps = (Compare-Object $AllApps $UsedApps).InputObject
     foreach ($app in $unusedApps) {
-            # Some apps seem to have no DisplayName...
-            if ($app.appDisplayName) { 
-                "## $($app.appDisplayName): no logins recorded in auditLog"
-            }
-            else {
-                "## (AppId) $($app.appId): no logins recorded in auditLog"
-            }
+        # Some apps seem to have no DisplayName...
+        if ($app.appDisplayName) { 
+            "## $($app.appDisplayName): no logins recorded in auditLog"
+        }
+        else {
+            "## (AppId) $($app.appId): no logins recorded in auditLog"
+        }
     }
 }
 catch {

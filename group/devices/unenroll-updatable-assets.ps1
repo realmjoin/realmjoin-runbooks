@@ -37,6 +37,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph -Force
 
 function Unenroll-Device {
@@ -58,21 +61,22 @@ function Unenroll-Device {
         )
     } 
 
-    if($UpdateCategory -eq "all") {
+    if ($UpdateCategory -eq "all") {
         $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method DELETE -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph
         Write-Output "- Triggered unenroll from updatableAssets via deletion."   
-        if($errorGraph) {
+        if ($errorGraph) {
             Write-Output "- Error: $($errorGraph.message)"
             Write-RjRbLog -Message "- Error: $($errorGraph)" -Verbose
         }  
-    } else {
+    }
+    else {
         $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/unenrollAssets" -Method POST -Body $unenrollBody -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph
         Write-Output "- Triggered unenroll from updatableAssets for category $UpdateCategory."
-        if($errorGraph) {
+        if ($errorGraph) {
             Write-Output "- Error: $($errorGraph.message)"
             Write-RjRbLog -Message "- Error: $($errorGraph)" -Verbose
         }
-        if(!$unenrollResponse) {
+        if (!$unenrollResponse) {
             Write-Output "- Note: Empty Graph response (device probably already offboarded)"
         }
     }

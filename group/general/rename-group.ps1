@@ -47,6 +47,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # Check if group exists already
@@ -68,13 +71,14 @@ if ($DisplayName) {
 }
 if ($Description) {
     "New Descriptio: $Description"
-    $body.Add("description",$Description)
+    $body.Add("description", $Description)
 }
 
 if ($body.Count -gt 0) {
     Invoke-RjRbRestMethodGraph -resource "/groups/$GroupId" -Method Patch -Body $body | Out-Null
     "## Successfully updated group object."
-} else {
+}
+else {
     "## Nothing to do."
 }
 

@@ -39,6 +39,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # "Authenticate" to Yammer
 #viva engage / yammer dev token - Create one at: https://www.yammer.com/client_applications/
 #TODO: Needs to come from configuration of the runbook and needs to be secure as this is confidential information
@@ -112,7 +115,8 @@ if ($CommunityOwners) {
                 if ($removeCreatorFromGroup -and ($currentOwners.userPrincipalName -contains $targetUser.userPrincipalName)) {
                     "## Community Creator '$($targetUser.userPrincipalName)' appointed as owner. Will not remove API user..."
                     $removeCreatorFromGroup = $false
-                } elseif ($paramCommunityOwnersArray.userPrincipalName -notcontains $targetUser.userPrincipalName) {
+                }
+                elseif ($paramCommunityOwnersArray.userPrincipalName -notcontains $targetUser.userPrincipalName) {
                     $paramCommunityOwnersArray += $targetUser
                 }
             }
@@ -162,6 +166,7 @@ if ($CommunityOwners) {
             "## Removed API user from group."
         }
     } 
-} else {
+}
+else {
     "## No owners specified. Skipping owner assignment/removal."
 }

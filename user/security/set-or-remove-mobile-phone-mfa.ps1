@@ -47,11 +47,15 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 if ($Remove) {
     "## Trying to remove phone MFA number '$phoneNumber' from user '$UserName'."
-} else {
+}
+else {
     "## Trying to add phone MFA number '$phoneNumber' to user '$UserName'."
 }
 

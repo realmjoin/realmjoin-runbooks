@@ -34,6 +34,11 @@ param(
     [string] $CallerName
 )
 
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 function Get-StorageContext() {
     # Get access to the Storage Account
     try {
@@ -166,8 +171,6 @@ function Get-SanitizedRowKey {
     return ($RowKey -replace $Pattern).Trim()
 }
 
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-
 Connect-RjRbGraph 
 Connect-RjRbAzAccount
 
@@ -208,11 +211,11 @@ foreach ($cloudPc in $allCloudPcs) {
 
     if ($rawConnectionsReport.TotalRowCount -eq 0) {
         $properties = @{
-            SignInDateTime         = "$($ReportDateLower)T00:00:00"
-            SignOutDateTime        = "$($ReportDateLower)T00:00:00"
-            RoundTripTimeInMsP50   = $null
-            RemoteSignInTimeInSec  = $null
-            UsageInHour            = 0
+            SignInDateTime        = "$($ReportDateLower)T00:00:00"
+            SignOutDateTime       = "$($ReportDateLower)T00:00:00"
+            RoundTripTimeInMsP50  = $null
+            RemoteSignInTimeInSec = $null
+            UsageInHour           = 0
         }
 
         # Add CloudPC metadata

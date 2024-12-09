@@ -105,6 +105,9 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # only modify parameters, if "actions" are set to non-default values
 switch ($intuneAction) {
     1 {
@@ -157,7 +160,8 @@ if ($disableAADDevice) {
             "## Execution stopped." 
             throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
         }
-    } else {
+    }
+    else {
         "## Disabling non-windows devices in AzureAD is currently not supported. Skipping."
     }
 }
