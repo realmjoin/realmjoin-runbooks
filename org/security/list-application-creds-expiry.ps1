@@ -59,12 +59,13 @@ param(
     [string] $CallerName
 )
 
-# Split the comma-separated application IDs into an array and trim whitespace
-$ApplicationIdArray = $ApplicationIds -split "," | ForEach-Object { $_.Trim() }
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-Wr
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+# Split the comma-separated application IDs into an array and trim whitespace
+$ApplicationIdArray = $ApplicationIds -split "," | ForEach-Object { $_.Trim() }
 
 Connect-RjRbGraph
 [array]$apps = @()
