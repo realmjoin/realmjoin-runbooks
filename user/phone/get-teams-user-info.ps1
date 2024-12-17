@@ -79,7 +79,13 @@ catch {
 }
 
 # Add Caller in Verbose output
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+# Add Version in Verbose output
+$Version = "1.0.0" 
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add check symbol to variable, wich is compatible with powershell 5.1 
 $symbol_check = [char]0x2714
