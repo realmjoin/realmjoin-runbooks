@@ -52,6 +52,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 if (-not $ContainerName) {
     $ContainerName = "enterprise-apps-" + (get-date -Format "yyyy-MM-dd")
 }

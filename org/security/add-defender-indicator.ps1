@@ -68,33 +68,36 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-  [Parameter(Mandatory = $true)]
-  [string] $IndicatorValue,
-  [Parameter(Mandatory = $true)]
-  [string] $IndicatorType = "FileSha256",
-  [Parameter(Mandatory = $true)]
-  [string] $Title,
-  [Parameter(Mandatory = $true)]
-  [string] $Description,
-  [Parameter(Mandatory = $true)]
-  [string] $Action = "Allowed",
-  [Parameter(Mandatory = $true)]
-  [string] $Severity = "Informational",
-  [Parameter(Mandatory = $true)]
-  [string] $GenerateAlert = $false,
-  # CallerName is tracked purely for auditing purposes
-  [Parameter(Mandatory = $true)]
-  [string] $CallerName
+    [Parameter(Mandatory = $true)]
+    [string] $IndicatorValue,
+    [Parameter(Mandatory = $true)]
+    [string] $IndicatorType = "FileSha256",
+    [Parameter(Mandatory = $true)]
+    [string] $Title,
+    [Parameter(Mandatory = $true)]
+    [string] $Description,
+    [Parameter(Mandatory = $true)]
+    [string] $Action = "Allowed",
+    [Parameter(Mandatory = $true)]
+    [string] $Severity = "Informational",
+    [Parameter(Mandatory = $true)]
+    [string] $GenerateAlert = $false,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbDefenderATP -force
 
 #If Action is Audit Generate-Alert must be set to "true"
-$generateAlert= $false
+$generateAlert = $false
 
-if ($Action.Contains("Audit") -or $Action.Contains("AlertAndBlock")){
+if ($Action.Contains("Audit") -or $Action.Contains("AlertAndBlock")) {
     "For the requested action it is necessary to generate an alert."
     "Changing generateAlert to $true"
     $generateAlert = $true
@@ -102,17 +105,17 @@ if ($Action.Contains("Audit") -or $Action.Contains("AlertAndBlock")){
 
 $params = @{
     indicatorValue = $IndicatorValue
-    indicatorType = $IndicatorType
-    title= $Title
-    action= $Action
-    description= $Description
-    generateAlert = $generateAlert
+    indicatorType  = $IndicatorType
+    title          = $Title
+    action         = $Action
+    description    = $Description
+    generateAlert  = $generateAlert
 }
 
 try {
     $result = Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" -Method Post -Body $params
-  }
-  catch {
+}
+catch {
     "## ... failed."
     ""
     "Error details:"
@@ -121,7 +124,7 @@ try {
 }
 
 
-if ($result){
+if ($result) {
     "## Creation Sucessfull"
     $result
 }

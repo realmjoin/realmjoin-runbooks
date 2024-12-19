@@ -80,6 +80,9 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 try {
     Connect-RjRbExchangeOnline
     if ($AddPublicFolder) {
@@ -96,12 +99,13 @@ try {
         "## Trying to remove Public Folder '$PublicFolderName'"
         $folder = Get-PublicFolder -Identity $PublicFolderName -ErrorAction SilentlyContinue
         if (-not $folder) {
-            $folder  = Get-PublicFolder -Identity ("\" + $PublicFolderName) -ErrorAction SilentlyContinue
+            $folder = Get-PublicFolder -Identity ("\" + $PublicFolderName) -ErrorAction SilentlyContinue
         }
         if ($folder) {
             Remove-PublicFolder -Identity ($folder.Identity) -Confirm:$false | Out-Null
             "## Public folder '$PublicFolderName' removed."
-        } else {
+        }
+        else {
             "## Public folder '$PublicFolderName' not found."
             throw "not found"
         }

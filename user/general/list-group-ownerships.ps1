@@ -37,14 +37,17 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 $User = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
 $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($User.id)/ownedObjects/microsoft.graph.group/"
 
 "## Listing group ownerships for '$($User.UserPrincipalName)':"
-if($OwnedGroups){
-    foreach ($OwnedGroup in $OwnedGroups){
+if ($OwnedGroups) {
+    foreach ($OwnedGroup in $OwnedGroups) {
         "## Group '$($OwnedGroup.displayName)' with id '$($OwnedGroup.id)'"
     }
 }

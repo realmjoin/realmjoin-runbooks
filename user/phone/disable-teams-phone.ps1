@@ -35,6 +35,14 @@ param(
     [string] $CallerName
 )
 
+# Add Caller in Verbose output
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+# Add Version in Verbose output
+$Version = "1.0.0" 
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 ########################################################
 ##             Connect Part
@@ -55,7 +63,8 @@ if ($CredAutomation -notlike "") {
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Credential $CredAutomation 
     $VerbosePreference = "Continue"
-}else {
+}
+else {
     Write-Output "Connection - Connect as RealmJoin managed identity"
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Identity -ErrorAction Stop
@@ -78,15 +87,6 @@ catch {
     }
 }
 
-# Add Caller in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
-
-# Add Version in Verbose output
-$Version = "1.0.0" 
-Write-RjRbLog -Message "Version: $Version" -Verbose
-
 ########################################################
 ##             Get StatusQuo
 ##          
@@ -104,7 +104,8 @@ catch {
     $message = $_
     if ($message -like "userId was not found") {
         Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
-    }else {
+    }
+    else {
         Write-Error "$message"
     }
 }
@@ -112,7 +113,7 @@ catch {
 $UPN = $StatusQuo.UserPrincipalName
 Write-Output "UPN from user: $UPN"
 
-$CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
+$CurrentLineUri = $StatusQuo.LineURI -replace ("tel:", "")
 
 if (!($CurrentLineUri.ToString().StartsWith("+"))) {
     # Add prefix "+", if not there
@@ -125,49 +126,57 @@ if ($CurrentLineUri -like "+") {
 
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoiceRoutingPolicy = $StatusQuo.OnlineVoiceRoutingPolicy
 }
 
 if ($StatusQuo.CallingPolicy -like "") {
     $CurrentCallingPolicy = "Global"
-}else {
+}
+else {
     $CurrentCallingPolicy = $StatusQuo.CallingPolicy
 }
 
 if ($StatusQuo.DialPlan -like "") {
     $CurrentDialPlan = "Global"
-}else {
+}
+else {
     $CurrentDialPlan = $StatusQuo.DialPlan
 }
 
 if ($StatusQuo.TenantDialPlan -like "") {
     $CurrentTenantDialPlan = "Global"
-}else {
+}
+else {
     $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
 }
 
 if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
 if ($StatusQuo.OnlineVoicemailPolicy -like "") {
     $CurrentOnlineVoicemailPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
 }
 
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
 }
 
 if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
     $CurrentTeamsMeetingBroadcastPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
 }
 

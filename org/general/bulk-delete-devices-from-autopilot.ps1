@@ -16,37 +16,37 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $SerialNumbers
+    [string] $SerialNumbers,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Split the comma-separated serial numbers into an array and trim whitespace
 $SerialNumberArray = $SerialNumbers -split "," | ForEach-Object { $_.Trim() }
 
 Connect-RjRbGraph
 
-# Retrieve all Autopilot devices
-$autopilotDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -ErrorAction SilentlyContinue
-
-if ($autopilotDevices) {
-    foreach ($serialNumber in $SerialNumberArray) {
-        $device = $autopilotDevices | Where-Object { $_.serialNumber -eq $serialNumber }
-        if ($device) {
-            "Deleting Autopilot device with Serial Number: $($serialNumber)"
-            $deviceId = $device.id
-            try {
-                Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$deviceId" -Method DELETE -ErrorAction Stop
-                "Deleted Autopilot device with Serial Number: $($serialNumber) and Device ID: $deviceId"
-            }
-            catch {
-                "Failed to delete Autopilot device with Serial Number: $($serialNumber). Error: $($_.Exception.Message)"
-            }
+foreach ($SerialNumber in $SerialNumberArray) {
+    $autopilotdevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$SerialNumber')" -ErrorAction SilentlyContinue 
+    if ($autopilotdevice) {
+        "Deleting Autopilot device with Serial Number: $($serialNumber)"
+        try {
+            Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$($autopilotdevice.id)" -Method DELETE -ErrorAction Stop
+            "Deleted Autopilot device with Serial Number: $($serialNumber) and Device ID: $($autopilotdevice.id)"
         }
-        else {
-            "Autopilot device with Serial Number: $($serialNumber) not found."
+        catch {
+            "Failed to delete Autopilot device with Serial Number: $($serialNumber). Error: $($_.Exception.Message)"
         }
     }
-} else {
-    "No Autopilot devices found."
+    else {
+        "# $SerialNumber not found."
+    }
 }
 
 "Mass deletion of Autopilot objects based on Serial Number is complete."

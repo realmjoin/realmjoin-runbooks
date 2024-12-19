@@ -57,6 +57,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 # Log the selected OS options
 if ($IncludeWindowsDevice) { Write-RjRbLog -Message "Selected OS: Windows" -Verbose }
 if ($IncludeMacOSDevice) { Write-RjRbLog -Message "Selected OS: MacOS" -Verbose }
@@ -75,22 +78,27 @@ function Resolve-GroupId {
     
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
-    } else {
+    }
+    else {
         $resolvedGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
         #Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
         
         if ($resolvedGroups -is [System.Collections.IEnumerable]) {
             if ($resolvedGroups.Count -eq 1) {
                 return $resolvedGroups[0].id
-            } elseif ($resolvedGroups.Count -gt 1) {
+            }
+            elseif ($resolvedGroups.Count -gt 1) {
                 throw "Multiple groups found with name '$Group'. Please specify the Object ID."
-            } else {
+            }
+            else {
                 throw "No group found with name '$Group'."
             }
-        } else {
+        }
+        else {
             if ($resolvedGroups.id) {
                 return $resolvedGroups.id
-            } else {
+            }
+            else {
                 throw "No group found with name '$Group'."
             }
         }
@@ -106,7 +114,8 @@ $UserGroupMembers = Invoke-RjRbRestMethodGraph -Resource "/groups/$UserGroupId/m
 
 if ($UserGroupMembers.Count -eq 0) {
     Write-RjRbLog -Message "No members found in the user group: $UserGroupId" -Verbose
-} else {
+}
+else {
     "## Found $($UserGroupMembers.Count) members in the user group: $UserGroupId"
     Write-RjRbLog -Message "Found $($UserGroupMembers.Count) members in the user group: $UserGroupId" -Verbose
 }
@@ -125,14 +134,15 @@ foreach ($User in $UserGroupMembers) {
         ($IncludeMacOSDevice -and $_.operatingSystem -eq "MacMDM") -or 
         ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
         ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or 
-        ($IncludeIOSDevice -and $_.operatingSystem -eq "iOS") -or
-        ($IncludeIPadOSDevice -and $_.operatingSystem -eq "iOS" -and $_.deviceType -eq "iPad")
+        ($IncludeIOSDevice -and ($_.operatingSystem -eq "iOS" -or $_.operatingSystem -eq "IPhone")) -or
+        ($IncludeIPadOSDevice -and ($_.operatingSystem -eq "iPadOS" -or $_.operatingSystem -eq "IPad"))
     }
 
     if ($UserDevices.Count -eq 0) {
         Write-RjRbLog -Message "No devices found for user: $($User.displayName)" -Verbose
         continue
-    } else {
+    }
+    else {
         "## Found $($UserDevices.Count) devices for user: $($User.displayName)"
         Write-RjRbLog -Message "Found $($UserDevices.Count) devices for user: $($User.displayName)" -Verbose
     }
@@ -147,10 +157,12 @@ foreach ($User in $UserGroupMembers) {
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$DeviceGroupId/members/`$ref" -Method POST -Body $body
                 "## Successfully added device $($Device.displayName) to device group"
                 Write-RjRbLog -Message "Successfully added device $($Device.displayName) to device group" -Verbose
-            } catch {
+            }
+            catch {
                 Write-RjRbLog -Message "Failed to add device $($Device.displayName) to device group. Error: $_" -Verbose
             }
-        } else {
+        }
+        else {
             "## Device $($Device.displayName) of user $($User.displayName) already in device group"
             Write-RjRbLog -Message "Device $($Device.displayName) of user $($User.displayName) already in device group" -Verbose
         }

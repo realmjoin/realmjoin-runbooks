@@ -52,6 +52,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph
 
 # "Find the device object " 

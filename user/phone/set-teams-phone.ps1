@@ -66,6 +66,14 @@ param(
     [string] $CallerName
 )
 
+# Add Caller in Verbose output
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+# Add Version in Verbose output
+$Version = "1.0.0" 
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 ########################################################
 ##             Connect Part
@@ -86,7 +94,8 @@ if ($CredAutomation -notlike "") {
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Credential $CredAutomation 
     $VerbosePreference = "Continue"
-}else {
+}
+else {
     Write-Output "Connection - Connect as RealmJoin managed identity"
     $VerbosePreference = "SilentlyContinue"
     Connect-MicrosoftTeams -Identity -ErrorAction Stop
@@ -109,15 +118,6 @@ catch {
     }
 }
 
-# Add Caller in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
-
-# Add Version in Verbose output
-$Version = "1.0.0" 
-Write-RjRbLog -Message "Version: $Version" -Verbose
-
 ########################################################
 ##             StatusQuo & Preflight-Check Part
 ##          
@@ -135,7 +135,8 @@ catch {
     $message = $_
     if ($message -like "userId was not found") {
         Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
-    }else {
+    }
+    else {
         Write-Error "$message"
     }
 }
@@ -143,7 +144,7 @@ catch {
 $UPN = $StatusQuo.UserPrincipalName
 Write-Output "UPN from user: $UPN"
 
-$CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
+$CurrentLineUri = $StatusQuo.LineURI -replace ("tel:", "")
 
 if (!($CurrentLineUri.ToString().StartsWith("+"))) {
     # Add prefix "+", if not there
@@ -156,49 +157,57 @@ if ($CurrentLineUri -like "+") {
 
 if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
     $CurrentOnlineVoiceRoutingPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoiceRoutingPolicy = $StatusQuo.OnlineVoiceRoutingPolicy
 }
 
 if ($StatusQuo.CallingPolicy -like "") {
     $CurrentCallingPolicy = "Global"
-}else {
+}
+else {
     $CurrentCallingPolicy = $StatusQuo.CallingPolicy
 }
 
 if ($StatusQuo.DialPlan -like "") {
     $CurrentDialPlan = "Global"
-}else {
+}
+else {
     $CurrentDialPlan = $StatusQuo.DialPlan
 }
 
 if ($StatusQuo.TenantDialPlan -like "") {
     $CurrentTenantDialPlan = "Global"
-}else {
+}
+else {
     $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
 }
 
 if ($StatusQuo.TeamsIPPhonePolicy -like "") {
     $CurrentTeamsIPPhonePolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
 }
 
 if ($StatusQuo.OnlineVoicemailPolicy -like "") {
     $CurrentOnlineVoicemailPolicy = "Global"
-}else {
+}
+else {
     $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
 }
 
 if ($StatusQuo.TeamsMeetingPolicy -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
 }
 
 if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
     $CurrentTeamsMeetingBroadcastPolicy = "Global"
-}else {
+}
+else {
     $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
 }
 
@@ -240,7 +249,8 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                     Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
                 }
                 
-            }else {
+            }
+            else {
                 Write-Output ""
                 Write-Error -Message "Error: The user license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Please try again at $($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss")) (MCOEV - Microsoft O365 Phone Standard)"  -ErrorAction Continue
                 throw "The user license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Please try again at $($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss")) (MCOEV - Microsoft O365 Phone Standard)"
@@ -250,11 +260,13 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
         catch {
             Write-Warning "Warning: The time of license assignment could not be verified!"
         }
-    }else {
+    }
+    else {
         Write-Warning "Warning: The time of license assignment could not be verified!"
     }
 
-}else {
+}
+else {
     Write-Output ""
     Write-Error -Message "Error: The user does not have a license assigned respectively it is not yet replicated in the teams backend or the corresponding applications within the license are not available (MCOEV - Microsoft O365 Phone Standard)" -ErrorAction Continue
     throw "The user does not have a license assigned respectively it is not yet replicated in the teams backend or the corresponding applications within the license are not available (MCOEV - Microsoft O365 Phone Standard)"
@@ -266,29 +278,34 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
 if ($PhoneNumber -notmatch "^\+\d{8,15}(;ext=\d{1,10})?") {
     Write-Error -Message  "Error: Phone number needs to be in E.164 format ( '+#######...' )." -ErrorAction Continue
     throw "Phone number needs to be in E.164 format ( '+#######...' )."
-}else {
+}
+else {
     if ($PhoneNumber -match "^\+\d{8,15}") {
         Write-Output "Phone number is in the correct E.164 format (Number: $PhoneNumber)."
-    }else {
+    }
+    else {
         Write-Output "Phone number is in the correct E.164 with extension format (Number: $PhoneNumber)."
     }
 }
 
 # Check if number is already assigned
 $NumberCheck = "Empty"
-$CleanNumber = "tel:+"+($PhoneNumber.Replace("+",""))
+$CleanNumber = "tel:+" + ($PhoneNumber.Replace("+", ""))
 $NumberCheck = (Get-CsOnlineUser | Where-Object LineURI -Like "*$CleanNumber").UserPrincipalName
 $NumberAlreadyAssigned = 0
 
 if ($NumberCheck -notlike "") {
-    if ($UPN -like $Numbercheck) { #Check if number is already assigned to the target user
+    if ($UPN -like $Numbercheck) {
+        #Check if number is already assigned to the target user
         $NumberAlreadyAssigned = 1
         Write-Output "Phone number is already assigned to the user!"
-    }else{
+    }
+    else {
         Write-Error -Message  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $NumberCheck" -ErrorAction Continue
         throw "The assignment for could not be performed. PhoneNumber is already assigned!"
     }
-}else {
+}
+else {
     Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
 }
 
@@ -299,11 +316,13 @@ if ($CallingPlanNumber.Count -gt 0) {
     if ($CallingPlanNumber -contains $PhoneNumber) {
         $CallingPlanCheck = $true
         Write-Output "Phone number is a Calling Plan number"
-    }else{
+    }
+    else {
         $CallingPlanCheck = $false
         Write-Output "Phone number is a Direct Routing number"
     }
-}else{
+}
+else {
     Write-Output "Phone number is a Direct Routing number"
     $CallingPlanCheck = $false
 }
@@ -314,7 +333,8 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
     try {
         if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Online Voice Routing Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsOnlineVoiceRoutingPolicy $OnlineVoiceRoutingPolicy -ErrorAction Stop
             Write-Output "The specified Online Voice Routing Policy exists"
         }
@@ -337,7 +357,8 @@ if ($TenantDialPlan -notlike "") {
     try {
         if ($TenantDialPlan -like "Global (Org Wide Default)") {
             Write-Output "The specified Tenant Dial Plan exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTenantDialPlan $TenantDialPlan -ErrorAction Stop
             Write-Output "The specified Tenant Dial Plan exists"
         }
@@ -357,7 +378,8 @@ if ($TeamsCallingPolicy -notlike "") {
     try {
         if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams Calling Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTeamsCallingPolicy $TeamsCallingPolicy -ErrorAction Stop
             Write-Output "The specified Teams Calling Policy exists"
         }
@@ -376,7 +398,8 @@ if ($TeamsIPPhonePolicy -notlike "") {
     try {
         if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams IP-Phone Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsTeamsIPPhonePolicy $TeamsIPPhonePolicy -ErrorAction Stop
             Write-Output "The specified Teams IP-Phone Policy exists"
         }
@@ -395,7 +418,8 @@ if ($OnlineVoicemailPolicy -notlike "") {
     try {
         if ($OnlineVoicemailPolicy -like "Global (Org Wide Default)") {
             Write-Output "The specified Teams Online Voicemail Policy exists - (Global (Org Wide Default))"
-        }else{
+        }
+        else {
             $TMP = Get-CsOnlineVoicemailPolicy $OnlineVoicemailPolicy -ErrorAction Stop
             Write-Output "The specified Teams Online Voicemail Policy exists"
         }
@@ -421,15 +445,18 @@ Write-Output "---------------------"
 
 if ($NumberAlreadyAssigned -like 1) {
     Write-Output "Number $PhoneNumber is already set to $UPN - skip phone number assignment"
-}else {
+}
+else {
     Write-Output "Set $PhoneNumber to $UPN"
     try {
         if ($CallingPlanCheck) {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
-        }else {
+        }
+        else {
             Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
         }
-    }catch {
+    }
+    catch {
         $message = $_
         Write-Error -Message "Teams - Error: The assignment for $UPN could not be performed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment for $UPN could not be performed! Further details in ""All Logs"""
@@ -446,7 +473,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         try {
             if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
                 Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-            }else {
+            }
+            else {
                 Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop  
             }  
         }
@@ -463,7 +491,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         try {
             if ($TenantDialPlan -like "Global (Org Wide Default)") {
                 Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-            }else {
+            }
+            else {
                 Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
             }
         }
@@ -480,7 +509,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         try {
             if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
                 Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-            }else {
+            }
+            else {
                 Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
             } 
         }
@@ -497,7 +527,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         try {
             if ($TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
                 Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-            }else {
+            }
+            else {
                 Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop  
             } 
         }
@@ -514,7 +545,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
         try {
             if ($OnlineVoicemailPolicy -like "Global (Org Wide Default)") {
                 Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
-            }else {
+            }
+            else {
                 Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop  
             }  
         }

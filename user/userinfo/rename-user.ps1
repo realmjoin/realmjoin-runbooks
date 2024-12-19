@@ -53,6 +53,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 "## Trying to rename a user/mailbox '$UserName'. Will not update metadata like DisplayName, GivenName, Surname."
 
 try {
