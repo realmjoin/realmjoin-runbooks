@@ -302,7 +302,7 @@ function Convert-HashtableToCustomObject {
 }
 
 #endregion
-#region function declaration
+#region Logo Part
 ########################################################
 ##             Logo Part
 ##          
@@ -317,6 +317,35 @@ Write-Output '  |_|    \___|  \__,_| |_| |_| |_| |___/   |_|     |_| |_|  \___/ 
 Write-Output '                                                                                                                                               |___/ '
 Write-Output ''
 
+#endregion
+#region RJ Log Part
+########################################################
+##             RJ Log Part
+##          
+########################################################
+
+# Add Caller in Verbose output
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+# Add Version in Verbose output
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose   
+
+# Add Parameter in Verbose output
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "SharepointSite: $SharepointSite" -Verbose
+Write-RjRbLog -Message "SharepointTPIList: $SharepointTPIList" -Verbose
+Write-RjRbLog -Message "SharepointNumberRangeList: $SharepointNumberRangeList" -Verbose
+Write-RjRbLog -Message "SharepointExtensionRangeList: $SharepointExtensionRangeList" -Verbose
+Write-RjRbLog -Message "SharepointLegacyList: $SharepointLegacyList" -Verbose
+Write-RjRbLog -Message "SharepointBlockExtensionList: $SharepointBlockExtensionList" -Verbose
+Write-RjRbLog -Message "SharepointLocationDefaultsList: $SharepointLocationDefaultsList" -Verbose
+Write-RjRbLog -Message "SharepointCivicAddressMappingList: $SharepointCivicAddressMappingList" -Verbose
+Write-RjRbLog -Message "SharepointLocationMappingList: $SharepointLocationMappingList" -Verbose
+Write-RjRbLog -Message "SharepointUserMappingList: $SharepointUserMappingList" -Verbose
+Write-RjRbLog -Message "BlockExtensionDays: $BlockExtensionDays" -Verbose
 #endregion
 #region function declaration
 ########################################################
@@ -358,32 +387,6 @@ catch {
     Write-Error "MGGraph Connect failed - stopping script"
     Exit 
 }
-
-
-# Add Caller in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
-
-# Add Version in Verbose output
-$Version = "1.0.0" 
-Write-RjRbLog -Message "Version: $Version" -Verbose
-
-# Add Parameter in Verbose output
-Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "SharepointURL: '$SharepointURL'" -Verbose
-Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
-Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
-Write-RjRbLog -Message "SharepointNumberRangeList: '$SharepointNumberRangeList'" -Verbose
-Write-RjRbLog -Message "SharepointExtensionRangeList: '$SharepointExtensionRangeList'" -Verbose
-Write-RjRbLog -Message "SharepointLegacyList: '$SharepointLegacyList'" -Verbose
-Write-RjRbLog -Message "SharepointBlockExtensionList: '$SharepointBlockExtensionList'" -Verbose
-Write-RjRbLog -Message "SharepointCivicAddressMappingList: '$SharepointCivicAddressMappingList'" -Verbose
-Write-RjRbLog -Message "SharepointLocationDefaultsList: '$SharepointLocationDefaultsList'" -Verbose
-Write-RjRbLog -Message "SharepointLocationMappingList: '$SharepointLocationMappingList'" -Verbose
-Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'" -Verbose
-Write-RjRbLog -Message "BlockExtensionDays: '$BlockExtensionDays'" -Verbose
-
 
 #endregion
 #region RampUp Connection Details
