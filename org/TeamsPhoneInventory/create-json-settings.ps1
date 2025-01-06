@@ -8,10 +8,24 @@
   In order to use this runbook, a few variables must be stored in the Automation account.
   The runbook is part of the TeamsPhoneInventory.
 
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+        "EasyDisplayName": {
+            "DisplayName": "Should display names used that are easier to read? (“Offenbach - Company AG” instead of “LI.DE-OAM.CompanyAG.01”)"
+        }
+    }
+  }
+
 #>
 
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.5.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.22.0" }
+param (
+    # Optional: If more readable DisplayNames for the locations than the location identifier are to be used for the runbook in the RealmJoin portal, the value must be set to $True (Then: "City - Company" is the DisplayName)
+    [bool]$EasyDisplayName = $true
+)
+
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
 
 #region Functions
 ########################################################
@@ -21,11 +35,11 @@
 function Get-TPIList {
     param (
         [parameter(Mandatory = $true)]
-        [String]
-        $ListBaseURL,
+        [String]$ListBaseURL,
         [parameter(Mandatory = $false)]
-        [String]
-        $ListName # Only for easier logging
+        [String]$ListName, # Only for easier logging
+        [parameter(Mandatory = $false)]
+        [String]$Properties
     )
 
     #Limit access to 2000 items (Default is 200)
@@ -60,8 +74,23 @@ function Get-TPIList {
 
     }
 
-    return $AllItems
-
+    if ($AllItems -notlike "") {
+        $CustomObjects = @()
+        foreach ($item in $AllItems) {
+            $obj = New-Object PSObject
+            foreach ($key in $item.Keys) {
+                $obj | Add-Member -MemberType NoteProperty -Name $key -Value $item[$key]
+            }
+            $CustomObjects += $obj
+        }
+        if ($Properties -like "") {
+            return $CustomObjects
+        }else {
+            return $CustomObjects | Select-Object -Property $Properties
+        }
+    }else {
+        return $AllItems
+    }
 }
 
 function Invoke-TPIRestMethod {
@@ -615,33 +644,86 @@ Write-Verbose "LocationDefaultsList: $LocationDefaultsList"
 $LD_jsonBase = [ordered]@{}
 $subLocation = @()
 
-foreach ($LD in $LocationDefaultsList) {
-    if ($LD.Title -notlike "") {  #Only if it is not an empty entry
-        $DisplayName = $LD.Title
-        $ExtensionRangeIndex = $LD.ExtensionRangeIndex
-        $CivicAddressMappingIndex = $LD.CivicAddressMappingIndex
-        $OnlineVoiceRoutingPolicy = $LD.OnlineVoiceRoutingPolicy
-        $TeamsCallingPolicy = $LD.TeamsCallingPolicy
-        $TenantDialPlan = $LD.TenantDialPlan
-        $TeamsIPPhonePolicy = $LD.TeamsIPPhonePolicy
-        $OnlineVoicemailPolicy = $LD.OnlineVoicemailPolicy
+if($EasyDisplayName){
+    Write-Verbose "EasyDisplayName is set to true"
+    $SharepointLocationMappingListListURL = $BaseURL + $SharepointLocationMappingList
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Output "$TimeStamp - Get StatusQuo of LocationMapping SharePoint List - ListName: $SharepointLocationMappingList"
+    $LocationMappingList = Get-TPIList -ListBaseURL $SharepointLocationMappingListListURL -ListName $SharepointLocationMappingList | Select-Object Title,City,Street,Company | Sort-Object Title
 
-        $Details = [PSCustomObject]@{
-            'ExtensionRangeIndex'=$ExtensionRangeIndex;
-            'CivicAddressMappingIndex'=$CivicAddressMappingIndex;
-            'OnlineVoiceRoutingPolicy'= $OnlineVoiceRoutingPolicy;
-            'TenantDialPlan'= $TenantDialPlan;
-            'TeamsCallingPolicy'= $TeamsCallingPolicy;
-            'TeamsIPPhonePolicy'=$TeamsIPPhonePolicy;
-            'OnlineVoicemailPolicy'=$OnlineVoicemailPolicy;
-        }
-        $Defaults = [PSCustomObject]@{
-            'Default' = $Details
-        }
+    Write-Verbose "LocationMappingList:"
+    Write-Verbose $LocationMappingList
 
-        $subLocation += [pscustomobject]@{
-            'Display'=$DisplayName;
-            'Customization' = $Defaults
+    foreach ($LD in $LocationDefaultsList) {
+        if ($LD.Title -notlike "") {  #Only if it is not an empty entry
+
+            $CurrentLocationMapping = $LocationMappingList | where-object Title -like $LD.Title
+
+            if($($CurrentLocationMapping.City.length -ne 0) -and $($CurrentLocationMapping.Company.length -ne 0)){
+                $DisplayName = $CurrentLocationMapping.City + " - " + $CurrentLocationMapping.Company
+            }else{
+                $DisplayName = $LD.Title
+            }
+
+            
+            $ExtensionRangeIndex = $LD.ExtensionRangeIndex
+            $CivicAddressMappingIndex = $LD.CivicAddressMappingIndex
+            $OnlineVoiceRoutingPolicy = $LD.OnlineVoiceRoutingPolicy
+            $TeamsCallingPolicy = $LD.TeamsCallingPolicy
+            $TenantDialPlan = $LD.TenantDialPlan
+            $TeamsIPPhonePolicy = $LD.TeamsIPPhonePolicy
+            $OnlineVoicemailPolicy = $LD.OnlineVoicemailPolicy
+    
+            $Details = [PSCustomObject]@{
+                'ExtensionRangeIndex'=$ExtensionRangeIndex;
+                'CivicAddressMappingIndex'=$CivicAddressMappingIndex;
+                'OnlineVoiceRoutingPolicy'= $OnlineVoiceRoutingPolicy;
+                'TenantDialPlan'= $TenantDialPlan;
+                'TeamsCallingPolicy'= $TeamsCallingPolicy;
+                'TeamsIPPhonePolicy'=$TeamsIPPhonePolicy;
+                'OnlineVoicemailPolicy'=$OnlineVoicemailPolicy;
+            }
+            $Defaults = [PSCustomObject]@{
+                'Default' = $Details
+            }
+    
+            $subLocation += [pscustomobject]@{
+                'Display'=$DisplayName;
+                'Customization' = $Defaults
+            }
+        }
+    }
+
+
+}else{
+    foreach ($LD in $LocationDefaultsList) {
+        if ($LD.Title -notlike "") {  #Only if it is not an empty entry
+            $DisplayName = $LD.Title
+            $ExtensionRangeIndex = $LD.ExtensionRangeIndex
+            $CivicAddressMappingIndex = $LD.CivicAddressMappingIndex
+            $OnlineVoiceRoutingPolicy = $LD.OnlineVoiceRoutingPolicy
+            $TeamsCallingPolicy = $LD.TeamsCallingPolicy
+            $TenantDialPlan = $LD.TenantDialPlan
+            $TeamsIPPhonePolicy = $LD.TeamsIPPhonePolicy
+            $OnlineVoicemailPolicy = $LD.OnlineVoicemailPolicy
+    
+            $Details = [PSCustomObject]@{
+                'ExtensionRangeIndex'=$ExtensionRangeIndex;
+                'CivicAddressMappingIndex'=$CivicAddressMappingIndex;
+                'OnlineVoiceRoutingPolicy'= $OnlineVoiceRoutingPolicy;
+                'TenantDialPlan'= $TenantDialPlan;
+                'TeamsCallingPolicy'= $TeamsCallingPolicy;
+                'TeamsIPPhonePolicy'=$TeamsIPPhonePolicy;
+                'OnlineVoicemailPolicy'=$OnlineVoicemailPolicy;
+            }
+            $Defaults = [PSCustomObject]@{
+                'Default' = $Details
+            }
+    
+            $subLocation += [pscustomobject]@{
+                'Display'=$DisplayName;
+                'Customization' = $Defaults
+            }
         }
     }
 }
