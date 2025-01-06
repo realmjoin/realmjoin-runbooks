@@ -12,8 +12,8 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.6.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.24.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
