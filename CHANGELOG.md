@@ -1,5 +1,17 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-01-15
+- Update Runbook: get-teams-user-info
+  - Version 1.0.1
+  - Changes:
+    - Add support for group based policy assignment
+    - Suppress warning for getting Call Queues
+    - Enhance output for policies (TeamsVoiceApplicationsPolicy,CurrentTeamsSharedCallingRoutingPolicy)
+    - Add current UsageLocation (important for Teams Dial Plan)
+    - Update Teams PowerShell module version to 6.7.0
+    - Add regions in the script
+    - Remove old credential based connect from the Teams PowerShell Module
+
 ## 2024-12-05
 - Add version info to all runbooks
 

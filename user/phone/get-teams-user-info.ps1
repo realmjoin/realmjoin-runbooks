@@ -23,7 +23,7 @@
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.6.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -35,54 +35,40 @@ param(
     [string] $CallerName
 )
 
-# Add Caller in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
-
-# Add Version in Verbose output
-$Version = "1.0.0" 
-Write-RjRbLog -Message "Version: $Version" -Verbose
-
 ########################################################
-##             Connect Part
+#region     RJ Log Part
 ##          
 ########################################################
-# Needs a Microsoft Teams Connection First!
 
-Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.1"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
+#endregion
+########################################################
+#region     Connect Part
+##          
+########################################################
 
 try {
-    $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
+    $VerbosePreference = "SilentlyContinue"
+    $tmp = Connect-MicrosoftTeams -Identity -ErrorAction Stop
+    $VerbosePreference = "Continue"
+    # Check if Teams connection is active
+    Get-CsTenant -ErrorAction Stop | Out-Null
 }
 catch {
-    Write-Output "Connection - No automation credentials "teamsautomation" stored. Try newer managed identity approach now"
-}
-
-if ($CredAutomation -notlike "") {
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -Credential $CredAutomation 
-    $VerbosePreference = "Continue"
-}
-else {
-    Write-Output "Connection - Connect as RealmJoin managed identity"
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -Identity -ErrorAction Stop
-    $VerbosePreference = "Continue"
-}
-
-# Check if Teams connection is active
-try {
-    $Test = Get-CsTenant -ErrorAction Stop | Out-Null
-}
-catch {
+    Start-Sleep -Seconds 5
     try {
-        Start-Sleep -Seconds 5
-        $Test = Get-CsTenant -ErrorAction Stop | Out-Null
+        $VerbosePreference = "SilentlyContinue"
+        $tmp = Connect-MicrosoftTeams -Identity -ErrorAction Stop
+        $VerbosePreference = "Continue"
+        # Check if Teams connection is active
+        Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error -Message "Teams PowerShell session could not be established. Stopping script!" -ErrorAction Continue
-        throw "Teams PowerShell session could not be established. Stopping script!"
+        Write-Error "Teams PowerShell session could not be established. Stopping script!" 
         Exit
     }
 }
@@ -90,8 +76,9 @@ catch {
 # Add check symbol to variable, wich is compatible with powershell 5.1 
 $symbol_check = [char]0x2714
 
+#endregion
 ########################################################
-##             StatusQuo & Preflight-Check Part
+#region     Collect basic information
 ##          
 ########################################################
 
@@ -105,6 +92,7 @@ try {
     $StatusQuo_Forward = Get-CsUserCallingSettings -Identity $UserName
     $StatusQuo_PhoneNumber = Get-CsPhoneNumberAssignment -AssignedPstnTargetId $UserName
     $StatusQuo_Voicemail = Get-CsOnlineVoicemailUserSettings -Identity $UserName
+    $StatusQuo_UserPolicyAssignment = Get-CsUserPolicyAssignment -Identity $UserName
 }
 catch {
     $message = $_
@@ -119,7 +107,11 @@ catch {
 $UPN = $StatusQuo.UserPrincipalName
 
 Write-Output "Get all Microsoft Teams Call Queues"
+# WarningPreference temporarily set to "SilentlyContinue" to suppress "ConferenceMode is turned on" warning
+$currentWarningPreference = $WarningPreference
+$WarningPreference = "SilentlyContinue"
 $callQueues = Get-CsCallQueue | Select-Object -Property Name, Agents
+$WarningPreference = $currentWarningPreference
 
 $CurrentLineUri = $StatusQuo.LineURI -replace ("tel:", "")
 
@@ -132,20 +124,7 @@ if ($CurrentLineUri -like "+") {
     $CurrentLineUri = "none"
 }
 
-if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
-    $CurrentOnlineVoiceRoutingPolicy = "Global"
-}
-else {
-    $CurrentOnlineVoiceRoutingPolicy = $StatusQuo.OnlineVoiceRoutingPolicy
-}
-
-if ($StatusQuo.CallingPolicy -like "") {
-    $CurrentCallingPolicy = "Global"
-}
-else {
-    $CurrentCallingPolicy = $StatusQuo.CallingPolicy
-}
-
+#DialPlan
 if ($StatusQuo.DialPlan -like "") {
     $CurrentDialPlan = "Global"
 }
@@ -153,39 +132,76 @@ else {
     $CurrentDialPlan = $StatusQuo.DialPlan
 }
 
-if ($StatusQuo.TenantDialPlan -like "") {
+#OnlineVoiceRoutingPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoiceRoutingPolicy").PolicyName -like "") {
+    $CurrentOnlineVoiceRoutingPolicy = "Global"
+}
+else {
+    $CurrentOnlineVoiceRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoiceRoutingPolicy").PolicyName
+}
+
+#CallingPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "CallingPolicy").PolicyName -like "") {
+    $CurrentCallingPolicy = "Global"
+}
+else {
+    $CurrentCallingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "CallingPolicy").PolicyName
+}
+
+# TenantDialPlan
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TenantDialPlan").PolicyName -like "") {
     $CurrentTenantDialPlan = "Global"
 }
 else {
-    $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
+    $CurrentTenantDialPlan = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TenantDialPlan").PolicyName
 }
 
-if ($StatusQuo.TeamsIPPhonePolicy -like "") {
+#TeamsIPPhonePolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsIPPhonePolicy").PolicyName -like "") {
     $CurrentTeamsIPPhonePolicy = "Global"
 }
 else {
-    $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
+    $CurrentTeamsIPPhonePolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsIPPhonePolicy").PolicyName
 }
 
-if ($StatusQuo.OnlineVoicemailPolicy -like "") {
+#OnlineVoicemailPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoicemailPolicy").PolicyName -like "") {
     $CurrentOnlineVoicemailPolicy = "Global"
 }
 else {
-    $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
+    $CurrentOnlineVoicemailPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoicemailPolicy").PolicyName
 }
 
-if ($StatusQuo.TeamsMeetingPolicy -like "") {
+#TeamsMeetingPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingPolicy").PolicyName -like "") {
     $CurrentTeamsMeetingPolicy = "Global"
 }
 else {
-    $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
+    $CurrentTeamsMeetingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingPolicy").PolicyName
 }
 
-if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
+#TeamsMeetingBroadcastPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName -like "") {
     $CurrentTeamsMeetingBroadcastPolicy = "Global"
 }
 else {
-    $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
+    $CurrentTeamsMeetingBroadcastPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName
+}
+
+#TeamsVoiceApplicationsPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicationsPolicy").PolicyName -like "") {
+    $CurrentTeamsVoiceApplicationsPolicy = "Global"
+}
+else {
+    $CurrentTeamsVoiceApplicationsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicationsPolicy").PolicyName
+}
+
+#TeamsSharedCallingRoutingPolicy
+if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName -like "") {
+    $CurrentTeamsSharedCallingRoutingPolicy = "Global"
+}
+else {
+    $CurrentTeamsSharedCallingRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName
 }
 
 if ($StatusQuo_PhoneNumber.NumberType -like "") {
@@ -225,6 +241,7 @@ switch ($StatusQuo_Voicemail.CallAnswerRule) {
 
 Write-Output ""
 Write-Output "UPN from $($StatusQuo.DisplayName): $UPN"
+Write-Output "Usage Location: $($StatusQuo.UsageLocation)"
 Write-Output ""
 Write-Output "Policies:"
 Write-Output "---------------------"
@@ -232,10 +249,12 @@ Write-Output "Online Voice Routing Policy: $CurrentOnlineVoiceRoutingPolicy"
 Write-Output "Calling Policy: $CurrentCallingPolicy"
 Write-Output "Dial Plan: $CurrentDialPlan"
 Write-Output "Tenant Dial Plan: $CurrentTenantDialPlan"
-Write-Output "Teams IP-Phone Policy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Online Voicemail Policy: $CurrentOnlineVoicemailPolicy"
+Write-Output "Teams Voice Applications Policy: $CurrentTeamsVoiceApplicationsPolicy"
+Write-Output "Teams Shared Calling Routing Policy: $CurrentTeamsSharedCallingRoutingPolicy"
+Write-Output "Teams IP-Phone Policy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Teams Meeting Policy: $CurrentTeamsMeetingPolicy"
-Write-Output "Teams Meeting Broadcast Policy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
+Write-Output "Teams Live Event Policy (Meeting Broadcast Policy): $CurrentTeamsMeetingBroadcastPolicy"
 Write-Output ""
 Write-Output "Voice:"
 Write-Output "---------------------"
@@ -270,6 +289,11 @@ if (($StatusQuo_Forward.IsForwardingEnabled -eq $true) -and ($StatusQuo_Forward.
 else {
     Write-Output "Immediate call forwarding is not active"
 }
+#endregion
+########################################################
+#region     Teams Call Queue membership
+##
+########################################################
 
 Write-Output ""
 Write-Output "Teams Call Queue membership:"
@@ -290,6 +314,12 @@ if ($userAssignedQueues.Count -gt 0) {
 else {
     Write-Output "The user is not member of any call queue."
 }
+
+#endregion
+########################################################
+#region     License check
+##
+########################################################
 
 Write-Output ""
 Write-Output "Enterprise Voice (for PSTN) - License check:"
@@ -360,6 +390,7 @@ else {
     Write-Output ""
     Write-Output "License check - No License which includes Microsoft O365 Phone Standard is assigned to this user!"
 }
+#endregion
 
 Write-Output ""
 Write-Output "Done!"
