@@ -1,6 +1,6 @@
 <#
   .SYNOPSIS
-  Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults.
+  Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice.
   
   .DESCRIPTION
   Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults. 
@@ -10,8 +10,8 @@
   RunbookCustomization: {
     "Parameters": {
         "SharepointSite": {
-        "Hide": true,
-        "Mandatory": true
+            "Hide": true,
+            "Mandatory": true
         },
         "SharepointTPIList": {
             "Hide": true,

@@ -1,9 +1,11 @@
 <#
   .SYNOPSIS
-  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. 
+  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. Fully automated through Teams Phone Inventory.
   
   .DESCRIPTION
-  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. The runbook is part of the TeamsPhoneInventory.
+  Assigns a Microsoft Teams user a phone number and corresponding voice policies for his location, based on AzureAD attributes, in a fully automated way. 
+  The input of parameters is not necessary resp. not possible with this runbook.
+  The runbook is part of the TeamsPhoneInventory.
 
  .INPUTS
   RunbookCustomization: {

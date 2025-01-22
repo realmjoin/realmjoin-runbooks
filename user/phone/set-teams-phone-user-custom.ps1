@@ -1,9 +1,10 @@
 <#
     .SYNOPSIS
-    Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. The runbook is part of the TeamsPhoneInventory.
+    Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 
     .DESCRIPTION
-    Assigns a manually defined phone number and (pre-filled, if applicable) selected voice policies to a Microsoft Teams user. The runbook is part of the TeamsPhoneInventory. 
+    Assigns a manually defined phone number and (pre-filled, if applicable) selected voice policies to a Microsoft Teams user.
+    The runbook is part of the TeamsPhoneInventory. 
   
     .NOTES
     RunbookCustomization:
