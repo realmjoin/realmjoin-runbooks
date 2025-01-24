@@ -3,7 +3,7 @@
   Check if a device is onboarded to Windows Update for Business.
 
   .DESCRIPTION
-  This script checks if devices are onboarded to Windows Update for Business.
+  This script checks if single device is onboarded to Windows Update for Business.
 
   .NOTES
   Permissions (Graph):
@@ -31,9 +31,6 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
-Write-RjRbLog -Message "Version: $Version" -Verbose
-
 Connect-RjRbGraph -Force
 
 Write-RjRbLog -Message "Checking onboarding status for device: $DeviceId" -Verbose
@@ -49,10 +46,9 @@ Write-Output "Checking onboarding status for '$deviceName' (ID: $DeviceId)."
 
 try {
     $onboardingResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method GET -Beta
-    Write-RjRbLog -Message "- onboardingResponse: $onboardingResponse" -Verbose
+    Write-RjRbLog -Message "- onboardingResponse: $onboardingResponse"
     if ($onboardingResponse) {
         $status = "Onboarded"
-        $updateCategories = $onboardingResponse.enrollments.updateCategory -join ", "
         $errors = if ($onboardingResponse.errors) { 
                 ($onboardingResponse.errors | ForEach-Object { $_.reason }) -join ", "
         }
@@ -60,7 +56,20 @@ try {
             "None"
         }
         Write-Output "- Status: $status"
-        Write-Output "- Update categories: $updateCategories"
+        Write-Output "- Update categories:"
+        $updateCategories = $onboardingResponse.enrollment
+        if ($null -ne $updateCategories) {
+            Write-RjRbLog -Message "Categories response: $updateCategories" -Verbose
+            foreach ($key in $updateCategories.PSObject.Properties.Name) {
+                $updateCategory = $updateCategories.$key
+                Write-Output "  - category: $key"
+                Write-Output "     - enrollment state: $($updateCategory.enrollmentState)"
+                Write-Output "     - last modified: $($updateCategory.lastModifiedDateTime)"
+                Write-Output " "
+            }
+        } else {
+            Write-Output "None (empty response)."
+        }
         Write-Output "- Errors: $errors"
     }
     else {
@@ -70,11 +79,11 @@ try {
 catch {
     $errorResponse = $_
     if ($errorResponse -match '404') {
-        Write-Output "- Device is not onboarded / not found (404)."
+        Write-Output "- Status: Device is not onboarded / not found (404)."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
     }
     else {
-        Write-Output "- Device is not onboarded - see details in the following."
+        Write-Output "- Status: Device is not onboarded - see details in the following."
         Write-Output "- Error: $($errorResponse)"
     }
 }

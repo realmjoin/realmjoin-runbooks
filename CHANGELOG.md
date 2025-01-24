@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-01-24
+- Check UpdateAbleAssets (device and group): Adapted to new graph response, general rework
+
 ## 2024-12-05
 - Add version info to all runbooks
 
