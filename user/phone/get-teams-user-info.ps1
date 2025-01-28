@@ -35,6 +35,15 @@ param(
     [string] $CallerName
 )
 
+# Add Caller in Verbose output
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+# Add Version in Verbose output
+$Version = "1.0.0" 
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 ########################################################
 #region     RJ Log Part
 ##          

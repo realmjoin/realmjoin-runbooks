@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-01-24
+- Check UpdateAbleAssets (device and group): Adapted to new graph response, general rework
+- Minor fixes (like typos) to multiple runbooks
+
 ## 2025-01-15
 - Update Runbook: get-teams-user-info
   - Version 1.0.1
