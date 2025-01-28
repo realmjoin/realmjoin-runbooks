@@ -53,7 +53,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -64,7 +64,7 @@ $body = @{
     # groupTag = ""
 }
 
-## MS removed the abaility to assign users directly via Autopilot
+## MS removed the ability to assign users directly via Autopilot
 if ($AssignedUser) {
     ## Find assigned user's name
     $username = (Invoke-RjRbRestMethodGraph -Resource "/users/$AssignedUser").UserPrincipalName

@@ -31,6 +31,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.1"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph -Force
 
 Write-RjRbLog -Message "Checking onboarding status for device: $DeviceId" -Verbose
@@ -67,7 +70,8 @@ try {
                 Write-Output "     - last modified: $($updateCategory.lastModifiedDateTime)"
                 Write-Output " "
             }
-        } else {
+        }
+        else {
             Write-Output "None (empty response)."
         }
         Write-Output "- Errors: $errors"

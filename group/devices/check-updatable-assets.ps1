@@ -32,6 +32,9 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
 Connect-RjRbGraph -Force
 
 Write-Output "Checking onboarding status for group members of Group ID: $GroupId"
@@ -66,7 +69,8 @@ foreach ($deviceObject in $deviceObjects) {
                 $updateCategoriesOut += "last modified: $($updateCategory.lastModifiedDateTime)"
                 Write-Output $updateCategoriesOut
             }
-        } else {
+        }
+        else {
             Write-Output "None (empty response)."
         }
         
