@@ -31,7 +31,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph -Force
@@ -76,17 +76,21 @@ catch {
     if ($errorResponse -match '404') {
         Write-Output "- No recovery key found."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
+        throw ("No recovery key found.")
     }
     elseif ($errorResponse -match '403') {
         Write-Output "- Forbidden. Check Graph permissions of automation account."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
+        throw ("Forbidden. Check Graph permissions of automation account.")
     }
     elseif ($errorResponse -match '400') {
         Write-Output "- Bad Request. Check format of submitted bitlockeryRecoveryKeyId."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
+        throw ("Bad Request. Check format of submitted bitlockeryRecoveryKeyId.")
     }
     else {
         Write-Output "- Other error."
         Write-Output "- Error: $($errorResponse)"
+        throw ("Other error.")
     }
 }
