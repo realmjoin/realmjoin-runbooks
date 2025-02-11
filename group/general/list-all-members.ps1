@@ -22,6 +22,9 @@ Required Permissions:
 .INPUTS
 RunbookCustomization: {
     "Parameters": {
+        "GroupId": {
+            "Hide": true
+        },        
         "CallerName": {
             "Hide": true
         }
@@ -130,7 +133,7 @@ catch {
 ##
 ########################################################
 
-Write-Output "Getting group membership (also indirect memberships based on nested groups) for group with ObjectId '$GroupObjectId'..."
+Write-Output "Getting group membership (also indirect memberships based on nested groups) for group with ObjectId '$GroupId'..."
 $report = Get-GroupMembership -GroupObjectId $GroupId
 
 Write-Output "Result:"
