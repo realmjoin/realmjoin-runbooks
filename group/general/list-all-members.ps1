@@ -136,8 +136,9 @@ Write-Output "Getting group membership (also indirect memberships based on neste
 Write-Output "'$GroupId'..."
 $report = Get-GroupMembership -GroupObjectId $GroupId
 
-Write-Output "Result:"
+# Output the report
 Write-Output ""
+Write-Output "Result:"
 Write-Output "UPN,DirectMember,GroupPath"
 $report | ForEach-Object {
     Write-Output "$($_.UPN),$($_.DirectMember),$($_.GroupPath)"
