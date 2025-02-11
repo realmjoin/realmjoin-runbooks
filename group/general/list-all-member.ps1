@@ -8,7 +8,7 @@ The results are output in CSV format with columns for User Principal Name (UPN),
 Group path contains the “path” of the users. 
 If the nested group “Secondary” is contained in the group “Primary” and the user is contained in the latter, the path would be: Primary,Secondary
 
-.PARAMETER GroupObjectId
+.PARAMETER GroupId
 The ObjectId of the EntraID group whose membership is to be retrieved.
 
 .PARAMETER CallerName
@@ -31,7 +31,7 @@ RunbookCustomization: {
 param(
     [Parameter(Mandatory=$true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
-    [string]$GroupObjectId,
+    [string]$GroupId,
 
     # CallerName is tracked purely for auditing purposes
     [string] $CallerName
@@ -101,7 +101,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "GroupObjectId: $GroupObjectId" -Verbose
+Write-RjRbLog -Message "GroupObjectId: $GroupId" -Verbose
 Write-RjRbLog -Message "CallerName: $CallerName" -Verbose
 
 #endregion
@@ -131,7 +131,7 @@ catch {
 ########################################################
 
 Write-Output "Getting group membership (also indirect memberships based on nested groups) for group with ObjectId '$GroupObjectId'..."
-$report = Get-GroupMembership -GroupObjectId $GroupObjectId
+$report = Get-GroupMembership -GroupObjectId $GroupId
 
 Write-Output "Result:"
 Write-Output ""
