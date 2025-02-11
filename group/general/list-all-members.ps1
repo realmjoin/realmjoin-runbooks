@@ -132,7 +132,8 @@ catch {
 ##
 ########################################################
 
-Write-Output "Getting group membership (also indirect memberships based on nested groups) for group with ObjectId '$GroupId'..."
+Write-Output "Getting group membership (also indirect memberships based on nested groups) for group with ObjectId:"
+Write-Output "'$GroupId'..."
 $report = Get-GroupMembership -GroupObjectId $GroupId
 
 Write-Output "Result:"
