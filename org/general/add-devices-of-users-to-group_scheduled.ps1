@@ -133,7 +133,8 @@ foreach ($User in $UserGroupMembers) {
         ($IncludeWindowsDevice -and $_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
         ($IncludeMacOSDevice -and $_.operatingSystem -eq "MacMDM") -or 
         ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
-        ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or 
+        ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or
+        ($IncludeAndroidDevice -and $_.operatingSystem -eq "AndroidForWork") -or 
         ($IncludeIOSDevice -and ($_.operatingSystem -eq "iOS" -or $_.operatingSystem -eq "IPhone")) -or
         ($IncludeIPadOSDevice -and ($_.operatingSystem -eq "iPadOS" -or $_.operatingSystem -eq "IPad"))
     }
