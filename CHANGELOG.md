@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-02-11
+- New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups.
+
 ## 2025-01-24
 - Check UpdateAbleAssets (device and group): Adapted to new graph response, general rework
 - Minor fixes (like typos) to multiple runbooks
