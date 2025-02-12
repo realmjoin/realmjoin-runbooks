@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-02-12
+- Fix: add-devices-of-users-to-group_scheduled - add AndroidForWork condition
+
 ## 2025-02-11
 - New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups.
 
