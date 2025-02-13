@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-02-13
+- Update Runbook org/devices/ "outphase-devices" - add support for serialnumbers
+
 ## 2025-02-12
 - Fix: add-devices-of-users-to-group_scheduled - add AndroidForWork condition
 
