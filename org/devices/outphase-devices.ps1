@@ -159,14 +159,15 @@ if ($DeviceListChoice -eq 1) {
             $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "serialNumber eq '$DeviceSerial'" -ErrorAction SilentlyContinue
             if (-not $targetDevice) {
                 "## Warning Message: Serialnumber '$DeviceSerial' not found in Intune."
-            } else {
+            }
+            else {
                 "## Found device '$($targetDevice.deviceName)' (Serialnumber '$DeviceSerial') with DeviceId $($targetDevice.azureADDeviceId)"
                 $DeviceIds += $targetDevice.azureADDeviceId
             }
         }
     }
-$DeviceList = @()
-$DeviceList = $DeviceIds -join ","
+    $DeviceList = @()
+    $DeviceList = $DeviceIds -join ","
 }
 
 $DeviceList.Split(",") | ForEach-Object {
