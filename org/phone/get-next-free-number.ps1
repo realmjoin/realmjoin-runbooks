@@ -215,7 +215,7 @@ Write-Output ""
 Write-Output "Check basic connection to TPI List and build base URL"
 
 # Get SharePoint WebURL
-$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL"  -VerboseGraphAPILogging $VerboseGraphAPI).webUrl
+$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL").webUrl
 if ($SharepointURL -like "https://*") {
   $SharepointURL = $SharepointURL.Replace("https://","")
 }elseif ($SharepointURL -like "http://*") {
