@@ -10,6 +10,7 @@
     Version Changelog:
     1.1.0 - 2025-02-17 - Convert to current nativ GraphAPI based functions (Get-TPIList, Invoke-TPIRestMethod)
                        - Add automatic detection of SharePoint URL
+                       - Enhance output and change to list format
     1.0.0 - 2024-12-20 - Initial Version (=first version in which versioning is defined)
 
 
@@ -293,7 +294,8 @@ $AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList
 
 Write-Output "Analysis - Items in $SharepointTPIList SharePoint List: $($AllItems.Count)"
 Write-Output "Analysis - Check for next free number"
-
+Write-Output "Current filter: Country: $Country, City: $City, Company: $Company, ExtensionRangeName: $ExtensionRangeName"
+Write-Output 'Filter description - "*" means "any" (wildcard)'
 #Get next free number
 $NextFreeNumber = ($AllItems | Where-Object {($_.Country -Like $Country) -and ($_.City -Like $City) -and ($_.Company -Like $Company) -and ($_.ExtensionRangeName -Like $ExtensionRangeName) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object Title | Select-Object Title,NumberRangeName,ExtensionRangeName,Country,City,Company -First 1)
 
@@ -301,4 +303,6 @@ if ($NextFreeNumber.count -eq 0) {
     $NextFreeNumber = "NoFreeNumberAvailable"
 }
 
-$NextFreeNumber | Format-Table
+Write-Output ""
+Write-Output "Next free number:"
+$NextFreeNumber | Format-List
