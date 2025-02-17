@@ -214,6 +214,14 @@ Connect-RjRbGraph
 Write-Output ""
 Write-Output "Check basic connection to TPI List and build base URL"
 
+# Get SharePoint WebURL
+$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL"  -VerboseGraphAPILogging $VerboseGraphAPI).webUrl
+if ($SharepointURL -like "https://*") {
+  $SharepointURL = $SharepointURL.Replace("https://","")
+}elseif ($SharepointURL -like "http://*") {
+  $SharepointURL = $SharepointURL.Replace("http://","")
+}
+
 # Setup Base URL - not only for NumberRange etc.
 $BaseURL = '/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/' 
 $TPIListURL = $BaseURL + $SharepointTPIList
