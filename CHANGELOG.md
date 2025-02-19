@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-02-19
+- New Runbook: Org/Phone/Get Teams Phone Number Assignment - Get the phone number assignment of the specified phone number and output the user if assigned
+
 ## 2025-02-13
 - Update Runbook org/devices/ "outphase-devices" - add support for serialnumbers
 
@@ -7,7 +10,7 @@
 - Fix: add-devices-of-users-to-group_scheduled - add AndroidForWork condition
 
 ## 2025-02-11
-- New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups.
+- New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups
 
 ## 2025-01-24
 - Check UpdateAbleAssets (device and group): Adapted to new graph response, general rework
