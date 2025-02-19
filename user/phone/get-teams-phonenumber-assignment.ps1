@@ -137,7 +137,7 @@ if ($CheckResult.AssignedPstnTargetId) {
     }
 
     Write-Output "`n`n`n"
-    Write-Output "Phone number $($PhoneNumber) is assigned to the following Teams user:"
+    Write-Output "Phone number $($PhoneNumber) is assigned to the following Microsoft Teams user:"
     Write-Output "---------------------------------------------"
     $output | Format-List
 
@@ -146,6 +146,6 @@ else {
     Write-Output "`n`n`n"
     Write-Output "Result:"
     Write-Output "---------------------------------------------"
-    Write-Output "Phone number $($PhoneNumber) is not assigned to a Teams user."
+    Write-Output "Phone number $($PhoneNumber) is not assigned to a Microsoft Teams user."
 }
 
