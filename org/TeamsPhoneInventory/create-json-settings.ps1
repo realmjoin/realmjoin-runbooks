@@ -25,7 +25,7 @@ param (
 )
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
 
 #region Functions
@@ -40,57 +40,81 @@ function Get-TPIList {
         [parameter(Mandatory = $false)]
         [String]$ListName, # Only for easier logging
         [parameter(Mandatory = $false)]
-        [String]$Properties
+        [String[]]$Properties,
+        # Example call with multiple properties
+        # $ListBaseURL = "A valid URL"
+        # $Properties = @("Title", "ID", "PhoneNumber", "Extension")
+        # $ListItems = Get-TPIList -ListBaseURL $ListBaseURL -Properties $Properties
+        
+        # In default, the first column is Title, but if the Value should be replaced, it can be done with this parameter
+        [parameter(Mandatory = $false)]
+        [String]$TitelNameReplacement,
+        [parameter(Mandatory = $false)]
+        [bool]$VerboseGraphAPILogging = $false
     )
 
-    #Limit access to 2000 items (Default is 200)
     $GraphAPIUrl_StatusQuoSharepointList = $ListBaseURL + '/items?expand=fields'
+    $AllItems = @()
+
     try {
-        $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+        do {
+            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8' -Verbose:$VerboseGraphAPILogging
+            $AllItems += $AllItemsResponse.value.fields
+            $GraphAPIUrl_StatusQuoSharepointList = $AllItemsResponse."@odata.nextLink"
+        } while ($null -ne $GraphAPIUrl_StatusQuoSharepointList)
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
         
         try {
             Connect-MgGraph -Identity
-            $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
+            do {
+                $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8' -Verbose:$VerboseGraphAPILogging
+                $AllItems += $AllItemsResponse.value.fields
+                $GraphAPIUrl_StatusQuoSharepointList = $AllItemsResponse."@odata.nextLink"
+            } while ($null -ne $GraphAPIUrl_StatusQuoSharepointList)
         }
         catch {
             Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
             Exit
         }
-        
-    }
-    
-    $AllItems = $AllItemsResponse.value.fields
-
-    #Check if response is paged:
-    $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
-
-    while ($null -ne $AllItemsResponseNextLink) {
-
-        $AllItemsResponse = Invoke-MgGraphRequest -Uri $AllItemsResponseNextLink -Method Get -ContentType 'application/json; charset=utf-8'
-        $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
-        $AllItems += $AllItemsResponse.value.fields
-
     }
 
-    if ($AllItems -notlike "") {
+    if (($AllItems | Measure-Object).Count -gt 0) {
         $CustomObjects = @()
         foreach ($item in $AllItems) {
-            $obj = New-Object PSObject
-            foreach ($key in $item.Keys) {
-                $obj | Add-Member -MemberType NoteProperty -Name $key -Value $item[$key]
+            $objProps = @{}
+            if ($Properties) {
+                foreach ($property in $Properties) {
+                    if ($item.ContainsKey($property)) {
+                        if ($property -eq "Title" -and $TitelNameReplacement) {
+                            $objProps[$TitelNameReplacement] = $item[$property]
+                        }
+                        else {
+                            $objProps[$property] = $item[$property]
+                        }
+                    }
+                    else {
+                        $objProps[$property] = ""
+                    }
+                }
             }
-            $CustomObjects += $obj
+            else {
+                foreach ($key in $item.Keys) {
+                    if ($key -eq "Title" -and $TitelNameReplacement) {
+                        $objProps[$TitelNameReplacement] = $item[$key]
+                    }
+                    else {
+                        $objProps[$key] = $item[$key]
+                    }
+                }
+            }
+            $CustomObjects += [PSCustomObject]$objProps
         }
-        if ($Properties -like "") {
-            return $CustomObjects
-        }else {
-            return $CustomObjects | Select-Object -Property $Properties
-        }
-    }else {
-        return $AllItems
+        return $CustomObjects
+    }
+    else {
+        return @()
     }
 }
 
@@ -206,10 +230,140 @@ Write-Output '                                                                  
 Write-Output ''
 
 #endregion
-#region RJ Log Part
+
 ########################################################
-##             RJ Log Part
-##          
+#region     Properties declaration
+#          
+########################################################
+# Description for this block:
+# ===========================
+#
+# Properties:
+# ------------------
+# To be able to get all collumns from the SharePoint Lists for each TPI List, the Get-TPIList had a parameter calles "Properties"
+# This parameter is used to define the columns that should be returned from the SharePoint List. 
+# So all Properties (=Collumns) only need to defined once.
+#
+# Title Replacement:
+# ------------------
+# By default, the first column from a SharePoint List is called "Title".
+# This could be changed for the DisplayName, but this does not change the internal name of the column.
+# To change the internal name of the column, the parameter "TitelNameReplacement" is used.
+# It allows an easier handling of the returned objects.
+
+# TeamsPhoneInventory List
+$ListProperties_TeamsPhoneInventory = @(
+    "Title",
+    "MainLineUri",
+    "DID",
+    "TeamsEXT",
+    "NumberRangeName",
+    "ExtensionRangeName",
+    "CivicAddressMappingName",
+    "UPN",
+    "Display_Name",
+    "OnlineVoiceRoutingPolicy",
+    "TeamsCallingPolicy",
+    "DialPlan",
+    "TenantDialPlan",
+    "TeamsPrivateLine",
+    "VoiceType",
+    "UserType",
+    "NumberCapability",
+    "NumberRangeIndex",
+    "ExtensionRangeIndex",
+    "CivicAddressMappingIndex",
+    "Country",
+    "City",
+    "Company",
+    "EmergencyAddressName",
+    "Status",
+    "id"
+)
+$TitelNameReplacement_TeamsPhoneInventory = "FullLineUri"
+
+# NumberRange List
+$ListProperties_NumberRange = @(
+    "Title", 
+    "NumberRangeName", 
+    "MainNumber", 
+    "BeginNumberRange", 
+    "EndNumberRange", 
+    "Country", 
+    "City",
+    "UNLOCODE",
+    "Company"
+)
+$TitelNameReplacement_NumberRange = "NumberRangeIndex"
+
+# ExtensionRange List
+$ListProperties_ExtensionRange = @(
+    "Title", 
+    "ExtensionRangeName", 
+    "BeginExtensionRange", 
+    "EndExtensionRange", 
+    "NumberRangeIndex",
+    "ExtensionRangeCompany"
+)
+$TitelNameReplacement_ExtensionRange = "ExtensionRangeIndex"
+
+# CivicAddressMapping List
+$ListProperties_CivicAddressMapping = @(
+    "Title", 
+    "CivicAddressMappingName", 
+    "CivicAddressID",
+    "Country",
+    "City",
+    "UNLOCODE",
+    "Company"
+)
+$TitelNameReplacement_CivicAddressMapping = "CivicAddressMappingIndex"
+
+# Legacy List
+$ListProperties_Legacy = @(
+    "Title", 
+    "LegacyName",
+    "LegacyType"
+)
+$TitelNameReplacement_Legacy = "LineUri"
+
+# BlockExtension List
+$ListProperties_BlockExtension = @(
+    "Title", 
+    "BlockUntil",
+    "BlockReason"
+)
+$TitelNameReplacement_BlockExtension = "LineUri"
+
+#LocationDefaults List
+$ListProperties_LocationDefaults = @(
+    "Title",
+    "LocationName",
+    "ExtensionRangeIndex",
+    "CivicAddressMappingIndex",
+    "OnlineVoiceRoutingPolicy",
+    "TeamsCallingPolicy",
+    "TenantDialPlan",
+    "TeamsIPPhonePolicy",
+    "OnlineVoicemailPolicy"
+)
+$TitelNameReplacement_LocationDefaults = "LocationIdentifier"
+
+#LocationMapping List
+$ListProperties_LocationMapping = @(
+    "Title",
+    "City",
+    "Street",
+    "Company"
+)
+$TitelNameReplacement_LocationMapping = "LocationIdentifier"
+
+#endregion
+
+
+########################################################
+#region RJ Log Part
+#          
 ########################################################
 
 # Add Caller in Verbose output
@@ -226,10 +380,10 @@ Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "EasyDisplayName: $EasyDisplayName" -Verbose
 
 #endregion
-#region Connect Part
+
 ########################################################
-##             Connect Part
-##          
+#region Connect Part
+#          
 ########################################################
 # Needs a Microsoft Teams Connection First!
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -267,10 +421,10 @@ catch {
 }
 
 #endregion
-#region define variables
+
 ########################################################
-##             define variables
-##          
+#region define variables
+#          
 ########################################################
 
 # Define Sharepoint Parameters
@@ -441,10 +595,10 @@ catch {
 }
 
 #endregion
-#region RampUp Connection Details
+
 ########################################################
-##             Block 0 - RampUp Connection Details
-##          
+#region RampUp Connection Details
+#          
 ########################################################
 
 
@@ -481,9 +635,9 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 
 #endregion
-#region Settings Block
+
 #############################################################################
-#           Settings Block
+#region Settings Block
 #
 #############################################################################
 
@@ -506,9 +660,9 @@ $Settings_jsonBase = [PSCustomObject][ordered]@{
 }
 
 #endregion
-#region Get current Teams policies
+
 #############################################################################
-#           Get current Teams policies
+#region Get current Teams policies
 #
 #############################################################################
 
@@ -518,9 +672,9 @@ $TenantDialPlan = Get-CsTenantDialPlan
 $OnlineVoicemailPolicy = Get-CsOnlineVoicemailPolicy
 
 #endregion
-#region OnlineVoiceRoutingPolicy
+
 #############################################################################
-#           OnlineVoiceRoutingPolicy - short version: OVRP
+#region OnlineVoiceRoutingPolicy - short version: OVRP
 #
 #############################################################################
 
@@ -537,9 +691,9 @@ $OVRP_jsonBase.Add('$id','TPI-OnlineVoiceRoutingPolicy')
 $OVRP_jsonBase.Add('$values',$OVRP_list)
 
 #endregion
-#region TeamsCallingPolicy
+
 #############################################################################
-#           TeamsCallingPolicy - short version: TCP
+#region TeamsCallingPolicy - short version: TCP
 #
 #############################################################################
 
@@ -556,9 +710,9 @@ $TCP_jsonBase.Add('$id','TPI-TeamsCallingPolicy')
 $TCP_jsonBase.Add('$values',$TCP_list)
 
 #endregion
-#region TenantDialPlan
+
 #############################################################################
-#           TenantDialPlan - short version: TDP
+#region TenantDialPlan - short version: TDP
 #
 #############################################################################
 
@@ -575,9 +729,9 @@ $TDP_jsonBase.Add('$id','TPI-TenantDialPlan')
 $TDP_jsonBase.Add('$values',$TDP_list)
 
 #endregion
-#region OnlineVoicemailPolicy
+
 #############################################################################
-#           OnlineVoicemailPolicy - short version: OVMP
+#region OnlineVoicemailPolicy - short version: OVMP
 #
 #############################################################################
 
@@ -594,9 +748,9 @@ $OVMP_jsonBase.Add('$id','TPI-OnlineVoicemailPolicy')
 $OVMP_jsonBase.Add('$values',$OVMP_list)
 
 #endregion
-#region ExtensionRange
+
 #############################################################################
-#           ExtensionRange - short version: ER
+#region ExtensionRange - short version: ER
 #
 #############################################################################
 
@@ -604,9 +758,7 @@ $ExtensionRangeListURL = $BaseURL + $SharepointExtensionRangeList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Get StatusQuo of ExtensionRange SharePoint List - ListName: $SharepointExtensionRangeList"
-$ExtensionRangeList = Get-TPIList -ListBaseURL $ExtensionRangeListURL -ListName $SharepointExtensionRangeList # Select does in problems using PowerShell5 | Select-Object ExtensionRangeName,BeginExtensionRange,EndExtensionRange
-
-Write-Verbose "ExtensionRangeList: $ExtensionRangeList"
+$ExtensionRangeList = Get-TPIList -ListBaseURL $ExtensionRangeListURL -ListName $SharepointExtensionRangeList -Properties $ListProperties_ExtensionRange -TitelNameReplacement $TitelNameReplacement_ExtensionRange
 
 $ER_jsonBase = [ordered]@{}
 $ER_list = New-Object System.Collections.ArrayList
@@ -621,9 +773,9 @@ $ER_jsonBase.Add('$id','TPI-ExtensionRange')
 $ER_jsonBase.Add('$values',$ER_list)
 
 #endregion
-#region CivicAddressMapping
+
 #############################################################################
-#           CivicAddressMapping - short version: CAM
+#region CivicAddressMapping - short version: CAM
 #
 #############################################################################
 
@@ -631,9 +783,7 @@ $CivicAddressMappingListURL = $BaseURL + $SharepointCivicAddressMappingList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Get StatusQuo of CivicAddressMapping SharePoint List - ListName: $SharepointCivicAddressMappingList"
-$CivicAddressMappingList = Get-TPIList -ListBaseURL $CivicAddressMappingListURL -ListName $SharepointCivicAddressMappingList # Select does in problems using PowerShell5 | Select-Object CivicAddressMappingIndex,CivicAddressMappingName,CivicAddressID
-
-Write-Verbose "CivicAddressMappingList: $CivicAddressMappingList"
+$CivicAddressMappingList = Get-TPIList -ListBaseURL $CivicAddressMappingListURL -ListName $SharepointCivicAddressMappingList -Properties $ListProperties_CivicAddressMapping -TitelNameReplacement $TitelNameReplacement_CivicAddressMapping
 
 $CAM_jsonBase = [ordered]@{}
 $CAM_list = New-Object System.Collections.ArrayList
@@ -648,9 +798,9 @@ $CAM_jsonBase.Add('$id','TPI-CivicAddressMapping')
 $CAM_jsonBase.Add('$values',$CAM_list)
 
 #endregion
-#region LocationDefaults
+
 #############################################################################
-#           LocationDefaults - short version: LD
+#region LocationDefaults - short version: LD
 #
 #############################################################################
 
@@ -658,9 +808,7 @@ $LocationDefaultsListURL = $BaseURL + $SharepointLocationDefaultsList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Get StatusQuo of LocationDefaults SharePoint List - ListName: $SharepointLocationDefaultsList"
-$LocationDefaultsList = Get-TPIList -ListBaseURL $LocationDefaultsListURL -ListName $SharepointLocationDefaultsList # Select does in problems using PowerShell5 | Select-Object Title,ExtensionRangeIndex,CivicAddressMappingIndex,OnlineVoiceRoutingPolicy,TeamsCallingPolicy,TenantDialPlan,TeamsIPPhonePolicy
-
-Write-Verbose "LocationDefaultsList: $LocationDefaultsList"
+$LocationDefaultsList = Get-TPIList -ListBaseURL $LocationDefaultsListURL -ListName $SharepointLocationDefaultsList -Properties $ListProperties_LocationDefaults -TitelNameReplacement $TitelNameReplacement_LocationDefaults
 
 $LD_jsonBase = [ordered]@{}
 $subLocation = @()
@@ -670,23 +818,19 @@ if($EasyDisplayName){
     $SharepointLocationMappingListListURL = $BaseURL + $SharepointLocationMappingList
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Get StatusQuo of LocationMapping SharePoint List - ListName: $SharepointLocationMappingList"
-    $LocationMappingList = Get-TPIList -ListBaseURL $SharepointLocationMappingListListURL -ListName $SharepointLocationMappingList | Select-Object Title,City,Street,Company | Sort-Object Title
-
-    Write-Verbose "LocationMappingList:"
-    Write-Verbose $LocationMappingList
+    $LocationMappingList = Get-TPIList -ListBaseURL $SharepointLocationMappingListListURL -ListName $SharepointLocationMappingList -Properties $ListProperties_LocationMapping -TitelNameReplacement $TitelNameReplacement_LocationMapping
 
     foreach ($LD in $LocationDefaultsList) {
-        if ($LD.Title -notlike "") {  #Only if it is not an empty entry
+        if ($LD."$($TitelNameReplacement_LocationDefaults)" -notlike "") {  #Only if it is not an empty entry
 
-            $CurrentLocationMapping = $LocationMappingList | where-object Title -like $LD.Title
+            $CurrentLocationMapping = $LocationMappingList | where-object "$($TitelNameReplacement_LocationMapping)" -like $LD."$($TitelNameReplacement_LocationDefaults)"
 
             if($($CurrentLocationMapping.City.length -ne 0) -and $($CurrentLocationMapping.Company.length -ne 0)){
                 $DisplayName = $CurrentLocationMapping.City + " - " + $CurrentLocationMapping.Company
             }else{
-                $DisplayName = $LD.Title
+                $DisplayName = $LD."$($TitelNameReplacement_LocationDefaults)"
             }
 
-            
             $ExtensionRangeIndex = $LD.ExtensionRangeIndex
             $CivicAddressMappingIndex = $LD.CivicAddressMappingIndex
             $OnlineVoiceRoutingPolicy = $LD.OnlineVoiceRoutingPolicy
@@ -718,8 +862,8 @@ if($EasyDisplayName){
 
 }else{
     foreach ($LD in $LocationDefaultsList) {
-        if ($LD.Title -notlike "") {  #Only if it is not an empty entry
-            $DisplayName = $LD.Title
+        if ($LD."$($TitelNameReplacement_LocationDefaults)" -notlike "") {  #Only if it is not an empty entry
+            $DisplayName = $LD."$($TitelNameReplacement_LocationDefaults)"
             $ExtensionRangeIndex = $LD.ExtensionRangeIndex
             $CivicAddressMappingIndex = $LD.CivicAddressMappingIndex
             $OnlineVoiceRoutingPolicy = $LD.OnlineVoiceRoutingPolicy
@@ -753,9 +897,9 @@ $LD_jsonBase.Add('$id','TPI-Locations')
 $LD_jsonBase.Add('$values',$subLocation)
 
 #endregion
-#region Runbook Options
+
 #############################################################################
-#           Runbook Options
+#region Runbook Options
 #
 #############################################################################
 
@@ -846,9 +990,9 @@ $RunbookRAW = @"
 $Runbooks = $RunbookRAW | ConvertFrom-Json
 
 #endregion
-#region Combine everything
+
 #############################################################################
-#           Combine everything
+#region Combine everything
 #
 #############################################################################
 
