@@ -7,10 +7,12 @@
   If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
   
   .NOTES
-  Permissions: 
-  The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
-  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. 
-  However, it should be switched to Managed Identity as soon as possible!
+  Permissions:
+  MS Graph (API):
+  - Organization.Read.All
+
+  RBAC:
+  - Teams Administrator
 
   .INPUTS
   RunbookCustomization: {
