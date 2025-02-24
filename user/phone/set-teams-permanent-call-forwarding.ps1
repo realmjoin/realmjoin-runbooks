@@ -6,10 +6,12 @@
   Set up instant call forwarding for a Microsoft Teams Enterprise Voice user. Forwarding to another Microsoft Teams Enterprise Voice user or to an external phone number.
   
   .NOTES
-  Permissions: 
-  The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
-  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. 
-  However, it should be switched to Managed Identity as soon as possible!
+  Permissions:
+  MS Graph (API):
+  - Organization.Read.All
+
+  RBAC:
+  - Teams Administrator
 
   .INPUTS
   RunbookCustomization: {
@@ -138,7 +140,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.6.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
           
 param(
     [Parameter(Mandatory = $true)]
@@ -159,57 +161,58 @@ param(
     [string] $CallerName
 )
 
-# Add Caller in Verbose output
+########################################################
+#region     RJ Log Part
+##          
+########################################################
+
+# Add Caller and Version in Verbose output
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-# Add Version in Verbose output
-$Version = "1.0.0" 
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "UserName: $UserName" -Verbose
+Write-RjRbLog -Message "ForwardTargetPhoneNumber: $ForwardTargetPhoneNumber" -Verbose
+Write-RjRbLog -Message "ForwardTargetTeamsUser: $ForwardTargetTeamsUser" -Verbose
+Write-RjRbLog -Message "ForwardToVoicemail: $ForwardToVoicemail" -Verbose
+Write-RjRbLog -Message "ForwardToDelegates: $ForwardToDelegates" -Verbose
+Write-RjRbLog -Message "TurnOffForward: $TurnOffForward" -Verbose
+
+#endregion
 
 ########################################################
-##             Connect Part
+#region     Connect Part
 ##          
 ########################################################
-# Needs a Microsoft Teams Connection First!
 
-Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
+Write-Output "Connect to Microsoft Teams..."
 
 try {
-    $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
+    $VerbosePreference = "SilentlyContinue"
+    $tmp = Connect-MicrosoftTeams -Identity -ErrorAction Stop
+    $VerbosePreference = "Continue"
+    # Check if Teams connection is active
+    Get-CsTenant -ErrorAction Stop | Out-Null
 }
 catch {
-    Write-Output "Connection - No automation credentials "teamsautomation" stored. Try newer managed identity approach now"
-}
-
-if ($CredAutomation -notlike "") {
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -Credential $CredAutomation 
-    $VerbosePreference = "Continue"
-}
-else {
-    Write-Output "Connection - Connect as RealmJoin managed identity"
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -Identity -ErrorAction Stop
-    $VerbosePreference = "Continue"
-}
-
-# Check if Teams connection is active
-try {
-    $Test = Get-CsTenant -ErrorAction Stop | Out-Null
-}
-catch {
+    Start-Sleep -Seconds 5
     try {
-        Start-Sleep -Seconds 5
-        $Test = Get-CsTenant -ErrorAction Stop | Out-Null
+        $VerbosePreference = "SilentlyContinue"
+        $tmp = Connect-MicrosoftTeams -Identity -ErrorAction Stop
+        $VerbosePreference = "Continue"
+        # Check if Teams connection is active
+        Get-CsTenant -ErrorAction Stop | Out-Null
     }
-    catch {        
-        Write-Error -Message "Teams PowerShell session could not be established. Stopping script!" -ErrorAction Continue
-        throw "Teams PowerShell session could not be established. Stopping script!"
+    catch {
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
         Exit
     }
 }
+
+#endregion
 
 ########################################################
 ##             StatusQuo & Preflight-Check Part

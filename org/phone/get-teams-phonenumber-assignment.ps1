@@ -8,6 +8,14 @@
   .PARAMETER PhoneNumber
   The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
 
+  .NOTES
+  Permissions:
+  MS Graph (API):
+  - Organization.Read.All
+
+  RBAC:
+  - Teams Administrator
+
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -38,19 +46,17 @@ param(
 ##          
 ########################################################
 
-# Add Caller in Verbose output
+# Add Caller and Version in Verbose output
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-# Add Version in Verbose output
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "PhoneNumber: $PhoneNumber" -Verbose
-
 
 #endregion
 
