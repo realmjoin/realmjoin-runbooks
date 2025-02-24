@@ -6,10 +6,12 @@
   Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
   
   .NOTES
-  Permissions: 
-  The connection of the Microsoft Teams PowerShell module is ideally done through the Managed Identity of the Automation account of RealmJoin.
-  If this has not yet been set up and the old "Service User" is still stored, the connect is still included for stability reasons. 
-  However, it should be switched to Managed Identity as soon as possible!
+  Permissions:
+  MS Graph (API):
+  - Organization.Read.All
+
+  RBAC:
+  - Teams Administrator
 
   .INPUTS
   RunbookCustomization: {
@@ -23,7 +25,7 @@
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -40,15 +42,18 @@ param(
 ##          
 ########################################################
 
-# Add Caller in Verbose output
+# Add Caller and Version in Verbose output
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
 $Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "UserName: $UserName" -Verbose
 
 #endregion
+
 ########################################################
 #region     Connect Part
 ##          
