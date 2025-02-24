@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-02-24
+- Update all phone related runbooks:
+  - Teams PowerShell module updated to 6.8.0
+  - Add Permissions in .Notes section
+  - Remove outdated service user (credential) based connection 
+  - Update version number
+
 ## 2025-02-19
 - New Runbook: Org/Phone/Get Teams Phone Number Assignment - Get the phone number assignment of the specified phone number and output the user if assigned
 

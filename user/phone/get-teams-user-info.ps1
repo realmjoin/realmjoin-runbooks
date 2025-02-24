@@ -42,15 +42,18 @@ param(
 ##          
 ########################################################
 
-# Add Caller in Verbose output
+# Add Caller and Version in Verbose output
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
 $Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "UserName: $UserName" -Verbose
 
 #endregion
+
 ########################################################
 #region     Connect Part
 ##          

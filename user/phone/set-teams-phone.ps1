@@ -68,57 +68,58 @@ param(
     [string] $CallerName
 )
 
-# Add Caller in Verbose output
+########################################################
+#region     RJ Log Part
+##          
+########################################################
+
+# Add Caller and Version in Verbose output
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-# Add Version in Verbose output
-$Version = "1.0.0" 
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "UserName: $UserName" -Verbose
+Write-RjRbLog -Message "PhoneNumber: $PhoneNumber" -Verbose
+Write-RjRbLog -Message "OnlineVoiceRoutingPolicy: $OnlineVoiceRoutingPolicy" -Verbose
+Write-RjRbLog -Message "TenantDialPlan: $TenantDialPlan" -Verbose
+Write-RjRbLog -Message "TeamsCallingPolicy: $TeamsCallingPolicy" -Verbose
+Write-RjRbLog -Message "TeamsIPPhonePolicy: $TeamsIPPhonePolicy" -Verbose
+
+#endregion
 
 ########################################################
-##             Connect Part
+#region     Connect Part
 ##          
 ########################################################
-# Needs a Microsoft Teams Connection First!
 
-Write-Output "Connection - Connect to Microsoft Teams (PowerShell)"
+Write-Output "Connect to Microsoft Teams..."
 
 try {
-    $CredAutomation = Get-AutomationPSCredential -Name 'teamsautomation'
+    $VerbosePreference = "SilentlyContinue"
+    $tmp = Connect-MicrosoftTeams -Identity -ErrorAction Stop
+    $VerbosePreference = "Continue"
+    # Check if Teams connection is active
+    Get-CsTenant -ErrorAction Stop | Out-Null
 }
 catch {
-    Write-Output "Connection - No automation credentials "teamsautomation" stored. Try newer managed identity approach now"
-}
-
-if ($CredAutomation -notlike "") {
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -Credential $CredAutomation 
-    $VerbosePreference = "Continue"
-}
-else {
-    Write-Output "Connection - Connect as RealmJoin managed identity"
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MicrosoftTeams -Identity -ErrorAction Stop
-    $VerbosePreference = "Continue"
-}
-
-# Check if Teams connection is active
-try {
-    $Test = Get-CsTenant -ErrorAction Stop | Out-Null
-}
-catch {
+    Start-Sleep -Seconds 5
     try {
-        Start-Sleep -Seconds 5
-        $Test = Get-CsTenant -ErrorAction Stop | Out-Null
+        $VerbosePreference = "SilentlyContinue"
+        $tmp = Connect-MicrosoftTeams -Identity -ErrorAction Stop
+        $VerbosePreference = "Continue"
+        # Check if Teams connection is active
+        Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error -Message "Teams PowerShell session could not be established. Stopping script!" -ErrorAction Continue
-        throw "Teams PowerShell session could not be established. Stopping script!"
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
         Exit
     }
 }
+
+#endregion
 
 ########################################################
 ##             StatusQuo & Preflight-Check Part
