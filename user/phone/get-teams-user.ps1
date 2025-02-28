@@ -5,38 +5,42 @@
   .DESCRIPTION
   Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults. 
   The runbook is part of the TeamsPhoneInventory. 
-  .INPUTS
+
+ .INPUTS
   RunbookCustomization: {
-    "Parameters": {
-        "SharepointSite": {
-        "Hide": true,
-        "Mandatory": true
-        },
-        "SharepointTPIList": {
-            "Hide": true,
-            "Mandatory": true
-        },
-        "SharepointLocationDefaultsList": {
-            "Hide": true,
-            "Mandatory": true
-        },
-        "SharepointUserMappingList": {
-            "Hide": true,
-            "Mandatory": true
-        },
-        "CallerName": {
-            "Hide": true
-        }
-    }
-}
+      "Parameters": {
+          "SharepointSite": {
+              "Hide": true,
+              "Mandatory": true
+          },
+          "SharepointTPIList": {
+              "Hide": true,
+              "Mandatory": true
+          },
+          "SharepointLocationDefaultsList": {
+              "Hide": true,
+              "Mandatory": true
+          },
+          "SharepointUserMappingList": {
+              "Hide": true,
+              "Mandatory": true
+          },
+          "CallerName": {
+              "Hide": true
+          }
+      }
+  }
 #>
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.6.0" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.24.0" }
+
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
     [String] $UserName,
+
     # TPI parameters - needs to be configured in RealmJoin Runbook Customization!
     # See Section "Runbook Customization" in Documentation for further Details
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
@@ -48,9 +52,9 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointUserMappingList" } )]
     [String] $SharepointUserMappingList,
     # CallerName is tracked purely for auditing purposes
-    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
 ########################################################
 ##             function declaration
 ##          
