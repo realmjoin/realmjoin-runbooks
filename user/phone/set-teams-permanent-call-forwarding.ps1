@@ -305,18 +305,22 @@ if ($TurnOffForward) {
 }
 elseif ($ForwardToVoicemail) {
     Write-Output "Set immediate forwarding to Voicemail"
+    Set-CsUserCallingSettings -Identity $UserName -IsUnansweredEnabled $false
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType Voicemail
 }
 elseif ($ForwardToDelegates) {
     Write-Output "Set immediate forwarding to the delegates which are defined by the user"
+    Set-CsUserCallingSettings -Identity $UserName -IsUnansweredEnabled $false
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType MyDelegates
 }
 elseif ($ForwardTargetTeamsUser -notlike "" ) {
     Write-Output "Set immediate forwarding to Teams user"
+    Set-CsUserCallingSettings -Identity $UserName -IsUnansweredEnabled $false
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType SingleTarget -ForwardingTarget $ForwardTargetTeamsUser
 }
 elseif ($ForwardTargetPhoneNumber -notlike "" ) {
     Write-Output "Set immediate forwarding to phone number"
+    Set-CsUserCallingSettings -Identity $UserName -IsUnansweredEnabled $false
     Set-CsUserCallingSettings -Identity $UserName -IsForwardingEnabled $true -ForwardingType Immediate -ForwardingTargetType SingleTarget -ForwardingTarget $ForwardTargetPhoneNumber
 }
 
