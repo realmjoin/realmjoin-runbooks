@@ -171,7 +171,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserName: $UserName" -Verbose
@@ -218,8 +218,6 @@ catch {
 ##             StatusQuo & Preflight-Check Part
 ##          
 ########################################################
-
-
 
 # Get StatusQuo
 Write-Output ""

@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-03-05
+- Update User/Phone/Set Teams permanent call forwarding 
+  - Make sure, that unanswered calls settings would be disabled before setting the forwarding
+
 ## 2025-02-24
 - Update all phone related runbooks:
   - Teams PowerShell module updated to 6.8.0
