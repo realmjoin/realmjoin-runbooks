@@ -4,7 +4,20 @@
   
   .DESCRIPTION
   Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults. 
-  The runbook is part of the TeamsPhoneInventory. 
+  The runbook is part of the TeamsPhoneInventory.
+
+  .NOTES
+  Version Changelog:
+  1.0.1 - 2025-03-07 - Fix region handling
+                     - Add handling of group based policy assignments
+                     - Enhanced based on the non TPI version
+
+  Permissions:
+  MS Graph (API):
+  - Organization.Read.All
+
+  RBAC:
+  - Teams Administrator
 
  .INPUTS
   RunbookCustomization: {
@@ -33,8 +46,8 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.6.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.24.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -56,7 +69,27 @@ param(
 )
 
 ########################################################
-##             function declaration
+#region RJ Log Part
+##          
+########################################################
+
+# Add Caller and Version in Verbose output
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+$Version = "1.0.1" 
+Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
+Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
+Write-RjRbLog -Message "SharepointLocationDefaultsList: '$SharepointLocationDefaultsList'" -Verbose
+Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'" -Verbose
+
+#endregion
+
+########################################################
+#region function declaration
 ##          
 ########################################################
 function Get-TPIList {
@@ -133,7 +166,8 @@ function Invoke-TPIRestMethod {
             try {
                 $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8'
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
-            } catch {
+            }
+            catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
@@ -146,7 +180,8 @@ function Invoke-TPIRestMethod {
                 $ExitError = 1
             } 
         }
-    }else{
+    }
+    else {
         try {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - Uri $Uri -Method $Method : $ProcessPart"
@@ -168,7 +203,8 @@ function Invoke-TPIRestMethod {
             try {
                 $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
-            } catch {
+            }
+            catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
@@ -189,22 +225,12 @@ function Invoke-TPIRestMethod {
     return $TPIRestMethod
     
 }
+
 ########################################################
-##             Connect Part
+#region Connect Part
 ##          
 ########################################################
-# Add Caller in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
-# Add Version in Verbose output
-$Version = "1.0.0" 
-Write-RjRbLog -Message "Version: $Version" -Verbose
-# Add Parameter in Verbose output
-Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
-Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
-Write-RjRbLog -Message "SharepointLocationDefaultsList: '$SharepointLocationDefaultsList'" -Verbose
-Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'" -Verbose
+
 # Needs a Microsoft Teams Connection First!
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Connect to Microsoft Teams (PowerShell as RealmJoin managed identity)"
@@ -237,7 +263,7 @@ catch {
     Exit 
 }
 ########################################################
-##             Setup base URL
+#region Setup base URL
 ##          
 ########################################################
 # Add check symbol to variable, wich is compatible with powershell 5.1 
@@ -248,9 +274,10 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Check basic connection to TPI List"
 $SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL" ).webUrl
 if ($SharepointURL -like "https://*") {
-  $SharepointURL = $SharepointURL.Replace("https://","")
-}elseif ($SharepointURL -like "http://*") {
-  $SharepointURL = $SharepointURL.Replace("http://","")
+    $SharepointURL = $SharepointURL.Replace("https://", "")
+}
+elseif ($SharepointURL -like "http://*") {
+    $SharepointURL = $SharepointURL.Replace("http://", "")
 }
 # Setup Base URL - not only for NumberRange etc.
 $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
@@ -274,9 +301,10 @@ catch {
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 ########################################################
-##             StatusQuo & Preflight-Check Part
+#region StatusQuo & Preflight-Check Part
 ##          
 ########################################################
+
 # Get StatusQuo
 Write-Output ""
 Write-Output "Get StatusQuo"
@@ -287,77 +315,96 @@ try {
     $StatusQuo_Forward = Get-CsUserCallingSettings -Identity $UserName
     $StatusQuo_PhoneNumber = Get-CsPhoneNumberAssignment -AssignedPstnTargetId $UserName
     $StatusQuo_Voicemail = Get-CsOnlineVoicemailUserSettings -Identity $UserName
+    $StatusQuo_UserPolicyAssignment = Get-CsUserPolicyAssignment -Identity $UserName
 }
 catch {
     $message = $_
     if ($message -like "userId was not found") {
         Write-Error "User information could not be retrieved because the UserID was not found. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license in the Microsoft backend has not yet been completed. Please check the license and run it again after a minimum replication time of one hour."
-    }else {
+    }
+    else {
         Write-Error "$message"
     }
 }
+
 $UPN = $StatusQuo.UserPrincipalName
+
 Write-Output "Get all Microsoft Teams Call Queues"
+# WarningPreference temporarily set to "SilentlyContinue" to suppress "ConferenceMode is turned on" warning
+$currentWarningPreference = $WarningPreference
+$WarningPreference = "SilentlyContinue"
 $callQueues = Get-CsCallQueue | Select-Object -Property Name, Agents
+$WarningPreference = $currentWarningPreference
 Write-Output " - Received Call Queues: $(($callQueues | Measure-Object).Count)"
-$CurrentLineUri = $StatusQuo.LineURI -replace("tel:","")
+$CurrentLineUri = $StatusQuo.LineURI -replace ("tel:", "")
+
 if (!($CurrentLineUri.ToString().StartsWith("+"))) {
     # Add prefix "+", if not there
     $CurrentLineUri = "+" + $CurrentLineUri
 }
+
 if ($CurrentLineUri -like "+") {
     $CurrentLineUri = "none"
 }
-if ($StatusQuo.OnlineVoiceRoutingPolicy -like "") {
-    $CurrentOnlineVoiceRoutingPolicy = "Global"
-}else {
-    $CurrentOnlineVoiceRoutingPolicy = $StatusQuo.OnlineVoiceRoutingPolicy
-}
-if ($StatusQuo.CallingPolicy -like "") {
-    $CurrentCallingPolicy = "Global"
-}else {
-    $CurrentCallingPolicy = $StatusQuo.CallingPolicy
-}
+
+#DialPlan
 if ($StatusQuo.DialPlan -like "") {
     $CurrentDialPlan = "Global"
-}else {
+}
+else {
     $CurrentDialPlan = $StatusQuo.DialPlan
 }
-if ($StatusQuo.TenantDialPlan -like "") {
-    $CurrentTenantDialPlan = "Global"
-}else {
-    $CurrentTenantDialPlan = $StatusQuo.TenantDialPlan
-}
-if ($StatusQuo.TeamsIPPhonePolicy -like "") {
-    $CurrentTeamsIPPhonePolicy = "Global"
-}else {
-    $CurrentTeamsIPPhonePolicy = $StatusQuo.TeamsIPPhonePolicy
-}
-if ($StatusQuo.OnlineVoicemailPolicy -like "") {
-    $CurrentOnlineVoicemailPolicy = "Global"
-}else {
-    $CurrentOnlineVoicemailPolicy = $StatusQuo.OnlineVoicemailPolicy
-}
-if ($StatusQuo.TeamsMeetingPolicy -like "") {
-    $CurrentTeamsMeetingPolicy = "Global"
-}else {
-    $CurrentTeamsMeetingPolicy = $StatusQuo.TeamsMeetingPolicy
-}
-if ($StatusQuo.TeamsMeetingBroadcastPolicy -like "") {
-    $CurrentTeamsMeetingBroadcastPolicy = "Global"
-}else {
-    $CurrentTeamsMeetingBroadcastPolicy = $StatusQuo.TeamsMeetingBroadcastPolicy
-}
+
+#OnlineVoiceRoutingPolicy
+$CurrentOnlineVoiceRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoiceRoutingPolicy").PolicyName
+$CurrentOnlineVoiceRoutingPolicy = if ($CurrentOnlineVoiceRoutingPolicy -like "") { "Global" } else { $CurrentOnlineVoiceRoutingPolicy }
+
+#CallingPolicy
+$CurrentCallingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "CallingPolicy").PolicyName
+$CurrentCallingPolicy = if ($CurrentCallingPolicy -like "") { "Global" } else { $CurrentCallingPolicy }
+
+#TenantDialPlan
+$CurrentTenantDialPlan = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TenantDialPlan").PolicyName
+$CurrentTenantDialPlan = if ($CurrentTenantDialPlan -like "") { "Global" } else { $CurrentTenantDialPlan }
+
+#TeamsIPPhonePolicy
+$CurrentTeamsIPPhonePolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsIPPhonePolicy").PolicyName
+$CurrentTeamsIPPhonePolicy = if ($CurrentTeamsIPPhonePolicy -like "") { "Global" } else { $CurrentTeamsIPPhonePolicy }
+
+#OnlineVoicemailPolicy
+$CurrentOnlineVoicemailPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoicemailPolicy").PolicyName
+$CurrentOnlineVoicemailPolicy = if ($CurrentOnlineVoicemailPolicy -like "") { "Global" } else { $CurrentOnlineVoicemailPolicy }
+
+#TeamsMeetingPolicy
+$CurrentTeamsMeetingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingPolicy").PolicyName
+$CurrentTeamsMeetingPolicy = if ($CurrentTeamsMeetingPolicy -like "") { "Global" } else { $CurrentTeamsMeetingPolicy }
+
+#TeamsMeetingBroadcastPolicy
+$CurrentTeamsMeetingBroadcastPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName
+$CurrentTeamsMeetingBroadcastPolicy = if ($CurrentTeamsMeetingBroadcastPolicy -like "") { "Global" } else { $CurrentTeamsMeetingBroadcastPolicy }
+
+#TeamsVoiceApplicaitonsPolicy
+$CurrentTeamsVoiceApplicaitonsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicaitonsPolicy").PolicyName
+$CurrentTeamsVoiceApplicaitonsPolicy = if ($CurrentTeamsVoiceApplicaitonsPolicy -like "") { "Global" } else { $CurrentTeamsVoiceApplicaitonsPolicy }
+
+#TeamsSharedCallingRoutingPolicy
+$CurrentTeamsSharedCallingRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName
+$CurrentTeamsSharedCallingRoutingPolicy = if ($CurrentTeamsSharedCallingRoutingPolicy -like "") { "Global" } else { $CurrentTeamsSharedCallingRoutingPolicy }
+
 if ($StatusQuo_PhoneNumber.NumberType -like "") {
     $CurrentNumberType = "none"
-}else {
+}
+else {
     $CurrentNumberType = $StatusQuo_PhoneNumber.NumberType
 }
-if ($StatusQuo_Voicemail.VoicemailEnabled -eq $true){
+
+if ($StatusQuo_Voicemail.VoicemailEnabled -eq $true) {
     $CurrentVoicemailStatus = "enabled"
-}else {
+}
+else {
     $CurrentVoicemailStatus = "disabled"
 }
+
 switch ($StatusQuo_Voicemail.CallAnswerRule) {
     "DeclineCall" {
         $CurrentVoicemailBehavior = "Decline Call"
@@ -378,8 +425,10 @@ switch ($StatusQuo_Voicemail.CallAnswerRule) {
         $CurrentVoicemailBehavior = "Undefined"
     }
 }
+
 Write-Output ""
 Write-Output "UPN from $($StatusQuo.DisplayName): $UPN"
+Write-Output "Usage Location: $($StatusQuo.UsageLocation)"
 Write-Output ""
 Write-Output "Policies:"
 Write-Output "---------------------"
@@ -387,10 +436,12 @@ Write-Output "Online Voice Routing Policy: $CurrentOnlineVoiceRoutingPolicy"
 Write-Output "Calling Policy: $CurrentCallingPolicy"
 Write-Output "Dial Plan: $CurrentDialPlan"
 Write-Output "Tenant Dial Plan: $CurrentTenantDialPlan"
-Write-Output "Teams IP-Phone Policy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Online Voicemail Policy: $CurrentOnlineVoicemailPolicy"
+Write-Output "Teams Voice Applications Policy: $CurrentTeamsVoiceApplicationsPolicy"
+Write-Output "Teams Shared Calling Routing Policy: $CurrentTeamsSharedCallingRoutingPolicy"
+Write-Output "Teams IP-Phone Policy: $CurrentTeamsIPPhonePolicy"
 Write-Output "Teams Meeting Policy: $CurrentTeamsMeetingPolicy"
-Write-Output "Teams Meeting Broadcast Policy (Live Event Policy): $CurrentTeamsMeetingBroadcastPolicy"
+Write-Output "Teams Live Event Policy (Meeting Broadcast Policy): $CurrentTeamsMeetingBroadcastPolicy"
 Write-Output ""
 Write-Output "Voice:"
 Write-Output "---------------------"
@@ -407,24 +458,37 @@ if (($StatusQuo_Forward.IsForwardingEnabled -eq $true) -and ($StatusQuo_Forward.
     Write-Output "Immediate call forward is active"
     if ($StatusQuo_Forward.ForwardingTargetType -like "SingleTarget" ) {
         Write-Output "Target: $($StatusQuo_Forward.ForwardingTarget )"
-    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "Voicemail") {
+    }
+    elseif ($StatusQuo_Forward.ForwardingTargetType -like "Voicemail") {
         Write-Output "Target: Voicemail"
-    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "Group") {
+    }
+    elseif ($StatusQuo_Forward.ForwardingTargetType -like "Group") {
         Write-Output "Target: Call group"
         Write-Output "Group membership details:"
         Write-Output "$($StatusQuo_Forward.GroupMembershipDetails)"
-    }elseif ($StatusQuo_Forward.ForwardingTargetType -like "MyDelegates") {
+    }
+    elseif ($StatusQuo_Forward.ForwardingTargetType -like "MyDelegates") {
         Write-Output "Target: Delegates"
         Write-Output "Delegates and delegate Settings:"
         Write-Output "$($StatusQuo_Forward.Delegates)"
     }
-}else {
+}
+else {
     Write-Output "Immediate call forwarding is not active"
 }
+
+#endregion
+
+########################################################
+#region Teams Call Queue membership
+##
+########################################################
+
 Write-Output ""
 Write-Output "Teams Call Queue membership:"
 # Get ObjectID of the user
 $ObjectID = $StatusQuo.Identity
+
 # Check if the user is directly assigned to any call queue
 $userAssignedQueues = @()
 foreach ($queue in $callQueues) {
@@ -432,20 +496,35 @@ foreach ($queue in $callQueues) {
         $userAssignedQueues += $queue
     }
 }
+
 if ($userAssignedQueues.Count -gt 0) {
     $userAssignedQueues | ForEach-Object { Write-Output $_.Name }
-} else {
+}
+else {
     Write-Output "The user is not member of any call queue."
 }
+
+#endregion
+
+########################################################
+#region License check
+##
+########################################################
+
 Write-Output ""
 Write-Output "Enterprise Voice (for PSTN) - License check:"
 Write-Output "---------------------"
+
 $AssignedPlan = $StatusQuo.AssignedPlan
+
 if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
     Write-Output "$($symbol_check) - License check - Microsoft O365 Phone Standard is generally assigned to this user"
+
     #Validation whether license is already assigned long enough
     $Now = get-date
+
     $LicenseTimeStamp = ($AssignedPlan | Where-Object Capability -Like "MCOSTANDARD").AssignedTimestamp
+
     if ($LicenseTimeStamp -like "") {
         $LicenseTimeStamp = ($AssignedPlan | Where-Object Capability -Like "MCOEV*").AssignedTimestamp
     }
@@ -456,26 +535,32 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 if (($LicenseTimeStamp.AddHours(24) -gt $Now)) {
                     Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
                 }
+
                 $TeamsPhoneSystemAppEnabled = $false
                 foreach ($plan in $AssignedPlan) {
                     if ($plan.ServicePlanId -eq "4828c8ec-dc2e-4779-b502-87ac9ce28ab7" -and $plan.CapabilityStatus -eq "Deleted") {
                         $TeamsPhoneSystemAppEnabled = $false
                         break
-                    }elseif ($plan.ServicePlanId -eq "4828c8ec-dc2e-4779-b502-87ac9ce28ab7" -and $plan.CapabilityStatus -eq "Enabled") {
+                    }
+                    elseif ($plan.ServicePlanId -eq "4828c8ec-dc2e-4779-b502-87ac9ce28ab7" -and $plan.CapabilityStatus -eq "Enabled") {
                         $TeamsPhoneSystemAppEnabled = $true
                         break
-                    }else {
+                    }
+                    else {
                         $TeamsPhoneSystemAppEnabled = $false
                         break
                     }
                 }
+
                 if ($TeamsPhoneSystemAppEnabled) {
                     Write-Output "$($symbol_check) - The application Teams Phone System from the assigned license is enabled."
-                } else {
+                }
+                else {
                     Write-Output "WARNING: The application Teams Phone System from the assigned license is NOT enabled or could not be verified!"
                 }
                 
-            }else {
+            }
+            else {
                 Write-Output ""
                 Write-Warning "Error:"
                 Write-Warning "The user license (MCOEV - Microsoft O365 Phone Standard) should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
@@ -485,13 +570,23 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
         catch {
             Write-Warning "Warning: The time of license assignment could not be verified!"
         }
-    }else {
+    }
+    else {
         Write-Warning "Warning: The time of license assignment could not be verified!"
     }
-}else {
+
+}
+else {
     Write-Output ""
     Write-Output "License check - No License which includes Microsoft O365 Phone Standard is assigned to this user!"
 }
+#endregion
+
+########################################################
+#region Teams Phone Inventory (TPI) - Config drift detection
+##
+########################################################
+
 Write-Output ""
 Write-Output "Teams Phone Inventory (TPI) - Config drift detection"
 Write-Output "---------------------"
@@ -514,7 +609,8 @@ try {
     $TPILocationDefaultsListURL = $BaseURL + $SharepointLocationDefaultsList
     $TPI_LocationDefaults_AllItems = Get-TPIList -ListBaseURL $TPILocationDefaultsListURL -ListName $SharepointLocationDefaultsList
     Write-Output " - Items in $SharepointLocationDefaultsList SharePoint List: $(($TPI_LocationDefaults_AllItems | Measure-Object).Count)"
-}catch {
+}
+catch {
     Write-Output ""
     Write-Output "The TPI Lists could not be retrieved. The detection of the config drift regarding TPI is therefore stopped!"
     Write-Output ""
@@ -541,10 +637,12 @@ $CurrentTPIUser_CivicAddressMappingIndex = $CurrentTPIUser.CivicAddressMappingIn
 #Get all entries from TPI-UserMapping List which Title (UPN) is like the given UserName
 $CurrentUserMapping = $TPI_UserMapping_AllItems | Where-Object Title -Like $UPN 
 if (($CurrentUserMapping | Measure-Object).Count -eq 1) {
-    if ($CurrentUserMapping.LocationIdentifier -notlike "") { #If there is exactly one match - go on
+    if ($CurrentUserMapping.LocationIdentifier -notlike "") {
+        #If there is exactly one match - go on
         $CurrentLocationIdentifier = $CurrentUserMapping.LocationIdentifier
         Write-Output "The LocationIdentifier of the user is $CurrentLocationIdentifier"
-    }else {
+    }
+    else {
         Write-Output ""
         Write-Output "There is an entry for the user in the user mapping list, but the LocationIdentifier is empty. The detection of the config drift regarding TPI is therefore stopped!"
         Write-Output ""
@@ -553,13 +651,17 @@ if (($CurrentUserMapping | Measure-Object).Count -eq 1) {
         Get-PSSession | Remove-PSSession | Out-Null
         Exit
     }   
-}elseif (($CurrentUserMapping | Measure-Object).Count -gt 1) { #If there are duplicates - stop it!
+}
+elseif (($CurrentUserMapping | Measure-Object).Count -gt 1) {
+    #If there are duplicates - stop it!
     Write-Output ""
     Write-Output "More than one entry is present in the user mapping table. The detection of the config drift regarding TPI will be stopped now, because no unique mapping is possible!"
     Write-Output ""
     Write-Output "Done!"
     Exit
-}elseif (($CurrentUserMapping | Measure-Object).Count -eq 0) { #If there is no match - stop it!
+}
+elseif (($CurrentUserMapping | Measure-Object).Count -eq 0) {
+    #If there is no match - stop it!
     Write-Output ""
     Write-Output "The user is not available in the user mapping list. Either no suitable storage location could be found for the user due to their Azure AD attributes or the user was only created less than an hour ago, so no mapping has been created yet. The detection of the config drift regarding TPI is therefore stopped!"
     Write-Output ""
@@ -581,26 +683,37 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         $ExtensionRangeIndex = $RecievedLocationDefaults.ExtensionRangeIndex
         if ($ExtensionRangeIndex -notlike "") {
             Write-Output "The ExtensionRangeIndex of the user is $ExtensionRangeIndex"
-        }elseif ($CivicAddressMappingIndex -notlike "") {
+        }
+        elseif ($CivicAddressMappingIndex -notlike "") {
             Write-Output "The CivicAddressMappingIndex of the user is $CivicAddressMappingIndex"
         }
        
         $OnlineVoiceRoutingPolicy = $RecievedLocationDefaults.OnlineVoiceRoutingPolicy
         if ($OnlineVoiceRoutingPolicy -like "") {
-            $OnlineVoiceRoutingPolicy = "Global (Org Wide Default)"
+            $OnlineVoiceRoutingPolicy = "Global"
+        }
+        if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+            $OnlineVoiceRoutingPolicy = "Global"
         }
         Write-Output "The OnlineVoiceRoutingPolicy of the user is $OnlineVoiceRoutingPolicy"
         $TenantDialPlan = $RecievedLocationDefaults.TenantDialPlan
         if ($TenantDialPlan -like "") {
-            $TenantDialPlan = "Global (Org Wide Default)"
+            $TenantDialPlan = "Global"
+        }
+        if ($TenantDialPlan -like "Global (Org Wide Default)") {
+            $TenantDialPlan = "Global"
         }
         Write-Output "The TenantDialPlan of the user is $TenantDialPlan"
         $CallingPolicy = $RecievedLocationDefaults.CallingPolicy
         if ($CallingPolicy -like "") {
-            $CallingPolicy = "Global (Org Wide Default)"
+            $CallingPolicy = "Global"
+        }
+        if ($CallingPolicy -like "Global (Org Wide Default)") {
+            $CallingPolicy = "Global"
         }
         Write-Output "The CallingPolicy of the user is $CallingPolicy"
-    }else {
+    }
+    else {
         Write-Output ""
         Write-Output "There is an entry for the current location identifier, but no phone number ranges or civic address mappings are defined for it. The detection of the config drift regarding TPI is therefore stopped!"
         Write-Output ""
@@ -609,13 +722,15 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         Get-PSSession | Remove-PSSession | Out-Null
         Exit
     }   
-}elseif (($RecievedLocationDefaults | Measure-Object).Count -eq 0) {
+}
+elseif (($RecievedLocationDefaults | Measure-Object).Count -eq 0) {
     Write-Output ""
     Write-Output "No location defaults could be found for the received location identifier. The detection of the config drift regarding TPI is therefore stopped!"
     Write-Output ""
     Write-Output "Done!"
     Exit
-}else {
+}
+else {
     Write-Output ""
     Write-Output "More than one entry is present in the location defaults table. The detection of the config drift regarding TPI will be stopped now, because no unique mapping is possible!"
     Write-Output ""
@@ -632,7 +747,8 @@ if ($RecievedLocationDefaults.ExtensionRangeIndex -notlike "") {
         Write-Output "<- Extension Range Index Drift detected! ->"
         Write-Output "The Extension Range Index from the current phone number of the user is $CurrentTPIUser_ExtensionRangeIndex, but the expected value is $($RecievedLocationDefaults.ExtensionRangeIndex), so there is a drift!"
         Write-Output ""
-    }else {
+    }
+    else {
         Write-Output "The Extension Range Index from the current phone number of the user is $CurrentTPIUser_ExtensionRangeIndex and matches to the location defaults."
     }
 }
@@ -641,55 +757,76 @@ if ($RecievedLocationDefaults.CivicAddressMappingIndex -notlike "") {
         Write-Output "<- Civic Address Mapping Index Drift detected! ->"
         Write-Output "The Civic Address Mapping Index from the current phone number of the user is $CurrentTPIUser_CivicAddressMappingIndex, but the expected value is $($RecievedLocationDefaults.CivicAddressMappingIndex), so there is a drift!"
         Write-Output ""
-    }else {
+    }
+    else {
         Write-Output "The Civic Address Mapping Index from the current phone number of the user is $CurrentTPIUser_CivicAddressMappingIndex and matches to the location defaults."
     }
 }
 Write-Output ""
 Write-Output "Policies:"
 Write-Output "---------"
-if($RecievedLocationDefaults.OnlineVoiceRoutingPolicy -notlike "") {
-    if ($RecievedLocationDefaults.OnlineVoiceRoutingPolicy -notlike $StatusQuo.OnlineVoiceRoutingPolicy) {
+if ($RecievedLocationDefaults.OnlineVoiceRoutingPolicy -notlike "") {
+    if ($RecievedLocationDefaults.OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
+        $RecievedLocationDefaults.OnlineVoiceRoutingPolicy = "Global"
+    }
+    if ($RecievedLocationDefaults.OnlineVoiceRoutingPolicy -notlike $CurrentOnlineVoiceRoutingPolicy) {
         Write-Output "<- OnlineVoiceRoutingPolicy Drift detected! ->"
         Write-Output "The Online Voice Routing Policy of the user is $CurrentOnlineVoiceRoutingPolicy, but the expected value is $($RecievedLocationDefaults.OnlineVoiceRoutingPolicy), so there is a drift!"
         Write-Output ""
-    }else {
+    }
+    else {
         Write-Output "Online Voice Routing Policy - $CurrentOnlineVoiceRoutingPolicy and matches to the location defaults."
     }
-}else {
+}
+else {
     Write-Output "No Online Voice Routing Policy is defined in the location defaults."
 }
-if($RecievedLocationDefaults.TeamsCallingPolicy -notlike "") {
-    if ($RecievedLocationDefaults.TeamsCallingPolicy -notlike $StatusQuo.CallingPolicy) {
+if ($RecievedLocationDefaults.TeamsCallingPolicy -notlike "") {
+    if ($RecievedLocationDefaults.TeamsCallingPolicy -like "Global (Org Wide Default)") {
+        $RecievedLocationDefaults.TeamsCallingPolicy = "Global"
+    }
+    if ($RecievedLocationDefaults.TeamsCallingPolicy -notlike $CurrentCallingPolicy) {
         Write-Output "<- Teams Calling Policy Drift detected! ->"
         Write-Output "The Teams Calling Policy of the user is $CurrentCallingPolicy, but the expected value is $($RecievedLocationDefaults.TeamsCallingPolicy), so there is a drift!"
         Write-Output ""
-    }else {
+    }
+    else {
         Write-Output "Teams Calling Policy - $CurrentCallingPolicy and matches to the location defaults."
     }
-}else {
+}
+else {
     Write-Output "No Teams Calling Policy is defined in the location defaults."
 }
-if($RecievedLocationDefaults.TenantDialPlan -notlike "") {
-    if ($RecievedLocationDefaults.TenantDialPlan -notlike $StatusQuo.TenantDialPlan) {
+if ($RecievedLocationDefaults.TenantDialPlan -notlike "") {
+    if ($RecievedLocationDefaults.TenantDialPlan -like "Global (Org Wide Default)") {
+        $RecievedLocationDefaults.TenantDialPlan = "Global"
+    }
+    if ($RecievedLocationDefaults.TenantDialPlan -notlike $CurrentTenantDialPlan) {
         Write-Output "<- Tenant Dial Plan Drift detected! ->"
         Write-Output "The Tenant Dial Plan of the user is $CurrentTenantDialPlan, but the expected value is $($RecievedLocationDefaults.TenantDialPlan), so there is a drift!"
         Write-Output ""
-    }else {
+    }
+    else {
         Write-Output "Tenant Dial Plan - $CurrentTenantDialPlan and matches to the location defaults."
     }
-}else {
+}
+else {
     Write-Output "No Tenant Dial Plan is defined in the location defaults."
 }
-if($RecievedLocationDefaults.TeamsIPPhonePolicy -notlike "") {
-    if ($RecievedLocationDefaults.TeamsIPPhonePolicy -notlike $StatusQuo.TeamsIPPhonePolicy) {
+if ($RecievedLocationDefaults.TeamsIPPhonePolicy -notlike "") {
+    if ($RecievedLocationDefaults.TeamsIPPhonePolicy -like "Global (Org Wide Default)") {
+        $RecievedLocationDefaults.TeamsIPPhonePolicy = "Global"
+    }
+    if ($RecievedLocationDefaults.TeamsIPPhonePolicy -notlike $CurrentTeamsIPPhonePolicy) {
         Write-Output "<- Teams IP Phone Policy Drift detected! ->"
         Write-Output "The Teams IP Phone Policy of the user is $CurrentTeamsIPPhonePolicy, but the expected value is $($RecievedLocationDefaults.TeamsIPPhonePolicy), so there is a drift!"
         Write-Output ""
-    }else {
+    }
+    else {
         Write-Output "Teams IP Phone Policy - $CurrentTeamsIPPhonePolicy and matches to the location defaults."
     }
-}else {
+}
+else {
     Write-Output "No Teams IP Phone Policy is defined in the location defaults."
 }
 Write-Output ""
