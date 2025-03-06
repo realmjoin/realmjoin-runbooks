@@ -1,5 +1,19 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-03-05
+- Update User/Phone/Set Teams permanent call forwarding 
+  - Make sure, that unanswered calls settings would be disabled before setting the forwarding
+
+## 2025-02-24
+- Update all phone related runbooks:
+  - Teams PowerShell module updated to 6.8.0
+  - Add Permissions in .Notes section
+  - Remove outdated service user (credential) based connection 
+  - Update version number
+
+## 2025-02-19
+- New Runbook: Org/Phone/Get Teams Phone Number Assignment - Get the phone number assignment of the specified phone number and output the user if assigned
+
 ## 2025-02-13
 - Update Runbook org/devices/ "outphase-devices" - add support for serialnumbers
 
@@ -7,7 +21,7 @@
 - Fix: add-devices-of-users-to-group_scheduled - add AndroidForWork condition
 
 ## 2025-02-11
-- New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups.
+- New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups
 
 ## 2025-01-24
 - Check UpdateAbleAssets (device and group): Adapted to new graph response, general rework
