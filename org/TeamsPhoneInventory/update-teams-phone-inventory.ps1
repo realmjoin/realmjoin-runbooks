@@ -10,6 +10,9 @@
 
   .NOTES
   Version Changelog:
+  1.2.0 - 2025-03-07 - Fix region handling
+                     - Add function Export-TeamsPhoneNumbers to resolve the error regarding MC950880 - Update to Get-CsPhoneNumberAssignment (Only 1000 numbers are returned)
+                     - Add handling of group based policy assignments
   1.1.0 - 2025-01-09 - Fix "EmptyString"/$null missmatch for NumberCapability and EmergencyAddressName
                      - New Get-TPIList function
                        - For better handling of SharePoint Lists
@@ -107,11 +110,11 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
 
 ########################################################
-#region     Parameter declaration
+#region Parameter declaration
 ##          
 ########################################################
 
@@ -157,7 +160,7 @@ Param(
 #endregion
 
 ########################################################
-#region     function declaration
+#region function declaration
 ##          
 ########################################################
 function Get-TPIList {
@@ -265,10 +268,12 @@ function Invoke-TPIRestMethod {
     try {
         if ($Method -in @("Post", "Patch")) {
             $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8' -Verbose:$VerboseGraphAPILogging
-        } else {
+        }
+        else {
             $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Verbose:$VerboseGraphAPILogging
         }
-    } catch {
+    }
+    catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
         $StatusCode = $_.Exception.Response.StatusCode.value__ 
@@ -289,12 +294,14 @@ function Invoke-TPIRestMethod {
             Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart"
             if ($Method -in @("Post", "Patch")) {
                 $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Body (($Body) | ConvertTo-Json -Depth 6) -ContentType 'application/json; charset=utf-8' -Verbose:$VerboseGraphAPILogging
-            } else {
+            }
+            else {
                 $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method -Verbose:$VerboseGraphAPILogging
             }
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
-        } catch {
+        }
+        catch {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
             $StatusCode = $_.Exception.Response.StatusCode.value__ 
@@ -313,10 +320,198 @@ function Invoke-TPIRestMethod {
     return $TPIRestMethod
 }
 
+function Export-TeamsPhoneNumbers {
+    param (
+        [int]$WaitTime = 1,
+        [int]$MaxTries = 60,
+        [switch]$MapUserPrincipalNames,
+        [hashtable]$TeamsUsers
+    )
+
+    <#
+        .SYNOPSIS
+        Exports all phone numbers within the tenant.
+
+        .DESCRIPTION
+        This function exports all phone numbers within the tenant. It uses the Teams PowerShell module to export the phone numbers and then processes the CSV-like content into PSCustomObjects. 
+        The function also maps the UserPrincipalNames to the phone numbers if the MapUserPrincipalNames switch is set. Therefore, a hashtable with the TeamsUsers is required or will be generated if the TeamsUsers hashtable is not provided.
+
+        .PARAMETER WaitTime
+        The time in seconds to wait between status queries. The default value is 1 second.
+
+        .PARAMETER MaxTries
+        The maximum number of attempts to query the status. The default value is 60.
+
+        .PARAMETER MapUserPrincipalNames
+        A switch to enable the mapping of UserPrincipalNames to the phone numbers. If this switch is set, the UserPrincipalNames will be mapped to the phone numbers. The default value is $false.
+
+        .PARAMETER TeamsUsers
+
+    #>
+
+    if (!$MapUserPrincipalNames) {
+        Write-Verbose "Export-TeamsPhoneNumbers - MapUserPrincipalNames switch not set. UserPrincipalNames will not be mapped."
+    }
+    else {
+        Write-Verbose "Export-TeamsPhoneNumbers - MapUserPrincipalNames switch set. UserPrincipalNames will be mapped."
+    }
+
+    # If the TeamsUsers hashtable is not provided and the DontMapUserPrincipalNames switch is not set, generate the TeamsUsers hashtable
+    if ($null -eq $TeamsUsers -and $MapUserPrincipalNames) {
+        Write-Verbose "TeamsUsers hashtable not provided. Generate it now..."
+        $TeamsUsers = @{}
+        $users = Get-CsOnlineUser -Filter { LineUri -like "tel:*" }
+        foreach ($user in $users) {
+            $TeamsUsers.Add($user.Identity, $user.UserPrincipalName)
+        }
+    }
+
+    # Start the export of phone numbers
+    Write-Verbose "Starting export of phone numbers..."
+    $orderID = Export-CsAcquiredPhoneNumber
+
+    $tries = 0
+    $link = $null
+
+    Write-Verbose "Export started... Waiting for download link."
+    Write-Verbose "Defined wait time between status queries: $($WaitTime) seconds"
+
+    # Repeated status query until the download link is available or the maximum number of attempts is reached
+    while ($tries -lt $MaxTries -and [string]::IsNullOrEmpty($link)) {
+        Start-Sleep -Seconds $WaitTime
+        $status = Get-CsExportAcquiredPhoneNumberStatus -orderID $orderID
+        $link = $status.DownloadLink
+        $tries++
+        Write-Verbose "Attempt $($tries)/$($MaxTries): Status = $($status.Status)"
+    }
+
+    if ([string]::IsNullOrEmpty($link)) {
+        Write-Error "No download link received. Aborting."
+        return $null
+    }
+
+    Write-Verbose ""
+    Write-Verbose "Download link received"#: $link"
+    Write-Verbose ""
+
+    # Download the file content directly into memory
+    $content = Invoke-RestMethod -Uri $link
+
+    # Convert CSV content into objects without saving to disk
+    $phoneNumbers = $content | ConvertFrom-Csv
+
+    # Transform the CSV objects into PSCustomObjects with resolved array values for multiple properties
+    $customObjects = $phoneNumbers | ForEach-Object {
+        $LocationUpdateSupported = $false
+        $obj = $_ | Select-Object *
+        foreach ($prop in $_.PSObject.Properties.Name) {
+            if ($_.$prop -match "^\[.*\]") {
+                $arrayValues = ($_.$prop -replace "\[|\]" -split ",").Trim() | ForEach-Object { $_ -replace '"', '' }
+                if (($prop -like "SupportedCustomerActions") -and ($arrayValues -contains "LocationUpdate")) {
+                    $LocationUpdateSupported = $true
+                    $obj | Add-Member -MemberType NoteProperty -Name "LocationUpdateSupported" -Value $true -Force
+                }
+                $obj | Add-Member -MemberType NoteProperty -Name $prop -Value $arrayValues -Force
+            }
+        }
+        if ($LocationUpdateSupported -eq $false) {
+            $obj | Add-Member -MemberType NoteProperty -Name "LocationUpdateSupported" -Value $false -Force
+        }
+        if ($MapUserPrincipalNames) {
+            if (!([string]::IsNullOrEmpty($obj.TargetId))) {
+                try {
+                    if ($TeamsUsers[$obj.TargetId] -notlike "") {
+                        $obj | Add-Member -MemberType NoteProperty -Name "UserPrincipalName" -Value $TeamsUsers[$obj.TargetId] -Force -ErrorAction Stop
+                    }
+                    else {
+                        Write-Verbose "TargetId $($obj.TargetId) not found in TeamsUsers hashtable. Adding UserPrincipalName as null."
+                        $obj | Add-Member -MemberType NoteProperty -Name "UserPrincipalName" -Value $null -Force
+                    }
+                }
+                catch {
+                    Write-Verbose "An error occurred while adding UserPrincipalName. Stopping script. Current User Identity: $($obj.TargetId)"
+                    exit
+                }
+            }
+        }
+        else {
+            $obj | Add-Member -MemberType NoteProperty -Name "UserPrincipalName" -Value $null -Force
+        }
+        $obj
+    }
+
+    Write-Verbose "Export completed. Number of phone numbers: $($customObjects.Count)"
+    return $customObjects
+}
+
+function Get-GroupMembership {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$GroupObjectId
+    )
+
+    <#
+        .SYNOPSIS
+        Retrieves the members of a group, even if the groups are nested.
+
+        .DESCRIPTION
+        This function retrieves the members of a group, even if the groups are nested. It uses the Microsoft Graph API to retrieve the members of the group and processes them recursively. If a member is a user, it adds it to the report. If a member is a group, it calls the function recursively to retrieve the members of that group.
+
+        .PARAMETER GroupObjectId
+        The object ID of the group to retrieve the members for. This parameter is mandatory.
+
+        .EXAMPLE
+        Get-GroupMembership -GroupObjectId "00000000-0000-0000-0000-000000000000"
+        Retrieves the members of the group with the object ID "00000000-0000-0000-0000-000000000000".
+
+        .OUTPUTS
+        The function returns an array of objects with the following properties:
+        - UserPrincipalName: The user principal name of the member.
+        - Id: The ID of the member.
+        - DirectMember: Indicates whether the member is a direct member of the group or a nested member.
+
+        .NOTES
+        Required Graph API permissions:
+        - Group.Read.All
+        - User.Read.All
+    #>
+
+    $report = @()
+
+    # Get the group object
+    $group = Invoke-MGGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups/$GroupObjectId"
+    
+    # Get the members of the group
+    $members = @()
+    $uri = "https://graph.microsoft.com/v1.0/groups/$GroupObjectId/members"
+    do {
+        $response = Invoke-MGGraphRequest -Method GET -Uri $uri
+        $members += $response.value
+        $uri = $response.'@odata.nextLink'
+    } while ($uri)
+
+    # Process the members - if a member is a user, add it to the report, if it's a group, call the function recursively
+    foreach ($member in $members) {
+        if ($member."@odata.type" -eq "#microsoft.graph.user") {
+            $DirectMemberStatus = if ($ParentGroupPath) { "No" } else { "Yes" }
+            $report += [PSCustomObject]@{
+                UserPrincipalName = $member.UserPrincipalName
+                Id                = $member.id
+                DirectMember      = $DirectMemberStatus
+            }
+        }
+        elseif ($member."@odata.type" -eq "#microsoft.graph.group") {
+            $report += Get-GroupMembership -GroupObjectId $($member.id)
+        }
+    }
+
+    return $report
+}
+
 #endregion
 
 ########################################################
-#region     Logo Part
+#region Logo Part
 ##          
 ########################################################
 
@@ -333,7 +528,7 @@ Write-Output ''
 #endregion
 
 ########################################################
-#region     Properties declaration
+#region Properties declaration
 ##          
 ########################################################
 # Description for this block:
@@ -440,7 +635,7 @@ $TitelNameReplacement_BlockExtension = "LineUri"
 #endregion
 
 ########################################################
-#region     RJ Log Part
+#region RJ Log Part
 ##          
 ########################################################
 
@@ -450,7 +645,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.1.0"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -474,14 +669,14 @@ $EnableEnhancedLoggingOutput = $false
 
 # !!!!! Verbose output is disabled by default !!!!!
 # Important to know in context of logging and specially for verbose logging:
-# The Function Get-TPIList and Invoke-TPIRestMethod have a parameter called "Verbose".
+# The Function Get-TPIList, Invoke-TPIRestMethod and Export-TeamsPhoneNumbers have a parameter called "VerboseGraphAPILogging".
 # This parameter is used to enable or disable the verbose output of the function.
 # By default, the verbose output is disabled.
 $VerboseGraphAPI = $false
 
 #endregion
 ########################################################
-#region     Connect Part
+#region Connect Part
 ##          
 ########################################################
 
@@ -526,31 +721,32 @@ catch {
 
 #endregion
 ########################################################
-#region     RampUp Connection Details
+#region RampUp Connection Details
 ##          
 ########################################################
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Check basic connection to TPI List"
 
-$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL"  -VerboseGraphAPILogging $VerboseGraphAPI).webUrl
+$SharepointURL = (Invoke-TPIRestMethod -Uri "https://graph.microsoft.com/v1.0/sites/root" -Method GET -ProcessPart "Get SharePoint WebURL"  -VerboseGraphAPILogging:$VerboseGraphAPI).webUrl
 if ($SharepointURL -like "https://*") {
-  $SharepointURL = $SharepointURL.Replace("https://","")
-}elseif ($SharepointURL -like "http://*") {
-  $SharepointURL = $SharepointURL.Replace("http://","")
+    $SharepointURL = $SharepointURL.Replace("https://", "")
+}
+elseif ($SharepointURL -like "http://*") {
+    $SharepointURL = $SharepointURL.Replace("http://", "")
 }
 
 # Setup Base URL - not only for NumberRange etc.
 $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/teams/' + $SharepointSite + ':/lists/'
 $TPIListURL = $BaseURL + $SharepointTPIList
 try {
-    Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop -VerboseGraphAPILogging $VerboseGraphAPI | Out-Null
+    Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop -VerboseGraphAPILogging:$VerboseGraphAPI | Out-Null
 }
 catch {
     $BaseURL = 'https://graph.microsoft.com/v1.0/sites/' + $SharepointURL + ':/sites/' + $SharepointSite + ':/lists/'
     $TPIListURL = $BaseURL + $SharepointTPIList
     try {
-        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop -VerboseGraphAPILogging $VerboseGraphAPI | Out-Null
+        Invoke-TPIRestMethod -Uri $BaseURL -Method Get -ProcessPart "Check connection to TPI List" -ErrorAction Stop -VerboseGraphAPILogging:$VerboseGraphAPI | Out-Null
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -563,8 +759,9 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 
 #endregion
+
 ########################################################
-#region     Get Content NumberRange, Extensionrange, CivicAddressMapping
+#region Get Content NumberRange, Extensionrange, CivicAddressMapping
 ##          
 ########################################################
 
@@ -586,15 +783,15 @@ Write-Output "$TimeStamp - Block 1 - RampUp: Get content from NumberRange, Exten
 #Get List for NumberRange, ExtensionRange & CivicAddressMapping List 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Get StatusQuo of NumberRange SharePoint List - ListName: $($SharepointNumberRangeList)"
-$NumberRanges = Get-TPIList -ListBaseURL $NumberRangeListURL -ListName $SharepointNumberRangeList -Properties $ListProperties_NumberRange -TitelNameReplacement $TitelNameReplacement_NumberRange -VerboseGraphAPILogging $VerboseGraphAPI
+$NumberRanges = Get-TPIList -ListBaseURL $NumberRangeListURL -ListName $SharepointNumberRangeList -Properties $ListProperties_NumberRange -TitelNameReplacement $TitelNameReplacement_NumberRange -VerboseGraphAPILogging:$VerboseGraphAPI
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Get StatusQuo of ExtensionRange SharePoint List - ListName: $($SharepointExtensionRangeList)"
-$ExtensionRanges = Get-TPIList -ListBaseURL $ExtensionRangeListURL -ListName $SharepointExtensionRangeList -Properties $ListProperties_ExtensionRange -TitelNameReplacement $TitelNameReplacement_ExtensionRange -VerboseGraphAPILogging $VerboseGraphAPI 
+$ExtensionRanges = Get-TPIList -ListBaseURL $ExtensionRangeListURL -ListName $SharepointExtensionRangeList -Properties $ListProperties_ExtensionRange -TitelNameReplacement $TitelNameReplacement_ExtensionRange -VerboseGraphAPILogging:$VerboseGraphAPI 
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Get StatusQuo of CivicAddressMapping SharePoint List - ListName: $($SharepointCivicAddressMappingList)"
-$CivicAddressMappings = Get-TPIList -ListBaseURL $CivicAddressMappingListURL -ListName $SharepointCivicAddressMappingList -Properties $ListProperties_CivicAddressMapping -TitelNameReplacement $TitelNameReplacement_CivicAddressMapping -VerboseGraphAPILogging $VerboseGraphAPI 
+$CivicAddressMappings = Get-TPIList -ListBaseURL $CivicAddressMappingListURL -ListName $SharepointCivicAddressMappingList -Properties $ListProperties_CivicAddressMapping -TitelNameReplacement $TitelNameReplacement_CivicAddressMapping -VerboseGraphAPILogging:$VerboseGraphAPI 
 
 
 #region Check Extension Ranges
@@ -602,7 +799,7 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Check if there are errors in the number or extension ranges (e.g. extension 90 to 10 (values swapped))"
 
 foreach ($NumberRange in $NumberRanges) {
-    if($NumberRange.BeginUserRange -gt $NumberRange.EndUserRange){
+    if ($NumberRange.BeginUserRange -gt $NumberRange.EndUserRange) {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Error "$TimeStamp - Block 1 - Error in the NumberRange: "@($NumberRange.NumberRangeName)
         Write-Error "$TimeStamp - Block 1 - The start extension is greater than the end extension. This will terminate the script."
@@ -622,7 +819,7 @@ foreach ($ExtensionRange in $ExtensionRanges) {
     [int]$StartNumber = $ExtensionRange.BeginExtensionRange
     [int]$EndNumber = $ExtensionRange.EndExtensionRange
     $Name = $ExtensionRange.ExtensionRangeName
-    if($StartNumber -gt $EndNumber){
+    if ($StartNumber -gt $EndNumber) {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Error "$TimeStamp - Block 1 - Error in the ExtensionRange: $Name"
         Write-Error "$TimeStamp - Block 1 - The start extension is greater than the end extension! This will terminate the script."
@@ -667,16 +864,17 @@ foreach ($ExtensionRange in $ExtensionRanges) {
             $City = $NumberRange.City
             $Company = $NumberRange.Company
             $NumberRangeName = $NumberRange.NumberRangeName
-            $CurrentMainNumber =  $NumberRange.MainNumber
+            $CurrentMainNumber = $NumberRange.MainNumber
             
-            $StartNumber..$EndNumber |ForEach-Object {
-                $CurrentExtension = $_.toString().PadLeft(($EndNumber.toString().Length),'0')
+            $StartNumber..$EndNumber | ForEach-Object {
+                $CurrentExtension = $_.toString().PadLeft(($EndNumber.toString().Length), '0')
                 $CurrentLineUri = $CurrentMainNumber + $CurrentExtension
                 if ($MainArray.LineUri -notcontains $CurrentLineUri) {
-                    $NewRow += [pscustomobject]@{'FullLineUri'=$CurrentLineUri;'MainLineUri'=$CurrentLineUri;'DID'=$CurrentExtension;'TeamsEXT'='';'NumberRangeName'=$NumberRangeName;'ExtensionRangeName'=$ExtensionRangeName;'CivicAddressMappingName'='NoneDefined';'UPN'='';'Display_Name'='';'OnlineVoiceRoutingPolicy'='';'TeamsCallingPolicy'='';'DialPlan'='';'TenantDialPlan'='';'TeamsPrivateLine'='';'VoiceType'='';'UserType'='';'NumberCapability'='User and Service';'NumberRangeIndex'=$CurrentNumberRangeIndex;'ExtensionRangeIndex'=$CurrentExtensionRangeIndex;'CivicAddressMappingIndex'='NoneDefined';'Country'=$Country;'City'=$City;'Company'=$Company;'EmergencyAddressName'='';'Status'=''}
+                    $NewRow += [pscustomobject]@{'FullLineUri' = $CurrentLineUri; 'MainLineUri' = $CurrentLineUri; 'DID' = $CurrentExtension; 'TeamsEXT' = ''; 'NumberRangeName' = $NumberRangeName; 'ExtensionRangeName' = $ExtensionRangeName; 'CivicAddressMappingName' = 'NoneDefined'; 'UPN' = ''; 'Display_Name' = ''; 'OnlineVoiceRoutingPolicy' = ''; 'TeamsCallingPolicy' = ''; 'DialPlan' = ''; 'TenantDialPlan' = ''; 'TeamsPrivateLine' = ''; 'VoiceType' = ''; 'UserType' = ''; 'NumberCapability' = 'User and Service'; 'NumberRangeIndex' = $CurrentNumberRangeIndex; 'ExtensionRangeIndex' = $CurrentExtensionRangeIndex; 'CivicAddressMappingIndex' = 'NoneDefined'; 'Country' = $Country; 'City' = $City; 'Company' = $Company; 'EmergencyAddressName' = ''; 'Status' = '' }
                     $MainArray += $NewRow
                     $NewRow = $null  
-                }else {
+                }
+                else {
                     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                     Write-Error "$TimeStamp - Error - $CurrentLineUri from Current Extension Range $ExtensionRangeName is already in MainArray - Extension Range duplicate or overlap!"
                 }  
@@ -697,7 +895,7 @@ $NumberRangeAmount = ($NumberRanges | Measure-Object).Count
 foreach ($NumberRange in $NumberRanges) {
     $CurrentNumberRangeIndex = $NumberRange.NumberRangeIndex
     $CurrentName = $NumberRange.NumberRangeName
-    $CurrentMainNumber =  $NumberRange.MainNumber
+    $CurrentMainNumber = $NumberRange.MainNumber
     $CurrentStartNumber = [int]$NumberRange.BeginNumberRange
     $CurrentEndNumber = [int]$NumberRange.EndNumberRange
     $CurrentCountry = $NumberRange.Country
@@ -718,19 +916,20 @@ foreach ($NumberRange in $NumberRanges) {
                 $CurrentLineUri = $CurrentMainNumber + $CurrentExtension
                 $NewRow = [pscustomobject]@{
                     'NumberRangeIndex' = $CurrentNumberRangeIndex
-                    'NumberRangeName' = $CurrentName
-                    'LineUri' = $CurrentLineUri
-                    'DID' = $CurrentExtension
-                    'Country' = $CurrentCountry
-                    'City' = $CurrentCity
-                    'Company' = $CurrentCompany
+                    'NumberRangeName'  = $CurrentName
+                    'LineUri'          = $CurrentLineUri
+                    'DID'              = $CurrentExtension
+                    'Country'          = $CurrentCountry
+                    'City'             = $CurrentCity
+                    'Company'          = $CurrentCompany
                 }
                 [void]$NumberRangeArray.Add($NewRow)
                 [void]$DIDSet.Add($CurrentExtension)
                 # [void] - suppress output
             }
         }
-    } else {
+    }
+    else {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Output ""
         Write-Output "$TimeStamp - Block 1  - Error: Start Number is greater than End Number"
@@ -744,7 +943,7 @@ Write-Output "$TimeStamp - Block 1 - Finished Helper Array (Whole Number Range)"
 
 #endregion
 ########################################################
-#region     Teams
+#region Teams
 ##          
 ########################################################
 
@@ -756,7 +955,7 @@ Write-Output "$TimeStamp - Block 1 - Finished Helper Array (Whole Number Range)"
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "--------------------"
 Write-Output "$TimeStamp - Block 2 - Retrieve all Microsoft Teams Users, which have an LineUri"
-$AllTeamsUser = Get-CsOnlineUser -Filter "LineUri -notlike ''" | Select-Object Identity,DisplayName,UserPrincipalName,LineUri,TeamsCallingPolicy,OnlineVoiceRoutingPolicy,InterpretedUserType,EnterpriseVoiceEnabled,HostingProvider,DialPlan,TenantDialPlan,AssignedPlan
+$AllTeamsUser = Get-CsOnlineUser -Filter { LineUri -like "tel:*" } | Select-Object Identity, DisplayName, UserPrincipalName, LineUri, TeamsCallingPolicy, OnlineVoiceRoutingPolicy, InterpretedUserType, EnterpriseVoiceEnabled, HostingProvider, DialPlan, TenantDialPlan, AssignedPlan
 $CounterAllTeamsUser = ($AllTeamsUser | Measure-Object).Count
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -766,7 +965,7 @@ Write-Output "$TimeStamp - Block 2 - Received Microsoft Teams users, which have 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all phone numbers and LIS addresses from the tenant"
 # NumberType - Supported values are DirectRouting, CallingPlan, and OperatorConnect. "-Top" thing is required to get all entries.
-$PhoneNumberAssignment = Get-CsPhoneNumberAssignment -Top ([int]::MaxValue)
+$PhoneNumberAssignment = Export-TeamsPhoneNumbers -Verbose:$VerboseGraphAPILogging
 $OnlineLisCivicAddress = Get-CsOnlineLisCivicAddress
 
 $CounterPhoneNumber = ($PhoneNumberAssignment | Measure-Object).Count
@@ -934,9 +1133,58 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all Microsoft Teams IP-Phone policies"
 $TeamsIPPhonePolicies = Get-CsTeamsIPPhonePolicy
 
+#endregion
+
+#region Retrieve all group policy assignments
+$TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+Write-Output "$TimeStamp - Block 2 - Retrieve all group policy assignments"
+$groupPolicyAssignments = Get-CsGroupPolicyAssignment
+
+# Initialize a hashtable to store the highest priority policy for each user
+$userPolicies = @{}
+$relevantPolicyTypes = @("OnlineVoiceRoutingPolicy", "TeamsCallingPolicy", "TenantDialPlan", "TeamsIPPhonePolicy")
+
+foreach ($assignment in $groupPolicyAssignments) {
+    if ($null -eq $relevantPolicyTypes -or $assignment.PolicyType -in $relevantPolicyTypes) {
+        $policyType = $assignment.PolicyType
+        $policyName = $assignment.PolicyName
+        $groupMembers = Get-GroupMembership -GroupObjectId $assignment.GroupId
+    
+        foreach ($member in $groupMembers) {
+            $userPrincipalName = $member.UserPrincipalName
+    
+            if (-not $userPolicies.ContainsKey($userPrincipalName)) {
+                $userPolicies[$userPrincipalName] = @{}
+            }
+    
+            if (-not $userPolicies[$userPrincipalName].ContainsKey($policyType) -or $assignment.Priority -lt $userPolicies[$userPrincipalName][$policyType].Priority) {
+                $userPolicies[$userPrincipalName][$policyType] = @{
+                    PolicyName = $policyName
+                    UserID     = $member.Id
+                    Priority   = $assignment.Priority
+                }
+            }
+        }
+    }
+
+}
+
+# Create a list to store the final output
+$teamsGroupPolicyAssignments = @()
+
+foreach ($user in $userPolicies.Keys) {
+    foreach ($policyType in $userPolicies[$user].Keys) {
+        $teamsGroupPolicyAssignments += [PSCustomObject]@{
+            UserPrincipalName = $user
+            UserID            = $userPolicies[$user][$policyType].UserID
+            PolicyType        = $policyType
+            PolicyName        = $userPolicies[$user][$policyType].PolicyName
+        }
+    }
+}
 
 #endregion
-    #region Merge all collected Microsoft Teams user in the main array
+#region Merge all collected Microsoft Teams user in the main array
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Merge all collected Microsoft Teams user in the main array"
 
@@ -948,37 +1196,39 @@ if ($CounterAllTeamsUser -gt 0) {
 
         # Cut off tel: prefix
         if ($TeamsUser.LineUri.StartsWith('tel:')) {
-            $Teams_LineUri = $TeamsUser.LineUri.Substring(4,($TeamsUser.LineUri.Length -4))
+            $Teams_LineUri = $TeamsUser.LineUri.Substring(4, ($TeamsUser.LineUri.Length - 4))
             if (!($Teams_LineUri.StartsWith('+'))) {
-                $Teams_LineUri = '+' + $($Teams_LineUri -replace $null,"")
+                $Teams_LineUri = '+' + $($Teams_LineUri -replace $null, "")
             }
-        }else{
+        }
+        else {
             #Check if number start with '+' - if not - add it
             if (!($TeamsUser.LineUri.StartsWith('+'))) {
-                $Teams_LineUri = '+' + $($TeamsUser.LineUri -replace $null,"")
+                $Teams_LineUri = '+' + $($TeamsUser.LineUri -replace $null, "")
             }
         }
 
         # Check if LineUri contains an extension
-        if($Teams_LineUri -like '*;ext=*') {
-            $Teams_LineUri_Extension = $Teams_LineUri.Substring(($Teams_LineUri.IndexOf(';')+1),($Teams_LineUri.Length-($Teams_LineUri.IndexOf(';')+1))).Replace("ext=","")
-            $Teams_MainLineUri = $Teams_LineUri.Substring(0,$Teams_LineUri.IndexOf(';')) #Cut off Extensions - +49432156789;ext=789 -> finallly +49432156789
+        if ($Teams_LineUri -like '*;ext=*') {
+            $Teams_LineUri_Extension = $Teams_LineUri.Substring(($Teams_LineUri.IndexOf(';') + 1), ($Teams_LineUri.Length - ($Teams_LineUri.IndexOf(';') + 1))).Replace("ext=", "")
+            $Teams_MainLineUri = $Teams_LineUri.Substring(0, $Teams_LineUri.IndexOf(';')) #Cut off Extensions - +49432156789;ext=789 -> finallly +49432156789
             $Teams_FullLineUri = $Teams_LineUri
-        }else {
+        }
+        else {
             $Teams_FullLineUri = $Teams_LineUri
             $Teams_MainLineUri = $Teams_LineUri
             $Teams_LineUri_Extension = ""
         }
 
-        $Teams_UPN = $TeamsUser.UserPrincipalName -replace $null,""
-        $Teams_DisplayName = $TeamsUser.DisplayName -replace $null,""
+        $Teams_UPN = $TeamsUser.UserPrincipalName -replace $null, ""
+        $Teams_DisplayName = $TeamsUser.DisplayName -replace $null, ""
         
         $CurrentPhoneNumberAssignment = $null
         $CurrentPhoneNumberAssignment = $OnlinePhoneNumbers | Where-Object AssignedPstnTargetId -like $TeamsUser.Identity
         
         $PhoneNumberExistInTenant = $false
 
-        $Teams_PrivateLine = ($CurrentPhoneNumberAssignment | Where-Object AssignmentCategory -Like "Private").TelephoneNumber -replace $null,""
+        $Teams_PrivateLine = ($CurrentPhoneNumberAssignment | Where-Object AssignmentCategory -Like "Private").TelephoneNumber -replace $null, ""
 
         if ($Teams_PrivateLine -like "") {
             $Teams_PrivateLine = "NoneDefined"
@@ -990,50 +1240,67 @@ if ($CounterAllTeamsUser -gt 0) {
         }
         # During tests it was noticed in some tenants that the return value differs from tenant to tenant
         # For some tenants the name of the policy could be retrieved directly, for some it has to be differentiated again by .name
-        if($TeamsUser.OnlineVoiceRoutingPolicy.PSObject.Properties.Name -contains "Authority"){
-            $Teams_OnlineVoiceRoutingPolicy = $TeamsUser.OnlineVoiceRoutingPolicy.Name -replace $null,""
-        }else {
-            $Teams_OnlineVoiceRoutingPolicy = $TeamsUser.OnlineVoiceRoutingPolicy -replace $null,""
+        if ($TeamsUser.DialPlan.PSObject.Properties.Name -contains "Authority") {
+            $Teams_DialPlan = $TeamsUser.DialPlan.Name -replace $null, ""
         }
-
-        if ($Teams_OnlineVoiceRoutingPolicy -like "") {
-            $Teams_OnlineVoiceRoutingPolicy = "Global"
-        }
-
-        if($TeamsUser.TeamsCallingPolicy.PSObject.Properties.Name -contains "Authority"){
-            $Teams_TeamsCallingPolicy = $TeamsUser.TeamsCallingPolicy.Name -replace $null,""
-        }else {
-            $Teams_TeamsCallingPolicy = $TeamsUser.TeamsCallingPolicy -replace $null,""
-        }
-
-        if ($Teams_TeamsCallingPolicy -like "") {
-            $Teams_TeamsCallingPolicy = "Global"
-        }
-
-        if($TeamsUser.DialPlan.PSObject.Properties.Name -contains "Authority"){
-            $Teams_DialPlan = $TeamsUser.DialPlan.Name -replace $null,""
-        }else {
-            $Teams_DialPlan = $TeamsUser.DialPlan -replace $null,""
+        else {
+            $Teams_DialPlan = $TeamsUser.DialPlan -replace $null, ""
         }
 
         if ($Teams_DialPlan -like "") {
             $Teams_DialPlan = "Global"
         }
 
-        if($TeamsUser.TenantDialPlan.PSObject.Properties.Name -contains "Authority"){
-            $Teams_TenantDialPlan = $TeamsUser.TenantDialPlan.Name -replace $null,""
-        }else {
-            $Teams_TenantDialPlan = $TeamsUser.TenantDialPlan -replace $null,""
+        if ($TeamsUser.OnlineVoiceRoutingPolicy.PSObject.Properties.Name -contains "Authority") {
+            $Teams_OnlineVoiceRoutingPolicy = $TeamsUser.OnlineVoiceRoutingPolicy.Name -replace $null, ""
         }
-
+        else {
+            $Teams_OnlineVoiceRoutingPolicy = $TeamsUser.OnlineVoiceRoutingPolicy -replace $null, ""
+        }
+        
+        if ($Teams_OnlineVoiceRoutingPolicy -like "") {
+            $Teams_OnlineVoiceRoutingPolicy = ($teamsGroupPolicyAssignments | Where-Object { $_.UserID -eq $TeamsUser.Identity -and $_.PolicyType -eq "OnlineVoiceRoutingPolicy" }).PolicyName
+            if ($Teams_OnlineVoiceRoutingPolicy -like "") {
+                $Teams_OnlineVoiceRoutingPolicy = "Global"
+            }
+        }
+        
+        if ($TeamsUser.TeamsCallingPolicy.PSObject.Properties.Name -contains "Authority") {
+            $Teams_TeamsCallingPolicy = $TeamsUser.TeamsCallingPolicy.Name -replace $null, ""
+        }
+        else {
+            $Teams_TeamsCallingPolicy = $TeamsUser.TeamsCallingPolicy -replace $null, ""
+        }
+        
+        if ($Teams_TeamsCallingPolicy -like "") {
+            $Teams_TeamsCallingPolicy = ($teamsGroupPolicyAssignments | Where-Object { $_.UserID -eq $TeamsUser.Identity -and $_.PolicyType -eq "TeamsCallingPolicy" }).PolicyName
+            if ($Teams_TeamsCallingPolicy -like "") {
+                $Teams_TeamsCallingPolicy = "Global"
+            }
+        }
+        
+        if ($TeamsUser.TenantDialPlan.PSObject.Properties.Name -contains "Authority") {
+            $Teams_TenantDialPlan = $TeamsUser.TenantDialPlan.Name -replace $null, ""
+        }
+        else {
+            $Teams_TenantDialPlan = $TeamsUser.TenantDialPlan -replace $null, ""
+        }
+        
         if ($Teams_TenantDialPlan -like "") {
-            $Teams_TenantDialPlan = "Global"
+            $Teams_TenantDialPlan = ($teamsGroupPolicyAssignments | Where-Object { $_.UserID -eq $TeamsUser.Identity -and $_.PolicyType -eq "TenantDialPlan" }).PolicyName
+            if ($Teams_TenantDialPlan -like "") {
+                $Teams_TenantDialPlan = "Global"
+            }
         }
-
+        
         if ($TeamsUser.TeamsIPPhonePolicy.Name -like "") {
-            $TMPUserTeamsIPPhonePolicy = "Global"
-        }else {
-            $TMPUserTeamsIPPhonePolicy = "Tag:"+ $TeamsUser.TeamsIPPhonePolicy.Name
+            $TMPUserTeamsIPPhonePolicy = ($teamsGroupPolicyAssignments | Where-Object { $_.UserID -eq $TeamsUser.Identity -and $_.PolicyType -eq "TeamsIPPhonePolicy" }).PolicyName
+            if ($TMPUserTeamsIPPhonePolicy -like "") {
+                $TMPUserTeamsIPPhonePolicy = "Global"
+            }
+        }
+        else {
+            $TMPUserTeamsIPPhonePolicy = "Tag:" + $TeamsUser.TeamsIPPhonePolicy.Name
         }
 
         # Define Entry Voice Type
@@ -1041,29 +1308,36 @@ if ($CounterAllTeamsUser -gt 0) {
             if ($TeamsUser.InterpretedUserType -like "HybridOnPremSfBUserWithTeamsLicense") {
                 $Teams_VoiceType = "SkypeForBusiness"
                 #Alternative via Hostingprovider SRV: instead of sipfed.online.lync.com
-            }else{
+            }
+            else {
                 if ($TeamsUser.EnterpriseVoiceEnabled -eq $true) {
                     if ($PhoneNumberExistInTenant) {
                         $Teams_VoiceType = $CurrentPrimaryPhoneNumberAssignment.NumberType
-                    }else {
+                    }
+                    else {
                         $Teams_VoiceType = "DirectRouting"
                     }
-                }else {
+                }
+                else {
                     $Teams_VoiceType = "ActiveDirectory-Legacy"
                 }   
             }
-        }else {
+        }
+        else {
             $Teams_VoiceType = ""
         }
 
         # Define Entry User Type
         if ($TeamsUser.InterpretedUserType -like "*ApplicationInstance*") {
             $Teams_UserType = "ResourceAccount"
-        }elseif (($TeamsUser.AssignedPlan.Capability -contains "MCOCAP") -or ($($TeamsIPPhonePolicies | Where-Object Identity -Like  $TMPUserTeamsIPPhonePolicy).SignInMode -like "CommonAreaPhoneSignIn")) {
+        }
+        elseif (($TeamsUser.AssignedPlan.Capability -contains "MCOCAP") -or ($($TeamsIPPhonePolicies | Where-Object Identity -Like  $TMPUserTeamsIPPhonePolicy).SignInMode -like "CommonAreaPhoneSignIn")) {
             $Teams_UserType = "CommonAreaPhone"
-        }elseif (($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Standard") -or ($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Basic") -or ($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Pro") -or ($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Premium")) {
+        }
+        elseif (($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Standard") -or ($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Basic") -or ($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Pro") -or ($TeamsUser.AssignedPlan.Capability -contains "Teams_Room_Premium")) {
             $Teams_UserType = "MeetingRoom"
-        }else {
+        }
+        else {
             $Teams_UserType = "DefaultUser"
         }
         if ($PhoneNumberExistInTenant) {
@@ -1072,28 +1346,31 @@ if ($CounterAllTeamsUser -gt 0) {
                 $CurrentCivicAddressMappingIndex = "NoneDefined"
                 $CurrentCivicAddressMappingName = "NoneDefined"
                 $CurrentCivicAddressCity = "Mobile"
-                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
-                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.IsoCountryCode -replace $null,""
+                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null, ""
+                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.IsoCountryCode -replace $null, ""
                 $CurrentCivicAddressCompanyName = ""
                 $CurrentCivicAddressDescription = "NoneDefined"
                 # Handling?
                 # PstnAssignmentStatus
-            }else{
+            }
+            else {
                 # Set all got from the tenant to this number
-                $CurrentCivicAddressMappingIndex = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingIndex -replace $null,""
-                $CurrentCivicAddressMappingName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingName -replace $null,""
-                $CurrentCivicAddressCity = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCity -replace $null,""
-                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null,""
-                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCountryOrRegion -replace $null,""
-                $CurrentCivicAddressCompanyName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCompanyName -replace $null,""
-                $CurrentCivicAddressDescription = $CurrentPrimaryPhoneNumberAssignment.CivicAddressDescription -replace $null,""
+                $CurrentCivicAddressMappingIndex = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingIndex -replace $null, ""
+                $CurrentCivicAddressMappingName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressMappingName -replace $null, ""
+                $CurrentCivicAddressCity = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCity -replace $null, ""
+                $CurrentCapability = $CurrentPrimaryPhoneNumberAssignment.Capability -replace $null, ""
+                $CurrentCivicAddressCountryOrRegion = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCountryOrRegion -replace $null, ""
+                $CurrentCivicAddressCompanyName = $CurrentPrimaryPhoneNumberAssignment.CivicAddressCompanyName -replace $null, ""
+                $CurrentCivicAddressDescription = $CurrentPrimaryPhoneNumberAssignment.CivicAddressDescription -replace $null, ""
                 # Handling?
                 # PstnAssignmentStatus
             }
-        }else {
+        }
+        else {
             if ($Teams_VoiceType -like "DirectRouting") {
                 $CurrentCapability = "User and Service"
-            }else {
+            }
+            else {
                 $CurrentCapability = "NoneDefined"
             }
             $CurrentCivicAddressMappingIndex = "NoneDefined"
@@ -1107,7 +1384,7 @@ if ($CounterAllTeamsUser -gt 0) {
         #region Fill MainArray
         #Check if FullLineUri Already in MainArray
         if ($MainArray.FullLineUri -contains $Teams_FullLineUri) {
-            $ArrayIndex = [array]::indexof($MainArray.FullLineUri,$Teams_FullLineUri)
+            $ArrayIndex = [array]::indexof($MainArray.FullLineUri, $Teams_FullLineUri)
             $MainArray[$ArrayIndex].Display_Name = $Teams_DisplayName
             $MainArray[$ArrayIndex].OnlineVoiceRoutingPolicy = $Teams_OnlineVoiceRoutingPolicy
             $MainArray[$ArrayIndex].TeamsCallingPolicy = $Teams_TeamsCallingPolicy
@@ -1130,23 +1407,25 @@ if ($CounterAllTeamsUser -gt 0) {
             }
             
             # Part from tenant based phone number entry
-            $MainArray[$ArrayIndex].NumberCapability = $CurrentCapability -replace $null,""
-            $MainArray[$ArrayIndex].CivicAddressMappingIndex = $CurrentCivicAddressMappingIndex -replace $null,""
-            $MainArray[$ArrayIndex].CivicAddressMappingName = $CurrentCivicAddressMappingName -replace $null,""
-            $MainArray[$ArrayIndex].EmergencyAddressName = $CurrentCivicAddressDescription -replace $null,""            
+            $MainArray[$ArrayIndex].NumberCapability = $CurrentCapability -replace $null, ""
+            $MainArray[$ArrayIndex].CivicAddressMappingIndex = $CurrentCivicAddressMappingIndex -replace $null, ""
+            $MainArray[$ArrayIndex].CivicAddressMappingName = $CurrentCivicAddressMappingName -replace $null, ""
+            $MainArray[$ArrayIndex].EmergencyAddressName = $CurrentCivicAddressDescription -replace $null, ""            
             
             
-        }elseif($MainArray.MainLineUri -contains $Teams_MainLineUri) { #If not, check if Main LineUri - so without Teams Ext - is in Main Array included
-            $ArrayIndex = [array]::indexof($MainArray.MainLineUri,$Teams_MainLineUri) | Select-Object -First 1
+        }
+        elseif ($MainArray.MainLineUri -contains $Teams_MainLineUri) {
+            #If not, check if Main LineUri - so without Teams Ext - is in Main Array included
+            $ArrayIndex = [array]::indexof($MainArray.MainLineUri, $Teams_MainLineUri) | Select-Object -First 1
             
-            $CurrentDID = $MainArray[$ArrayIndex].DID -replace $null,""
-            $CurrentNumberRangeName = $MainArray[$ArrayIndex].NumberRangeName -replace $null,""
-            $CurrentExtensionRangeName = $MainArray[$ArrayIndex].ExtensionRangeName -replace $null,""
-            $CurrentNumberRangeIndex = $MainArray[$ArrayIndex].NumberRangeIndex -replace $null,""
-            $CurrentExtensionRangeIndex = $MainArray[$ArrayIndex].ExtensionRangeIndex -replace $null,""
-            $CurrentCountry = $MainArray[$ArrayIndex].Country -replace $null,""
-            $CurrentCity = $MainArray[$ArrayIndex].City -replace $null,""
-            $CurrentCompany = $MainArray[$ArrayIndex].Company -replace $null,""
+            $CurrentDID = $MainArray[$ArrayIndex].DID -replace $null, ""
+            $CurrentNumberRangeName = $MainArray[$ArrayIndex].NumberRangeName -replace $null, ""
+            $CurrentExtensionRangeName = $MainArray[$ArrayIndex].ExtensionRangeName -replace $null, ""
+            $CurrentNumberRangeIndex = $MainArray[$ArrayIndex].NumberRangeIndex -replace $null, ""
+            $CurrentExtensionRangeIndex = $MainArray[$ArrayIndex].ExtensionRangeIndex -replace $null, ""
+            $CurrentCountry = $MainArray[$ArrayIndex].Country -replace $null, ""
+            $CurrentCity = $MainArray[$ArrayIndex].City -replace $null, ""
+            $CurrentCompany = $MainArray[$ArrayIndex].Company -replace $null, ""
 
             # Part from tenant based phone number entry
             # $CurrentCapability
@@ -1154,19 +1433,21 @@ if ($CounterAllTeamsUser -gt 0) {
             # $CurrentCivicAddressMappingName
             # $CurrentCivicAddressDescription    
 
-            $NewRow += [pscustomobject]@{'FullLineUri'=$Teams_FullLineUri;'MainLineUri'=$Teams_MainLineUri;'DID'=$CurrentDID;'TeamsEXT'=$Teams_LineUri_Extension;'NumberRangeName'=$CurrentNumberRangeName;'ExtensionRangeName'=$CurrentExtensionRangeName;'CivicAddressMappingName'=$CurrentCivicAddressMappingName;'UPN'=$Teams_UPN;'Display_Name'=$Teams_DisplayName;'OnlineVoiceRoutingPolicy'=$Teams_OnlineVoiceRoutingPolicy;'TeamsCallingPolicy'=$Teams_TeamsCallingPolicy;'DialPlan'=$Teams_DialPlan;'TenantDialPlan'=$Teams_TenantDialPlan;'TeamsPrivateLine'=$Teams_PrivateLine;'VoiceType'=$Teams_VoiceType;'UserType'=$Teams_UserType;'NumberCapability'=$CurrentCapability;'NumberRangeIndex'=$CurrentNumberRangeIndex;'ExtensionRangeIndex'=$CurrentExtensionRangeIndex;'CivicAddressMappingIndex'=$CurrentCivicAddressMappingIndex;'Country'=$CurrentCountry;'City'=$CurrentCity;'Company'=$CurrentCompany;'EmergencyAddressName'=$CurrentCivicAddressDescription;'Status'=''}
+            $NewRow += [pscustomobject]@{'FullLineUri' = $Teams_FullLineUri; 'MainLineUri' = $Teams_MainLineUri; 'DID' = $CurrentDID; 'TeamsEXT' = $Teams_LineUri_Extension; 'NumberRangeName' = $CurrentNumberRangeName; 'ExtensionRangeName' = $CurrentExtensionRangeName; 'CivicAddressMappingName' = $CurrentCivicAddressMappingName; 'UPN' = $Teams_UPN; 'Display_Name' = $Teams_DisplayName; 'OnlineVoiceRoutingPolicy' = $Teams_OnlineVoiceRoutingPolicy; 'TeamsCallingPolicy' = $Teams_TeamsCallingPolicy; 'DialPlan' = $Teams_DialPlan; 'TenantDialPlan' = $Teams_TenantDialPlan; 'TeamsPrivateLine' = $Teams_PrivateLine; 'VoiceType' = $Teams_VoiceType; 'UserType' = $Teams_UserType; 'NumberCapability' = $CurrentCapability; 'NumberRangeIndex' = $CurrentNumberRangeIndex; 'ExtensionRangeIndex' = $CurrentExtensionRangeIndex; 'CivicAddressMappingIndex' = $CurrentCivicAddressMappingIndex; 'Country' = $CurrentCountry; 'City' = $CurrentCity; 'Company' = $CurrentCompany; 'EmergencyAddressName' = $CurrentCivicAddressDescription; 'Status' = '' }
             $MainArray += $NewRow
             Clear-Variable -Name ("CurrentDID", "CurrentNumberRangeName", "CurrentNumberRangeIndex", "CurrentExtensionRangeIndex", "CurrentCountry", "CurrentCity", "CurrentCompany", "NewRow")
             
-        }elseif($NumberRangeArray.LineUri -contains $Teams_MainLineUri) { #If not, check if LineUri is in NumberRangeArray included
-            $ArrayIndex = [array]::indexof($NumberRangeArray.LineUri,$Teams_MainLineUri)
+        }
+        elseif ($NumberRangeArray.LineUri -contains $Teams_MainLineUri) {
+            #If not, check if LineUri is in NumberRangeArray included
+            $ArrayIndex = [array]::indexof($NumberRangeArray.LineUri, $Teams_MainLineUri)
             
-            $CurrentDID = $NumberRangeArray[$ArrayIndex].DID -replace $null,""
-            $CurrentNumberRangeName = $NumberRangeArray[$ArrayIndex].NumberRangeName -replace $null,""
-            $CurrentNumberRangeIndex = $NumberRangeArray[$ArrayIndex].NumberRangeIndex -replace $null,""
-            $CurrentCountry = $NumberRangeArray[$ArrayIndex].Country -replace $null,""
-            $CurrentCity = $NumberRangeArray[$ArrayIndex].City -replace $null,""
-            $CurrentCompany = $NumberRangeArray[$ArrayIndex].Company -replace $null,""
+            $CurrentDID = $NumberRangeArray[$ArrayIndex].DID -replace $null, ""
+            $CurrentNumberRangeName = $NumberRangeArray[$ArrayIndex].NumberRangeName -replace $null, ""
+            $CurrentNumberRangeIndex = $NumberRangeArray[$ArrayIndex].NumberRangeIndex -replace $null, ""
+            $CurrentCountry = $NumberRangeArray[$ArrayIndex].Country -replace $null, ""
+            $CurrentCity = $NumberRangeArray[$ArrayIndex].City -replace $null, ""
+            $CurrentCompany = $NumberRangeArray[$ArrayIndex].Company -replace $null, ""
 
             # Part from tenant based phone number entry
             if (($CurrentCity -like "NoneDefined") -and ($CurrentCivicAddressCity -notlike "")) {
@@ -1184,38 +1465,44 @@ if ($CounterAllTeamsUser -gt 0) {
             # $CurrentCivicAddressMappingName
             # $CurrentCivicAddressDescription    
 
-            $NewRow += [pscustomobject]@{'FullLineUri'=$Teams_FullLineUri;'MainLineUri'=$Teams_MainLineUri;'DID'=$CurrentDID;'TeamsEXT'=$Teams_LineUri_Extension;'NumberRangeName'=$CurrentNumberRangeName;'ExtensionRangeName'='NoneDefined';'CivicAddressMappingName'=$CurrentCivicAddressMappingName;'UPN'=$Teams_UPN;'Display_Name'=$Teams_DisplayName;'OnlineVoiceRoutingPolicy'=$Teams_OnlineVoiceRoutingPolicy;'TeamsCallingPolicy'=$Teams_TeamsCallingPolicy;'DialPlan'=$Teams_DialPlan;'TenantDialPlan'=$Teams_TenantDialPlan;'TeamsPrivateLine'=$Teams_PrivateLine;'VoiceType'=$Teams_VoiceType;'UserType'=$Teams_UserType;'NumberCapability'=$CurrentCapability;'NumberRangeIndex'=$CurrentNumberRangeIndex;'ExtensionRangeIndex'='NoneDefined';'CivicAddressMappingIndex'=$CurrentCivicAddressMappingIndex;'Country'=$CurrentCountry;'City'=$CurrentCity;'Company'=$CurrentCompany;'EmergencyAddressName'=$CurrentCivicAddressDescription;'Status'=''}
+            $NewRow += [pscustomobject]@{'FullLineUri' = $Teams_FullLineUri; 'MainLineUri' = $Teams_MainLineUri; 'DID' = $CurrentDID; 'TeamsEXT' = $Teams_LineUri_Extension; 'NumberRangeName' = $CurrentNumberRangeName; 'ExtensionRangeName' = 'NoneDefined'; 'CivicAddressMappingName' = $CurrentCivicAddressMappingName; 'UPN' = $Teams_UPN; 'Display_Name' = $Teams_DisplayName; 'OnlineVoiceRoutingPolicy' = $Teams_OnlineVoiceRoutingPolicy; 'TeamsCallingPolicy' = $Teams_TeamsCallingPolicy; 'DialPlan' = $Teams_DialPlan; 'TenantDialPlan' = $Teams_TenantDialPlan; 'TeamsPrivateLine' = $Teams_PrivateLine; 'VoiceType' = $Teams_VoiceType; 'UserType' = $Teams_UserType; 'NumberCapability' = $CurrentCapability; 'NumberRangeIndex' = $CurrentNumberRangeIndex; 'ExtensionRangeIndex' = 'NoneDefined'; 'CivicAddressMappingIndex' = $CurrentCivicAddressMappingIndex; 'Country' = $CurrentCountry; 'City' = $CurrentCity; 'Company' = $CurrentCompany; 'EmergencyAddressName' = $CurrentCivicAddressDescription; 'Status' = '' }
             $MainArray += $NewRow
             Clear-Variable -Name ("CurrentDID", "CurrentNumberRangeName", "CurrentNumberRangeIndex", "CurrentCountry", "CurrentCity", "CurrentCompany", "NewRow")
             
-        }else { #If not add Entry as a new MainArray entry
+        }
+        else {
+            #If not add Entry as a new MainArray entry
             # Part from tenant based phone number entry
             if ($CurrentCivicAddressCity -notlike "") {
                 $CurrentCity = $CurrentCivicAddressCity
-            }else {
+            }
+            else {
                 $CurrentCity = "NoneDefined"
             }
 
             if ($CurrentCivicAddressCountryOrRegion -notlike "") {
                 $CurrentCountry = $CurrentCivicAddressCountryOrRegion
-            }else {
+            }
+            else {
                 $CurrentCountry = "NoneDefined"
             }
 
             if ($CurrentCivicAddressCompanyName -notlike "") {
                 $CurrentCompany = $CurrentCivicAddressCompanyName
-            }else {
+            }
+            else {
                 $CurrentCompany = "NoneDefined"
             }
 
-            $NewRow += [pscustomobject]@{'FullLineUri'=$Teams_FullLineUri;'MainLineUri'=$Teams_MainLineUri;'DID'='NoneDefined';'TeamsEXT'=$Teams_LineUri_Extension;'NumberRangeName'='NoneDefined';'ExtensionRangeName'='NoneDefined';'CivicAddressMappingName'=$CurrentCivicAddressMappingName;'UPN'=$Teams_UPN;'Display_Name'=$Teams_DisplayName;'OnlineVoiceRoutingPolicy'=$Teams_OnlineVoiceRoutingPolicy;'TeamsCallingPolicy'=$Teams_TeamsCallingPolicy;'DialPlan'=$Teams_DialPlan;'TenantDialPlan'=$Teams_TenantDialPlan;'TeamsPrivateLine'=$Teams_PrivateLine;'VoiceType'=$Teams_VoiceType;'UserType'=$Teams_UserType;'NumberCapability'=$CurrentCapability;'NumberRangeIndex'='NoneDefined';'ExtensionRangeIndex'='NoneDefined';'CivicAddressMappingIndex'=$CurrentCivicAddressMappingIndex;'Country'=$CurrentCountry;'City'=$CurrentCity;'Company'=$CurrentCompany;'EmergencyAddressName'=$CurrentCivicAddressDescription;'Status'=''}
+            $NewRow += [pscustomobject]@{'FullLineUri' = $Teams_FullLineUri; 'MainLineUri' = $Teams_MainLineUri; 'DID' = 'NoneDefined'; 'TeamsEXT' = $Teams_LineUri_Extension; 'NumberRangeName' = 'NoneDefined'; 'ExtensionRangeName' = 'NoneDefined'; 'CivicAddressMappingName' = $CurrentCivicAddressMappingName; 'UPN' = $Teams_UPN; 'Display_Name' = $Teams_DisplayName; 'OnlineVoiceRoutingPolicy' = $Teams_OnlineVoiceRoutingPolicy; 'TeamsCallingPolicy' = $Teams_TeamsCallingPolicy; 'DialPlan' = $Teams_DialPlan; 'TenantDialPlan' = $Teams_TenantDialPlan; 'TeamsPrivateLine' = $Teams_PrivateLine; 'VoiceType' = $Teams_VoiceType; 'UserType' = $Teams_UserType; 'NumberCapability' = $CurrentCapability; 'NumberRangeIndex' = 'NoneDefined'; 'ExtensionRangeIndex' = 'NoneDefined'; 'CivicAddressMappingIndex' = $CurrentCivicAddressMappingIndex; 'Country' = $CurrentCountry; 'City' = $CurrentCity; 'Company' = $CurrentCompany; 'EmergencyAddressName' = $CurrentCivicAddressDescription; 'Status' = '' }
             $MainArray += $NewRow
             $NewRow = $null
         }
-        Clear-Variable -Name ("Teams_UPN","Teams_FullLineUri","Teams_MainLineUri","Teams_LineUri_Extension","Teams_VoiceType","Teams_UserType")
+        Clear-Variable -Name ("Teams_UPN", "Teams_FullLineUri", "Teams_MainLineUri", "Teams_LineUri_Extension", "Teams_VoiceType", "Teams_UserType")
     }
     #endregion
-}else {
+}
+else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Error "$TimeStamp - Error: No Teams user, which has a LineUri, was found. The script will be terminated now!"
     Start-Sleep -Seconds 5
@@ -1234,7 +1521,8 @@ $UnassignedOnlinePhoneNumbers = $OnlinePhoneNumbers | Where-Object PstnAssignmen
 if ($($UnassignedOnlinePhoneNumbers | Measure-Object).Count -eq 0) {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 2 - No unassigned phone numbers exist in Teams respectively the tenant." 
-}else {
+}
+else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 2 - Number of phone numbers in the tenant that are not assigned: $($($UnassignedOnlinePhoneNumbers | Measure-Object).Count)"
     Write-Output "$TimeStamp - Block 2 - Merging these numbers into the MainArray"
@@ -1242,7 +1530,7 @@ if ($($UnassignedOnlinePhoneNumbers | Measure-Object).Count -eq 0) {
     foreach ($CurrentUnassignedOnlinePhoneNumber in $UnassignedOnlinePhoneNumbers) {
         if ($MainArray.MainLineUri -contains $CurrentUnassignedOnlinePhoneNumber.TelephoneNumber) {
             #Update existing entry
-            $ArrayIndex = [array]::indexof($MainArray.FullLineUri,$CurrentUnassignedOnlinePhoneNumber.TelephoneNumber)
+            $ArrayIndex = [array]::indexof($MainArray.FullLineUri, $CurrentUnassignedOnlinePhoneNumber.TelephoneNumber)
             $MainArray[$ArrayIndex].NumberCapability = $CurrentUnassignedOnlinePhoneNumber.Capability
             $MainArray[$ArrayIndex].CivicAddressMappingIndex = $CurrentUnassignedOnlinePhoneNumber.CivicAddressMappingIndex
             $MainArray[$ArrayIndex].CivicAddressMappingName = $CurrentUnassignedOnlinePhoneNumber.CivicAddressMappingName
@@ -1259,9 +1547,10 @@ if ($($UnassignedOnlinePhoneNumbers | Measure-Object).Count -eq 0) {
                 $MainArray[$ArrayIndex].Company = $CurrentUnassignedOnlinePhoneNumber.CivicAddressCompanyName
             }
 
-        }else {
+        }
+        else {
             # Add missing entry
-            $NewRow += [pscustomobject]@{'FullLineUri'=$($CurrentUnassignedOnlinePhoneNumber.TelephoneNumber);'MainLineUri'=$($CurrentUnassignedOnlinePhoneNumber.TelephoneNumber);'DID'='NoneDefined';'TeamsEXT'='';'NumberRangeName'='NoneDefined';'ExtensionRangeName'='NoneDefined';'CivicAddressMappingName'=$($CurrentUnassignedOnlinePhoneNumber.CivicAddressMappingName);'UPN'='';'Display_Name'='';'OnlineVoiceRoutingPolicy'='';'TeamsCallingPolicy'='';'DialPlan'='';'TenantDialPlan'='';'TeamsPrivateLine'='';'VoiceType'=$($CurrentUnassignedOnlinePhoneNumber.NumberType);'UserType'='';'NumberCapability'=$($CurrentUnassignedOnlinePhoneNumber.Capability);'NumberRangeIndex'='NoneDefined';'ExtensionRangeIndex'='NoneDefined';'CivicAddressMappingIndex'=$($CurrentUnassignedOnlinePhoneNumber.CivicAddressMappingIndex);'Country'=$($CurrentUnassignedOnlinePhoneNumber.CivicAddressCountryOrRegion);'City'=$($CurrentUnassignedOnlinePhoneNumber.CivicAddressCity);'Company'=$($CurrentUnassignedOnlinePhoneNumber.CivicAddressCompanyName);'EmergencyAddressName'=$($CurrentUnassignedOnlinePhoneNumber.CivicAddressDescription);'Status'=''}
+            $NewRow += [pscustomobject]@{'FullLineUri' = $($CurrentUnassignedOnlinePhoneNumber.TelephoneNumber); 'MainLineUri' = $($CurrentUnassignedOnlinePhoneNumber.TelephoneNumber); 'DID' = 'NoneDefined'; 'TeamsEXT' = ''; 'NumberRangeName' = 'NoneDefined'; 'ExtensionRangeName' = 'NoneDefined'; 'CivicAddressMappingName' = $($CurrentUnassignedOnlinePhoneNumber.CivicAddressMappingName); 'UPN' = ''; 'Display_Name' = ''; 'OnlineVoiceRoutingPolicy' = ''; 'TeamsCallingPolicy' = ''; 'DialPlan' = ''; 'TenantDialPlan' = ''; 'TeamsPrivateLine' = ''; 'VoiceType' = $($CurrentUnassignedOnlinePhoneNumber.NumberType); 'UserType' = ''; 'NumberCapability' = $($CurrentUnassignedOnlinePhoneNumber.Capability); 'NumberRangeIndex' = 'NoneDefined'; 'ExtensionRangeIndex' = 'NoneDefined'; 'CivicAddressMappingIndex' = $($CurrentUnassignedOnlinePhoneNumber.CivicAddressMappingIndex); 'Country' = $($CurrentUnassignedOnlinePhoneNumber.CivicAddressCountryOrRegion); 'City' = $($CurrentUnassignedOnlinePhoneNumber.CivicAddressCity); 'Company' = $($CurrentUnassignedOnlinePhoneNumber.CivicAddressCompanyName); 'EmergencyAddressName' = $($CurrentUnassignedOnlinePhoneNumber.CivicAddressDescription); 'Status' = '' }
             $MainArray += $NewRow
             $NewRow = $null
         }
@@ -1271,7 +1560,7 @@ if ($($UnassignedOnlinePhoneNumbers | Measure-Object).Count -eq 0) {
 
 #endregion
 ########################################################
-#region     Legacy and Duplicats
+#region Legacy and Duplicats
 ##          
 ########################################################
 
@@ -1291,7 +1580,7 @@ $LegacyListURL = $BaseURL + $SharepointLegacyList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 3 - Get StatusQuo of Legacy SharePoint List - ListName: $($SharepointLegacyList)"
-$LegacyPhoneNumbers = Get-TPIList -ListBaseURL $LegacyListURL -ListName $SharepointLegacyList -Properties $ListProperties_Legacy -TitelNameReplacement $TitelNameReplacement_Legacy -VerboseGraphAPILogging $VerboseGraphAPI 
+$LegacyPhoneNumbers = Get-TPIList -ListBaseURL $LegacyListURL -ListName $SharepointLegacyList -Properties $ListProperties_Legacy -TitelNameReplacement $TitelNameReplacement_Legacy -VerboseGraphAPILogging:$VerboseGraphAPI 
 
 $CounterLegacyPhoneNumber = $($LegacyPhoneNumbers | Measure-Object).Count 
 
@@ -1310,41 +1599,43 @@ if ($CounterLegacyPhoneNumber -gt 0) {
         $Legacy_Type = "LegacyPhoneNumber"
 
         if ($MainArray.FullLineUri -contains $Legacy_LineUri) {
-            $ArrayIndex = [array]::indexof($MainArray.FullLineUri,$Legacy_LineUri)
+            $ArrayIndex = [array]::indexof($MainArray.FullLineUri, $Legacy_LineUri)
             
             # Add LineUri and UPN to duplicate error, if LineUri is already assigned to a Teams User
             if ($MainArray[$ArrayIndex].UPN -notlike "") {
                 $DuplicateUPN = $MainArray[$ArrayIndex].UPN
-                $NewRow += [pscustomobject]@{'LineUri'=$Legacy_LineUri;'UPN'=$DuplicateUPN}
+                $NewRow += [pscustomobject]@{'LineUri' = $Legacy_LineUri; 'UPN' = $DuplicateUPN }
                 $Duplicate += $NewRow
                 $NewRow = $null
                 $MainArray[$ArrayIndex].Status = 'DuplicateUPN_' + $DuplicateUPN + ';'
             }
 
-            $MainArray[$ArrayIndex].Display_Name = $Legacy_DisplayName -replace $null,"" 
-            $MainArray[$ArrayIndex].VoiceType = $Legacy_Type -replace $null,""
+            $MainArray[$ArrayIndex].Display_Name = $Legacy_DisplayName -replace $null, "" 
+            $MainArray[$ArrayIndex].VoiceType = $Legacy_Type -replace $null, ""
             $MainArray[$ArrayIndex].UPN = ""
             $MainArray[$ArrayIndex].OnlineVoiceRoutingPolicy = ""
             $MainArray[$ArrayIndex].TeamsCallingPolicy = ""
             $MainArray[$ArrayIndex].DialPlan = ""
             $MainArray[$ArrayIndex].TenantDialPlan = ""
             
-        }elseif ($NumberRangeArray.LineUri -contains $Legacy_LineUri) {
+        }
+        elseif ($NumberRangeArray.LineUri -contains $Legacy_LineUri) {
             $ArrayIndex = [array]::indexof($NumberRangeArray.LineUri, $Legacy_LineUri)
             
-            $CurrentDID = $NumberRangeArray[$ArrayIndex].DID -replace $null,""
-            $CurrentNumberRangeName = $NumberRangeArray[$ArrayIndex].NumberRangeName -replace $null,""
-            $CurrentNumberRangeIndex = $NumberRangeArray[$ArrayIndex].NumberRangeIndex -replace $null,""
-            $CurrentCountry = $NumberRangeArray[$ArrayIndex].Country -replace $null,""
-            $CurrentCity = $NumberRangeArray[$ArrayIndex].City -replace $null,""
-            $CurrentCompany = $NumberRangeArray[$ArrayIndex].Company -replace $null,""
+            $CurrentDID = $NumberRangeArray[$ArrayIndex].DID -replace $null, ""
+            $CurrentNumberRangeName = $NumberRangeArray[$ArrayIndex].NumberRangeName -replace $null, ""
+            $CurrentNumberRangeIndex = $NumberRangeArray[$ArrayIndex].NumberRangeIndex -replace $null, ""
+            $CurrentCountry = $NumberRangeArray[$ArrayIndex].Country -replace $null, ""
+            $CurrentCity = $NumberRangeArray[$ArrayIndex].City -replace $null, ""
+            $CurrentCompany = $NumberRangeArray[$ArrayIndex].Company -replace $null, ""
 
-            $NewRow += [pscustomobject]@{'FullLineUri'=$Legacy_LineUri;'MainLineUri'=$Legacy_LineUri;'DID'=$CurrentDID;'TeamsEXT'='NoneDefined';'NumberRangeName'=$CurrentNumberRangeName;'ExtensionRangeName'='NoneDefined';'CivicAddressMappingName'='NoneDefined';'UPN'='NoneDefined';'Display_Name'=$Legacy_DisplayName;'OnlineVoiceRoutingPolicy'='NoneDefined';'TeamsCallingPolicy'='NoneDefined';'DialPlan'='NoneDefined';'TenantDialPlan'='NoneDefined';'TeamsPrivateLine'='NoneDefined';'VoiceType'=$Legacy_Type;'UserType'='NoneDefined';'NumberCapability'='NoneDefined';'NumberRangeIndex'=$CurrentNumberRangeIndex;'ExtensionRangeIndex'='NoneDefined';'CivicAddressMappingIndex'='NoneDefined';'Country'=$CurrentCountry;'City'=$CurrentCity;'Company'=$CurrentCompany;'EmergencyAddressName'='NoneDefined';'Status'=''}
+            $NewRow += [pscustomobject]@{'FullLineUri' = $Legacy_LineUri; 'MainLineUri' = $Legacy_LineUri; 'DID' = $CurrentDID; 'TeamsEXT' = 'NoneDefined'; 'NumberRangeName' = $CurrentNumberRangeName; 'ExtensionRangeName' = 'NoneDefined'; 'CivicAddressMappingName' = 'NoneDefined'; 'UPN' = 'NoneDefined'; 'Display_Name' = $Legacy_DisplayName; 'OnlineVoiceRoutingPolicy' = 'NoneDefined'; 'TeamsCallingPolicy' = 'NoneDefined'; 'DialPlan' = 'NoneDefined'; 'TenantDialPlan' = 'NoneDefined'; 'TeamsPrivateLine' = 'NoneDefined'; 'VoiceType' = $Legacy_Type; 'UserType' = 'NoneDefined'; 'NumberCapability' = 'NoneDefined'; 'NumberRangeIndex' = $CurrentNumberRangeIndex; 'ExtensionRangeIndex' = 'NoneDefined'; 'CivicAddressMappingIndex' = 'NoneDefined'; 'Country' = $CurrentCountry; 'City' = $CurrentCity; 'Company' = $CurrentCompany; 'EmergencyAddressName' = 'NoneDefined'; 'Status' = '' }
             $MainArray += $NewRow
             Clear-Variable -Name ("CurrentDID", "CurrentNumberRangeName", "CurrentNumberRangeIndex", "CurrentCountry", "CurrentCity", "CurrentCompany", "NewRow")
             
-        }else {
-            $NewRow += [pscustomobject]@{'FullLineUri'=$Legacy_LineUri;'MainLineUri'=$Legacy_LineUri;'DID'='';'TeamsEXT'='';'NumberRangeName'='NoneDefined';'ExtensionRangeName'='NoneDefined';'CivicAddressMappingName'='NoneDefined';'UPN'='NoneDefined';'Display_Name'=$Legacy_DisplayName;'OnlineVoiceRoutingPolicy'='NoneDefined';'TeamsCallingPolicy'='NoneDefined';'DialPlan'='NoneDefined';'TenantDialPlan'='NoneDefined';'TeamsPrivateLine'='NoneDefined';'VoiceType'=$Legacy_Type;'UserType'='NoneDefined';'NumberCapability'='NoneDefined';'NumberRangeIndex'='NoneDefined';'ExtensionRangeIndex'='NoneDefined';'CivicAddressMappingIndex'='NoneDefined';'Country'='NoneDefined';'City'='NoneDefined';'Company'='NoneDefined';'EmergencyAddressName'='NoneDefined';'Status'=''}
+        }
+        else {
+            $NewRow += [pscustomobject]@{'FullLineUri' = $Legacy_LineUri; 'MainLineUri' = $Legacy_LineUri; 'DID' = ''; 'TeamsEXT' = ''; 'NumberRangeName' = 'NoneDefined'; 'ExtensionRangeName' = 'NoneDefined'; 'CivicAddressMappingName' = 'NoneDefined'; 'UPN' = 'NoneDefined'; 'Display_Name' = $Legacy_DisplayName; 'OnlineVoiceRoutingPolicy' = 'NoneDefined'; 'TeamsCallingPolicy' = 'NoneDefined'; 'DialPlan' = 'NoneDefined'; 'TenantDialPlan' = 'NoneDefined'; 'TeamsPrivateLine' = 'NoneDefined'; 'VoiceType' = $Legacy_Type; 'UserType' = 'NoneDefined'; 'NumberCapability' = 'NoneDefined'; 'NumberRangeIndex' = 'NoneDefined'; 'ExtensionRangeIndex' = 'NoneDefined'; 'CivicAddressMappingIndex' = 'NoneDefined'; 'Country' = 'NoneDefined'; 'City' = 'NoneDefined'; 'Company' = 'NoneDefined'; 'EmergencyAddressName' = 'NoneDefined'; 'Status' = '' }
             $MainArray += $NewRow
             $NewRow = $null
         }
@@ -1360,7 +1651,7 @@ $LegacyPhoneNumbers = $null
 
 #endregion
 ########################################################
-#region     Check for outdated items BlockExtension
+#region Check for outdated items BlockExtension
 ##          
 ########################################################
 
@@ -1377,7 +1668,7 @@ $BlockExtensionListURL = $BaseURL + $SharepointBlockExtensionList
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 4 - Get StatusQuo of BlockExtension List - ListName: $($SharepointBlockExtensionList)"
-$BlockExtensionList = Get-TPIList -ListBaseURL $BlockExtensionListURL -ListName $SharepointBlockExtensionList -Properties $ListProperties_BlockExtension -TitelNameReplacement $TitelNameReplacement_BlockExtension -VerboseGraphAPILogging $VerboseGraphAPI 
+$BlockExtensionList = Get-TPIList -ListBaseURL $BlockExtensionListURL -ListName $SharepointBlockExtensionList -Properties $ListProperties_BlockExtension -TitelNameReplacement $TitelNameReplacement_BlockExtension -VerboseGraphAPILogging:$VerboseGraphAPI 
 
 #Define Date String for today
 $NowString = (Get-Date).ToString('dd.MM.yyyy')
@@ -1390,7 +1681,8 @@ foreach ($BlockListItem in $BlockExtensionList) {
         $DateValdidationError = 0
         $BlockItemLineUri = $BlockListItem.LineUri.Trim()
         $BlockItemReason = $BlockListItem.BlockReason
-        if ($BlockItemDate -match '^[0-3][0-9][/.][0-3][0-9][/.](?:[0-9][0-9])?[0-9][0-9]$') { # Check if Date is correct (with leading zero - 01.02.2022)
+        if ($BlockItemDate -match '^[0-3][0-9][/.][0-3][0-9][/.](?:[0-9][0-9])?[0-9][0-9]$') {
+            # Check if Date is correct (with leading zero - 01.02.2022)
             try {
                 $ExpirationDate = ([datetime]::ParseExact($BlockItemDate, 'dd.MM.yyyy', $null))
             }
@@ -1405,15 +1697,18 @@ foreach ($BlockListItem in $BlockExtensionList) {
             if (($NowDate -gt $ExpirationDate) -and ($DateValdidationError -eq 0)) {
                 $NeedBlockItemUpdate = 1
             }
-        }elseif ($BlockItemDate -match '^[0-3]?[0-9][/.][0-3]?[0-9][/.](?:[0-9]{2})?[0-9]{2}$'){ # Check if Date is correct (without leading zero - 1.2.2022)
+        }
+        elseif ($BlockItemDate -match '^[0-3]?[0-9][/.][0-3]?[0-9][/.](?:[0-9]{2})?[0-9]{2}$') {
+            # Check if Date is correct (without leading zero - 1.2.2022)
             $ConvertDate = $BlockItemDate.Split('.')
-            $Day = $ConvertDate[0].PadLeft(2,'0')
-            $Month = $ConvertDate[1].PadLeft(2,'0')
+            $Day = $ConvertDate[0].PadLeft(2, '0')
+            $Month = $ConvertDate[1].PadLeft(2, '0')
             $Year = $ConvertDate[2]
             if ($Year.Length -eq 2) {
                 if ([int]$Year -gt 70) {
                     $Year = "19" + $Year
-                }else{
+                }
+                else {
                     $Year = "20" + $Year
                 }
             }
@@ -1436,11 +1731,11 @@ foreach ($BlockListItem in $BlockExtensionList) {
         }
         if ($NeedBlockItemUpdate -eq 1) {
             # Block item could be deleted
-            $GraphAPIUrl_DeleteElement = $BlockExtensionListURL + '/items/'+ $BlockListItem.ID
+            $GraphAPIUrl_DeleteElement = $BlockExtensionListURL + '/items/' + $BlockListItem.ID
             if ($EnableEnhancedLoggingOutput) {
                 Write-Output "## EnhancedLog: Delete Block Item $BlockItemLineUri Date: $BlockItemDate Reason: $BlockItemReason"
             }
-            $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_DeleteElement -Method Delete -ProcessPart "BlockExtension List: Delete item: $BlockItemLineUri"  -VerboseGraphAPILogging $VerboseGraphAPI 
+            $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_DeleteElement -Method Delete -ProcessPart "BlockExtension List: Delete item: $BlockItemLineUri"  -VerboseGraphAPILogging:$VerboseGraphAPI 
             $GraphAPIUrl_DeleteElement = $null
 
         }
@@ -1453,7 +1748,7 @@ $BlockExtensionList = $null
 
 
 ########################################################
-#region     BlockExtension
+#region BlockExtension
 ##          
 ########################################################
 
@@ -1467,13 +1762,13 @@ Write-Output "$TimeStamp - Block 5 - Blocked Extension Handling"
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 5 - Get fresh StatusQuo of BlockExtension List - ListName: $($SharepointBlockExtensionList)"
-$BlockExtension = Get-TPIList -ListBaseURL $BlockExtensionListURL -ListName $SharepointBlockExtensionList -Properties $ListProperties_BlockExtension -TitelNameReplacement $TitelNameReplacement_BlockExtension -VerboseGraphAPILogging $VerboseGraphAPI 
+$BlockExtension = Get-TPIList -ListBaseURL $BlockExtensionListURL -ListName $SharepointBlockExtensionList -Properties $ListProperties_BlockExtension -TitelNameReplacement $TitelNameReplacement_BlockExtension -VerboseGraphAPILogging:$VerboseGraphAPI 
 
 foreach ($BlockExtensionItem in $BlockExtension) {
     $BlockExtensionLineUri = $BlockExtensionItem.LineUri.Trim()
-    $ArrayIndex = [array]::indexof($MainArray.FullLineUri,$BlockExtensionLineUri)
+    $ArrayIndex = [array]::indexof($MainArray.FullLineUri, $BlockExtensionLineUri)
     $CurrentStatus = $MainArray[$ArrayIndex].Status
-    $BlockStatus = 'BlockNumber_Until' + $($BlockExtensionItem.BlockUntil) + '_Reason' + $($BlockExtensionItem.BlockReason) +';'
+    $BlockStatus = 'BlockNumber_Until' + $($BlockExtensionItem.BlockUntil) + '_Reason' + $($BlockExtensionItem.BlockReason) + ';'
     $MainArray[$ArrayIndex].Status = $CurrentStatus + $BlockStatus
 }
 
@@ -1481,7 +1776,7 @@ $BlockExtensionList = $null
 
 #endregion
 ########################################################
-#region     Compare + Update TPI List
+#region Compare + Update TPI List
 ##          
 ########################################################
 
@@ -1513,7 +1808,7 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "--------------------"
 Write-Output "$TimeStamp - Block 6 - Compare the MainArray with the SharePoint List"
 Write-Output "$TimeStamp - Block 6 - Get StatusQuo of TPI SharePoint List - ListName: $SharepointTPIList"
-$TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList -Properties $ListProperties_TeamsPhoneInventory -TitelNameReplacement $TitelNameReplacement_TeamsPhoneInventory -VerboseGraphAPILogging $VerboseGraphAPI 
+$TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList -Properties $ListProperties_TeamsPhoneInventory -TitelNameReplacement $TitelNameReplacement_TeamsPhoneInventory -VerboseGraphAPILogging:$VerboseGraphAPI 
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 6 - Items in SharePoint List: $($($TPIList | Measure-Object).Count)"
@@ -1522,7 +1817,7 @@ Write-Output "$TimeStamp - Block 6 - Items in MainArray: $($($MainArray | Measur
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 6 - Compare the MainArray with the SharePoint List to check if items in the list need to be updated"
-$DifferentEntries = Compare-Object -ReferenceObject $MainArray -DifferenceObject $TPIList -Property FullLineUri,MainLineUri,DID,TeamsEXT,NumberRangeName,ExtensionRangeName,CivicAddressMappingName,UPN,Display_Name,OnlineVoiceRoutingPolicy,TeamsCallingPolicy,DialPlan,TenantDialPlan,TeamsPrivateLine,VoiceType,UserType,NumberCapability,NumberRangeIndex,ExtensionRangeIndex,CivicAddressMappingIndex,Country,City,Company,EmergencyAddressName,Status | Where-Object SideIndicator -Like "<="
+$DifferentEntries = Compare-Object -ReferenceObject $MainArray -DifferenceObject $TPIList -Property FullLineUri, MainLineUri, DID, TeamsEXT, NumberRangeName, ExtensionRangeName, CivicAddressMappingName, UPN, Display_Name, OnlineVoiceRoutingPolicy, TeamsCallingPolicy, DialPlan, TenantDialPlan, TeamsPrivateLine, VoiceType, UserType, NumberCapability, NumberRangeIndex, ExtensionRangeIndex, CivicAddressMappingIndex, Country, City, Company, EmergencyAddressName, Status | Where-Object SideIndicator -Like "<="
 $NoUpdate = 0
 $Counter = 0
 
@@ -1563,13 +1858,14 @@ if ($($DifferentEntries | Measure-Object).Count -gt 0) {
             }
             Write-Output "##"
         }
-    }elseif (($EnableEnhancedLoggingOutput) -and (($DifferentEntries | Measure-Object).Count -ge 100)) {
+    }
+    elseif (($EnableEnhancedLoggingOutput) -and (($DifferentEntries | Measure-Object).Count -ge 100)) {
         Write-Output "## EnhancedLog: Detailed Information for different entries"
         Write-Output "## EnhancedLog: Too many entries to display detailed information. (Amount of entries: $($($DifferentEntries | Measure-Object).Count))"
     }
 }
 
-if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
+if ($($DifferentEntries | Measure-Object).Count -gt 0) {
     $DifferentCounter = $($DifferentEntries | Measure-Object).Count 
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - Items in SharePoint List which need an update: $DifferentCounter"
@@ -1582,73 +1878,74 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
             $CurrentLineUri = $Entry.FullLineUri
             $All_HTTPBody_NewElements += @{
                 "fields" = @{
-                    "Title"= $Entry.FullLineUri -replace $null,""
-                    "MainLineUri" = $Entry.MainLineUri -replace $null,""
-                    "DID" = $Entry.DID.ToString() -replace $null,""
-                    "TeamsEXT" = $Entry.TeamsEXT -replace $null,""
-                    "NumberRangeName" = $Entry.NumberRangeName -replace $null,""
-                    "ExtensionRangeName" = $Entry.ExtensionRangeName -replace $null,""
-                    "CivicAddressMappingName" = $Entry.CivicAddressMappingName -replace $null,""
-                    "UPN" = $Entry.UPN -replace $null,""
-                    "Display_Name" = $Entry.Display_Name -replace $null,""
-                    "OnlineVoiceRoutingPolicy" = $Entry.OnlineVoiceRoutingPolicy -replace $null,""
-                    "TeamsCallingPolicy" = $Entry.TeamsCallingPolicy -replace $null,""
-                    "DialPlan" = $Entry.DialPlan -replace $null,""
-                    "TenantDialPlan" = $Entry.TenantDialPlan -replace $null,""
-                    "TeamsPrivateLine" = $Entry.TeamsPrivateLine -replace $null,""
-                    "VoiceType" = $Entry.VoiceType -replace $null,""
-                    "UserType" = $Entry.UserType -replace $null,""
-                    "NumberCapability" = $Entry.NumberCapability -replace $null,""
-                    "NumberRangeIndex" = $Entry.NumberRangeIndex -replace $null,""
-                    "ExtensionRangeIndex" = $Entry.ExtensionRangeIndex -replace $null,""
-                    "CivicAddressMappingIndex" = $Entry.CivicAddressMappingIndex -replace $null,""
-                    "Country" = $Entry.Country -replace $null,""
-                    "City" = $Entry.City -replace $null,""
-                    "Company" = $Entry.Company -replace $null,""
-                    "EmergencyAddressName" = $Entry.EmergencyAddressName -replace $null,""
-                    "Status" = $Entry.Status -replace $null,""
+                    "Title"                    = $Entry.FullLineUri -replace $null, ""
+                    "MainLineUri"              = $Entry.MainLineUri -replace $null, ""
+                    "DID"                      = $Entry.DID.ToString() -replace $null, ""
+                    "TeamsEXT"                 = $Entry.TeamsEXT -replace $null, ""
+                    "NumberRangeName"          = $Entry.NumberRangeName -replace $null, ""
+                    "ExtensionRangeName"       = $Entry.ExtensionRangeName -replace $null, ""
+                    "CivicAddressMappingName"  = $Entry.CivicAddressMappingName -replace $null, ""
+                    "UPN"                      = $Entry.UPN -replace $null, ""
+                    "Display_Name"             = $Entry.Display_Name -replace $null, ""
+                    "OnlineVoiceRoutingPolicy" = $Entry.OnlineVoiceRoutingPolicy -replace $null, ""
+                    "TeamsCallingPolicy"       = $Entry.TeamsCallingPolicy -replace $null, ""
+                    "DialPlan"                 = $Entry.DialPlan -replace $null, ""
+                    "TenantDialPlan"           = $Entry.TenantDialPlan -replace $null, ""
+                    "TeamsPrivateLine"         = $Entry.TeamsPrivateLine -replace $null, ""
+                    "VoiceType"                = $Entry.VoiceType -replace $null, ""
+                    "UserType"                 = $Entry.UserType -replace $null, ""
+                    "NumberCapability"         = $Entry.NumberCapability -replace $null, ""
+                    "NumberRangeIndex"         = $Entry.NumberRangeIndex -replace $null, ""
+                    "ExtensionRangeIndex"      = $Entry.ExtensionRangeIndex -replace $null, ""
+                    "CivicAddressMappingIndex" = $Entry.CivicAddressMappingIndex -replace $null, ""
+                    "Country"                  = $Entry.Country -replace $null, ""
+                    "City"                     = $Entry.City -replace $null, ""
+                    "Company"                  = $Entry.Company -replace $null, ""
+                    "EmergencyAddressName"     = $Entry.EmergencyAddressName -replace $null, ""
+                    "Status"                   = $Entry.Status -replace $null, ""
                 }
             }
             if ($EnableEnhancedLoggingOutput) {
                 Write-Output "## EnhancedLog: Add $($Entry.FullLineUri) Name: $($Entry.Display_Name) Type: $($Entry.VoiceType)"
             }
             
-        }else {
+        }
+        else {
             # Update Element in the list (based on MainArray)
             
             $ID = ($TPIList | Where-Object FullLineUri -like $Entry.FullLineUri).ID
-            $GraphAPIUrl_UpdateElement = $TPIListURL + '/items/'+ $ID
+            $GraphAPIUrl_UpdateElement = $TPIListURL + '/items/' + $ID
             $All_HTTPBody_UpdateElements += @{
                 "body" = @{
                     "fields" = @{
-                        "Title"= $Entry.FullLineUri -replace $null,""
-                        "MainLineUri" = $Entry.MainLineUri -replace $null,""
-                        "DID" = $Entry.DID.ToString() -replace $null,""
-                        "TeamsEXT" = $Entry.TeamsEXT -replace $null,""
-                        "NumberRangeName" = $Entry.NumberRangeName -replace $null,""
-                        "ExtensionRangeName" = $Entry.ExtensionRangeName -replace $null,""
-                        "CivicAddressMappingName" = $Entry.CivicAddressMappingName -replace $null,""
-                        "UPN" = $Entry.UPN -replace $null,""
-                        "Display_Name" = $Entry.Display_Name -replace $null,""
-                        "OnlineVoiceRoutingPolicy" = $Entry.OnlineVoiceRoutingPolicy -replace $null,""
-                        "TeamsCallingPolicy" = $Entry.TeamsCallingPolicy -replace $null,""
-                        "DialPlan" = $Entry.DialPlan -replace $null,""
-                        "TenantDialPlan" = $Entry.TenantDialPlan -replace $null,""
-                        "TeamsPrivateLine" = $Entry.TeamsPrivateLine -replace $null,""
-                        "VoiceType" = $Entry.VoiceType -replace $null,""
-                        "UserType" = $Entry.UserType -replace $null,""
-                        "NumberCapability" = $Entry.NumberCapability -replace $null,""
-                        "NumberRangeIndex" = $Entry.NumberRangeIndex -replace $null,""
-                        "ExtensionRangeIndex" = $Entry.ExtensionRangeIndex -replace $null,""
-                        "CivicAddressMappingIndex" = $Entry.CivicAddressMappingIndex -replace $null,""
-                        "Country" = $Entry.Country -replace $null,""
-                        "City" = $Entry.City -replace $null,""
-                        "Company" = $Entry.Company -replace $null,""
-                        "EmergencyAddressName" = $Entry.EmergencyAddressName -replace $null,""
-                        "Status" = $Entry.Status -replace $null,""
+                        "Title"                    = $Entry.FullLineUri -replace $null, ""
+                        "MainLineUri"              = $Entry.MainLineUri -replace $null, ""
+                        "DID"                      = $Entry.DID.ToString() -replace $null, ""
+                        "TeamsEXT"                 = $Entry.TeamsEXT -replace $null, ""
+                        "NumberRangeName"          = $Entry.NumberRangeName -replace $null, ""
+                        "ExtensionRangeName"       = $Entry.ExtensionRangeName -replace $null, ""
+                        "CivicAddressMappingName"  = $Entry.CivicAddressMappingName -replace $null, ""
+                        "UPN"                      = $Entry.UPN -replace $null, ""
+                        "Display_Name"             = $Entry.Display_Name -replace $null, ""
+                        "OnlineVoiceRoutingPolicy" = $Entry.OnlineVoiceRoutingPolicy -replace $null, ""
+                        "TeamsCallingPolicy"       = $Entry.TeamsCallingPolicy -replace $null, ""
+                        "DialPlan"                 = $Entry.DialPlan -replace $null, ""
+                        "TenantDialPlan"           = $Entry.TenantDialPlan -replace $null, ""
+                        "TeamsPrivateLine"         = $Entry.TeamsPrivateLine -replace $null, ""
+                        "VoiceType"                = $Entry.VoiceType -replace $null, ""
+                        "UserType"                 = $Entry.UserType -replace $null, ""
+                        "NumberCapability"         = $Entry.NumberCapability -replace $null, ""
+                        "NumberRangeIndex"         = $Entry.NumberRangeIndex -replace $null, ""
+                        "ExtensionRangeIndex"      = $Entry.ExtensionRangeIndex -replace $null, ""
+                        "CivicAddressMappingIndex" = $Entry.CivicAddressMappingIndex -replace $null, ""
+                        "Country"                  = $Entry.Country -replace $null, ""
+                        "City"                     = $Entry.City -replace $null, ""
+                        "Company"                  = $Entry.Company -replace $null, ""
+                        "EmergencyAddressName"     = $Entry.EmergencyAddressName -replace $null, ""
+                        "Status"                   = $Entry.Status -replace $null, ""
                     }
                 }
-                "URL" = $GraphAPIUrl_UpdateElement
+                "URL"  = $GraphAPIUrl_UpdateElement
             }
             if ($EnableEnhancedLoggingOutput) {
                 Write-Output "## EnhancedLog: Update $($Entry.FullLineUri) Name: $($Entry.Display_Name) Type: $($Entry.VoiceType)"
@@ -1666,7 +1963,7 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Output "$TimeStamp - Block 6 - Start adding entries to the list in batches - number of new entries: $AllElementsCount"
         
-        $GraphAPIUrl = $($TPIListURL + '/items') -replace "https://graph.microsoft.com/v1.0",""
+        $GraphAPIUrl = $($TPIListURL + '/items') -replace "https://graph.microsoft.com/v1.0", ""
         $TMP_Counter20 = 0 
         $TMP_Counter = 0
         $BatchCount = 0
@@ -1693,7 +1990,7 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
                 $BatchReady = $false
                 $BatchCount++
                 $BatchRequestBody = [PSCustomObject][ordered]@{requests = $CurrentBatch }
-                $TMP = Invoke-TPIRestMethod -Uri 'https://graph.microsoft.com/v1.0/$batch' -Method Post -Body $BatchRequestBody -ProcessPart "TPI List - Add item - BatchCount: $BatchCount" -VerboseGraphAPILogging $VerboseGraphAPI 
+                $TMP = Invoke-TPIRestMethod -Uri 'https://graph.microsoft.com/v1.0/$batch' -Method Post -Body $BatchRequestBody -ProcessPart "TPI List - Add item - BatchCount: $BatchCount" -VerboseGraphAPILogging:$VerboseGraphAPI 
                 foreach ($Response in $TMP.responses) {
                     if ($Response.body.error.message -notlike "") {
                         $ID = $response.id
@@ -1742,7 +2039,7 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
             $BatchPart = [PSCustomObject][ordered]@{
                 id      = $TMP_Counter20
                 method  = "PATCH"
-                URL     = $($NewElement.URL -replace "https://graph.microsoft.com/v1.0","" ) 
+                URL     = $($NewElement.URL -replace "https://graph.microsoft.com/v1.0", "" ) 
                 headers = $BatchHeader
                 body    = $NewElement.body
             }
@@ -1752,7 +2049,7 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
                 $BatchReady = $false
                 $BatchCount++
                 $BatchRequestBody = [ordered]@{requests = $CurrentBatch } 
-                $TMP = Invoke-TPIRestMethod -Uri 'https://graph.microsoft.com/v1.0/$batch' -Method Post -Body $BatchRequestBody -ProcessPart "TPI List - Update item - BatchCount: $BatchCount" -VerboseGraphAPILogging $VerboseGraphAPI 
+                $TMP = Invoke-TPIRestMethod -Uri 'https://graph.microsoft.com/v1.0/$batch' -Method Post -Body $BatchRequestBody -ProcessPart "TPI List - Update item - BatchCount: $BatchCount" -VerboseGraphAPILogging:$VerboseGraphAPI 
                 foreach ($Response in $TMP.responses) {
                     if ($Response.body.error.message -notlike "") {
                         $ID = $response.id
@@ -1780,7 +2077,8 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
     Write-Output "$TimeStamp - Block 6 - Update of the list completed"
 
     $NoUpdate = 0
-}else {
+}
+else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - SharePoint List is up to date - no need for an update"
     $NoUpdate = 1
@@ -1791,7 +2089,7 @@ if ($($DifferentEntries | Measure-Object).Count  -gt 0) {
 if ($NoUpdate -ne 1) {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - Get fresh StatusQuo of TPI SharePoint List - ListName: $($SharepointTPIList)"
-    $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList -Properties $ListProperties_TeamsPhoneInventory -TitelNameReplacement $TitelNameReplacement_TeamsPhoneInventory -VerboseGraphAPILogging $VerboseGraphAPI 
+    $TPIList = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList -Properties $ListProperties_TeamsPhoneInventory -TitelNameReplacement $TitelNameReplacement_TeamsPhoneInventory -VerboseGraphAPILogging:$VerboseGraphAPI 
 
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - Items in SharePoint List: $($($TPIList | Measure-Object).Count)"
@@ -1800,10 +2098,10 @@ if ($NoUpdate -ne 1) {
 
 #endregion
 
-    #region Compare the MainArray with the SharePoint List to check if items in the list need to be deleted
+#region Compare the MainArray with the SharePoint List to check if items in the list need to be deleted
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 6 - Compare the MainArray with the SharePoint List to check if items in the list need to be deleted"
-$EntrysToDelete = Compare-Object -ReferenceObject $MainArray -DifferenceObject $TPIList -Property FullLineUri,MainLineUri,DID,TeamsEXT,NumberRangeName,ExtensionRangeName,CivicAddressMappingName,UPN,Display_Name,OnlineVoiceRoutingPolicy,TeamsCallingPolicy,DialPlan,TenantDialPlan,TeamsPrivateLine,VoiceType,UserType,NumberCapability,NumberRangeIndex,ExtensionRangeIndex,CivicAddressMappingIndex,Country,City,Company,EmergencyAddressName,Status | Where-Object SideIndicator -Like "=>"
+$EntrysToDelete = Compare-Object -ReferenceObject $MainArray -DifferenceObject $TPIList -Property FullLineUri, MainLineUri, DID, TeamsEXT, NumberRangeName, ExtensionRangeName, CivicAddressMappingName, UPN, Display_Name, OnlineVoiceRoutingPolicy, TeamsCallingPolicy, DialPlan, TenantDialPlan, TeamsPrivateLine, VoiceType, UserType, NumberCapability, NumberRangeIndex, ExtensionRangeIndex, CivicAddressMappingIndex, Country, City, Company, EmergencyAddressName, Status | Where-Object SideIndicator -Like "=>"
 
 if ($($EntrysToDelete | Measure-Object).Count -gt 0) {
     if ($EnableEnhancedLoggingOutput -and (($EntrysToDelete | Measure-Object).Count -lt 100)) {
@@ -1869,13 +2167,13 @@ if ($EntrysToDeleteCount -gt 0) {
             $TMP_Counter20 = 0
         }
         $ID = ($TPIList | Where-Object FullLineUri -like $DeleteItem.FullLineUri).ID
-        $GraphAPIUrl_DeleteElement = $($TPIListURL + '/items/'+ $ID) -replace "https://graph.microsoft.com/v1.0",""
+        $GraphAPIUrl_DeleteElement = $($TPIListURL + '/items/' + $ID) -replace "https://graph.microsoft.com/v1.0", ""
         
         $BatchPart = [PSCustomObject][ordered]@{
-            id      = $TMP_Counter20
-            method  = "DELETE"
-            URL     = $GraphAPIUrl_DeleteElement
-            header  = $BatchHeader
+            id     = $TMP_Counter20
+            method = "DELETE"
+            URL    = $GraphAPIUrl_DeleteElement
+            header = $BatchHeader
         }
         $CurrentBatch += $BatchPart
     
@@ -1883,7 +2181,7 @@ if ($EntrysToDeleteCount -gt 0) {
             $BatchReady = $false
             $BatchCount++
             $BatchRequestBody = [ordered]@{requests = $CurrentBatch }
-            $TMP = Invoke-TPIRestMethod -Uri 'https://graph.microsoft.com/v1.0/$batch' -Method Post -Body $BatchRequestBody -ProcessPart "TPI List - Delete item - BatchCount: $BatchCount" -VerboseGraphAPILogging $VerboseGraphAPI 
+            $TMP = Invoke-TPIRestMethod -Uri 'https://graph.microsoft.com/v1.0/$batch' -Method Post -Body $BatchRequestBody -ProcessPart "TPI List - Delete item - BatchCount: $BatchCount" -VerboseGraphAPILogging:$VerboseGraphAPI 
             foreach ($Response in $TMP.responses) {
                 if ($Response.body.error.message -notlike "") {
                     $ID = $response.id
@@ -1904,12 +2202,13 @@ if ($EntrysToDeleteCount -gt 0) {
     $BatchCount = $null
     $EntrysToDeleteCount = $null
     $EntrysToDelete = $null
-}else {
+}
+else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 6 - There are no items that need to be removed from the SharePoint List."
 }
 
-    #endregion
+#endregion
 #endregion 
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
