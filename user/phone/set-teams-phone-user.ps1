@@ -1,14 +1,15 @@
 <#
   .SYNOPSIS
   Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. Fully automated through Teams Phone Inventory.
-  
+
   .DESCRIPTION
-  Assigns a Microsoft Teams user a phone number and corresponding voice policies for his location, based on AzureAD attributes, in a fully automated way. 
+  Assigns a Microsoft Teams user a phone number and corresponding voice policies for his location, based on AzureAD attributes, in a fully automated way.
   The input of parameters is not necessary resp. not possible with this runbook.
   The runbook is part of the TeamsPhoneInventory.
-  
+
   .NOTES
   Version Changelog:
+  1.1.1 - 2025-04-16 - Add additional check, if number is assigned
   1.1.0 - 2025-03-25 - New Get-TPIList function
                        - For better handling of SharePoint Lists
                        - Removed conversion of returned list object (no longer needed, cause of the new function)
@@ -69,7 +70,7 @@ param(
 
 ########################################################
 #region function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -83,7 +84,7 @@ function Get-TPIList {
         # $ListBaseURL = "A valid URL"
         # $Properties = @("Title", "ID", "PhoneNumber", "Extension")
         # $ListItems = Get-TPIList -ListBaseURL $ListBaseURL -Properties $Properties
-        
+
         # In default, the first column is Title, but if the Value should be replaced, it can be done with this parameter
         [parameter(Mandatory = $false)]
         [String]$TitelNameReplacement,
@@ -103,7 +104,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             do {
@@ -182,7 +183,7 @@ function Invoke-TPIRestMethod {
     } catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-        $StatusCode = $_.Exception.Response.StatusCode.value__ 
+        $StatusCode = $_.Exception.Response.StatusCode.value__
         $StatusDescription = $_.Exception.Response.ReasonPhrase
         Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
         Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -191,11 +192,11 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
             Start-Sleep -Seconds 5
-            
+
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
             Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-            
+
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart"
             if ($Method -in @("Post", "Patch")) {
@@ -208,7 +209,7 @@ function Invoke-TPIRestMethod {
         } catch {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -229,7 +230,7 @@ function Invoke-TPIRestMethod {
 
 ########################################################
 #region     Properties declaration
-##          
+##
 ########################################################
 # Description for this block:
 # ===========================
@@ -237,7 +238,7 @@ function Invoke-TPIRestMethod {
 # Properties:
 # ------------------
 # To be able to get all collumns from the SharePoint Lists for each TPI List, the Get-TPIList had a parameter calles "Properties"
-# This parameter is used to define the columns that should be returned from the SharePoint List. 
+# This parameter is used to define the columns that should be returned from the SharePoint List.
 # So all Properties (=Collumns) only need to defined once.
 #
 # Title Replacement:
@@ -280,12 +281,12 @@ $TitelNameReplacement_TeamsPhoneInventory = "FullLineUri"
 
 # NumberRange List
 $ListProperties_NumberRange = @(
-    "Title", 
-    "NumberRangeName", 
-    "MainNumber", 
-    "BeginNumberRange", 
-    "EndNumberRange", 
-    "Country", 
+    "Title",
+    "NumberRangeName",
+    "MainNumber",
+    "BeginNumberRange",
+    "EndNumberRange",
+    "Country",
     "City",
     "UNLOCODE",
     "Company"
@@ -294,10 +295,10 @@ $TitelNameReplacement_NumberRange = "NumberRangeIndex"
 
 # ExtensionRange List
 $ListProperties_ExtensionRange = @(
-    "Title", 
-    "ExtensionRangeName", 
-    "BeginExtensionRange", 
-    "EndExtensionRange", 
+    "Title",
+    "ExtensionRangeName",
+    "BeginExtensionRange",
+    "EndExtensionRange",
     "NumberRangeIndex",
     "ExtensionRangeCompany"
 )
@@ -305,8 +306,8 @@ $TitelNameReplacement_ExtensionRange = "ExtensionRangeIndex"
 
 # CivicAddressMapping List
 $ListProperties_CivicAddressMapping = @(
-    "Title", 
-    "CivicAddressMappingName", 
+    "Title",
+    "CivicAddressMappingName",
     "CivicAddressID",
     "Country",
     "City",
@@ -317,7 +318,7 @@ $TitelNameReplacement_CivicAddressMapping = "CivicAddressMappingIndex"
 
 # Legacy List
 $ListProperties_Legacy = @(
-    "Title", 
+    "Title",
     "LegacyName",
     "LegacyType"
 )
@@ -325,7 +326,7 @@ $TitelNameReplacement_Legacy = "LineUri"
 
 # BlockExtension List
 $ListProperties_BlockExtension = @(
-    "Title", 
+    "Title",
     "BlockUntil",
     "BlockReason"
 )
@@ -356,7 +357,7 @@ $TitelNameReplacement_LocationMapping = "LocationIdentifier"
 
 # UserMapping List
 $ListProperties_UserMapping = @(
-    "Title", 
+    "Title",
     "LocationIdentifier"
 )
 $TitelNameReplacement_UserMapping = "UPN"
@@ -366,7 +367,7 @@ $TitelNameReplacement_UserMapping = "UPN"
 
 ########################################################
 #region Block 0 - Connect Part
-##          
+##
 ########################################################
 # Add Caller in Verbose output
 if ($CallerName) {
@@ -374,7 +375,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0" 
+$Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -402,7 +403,7 @@ catch {
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -415,18 +416,18 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 
 #endregion
 ########################################################
 #region Block 1 - License check
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 1 - License check"
-# If no license has been assigned to the user, respectively if the license is not yet replicated 
-# in the teams backend or if the appropriate applications are not available within the license, 
+# If no license has been assigned to the user, respectively if the license is not yet replicated
+# in the teams backend or if the appropriate applications are not available within the license,
 # the script will be stopped!
 
 Write-Output "Getting StatusQuo for user with ID: $UserName"
@@ -458,7 +459,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 if (($LicenseTimeStamp.AddHours(24) -gt $Now)) {
                     Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
                 }
-                
+
             }else {
                 Write-Output ""
                 Write-Error "Error: The user license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Please try again at $($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss")) (MCOEV - Microsoft O365 Phone Standard)"
@@ -484,7 +485,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
 #endregion
 ########################################################
 #region Block 2 - Setup base URL
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 2 - Check basic connection to TPI List and build base URL"
@@ -563,7 +564,7 @@ if (($CurrentUserMapping | Measure-Object).Count -eq 1) {
         Write-Output ""
         throw "There is an entry for the user in the user mapping list, but the LocationIdentifier is empty. The script will therefore be terminated!"
         Exit
-    }   
+    }
 }elseif (($CurrentUserMapping | Measure-Object).Count -gt 1) { #If there are duplicates - stop it!
     Write-Output ""
     Write-Output "Error:"
@@ -615,7 +616,7 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         }elseif ($CivicAddressMappingIndex -notlike "") {
             Write-Output "The CivicAddressMappingIndex of the user is $CivicAddressMappingIndex"
         }
-       
+
         $OnlineVoiceRoutingPolicy = $RecievedLocationDefaults.OnlineVoiceRoutingPolicy
         if ($OnlineVoiceRoutingPolicy -like "") {
             $OnlineVoiceRoutingPolicy = "Global (Org Wide Default)"
@@ -637,7 +638,7 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         Write-Output ""
         throw "There is an entry for the current location identifier, but no phone number ranges or civic address mappings are defined for it. The script will therefore be terminated!"
         Exit
-    }   
+    }
 }elseif (($RecievedLocationDefaults | Measure-Object).Count -eq 0) {
     Write-Output ""
     Write-Error "Error: No location defaults could be found for the received location identifier. The script will therefore be terminated!"
@@ -652,15 +653,17 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
 ##
 ########################################################
 
+Write-Output ""
 Write-Output "Block 6 - Get StatusQuo of the SharePoint List"
 
 $TPI_AllItems = Get-TPIList -ListBaseURL $TPIListURL -ListName $SharepointTPIList -Properties $ListProperties_TeamsPhoneInventory -TitelNameReplacement $TitelNameReplacement_TeamsPhoneInventory
 Write-Output "Items in $SharepointTPIList SharePoint List: $($TPI_AllItems.Count)"
-Write-Output "Check for next free number"
 
 if ($ExtensionRangeIndex -notlike "") {
+    Write-Output "Check for next free number using ExtensionRangeIndex: $ExtensionRangeIndex"
     $NextFreeNumber = ($TPI_AllItems | Where-Object {($_.ExtensionRangeIndex -Like $ExtensionRangeIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object FullLineUri | Select-Object FullLineUri,ID -First 1)
 }elseif ($CivicAddressMappingIndex -notlike "") {
+    Write-Output "Check for next free number using CivicAddressMappingIndex: $CivicAddressMappingIndex"
     $NextFreeNumber = ($TPI_AllItems | Where-Object {($_.CivicAddressMappingIndex -Like $CivicAddressMappingIndex) -and ($_.Display_Name -Like "") -and ($_.UPN -Like "") -and ($_.Type -NotLike "LegacyPhoneNumber") -and ($_.Status -notmatch '.*BlockNumber_Until([0]?[1-9]|[1|2][0-9]|[3][0|1]).([0]?[1-9]|[1][0-2]).([0-9]{4}|[0-9]{2}).*') -and ($_.Status -notmatch '.*BlockNumber_Permanent.*') -and ($_.Status -notmatch '.*BlockNumber_permanent.*')} | Sort-Object FullLineUri | Select-Object FullLineUri,ID -First 1)
 }else {
     Write-Error "Error: Both entries ExtensionRangeIndex and CivicAddressMappingIndex are empty, therefore it is not possible to search for a free number!"
@@ -678,7 +681,7 @@ Write-Output "The next free number for location $CurrentLocationIdentifier would
 #endregion
 ########################################################
 #region Block 7 - Teams User StatusQuo
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 7 - List StatusQuo for user with ID:  $UserName"
@@ -738,7 +741,7 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 #endregion
 ########################################################
 #region Block 8 - Pre flight check
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 8 - Pre flight check"
@@ -750,21 +753,57 @@ $AssignedPstnTargetId = $PhoneNumberAssignment.AssignedPstnTargetId
 
 $NumberAlreadyAssigned = 0
 
-if ($PstnAssignmentStatus -like "" -or $PstnAssignmentStatus -like "Unassigned") {
+if ($PstnAssignmentStatus -like "Unassigned") {
     Write-Output "Phone number is not yet assigned to a Microsoft Teams user"
+}elseif ($PstnAssignmentStatus -like "") {
+    Write-Output "PstnAssignmentStatus is empty, performing additional check with Get-CsOnlineUser"
+    $ExistingUser = Get-CsOnlineUser -Filter "LineURI -eq 'tel:$PhoneNumber'" -ErrorAction SilentlyContinue
+    if ($ExistingUser) {
+        if ($ExistingUser.UserPrincipalName -eq $UPN) {
+            $NumberAlreadyAssigned = 1
+            Write-Output "Phone number is already assigned to the user!"
+        } else {
+            Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $($ExistingUser.UserPrincipalName) according to direct user check"
+            throw "The assignment could not be performed. PhoneNumber is already assigned!"
+        }
+    } else {
+        Write-Output "No user found with this phone number in direct check, proceeding with assignment"
+    }
 }else {
     if ($($StatusQuo.Identity) -like $AssignedPstnTargetId) { #Check if number is already assigned to the target user
         $NumberAlreadyAssigned = 1
         Write-Output "Phone number is already assigned to the user!"
     }elseif ($PhoneNumberAssignment.AssignmentCategory -like "Private") {
-        $CurrentPrivateLineUser = (Get-CsOnlineUser $PhoneNumberAssignment.AssignedPstnTargetId).UserPrincipalName
-        Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already as private line assigned to $CurrentPrivateLineUser"
-        throw "The assignment for could not be performed. PhoneNumber is already assigned!"
-        
+        try {
+            $CurrentPrivateLineUser = (Get-CsOnlineUser $PhoneNumberAssignment.AssignedPstnTargetId).UserPrincipalName
+            if ([string]::IsNullOrEmpty($CurrentPrivateLineUser)) {
+            Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned as a private line but user details could not be retrieved."
+            throw "The assignment could not be performed. PhoneNumber is already assigned as a private line!"
+            } else {
+            Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned as a private line to $CurrentPrivateLineUser"
+            throw "The assignment could not be performed. PhoneNumber is already assigned as a private line!"
+            }
+        }
+        catch {
+            Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned as a private line. Failed to retrieve user details: $_"
+            throw "The assignment could not be performed. PhoneNumber is already assigned as a private line!"
+        }
+
     }else{
-        $CurrentAssignedUser = (Get-CsOnlineUser $AssignedPstnTargetId ).UserPrincipalName
-        Write-Error  "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $CurrentAssignedUser"
-        throw "The assignment for could not be performed. PhoneNumber is already assigned!"
+        try {
+            $CurrentAssignedUser = (Get-CsOnlineUser $AssignedPstnTargetId).UserPrincipalName
+            if ([string]::IsNullOrEmpty($CurrentAssignedUser)) {
+                Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned but user details could not be retrieved."
+                throw "The assignment could not be performed. PhoneNumber is already assigned!"
+            } else {
+                Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned to $CurrentAssignedUser"
+                throw "The assignment could not be performed. PhoneNumber is already assigned!"
+            }
+        }
+        catch {
+            Write-Error "Teams - Error: The assignment for $UPN could not be performed. $PhoneNumber is already assigned. Failed to retrieve user details: $_"
+            throw "The assignment could not be performed. PhoneNumber is already assigned!"
+        }
     }
 }
 
@@ -850,7 +889,7 @@ if ($TeamsCallingPolicy -notlike "") {
 #endregion
 ########################################################
 #region Block 9 - Main Part
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 9 - Main Part"
@@ -886,8 +925,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
             if ($OnlineVoiceRoutingPolicy -like "Global (Org Wide Default)") {
                 Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }else {
-                Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop  
-            }  
+                Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop
+            }
         }
         catch {
             $message = $_
@@ -903,7 +942,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
             if ($TenantDialPlan -like "Global (Org Wide Default)") {
                 Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }else {
-                Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
+                Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop
             }
         }
         catch {
@@ -920,8 +959,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
             if ($TeamsCallingPolicy -like "Global (Org Wide Default)") {
                 Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }else {
-                Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
-            } 
+                Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop
+            }
         }
         catch {
             $message = $_
@@ -934,7 +973,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
 #endregion
 ########################################################
 #region Block 10 - Write Output to TPI
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 10 - Write Output to TPI"
