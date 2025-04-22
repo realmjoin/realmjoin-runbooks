@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-04-22
+- Add documentation workflow and scripts to the repository
+
 ## 2025-03-05
 - Update User/Phone/Set Teams permanent call forwarding 
   - Make sure, that unanswered calls settings would be disabled before setting the forwarding
