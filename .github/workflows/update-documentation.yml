@@ -1,0 +1,128 @@
+name: 📚 Update documentation
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [ production ]
+    paths:
+      - '**.ps1'
+      - 'org/**'
+      - 'user/**'
+      - 'device/**'
+      - 'group/**'
+      - '.permissions/**'
+
+permissions:
+  contents: write
+
+env:
+  ROOT_PATH: ${{ github.workspace }}
+  OUTPUT_PATH_DOCS: ${{ github.workspace }}/docs
+  OUTPUT_PATH_LISTS: ${{ github.workspace }}/docs/lists
+  OUTPUT_PATH_OTHER: ${{ github.workspace }}/docs/other
+  OUTPUT_PATH_JSON: ${{ github.workspace }}/docs/other/json
+  PERMISSIONS_PATH: ${{ github.workspace }}/.permissions
+  MISSING_PERMISSIONS_PATH: ${{ github.workspace }}/docs/other/missing-permissions-list.md
+
+jobs:
+  update-docs:
+    name: 🔄 Update runbook documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📁 Create output directories
+        shell: pwsh
+        run: |
+          Write-Host "🔍 Removing existing docs directory..."
+          if (Test-Path $env:OUTPUT_PATH_DOCS) {
+            Remove-Item -Path $env:OUTPUT_PATH_DOCS -Recurse -Force
+          }
+          
+          Write-Host "🔍 Creating output directories..."
+          New-Item -Path $env:OUTPUT_PATH_DOCS -ItemType Directory -Force
+          New-Item -Path $env:OUTPUT_PATH_LISTS -ItemType Directory -Force
+          New-Item -Path $env:OUTPUT_PATH_OTHER -ItemType Directory -Force
+          New-Item -Path $env:OUTPUT_PATH_JSON -ItemType Directory -Force
+
+      - name: 📄 Update detailed runbook documents
+        shell: pwsh
+        run: |
+          Write-Host "📝 Generating detailed runbook documents..."
+          . .github/scripts/Get-RunbookDescriptions.ps1 `
+              -includedScope @("device", "group", "org", "user") `
+              -includePermissions `
+              -includeDocs `
+              -includeWhereToFind `
+              -includeNotes `
+              -includeParameters `
+              -includeAdditionalLinks `
+              -outputMode "SeperateFileSeperateFolder" `
+              -nameTOCFilesAlwaysREADME `
+              -outputFolder $env:OUTPUT_PATH_DOCS `
+              -rootFolder $env:ROOT_PATH `
+              -mainOutfile "README.md"
+
+      - name: 📊 Update onefile runbook document
+        shell: pwsh
+        run: |
+          Write-Host "📑 Generating single-file runbook overview..."
+          . .github/scripts/Get-RunbookDescriptions.ps1 `
+              -includedScope @("device", "group", "org", "user") `
+              -includeDocs `
+              -includeWhereToFind `
+              -outputMode "OneFile" `
+              -outputFolder $env:OUTPUT_PATH_OTHER `
+              -rootFolder $env:ROOT_PATH `
+              -mainOutfile "RealmJoin-RunbookOverview.md"
+
+      - name: 📋 Update list-based documents
+        shell: pwsh
+        run: |
+          Write-Host "📜 Generating runbook lists..."
+          . .github/scripts/Get-RunbookList.ps1 `
+              -includedScope @("device", "group", "org", "user") `
+              -createRunbookOverviewList `
+              -createCompactRunbookOverviewList `
+              -createPermissionList `
+              -outputFolder $env:OUTPUT_PATH_LISTS `
+              -rootFolder $env:ROOT_PATH
+
+      - name: 🔍 Update runbook detail JSON
+        shell: pwsh
+        run: |
+          Write-Host "🧩 Generating runbook detail JSON..."
+          . .github/scripts/Get-RunbookDetailJson.ps1 `
+              -includedScope @("device", "group", "org", "user") `
+              -outputFolder $env:OUTPUT_PATH_JSON `
+              -rootFolder $env:ROOT_PATH
+
+      - name: 🔒 Update unique permissions JSON
+        shell: pwsh
+        run: |
+          Write-Host "🛡️ Generating unique permissions JSON..."
+          . .github/scripts/Get-UniquePermissions.ps1 `
+              -rootFolder $env:ROOT_PATH `
+              -permissionsFolderName $env:PERMISSIONS_PATH `
+              -bothPathCombinations `
+              -outputFolder $env:OUTPUT_PATH_JSON `
+              -OutputFileNamePrefix "AllRealmJoinRunbooks_collected_"
+
+      - name: ❗ Update missing permissions report
+        shell: pwsh
+        run: |
+          Write-Host "⚠️ Generating missing permissions report..."
+          . .github/scripts/Get-MissingPermissionReport.ps1 `
+              -includedScope @("device", "group", "org", "user") `
+              -rootFolder $env:ROOT_PATH `
+              -outputPath $env:MISSING_PERMISSIONS_PATH
+
+      - name: 💾 Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add docs/
+          git add README.md
+          git diff --staged --quiet || (git commit -m "Update documentation" && git push)
