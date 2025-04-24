@@ -56,19 +56,18 @@ param(
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 # Connect to Microsoft Graph
-Write-Output "Connecting to RJ Runbook Graph..."
 Connect-RjRbGraph
-Write-Output "Connection established."
 
 # Get tenant information
-Write-Output "Retrieving tenant information..."
+Write-Output "## Retrieving tenant information..."
 $organization = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorAction SilentlyContinue
 $tenantDisplayName = "Unknown Tenant"
 
 if ($organization -and $organization.Count -gt 0) {
     $tenantDisplayName = $organization[0].displayName
-    Write-Output "Tenant: $tenantDisplayName"
+    Write-Output "## Tenant: $tenantDisplayName"
 }
+Write-Output ""
 
 # Calculate the date threshold for stale devices
 $beforeDate = (Get-Date).AddDays(-$Days) | Get-Date -Format "yyyy-MM-dd"
@@ -80,7 +79,8 @@ $filter = "lastSyncDateTime le ${beforeDate}T00:00:00Z"
 $selectString = "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, operatingSystem, osVersion, complianceState"
 
 # Get all stale devices
-Write-Output "Listing devices not active for at least $Days days..."
+Write-Output "## Listing devices not active for at least $Days days"
+Write-Output ""
 
 $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect $selectString -OdFilter $filter -FollowPaging
 
@@ -123,7 +123,7 @@ foreach ($device in $devices) {
 }
 
 # Display summary counts
-Write-Output "Summary of stale devices for ${tenantDisplayName}:"
+Write-Output "## Summary of stale devices for ${tenantDisplayName}:"
 Write-Output "Total devices: $($filteredDevices.Count)"
 
 if ($Windows) {
@@ -146,8 +146,31 @@ if ($Android) {
     Write-Output "Android devices: $androidCount"
 }
 
+Write-Output ""
+Write-Output "## Detailed list of stale devices:"
+Write-Output ""
+
+# Display the filtered devices
+$filteredDevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSize -Property @{
+    name       = "LastSync";
+    expression = { Get-Date $_.lastSyncDateTime -Format yyyy-MM-dd }
+}, @{
+    name       = "DeviceName";
+    expression = { if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0, 14) + ".." } else { $_.deviceName } }
+}, @{
+    name       = "DeviceID";
+    expression = { if ($_.id.Length -gt 15) { $_.id.substring(0, 14) + ".." } else { $_.id } }
+}, @{
+    name       = "SerialNumber";
+    expression = { if ($_.serialNumber.Length -gt 15) { $_.serialNumber.substring(0, 14) + ".." } else { $_.serialNumber } }
+}, @{
+    name       = "PrimaryUser";
+    expression = { if ($_.userPrincipalName.Length -gt 20) { $_.userPrincipalName.substring(0, 19) + ".." } else { $_.userPrincipalName } }
+}
+
 # Create HTML content for email
-Write-Output "Preparing email report to send to $sendAlertTo..."
+Write-Output ""
+Write-Output "## Preparing email report to send to $sendAlertTo"
 
 # Create HTML header
 $HTMLBody = "<h2>Stale Devices Report - $tenantDisplayName</h2>"
