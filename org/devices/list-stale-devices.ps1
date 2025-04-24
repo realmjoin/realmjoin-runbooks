@@ -95,6 +95,17 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 # Connect to Microsoft Graph
 Connect-RjRbGraph
 
+# Get tenant information
+Write-Output "## Retrieving tenant information..."
+$organization = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorAction SilentlyContinue
+$tenantDisplayName = "Unknown Tenant"
+
+if ($organization -and $organization.Count -gt 0) {
+    $tenantDisplayName = $organization[0].displayName
+    Write-Output "## Tenant: $tenantDisplayName"
+}
+Write-Output ""
+
 # Calculate the date threshold for stale devices
 $beforeDate = (Get-Date).AddDays(-$Days) | Get-Date -Format "yyyy-MM-dd"
 
@@ -149,7 +160,7 @@ foreach ($device in $devices) {
 }
 
 # Display summary counts
-Write-Output "## Summary of stale devices:"
+Write-Output "## Summary of stale devices for ${tenantDisplayName}:"
 Write-Output "Total devices: $($filteredDevices.Count)"
 
 if ($Windows) {
@@ -184,14 +195,14 @@ $filteredDevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSi
     name       = "DeviceName";
     expression = { if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0, 14) + ".." } else { $_.deviceName } }
 }, @{
-    name       = "OS";
-    expression = { "$($_.operatingSystem) $($_.osVersion)" }
+    name       = "DeviceID";
+    expression = { if ($_.id.Length -gt 15) { $_.id.substring(0, 14) + ".." } else { $_.id } }
 }, @{
-    name       = "User";
+    name       = "SerialNumber";
+    expression = { if ($_.serialNumber.Length -gt 15) { $_.serialNumber.substring(0, 14) + ".." } else { $_.serialNumber } }
+}, @{
+    name       = "PrimaryUser";
     expression = { if ($_.userPrincipalName.Length -gt 20) { $_.userPrincipalName.substring(0, 19) + ".." } else { $_.userPrincipalName } }
-}, @{
-    name       = "Compliant";
-    expression = { $_.complianceState }
 }
 
 # Create HTML content for email
@@ -200,7 +211,7 @@ if ($sendAlertTo) {
     Write-Output "## Preparing email report to send to $sendAlertTo"
     
     # Create HTML header
-    $HTMLBody = "<h2>Stale Devices Report</h2>"
+    $HTMLBody = "<h2>Stale Devices Report - $tenantDisplayName</h2>"
     $HTMLBody += "<p>This report shows devices that have not been active for at least $Days days.</p>"
     
     # Add summary section
@@ -238,9 +249,9 @@ if ($sendAlertTo) {
         $HTMLBody += "<tr style='background-color: #f2f2f2;'>"
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Last Sync</th>"
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Device Name</th>"
-        $HTMLBody += "<th style='padding: 8px; text-align: left;'>OS</th>"
-        $HTMLBody += "<th style='padding: 8px; text-align: left;'>User</th>"
-        $HTMLBody += "<th style='padding: 8px; text-align: left;'>Compliant</th>"
+        $HTMLBody += "<th style='padding: 8px; text-align: left;'>Device ID</th>"
+        $HTMLBody += "<th style='padding: 8px; text-align: left;'>Serial Number</th>"
+        $HTMLBody += "<th style='padding: 8px; text-align: left;'>Primary User</th>"
         $HTMLBody += "</tr>"
         
         $sortedDevices = $filteredDevices | Sort-Object -Property lastSyncDateTime
@@ -248,16 +259,16 @@ if ($sendAlertTo) {
         foreach ($device in $sortedDevices) {
             $lastSync = Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd
             $deviceName = $device.deviceName
-            $os = "$($device.operatingSystem) $($device.osVersion)"
+            $deviceId = $device.id
+            $serialNumber = $device.serialNumber
             $user = $device.userPrincipalName
-            $compliant = $device.complianceState
             
             $HTMLBody += "<tr>"
             $HTMLBody += "<td style='padding: 8px;'>$lastSync</td>"
             $HTMLBody += "<td style='padding: 8px;'>$deviceName</td>"
-            $HTMLBody += "<td style='padding: 8px;'>$os</td>"
+            $HTMLBody += "<td style='padding: 8px;'>$deviceId</td>"
+            $HTMLBody += "<td style='padding: 8px;'>$serialNumber</td>"
             $HTMLBody += "<td style='padding: 8px;'>$user</td>"
-            $HTMLBody += "<td style='padding: 8px;'>$compliant</td>"
             $HTMLBody += "</tr>"
         }
         
@@ -269,7 +280,7 @@ if ($sendAlertTo) {
     
     # Send email
     $message = @{
-        subject      = "[Automated Report] Stale Devices Report - $Days days"
+        subject      = "[Automated Report] Stale Devices Report - $tenantDisplayName - $Days days"
         body         = @{
             contentType = "HTML"
             content     = $HTMLBody
