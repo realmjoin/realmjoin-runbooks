@@ -44,57 +44,25 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 # Connect to Microsoft Graph
 Connect-RjRbGraph -Force
 
-# Diagnostic: Check permissions
-Write-Output "## Checking permissions..."
+# Get Intune device details directly
 try {
-    # Test Device.Read.All permission
-    $deviceTest = Invoke-RjRbRestMethodGraph -Resource "/devices?`$top=1" -ErrorAction Stop
-    Write-Output "- Device.Read.All permission: Available"
-}
-catch {
-    Write-Output "- Device.Read.All permission: NOT available"
-    Write-Output "  Error: $_"
-}
-
-try {
-    # Test DeviceManagementManagedDevices.Read.All permission
-    $deviceMgmtTest = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices?`$top=1" -ErrorAction Stop
-    Write-Output "- DeviceManagementManagedDevices.Read.All permission: Available"
-}
-catch {
-    Write-Output "- DeviceManagementManagedDevices.Read.All permission: NOT available"
-    Write-Output "  Error: $_"
-}
-
-Write-Output ""
-
-# Get device details first
-try {
-    $deviceDetailsResponse = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'"
-    if ($deviceDetailsResponse) {
+    # Get Intune device to get serial number and Intune device ID
+    $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
+    
+    if ($intuneDevice) {
         Write-Output "## Device Details:"
-        Write-Output "- Device Name: $($deviceDetailsResponse.displayName)"
+        Write-Output "- Device Name: $($intuneDevice.deviceName)"
+        Write-Output "- Serial Number: $($intuneDevice.serialNumber)"
+        $intuneDeviceId = $intuneDevice.id
         
         # Check if it's a macOS device
-        if ($deviceDetailsResponse.operatingSystem -ne "macOS") {
-            Write-Output "## Warning: This device does not appear to be a macOS device (OS: $($deviceDetailsResponse.operatingSystem))"
+        if ($intuneDevice.operatingSystem -ne "macOS") {
+            Write-Output "## Warning: This device does not appear to be a macOS device (OS: $($intuneDevice.operatingSystem))"
             Write-Output "## FileVault is only available on macOS devices."
-        }
-        
-        # Get Intune device to get serial number and Intune device ID
-        $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
-        if ($intuneDevice) {
-            Write-Output "- Serial Number: $($intuneDevice.serialNumber)"
-            $intuneDeviceId = $intuneDevice.id
-        }
-        else {
-            Write-Output "- Serial Number: Not available"
-            Write-Output "## Error: Device not found in Intune. FileVault key cannot be retrieved."
-            exit
         }
     }
     else {
-        Write-Output "## Error: Device not found in Azure AD."
+        Write-Output "## Error: Device not found in Intune. FileVault key cannot be retrieved."
         exit
     }
 }
@@ -105,7 +73,7 @@ catch {
 
 # Get FileVault recovery key for the device
 Write-Output ""
-Write-Output "## Getting FileVault recovery key for device: $($deviceDetailsResponse.displayName)"
+Write-Output "## Getting FileVault recovery key for device: $($intuneDevice.deviceName)"
 
 try {
     # Use the Intune device ID to get the FileVault key
@@ -148,4 +116,4 @@ Write-Output "1. Ensure the device is a macOS device"
 Write-Output "2. Ensure FileVault is enabled on the device"
 Write-Output "3. Ensure the device is enrolled in Intune"
 Write-Output "4. Ensure the enterprise app has DeviceManagementManagedDevices.Read.All permission"
-Write-Output "5. Ensure admin consent has been granted for the permissions"
+Write-Output "5. If you're seeing authentication errors, try running the script again"
