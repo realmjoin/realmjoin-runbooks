@@ -84,7 +84,7 @@ param(
     [bool] $Android = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Email address to send the report to" } )]
     [string] $sendAlertTo,
-    [string] $sendAlertFrom = "runbooks@glueckkanja.com",
+    [string] $sendAlertFrom = "runbook@glueckkanja.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
