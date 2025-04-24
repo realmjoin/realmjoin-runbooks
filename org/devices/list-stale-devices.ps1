@@ -120,11 +120,10 @@ foreach ($device in $devices) {
     if ($include) {
         # Try to get additional user information
         try {
-            $userInfo = Invoke-RjRbRestMethodGraph -Resource "/Users/$($device.userPrincipalName)" -OdSelect "displayName, city, department, usageLocation" -ErrorAction SilentlyContinue
+            $userInfo = Invoke-RjRbRestMethodGraph -Resource "/Users/$($device.userPrincipalName)" -OdSelect "displayName, city, usageLocation" -ErrorAction SilentlyContinue
             
             if ($userInfo) {
                 $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
-                $device | Add-Member -Name "userDepartment" -Value $userInfo.department -MemberType "NoteProperty" -Force
                 $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
             }
         }
@@ -166,21 +165,18 @@ Write-Output ""
 
 # Display the filtered devices
 $filteredDevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSize -Property @{
-    name       = "LastSync"; 
+    name       = "LastSync";
     expression = { Get-Date $_.lastSyncDateTime -Format yyyy-MM-dd }
 }, @{
-    name       = "DeviceName"; 
+    name       = "DeviceName";
     expression = { if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0, 14) + ".." } else { $_.deviceName } }
 }, @{
-    name       = "OS"; 
+    name       = "OS";
     expression = { "$($_.operatingSystem) $($_.osVersion)" }
 }, @{
-    name       = "User"; 
+    name       = "User";
     expression = { if ($_.userPrincipalName.Length -gt 20) { $_.userPrincipalName.substring(0, 19) + ".." } else { $_.userPrincipalName } }
 }, @{
-    name       = "Department"; 
-    expression = { if ($_.userDepartment.Length -gt 15) { $_.userDepartment.substring(0, 14) + ".." } else { $_.userDepartment } }
-}, @{
-    name       = "Compliant"; 
+    name       = "Compliant";
     expression = { $_.complianceState }
 }
