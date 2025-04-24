@@ -46,6 +46,40 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 # Connect to Microsoft Graph
 Connect-RjRbGraph -Force
 
+# Diagnostic: Check permissions by testing access to different endpoints
+Write-Output "## Checking permissions..."
+try {
+    # Test Device.Read.All permission
+    $deviceTest = Invoke-RjRbRestMethodGraph -Resource "/devices?`$top=1" -ErrorAction Stop
+    Write-Output "- Device.Read.All permission: Available"
+}
+catch {
+    Write-Output "- Device.Read.All permission: NOT available"
+    Write-Output "  Error: $_"
+}
+
+try {
+    # Test if we can access BitLocker API (v1.0 endpoint)
+    $bitlockerTest = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/bitlocker/recoveryKeys?`$top=1" -ErrorAction Stop
+    Write-Output "- BitlockerKey.Read.All permission: Available"
+}
+catch {
+    Write-Output "- BitlockerKey.Read.All permission: NOT available (v1.0 endpoint)"
+    Write-Output "  Error: $_"
+    
+    # Try beta endpoint as fallback
+    try {
+        $bitlockerTestBeta = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/bitlocker/recoveryKeys?`$top=1" -Beta -ErrorAction Stop
+        Write-Output "- BitlockerKey.Read.All permission: Available (beta endpoint)"
+    }
+    catch {
+        Write-Output "- BitlockerKey.Read.All permission: NOT available (beta endpoint)"
+        Write-Output "  Error: $_"
+    }
+}
+
+Write-Output ""
+
 # Get device details first
 try {
     $deviceDetailsResponse = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'"
@@ -116,12 +150,67 @@ catch {
         Write-Output "## No recovery keys found."
         Write-RjRbLog -Message "## Error: $($errorResponse)" -Verbose
     }
-    elseif ($errorResponse -match '403') {
+    elseif ($errorResponse -match '403' -or $errorResponse -match 'authorization_error') {
         Write-Output "## Forbidden. Check Graph permissions of automation account."
+        Write-Output "## Required permission: BitlockerKey.Read.All"
+        Write-Output "## Note: This permission must be granted with admin consent."
+        Write-Output "## Verify in Azure Portal: Azure Active Directory > App registrations > Your App > API permissions"
         Write-RjRbLog -Message "## Error: $($errorResponse)" -Verbose
+        
+        # Try beta endpoint as fallback
+        Write-Output ""
+        Write-Output "## Attempting to use beta endpoint as fallback..."
+        try {
+            $recoveryKeysResponseBeta = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/bitlocker/recoveryKeys" -OdFilter "deviceId eq '$DeviceId'" -Method GET -Beta
+            
+            if (-not $recoveryKeysResponseBeta -or $recoveryKeysResponseBeta.Count -eq 0) {
+                Write-Output "## No BitLocker recovery keys found for this device (beta endpoint)."
+                exit
+            }
+            
+            Write-Output "## Found $($recoveryKeysResponseBeta.Count) BitLocker recovery key(s) using beta endpoint"
+            Write-Output "## Keys are sorted by creation date (newest first)"
+            
+            # Sort recovery keys by creation date (newest first)
+            $sortedRecoveryKeysBeta = $recoveryKeysResponseBeta | Sort-Object -Property createdDateTime -Descending
+            
+            # Display information about each recovery key
+            foreach ($recoveryKeyInfo in $sortedRecoveryKeysBeta) {
+                $recoveryKeyId = $recoveryKeyInfo.id
+                Write-Output ""
+                Write-Output "## Recovery Key ID: $recoveryKeyId"
+                Write-Output "- Created: $($recoveryKeyInfo.createdDateTime)"
+                
+                # Get the actual recovery key
+                try {
+                    $recoveryKeyResponse = Invoke-RjRbRestMethodGraph -Resource "/informationProtection/bitlocker/recoveryKeys/$recoveryKeyId" -OdSelect "key" -Method GET -Beta
+                    
+                    if ($recoveryKeyResponse) {
+                        Write-Output "- Recovery Key: $($recoveryKeyResponse.key)"
+                    }
+                    else {
+                        Write-Output "- Unable to retrieve the recovery key value."
+                    }
+                }
+                catch {
+                    $errorResponse = $_
+                    Write-Output "- Error retrieving recovery key: $errorResponse"
+                }
+            }
+        }
+        catch {
+            Write-Output "## Beta endpoint also failed. Error: $_"
+        }
     }
     else {
         Write-Output "## Error retrieving BitLocker recovery keys."
         Write-Output "## Error: $($errorResponse)"
     }
 }
+
+Write-Output ""
+Write-Output "## Troubleshooting Notes:"
+Write-Output "1. Ensure the enterprise app has BitlockerKey.Read.All permission"
+Write-Output "2. Ensure admin consent has been granted for the permission"
+Write-Output "3. The BitLocker API might require using the beta endpoint in some cases"
+Write-Output "4. If using a service principal, ensure it has the correct application permissions"
