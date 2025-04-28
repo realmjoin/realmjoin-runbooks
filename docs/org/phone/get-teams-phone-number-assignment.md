@@ -19,14 +19,6 @@ If a Teams user is found for the phone number, the following details are display
 - Dial plan
 - Tenant dial plan
 
-## Notes
-Permissions:
-MS Graph (API):
-- Organization.Read.All
-
-RBAC:
-- Teams Administrator
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
