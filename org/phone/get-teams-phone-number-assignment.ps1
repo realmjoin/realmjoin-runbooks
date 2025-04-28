@@ -8,14 +8,6 @@
   .PARAMETER PhoneNumber
   The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
-
-  RBAC:
-  - Teams Administrator
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -31,7 +23,7 @@
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.9.0" }
 
 param(
     [parameter(Mandatory = $true)]
