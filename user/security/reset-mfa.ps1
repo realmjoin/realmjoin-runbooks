@@ -23,7 +23,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -95,7 +95,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
     }
 
     $appAMs | ForEach-Object {
-        "## Trying to remove app method, id: $($_.id)" 
+        "## Trying to remove app method, id: $($_.id)"
         try {
             Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/microsoftAuthenticatorMethods/$($_.id)" -Method Delete -Beta | Out-Null
         }
@@ -120,7 +120,7 @@ while (($count -le 3) -and (($phoneAMs) -or ($appAMs) -or ($OATHAMs) -or ($fido2
 
     # "Find FIDO2 auth methods for user $UserName"
     $fido2AMs = $OATHAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/fido2Methods" -Beta
-    
+
 }
 
 if ($count -le 3) {

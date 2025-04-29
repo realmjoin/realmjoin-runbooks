@@ -8,7 +8,7 @@
  .NOTES
  Permissions:
  MS Graph (API):
- - GroupMember.ReadWrite.All 
+ - GroupMember.ReadWrite.All
  - Group.ReadWrite.All
  - Directory.Read.All
  - CloudPC.ReadWrite.All (Beta)
@@ -83,7 +83,7 @@
         "DisplayName": "(Shared) Mailbox to send mail from: "
     }
  }
- 
+
  .EXAMPLE
  "user_general_reprovision-windows365": {
     "Parameters": {
@@ -97,7 +97,7 @@
  }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -127,7 +127,7 @@ if (-not $targetUser) {
     throw ("User $UserName not found.")
 }
 
-# Fetch the user selected license 
+# Fetch the user selected license
 $licWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$licWin365GroupName'"
 
 # Find which of the licenses are in use/assigned to the user
@@ -137,18 +137,18 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
     $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
     # If it's exactly one license, grab the Cloud PC info that is registered under this license and start reprovisioning
     if (([array]$assignedLicenses).count -eq 1) {
-        $skuId = $assignedLicenses.skuId 
-        $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+        $skuId = $assignedLicenses.skuId
+        $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
         $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
         $cloudPCs = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
         $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
 
         # body of reprovision request
         $body = @{}
-        
+
         "## Starting reprovision for: " + $cloudPC.managedDeviceName + " with the service plan: " + $cloudPC.servicePlanName
         Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/reprovision" -Beta -Method Post -Body $body
-        
+
         # check if "Notify user when CloudPC reprovisioning has begun?" switch has been set to true and send email to the User
         if ($sendMailWhenReprovisioning) {
             "## Cloud PC Reprovisioning has been triggered. Informing User."
@@ -175,13 +175,13 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
                     }
                 }
             }
-    
+
             $message.toRecipients = [array]@{
                 emailAddress = @{
                     address = $UserName
                 }
             }
-    
+
             ## Check if user has a mailbox. If not do not send an email but continue the RB
             $checkMailboxExists = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Get -OdSelect mail
             if ($null -ne $checkMailboxExists.mail) {
@@ -193,10 +193,10 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
             }
         }
         else {
-            "## User has chosen not to send Mail to '$UserName'. " 
+            "## User has chosen not to send Mail to '$UserName'. "
         }
-    } 
-    # if more than 1 license 
+    }
+    # if more than 1 license
     elseif ($assignedLicenses.count -gt 1) {
         "## More than one license assigned to '$licWin365GroupName'. Taking no action."
         throw "Multiple Licenses assigned to group."
@@ -204,7 +204,7 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
     # if the selected license is not applicable to the user
 }
 else {
-    "## '$UserName' does not have '$licWin365GroupName'." 
+    "## '$UserName' does not have '$licWin365GroupName'."
     "## Can not reprovision."
     throw "Wrong license selected."
 }

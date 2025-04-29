@@ -23,7 +23,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -98,7 +98,7 @@ foreach ($policy in $adminTemplatesResponse) {
         }
     }
 
-    "" 
+    ""
 }
 
 Write-RjRbLog -Message "Completed listing Administrative Template policies" -Verbose

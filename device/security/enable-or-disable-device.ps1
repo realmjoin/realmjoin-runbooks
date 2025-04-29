@@ -34,7 +34,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -56,7 +56,7 @@ Connect-RjRbGraph
 $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found.")
-} 
+}
 
 if ($targetDevice.operatingSystem -ne "Windows") {
     # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
@@ -82,7 +82,7 @@ if ($targetDevice.accountEnabled) {
     }
 }
 else {
-    if ($Enable) { 
+    if ($Enable) {
         "## Enabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
         try {
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
@@ -93,6 +93,6 @@ else {
         }
     }
     else {
-        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in AzureAD."        
+        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in AzureAD."
     }
 }

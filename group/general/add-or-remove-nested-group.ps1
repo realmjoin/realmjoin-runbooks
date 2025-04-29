@@ -3,10 +3,10 @@
   Add/remove a nested group to/from a group.
 
   .DESCRIPTION
-  Add/remove a nested group to/from an AzureAD or Exchange Online group. 
+  Add/remove a nested group to/from an AzureAD or Exchange Online group.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API)
   - Group.ReadWrite.All
   - Directory.ReadWrite.All
@@ -27,7 +27,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -48,7 +48,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
 
-# "Find the nested group " 
+# "Find the nested group "
 $nestedGroup = Invoke-RjRbRestMethodGraph -Resource "/groups/$NestedGroupID" -ErrorAction SilentlyContinue
 if (-not $nestedGroup) {
     throw ("(Nested) Group '$NestedGroupId' not found.")
@@ -66,14 +66,14 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
     $body = @{
         "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$NestedGroupID"
     }
-    
-    # "Is nestedGroup member of the the group?" 
+
+    # "Is nestedGroup member of the the group?"
     if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$NestedGroupID" -ErrorAction SilentlyContinue) {
         if ($Remove) {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$NestedGroupID/`$ref" -Method Delete -Body $body | Out-Null
             "## '$($nestedGroup.displayName)' is removed from '$($targetGroup.displayName)'."
         }
-        else {    
+        else {
             "## Group '$($nestedGroup.displayName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
         }
     }
@@ -83,10 +83,10 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
         }
         else {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($nestedGroup.displayName)' is added to '$($targetGroup.DisplayName)'."  
+            "## '$($nestedGroup.displayName)' is added to '$($targetGroup.DisplayName)'."
         }
     }
-} 
+}
 else {
     "## Group type: Exchange Online"
     try {

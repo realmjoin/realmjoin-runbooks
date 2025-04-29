@@ -6,12 +6,12 @@
   Enable/disable external parties to send eMails to O365 groups.
 
   .NOTES
-  Permissions: 
+  Permissions:
    Office 365 Exchange Online
    - Exchange.ManageAsApp
   Azure AD Roles
    - Exchange administrator
-  Notes: Setting this via graph is currently broken as of 2021-06-28: 
+  Notes: Setting this via graph is currently broken as of 2021-06-28:
    attribute: allowExternalSenders
    https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property
 
@@ -36,7 +36,8 @@
     }
 #>
 
-#Requires -Modules ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.7.2" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param
 (
@@ -64,7 +65,7 @@ try {
     if (-not $group) {
         throw "`'$GroupId`' is not a unified (O365) group. Can not proceed."
     }
-    
+
     if ($Action -eq 1) {
         # "Disable external mailing for $GroupId"
         try {
@@ -75,7 +76,7 @@ try {
         }
         "## External mailing successfully disabled for '$($group.displayName)'"
     }
-    
+
     if ($Action -eq 0) {
         # "Enabling external mailing for $GroupId"
         try {

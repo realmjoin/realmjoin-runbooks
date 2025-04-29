@@ -3,8 +3,8 @@
 Retrieves the members of a specified EntraID group, including members from nested groups.
 
 .DESCRIPTION
-This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups. 
-The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path. 
+This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
+The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
 The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
 
 .PARAMETER GroupId
@@ -23,7 +23,7 @@ RunbookCustomization: {
     "Parameters": {
         "GroupId": {
             "Hide": true
-        },        
+        },
         "CallerName": {
             "Hide": true
         }
@@ -39,12 +39,12 @@ param(
     [string] $CallerName
 )
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.25.0" }
 
 ########################################################
 #region     function declaration
-##          
+##
 ########################################################
 function Get-GroupMembership {
     param (
@@ -57,7 +57,7 @@ function Get-GroupMembership {
     # Get the group object
     $group = Invoke-MGGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups/$GroupObjectId"
     $CurrentGroupPath = if ($ParentGroupPath) { "$ParentGroupPath;$($group.DisplayName)" } else { $group.DisplayName }
-    
+
     # Get the members of the group
     $members = @()
     $uri = "https://graph.microsoft.com/v1.0/groups/$GroupObjectId/members"
@@ -89,7 +89,7 @@ function Get-GroupMembership {
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller in Verbose output
@@ -110,7 +110,7 @@ Write-RjRbLog -Message "CallerName: $CallerName" -Verbose
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 # Initiate Graph Session
@@ -122,7 +122,7 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 
 #endregion

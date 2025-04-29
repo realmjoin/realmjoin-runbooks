@@ -27,7 +27,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -55,13 +55,13 @@ try {
     $OldPasses = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Beta
     $OldPasses | ForEach-Object {
         Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods/$($_.id)" -Beta -Method Delete | Out-Null
-    } 
+    }
 }
 catch {
     "Querying of existing Temp. Access Passes failed. Maybe you are missing Graph API permissions:"
     "- 'UserAuthenticationMethod.ReadWrite.All' (API)"
 
-    throw ($_) 
+    throw ($_)
 }
 
 try {
@@ -72,14 +72,14 @@ try {
         "lifetimeInMinutes" = $LifetimeInMinutes;
         "isUsableOnce"      = $OneTimeUseOnly
     }
-    $pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post 
+    $pass = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName/authentication/temporaryAccessPassMethods" -Body $body -Beta -Method Post
 
     if ($pass.methodUsabilityReason -eq "DisabledByPolicy") {
         "## Beware: The use of Temporary access passes seems to be disabled for this user."
         ""
     }
 
-    "## New Temporary access pass for '$UserName' with a lifetime of $LifetimeInMinutes minutes has been created:" 
+    "## New Temporary access pass for '$UserName' with a lifetime of $LifetimeInMinutes minutes has been created:"
     ""
     "$($pass.temporaryAccessPass)"
 }

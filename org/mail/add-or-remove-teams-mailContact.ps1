@@ -38,13 +38,13 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)]    
+    [Parameter(Mandatory = $true)]
     [string] $RealAddress,
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $DesiredAddress,
     [string] $DisplayName,
     [bool] $Remove = $false,
@@ -98,12 +98,12 @@ try {
     if (-not $Remove) {
         $neweMailAddresses += "smtp:$DesiredAddress"
     }
-    
+
     Set-MailContact -Identity $contact.Name -EmailAddresses $neweMailAddresses
 
     "## Successfully modified mailContact '$($contact.Name)'"
 
 }
-finally {   
+finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }

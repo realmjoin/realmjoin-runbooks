@@ -3,11 +3,11 @@
   Sync all Intune devices.
 
   .DESCRIPTION
-  Sync all Intune devices. 
+  Sync all Intune devices.
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
   # CallerName is tracked purely for auditing purposes
@@ -26,5 +26,5 @@ $mgdDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDev
 
 $mgdDevices | ForEach-Object {
   "## Triggering Sync: $($_.deviceName)"
-  Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.id)/syncDevice" -Method Post -ErrorAction SilentlyContinue 
+  Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.id)/syncDevice" -Method Post -ErrorAction SilentlyContinue
 }

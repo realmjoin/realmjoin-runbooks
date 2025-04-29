@@ -25,7 +25,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [int] $Days = 90,
@@ -48,13 +48,13 @@ $lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yy
 try {
     Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" -FollowPaging | Select-Object -Property appDisplayName, appId, createdDateTime | Group-Object -Property appId | ForEach-Object {
         $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object -First 1
-        $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"        
+        $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
         if ($first.createdDateTime -le $lastSignInDate) {
             $app = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
             Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($app.Id)" -Method Patch -body @{ notes = $(($first.createdDateTime).ToString('o')) }
             $loginTime = New-TimeSpan -Start $first.createdDateTime -End (Get-Date)
             # Some apps seem to have no DisplayName...
-            if ($app.appDisplayName) { 
+            if ($app.appDisplayName) {
                 "## $($app.appDisplayName): no logins for $($loginTime.Days) Days"
             }
             else {
@@ -79,7 +79,7 @@ try {
     $unusedApps = (Compare-Object $AllApps $UsedApps).InputObject
     foreach ($app in $unusedApps) {
         # Some apps seem to have no DisplayName...
-        if ($app.appDisplayName) { 
+        if ($app.appDisplayName) {
             "## $($app.appDisplayName): no logins recorded in auditLog"
         }
         else {
