@@ -4,14 +4,9 @@
 
   .DESCRIPTION
   Remove the phone number and specific policies from a teams-enabled user.
-  
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
 
-  RBAC:
-  - Teams Administrator
+  .PARAMETER UserName
+  User which should be cleared. Could be filled with the user picker in the UI.
 
   .INPUTS
   RunbookCustomization: {
@@ -39,7 +34,7 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -56,7 +51,7 @@ Write-RjRbLog -Message "UserName: $UserName" -Verbose
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 Write-Output "Connect to Microsoft Teams..."
@@ -78,7 +73,7 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -87,7 +82,7 @@ catch {
 
 ########################################################
 ##             Get StatusQuo
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -189,7 +184,7 @@ Write-Output "Current TeamsMeetingBroadcastPolicy (Live Event Policy): $CurrentT
 
 ########################################################
 ##             Remove Number from User
-##          
+##
 ########################################################
 
 Write-Output ""

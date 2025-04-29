@@ -1,17 +1,27 @@
 <#
   .SYNOPSIS
   Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
-  
+
   .DESCRIPTION
   Set up instant call forwarding for a Microsoft Teams Enterprise Voice user. Forwarding to another Microsoft Teams Enterprise Voice user or to an external phone number.
-  
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
 
-  RBAC:
-  - Teams Administrator
+  .PARAMETER UserName
+  User which should be set up. Could be filled with the user picker in the UI.
+
+  .PARAMETER ForwardTargetPhoneNumber
+  Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
+
+  .PARAMETER ForwardTargetTeamsUser
+  Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
+
+  .PARAMETER ForwardToVoicemail
+  Forward calls to voicemail.
+
+  .PARAMETER ForwardToDelegates
+  Forward calls to delegates which are defined by the user.
+
+  .PARAMETER TurnOffForward
+  Turn off immediate call forwarding.
 
   .INPUTS
   RunbookCustomization: {
@@ -141,7 +151,7 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
-          
+
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
@@ -163,7 +173,7 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -185,7 +195,7 @@ Write-RjRbLog -Message "TurnOffForward: $TurnOffForward" -Verbose
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 Write-Output "Connect to Microsoft Teams..."
@@ -207,7 +217,7 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -216,7 +226,7 @@ catch {
 
 ########################################################
 ##             StatusQuo & Preflight-Check Part
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -288,11 +298,11 @@ if ($ForwardToDelegates) {
     else {
         Write-Output "There is at least one delegate - check ok!"
     }
-    
+
 }
 ########################################################
 ##             Main Part
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Start set process"

@@ -1,17 +1,12 @@
 <#
   .SYNOPSIS
   Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
-  
+
   .DESCRIPTION
   Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
-  
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
 
-  RBAC:
-  - Teams Administrator
+  .PARAMETER UserName
+  The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
 
   .INPUTS
   RunbookCustomization: {
@@ -39,7 +34,7 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -56,7 +51,7 @@ Write-RjRbLog -Message "UserName: $UserName" -Verbose
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 try {
@@ -76,18 +71,18 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
 
-# Add check symbol to variable, wich is compatible with powershell 5.1 
+# Add check symbol to variable, wich is compatible with powershell 5.1
 $symbol_check = [char]0x2714
 
 #endregion
 ########################################################
 #region     Collect basic information
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -376,7 +371,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 else {
                     Write-Output "WARNING: The application Teams Phone System from the assigned license is NOT enabled or could not be verified!"
                 }
-                
+
             }
             else {
                 Write-Output ""

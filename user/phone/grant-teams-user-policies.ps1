@@ -1,18 +1,34 @@
 <#
   .SYNOPSIS
-  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
-  
-  .DESCRIPTION
-  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
-  If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-  
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
+  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 
-  RBAC:
-  - Teams Administrator
+  .DESCRIPTION
+  Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
+  If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER UserName
+  User which should be granted the policies. Could be filled with the user picker in the UI.
+
+  .PARAMETER OnlineVoiceRoutingPolicy
+  Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TenantDialPlan
+  Microsoft Teams Tenant Dial Plan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TeamsCallingPolicy
+  Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TeamsIPPhonePolicy
+  Microsoft Teams IP-Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER OnlineVoicemailPolicy
+  Microsoft Teams Online Voicemail Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TeamsMeetingPolicy
+  Microsoft Teams Meeting Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TeamsMeetingBroadcastPolicy
+  Microsoft Teams Meeting Broadcast Policy Name (Live Event Policy). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
   .INPUTS
   RunbookCustomization: {
@@ -31,7 +47,7 @@
         },
         "TeamsIPPhonePolicy": {
             "DisplayName": "Microsoft Teams IP-Phone Policy Name (a.o. for Common Area Phone Users)"
-        },        
+        },
         "TeamsMeetingPolicy": {
             "DisplayName": "Microsoft Teams Meeting Policy Name"
         },
@@ -67,7 +83,7 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -91,7 +107,7 @@ Write-RjRbLog -Message "TeamsMeetingBroadcastPolicy: $TeamsMeetingBroadcastPolic
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 Write-Output "Connect to Microsoft Teams..."
@@ -113,7 +129,7 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -122,7 +138,7 @@ catch {
 
 ########################################################
 ##             StatusQuo & Preflight-Check Part
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -363,7 +379,7 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
 
 ########################################################
 ##             Main Part
-##          
+##
 ########################################################
 
 Write-Output ""
@@ -378,7 +394,7 @@ if ($OnlineVoiceRoutingPolicy -notlike "") {
             Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }
         else {
-            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop   
+            Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop
         }
     }
     catch {
@@ -396,7 +412,7 @@ if ($TenantDialPlan -notlike "") {
             Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }
         else {
-            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
+            Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop
         }
     }
     catch {
@@ -414,10 +430,10 @@ if ($TeamsCallingPolicy -notlike "") {
             Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }
         else {
-            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
-        }  
+            Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop
+        }
     }
-    catch {        
+    catch {
         $message = $_
         Write-Error -Message "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsCallingPolicy for $UPN could not be completed!"
@@ -432,10 +448,10 @@ if ($TeamsIPPhonePolicy -notlike "") {
             Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }
         else {
-            Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop  
-        }  
+            Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop
+        }
     }
-    catch {        
+    catch {
         $message = $_
         Write-Error -Message "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of TeamsIPPhonePolicy for $UPN could not be completed!"
@@ -450,10 +466,10 @@ if ($OnlineVoicemailPolicy -notlike "") {
             Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }
         else {
-            Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop  
-        }  
+            Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop
+        }
     }
-    catch {        
+    catch {
         $message = $_
         Write-Error -Message "Teams - Error: The assignment of OnlineVoicemailPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
         throw "Teams - Error: The assignment of OnlineVoicemailPolicy for $UPN could not be completed!"
@@ -469,7 +485,7 @@ if ($TeamsMeetingPolicy -notlike "") {
         }
         else {
             Grant-CsTeamsMeetingPolicy -Identity $UPN -PolicyName $TeamsMeetingPolicy -ErrorAction Stop
-        }    
+        }
     }
     catch {
         $message = $_
@@ -486,8 +502,8 @@ if ($TeamsMeetingBroadcastPolicy -notlike "") {
             Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
         }
         else {
-            Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $TeamsMeetingBroadcastPolicy -ErrorAction Stop 
-        }     
+            Grant-CsTeamsMeetingBroadcastPolicy -Identity $UPN -PolicyName $TeamsMeetingBroadcastPolicy -ErrorAction Stop
+        }
     }
     catch {
         $message = $_
