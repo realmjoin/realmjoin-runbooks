@@ -6,7 +6,7 @@
   Monitor/Report expiry of Apple device management certificates.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API)
   - DeviceManagementManagedDevices.Read.All,
   - DeviceManagementServiceConfig.Read.All,
@@ -15,9 +15,9 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
-param(    
+param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
     [int] $Days = 300,

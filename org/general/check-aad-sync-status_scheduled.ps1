@@ -14,8 +14,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
-
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 param(
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -44,7 +43,7 @@ if ($organization) {
     foreach ($org in $organization) {
         $syncEnabled = $org.onPremisesSyncEnabled
         $lastSyncDate = $org.onPremisesLastSyncDateTime
-        
+
         if ($syncEnabled -eq $true) {
             $HTMLBody += "<p>Azure AD Connect sync is enabled.</p>"
             $HTMLBody += "<p>Last sync date and time: $lastSyncDate</p>"
