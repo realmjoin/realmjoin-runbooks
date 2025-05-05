@@ -26,7 +26,7 @@
   DeviceNames, CallerName, and IncludeApps
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -276,10 +276,10 @@ foreach ($deviceName in $DeviceNamesArray) {
         "## ------- Assigned Apps (Available) for $deviceName -------"
         foreach ($app in $deviceRelevantAppsAvailable) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" 
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
 
-        "## ------- Assigned Apps (Uninstall) for $deviceName -------" 
+        "## ------- Assigned Apps (Uninstall) for $deviceName -------"
         foreach ($app in $deviceRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
             "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"

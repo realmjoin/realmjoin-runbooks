@@ -64,7 +64,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -155,17 +155,17 @@ foreach ($AADGroup in $TargetAADGroups) {
     foreach ($targetUser in $SourceGroupMembers) {
         if ($ExclusionGroupMembers.id -notcontains $targetUser.Id) {
             #"## Processing user '$($targetUser.userPrincipalName)'"
-            if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $targetUser.id)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $targetUser.id))) {    
+            if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $targetUser.id)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $targetUser.id))) {
                 "## - Adding user '$($targetUser.userPrincipalName)'"
                 $bindings += "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
             }
             #else {
             #"## User is already member of '$($AADGroup.displayName)'. Skipping."
-            #}    
+            #}
             if ($bindings.count -gt 15) {
                 $GroupJson = @{"members@odata.bind" = $bindings }
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)" -Method Patch -Body $GroupJson | Out-Null
-                #"## Updated group '$($AADGroup.displayName)'" 
+                #"## Updated group '$($AADGroup.displayName)'"
                 $bindings = @()
             }
             #else {
@@ -173,11 +173,11 @@ foreach ($AADGroup in $TargetAADGroups) {
             #}
         }
     }
-    
+
     if ($bindings) {
         $GroupJson = @{"members@odata.bind" = $bindings }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)" -Method Patch -Body $GroupJson | Out-Null
-        #"## Updated group '$($AADGroup.displayName)'." 
+        #"## Updated group '$($AADGroup.displayName)'."
     }
     ""
 }

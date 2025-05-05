@@ -6,7 +6,7 @@
   Import a device into Intune via corporate identifier.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API):
   - DeviceManagementServiceConfig.ReadWrite.All
 
@@ -29,7 +29,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -76,7 +76,7 @@ $body = @{
         importedDeviceIdentifier   = $CorpIdentifier
         importedDeviceIdentityType = $CorpIdentifierType
         description                = $DeviceDescripton
-        enrollmentState            = "enrolled"    
+        enrollmentState            = "enrolled"
     }
     overwriteImportedDeviceIdentities = $OverwriteExistingEntry
 }

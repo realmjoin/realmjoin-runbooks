@@ -23,7 +23,7 @@
   GroupId, UpdateCategory, and CallerName
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -59,15 +59,15 @@ function Unenroll-Device {
                 id            = $DeviceId
             }
         )
-    } 
+    }
 
     if ($UpdateCategory -eq "all") {
         $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method DELETE -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph
-        Write-Output "- Triggered unenroll from updatableAssets via deletion."   
+        Write-Output "- Triggered unenroll from updatableAssets via deletion."
         if ($errorGraph) {
             Write-Output "- Error: $($errorGraph.message)"
             Write-RjRbLog -Message "- Error: $($errorGraph)" -Verbose
-        }  
+        }
     }
     else {
         $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/unenrollAssets" -Method POST -Body $unenrollBody -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph

@@ -7,7 +7,7 @@
 
   .NOTES
   Permissions
-   MS Graph (API): 
+   MS Graph (API):
    - DeviceManagementManagedDevices.Read.All
 
   .INPUTS
@@ -45,7 +45,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save report to CSV file (instead of printing it to console)?" } )]
@@ -121,24 +121,24 @@ foreach ($appreg in $appregs) {
 
                 $outputBase = "$PWD\$appID"
                 $outputFile = "$PWD\$appID.pfx"
-                $iter = 1    
-                while (Test-Path $outputFile) {                    
+                $iter = 1
+                while (Test-Path $outputFile) {
                     $outputFile = ( -join ($outputBase, '-', ([string]$iter), '.pfx'))
                     $iter += 1
                 }
                 Write-RjRbLog "Testing keyId $($cred.keyId)"
                 [IO.File]::WriteAllBytes($outputFile, [Convert]::FromBase64String($cred.Key))
-                $certResults = Get-PfxData $outputFile     
+                $certResults = Get-PfxData $outputFile
             }
 
             if (($null -ne $certResults) -and $isBefore) {
                 if ($ExportToFile) {
-                    Write-RjRbLog "`t$displayName - $appID - has a potentially vulnerable stored credentials"    
+                    Write-RjRbLog "`t$displayName - $appID - has a potentially vulnerable stored credentials"
                 }
                 else {
-                    "## $DisplayName - $appID - $appID - has a potentially vulnerable stored credentials"    
+                    "## $DisplayName - $appID - $appID - has a potentially vulnerable stored credentials"
                 }
-                $AffectedAppRegs += "$displayName `t $appID" 
+                $AffectedAppRegs += "$displayName `t $appID"
             }
             if (Test-Path $outputFile) {
                 Remove-Item $outputFile | Out-Null
@@ -153,9 +153,9 @@ if ($ExportToFile) {
         $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
         if (-not $storAccount) {
             "## Creating Azure Storage Account $($StorageAccountName)"
-            $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+            $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
         }
- 
+
         # Get access to the Storage Account
         $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
         $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
@@ -164,14 +164,14 @@ if ($ExportToFile) {
         $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
         if (-not $container) {
             "## Creating Azure Storage Account Container $($ContainerName)"
-            $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+            $container = New-AzStorageContainer -Name $ContainerName -Context $context
         }
         $filename = "AffectedAppRegs.csv"
         $blobname = "$(get-date -Format yyyy-MM-dd)-AffectedAppRegs.csv"
         $AffectedAppRegs | ConvertTo-Csv -Delimiter ";" > $filename
-        $content = Get-Content -Path $filename 
+        $content = Get-Content -Path $filename
         set-content -Value $content -Path $filename -Encoding UTF8
-        
+
         Write-RjRbLog "Upload"
         Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
 

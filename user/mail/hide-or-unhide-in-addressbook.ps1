@@ -43,7 +43,7 @@
                                     "HideMailbox": false
                                 }
                             }
-                        } 
+                        }
                     ]
                 },
                 "Default": "Hide the Mailbox in Address Book"
@@ -57,11 +57,11 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
     [bool] $HideMailbox = $true,
     # CallerName is tracked purely for auditing purposes
@@ -86,12 +86,12 @@ try {
     Connect-RjRbExchangeOnline
 
     if ($HideMailbox) {
-        Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $true 
+        Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $true
         "## Mailbox '$UserName' is hidden."
     }
     else {
         Set-Mailbox -Identity $UserName -HiddenFromAddressListsEnabled $false
-        "## Mailbox '$UserName' is not hidden."    
+        "## Mailbox '$UserName' is not hidden."
     }
 
 }

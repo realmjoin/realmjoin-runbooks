@@ -26,7 +26,7 @@
   GroupNames, CallerName, and IncludeApps
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -70,7 +70,7 @@ foreach ($groupName in $GroupNamesArray) {
 
     # Get Intune Configuration Policies
     Write-RjRbLog -Message "Fetching Intune Configuration Policies" -Verbose
-    "## Fetching Intune Configuration Policies" 
+    "## Fetching Intune Configuration Policies"
     $policiesResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies" -Beta -FollowPaging
 
     # Check each configuration policy for assignments that match group's ID
@@ -267,10 +267,10 @@ foreach ($groupName in $GroupNamesArray) {
         "## ------- Assigned Apps (Available) for $groupName -------"
         foreach ($app in $groupRelevantAppsAvailable) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" 
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
 
-        "## ------- Assigned Apps (Uninstall) for $groupName -------" 
+        "## ------- Assigned Apps (Uninstall) for $groupName -------"
         foreach ($app in $groupRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
             "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"

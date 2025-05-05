@@ -26,11 +26,11 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.2.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.2.0" }
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -64,7 +64,7 @@ try {
     (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
         $sobTrustee = Get-Recipient -Identity $_ | Where-Object { $_.RecipientType -eq "UserMailbox" }
         foreach ($trustee in [array]$sobTrustee) {
-            $result = @{}   
+            $result = @{}
             $result.Identity = $user.Identity
             $result.Trustee = $trustee.PrimarySmtpAddress
             $result.AccessRights = "{SendOnBehalf}"

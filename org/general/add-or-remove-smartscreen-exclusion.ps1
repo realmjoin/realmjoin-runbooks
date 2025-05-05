@@ -1,6 +1,6 @@
 <#
   .SYNOPSIS
-  Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators 
+  Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
 
   .DESCRIPTION
   List/Add/Remove URL indicators entries in MS Security Center.
@@ -11,7 +11,7 @@
   .NOTES
   Permissions: WindowsDefenderATP:
   - Ti.ReadWrite.All
- 
+
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -63,7 +63,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     # 0 - list, 1 - add, 2 - remove
@@ -91,7 +91,7 @@ $indicators = Invoke-RjRbRestMethodDefenderATP -Resource "/indicators" -FollowPa
 if ($action -eq 0) {
     "## Listing all current URL indicators from Security Center:"
     $indicators | Select-Object -Property @{name = "Domain"; expression = { $_.indicatorValue } }, action | Format-Table -AutoSize | Out-String
-    exit 
+    exit
 }
 
 # Either add or remove...
@@ -101,7 +101,7 @@ if ($matchingIndicators) {
         "## Trying to add indicator for URL '$Url' - alread exists:"
         $matchingIndicators | Select-Object -Property @{name = "Domain"; expression = { $_.indicatorValue } }, action | Format-Table -AutoSize | Out-String
         "## Stopping"
-        exit 
+        exit
     }
     else {
         "## Removing indicators for URL '$Url'."
