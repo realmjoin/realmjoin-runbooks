@@ -1,12 +1,12 @@
 <#
   .SYNOPSIS
-  Archive a team. 
+  Archive a team.
 
   .DESCRIPTION
-  Decomission an inactive team while preserving its contents for review. 
+  Decomission an inactive team while preserving its contents for review.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph - Application
   - TeamSettings.ReadWrite.All
 
@@ -23,7 +23,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -61,7 +61,7 @@ if ($team.isArchived) {
 try {
     Invoke-RjRbRestMethodGraph -Resource "/teams/$GroupID/archive" -Method Post | Out-Null
 }
-catch { 
+catch {
     # Currently this always return a "BadRequest" - but seems to be working
 }
 ""

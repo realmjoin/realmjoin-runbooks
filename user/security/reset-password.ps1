@@ -1,6 +1,6 @@
 <#
   .SYNOPSIS
-  Reset a user's password. 
+  Reset a user's password.
 
   .DESCRIPTION
   Reset a user's password. The user will have to change it on signin. Does not work with PW writeback to onprem AD.
@@ -23,7 +23,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -75,7 +75,7 @@ $body = @{
 }
 Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
 
-"## Password reset successful." 
+"## Password reset successful."
 if ($ForceChangePasswordNextSignIn) {
     "## User will have to change PW at next login."
 }

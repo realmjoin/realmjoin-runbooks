@@ -6,7 +6,7 @@
   Add a device to a group. Primarily intended for Windows 11 Self Service upgrades.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API)
   - Group.ReadWrite.All
   - Directory.ReadWrite.All
@@ -14,7 +14,7 @@
   if "UserGroupId"/"AddUserToGroup" is used:
   - DeviceManagementManagedDevices.Read.All
 
-  .EXAMPLE 
+  .EXAMPLE
           "rjgit-internal_device_assign-group": {
             "Parameters": {
                 "AddDeviceToGroup": {
@@ -33,7 +33,7 @@
         }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     # RJ will pass the "DeviceID" != AAD "ObjectID". Be aware :)
@@ -45,7 +45,7 @@ param(
     # Add the prim. user of the device to a specific group? (Win11 Users)
     [bool] $AddUserToGroup = $false,
     [String] $UserGroupID = "9d7b59ac-89dd-4b6b-a37a-22a94f886905",
-    # Track 
+    # Track
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -57,7 +57,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
 
-# "Find the device object " 
+# "Find the device object "
 $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'"
 if (-not $targetDevice) {
     throw ("Device ID '$DeviceId' not found.")
@@ -76,16 +76,16 @@ if ($AddDeviceToGroup) {
         $body = @{
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetDevice.id)"
         }
-    
-        # "Is device member of the the group?" 
+
+        # "Is device member of the the group?"
         if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$($targetDevice.id)" -ErrorAction SilentlyContinue) {
             "## Device '$($targetDevice.DisplayName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
         }
         else {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($targetDevice.DisplayName)' is added to '$($targetGroup.DisplayName)'."  
+            "## '$($targetDevice.DisplayName)' is added to '$($targetGroup.DisplayName)'."
         }
-    } 
+    }
     else {
         "## Group '$($targetGroup.DisplayName)' is not an AzureAD group. Exiting."
     }
@@ -109,21 +109,21 @@ if ($AddUserToGroup) {
         if (-not $targetUserId) {
             throw "No primary user found for device '$($targetDevice.displayName)'."
         }
-        
+
         # Prepare Request
         $body = @{
             "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$targetUserId"
         }
-    
-        # "Is user member of the the group?" 
+
+        # "Is user member of the the group?"
         if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$targetUserId" -ErrorAction SilentlyContinue) {
             "## User '$($mgdDevice.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
         }
         else {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($mgdDevice.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."  
+            "## '$($mgdDevice.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."
         }
-    } 
+    }
     else {
         "## Group '$($targetGroup.DisplayName)' is not an AzureAD group. Exiting."
     }

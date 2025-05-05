@@ -6,7 +6,7 @@
   Import a windows device into Windows Autopilot.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API):
   - DeviceManagementServiceConfig.ReadWrite.All
 
@@ -14,7 +14,7 @@
   RunbookCustomization: {
         "Parameters": {
             "SerialNumber": {
-                "DisplayName": "'Device Serial Number' from Get-WindowsAutopilotInfo"   
+                "DisplayName": "'Device Serial Number' from Get-WindowsAutopilotInfo"
             },
             "HardwareIdentifier": {
                 "DisplayName": "'Hardware Hash' from Get-WindowsAutopilotInfo"
@@ -33,7 +33,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -59,7 +59,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 Connect-RjRbGraph
 
 $body = @{
-    serialNumber       = $SerialNumber 
+    serialNumber       = $SerialNumber
     hardwareIdentifier = $HardwareIdentifier
     # groupTag = ""
 }

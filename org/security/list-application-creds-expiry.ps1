@@ -6,7 +6,7 @@
   List expiry date of all AppRegistration credentials
 
   .NOTES
-  Permissions: 
+  Permissions:
    MS Graph - Application Permission
     Application.Read.All
 
@@ -48,7 +48,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [bool] $listOnlyExpiring = $true,
@@ -70,7 +70,7 @@ $ApplicationIdArray = $ApplicationIds -split "," | ForEach-Object { $_.Trim() }
 Connect-RjRbGraph
 [array]$apps = @()
 $apps = Invoke-RjRbRestMethodGraph -Resource "/applications" -FollowPaging
-$apps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" 
+$apps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals"
 
 $date = Get-Date
 
@@ -80,7 +80,7 @@ foreach ($app in $apps) {
     }
 
     if (($app.keyCredentials) -or ($app.passwordCredentials)) {
-    
+
         $app.keyCredentials | ForEach-Object {
             $enddate = [datetime]$_.endDateTime
             $daysLeft = (New-TimeSpan -Start $date -End $enddate).days

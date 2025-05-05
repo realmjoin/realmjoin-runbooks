@@ -20,10 +20,10 @@ param(
         [string] $OwaPolicyName = "BookingsCreators",
         # CallerName is tracked purely for auditing purposes
         [Parameter(Mandatory = $true)]
-        [string] $CallerName    
+        [string] $CallerName
 )
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
@@ -59,7 +59,7 @@ $splatParams | Format-Table -AutoSize | Out-String
 
 if ($CreateOwaPolicy) {
         if (get-owaMailboxPolicy -Identity $OwaPolicyName -ErrorAction SilentlyContinue) {
-                "## OWA Policy '$OwaPolicyName' already exists. Skipping."        
+                "## OWA Policy '$OwaPolicyName' already exists. Skipping."
         }
         else {
                 New-OwaMailboxPolicy -Name $OwaPolicyName | Out-Null
@@ -69,4 +69,4 @@ if ($CreateOwaPolicy) {
         "## Disabled Bookings in default OWA policy."
 }
 
-Disconnect-ExchangeOnline -Confirm:$false 
+Disconnect-ExchangeOnline -Confirm:$false

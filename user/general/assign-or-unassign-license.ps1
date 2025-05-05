@@ -9,7 +9,7 @@
   Permissions:
   MS Graph (API):
   - User.Read.All
-  - GroupMember.ReadWrite.All 
+  - GroupMember.ReadWrite.All
   - Group.ReadWrite.All
 
   .INPUTS
@@ -32,7 +32,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -67,13 +67,13 @@ if (-not $group.displayName.startswith($groupPrefix, 'CurrentCultureIgnoreCase')
 
 "## Trying to assign license group '$($group.displayName)' to '$UserName'"
 
-# "Find the user object " + $UserName) 
+# "Find the user object " + $UserName)
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$UserName'" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
     throw ("User $UserName not found.")
 }
 
-# "Is user member of the the group?" 
+# "Is user member of the the group?"
 if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID_License/members/$($targetUser.id)" -ErrorAction SilentlyContinue) {
     if ($Remove) {
         #"Removing license."

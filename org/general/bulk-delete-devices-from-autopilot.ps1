@@ -12,7 +12,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -33,7 +33,7 @@ $SerialNumberArray = $SerialNumbers -split "," | ForEach-Object { $_.Trim() }
 Connect-RjRbGraph
 
 foreach ($SerialNumber in $SerialNumberArray) {
-    $autopilotdevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$SerialNumber')" -ErrorAction SilentlyContinue 
+    $autopilotdevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$SerialNumber')" -ErrorAction SilentlyContinue
     if ($autopilotdevice) {
         "Deleting Autopilot device with Serial Number: $($serialNumber)"
         try {

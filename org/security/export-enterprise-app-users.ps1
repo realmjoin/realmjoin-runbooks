@@ -3,10 +3,10 @@
   Export a CSV of all (entprise) app owners and users
 
   .DESCRIPTION
-  Export a CSV of all (entprise) app owners and users. 
+  Export a CSV of all (entprise) app owners and users.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API)
   - Directory.Read.All
   - Application.Read.All
@@ -30,7 +30,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
@@ -63,13 +63,13 @@ Connect-RjRbGraph
 Connect-RjRbAzAccount
 
 try {
-    # Configuration import - fallback to Az Automation Variable 
+    # Configuration import - fallback to Az Automation Variable
     if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku)) {
         $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
         #if (-not $processConfigRaw) {
         ## production default - use this as template to create the Az. Automation Variable "SettingsExports"
         #    $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
-        #    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+        #    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL
         #    $processConfigRaw = $webResult.Content        ## staging default
         #}
         # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
@@ -126,9 +126,9 @@ try {
     $servicePrincipals | ForEach-Object {
         $AppId = $_.appId
         $AppDisplayName = $_.displayName
-        $AccountEnabled = $_.accountEnabled 
-        $HideApp = $_.tags -contains "hideapp" 
-        $AssignmentRequired = $_.appRoleAssignmentRequired 
+        $AccountEnabled = $_.accountEnabled
+        $HideApp = $_.tags -contains "hideapp"
+        $AssignmentRequired = $_.appRoleAssignmentRequired
 
         if ($_.notes) {
             $Notes = [string]::join(" ", ($_.notes.Split("`n") -replace (';', ',')))
@@ -143,13 +143,13 @@ try {
             $owners | ForEach-Object {
                 #"Owner: $($_.userPrincipalName)"
                 "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;$($_.userPrincipalName);$Notes" >> enterpriseApps.csv
-            } 
+            }
         }
         else {
             # Make sure to list apps missing an owner
             "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Owner;User;;$Notes" >> enterpriseApps.csv
         }
-    
+
         # Get App Role assignments
         $users = Invoke-RjRbRestMethodGraph -resource "/servicePrincipals/$($_.id)/appRoleAssignedTo"
         $users | ForEach-Object {
@@ -167,7 +167,7 @@ try {
                 #"Assigned to ServicePrincipal: $($_.principalId)"
                 "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;ServicePrincipal;$($_.principalId);$Notes" >> enterpriseApps.csv
             }
-        
+
         }
     }
     $content = Get-Content -Path "enterpriseApps.csv"
@@ -177,9 +177,9 @@ try {
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
     }
- 
+
     # Get access to the Storage Account
     $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
     $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
@@ -188,12 +188,12 @@ try {
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
         "## Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+        $container = New-AzStorageContainer -Name $ContainerName -Context $context
     }
- 
+
     # Upload
     Set-AzStorageBlobContent -File "enterpriseApps.csv" -Container $ContainerName -Blob "enterpriseApps.csv" -Context $context -Force | Out-Null
- 
+
     #Create signed (SAS) link
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "enterpriseApps.csv" -FullUri -ExpiryTime $EndTime
@@ -201,7 +201,7 @@ try {
     "## App Owner/User List Export created."
     "## Expiry of Link: $EndTime"
     $SASLink | Out-String
-    
+
 }
 catch {
     throw $_

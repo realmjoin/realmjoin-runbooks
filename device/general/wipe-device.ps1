@@ -3,7 +3,7 @@
   Wipe a Windows or MacOS device
 
   .DESCRIPTION
-  Wipe a Windows or MacOS device. 
+  Wipe a Windows or MacOS device.
 
   .NOTES
   PERMISSIONS
@@ -93,7 +93,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -124,7 +124,7 @@ Connect-RjRbGraph
 $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if (-not $targetDevice) {
     throw ("DeviceId $DeviceId not found in AzureAD.")
-} 
+}
 $owner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)/registeredOwners" -ErrorAction SilentlyContinue
 
 "## Processing device '$($targetDevice.displayName)' (DeviceId '$DeviceId')"
@@ -146,8 +146,8 @@ if ($disableAADDevice) {
         catch {
             "## Error Message: $($_.Exception.Message)"
             "## Please see 'All logs' for more details."
-            "## Execution stopped." 
-            throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
+            "## Execution stopped."
+            throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!"
         }
     }
     else {
@@ -163,9 +163,9 @@ if ($removeAADDevice) {
     catch {
         "## Error Message: $($_.Exception.Message)"
         "## Please see 'All logs' for more details."
-        "## Execution stopped." 
+        "## Execution stopped."
         throw "Deleting Object ID $($targetDevice.id) from AzureAD failed!"
-        
+
     }
 }
 
@@ -196,7 +196,7 @@ if ($mgdDevice) {
         catch {
             "## Error Message: $($_.Exception.Message)"
             "## Please see 'All logs' for more details."
-            "## Execution stopped."     
+            "## Execution stopped."
             throw "Wiping DeviceID $DeviceID (Intune ID: $($mgdDevice.id)) failed!"
         }
     }
@@ -208,7 +208,7 @@ if ($mgdDevice) {
         catch {
             "## Error Message: $($_.Exception.Message)"
             "## Please see 'All logs' for more details."
-            "## Execution stopped."     
+            "## Execution stopped."
             throw "Deleting Intune ID: $($mgdDevice.id) from Intune failed!"
         }
     }
@@ -230,7 +230,7 @@ if ($removeAutopilotDevice) {
         catch {
             "## Error Message: $($_.Exception.Message)"
             "## Please see 'All logs' for more details."
-            "## Execution stopped."     
+            "## Execution stopped."
             throw "Deleting Autopilot ID: $($apDevice.id) from Autopilot failed!"
         }
     }

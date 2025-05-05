@@ -39,7 +39,7 @@
                                 }
                             }
                         ]
-                        
+
                     },
                     "Default": "Add/Update eMail address"
                 }
@@ -63,13 +63,13 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $eMailAddress,
     [bool] $Remove = $false,
     [bool] $asPrimary = $false,
@@ -130,21 +130,21 @@ try {
             else {
                 "## Update primary address"
                 [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$eMailAddress" }) + [array]("SMTP:$eMailAddress")
-                #$eMailAddressList += "SMTP:$eMailAddress" 
+                #$eMailAddressList += "SMTP:$eMailAddress"
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
                 "## Successfully updated primary eMail address"
                 ""
                 "## Waiting for Exchange to update the mailbox..."
                 Start-Sleep -Seconds 30
-            }   
+            }
         }
     }
     else {
         # eMail-Address is not present
         if (-not $Remove) {
-            # Add email address    
+            # Add email address
             if ($asPrimary) {
-                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower()) + [array]("SMTP:$eMailAddress") 
+                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower()) + [array]("SMTP:$eMailAddress")
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
             }
             else {
@@ -165,6 +165,6 @@ try {
     Get-EXOMailbox -UserPrincipalName $UserName
 
 }
-finally {   
+finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }

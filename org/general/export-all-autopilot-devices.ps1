@@ -47,7 +47,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [bool] $ExportToFile = $false,
@@ -158,7 +158,7 @@ foreach ($apDevice in $APDevices) {
     if (-not $ExportToFile) {
         "## AutoPilot Device $($apDevice.id)"
         $tempresult = foreach ($key in $result.keys) {
-            "$($key): $($result[$key])" 
+            "$($key): $($result[$key])"
         }
         $tempresult | Format-List | Out-String
         ""
@@ -176,35 +176,35 @@ if ($ExportToFile) {
         $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
         if (-not $storAccount) {
             "## Creating Azure Storage Account $($StorageAccountName)"
-            $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+            $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
         }
-     
+
         # Get access to the Storage Account
         $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
         $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-    
+
         # Make sure, container exists
         $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
         if (-not $container) {
             "## Creating Azure Storage Account Container $($ContainerName)"
-            $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+            $container = New-AzStorageContainer -Name $ContainerName -Context $context
         }
-    
+
         $FileName = "$(Get-Date -Format "yyyy-MM-dd")-autopilot-devices.csv"
         #$Exportdevices | ConvertTo-Csv -Delimiter ";" > $FileName
         $ExportDevices | foreach-object {
             New-Object PSObject -Property $_
         } | ConvertTo-Csv -Delimiter ";" > $FileName
-    
-        $content = Get-Content -Path $FileName 
+
+        $content = Get-Content -Path $FileName
         set-content -Path $FileName -Value $content -Encoding utf8
-        
+
         # Upload
         Set-AzStorageBlobContent -File $FileName -Container $ContainerName -Blob $FileName -Context $context -Force | Out-Null
-    
+
         $EndTime = (Get-Date).AddDays(6)
         $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $FileName -FullUri -ExpiryTime $EndTime
-    
+
         "## Inactive Devices Export created."
         "## Expiry of Link: $EndTime"
         $SASLink | Out-String
@@ -214,5 +214,5 @@ if ($ExportToFile) {
     }
     finally {
         Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
-    }    
+    }
 }

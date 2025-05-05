@@ -38,7 +38,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -75,14 +75,14 @@ function Resolve-GroupId {
     param (
         [string]$Group
     )
-    
+
     if ($Group -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
         return $Group
     }
     else {
         $resolvedGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$Group'" -FollowPaging
         #Write-RjRbLog -Message "Resolved group details: $(ConvertTo-Json $resolvedGroups)" -Verbose
-        
+
         if ($resolvedGroups -is [System.Collections.IEnumerable]) {
             if ($resolvedGroups.Count -eq 1) {
                 return $resolvedGroups[0].id
@@ -130,11 +130,11 @@ foreach ($User in $UserGroupMembers) {
 
     Write-RjRbLog -Message "Retrieving owned devices for user: $($User.displayName), ID: $UserId" -Verbose
     $UserDevices = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId/ownedDevices" -FollowPaging | Where-Object {
-        ($IncludeWindowsDevice -and $_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or 
-        ($IncludeMacOSDevice -and $_.operatingSystem -eq "MacMDM") -or 
-        ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or 
+        ($IncludeWindowsDevice -and $_.operatingSystem -eq "Windows" -and $_.trustType -eq "AzureAd") -or
+        ($IncludeMacOSDevice -and $_.operatingSystem -eq "MacMDM") -or
+        ($IncludeLinuxDevice -and $_.operatingSystem -eq "Linux") -or
         ($IncludeAndroidDevice -and $_.operatingSystem -eq "Android") -or
-        ($IncludeAndroidDevice -and $_.operatingSystem -eq "AndroidForWork") -or 
+        ($IncludeAndroidDevice -and $_.operatingSystem -eq "AndroidForWork") -or
         ($IncludeIOSDevice -and ($_.operatingSystem -eq "iOS" -or $_.operatingSystem -eq "IPhone")) -or
         ($IncludeIPadOSDevice -and ($_.operatingSystem -eq "iPadOS" -or $_.operatingSystem -eq "IPad"))
     }

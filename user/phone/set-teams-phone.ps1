@@ -1,18 +1,28 @@
 <#
   .SYNOPSIS
-  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. 
-  
+  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+
   .DESCRIPTION
   Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
   If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-  
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
 
-  RBAC:
-  - Teams Administrator
+  .PARAMETER UserName
+  User which should be assigned. Could be filled with the user picker in the UI.
+
+  .PARAMETER PhoneNumber
+  Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
+
+  .PARAMETER OnlineVoiceRoutingPolicy
+  Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TenantDialPlan
+  Microsoft Teams DialPlan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TeamsCallingPolicy
+  Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+  .PARAMETER TeamsIPPhonePolicy
+  Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
   .INPUTS
   RunbookCustomization: {
@@ -39,7 +49,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
 
 param(
@@ -70,7 +80,7 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -92,7 +102,7 @@ Write-RjRbLog -Message "TeamsIPPhonePolicy: $TeamsIPPhonePolicy" -Verbose
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 Write-Output "Connect to Microsoft Teams..."
@@ -114,7 +124,7 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -123,7 +133,7 @@ catch {
 
 ########################################################
 ##             StatusQuo & Preflight-Check Part
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -251,7 +261,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 if (($LicenseTimeStamp.AddHours(24) -gt $Now)) {
                     Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
                 }
-                
+
             }
             else {
                 Write-Output ""
@@ -434,13 +444,13 @@ if ($OnlineVoicemailPolicy -notlike "") {
     if ($TMP -notlike "") {
         Clear-Variable TMP
     }
-    
+
 }
 
 
 ########################################################
 ##             Main Part
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Start set process"
@@ -478,8 +488,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
                 Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }
             else {
-                Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop  
-            }  
+                Grant-CsOnlineVoiceRoutingPolicy -Identity $UPN -PolicyName $OnlineVoiceRoutingPolicy -ErrorAction Stop
+            }
         }
         catch {
             $message = $_
@@ -496,7 +506,7 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
                 Grant-CsTenantDialPlan -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }
             else {
-                Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop  
+                Grant-CsTenantDialPlan -Identity $UPN -PolicyName $TenantDialPlan -ErrorAction Stop
             }
         }
         catch {
@@ -514,8 +524,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
                 Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }
             else {
-                Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop  
-            } 
+                Grant-CsTeamsCallingPolicy -Identity $UPN -PolicyName $TeamsCallingPolicy -ErrorAction Stop
+            }
         }
         catch {
             $message = $_
@@ -532,8 +542,8 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
                 Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }
             else {
-                Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop  
-            } 
+                Grant-CsTeamsIPPhonePolicy -Identity $UPN -PolicyName $TeamsIPPhonePolicy -ErrorAction Stop
+            }
         }
         catch {
             $message = $_
@@ -550,10 +560,10 @@ if (($OnlineVoiceRoutingPolicy -notlike "") -or ($TenantDialPlan -notlike "") -o
                 Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $null -ErrorAction Stop #reset to default
             }
             else {
-                Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop  
-            }  
+                Grant-CsOnlineVoicemailPolicy -Identity $UPN -PolicyName $OnlineVoicemailPolicy -ErrorAction Stop
+            }
         }
-        catch {        
+        catch {
             $message = $_
             Write-Error -Message "Teams - Error: The assignment of OnlineVoicemailPolicy for $UPN could not be completed! Error Message: $message" -ErrorAction Continue
             throw "Teams - Error: The assignment of OnlineVoicemailPolicy for $UPN could not be completed!"

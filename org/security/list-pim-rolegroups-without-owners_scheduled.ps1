@@ -18,7 +18,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [bool] $sendEmailIfFound = $true,
@@ -42,7 +42,7 @@ $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "isAssignable
 $result = @()
 $groups | ForEach-Object {
     $roleAssignments = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -OdFilter "principalId eq '$($_.id)'"
-    $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/owners" 
+    $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/owners"
     if (($owners.count -eq 0) -and ($roleAssignments.count -gt 0)) {
         "$($_.displayName)"
         $result += $_
@@ -67,7 +67,7 @@ if ($sendEmailIfFound -and ($result.Count -gt 0)) {
         $(foreach ($group in $result) {
             "<tr><td>$($group.displayName)</td></tr>"
         })
-    </table>   
+    </table>
     <br>
     This is an automated eMail. Please do not reply to this eMail.<br>
 "@
@@ -79,7 +79,7 @@ if ($sendEmailIfFound -and ($result.Count -gt 0)) {
             content     = $HTMLBody
         }
     }
-    
+
     $message.toRecipients = [array]@{
         emailAddress = @{
             address = $To

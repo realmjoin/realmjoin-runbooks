@@ -20,7 +20,7 @@
   DeviceId and CallerName
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -52,10 +52,10 @@ try {
     Write-RjRbLog -Message "- onboardingResponse: $onboardingResponse"
     if ($onboardingResponse) {
         $status = "Onboarded"
-        $errors = if ($onboardingResponse.errors) { 
+        $errors = if ($onboardingResponse.errors) {
                 ($onboardingResponse.errors | ForEach-Object { $_.reason }) -join ", "
         }
-        else { 
+        else {
             "None"
         }
         Write-Output "- Status: $status"

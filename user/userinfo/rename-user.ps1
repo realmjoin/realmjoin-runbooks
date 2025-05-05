@@ -6,7 +6,7 @@
   Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph API
   - Directory.Read.All
   - User.ReadWrite.All
@@ -35,10 +35,10 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param(
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
     [string] $NewUpn,
@@ -63,7 +63,7 @@ try {
     Connect-RjRbExchangeOnline
 
     ## Get original UPN
-    # $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" 
+    # $userObject = Invoke-RjRbRestMethodGraph -resource "/users/$UserName"
 
     # Change UPN
     $body = @{
@@ -85,9 +85,9 @@ try {
             $newAdresses.Add("SMTP:$NewUpn") | Out-Null
 
             foreach ($address in $mailbox.EmailAddresses) {
-                $prefix = $address.Split(":")[0] 
+                $prefix = $address.Split(":")[0]
                 $mail = $address.Split(":")[1]
-            
+
                 if ($prefix -notlike "sip") {
                     if ($mail -ne $NewUpn ) {
                         $newAdresses.Add($address.ToLower()) | Out-Null
@@ -99,7 +99,7 @@ try {
             Set-Mailbox -Identity $UserName -EmailAddresses $newAdresses | Out-Null
         }
     }
-    
+
     "## User '$UserName' successfully renamed to '$NewUpn'"
 }
 finally {

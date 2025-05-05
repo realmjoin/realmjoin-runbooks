@@ -1,17 +1,12 @@
 <#
   .SYNOPSIS
   Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
-  
+
   .DESCRIPTION
   Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
-  
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
 
-  RBAC:
-  - Teams Administrator
+  .PARAMETER UserName
+  The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
 
   .INPUTS
   RunbookCustomization: {
@@ -24,7 +19,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
 
 param(
@@ -33,13 +28,12 @@ param(
     [String] $UserName,
 
     # CallerName is tracked purely for auditing purposes
-    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -49,14 +43,12 @@ if ($CallerName) {
 
 $Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
-Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "UserName: $UserName" -Verbose
 
 #endregion
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 try {
@@ -76,18 +68,18 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
 
-# Add check symbol to variable, wich is compatible with powershell 5.1 
+# Add check symbol to variable, wich is compatible with powershell 5.1
 $symbol_check = [char]0x2714
 
 #endregion
 ########################################################
 #region     Collect basic information
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -120,7 +112,7 @@ $currentWarningPreference = $WarningPreference
 $WarningPreference = "SilentlyContinue"
 $callQueues = Get-CsCallQueue | Select-Object -Property Name, Agents
 $WarningPreference = $currentWarningPreference
-
+Write-Output " - Received Call Queues: $(($callQueues | Measure-Object).Count)"
 $CurrentLineUri = $StatusQuo.LineURI -replace ("tel:", "")
 
 if (!($CurrentLineUri.ToString().StartsWith("+"))) {
@@ -141,76 +133,40 @@ else {
 }
 
 #OnlineVoiceRoutingPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoiceRoutingPolicy").PolicyName -like "") {
-    $CurrentOnlineVoiceRoutingPolicy = "Global"
-}
-else {
-    $CurrentOnlineVoiceRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoiceRoutingPolicy").PolicyName
-}
+$CurrentOnlineVoiceRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoiceRoutingPolicy").PolicyName
+$CurrentOnlineVoiceRoutingPolicy = if ($CurrentOnlineVoiceRoutingPolicy -like "") { "Global" } else { $CurrentOnlineVoiceRoutingPolicy }
 
 #CallingPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "CallingPolicy").PolicyName -like "") {
-    $CurrentCallingPolicy = "Global"
-}
-else {
-    $CurrentCallingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "CallingPolicy").PolicyName
-}
+$CurrentCallingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "CallingPolicy").PolicyName
+$CurrentCallingPolicy = if ($CurrentCallingPolicy -like "") { "Global" } else { $CurrentCallingPolicy }
 
-# TenantDialPlan
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TenantDialPlan").PolicyName -like "") {
-    $CurrentTenantDialPlan = "Global"
-}
-else {
-    $CurrentTenantDialPlan = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TenantDialPlan").PolicyName
-}
+#TenantDialPlan
+$CurrentTenantDialPlan = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TenantDialPlan").PolicyName
+$CurrentTenantDialPlan = if ($CurrentTenantDialPlan -like "") { "Global" } else { $CurrentTenantDialPlan }
 
 #TeamsIPPhonePolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsIPPhonePolicy").PolicyName -like "") {
-    $CurrentTeamsIPPhonePolicy = "Global"
-}
-else {
-    $CurrentTeamsIPPhonePolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsIPPhonePolicy").PolicyName
-}
+$CurrentTeamsIPPhonePolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsIPPhonePolicy").PolicyName
+$CurrentTeamsIPPhonePolicy = if ($CurrentTeamsIPPhonePolicy -like "") { "Global" } else { $CurrentTeamsIPPhonePolicy }
 
 #OnlineVoicemailPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoicemailPolicy").PolicyName -like "") {
-    $CurrentOnlineVoicemailPolicy = "Global"
-}
-else {
-    $CurrentOnlineVoicemailPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoicemailPolicy").PolicyName
-}
+$CurrentOnlineVoicemailPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "OnlineVoicemailPolicy").PolicyName
+$CurrentOnlineVoicemailPolicy = if ($CurrentOnlineVoicemailPolicy -like "") { "Global" } else { $CurrentOnlineVoicemailPolicy }
 
 #TeamsMeetingPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingPolicy").PolicyName -like "") {
-    $CurrentTeamsMeetingPolicy = "Global"
-}
-else {
-    $CurrentTeamsMeetingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingPolicy").PolicyName
-}
+$CurrentTeamsMeetingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingPolicy").PolicyName
+$CurrentTeamsMeetingPolicy = if ($CurrentTeamsMeetingPolicy -like "") { "Global" } else { $CurrentTeamsMeetingPolicy }
 
 #TeamsMeetingBroadcastPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName -like "") {
-    $CurrentTeamsMeetingBroadcastPolicy = "Global"
-}
-else {
-    $CurrentTeamsMeetingBroadcastPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName
-}
+$CurrentTeamsMeetingBroadcastPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName
+$CurrentTeamsMeetingBroadcastPolicy = if ($CurrentTeamsMeetingBroadcastPolicy -like "") { "Global" } else { $CurrentTeamsMeetingBroadcastPolicy }
 
-#TeamsVoiceApplicationsPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicationsPolicy").PolicyName -like "") {
-    $CurrentTeamsVoiceApplicationsPolicy = "Global"
-}
-else {
-    $CurrentTeamsVoiceApplicationsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicationsPolicy").PolicyName
-}
+#TeamsVoiceApplicaitonsPolicy
+$CurrentTeamsVoiceApplicaitonsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicaitonsPolicy").PolicyName
+$CurrentTeamsVoiceApplicaitonsPolicy = if ($CurrentTeamsVoiceApplicaitonsPolicy -like "") { "Global" } else { $CurrentTeamsVoiceApplicaitonsPolicy }
 
 #TeamsSharedCallingRoutingPolicy
-if (($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName -like "") {
-    $CurrentTeamsSharedCallingRoutingPolicy = "Global"
-}
-else {
-    $CurrentTeamsSharedCallingRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName
-}
+$CurrentTeamsSharedCallingRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName
+$CurrentTeamsSharedCallingRoutingPolicy = if ($CurrentTeamsSharedCallingRoutingPolicy -like "") { "Global" } else { $CurrentTeamsSharedCallingRoutingPolicy }
 
 if ($StatusQuo_PhoneNumber.NumberType -like "") {
     $CurrentNumberType = "none"
@@ -297,9 +253,11 @@ if (($StatusQuo_Forward.IsForwardingEnabled -eq $true) -and ($StatusQuo_Forward.
 else {
     Write-Output "Immediate call forwarding is not active"
 }
+
 #endregion
+
 ########################################################
-#region     Teams Call Queue membership
+#region Teams Call Queue membership
 ##
 ########################################################
 
@@ -324,8 +282,9 @@ else {
 }
 
 #endregion
+
 ########################################################
-#region     License check
+#region License check
 ##
 ########################################################
 
@@ -376,7 +335,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 else {
                     Write-Output "WARNING: The application Teams Phone System from the assigned license is NOT enabled or could not be verified!"
                 }
-                
+
             }
             else {
                 Write-Output ""
@@ -402,6 +361,3 @@ else {
 
 Write-Output ""
 Write-Output "Done!"
-
-Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
-Get-PSSession | Remove-PSSession | Out-Null

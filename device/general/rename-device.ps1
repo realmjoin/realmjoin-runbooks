@@ -6,7 +6,7 @@
   Rename a device (in Intune and Autopilot).
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API):
   - Device.Read.All
   - DeviceManagementManagedDevices.Read.All
@@ -26,7 +26,7 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
   [Parameter(Mandatory = $true)]
@@ -34,7 +34,7 @@ param (
   [Parameter(Mandatory = $true)]
   [string] $NewDeviceName = "",
   [Parameter(Mandatory = $true)]
-  [string]$CallerName 
+  [string]$CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -55,7 +55,7 @@ if (-not $targetDevice) {
 
 "## Getting Intune Device for '$($targetDevice.displayName)'"
 
-$intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" 
+$intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'"
 if (-not $intuneDevice) {
   "## No Intune device for '$($targetDevice.displayName)' found."
 }
@@ -71,7 +71,7 @@ else {
 
 "## Getting AutoPilot device for '$($targetDevice.displayName)'"
 
-$apDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "azureActiveDirectoryDeviceId eq '$DeviceId'" 
+$apDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "azureActiveDirectoryDeviceId eq '$DeviceId'"
 if (-not $apDevice) {
   "## No AutoPilot Device for $($targetDevice.displayName) found."
 }
@@ -89,5 +89,5 @@ if ($isRenamed) {
   "## Please check the Intune and AutoPilot portals for the status of the rename operation, as this does not happen immediately."
 }
 else {
-  "## No rename operation triggered."	
+  "## No rename operation triggered."
 }

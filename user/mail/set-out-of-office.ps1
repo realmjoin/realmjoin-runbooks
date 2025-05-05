@@ -66,16 +66,16 @@
             "End": {
                 "DisplayName": "End Date"
             },
-            
+
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
     [bool] $Disable = $false,
     [System.DateTime] $Start = (get-date),
@@ -124,5 +124,5 @@ try {
 
 }
 finally {
-    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null    
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }

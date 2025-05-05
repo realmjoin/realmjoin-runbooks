@@ -10,7 +10,7 @@
 
   .NOTES
   Permissions
-   MS Graph (API): 
+   MS Graph (API):
    - Policy.Read.All
    Azure IaaS: Access to the given Azure Storage Account / Resource Group
 
@@ -25,7 +25,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "CaPoliciesExport.Container" } )]
@@ -63,7 +63,7 @@ function Export-PolicyObjects {
         else {
             "## Will not overwrite " + ($name + ".json") + ". Skipping."
         }
-     
+
     }
 
 }
@@ -74,13 +74,13 @@ if (-not $ContainerName) {
 
 try {
 
-    # Configuration import - fallback to Az Automation Variable 
+    # Configuration import - fallback to Az Automation Variable
     if ((-not $ResourceGroupName) -or (-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku)) {
         $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
         #if (-not $processConfigRaw) {
         ## production default
         #    $processConfigURL = "https://raw.githubusercontent.com/realmjoin/realmjoin-runbooks/production/setup/defaults/settings-org-policies-export.json"
-        #    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL 
+        #    $webResult = Invoke-WebRequest -UseBasicParsing -Uri $processConfigURL
         #    $processConfigRaw = $webResult.Content        ## staging default
         #}
         # Write-RjRbDebug "Process Config URL is $($processConfigURL)"
@@ -122,7 +122,7 @@ try {
 
     Connect-RjRbGraph
     Connect-RjRbAzAccount
-    
+
     # fetch the policies
     $pols = Invoke-RjRbRestMethodGraph -Resource "/identity/conditionalAccess/policies"
 
@@ -131,15 +131,15 @@ try {
     Set-Location -Path "CAPols" | Out-Null
     Export-PolicyObjects -policies $pols
     Set-Location -Path ".."  | Out-Null
-    Compress-Archive -Path "CAPols\*" -DestinationPath "$ContainerName.zip" | Out-Null   
+    Compress-Archive -Path "CAPols\*" -DestinationPath "$ContainerName.zip" | Out-Null
 
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
     }
-    
+
     # Get access to the Storage Account
     $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
     $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
@@ -149,9 +149,9 @@ try {
     if (-not $container) {
         "## Creating Azure Storage Account Container $($ContainerName)"
         $container = New-AzStorageContainer -Name $ContainerName -Context $context
-        "" 
+        ""
     }
-    
+
     # Upload
 
     ## Single file mode
@@ -159,20 +159,20 @@ try {
     #$files | ForEach-Object {
     #    Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
     #}
-    
+
     # Compressed Archive mode
     Set-AzStorageBlobContent -File "$ContainerName.zip" -Container $ContainerName -Blob "$ContainerName.zip" -Context $context -Force | Out-Null
-    
+
     #Create signed (SAS) link
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "$ContainerName.zip" -FullUri -ExpiryTime $EndTime
-    
+
 
     "## Successfully created Conditional Access Export."
     "## Expiry of the Link: $EndTime"
     #$container.CloudBlobContainer.Uri.AbsoluteUri | Out-String
-    $SASLink | Out-String 
-    
+    $SASLink | Out-String
+
 }
 catch {
     throw $_
