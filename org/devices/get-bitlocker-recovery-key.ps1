@@ -20,7 +20,7 @@
   bitlockeryRecoveryKeyId, and CallerName
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -65,10 +65,10 @@ try {
             $errorResponseDevice = $_
             Write-Output "- Error getting device details: $($errorResponseDevice)"
         }
-        
+
     }
     else {
-        Write-Output "- No recovery key found (empty response)."    
+        Write-Output "- No recovery key found (empty response)."
     }
 }
 catch {

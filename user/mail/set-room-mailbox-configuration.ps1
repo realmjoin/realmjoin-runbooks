@@ -53,10 +53,10 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Allow BookIn for everyone" -Type Setting -Attribute "RoomMailbox.AllBookInPolicy" } )]
     [bool] $AllBookInPolicy = $true,
@@ -65,15 +65,15 @@ param (
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowRecurringMeetings" } )]
     [bool] $AllowRecurringMeetings = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AutomateProcessing" } )]
-    [string] $AutomateProcessing = "AutoAccept",                               
+    [string] $AutomateProcessing = "AutoAccept",
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.BookingWindowInDays" } )]
-    [int] $BookingWindowInDays = 180,                               
+    [int] $BookingWindowInDays = 180,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.MaximumDurationInMinutes" } )]
-    [int] $MaximumDurationInMinutes = 1440,                       
+    [int] $MaximumDurationInMinutes = 1440,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
     [bool] $AllowConflicts = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Capacity (will only update on values greater 0)" } )]
-    [int] $Capacity = 0,                              
+    [int] $Capacity = 0,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName

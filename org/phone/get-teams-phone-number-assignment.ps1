@@ -1,20 +1,12 @@
 <#
   .SYNOPSIS
   Looks up, if the given phone number is assigned to a user in Microsoft Teams.
-  
+
   .DESCRIPTION
-  This runbook looks up, if the given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned to a user, information about the user will be returned. 
-  
+  This runbook looks up, if the given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned to a user, information about the user will be returned.
+
   .PARAMETER PhoneNumber
   The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
-
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Organization.Read.All
-
-  RBAC:
-  - Teams Administrator
 
   .INPUTS
   RunbookCustomization: {
@@ -30,7 +22,7 @@
 #>
 
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
 
 param(
@@ -43,7 +35,7 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -74,7 +66,7 @@ if ($PhoneNumber -notmatch "^\+\d{1,15}(?:;ext=\d+)?$") {
 
 ########################################################
 #region     Connect Part
-##          
+##
 ########################################################
 
 Write-Output "Connect to Microsoft Teams..."
@@ -96,7 +88,7 @@ catch {
         Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Microsoft Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }

@@ -24,7 +24,7 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
   [Parameter(Mandatory = $true)]
@@ -44,7 +44,7 @@ $serialNumberList = $SerialNumbers -split ',' | ForEach-Object { $_.Trim() }
 
 foreach ($serialNumber in $serialNumberList) {
   "## Processing device with serial number: $serialNumber"
-    
+
   # Find the device in Intune using serial number
   $mgdDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "serialNumber eq '$serialNumber'" -ErrorAction SilentlyContinue
 

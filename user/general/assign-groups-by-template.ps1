@@ -70,7 +70,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -137,17 +137,17 @@ foreach ($AADGroup in $AADGroups) {
     $AADGroupMembers = @()
     $AADGroupMembers += (Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)/members" -OdSelect "Id" -FollowPaging).id
     [array] $bindings = @()
-    if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $UserId)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $UserId))) {    
+    if ((-not $AADGroupMembers) -or (($AADGroupMembers.count -eq 1) -and ($AADGroupMembers -ne $UserId)) -or (($AADGroupMembers.count -gt 1) -and ($AADgroupMembers -notcontains $UserId))) {
         $bindingString = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
         $bindings += $bindingString
     }
     else {
         "## User is already member of '$($AADGroup.displayName)'. Skipping."
     }
-    
+
     if ($bindings) {
         $GroupJson = @{"members@odata.bind" = $bindings }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$($AADGroup.Id)" -Method Patch -Body $GroupJson | Out-Null
-        "## Added user to group '$($AADGroup.displayName)'" 
+        "## Added user to group '$($AADGroup.displayName)'"
     }
 }

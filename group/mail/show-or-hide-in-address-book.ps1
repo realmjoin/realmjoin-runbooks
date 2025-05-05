@@ -6,7 +6,7 @@
   (Un)hide an O365- or static Distribution-group in Address Book. Can also show the current state.
 
   .NOTES
-  Permissions: 
+  Permissions:
    Office 365 Exchange Online
    - Exchange.ManageAsApp
    Azure AD Roles
@@ -36,7 +36,8 @@
     }
 #>
 
-#Requires -Modules ExchangeOnlineManagement, @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.7.2" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param
 (
@@ -71,7 +72,7 @@ try {
             throw ("Group not found.")
         }
     }
-    
+
     if ($Action -le 1) {
         try {
             if ($Action -eq 0) {
@@ -81,7 +82,7 @@ try {
                 else {
                     Set-DistributionGroup -Identity $GroupName -HiddenFromAddressListsEnabled $false
                 }
-                "## '$GroupName' successfully made visible."    
+                "## '$GroupName' successfully made visible."
             }
             if ($Action -eq 1) {
                 if ($groupType -eq 0) {

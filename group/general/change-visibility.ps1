@@ -6,7 +6,7 @@
   Change a group's visibility
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API)
   - Group.ReadWrite.All
   - Directory.ReadWrite.All
@@ -31,7 +31,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -49,14 +49,14 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
 
-# "Find the group object " 
+# "Find the group object "
 $targetGroup = Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupId" -ErrorAction SilentlyContinue
 if (-not $targetGroup) {
     throw ("Group $GroupId not found.")
 }
 
 $body = @{}
-    
+
 if ($Public) {
     $body.Add("visibility", "Public")
     "## Setting the group '$($targetGroup.mailNickname)' to 'Public' visibility."

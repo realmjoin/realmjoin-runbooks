@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-05-02
+- Update RealmJoin.RunbookHelper to v0.8.4 in all runbooks
+
 ## 2025-04-22
 - Add documentation workflow and scripts to the repository
 

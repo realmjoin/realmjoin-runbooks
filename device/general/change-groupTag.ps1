@@ -6,7 +6,7 @@
   Assign a new AutoPilot GroupTag to this device.
 
   .NOTES
-  Permissions: 
+  Permissions:
   MS Graph (API):
   - Device.Read.All
   - DeviceManagementServiceConfig.ReadWrite.All
@@ -21,14 +21,14 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
   [Parameter(Mandatory = $true)]
   [string] $DeviceId,
   [string] $newGroupTag = "",
   [Parameter(Mandatory = $true)]
-  [string]$CallerName 
+  [string]$CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
