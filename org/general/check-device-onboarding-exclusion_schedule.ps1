@@ -5,9 +5,6 @@
   .DESCRIPTION
     Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
-  .NOTES
-  Permissions
-   MS Graph (API):
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement

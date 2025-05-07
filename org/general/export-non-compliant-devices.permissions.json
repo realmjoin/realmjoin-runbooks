@@ -1,0 +1,15 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "DeviceManagementConfiguration.Read.All"
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Azure IaaS: Access to create/manage Azure Storage resources if producing links"
+    ]
+}

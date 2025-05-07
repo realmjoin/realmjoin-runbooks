@@ -5,13 +5,6 @@
   .DESCRIPTION
   Revoke user access and all active tokens or re-enable user.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - User.ReadWrite.All, Directory.ReadWrite.All,
-  AzureAD Roles
-  - User Administrator
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

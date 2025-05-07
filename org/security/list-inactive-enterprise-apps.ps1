@@ -5,12 +5,6 @@
   .DESCRIPTION
   List App registrations, which had no recent user logons.
 
-  .NOTES
-  Permissions
-  MS Graph (API):
-  - Directory.Read.All
-  - Device.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

@@ -5,11 +5,6 @@
   .DESCRIPTION
   Import a device into Intune via corporate identifier.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - DeviceManagementServiceConfig.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

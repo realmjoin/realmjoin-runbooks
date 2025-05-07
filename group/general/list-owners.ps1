@@ -5,11 +5,6 @@
   .DESCRIPTION
   List all owners of an Office 365 group.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

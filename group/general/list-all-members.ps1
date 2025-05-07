@@ -13,11 +13,6 @@ The ObjectId of the EntraID group whose membership is to be retrieved.
 .PARAMETER CallerName
 The name of the caller, used for auditing purposes.
 
-.NOTES
-Required Permissions:
-- Group.Read.All
-- User.Read.All
-
 .INPUTS
 RunbookCustomization: {
     "Parameters": {

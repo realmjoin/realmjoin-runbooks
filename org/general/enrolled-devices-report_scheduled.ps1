@@ -9,15 +9,6 @@
   Please configure an Azure Storage Account to use this feature.
 
   .NOTES
-  Permissions:
-  MS Graph (API):
-  - DeviceManagementServiceConfig.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - User.Read.All
-  - Device.ReadWrite.All
-  Azure Subscription (for Storage Account)
-  - Contributor on Storage Account
-
 
   .EXAMPLE
   Example of Azure Storage Account configuration for RJ central datastore

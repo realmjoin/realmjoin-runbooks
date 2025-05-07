@@ -5,11 +5,6 @@
   .DESCRIPTION
   Export all Intune devices and metadata based on their owner, like usageLocation.
 
-  .NOTES
-  Permissions
-   MS Graph (API):
-   - DeviceManagementManagedDevices.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

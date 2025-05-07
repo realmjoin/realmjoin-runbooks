@@ -5,11 +5,6 @@
   .DESCRIPTION
   Reset a mobile device's password/PIN code. Warning: Not possible for all types of devices.
 
-  .NOTES
-  Permissions needed:
-  - DeviceManagementManagedDevices.Read.All,
-  - DeviceManagementManagedDevices.PrivilegedOperations.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

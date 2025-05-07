@@ -5,13 +5,6 @@
   .DESCRIPTION
   List/export all AutoPilot devices.
 
-  .NOTES
-  Permissions
-  MS Graph (API):
-  - DeviceManagementManagedDevices.Read.All
-  - Directory.Read.All
-  - Device.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

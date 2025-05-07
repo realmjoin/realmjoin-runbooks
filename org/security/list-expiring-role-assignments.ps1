@@ -5,11 +5,6 @@
   .DESCRIPTION
   List Azure AD role assignments that will expire before a given number of days.
 
-  .NOTES
-  Permissions: MS Graph
-  - Organization.Read.All
-  - RoleManagement.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

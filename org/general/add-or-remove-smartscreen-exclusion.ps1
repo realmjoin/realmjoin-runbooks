@@ -8,10 +8,6 @@
   .PARAMETER Url
   please give just the name of the domain, like "exclusiondemo.com"
 
-  .NOTES
-  Permissions: WindowsDefenderATP:
-  - Ti.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

@@ -43,11 +43,11 @@
                             "$ref": "GroupsTemplates"
                         }
                     }
-                 },
-                 {
-                     "Name": "UseDisplaynames",
-                     "Default": false
-                 }
+                },
+                {
+                    "Name": "UseDisplaynames",
+                    "Default": false
+                }
             ]
         }
     }

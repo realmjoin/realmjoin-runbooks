@@ -5,10 +5,6 @@
   .DESCRIPTION
   This script unenrolls devices from Windows Update for Business.
 
-  .NOTES
-  Permissions (Graph):
-  - WindowsUpdates.ReadWrite.All
-
   .PARAMETER DeviceId
   DeviceId of the device to unenroll.
 

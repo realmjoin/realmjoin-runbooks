@@ -5,12 +5,6 @@
   .DESCRIPTION
   This script checks if single or multiple devices (by Group Object ID) are onboarded to Windows Update for Business.
 
-  .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  - Group.Read.All
-  - WindowsUpdates.ReadWrite.All
-
   .PARAMETER GroupId
   Object ID of the group to check onboarding status for its members.
 

@@ -5,13 +5,6 @@
   .DESCRIPTION
   Add/remove eMail address to/from mailbox, update primary eMail address.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
     "ParameterList": [

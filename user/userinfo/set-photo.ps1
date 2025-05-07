@@ -8,10 +8,6 @@
   .PARAMETER PhotoURI
   Needs to be a JPEG
 
-  .NOTES
-  Permissions:
- - MS Graph (API): User.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

@@ -5,10 +5,6 @@
   .DESCRIPTION
   Confirm compromise / Dismiss a "risky user"
 
-  .NOTES
-  Permissions needed:
-  - IdentityRiskyUser.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

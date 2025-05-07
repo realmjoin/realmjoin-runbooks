@@ -5,16 +5,6 @@
  .DESCRIPTION
  Resize an already existing Windows 365 Cloud PC by derpovisioning and assigning a new differently sized license to the user. Warning: All local data will be lost. Proceed with caution.
 
- .NOTES
- Permissions:
- MS Graph (API):
- - GroupMember.ReadWrite.All
- - Group.ReadWrite.All
- - Directory.Read.All
- - CloudPC.ReadWrite.All (Beta)
- - User.Read.All
- - User.SendMail
-
  .INPUTS
  RunbookCustomization: {
  "Parameters": {

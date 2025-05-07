@@ -5,11 +5,6 @@
   .DESCRIPTION
   List manager information for the specified user.
 
-  .NOTES
-  Permissions
-   MS Graph (API):
-   - User.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

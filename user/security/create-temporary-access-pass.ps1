@@ -1,4 +1,3 @@
-
 <#
   .SYNOPSIS
   Create an AAD temporary access pass for a user.
@@ -8,10 +7,6 @@
 
   .PARAMETER LifetimeInMinutes
   Time the pass will stay valid in minutes
-
-  .NOTES
-  Permissions needed:
-  - UserAuthenticationMethod.ReadWrite.All
 
   .INPUTS
   RunbookCustomization: {

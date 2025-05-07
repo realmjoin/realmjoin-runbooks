@@ -5,14 +5,6 @@
   .DESCRIPTION
   This script checks the Intune assignments for a single or multiple specified Device Names.
 
-  .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  - Group.Read.All
-  - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementApps.Read.All
-
   .PARAMETER DeviceNames
   Device Names of the devices to check assignments for, separated by commas.
 

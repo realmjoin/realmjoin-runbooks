@@ -1,0 +1,15 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "CloudPC.Read.All"
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Azure IaaS: `Contributor` role on the Azure Storage Account used for storing CloudPC usage data"
+    ]
+}

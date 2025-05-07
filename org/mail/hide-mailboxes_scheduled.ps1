@@ -5,10 +5,6 @@
   .DESCRIPTION
   Hide / Unhide special mailboxes in Global Address Book. Currently intended for Booking calendars.
 
-  .NOTES
-  Permissions
-  Exchange Administrator access
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

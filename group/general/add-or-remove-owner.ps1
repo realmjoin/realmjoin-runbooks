@@ -5,16 +5,6 @@
   .DESCRIPTION
   Add/remove owners to/from an Office 365 group.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Group.ReadWrite.All
-  - Directory.ReadWrite.All
-  Office 365 Exchange Online
-   - Exchange.ManageAsApp
-  Azure AD Roles
-   - Exchange administrator
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

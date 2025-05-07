@@ -5,14 +5,6 @@
   .DESCRIPTION
   Rename a device (in Intune and Autopilot).
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Device.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementServiceConfig.ReadWrite.All
-  - DeviceManagementManagedDevices.PrivilegedOperations.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

@@ -5,16 +5,6 @@
   .DESCRIPTION
   Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
 
-  .NOTES
-  Permissions:
-  MS Graph API
-  - Directory.Read.All
-  - User.ReadWrite.All
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
