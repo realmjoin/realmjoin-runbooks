@@ -5,12 +5,6 @@
   .DESCRIPTION
   List group ownerships for this user.
 
-  .NOTES
-  Permissions
-   MS Graph (API):
-   - User.Read.All
-   - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

@@ -5,10 +5,6 @@
   .DESCRIPTION
   Rename a group MailNickname, DisplayName and Description. Will NOT change eMail addresses!
 
-  .NOTES
-  Permissions: MS Graph (API):
-   - Group.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

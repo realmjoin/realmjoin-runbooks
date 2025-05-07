@@ -7,12 +7,6 @@
   .DESCRIPTION
   This runbook collects and reports PIM activation details, including date, requestor, UPN, role, primary target, PIM group, reason, and status, and sends it via email.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - AuditLog.Read.All
-  - Mail.Send
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }

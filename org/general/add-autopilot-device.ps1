@@ -5,11 +5,6 @@
   .DESCRIPTION
   Import a windows device into Windows Autopilot.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - DeviceManagementServiceConfig.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

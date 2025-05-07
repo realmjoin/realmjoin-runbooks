@@ -6,12 +6,6 @@
 .DESCRIPTION
     Add an application registration to Azure AD
 
-.NOTES
-    Permissions:
-    MS Graph (API):
-    - Application.ReadWrite.All
-    - RoleManagement.ReadWrite.Directory
-
 .INPUTS
     RunbookCustomization: {
         "Parameters": {

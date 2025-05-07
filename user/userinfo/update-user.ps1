@@ -11,15 +11,6 @@
   .PARAMETER UsageLocation
   Examples: "DE" or "US"
 
-  .NOTES
-  Permissions
-  Graph
-  - UserAuthenticationMethod.Read.All
-  AzureAD Roles
-  - User administrator
-  Exchange
-  - Exchange Admin
-
   .EXAMPLE
   // Full Runbook Customizing Example
       "Templates": {

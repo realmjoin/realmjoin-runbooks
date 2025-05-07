@@ -5,11 +5,6 @@
 .DESCRIPTION
     Report on non-compliant devices and policies
 
-.NOTES
-    Permissions
-    MS Graph
-    - DeviceManagementConfiguration.Read.All
-    Storage Account (optional)
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }

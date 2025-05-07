@@ -5,11 +5,6 @@
   .DESCRIPTION
   List expiry date of all AppRegistration credentials
 
-  .NOTES
-  Permissions:
-   MS Graph - Application Permission
-    Application.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

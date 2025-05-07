@@ -5,14 +5,6 @@
   .DESCRIPTION
   This script checks the Intune assignments for a single or multiple specified UPNs.
 
-  .NOTES
-  Permissions (Graph):
-  - User.Read.All
-  - Group.Read.All
-  - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - Device.Read.All
-
   .PARAMETER UPN
   User Principal Names of the users to check assignments for, separated by commas.
 

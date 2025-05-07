@@ -5,14 +5,6 @@
   .DESCRIPTION
   Remove/Deprovision a Windows 365 instance
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - User.Read.All
-  - GroupMember.ReadWrite.All
-  - Group.ReadWrite.All
-  - CloudPC.ReadWrite.All (Beta)
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
