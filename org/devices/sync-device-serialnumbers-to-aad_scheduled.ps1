@@ -71,6 +71,13 @@ $intuneDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managed
 Write-Output "Found $($intuneDevices.Count) devices in Intune."
 Write-Output ""
 
+# Get all devices from Azure AD
+Write-Output "## Retrieving devices from Azure AD..."
+$aadDevices = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdSelect "id,displayName,extensionAttributes" -FollowPaging
+
+Write-Output "Found $($aadDevices.Count) devices in Azure AD."
+Write-Output ""
+
 # Initialize counters and arrays for reporting
 $processedCount = 0
 $updatedCount = 0
@@ -97,7 +104,7 @@ foreach ($intuneDevice in $intuneDevices) {
         $skippedDevices += [PSCustomObject]@{
             DeviceName   = $intuneDevice.deviceName
             IntuneID     = $intuneDevice.id
-            AzureADID    = $intuneDevice.azureADDeviceId
+            AzureADID    = ""
             SerialNumber = "N/A"
             Reason       = "No serial number in Intune"
         }
@@ -105,15 +112,17 @@ foreach ($intuneDevice in $intuneDevices) {
         continue
     }
 
-    # Skip devices without an Azure AD device ID
-    if ([string]::IsNullOrEmpty($intuneDevice.azureADDeviceId)) {
-        Write-Output "[$($processedCount)/$($intuneDevices.Count)] Device $($intuneDevice.deviceName) (ID: $($intuneDevice.id)) has no Azure AD device ID. Skipping."
+    # Find the corresponding Azure AD device by display name
+    $matchingAadDevice = $aadDevices | Where-Object { $_.displayName -eq $intuneDevice.deviceName } | Select-Object -First 1
+
+    if (-not $matchingAadDevice) {
+        Write-Output "[$($processedCount)/$($intuneDevices.Count)] No matching Azure AD device found for $($intuneDevice.deviceName) (ID: $($intuneDevice.id)). Skipping."
         $skippedDevices += [PSCustomObject]@{
             DeviceName   = $intuneDevice.deviceName
             IntuneID     = $intuneDevice.id
             AzureADID    = "N/A"
             SerialNumber = $intuneDevice.serialNumber
-            Reason       = "No Azure AD device ID"
+            Reason       = "No matching Azure AD device found"
         }
         $skippedCount++
         continue
@@ -121,7 +130,7 @@ foreach ($intuneDevice in $intuneDevices) {
 
     # Get the corresponding Azure AD device
     try {
-        $aadDevice = Invoke-RjRbRestMethodGraph -Resource "/devices/$($intuneDevice.azureADDeviceId)" -ErrorAction Stop
+        $aadDevice = $matchingAadDevice
         
         # Check if the extension attribute already exists and has the correct value
         $currentExtensionValue = $null
@@ -135,7 +144,7 @@ foreach ($intuneDevice in $intuneDevices) {
             $skippedDevices += [PSCustomObject]@{
                 DeviceName   = $intuneDevice.deviceName
                 IntuneID     = $intuneDevice.id
-                AzureADID    = $intuneDevice.azureADDeviceId
+                AzureADID    = $aadDevice.id
                 SerialNumber = $intuneDevice.serialNumber
                 Reason       = "Serial number already matches"
             }
@@ -151,13 +160,13 @@ foreach ($intuneDevice in $intuneDevices) {
         }
 
         # Update the Azure AD device
-        Invoke-RjRbRestMethodGraph -Resource "/devices/$($intuneDevice.azureADDeviceId)" -Method PATCH -Body $updateBody -ContentType "application/json" | Out-Null
+        Invoke-RjRbRestMethodGraph -Resource "/devices/$($aadDevice.id)" -Method PATCH -Body $updateBody -ContentType "application/json" | Out-Null
         
         Write-Output "[$($processedCount)/$($intuneDevices.Count)] Updated device $($intuneDevice.deviceName) (ID: $($intuneDevice.id)) with serial number $($intuneDevice.serialNumber)"
         $updatedDevices += [PSCustomObject]@{
             DeviceName    = $intuneDevice.deviceName
             IntuneID      = $intuneDevice.id
-            AzureADID     = $intuneDevice.azureADDeviceId
+            AzureADID     = $aadDevice.id
             SerialNumber  = $intuneDevice.serialNumber
             PreviousValue = $currentExtensionValue
         }
@@ -169,7 +178,7 @@ foreach ($intuneDevice in $intuneDevices) {
         $errorDevices += [PSCustomObject]@{
             DeviceName   = $intuneDevice.deviceName
             IntuneID     = $intuneDevice.id
-            AzureADID    = $intuneDevice.azureADDeviceId
+            AzureADID    = $matchingAadDevice ? $matchingAadDevice.id : "N/A"
             SerialNumber = $intuneDevice.serialNumber
             Error        = $_.Exception.Message
         }
