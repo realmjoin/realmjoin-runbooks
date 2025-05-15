@@ -35,7 +35,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
 
 param(
-    [string] $ExtensionAttributeName = "serialNumber",
+    [int] $ExtensionAttributeNumber = 1,
     [bool] $ProcessAllDevices = $false,
     [int] $MaxDevicesToProcess = 0,
     [string] $sendReportTo = "",
@@ -44,6 +44,15 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
+
+# Validate extension attribute number
+if ($ExtensionAttributeNumber -lt 1 -or $ExtensionAttributeNumber -gt 15) {
+    Write-Output "Error: ExtensionAttributeNumber must be between 1 and 15."
+    exit 1
+}
+
+# Define the extension attribute name based on the number
+$ExtensionAttributeName = "extensionAttribute$ExtensionAttributeNumber"
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
@@ -159,8 +168,21 @@ foreach ($intuneDevice in $intuneDevices) {
             }
         }
 
-        # Update the Azure AD device
-        Invoke-RjRbRestMethodGraph -Resource "/devices/$($aadDevice.id)" -Method PATCH -Body $updateBody -ContentType "application/json" | Out-Null
+        # Try to update the Azure AD device
+        try {
+            Invoke-RjRbRestMethodGraph -Resource "/devices/$($aadDevice.id)" -Method PATCH -Body $updateBody -ContentType "application/json" | Out-Null
+        }
+        catch {
+            # If we get an authentication error, try to reconnect and retry
+            if ($_.Exception.Message -like "*InvalidAuthenticationToken*") {
+                Write-Output "Authentication token expired. Reconnecting to Microsoft Graph..."
+                Connect-RjRbGraph
+                Invoke-RjRbRestMethodGraph -Resource "/devices/$($aadDevice.id)" -Method PATCH -Body $updateBody -ContentType "application/json" | Out-Null
+            }
+            else {
+                throw
+            }
+        }
         
         Write-Output "[$($processedCount)/$($intuneDevices.Count)] Updated device $($intuneDevice.deviceName) (ID: $($intuneDevice.id)) with serial number $($intuneDevice.serialNumber)"
         $updatedDevices += [PSCustomObject]@{
