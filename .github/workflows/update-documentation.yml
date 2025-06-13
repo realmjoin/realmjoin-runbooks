@@ -3,7 +3,7 @@ name: 📚 Update documentation
 on:
   workflow_dispatch:  # Manual trigger
   push:
-    branches: [ production ]
+    branches: [ master ]
     paths:
       - '**.ps1'
       - 'org/**'
