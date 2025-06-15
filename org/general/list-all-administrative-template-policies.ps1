@@ -5,11 +5,6 @@
   .DESCRIPTION
   This script retrieves all Administrative Template policies from Intune and displays their assignments.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementConfiguration.Read.All
-  - Group.Read.All
-
   .PARAMETER CallerName
   Caller name for auditing purposes.
 

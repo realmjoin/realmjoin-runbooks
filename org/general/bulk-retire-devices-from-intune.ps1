@@ -5,12 +5,6 @@
   .DESCRIPTION
   This runbook retires multiple devices from Intune based on a list of serial numbers.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - DeviceManagementManagedDevices.ReadWrite.All
-  - Device.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

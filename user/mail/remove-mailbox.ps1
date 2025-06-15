@@ -5,10 +5,6 @@
   .DESCRIPTION
   Hard delete a shared mailbox, room or bookings calendar.
 
-  .NOTES
-  Permissions
-  Exchange Administrator access
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

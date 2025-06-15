@@ -5,11 +5,6 @@
   .DESCRIPTION
   List all devices owned by group members.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "ParameterList": [

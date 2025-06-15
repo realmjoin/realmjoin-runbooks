@@ -5,11 +5,6 @@
   .DESCRIPTION
   This runbook deletes Autopilot objects in bulk based on a list of serial numbers.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - DeviceManagementServiceConfig.ReadWrite.All
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }

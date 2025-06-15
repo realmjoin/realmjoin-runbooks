@@ -7,11 +7,6 @@
   .DESCRIPTION
   This runbook checks the Azure AD Connect sync status and the last sync date and time.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Directory.Read.All
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }

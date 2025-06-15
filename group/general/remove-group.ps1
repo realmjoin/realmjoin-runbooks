@@ -5,10 +5,6 @@
   .DESCRIPTION
   Removes a group, incl. SharePoint site and Teams team.
 
-  .NOTES
-  MS Graph (API):
-  - Group.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

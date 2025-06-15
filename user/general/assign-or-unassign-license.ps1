@@ -3,14 +3,7 @@
   (Un-)Assign a license to a user via group membership.
 
   .DESCRIPTION
-  (Un-)Assign a license to a user via group membership
-
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - User.Read.All
-  - GroupMember.ReadWrite.All
-  - Group.ReadWrite.All
+  (Un-)Assign a license to a user via group membership.
 
   .INPUTS
   RunbookCustomization: {

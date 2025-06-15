@@ -5,11 +5,6 @@
   .DESCRIPTION
   List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 
-  .NOTES
-  Permissions
-   MS Graph (API):
-   - DeviceManagementManagedDevices.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

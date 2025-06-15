@@ -5,15 +5,6 @@
   .DESCRIPTION
   Create a classic distribution group.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-  MS Graph (API):
-  -Oranization.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
