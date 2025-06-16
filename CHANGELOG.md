@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-06-16
+- Add runbook in Org/Devices: 
+  - "Report Windows Last Device Contact by Range" - Get the devices based on the last device contact date and time, grouped by the specified ranges.
+  - "Report Users with more than five devices" - Get the users with more than five devices enrolled in Intune.
+  - "Report devices without primary user" - Get the devices without a primary user assigned in Intune.
+
 ## 2025-05-02
 - Update RealmJoin.RunbookHelper to v0.8.4 in all runbooks
 
