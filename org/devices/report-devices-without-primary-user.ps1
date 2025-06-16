@@ -6,11 +6,11 @@
     The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
 .INPUTS
 RunbookCustomization: {
-    "Parameters": [
+    "Parameters": {
         "CallerName": {
             "Hide": true
         }
-    ]
+    }
 }
 #>
 

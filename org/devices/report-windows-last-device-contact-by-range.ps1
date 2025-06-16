@@ -4,18 +4,16 @@
 
 .DESCRIPTION
     This Runbook retrieves a list of Windows devices from Azure AD / Intune, filtered by their
-    last device contact time (lastSyncDateTime). The user can select a predefined
-    date range through a dropdown in the RealmJoin Portal.
+    last device contact time (lastSyncDateTime). As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
     The output includes the device name, last sync date, user ID, user display name, and user principal name.
 
 .PARAMETER DateRange
-    Specifies the date range for the last device contact.
-    Possible values: "0-30", "30-90", "90-180", "180-365", "365+".
+    Date range for filtering devices based on their last contact time.
 
 .INPUTS
 RunbookCustomization: {
-    "Parameters": [
-        {
+    "Parameters": {
+        "DateRange": {
             "Name": "DateRange",
             "Label": "Select Last Device Contact Range (days)",
             "Description": "Filter devices based on their last contact time.",
@@ -31,7 +29,7 @@ RunbookCustomization: {
         "CallerName": {
             "Hide": true
         }
-    ]
+    }
 }
 #>
 

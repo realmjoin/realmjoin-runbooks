@@ -7,11 +7,11 @@
     The output includes the users ObjectId, UPN, and the number of devices.
 .INPUTS
 RunbookCustomization: {
-    "Parameters": [
+    "Parameters": {
         "CallerName": {
             "Hide": true
         }
-    ]
+    }
 }
 #>
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
