@@ -8,11 +8,12 @@ This runbook retires multiple devices from Intune based on a list of serial numb
 ## Where to find
 Org \ General \ Bulk Retire Devices From Intune
 
-## Notes
-Permissions:
-MS Graph (API):
-- DeviceManagementManagedDevices.ReadWrite.All
-- Device.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.ReadWrite.All
+  - Device.Read.All
+
 
 ## Parameters
 ### -SerialNumbers

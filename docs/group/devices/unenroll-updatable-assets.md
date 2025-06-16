@@ -8,10 +8,12 @@ This script unenrolls devices from Windows Update for Business.
 ## Where to find
 Group \ Devices \ Unenroll Updatable Assets
 
-## Notes
-Permissions (Graph):
-- Group.Read.All
-- WindowsUpdates.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.Read.All
+  - WindowsUpdates.ReadWrite.All
+
 
 ## Parameters
 ### -GroupId

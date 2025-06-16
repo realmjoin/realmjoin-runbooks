@@ -8,15 +8,16 @@ Reprovision an already existing Windows 365 Cloud PC without reassigning a new i
 ## Where to find
 User \ General \ Reprovision Windows365
 
-## Notes
-Permissions:
-MS Graph (API):
-- GroupMember.ReadWrite.All 
-- Group.ReadWrite.All
-- Directory.Read.All
-- CloudPC.ReadWrite.All (Beta)
-- User.Read.All
-- User.SendMail
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - GroupMember.ReadWrite.All
+  - Group.ReadWrite.All
+  - Directory.Read.All
+  - CloudPC.ReadWrite.All
+  - User.Read.All
+  - User.SendMail
+
 
 ## Parameters
 ### -UserName

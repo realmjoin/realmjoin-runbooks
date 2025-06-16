@@ -8,9 +8,11 @@ Set / update the photo / avatar picture of a user.
 ## Where to find
 User \ Userinfo \ Set Photo
 
-## Notes
-Permissions:
-- MS Graph (API): User.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

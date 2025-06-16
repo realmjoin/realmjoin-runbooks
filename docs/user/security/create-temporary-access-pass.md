@@ -8,9 +8,11 @@ Create an AAD temporary access pass for a user.
 ## Where to find
 User \ Security \ Create Temporary Access Pass
 
-## Notes
-Permissions needed:
-- UserAuthenticationMethod.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - UserAuthenticationMethod.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

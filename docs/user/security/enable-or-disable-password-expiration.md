@@ -8,10 +8,11 @@ Set a users password policy to "(Do not) Expire"
 ## Where to find
 User \ Security \ Enable Or Disable Password Expiration
 
-## Notes
-Permissions needed:
- MS Graph (API Permissions):
- - User.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

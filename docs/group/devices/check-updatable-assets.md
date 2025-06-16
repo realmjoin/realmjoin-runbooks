@@ -8,11 +8,16 @@ This script checks if single or multiple devices (by Group Object ID) are onboar
 ## Where to find
 Group \ Devices \ Check Updatable Assets
 
-## Notes
-Permissions (Graph):
-- Device.Read.All
-- Group.Read.All
-- WindowsUpdates.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Device.Read.All
+  - Group.Read.All
+  - WindowsUpdates.ReadWrite.All
+
+### Permission notes
+Azure: Contributor on Storage Account
+
 
 ## Parameters
 ### -GroupId

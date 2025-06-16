@@ -8,11 +8,12 @@ List group ownerships for this user.
 ## Where to find
 User \ General \ List Group Ownerships
 
-## Notes
-Permissions
- MS Graph (API): 
- - User.Read.All
- - Group.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - Group.Read.All
+
 
 ## Parameters
 ### -UserName

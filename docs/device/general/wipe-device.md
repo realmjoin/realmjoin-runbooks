@@ -8,14 +8,17 @@ Wipe a Windows or MacOS device.
 ## Where to find
 Device \ General \ Wipe Device
 
-## Notes
-PERMISSIONS
- DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
- DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
- DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
- Device.Read.All
-ROLES
- Cloud device administrator
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.PrivilegedOperations.All
+  - DeviceManagementManagedDevices.ReadWrite.All
+  - DeviceManagementServiceConfig.ReadWrite.All
+  - Device.Read.All
+
+### RBAC roles
+- Cloud device administrator
+
 
 ## Parameters
 ### -DeviceId

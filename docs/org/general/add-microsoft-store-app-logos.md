@@ -8,10 +8,11 @@ This script updates the logos for Microsoft Store Apps (new) in Intune by fetchi
 ## Where to find
 Org \ General \ Add Microsoft Store App Logos
 
-## Notes
-Permissions:
-MS Graph (API):
-- DeviceManagementApps.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementApps.ReadWrite.All
+
 
 ## Parameters
 

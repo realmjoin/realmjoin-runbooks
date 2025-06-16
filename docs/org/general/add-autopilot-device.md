@@ -8,10 +8,11 @@ Import a windows device into Windows Autopilot.
 ## Where to find
 Org \ General \ Add Autopilot Device
 
-## Notes
-Permissions: 
-MS Graph (API):
-- DeviceManagementServiceConfig.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementServiceConfig.ReadWrite.All
+
 
 ## Parameters
 ### -SerialNumber

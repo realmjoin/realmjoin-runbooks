@@ -8,10 +8,11 @@ This script checks if single device is onboarded to Windows Update for Business.
 ## Where to find
 Device \ General \ Check Updatable Assets
 
-## Notes
-Permissions (Graph):
-- Device.Read.All
-- WindowsUpdates.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - WindowsUpdates.ReadWrite.All
+
 
 ## Parameters
 ### -DeviceId

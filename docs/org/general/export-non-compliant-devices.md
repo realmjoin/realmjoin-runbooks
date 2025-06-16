@@ -8,11 +8,14 @@ Report on non-compliant devices and policies
 ## Where to find
 Org \ General \ Export Non Compliant Devices
 
-## Notes
-Permissions
-MS Graph
-- DeviceManagementConfiguration.Read.All
-Storage Account (optional)
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementConfiguration.Read.All
+
+### Permission notes
+Azure IaaS: Access to create/manage Azure Storage resources if producing links
+
 
 ## Parameters
 ### -produceLinks

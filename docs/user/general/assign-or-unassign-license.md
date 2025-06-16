@@ -3,17 +3,18 @@
 ## (Un-)Assign a license to a user via group membership.
 
 ## Description
-(Un-)Assign a license to a user via group membership
+(Un-)Assign a license to a user via group membership.
 
 ## Where to find
 User \ General \ Assign Or Unassign License
 
-## Notes
-Permissions:
-MS Graph (API):
-- User.Read.All
-- GroupMember.ReadWrite.All 
-- Group.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - GroupMember.ReadWrite.All
+  - Group.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

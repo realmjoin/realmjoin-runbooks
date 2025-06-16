@@ -8,10 +8,12 @@ Report groups that have license assignment errors
 ## Where to find
 Org \ General \ List Group License Assignment Errors
 
-## Notes
-Permissions (MS Graph, API)
-- GroupMember.Read.All
-- Group.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - GroupMember.Read.All
+  - Group.Read.All
+
 
 ## Parameters
 

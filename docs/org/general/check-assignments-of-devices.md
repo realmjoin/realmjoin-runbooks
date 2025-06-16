@@ -8,13 +8,15 @@ This script checks the Intune assignments for a single or multiple specified Dev
 ## Where to find
 Org \ General \ Check Assignments Of Devices
 
-## Notes
-Permissions (Graph):
-- Device.Read.All
-- Group.Read.All
-- DeviceManagementConfiguration.Read.All
-- DeviceManagementManagedDevices.Read.All
-- DeviceManagementApps.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Device.Read.All
+  - Group.Read.All
+  - DeviceManagementConfiguration.Read.All
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementApps.Read.All
+
 
 ## Parameters
 ### -DeviceNames

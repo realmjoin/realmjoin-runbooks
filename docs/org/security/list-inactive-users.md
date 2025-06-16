@@ -14,6 +14,14 @@ Permissions: MS Graph
 - AuditLog.Read.All
 - Organization.Read.All
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - AuditLog.Read.All
+  - Organization.Read.All
+
+
 ## Parameters
 ### -Days
 Description: 

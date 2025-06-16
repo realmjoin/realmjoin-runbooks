@@ -8,9 +8,11 @@ Show a local admin password for a device.
 ## Where to find
 Device \ Security \ Show Laps Password
 
-## Notes
-Permissions (Graph):
-- DeviceLocalCredential.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceLocalCredential.Read.All
+
 
 ## Parameters
 ### -DeviceId

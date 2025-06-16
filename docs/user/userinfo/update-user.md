@@ -8,14 +8,15 @@ Update the metadata, group memberships and Exchange settings of an existing user
 ## Where to find
 User \ Userinfo \ Update User
 
-## Notes
-Permissions
-Graph
-- UserAuthenticationMethod.Read.All
-AzureAD Roles
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - UserAuthenticationMethod.Read.All
+
+### RBAC roles
 - User administrator
-Exchange
-- Exchange Admin
+- Exchange Administrator
+
 
 ## Parameters
 ### -UserName

@@ -8,14 +8,6 @@ Get the status quo of a Microsoft Teams user in terms of phone number, if any, a
 ## Where to find
 User \ Phone \ Get Teams User Info
 
-## Notes
-Permissions:
-MS Graph (API):
-- Organization.Read.All
-
-RBAC:
-- Teams Administrator
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -27,7 +19,7 @@ RBAC:
 
 ## Parameters
 ### -UserName
-Description: 
+Description: The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
 Default Value: 
 Required: true
 

@@ -8,11 +8,14 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 ## Where to find
 Org \ Security \ Backup Conditional Access Policies
 
-## Notes
-Permissions
- MS Graph (API): 
- - Policy.Read.All
- Azure IaaS: Access to the given Azure Storage Account / Resource Group
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Policy.Read.All
+
+### Permission notes
+Azure IaaS: Access to the given Azure Storage Account / Resource Group
+
 
 ## Parameters
 ### -ContainerName

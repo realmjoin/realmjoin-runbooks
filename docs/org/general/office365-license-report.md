@@ -8,10 +8,13 @@ Generate an Office 365 licensing report.
 ## Where to find
 Org \ General \ Office365 License Report
 
-## Notes
-New permission: 
-MSGraph 
-- Reports.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Reports.Read.All
+  - Directory.Read.All
+  - User.Read.All
+
 
 ## Parameters
 ### -printOverview

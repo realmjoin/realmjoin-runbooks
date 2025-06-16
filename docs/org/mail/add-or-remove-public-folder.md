@@ -8,12 +8,14 @@ Assumes you already have at least on Public Folder Mailbox. It will not provisio
 ## Where to find
 Org \ Mail \ Add Or Remove Public Folder
 
-## Notes
-Permissions given to the Az Automation RunAs Account:
-AzureAD Roles:
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
 - Exchange administrator
-Office 365 Exchange Online API
-- Exchange.ManageAsApp
+
 
 ## Parameters
 ### -PublicFolderName

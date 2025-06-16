@@ -8,12 +8,14 @@ Grant another user sendOnBehalf permissions on this mailbox.
 ## Where to find
 User \ Mail \ Delegate Send On Behalf
 
-## Notes
-Permissions given to the Az Automation RunAs Account:
-AzureAD Roles:
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
+### RBAC roles
 - Exchange administrator
-Office 365 Exchange Online API
-- Exchange.ManageAsApp
+
 
 ## Parameters
 ### -UserName

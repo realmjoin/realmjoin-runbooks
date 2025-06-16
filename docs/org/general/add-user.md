@@ -8,10 +8,15 @@ Create a new user account.
 ## Where to find
 Org \ General \ Add User
 
-## Notes
-Permissions
-AzureAD Roles
-- User administrator
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementManagedDevices.PrivilegedOperations.All
+
+### RBAC roles
+- User Administrator
+
 
 ## Parameters
 ### -GivenName

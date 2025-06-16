@@ -8,10 +8,11 @@ List manager information for the specified user.
 ## Where to find
 User \ General \ List Manager
 
-## Notes
-Permissions
- MS Graph (API): 
- - User.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+
 
 ## Parameters
 ### -UserName

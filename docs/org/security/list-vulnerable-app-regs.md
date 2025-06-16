@@ -8,10 +8,11 @@ List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 ## Where to find
 Org \ Security \ List Vulnerable App Regs
 
-## Notes
-Permissions
- MS Graph (API): 
- - DeviceManagementManagedDevices.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+
 
 ## Parameters
 ### -ExportToFile

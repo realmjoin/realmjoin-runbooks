@@ -8,10 +8,14 @@ Write daily Windows 365 Utilization Data to Azure Tables. Will write data about 
 ## Where to find
 Org \ General \ Export Cloudpc Usage_Scheduled
 
-## Notes
-Permissions: 
-MS Graph: CloudPC.Read.All
-StorageAccount: Contributor
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - CloudPC.Read.All
+
+### Permission notes
+Azure IaaS: `Contributor` role on the Azure Storage Account used for storing CloudPC usage data
+
 
 ## Parameters
 ### -Table

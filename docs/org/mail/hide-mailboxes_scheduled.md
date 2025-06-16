@@ -8,9 +8,10 @@ Hide / Unhide special mailboxes in Global Address Book. Currently intended for B
 ## Where to find
 Org \ Mail \ Hide Mailboxes_Scheduled
 
-## Notes
-Permissions
-Exchange Administrator access
+## Permissions
+### RBAC roles
+- Exchange administrator
+
 
 ## Parameters
 ### -HideBookingCalendars

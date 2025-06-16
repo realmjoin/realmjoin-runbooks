@@ -8,13 +8,14 @@ Monitor/Report expiry of Apple device management certificates.
 ## Where to find
 Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
 
-## Notes
-Permissions: 
-MS Graph (API)
-- DeviceManagementManagedDevices.Read.All,
-- DeviceManagementServiceConfig.Read.All,
-- DeviceManagementConfiguration.Read.All,
-- Mail.Send
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementServiceConfig.Read.All
+  - DeviceManagementConfiguration.Read.All
+  - Mail.Send
+
 
 ## Parameters
 ### -Days

@@ -5,12 +5,15 @@
 ## Where to find
 Org \ General \ Export Policy Report
 
-## Notes
-Permissions (Graph):
-   - DeviceManagementConfiguration.Read.All
-   - Policy.Read.All
-Permissions AzureRM:
-   - Storage Account Contributor
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementConfiguration.Read.All
+  - Policy.Read.All
+
+### Permission notes
+Azure Storage Account: Contributor role on the Storage Account used for exporting reports
+
 
 ## Parameters
 ### -produceLinks

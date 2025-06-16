@@ -8,10 +8,12 @@ Reset a mobile device's password/PIN code. Warning: Not possible for all types o
 ## Where to find
 Device \ Security \ Reset Mobile Device Pin
 
-## Notes
-Permissions needed:
-- DeviceManagementManagedDevices.Read.All,
-- DeviceManagementManagedDevices.PrivilegedOperations.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementManagedDevices.PrivilegedOperations.All
+
 
 ## Parameters
 ### -DeviceId

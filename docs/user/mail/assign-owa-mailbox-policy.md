@@ -8,9 +8,10 @@ Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
 ## Where to find
 User \ Mail \ Assign Owa Mailbox Policy
 
-## Notes
-Permissions
-Exchange Administrator access
+## Permissions
+### RBAC roles
+- Exchange administrator
+
 
 ## Parameters
 ### -UserName

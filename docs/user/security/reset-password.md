@@ -8,9 +8,10 @@ Reset a user's password. The user will have to change it on signin. Does not wor
 ## Where to find
 User \ Security \ Reset Password
 
-## Notes
-Permissions:
-- AzureAD Role: User administrator
+## Permissions
+### RBAC roles
+- User administrator
+
 
 ## Parameters
 ### -UserName

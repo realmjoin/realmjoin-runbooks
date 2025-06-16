@@ -8,9 +8,11 @@ This script enrolls devices into Windows Update for Business.
 ## Where to find
 Device \ General \ Enroll Updatable Assets
 
-## Notes
-Permissions (Graph):
-- WindowsUpdates.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - WindowsUpdates.ReadWrite.All
+
 
 ## Parameters
 ### -DeviceId

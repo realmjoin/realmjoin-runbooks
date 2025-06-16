@@ -8,11 +8,12 @@ Add/remove a nested group to/from an AzureAD or Exchange Online group.
 ## Where to find
 Group \ General \ Add Or Remove Nested Group
 
-## Notes
-Permissions: 
-MS Graph (API)
-- Group.ReadWrite.All
-- Directory.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
 
 ## Parameters
 ### -GroupID

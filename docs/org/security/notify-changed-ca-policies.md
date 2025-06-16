@@ -8,11 +8,12 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 ## Where to find
 Org \ Security \ Notify Changed CA Policies
 
-## Notes
-Permissions
- MS Graph (API): 
- - Policy.Read.All
- - User.SendMail
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Policy.Read.All
+  - Mail.Send
+
 
 ## Parameters
 ### -From

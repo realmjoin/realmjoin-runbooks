@@ -8,10 +8,11 @@ List all devices owned by group members.
 ## Where to find
 Group \ General \ List User Devices
 
-## Notes
-Permissions: 
-MS Graph (API)
-- Group.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.Read.All
+
 
 ## Parameters
 ### -GroupID

@@ -8,11 +8,14 @@ Disable a device in AzureAD.
 ## Where to find
 Device \ Security \ Enable Or Disable Device
 
-## Notes
-Permissions (Graph):
-- Device.Read.All
-Roles (AzureAD):
-- Cloud Device Administrator
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Device.Read.All
+
+### RBAC roles
+- Cloud device administrator
+
 
 ## Parameters
 ### -DeviceId

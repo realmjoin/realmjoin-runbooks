@@ -9,14 +9,18 @@
 Group \ Mail \ Show Or Hide In Address Book
 
 ## Notes
-Permissions: 
- Office 365 Exchange Online
- - Exchange.ManageAsApp
- Azure AD Roles
- - Exchange administrator
- Note, as of 2021-06-28 MS Graph does not support updating existing groups - only on initial creation.
-  PATCH : https://graph.microsoft.com/v1.0/groups/{id}
-  body = { "resourceBehaviorOptions":["HideGroupInOutlook"] }
+Note, as of 2021-06-28 MS Graph does not support updating existing groups - only on initial creation.
+ PATCH : https://graph.microsoft.com/v1.0/groups/{id}
+ body = { "resourceBehaviorOptions":["HideGroupInOutlook"] }
+
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
+- Exchange administrator
+
 
 ## Parameters
 ### -GroupName

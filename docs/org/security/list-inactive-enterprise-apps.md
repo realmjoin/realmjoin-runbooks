@@ -8,11 +8,12 @@ List App registrations, which had no recent user logons.
 ## Where to find
 Org \ Security \ List Inactive Enterprise Apps
 
-## Notes
-Permissions
-MS Graph (API):
-- Directory.Read.All
-- Device.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Directory.Read.All
+  - Device.Read.All
+
 
 ## Parameters
 ### -Days

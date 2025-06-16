@@ -8,10 +8,11 @@ List expiry date of all AppRegistration credentials
 ## Where to find
 Org \ Security \ List Application Creds Expiry
 
-## Notes
-Permissions: 
- MS Graph - Application Permission
-  Application.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Application.Read.All
+
 
 ## Parameters
 ### -listOnlyExpiring

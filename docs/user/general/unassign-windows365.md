@@ -8,13 +8,14 @@ Remove/Deprovision a Windows 365 instance
 ## Where to find
 User \ General \ Unassign Windows365
 
-## Notes
-Permissions:
-MS Graph (API):
-- User.Read.All
-- GroupMember.ReadWrite.All 
-- Group.ReadWrite.All
-- CloudPC.ReadWrite.All (Beta)
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - GroupMember.ReadWrite.All
+  - Group.ReadWrite.All
+  - CloudPC.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

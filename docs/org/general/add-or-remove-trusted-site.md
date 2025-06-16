@@ -9,13 +9,16 @@ Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
 Org \ General \ Add Or Remove Trusted Site
 
 ## Notes
-Permissions: MS Graph API permissions:
-- DeviceManagementConfiguration.ReadWrite.All
-
-This runbook uses calls as described in 
+This runbook uses calls as described in
 https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
-to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this. 
+to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this.
 Please switch to "v1.0" as soon, as this funtionality is available.
+
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementConfiguration.ReadWrite.All
+
 
 ## Parameters
 ### -Action

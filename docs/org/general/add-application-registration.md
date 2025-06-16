@@ -8,11 +8,12 @@ Add an application registration to Azure AD
 ## Where to find
 Org \ General \ Add Application Registration
 
-## Notes
-Permissions: 
-MS Graph (API):
-- Application.ReadWrite.All
-- RoleManagement.ReadWrite.Directory
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Application.ReadWrite.All
+  - RoleManagement.ReadWrite.Directory
+
 
 ## Parameters
 ### -ApplicationName

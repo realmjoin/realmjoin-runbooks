@@ -8,10 +8,12 @@ This script retrieves all Administrative Template policies from Intune and displ
 ## Where to find
 Org \ General \ List All Administrative Template Policies
 
-## Notes
-Permissions (Graph):
-- DeviceManagementConfiguration.Read.All
-- Group.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementConfiguration.Read.All
+  - Group.Read.All
+
 
 ## Parameters
 

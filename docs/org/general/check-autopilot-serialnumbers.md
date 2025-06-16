@@ -8,9 +8,11 @@ Check if given serial numbers are present in AutoPilot.
 ## Where to find
 Org \ General \ Check Autopilot Serialnumbers
 
-## Notes
-Permissions (Graph):
-- DeviceManagementServiceConfig.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementServiceConfig.Read.All
+
 
 ## Parameters
 ### -SerialNumbers

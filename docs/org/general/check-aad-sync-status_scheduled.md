@@ -8,10 +8,11 @@ This runbook checks the Azure AD Connect sync status and the last sync date and 
 ## Where to find
 Org \ General \ Check Aad Sync Status_Scheduled
 
-## Notes
-Permissions:
-MS Graph (API)
-- Directory.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Directory.Read.All
+
 
 ## Parameters
 ### -sendAlertTo

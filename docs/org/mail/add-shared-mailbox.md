@@ -8,12 +8,14 @@ Create a shared mailbox.
 ## Where to find
 Org \ Mail \ Add Shared Mailbox
 
-## Notes
-Permissions given to the Az Automation RunAs Account:
-AzureAD Roles:
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
 - Exchange administrator
-Office 365 Exchange Online API
-- Exchange.ManageAsApp
+
 
 ## Parameters
 ### -MailboxName

@@ -5,6 +5,14 @@
 ## Where to find
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.Read.All
+  - RoleManagement.Read.Directory
+  - Mail.Send
+
+
 ## Parameters
 ### -sendEmailIfFound
 Description: 

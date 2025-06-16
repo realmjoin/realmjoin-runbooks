@@ -3,19 +3,11 @@
 ## Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 
 ## Description
-Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
+Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 ## Where to find
 User \ Phone \ Grant Teams User Policies
-
-## Notes
-Permissions:
-MS Graph (API):
-- Organization.Read.All
-
-RBAC:
-- Teams Administrator
 
 ## Permissions
 ### Application permissions
@@ -28,42 +20,42 @@ RBAC:
 
 ## Parameters
 ### -UserName
-Description: 
+Description: User which should be granted the policies. Could be filled with the user picker in the UI.
 Default Value: 
 Required: true
 
 ### -OnlineVoiceRoutingPolicy
-Description: 
+Description: Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TenantDialPlan
-Description: 
+Description: Microsoft Teams Tenant Dial Plan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TeamsCallingPolicy
-Description: 
+Description: Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TeamsIPPhonePolicy
-Description: 
+Description: Microsoft Teams IP-Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -OnlineVoicemailPolicy
-Description: 
+Description: Microsoft Teams Online Voicemail Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TeamsMeetingPolicy
-Description: 
+Description: Microsoft Teams Meeting Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TeamsMeetingBroadcastPolicy
-Description: 
+Description: Microsoft Teams Meeting Broadcast Policy Name (Live Event Policy). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 

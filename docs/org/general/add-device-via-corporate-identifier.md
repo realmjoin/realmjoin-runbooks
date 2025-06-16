@@ -8,10 +8,11 @@ Import a device into Intune via corporate identifier.
 ## Where to find
 Org \ General \ Add Device Via Corporate Identifier
 
-## Notes
-Permissions: 
-MS Graph (API):
-- DeviceManagementServiceConfig.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementServiceConfig.ReadWrite.All
+
 
 ## Parameters
 ### -CorpIdentifierType

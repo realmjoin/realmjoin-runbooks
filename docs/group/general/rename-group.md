@@ -8,9 +8,11 @@ Rename a group MailNickname, DisplayName and Description. Will NOT change eMail 
 ## Where to find
 Group \ General \ Rename Group
 
-## Notes
-Permissions: MS Graph (API):
- - Group.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+
 
 ## Parameters
 ### -GroupId

@@ -8,14 +8,16 @@ Create a classic distribution group.
 ## Where to find
 Org \ Mail \ Add Distribution List
 
-## Notes
-Permissions given to the Az Automation RunAs Account:
-AzureAD Roles:
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Organization.Read.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
 - Exchange administrator
-Office 365 Exchange Online API
-- Exchange.ManageAsApp
-MS Graph (API):
--Oranization.Read.All
+
 
 ## Parameters
 ### -Alias

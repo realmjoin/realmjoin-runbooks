@@ -8,11 +8,12 @@ Change a group's visibility
 ## Where to find
 Group \ General \ Change Visibility
 
-## Notes
-Permissions: 
-MS Graph (API)
-- Group.ReadWrite.All
-- Directory.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
 
 ## Parameters
 ### -GroupID

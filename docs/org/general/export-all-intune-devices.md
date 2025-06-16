@@ -8,10 +8,11 @@ Export all Intune devices and metadata based on their owner, like usageLocation.
 ## Where to find
 Org \ General \ Export All Intune Devices
 
-## Notes
-Permissions
- MS Graph (API): 
- - DeviceManagementManagedDevices.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+
 
 ## Parameters
 ### -ContainerName

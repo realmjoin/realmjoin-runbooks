@@ -3,7 +3,7 @@
 ## List AzureAD role holders and their MFA state.
 
 ## Description
-Will list users and service principals that hold a builtin AzureAD role. 
+Will list users and service principals that hold a builtin AzureAD role.
 Admins will be queried for valid MFA methods.
 
 ## Where to find
@@ -14,6 +14,14 @@ Permissions: MS Graph
 - User.Read.All
 - Directory.Read.All
 - RoleManagement.Read.All
+
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - Directory.Read.All
+  - RoleManagement.Read.All
+
 
 ## Parameters
 ### -exportToFile

@@ -8,13 +8,14 @@ Assign/Provision a Windows 365 instance for this user.
 ## Where to find
 User \ General \ Assign Windows365
 
-## Notes
-Permissions:
-MS Graph (API):
-- User.Read.All
-- GroupMember.ReadWrite.All 
-- Group.ReadWrite.All
-- User.SendMail
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - GroupMember.ReadWrite.All
+  - Group.ReadWrite.All
+  - User.SendMail
+
 
 ## Parameters
 ### -UserName

@@ -8,12 +8,14 @@ Create/Remove a contact, to allow pretty email addresses for Teams channels.
 ## Where to find
 Org \ Mail \ Add Or Remove Teams Mailcontact
 
-## Notes
-Permissions given to the Az Automation RunAs Account:
-AzureAD Roles:
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
 - Exchange administrator
-Office 365 Exchange Online API
-- Exchange.ManageAsApp
+
 
 ## Parameters
 ### -RealAddress

@@ -9,14 +9,18 @@ Enable/disable external parties to send eMails to O365 groups.
 Group \ Mail \ Enable Or Disable External Mail
 
 ## Notes
-Permissions: 
- Office 365 Exchange Online
- - Exchange.ManageAsApp
-Azure AD Roles
- - Exchange administrator
-Notes: Setting this via graph is currently broken as of 2021-06-28: 
+Notes: Setting this via graph is currently broken as of 2021-06-28:
  attribute: allowExternalSenders
  https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property
+
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
+- Exchange administrator
+
 
 ## Parameters
 ### -GroupId

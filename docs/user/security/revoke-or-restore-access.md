@@ -8,12 +8,15 @@ Revoke user access and all active tokens or re-enable user.
 ## Where to find
 User \ Security \ Revoke Or Restore Access
 
-## Notes
-Permissions:
-MS Graph (API)
-- User.ReadWrite.All, Directory.ReadWrite.All,
-AzureAD Roles
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All
+  - Directory.ReadWrite.All
+
+### RBAC roles
 - User Administrator
+
 
 ## Parameters
 ### -UserName

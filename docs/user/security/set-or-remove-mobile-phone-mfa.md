@@ -8,9 +8,11 @@ Add, update or remove a user's mobile phone MFA information.
 ## Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa
 
-## Notes
-Permissions needed:
-- UserAuthenticationMethod.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - UserAuthenticationMethod.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

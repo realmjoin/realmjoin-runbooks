@@ -13,6 +13,13 @@ Permissions (WindowsDefenderATP, Application):
 - Machine.Read.All
 - Machine.RestrictExecution
 
+## Permissions
+### Application permissions
+- **Type**: WindowsDefenderATP
+  - Machine.Read.All
+  - Machine.RestrictExecution
+
+
 ## Parameters
 ### -DeviceId
 Description: 

@@ -8,12 +8,14 @@ Add/remove eMail address to/from mailbox, update primary eMail address.
 ## Where to find
 User \ Mail \ Add Or Remove Email Address
 
-## Notes
-Permissions given to the Az Automation RunAs Account:
-AzureAD Roles:
+## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online API
+  - Exchange.ManageAsApp
+
+### RBAC roles
 - Exchange administrator
-Office 365 Exchange Online API
-- Exchange.ManageAsApp
+
 
 ## Parameters
 ### -UserName

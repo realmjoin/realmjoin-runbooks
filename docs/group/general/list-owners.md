@@ -8,10 +8,11 @@ List all owners of an Office 365 group.
 ## Where to find
 Group \ General \ List Owners
 
-## Notes
-Permissions: 
-MS Graph (API)
-- Group.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.Read.All
+
 
 ## Parameters
 ### -GroupID

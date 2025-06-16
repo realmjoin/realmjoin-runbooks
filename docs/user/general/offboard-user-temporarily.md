@@ -8,11 +8,19 @@ Temporarily offboard a user in cases like parental leaves or sabaticals.
 ## Where to find
 User \ General \ Offboard User Temporarily
 
-## Notes
-Permissions
-AzureAD Roles
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
+### Permission notes
+Azure IaaS: Contributor access on subscription or resource group used for the export
+
+### RBAC roles
 - User administrator
-Azure IaaS: "Contributor" access on subscription or resource group used for the export
+
 
 ## Parameters
 ### -UserName

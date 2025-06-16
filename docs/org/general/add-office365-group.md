@@ -10,9 +10,16 @@ Org \ General \ Add Office365 Group
 
 ## Notes
 Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-MS Graph (API): 
-- Group.Create 
+MS Graph (API):
+- Group.Create
 - Team.Create
+
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.Create
+  - Team.Create
+
 
 ## Parameters
 ### -MailNickname

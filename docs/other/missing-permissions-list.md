@@ -6,127 +6,21 @@ This document lists all the runbooks that are missing permissions JSON files. Th
 
 Total runbooks: 121
 
-Runbooks with permissions: 6
+Runbooks with permissions: 112
 
-Runbooks missing permissions: 115
+Runbooks missing permissions: 9
 
 ## List of files
 
 Runbooks, which currently have missing permission files:
 
- - device/general/change-groupTag
- - device/general/check-updatable-assets
- - device/general/enroll-updatable-assets
- - device/general/outphase-device
- - device/general/rename-device
- - device/general/unenroll-updatable-assets
- - device/general/wipe-device
- - device/security/enable-or-disable-device
- - device/security/isolate-or-release-device
- - device/security/reset-mobile-device-pin
- - device/security/restrict-or-release-code-execution
- - device/security/show-laps-password
- - group/devices/check-updatable-assets
- - group/devices/unenroll-updatable-assets
- - group/general/add-or-remove-nested-group
- - group/general/add-or-remove-owner
- - group/general/add-or-remove-user
- - group/general/change-visibility
- - group/general/list-all-members
- - group/general/list-owners
- - group/general/list-user-devices
- - group/general/remove-group
- - group/general/rename-group
- - group/mail/enable-or-disable-external-mail
- - group/mail/show-or-hide-in-address-book
- - group/teams/archive-team
- - org/devices/get-bitlocker-recovery-key
- - org/devices/outphase-devices
- - org/general/add-application-registration
- - org/general/add-autopilot-device
- - org/general/add-device-via-corporate-identifier
  - org/general/add-devices-of-users-to-group_scheduled
  - org/general/add-management-partner
- - org/general/add-microsoft-store-app-logos
- - org/general/add-office365-group
- - org/general/add-or-remove-safeLinks-exclusion
- - org/general/add-or-remove-smartscreen-exclusion
- - org/general/add-or-remove-trusted-site
- - org/general/add-security-group
- - org/general/add-user
  - org/general/add-viva-engange-community
  - org/general/assign-groups-by-template_scheduled
- - org/general/bulk-delete-devices-from-autopilot
- - org/general/bulk-retire-devices-from-intune
- - org/general/check-aad-sync-status_scheduled
- - org/general/check-assignments-of-devices
  - org/general/check-assignments-of-groups
- - org/general/check-assignments-of-users
- - org/general/check-autopilot-serialnumbers
  - org/general/check-device-onboarding-exclusion_schedule
- - org/general/enrolled-devices-report_scheduled
- - org/general/export-all-autopilot-devices
- - org/general/export-all-intune-devices
- - org/general/export-cloudpc-usage_scheduled
- - org/general/export-non-compliant-devices
- - org/general/export-policy-report
- - org/general/list-all-administrative-template-policies
- - org/general/list-group-license-assignment-errors
- - org/general/office365-license-report
- - org/general/report-apple-mdm-cert-expiry_scheduled
- - org/general/report-pim-activations_scheduled
  - org/general/sync-all-devices
- - org/mail/add-distribution-list
- - org/mail/add-equipment-mailbox
- - org/mail/add-or-remove-public-folder
- - org/mail/add-or-remove-teams-mailContact
- - org/mail/add-room-mailbox
- - org/mail/add-shared-mailbox
- - org/mail/hide-mailboxes_scheduled
  - org/mail/set-booking-config
- - org/security/add-defender-indicator
- - org/security/backup-conditional-access-policies
- - org/security/export-enterprise-app-users
- - org/security/list-admin-users
- - org/security/list-application-creds-expiry
- - org/security/list-expiring-role-assignments
- - org/security/list-inactive-devices
- - org/security/list-inactive-enterprise-apps
- - org/security/list-inactive-users
- - org/security/list-information-protection-labels
- - org/security/list-pim-rolegroups-without-owners_scheduled
- - org/security/list-vulnerable-app-regs
- - org/security/notify-changed-CA-Policies
  - user/general/assign-groups-by-template
- - user/general/assign-or-unassign-license
- - user/general/assign-windows365
- - user/general/list-group-ownerships
- - user/general/list-manager
- - user/general/offboard-user-permanently
- - user/general/offboard-user-temporarily
- - user/general/reprovision-windows365
- - user/general/resize-windows365
- - user/general/unassign-windows365
- - user/mail/add-or-remove-email-address
- - user/mail/assign-owa-mailbox-policy
- - user/mail/convert-to-shared-mailbox
- - user/mail/delegate-full-access
- - user/mail/delegate-send-as
- - user/mail/delegate-send-on-behalf
- - user/mail/hide-or-unhide-in-addressbook
- - user/mail/list-mailbox-permissions
- - user/mail/list-room-mailbox-configuration
- - user/mail/remove-mailbox
- - user/mail/set-out-of-office
- - user/mail/set-room-mailbox-configuration
- - user/security/confirm-or-dismiss-risky-user
- - user/security/create-temporary-access-pass
- - user/security/enable-or-disable-password-expiration
- - user/security/reset-mfa
- - user/security/reset-password
- - user/security/revoke-or-restore-access
- - user/security/set-or-remove-mobile-phone-mfa
- - user/userinfo/rename-user
- - user/userinfo/set-photo
- - user/userinfo/update-user
 

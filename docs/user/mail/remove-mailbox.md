@@ -8,9 +8,10 @@ Hard delete a shared mailbox, room or bookings calendar.
 ## Where to find
 User \ Mail \ Remove Mailbox
 
-## Notes
-Permissions
-Exchange Administrator access
+## Permissions
+### RBAC roles
+- Exchange administrator
+
 
 ## Parameters
 ### -UserName

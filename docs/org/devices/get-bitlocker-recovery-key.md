@@ -13,6 +13,13 @@ Permissions (Graph):
 - Device.Read.All
 - BitlockerKey.Read.All
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Device.Read.All
+  - BitlockerKey.Read.All
+
+
 ## Parameters
 ### -bitlockeryRecoveryKeyId
 Description: bitlockeryRecoveryKeyId of the desired recovery key. Displayed in the BitLocker recovery screen (format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX).

@@ -8,15 +8,17 @@ Show recent first-time device enrollments, grouped by a category/attribute.
 ## Where to find
 Org \ General \ Enrolled Devices Report_Scheduled
 
-## Notes
-Permissions: 
-MS Graph (API):
-- DeviceManagementServiceConfig.Read.All
-- DeviceManagementManagedDevices.Read.All
-- User.Read.All
-- Device.ReadWrite.All
-Azure Subscription (for Storage Account)
-- Contributor on Storage Account
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementServiceConfig.Read.All
+  - DeviceManagementManagedDevices.Read.All
+  - User.Read.All
+  - Device.ReadWrite.All
+
+### Permission notes
+Azure: Contributor on Storage Account
+
 
 ## Parameters
 ### -Weeks

@@ -8,9 +8,11 @@ List/Add/Remove URL indicators entries in MS Security Center.
 ## Where to find
 Org \ General \ Add Or Remove Smartscreen Exclusion
 
-## Notes
-Permissions: WindowsDefenderATP:
-- Ti.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: WindowsDefenderATP
+  - Ti.ReadWrite.All
+
 
 ## Parameters
 ### -action

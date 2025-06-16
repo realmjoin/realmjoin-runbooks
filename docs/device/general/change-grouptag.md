@@ -8,11 +8,12 @@ Assign a new AutoPilot GroupTag to this device.
 ## Where to find
 Device \ General \ Change Grouptag
 
-## Notes
-Permissions: 
-MS Graph (API):
-- Device.Read.All
-- DeviceManagementServiceConfig.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Device.Read.All
+  - DeviceManagementServiceConfig.ReadWrite.All
+
 
 ## Parameters
 ### -DeviceId

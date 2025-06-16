@@ -9,14 +9,6 @@ If the policy name of a policy is left blank, the corresponding policy will not 
 ## Where to find
 User \ Phone \ Set Teams Phone
 
-## Notes
-Permissions:
-MS Graph (API):
-- Organization.Read.All
-
-RBAC:
-- Teams Administrator
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -28,32 +20,32 @@ RBAC:
 
 ## Parameters
 ### -UserName
-Description: 
+Description: User which should be assigned. Could be filled with the user picker in the UI.
 Default Value: 
 Required: true
 
 ### -PhoneNumber
-Description: Number which should be assigned
+Description: Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
 Default Value: 
 Required: true
 
 ### -OnlineVoiceRoutingPolicy
-Description: 
+Description: Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TenantDialPlan
-Description: 
+Description: Microsoft Teams DialPlan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TeamsCallingPolicy
-Description: 
+Description: Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 
 ### -TeamsIPPhonePolicy
-Description: 
+Description: Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 Default Value: 
 Required: false
 

@@ -8,9 +8,11 @@ Confirm compromise / Dismiss a "risky user"
 ## Where to find
 User \ Security \ Confirm Or Dismiss Risky User
 
-## Notes
-Permissions needed:
-- IdentityRiskyUser.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - IdentityRiskyUser.ReadWrite.All
+
 
 ## Parameters
 ### -UserName

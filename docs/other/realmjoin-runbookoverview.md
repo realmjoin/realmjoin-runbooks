@@ -490,8 +490,8 @@ Group \ General \ Change Visibility
 #### Retrieves the members of a specified EntraID group, including members from nested groups.
 
 #### Description
-This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups. 
-The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path. 
+This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
+The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
 The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
 
 #### Where to find
@@ -1490,7 +1490,7 @@ Org \ Security \ Export Enterprise App Users
 #### List AzureAD role holders and their MFA state.
 
 #### Description
-Will list users and service principals that hold a builtin AzureAD role. 
+Will list users and service principals that hold a builtin AzureAD role.
 Admins will be queried for valid MFA methods.
 
 #### Where to find
@@ -1681,7 +1681,7 @@ User \ General \ Assign Groups By Template
 #### (Un-)Assign a license to a user via group membership.
 
 #### Description
-(Un-)Assign a license to a user via group membership
+(Un-)Assign a license to a user via group membership.
 
 #### Where to find
 User \ General \ Assign Or Unassign License
@@ -2084,7 +2084,7 @@ User \ Phone \ Get Teams User Info
 #### Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 
 #### Description
-Grant specific Microsoft Teams policies to a Microsoft Teams enabled user. 
+Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 #### Where to find

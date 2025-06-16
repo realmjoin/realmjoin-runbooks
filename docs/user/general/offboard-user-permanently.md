@@ -8,11 +8,19 @@ Permanently offboard a user.
 ## Where to find
 User \ General \ Offboard User Permanently
 
-## Notes
-Permissions
-AzureAD Roles
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All
+  - Group.ReadWrite.All
+  - Directory.ReadWrite.All
+
+### Permission notes
+Azure IaaS: Contributor access on subscription or resource group used for the export
+
+### RBAC roles
 - User administrator
-Azure IaaS: "Contributor" access on subscription or resource group used for the export
+
 
 ## Parameters
 ### -UserName

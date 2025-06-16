@@ -9,11 +9,21 @@ Export a CSV of all (entprise) app owners and users.
 Org \ Security \ Export Enterprise App Users
 
 ## Notes
-Permissions: 
+Permissions:
 MS Graph (API)
 - Directory.Read.All
 - Application.Read.All
 Azure IaaS: "Contributor" access on subscription or resource group used for the export
+
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Directory.Read.All
+  - Application.Read.All
+
+### Permission notes
+Azure IaaS: - Contributor - access on subscription or resource group used for the export
+
 
 ## Parameters
 ### -entAppsOnly

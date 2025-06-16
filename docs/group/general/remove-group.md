@@ -8,9 +8,11 @@ Removes a group, incl. SharePoint site and Teams team.
 ## Where to find
 Group \ General \ Remove Group
 
-## Notes
-MS Graph (API): 
-- Group.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+
 
 ## Parameters
 ### -GroupId

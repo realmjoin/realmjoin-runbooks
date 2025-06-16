@@ -8,10 +8,11 @@ Decomission an inactive team while preserving its contents for review.
 ## Where to find
 Group \ Teams \ Archive Team
 
-## Notes
-Permissions: 
-MS Graph - Application
-- TeamSettings.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - TeamSettings.ReadWrite.All
+
 
 ## Parameters
 ### -GroupID

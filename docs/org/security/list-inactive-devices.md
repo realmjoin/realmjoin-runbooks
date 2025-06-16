@@ -8,12 +8,13 @@ Collect devices based on the date of last user logon or last Intune sync.
 ## Where to find
 Org \ Security \ List Inactive Devices
 
-## Notes
-Permissions
-MS Graph (API):
-- DeviceManagementManagedDevices.Read.All
-- Directory.Read.All
-- Device.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - Directory.Read.All
+  - Device.Read.All
+
 
 ## Parameters
 ### -Days

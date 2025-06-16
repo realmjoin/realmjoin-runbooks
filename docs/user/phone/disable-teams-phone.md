@@ -8,14 +8,6 @@ Remove the phone number and specific policies from a teams-enabled user.
 ## Where to find
 User \ Phone \ Disable Teams Phone
 
-## Notes
-Permissions:
-MS Graph (API):
-- Organization.Read.All
-
-RBAC:
-- Teams Administrator
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -27,7 +19,7 @@ RBAC:
 
 ## Parameters
 ### -UserName
-Description: User which should be cleared
+Description: User which should be cleared. Could be filled with the user picker in the UI.
 Default Value: 
 Required: true
 

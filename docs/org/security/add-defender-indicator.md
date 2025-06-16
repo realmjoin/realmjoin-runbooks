@@ -8,9 +8,11 @@ Create a new Indicator in Defender for Endpoint e.g. to allow a specific file us
 ## Where to find
 Org \ Security \ Add Defender Indicator
 
-## Notes
-Permissions (WindowsDefenderATP, Application):
-- Ti.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: WindowsDefenderATP
+  - Ti.ReadWrite.All
+
 
 ## Parameters
 ### -IndicatorValue

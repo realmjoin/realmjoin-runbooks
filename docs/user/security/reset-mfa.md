@@ -12,6 +12,12 @@ User \ Security \ Reset Mfa
 Permissions needed:
 - UserAuthenticationMethod.ReadWrite.All
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - UserAuthenticationMethod.ReadWrite.All
+
+
 ## Parameters
 ### -UserName
 Description: 

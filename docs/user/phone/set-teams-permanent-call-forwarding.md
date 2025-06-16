@@ -8,14 +8,6 @@ Set up instant call forwarding for a Microsoft Teams Enterprise Voice user. Forw
 ## Where to find
 User \ Phone \ Set Teams Permanent Call Forwarding
 
-## Notes
-Permissions:
-MS Graph (API):
-- Organization.Read.All
-
-RBAC:
-- Teams Administrator
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -27,32 +19,32 @@ RBAC:
 
 ## Parameters
 ### -UserName
-Description: 
+Description: User which should be set up. Could be filled with the user picker in the UI.
 Default Value: 
 Required: true
 
 ### -ForwardTargetPhoneNumber
-Description: 
+Description: Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
 Default Value: 
 Required: false
 
 ### -ForwardTargetTeamsUser
-Description: 
+Description: Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
 Default Value: 
 Required: false
 
 ### -ForwardToVoicemail
-Description: 
+Description: Forward calls to voicemail.
 Default Value: False
 Required: false
 
 ### -ForwardToDelegates
-Description: 
+Description: Forward calls to delegates which are defined by the user.
 Default Value: False
 Required: false
 
 ### -TurnOffForward
-Description: 
+Description: Turn off immediate call forwarding.
 Default Value: False
 Required: false
 

@@ -8,10 +8,11 @@ This runbook deletes Autopilot objects in bulk based on a list of serial numbers
 ## Where to find
 Org \ General \ Bulk Delete Devices From Autopilot
 
-## Notes
-Permissions:
-MS Graph (API)
-- DeviceManagementServiceConfig.ReadWrite.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementServiceConfig.ReadWrite.All
+
 
 ## Parameters
 ### -SerialNumbers

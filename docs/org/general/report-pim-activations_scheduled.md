@@ -8,11 +8,12 @@ This runbook collects and reports PIM activation details, including date, reques
 ## Where to find
 Org \ General \ Report Pim Activations_Scheduled
 
-## Notes
-Permissions:
-MS Graph (API)
-- AuditLog.Read.All
-- Mail.Send
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - AuditLog.Read.All
+  - Mail.Send
+
 
 ## Parameters
 ### -sendAlertTo
