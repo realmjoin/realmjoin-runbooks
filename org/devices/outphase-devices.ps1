@@ -5,15 +5,6 @@
   .DESCRIPTION
   Remove/Outphase multiple devices. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
 
-  .NOTES
-  PERMISSIONS
-   DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
-   DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
-   DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
-   Device.Read.All
-  ROLES
-   Cloud device administrator
-
   .INPUTS
   RunbookCustomization: {
 
@@ -31,7 +22,7 @@
                     "Value": 1
                 }
                 ]
-           }
+            }
         },
         "DeviceList": {
             "DisplayName": "Comma separated list",

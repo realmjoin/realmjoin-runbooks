@@ -5,11 +5,6 @@
   .DESCRIPTION
   This script checks if single device is onboarded to Windows Update for Business.
 
-  .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  - WindowsUpdates.ReadWrite.All
-
   .PARAMETER DeviceId
   DeviceId of the device to check onboarding status for.
 

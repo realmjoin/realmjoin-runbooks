@@ -5,14 +5,6 @@
   .DESCRIPTION
   Assign/Provision a Windows 365 instance for this user.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - User.Read.All
-  - GroupMember.ReadWrite.All
-  - Group.ReadWrite.All
-  - User.SendMail
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

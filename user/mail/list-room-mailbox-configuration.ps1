@@ -5,11 +5,6 @@
   .DESCRIPTION
   List Room configuration.
 
-  .NOTES
-  Permissions
-  MS Graph (API):
-  - Place.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

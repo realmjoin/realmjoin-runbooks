@@ -5,10 +5,6 @@
   .DESCRIPTION
   Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
 
-  .NOTES
-  Permissions
-  Exchange Administrator access
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

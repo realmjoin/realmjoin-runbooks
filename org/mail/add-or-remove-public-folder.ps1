@@ -5,13 +5,6 @@
   .DESCRIPTION
   Assumes you already have at least on Public Folder Mailbox. It will not provision P.F. Mailboxes.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
         "ParameterList": [

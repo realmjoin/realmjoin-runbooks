@@ -21,11 +21,6 @@
     }
   }
 
-  .NOTES
-  New permission:
-  MSGraph
-  - Reports.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "ParameterList": [

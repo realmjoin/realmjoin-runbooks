@@ -1,0 +1,13 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "IdentityRiskyUser.ReadWrite.All"
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

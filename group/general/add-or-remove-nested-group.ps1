@@ -5,12 +5,6 @@
   .DESCRIPTION
   Add/remove a nested group to/from an AzureAD or Exchange Online group.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Group.ReadWrite.All
-  - Directory.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

@@ -5,11 +5,6 @@
   .DESCRIPTION
   Set a users password policy to "(Do not) Expire"
 
-  .NOTES
-  Permissions needed:
-   MS Graph (API Permissions):
-   - User.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
