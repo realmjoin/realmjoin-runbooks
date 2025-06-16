@@ -5,11 +5,6 @@
   .DESCRIPTION
   Report groups that have license assignment errors
 
-  .NOTES
-  Permissions (MS Graph, API)
-  - GroupMember.Read.All
-  - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

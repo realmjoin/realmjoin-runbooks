@@ -5,12 +5,6 @@
   .DESCRIPTION
   Assign a new AutoPilot GroupTag to this device.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - Device.Read.All
-  - DeviceManagementServiceConfig.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

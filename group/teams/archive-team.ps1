@@ -5,11 +5,6 @@
   .DESCRIPTION
   Decomission an inactive team while preserving its contents for review.
 
-  .NOTES
-  Permissions:
-  MS Graph - Application
-  - TeamSettings.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

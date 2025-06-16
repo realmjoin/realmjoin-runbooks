@@ -5,10 +5,6 @@ Show a local admin password for a device.
 .DESCRIPTION
 Show a local admin password for a device.
 
-.NOTES
-Permissions (Graph):
-- DeviceLocalCredential.Read.All
-
 .INPUTS
   RunbookCustomization: {
         "Parameters": {

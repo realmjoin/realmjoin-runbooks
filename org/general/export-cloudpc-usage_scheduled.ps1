@@ -5,11 +5,6 @@
   .DESCRIPTION
   Write daily Windows 365 Utilization Data to Azure Tables. Will write data about the last full day.
 
-  .NOTES
-  Permissions:
-  MS Graph: CloudPC.Read.All
-  StorageAccount: Contributor
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

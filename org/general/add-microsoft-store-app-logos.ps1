@@ -5,11 +5,6 @@
   .DESCRIPTION
   This script updates the logos for Microsoft Store Apps (new) in Intune by fetching them from the Microsoft Store.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - DeviceManagementApps.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

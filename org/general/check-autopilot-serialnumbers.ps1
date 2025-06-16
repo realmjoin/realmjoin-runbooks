@@ -5,10 +5,6 @@
   .DESCRIPTION
   Check if given serial numbers are present in AutoPilot.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementServiceConfig.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

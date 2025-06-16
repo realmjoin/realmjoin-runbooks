@@ -12,9 +12,6 @@
   Will use an existing policy or default policy name if left empty.
 
   .NOTES
-  Permissions: MS Graph API permissions:
-  - DeviceManagementConfiguration.ReadWrite.All
-
   This runbook uses calls as described in
   https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
   to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this.

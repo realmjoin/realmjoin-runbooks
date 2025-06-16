@@ -1,0 +1,16 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "Directory.Read.All",
+                "Application.Read.All"
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Azure IaaS: - Contributor - access on subscription or resource group used for the export"
+    ]
+}

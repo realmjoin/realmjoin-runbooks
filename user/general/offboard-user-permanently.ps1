@@ -5,12 +5,6 @@
   .DESCRIPTION
   Permanently offboard a user.
 
-  .NOTES
-  Permissions
-  AzureAD Roles
-  - User administrator
-  Azure IaaS: "Contributor" access on subscription or resource group used for the export
-
   .PARAMETER ReplacementOwnerName
   Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
 

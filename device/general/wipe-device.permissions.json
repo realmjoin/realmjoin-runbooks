@@ -1,0 +1,18 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                "DeviceManagementManagedDevices.ReadWrite.All",
+                "DeviceManagementServiceConfig.ReadWrite.All",
+                "Device.Read.All"
+            ]
+        }
+    ],
+    "Roles": [
+        "Cloud device administrator"
+    ],
+    "ManualPermissions": []
+}

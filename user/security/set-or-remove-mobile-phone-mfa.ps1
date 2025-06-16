@@ -8,10 +8,6 @@
   .PARAMETER phoneNumber
   Needs to be in '+###########' syntax
 
-  .NOTES
-  Permissions needed:
- - UserAuthenticationMethod.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
