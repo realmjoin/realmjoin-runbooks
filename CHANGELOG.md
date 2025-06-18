@@ -1,4 +1,8 @@
 # RealmJoin Runbooks Changelog
+## 2025-06-18
+- Add runbook in Org/General:
+  - "Invite external guest users" - Invite external guest users to the tenant and optionally add them to a specified group.
+  - "Remove primary user" - Remove the primary user from devices in Intune.
 
 ## 2025-06-16
 - Add runbook in Org/Devices: 
