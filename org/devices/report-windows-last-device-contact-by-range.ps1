@@ -195,5 +195,6 @@ if ($(($outputDevices | Measure-Object).Count) -eq 0) {
     Write-Output "No devices found matching the specified date range."
 }
 else {
-    $outputDevices | Format-Table -AutoSize
+    # Reduced properties in the output to optimize readability
+    $outputDevices | Select-Object DeviceName, LastSyncDateTime, IntuneDeviceId, UserPrincipalName | Format-Table
 }

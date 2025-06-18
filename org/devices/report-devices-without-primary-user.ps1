@@ -58,6 +58,10 @@ catch {
 #region Get all devices without registered users
 ####################################################################
 
+Write-Output ""
+Write-Output "Getting all managed devices and filter those without a primary user..."
+Write-Output "Note: This may take a while depending on the number of devices in your tenant."
+
 # Define the base URI for the Microsoft Graph API to retrieve managed devices and the properties to select.
 $baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices'
 
@@ -82,6 +86,7 @@ do {
 #region Output Devices Without Primary User
 ####################################################################
 
+Write-Output "Prepared output for devices without a primary user..."
 # Create a PSCustomObject with all devices without registered users, and prettify the output
 $devicesWithoutPrimaryUser = $raw | ForEach-Object {
     [PSCustomObject]@{
@@ -92,6 +97,12 @@ $devicesWithoutPrimaryUser = $raw | ForEach-Object {
     }
 }
 
-$devicesWithoutPrimaryUser | Sort-Object DisplayName | Format-Table -AutoSize
+Write-Output ""
+Write-Output "Devices without a primary user:"
+if ($($devicesWithoutPrimaryUser | Measure-Object).Count -gt 0) {
+    $devicesWithoutPrimaryUser | Sort-Object DisplayName | Format-Table -AutoSize
+} else {
+    Write-Host "No devices without a primary user were found."
+}
 
 #endregion

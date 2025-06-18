@@ -94,6 +94,13 @@ foreach ($group in $raw) {
     }
 }
 
-$Output | Sort-Object DeviceCount -Descending | Format-Table -AutoSize
+Write-Output ""
+if ($($Output | Measure-Object).Count -eq 0) {
+    Write-Output "No users found with more than five devices."
+}else {
+    $($Output | Measure-Object).Count | Write-Output "Found $($_) users with more than five devices:"
+    $Output | Sort-Object DeviceCount -Descending | Format-Table
+}
+
 
 #endregion
