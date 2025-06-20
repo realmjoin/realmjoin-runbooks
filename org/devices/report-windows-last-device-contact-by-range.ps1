@@ -130,7 +130,7 @@ else {
 
 $baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices?$filter='
 $filterQuery = "$($baseFilter) and $($dateFilter)"
-$selectQuery = "&$select="
+$selectQuery = '&$select='
 $selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,userId,userDisplayName,userPrincipalName"
 $selectProperties_Array = $selectProperties -split ',' | ForEach-Object { $_.Trim() }
 
