@@ -65,7 +65,7 @@ Write-Output "Note: This may take a while depending on the number of devices in 
 # Define the base URI for the Microsoft Graph API to retrieve managed devices and the properties to select.
 $baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices'
 
-$selectQuery = "?&$select="
+$selectQuery = "?$select="
 $selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,userId"
 
 $raw = @()
