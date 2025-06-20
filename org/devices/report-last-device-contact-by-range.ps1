@@ -13,9 +13,8 @@
 .INPUTS
 RunbookCustomization: {
     "Parameters": {
-        "DateRange": {
-            "Name": "DateRange",
-            "Label": "Select Last Device Contact Range (days)",
+        "dateRange": {
+            "Name": "Select Last Device Contact Range (days)",
             "Description": "Filter devices based on their last contact time.",
             "Required": true,
             "SelectSimple": {
@@ -24,6 +23,17 @@ RunbookCustomization: {
                 "90-180 days": "90-180",
                 "180-365 days": "180-365",
                 "365 days and more": "365+"
+            }
+        },
+        "systemType": {
+            "Name": "Select System Type",
+            "Description": "Filter devices based on their operating system.",
+            "Required": true,
+            "SelectSimple": {
+                "All": "all",
+                "Windows": "Windows",
+                "MacOS": "macOS",
+                "Linux": "Linux"
             }
         },
         "CallerName": {
@@ -39,7 +49,10 @@ RunbookCustomization: {
 param (
     [Parameter(Mandatory = $true)]
     [ValidateSet("0-30", "30-90", "90-180", "180-365", "365+")]
-    [string]$DateRange,
+    [string]$dateRange,
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("all", "Windows", "macOS", "Linux")]
+    [string]$systemType = "Windows",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string]$CallerName
@@ -60,7 +73,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "DateRange: $DateRange" -Verbose
+Write-RjRbLog -Message "DateRange: $dateRange" -Verbose
 
 #endregion
 
@@ -89,7 +102,7 @@ $now = Get-Date
 $startDate = $null
 $endDate = $null
 
-switch ($DateRange) {
+switch ($dateRange) {
     "0-30" {
         $startDate = $now.AddDays(-30)
         $endDate = $now
@@ -113,10 +126,9 @@ switch ($DateRange) {
     }
 }
 
-$baseFilter = "operatingSystem eq 'Windows'"
 $dateFilter = ""
 
-if ($DateRange -eq "365+") {
+if ($dateRange -eq "365+") {
     $endDateISO = $endDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
     $dateFilter = "lastSyncDateTime le $($endDateISO)"
     Write-Verbose "Filtering for devices with last contact on or before $($endDateISO)."
@@ -128,10 +140,22 @@ else {
     Write-Verbose "Filtering for devices with last contact between $($startDateISO) and $($endDateISO)."
 }
 
+# Base URI for Microsoft Graph API to fetch managed devices
 $baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices?$filter='
-$filterQuery = "$($baseFilter) and $($dateFilter)"
+
+
+# Prepare the filter query based on the system type and date range
+if ($systemType -ne 'all') {
+    $baseFilter = "operatingSystem eq '$($systemType)'"
+    $filterQuery = "$($baseFilter) and $($dateFilter)"
+}else {
+    $filterQuery = $dateFilter
+}
+
+#$filterQuery = "operatingSystem eq 'macOS'"
+
 $selectQuery = '&$select='
-$selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,userId,userDisplayName,userPrincipalName"
+$selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,userId,userDisplayName,userPrincipalName,operatingSystem"
 $selectProperties_Array = $selectProperties -split ',' | ForEach-Object { $_.Trim() }
 
 $fullURI = $baseURI + $filterQuery + $selectQuery + $selectProperties
@@ -145,12 +169,12 @@ $currentURI = $fullURI
 
 try {
     Write-Verbose "Retrieving devices from Microsoft Graph with initial filter: $($filterQuery)"
-    Write-Verbose "Initial URI: $currentURI"
+    Write-Verbose "Initial URI: $($currentURI)"
     do {
-        Write-Verbose "Fetching data from URI: $currentURI"
+        Write-Verbose "Fetching data from URI: $($currentURI)"
         $response = Invoke-MgGraphRequest -Uri $currentURI -Method Get -ErrorAction Stop
         if ($response -and $response.value) {
-            $allDevices += $response.value | Select-Object -Property $selectProperties_Array
+            $allDevices += $response.value  | Select-Object -Property $selectProperties_Array
             Write-Verbose "Retrieved $($response.value.Count) devices in this batch. Total devices so far: $(($allDevices | Measure-Object).Count)."
         }
         else {
@@ -159,7 +183,7 @@ try {
         $currentURI = $response.'@odata.nextLink'
     } while ($null -ne $currentURI)
 
-    Write-Verbose "Successfully retrieved all devices. Total count: $(($allDevices | Measure-Object).Count)."
+    Write-Output "Retrieved devices using the current filter: $(($allDevices | Measure-Object).Count)"
 }
 catch {
     Write-Error "Failed to retrieve devices: $($_.Exception.Message)"
