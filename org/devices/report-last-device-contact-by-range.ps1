@@ -185,8 +185,9 @@ try {
         }
         $currentURI = $response.'@odata.nextLink'
     } while ($null -ne $currentURI)
-
-    Write-Output "Retrieved devices using the current filter: $(($allDevices | Measure-Object).Count)"
+    if ($($allDevices | Measure-Object).Count -gt 0) {
+        Write-Output "Retrieved devices using the current filter: $(($allDevices | Measure-Object).Count)"
+    }
 }
 catch {
     Write-Error "Failed to retrieve devices: $($_.Exception.Message)"
