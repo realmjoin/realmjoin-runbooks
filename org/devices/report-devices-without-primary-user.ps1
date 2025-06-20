@@ -102,7 +102,7 @@ Write-Output "Devices without a primary user:"
 if ($($devicesWithoutPrimaryUser | Measure-Object).Count -gt 0) {
     $devicesWithoutPrimaryUser | Sort-Object DisplayName | Format-Table -AutoSize
 } else {
-    Write-Host "No devices without a primary user were found."
+    Write-Output "No devices without a primary user were found."
 }
 
 #endregion
