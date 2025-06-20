@@ -54,8 +54,7 @@ RunbookCustomization: {
             "Hide": true
         },
         "GroupId": {
-            "Hide": true,
-            "DefaultValue": "00000000-0000-0000-0000-000000000000"
+            "Hide": true
         }
     }
 }
