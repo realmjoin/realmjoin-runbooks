@@ -7,14 +7,17 @@
     last device contact time (lastSyncDateTime). As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
     The output includes the device name, last sync date, user ID, user display name, and user principal name.
 
-.PARAMETER DateRange
+.PARAMETER dateRange
     Date range for filtering devices based on their last contact time.
+
+.PARAMETER systemType
+    The operating system type of the devices to filter.
 
 .INPUTS
 RunbookCustomization: {
     "Parameters": {
         "dateRange": {
-            "Name": "Select Last Device Contact Range (days)",
+            "DisplayName": "Select Last Device Contact Range (days)",
             "Description": "Filter devices based on their last contact time.",
             "Required": true,
             "SelectSimple": {
@@ -26,7 +29,7 @@ RunbookCustomization: {
             }
         },
         "systemType": {
-            "Name": "Select System Type",
+            "DisplayName": "Select System Type",
             "Description": "Filter devices based on their operating system.",
             "Required": true,
             "SelectSimple": {
