@@ -1,14 +1,20 @@
 # RealmJoin Runbooks Changelog
 ## 2025-06-18
 - Add runbook in Org/General:
-  - "Invite external guest users" - Invite external guest users to the tenant and optionally add them to a specified group.
-  - "Remove primary user" - Remove the primary user from devices in Intune.
+  - "Invite external guest users" 
+    - Invite external guest users to the tenant and optionally add them to a specified group.
+  - "Remove primary user" 
+    - Remove the primary user from devices in Intune.
 
 ## 2025-06-16
 - Add runbook in Org/Devices: 
-  - "Report Windows Last Device Contact by Range" - Get the devices based on the last device contact date and time, grouped by the specified ranges.
-  - "Report Users with more than five devices" - Get the users with more than five devices enrolled in Intune.
-  - "Report devices without primary user" - Get the devices without a primary user assigned in Intune.
+  - "Report Last Device Contact by Range" 
+    - Get the devices based on the last device contact date and time, grouped by the specified ranges. 
+    - Also includes the filtering options for operating system.                                            
+  - "Report Users with more than five devices" 
+    - Get the users with more than five devices enrolled in Intune.
+  - "Report devices without primary user" 
+    - Get the devices without a primary user assigned in Intune.
 
 ## 2025-05-02
 - Update RealmJoin.RunbookHelper to v0.8.4 in all runbooks
