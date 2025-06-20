@@ -71,7 +71,7 @@ do {
 } while ($uri)
 
 
-$raw = $AllDevices_BasedOnUsers | Where-Object RegisteredUsers -NotLike "" | Group-Object { $_.RegisteredUsers.Id } | Where-Object Count -gt 5
+$raw = $AllDevices_BasedOnUsers | Where-Object { $_.RegisteredUsers.Count -gt 0 } | Group-Object { $_.RegisteredUsers.Id } | Where-Object Count -gt 5
 
 #endregion
 
