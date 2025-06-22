@@ -85,5 +85,5 @@ catch {
     throw
 }
 
-Write-Output -Message "Successfully removed primary user from device with ID: $DeviceId" -Verbose
+Write-Output "Successfully removed primary user from device with ID: $($DeviceId)."
 #endregion
