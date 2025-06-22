@@ -215,7 +215,7 @@ Write-Output "Invited User:"
 Write-Output "  Email: $InvitedUserEmail"
 Write-Output "  Display Name: $InvitedUserDisplayName"
 Write-Output "  User ID: $invitedUserId"
-Write-Output "Group Assigned: $([string]::IsNullOrEmpty($GroupId) ? 'None' : $("$($group.displayName) - $($GroupId)")))"
+Write-Output "Group Assigned: $(if ([string]::IsNullOrEmpty($GroupId)) { 'None' } else { "$($group.displayName) - $GroupId" })"
 Write-Output "Invitation Sent: $SendInvitationMessage"
 
 #endregion
