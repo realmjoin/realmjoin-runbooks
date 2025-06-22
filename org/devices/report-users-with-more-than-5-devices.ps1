@@ -79,7 +79,7 @@ $raw = $AllDevices_BasedOnUsers | Where-Object { $_.RegisteredUsers.Count -gt 0 
 #region Prepare output
 ####################################################################
 
-# Prepare output. Should countain the user ID, the UPN, and the number of devices
+# Prepare output. Should contain the user ID, the UPN, and the number of devices
 $Output = @()
 
 foreach ($group in $raw) {
