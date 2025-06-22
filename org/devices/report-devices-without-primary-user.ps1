@@ -75,7 +75,7 @@ do {
     $response = Invoke-MgGraphRequest -Uri $uri -Method Get -ErrorAction Stop
     $raw += $response.value | Where-Object {
         # Filter devices where userId is null or empty
-        -not $_.userId -or [string]::IsNullOrEmpty($_.userId)
+        [string]::IsNullOrEmpty($_.userId)
     }
     $uri = $response.'@odata.nextLink'
 } while ($null -ne $uri)
