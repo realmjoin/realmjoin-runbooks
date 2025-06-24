@@ -17,6 +17,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Check Updatable Assets
     - Enroll Updatable Assets
     - Outphase Device
+    - Remove Primary User
     - Rename Device
     - Unenroll Updatable Assets
     - Wipe Device
@@ -49,6 +50,9 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#org-devices)
     - Get Bitlocker Recovery Key
     - Outphase Devices
+    - Report Devices Without Primary User
+    - Report Last Device Contact By Range
+    - Report Users With More Than 5-Devices
   - [General](#org-general)
     - Add Application Registration
     - Add Autopilot Device
@@ -78,6 +82,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Export Cloudpc Usage_Scheduled
     - Export Non Compliant Devices
     - Export Policy Report
+    - Invite External Guest Users
     - List All Administrative Template Policies
     - List Group License Assignment Errors
     - Office365 License Report
@@ -163,6 +168,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. |
 | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 | Outphase Device | Remove/Outphase a windows device |
+| Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
@@ -233,6 +239,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Get Bitlocker Recovery Key | Get BitLocker recovery key |
 | Outphase Devices | Remove/Outphase multiple devices |
+| Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+| Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
+| Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
@@ -268,6 +277,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Export Cloudpc Usage_Scheduled | Write daily Windows 365 Utilization Data to Azure Tables |
 | Export Non Compliant Devices | Report on non-compliant devices and policies |
 | Export Policy Report | Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file. |
+| Invite External Guest Users | Invites external guest users to the organization using Microsoft Graph. |
 | List All Administrative Template Policies | List all Administrative Template policies and their assignments. |
 | List Group License Assignment Errors | Report groups that have license assignment errors |
 | Office365 License Report | Generate an Office 365 licensing report. |

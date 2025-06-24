@@ -6,6 +6,7 @@
   - [Check Updatable Assets](general/check-updatable-assets.md)
   - [Enroll Updatable Assets](general/enroll-updatable-assets.md)
   - [Outphase Device](general/outphase-device.md)
+  - [Remove Primary User](general/remove-primary-user.md)
   - [Rename Device](general/rename-device.md)
   - [Unenroll Updatable Assets](general/unenroll-updatable-assets.md)
   - [Wipe Device](general/wipe-device.md)

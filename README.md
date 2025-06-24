@@ -28,6 +28,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Check Updatable Assets](docs/device/general/check-updatable-assets.md)
     - [Enroll Updatable Assets](docs/device/general/enroll-updatable-assets.md)
     - [Outphase Device](docs/device/general/outphase-device.md)
+    - [Remove Primary User](docs/device/general/remove-primary-user.md)
     - [Rename Device](docs/device/general/rename-device.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
@@ -66,6 +67,9 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
+    - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
+    - [Report Last Device Contact By Range](docs/org/devices/report-last-device-contact-by-range.md)
+    - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
   - [General](docs/org/README.md#org-general)
 
     - [Add Application Registration](docs/org/general/add-application-registration.md)
@@ -96,6 +100,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Export Cloudpc Usage_Scheduled](docs/org/general/export-cloudpc-usage_scheduled.md)
     - [Export Non Compliant Devices](docs/org/general/export-non-compliant-devices.md)
     - [Export Policy Report](docs/org/general/export-policy-report.md)
+    - [Invite External Guest Users](docs/org/general/invite-external-guest-users.md)
     - [List All Administrative Template Policies](docs/org/general/list-all-administrative-template-policies.md)
     - [List Group License Assignment Errors](docs/org/general/list-group-license-assignment-errors.md)
     - [Office365 License Report](docs/org/general/office365-license-report.md)

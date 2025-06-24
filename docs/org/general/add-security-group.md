@@ -9,10 +9,6 @@ This runbook creates a Microsoft Entra ID security group with membership type "A
 Org \ General \ Add Security Group
 
 ## Notes
-Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-GraphAPI:
-- Group.Create
-
 AssignableToRoles is currently deactivated, as extended rights are required.
 “RoleManagement.ReadWrite.Directory” permission is required to set the ‘isAssignableToRole’ property or update the membership of such groups.
 Reference is made to this in a comment in the course of the code.

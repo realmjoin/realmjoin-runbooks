@@ -7,6 +7,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 |  |  | Outphase Device | Remove/Outphase a windows device |
+|  |  | Remove Primary User | Removes the primary user from a device. |
 |  |  | Rename Device | Rename a device. |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 |  |  | Wipe Device | Wipe a Windows or MacOS device |
@@ -31,6 +32,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Teams | Archive Team | Archive a team. |
 | Org | Devices | Get Bitlocker Recovery Key | Get BitLocker recovery key |
 |  |  | Outphase Devices | Remove/Outphase multiple devices |
+|  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+|  |  | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
+|  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
 |  | General | Add Application Registration | Add an application registration to Azure AD |
 |  |  | Add Autopilot Device | Import a windows device into Windows Autopilot. |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
@@ -59,6 +63,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Export Cloudpc Usage_Scheduled | Write daily Windows 365 Utilization Data to Azure Tables |
 |  |  | Export Non Compliant Devices | Report on non-compliant devices and policies |
 |  |  | Export Policy Report | Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file. |
+|  |  | Invite External Guest Users | Invites external guest users to the organization using Microsoft Graph. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors |
 |  |  | Office365 License Report | Generate an Office 365 licensing report. |

@@ -18,6 +18,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Check Updatable Assets](#check-updatable-assets)
       - [Enroll Updatable Assets](#enroll-updatable-assets)
       - [Outphase Device](#outphase-device)
+      - [Remove Primary User](#remove-primary-user)
       - [Rename Device](#rename-device)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
@@ -50,6 +51,9 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#org-devices)
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Outphase Devices](#outphase-devices)
+      - [Report Devices Without Primary User](#report-devices-without-primary-user)
+      - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
+      - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
   - [General](#org-general)
       - [Add Application Registration](#add-application-registration)
       - [Add Autopilot Device](#add-autopilot-device)
@@ -79,6 +83,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Export Cloudpc Usage_Scheduled](#export-cloudpc-usage_scheduled)
       - [Export Non Compliant Devices](#export-non-compliant-devices)
       - [Export Policy Report](#export-policy-report)
+      - [Invite External Guest Users](#invite-external-guest-users)
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
       - [Office365 License Report](#office365-license-report)
@@ -221,6 +226,24 @@ Remove/Outphase a windows device. You can choose if you want to wipe the device 
 
 #### Where to find
 Device \ General \ Outphase Device
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-remove-primary-user'></a>
+
+### Remove Primary User
+#### Removes the primary user from a device.
+
+#### Description
+This script removes the assigned primary user from a specified Azure AD device.
+It requires the DeviceId of the target device and the name of the caller for auditing purposes.
+
+#### Where to find
+Device \ General \ Remove Primary User
 
 
 [Back to Table of Content](#table-of-contents)
@@ -667,6 +690,61 @@ Remove/Outphase multiple devices. You can choose if you want to wipe the device 
 
 #### Where to find
 Org \ Devices \ Outphase Devices
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-devices-without-primary-user'></a>
+
+### Report Devices Without Primary User
+#### Reports all managed devices in Intune that do not have a primary user assigned.
+
+#### Description
+This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
+The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
+
+#### Where to find
+Org \ Devices \ Report Devices Without Primary User
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-last-device-contact-by-range'></a>
+
+### Report Last Device Contact By Range
+#### Reports Windows devices with last device contact within a specified date range.
+
+#### Description
+This Runbook retrieves a list of Windows devices from Azure AD / Intune, filtered by their
+last device contact time (lastSyncDateTime). As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
+The output includes the device name, last sync date, user ID, user display name, and user principal name.
+
+#### Where to find
+Org \ Devices \ Report Last Device Contact By Range
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-users-with-more-than-5-devices'></a>
+
+### Report Users With More Than 5-Devices
+#### Reports users with more than five registered devices in Entra ID.
+
+#### Description
+This script queries all devices and their registered users, and reports users who have more than five devices registered.
+The output includes the users ObjectId, UPN, and the number of devices.
+
+#### Where to find
+Org \ Devices \ Report Users With More Than 5-Devices
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1147,6 +1225,23 @@ Org \ General \ Export Non Compliant Devices
 
 #### Where to find
 Org \ General \ Export Policy Report
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-invite-external-guest-users'></a>
+
+### Invite External Guest Users
+#### Invites external guest users to the organization using Microsoft Graph.
+
+#### Description
+This script automates the process of inviting external users as guests to the organization. Optionally, the invited user can be added to a specified group.
+
+#### Where to find
+Org \ General \ Invite External Guest Users
 
 
 [Back to Table of Content](#table-of-contents)

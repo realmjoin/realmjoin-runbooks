@@ -4,6 +4,9 @@
 ## Devices
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Outphase Devices](devices/outphase-devices.md)
+  - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
+  - [Report Last Device Contact By Range](devices/report-last-device-contact-by-range.md)
+  - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
 <a name='org-general'></a>
 ## General
   - [Add Application Registration](general/add-application-registration.md)
@@ -34,6 +37,7 @@
   - [Export Cloudpc Usage_Scheduled](general/export-cloudpc-usage_scheduled.md)
   - [Export Non Compliant Devices](general/export-non-compliant-devices.md)
   - [Export Policy Report](general/export-policy-report.md)
+  - [Invite External Guest Users](general/invite-external-guest-users.md)
   - [List All Administrative Template Policies](general/list-all-administrative-template-policies.md)
   - [List Group License Assignment Errors](general/list-group-license-assignment-errors.md)
   - [Office365 License Report](general/office365-license-report.md)
