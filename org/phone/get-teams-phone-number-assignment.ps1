@@ -124,14 +124,14 @@ if ($CheckResult.AssignedPstnTargetId) {
     $CurrentTenantDialPlan = if ($TeamsUser.TenantDialPlan -like "") { "Global" } else { $TeamsUser.TenantDialPlan }
 
     $output = [PSCustomObject]@{
-        "Display Name"               = $TeamsUser.DisplayName
-        "User Principal Name"        = $TeamsUser.UserPrincipalName
-        "Account Type"               = $TeamsUser.AccountType
-        "Phone Number Type"          = $CheckResult.NumberType
-        "Online Voice Routing Policy"= $CurrentOnlineVoiceRoutingPolicy
-        "Calling Policy"             = $CurrentCallingPolicy
-        "Dial Plan"                  = $CurrentDialPlan
-        "Tenant Dial Plan"           = $CurrentTenantDialPlan
+        "Display Name"                = $TeamsUser.DisplayName
+        "User Principal Name"         = $TeamsUser.UserPrincipalName
+        "Account Type"                = $TeamsUser.AccountType
+        "Phone Number Type"           = $CheckResult.NumberType
+        "Online Voice Routing Policy" = $CurrentOnlineVoiceRoutingPolicy
+        "Calling Policy"              = $CurrentCallingPolicy
+        "Dial Plan"                   = $CurrentDialPlan
+        "Tenant Dial Plan"            = $CurrentTenantDialPlan
     }
 
     Write-Output "`n`n`n"

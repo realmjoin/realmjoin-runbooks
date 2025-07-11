@@ -1,0 +1,77 @@
+# Org Overview
+
+<a name='org-devices'></a>
+## Devices
+  - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
+  - [Outphase Devices](devices/outphase-devices.md)
+  - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
+  - [Report Last Device Contact By Range](devices/report-last-device-contact-by-range.md)
+  - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
+<a name='org-general'></a>
+## General
+  - [Add Application Registration](general/add-application-registration.md)
+  - [Add Autopilot Device](general/add-autopilot-device.md)
+  - [Add Device Via Corporate Identifier](general/add-device-via-corporate-identifier.md)
+  - [Add Devices Of Users To Group_Scheduled](general/add-devices-of-users-to-group_scheduled.md)
+  - [Add Management Partner](general/add-management-partner.md)
+  - [Add Microsoft Store App Logos](general/add-microsoft-store-app-logos.md)
+  - [Add Office365 Group](general/add-office365-group.md)
+  - [Add Or Remove Safelinks Exclusion](general/add-or-remove-safelinks-exclusion.md)
+  - [Add Or Remove Smartscreen Exclusion](general/add-or-remove-smartscreen-exclusion.md)
+  - [Add Or Remove Trusted Site](general/add-or-remove-trusted-site.md)
+  - [Add Security Group](general/add-security-group.md)
+  - [Add User](general/add-user.md)
+  - [Add Viva Engange Community](general/add-viva-engange-community.md)
+  - [Assign Groups By Template_Scheduled](general/assign-groups-by-template_scheduled.md)
+  - [Bulk Delete Devices From Autopilot](general/bulk-delete-devices-from-autopilot.md)
+  - [Bulk Retire Devices From Intune](general/bulk-retire-devices-from-intune.md)
+  - [Check Aad Sync Status_Scheduled](general/check-aad-sync-status_scheduled.md)
+  - [Check Assignments Of Devices](general/check-assignments-of-devices.md)
+  - [Check Assignments Of Groups](general/check-assignments-of-groups.md)
+  - [Check Assignments Of Users](general/check-assignments-of-users.md)
+  - [Check Autopilot Serialnumbers](general/check-autopilot-serialnumbers.md)
+  - [Check Device Onboarding Exclusion_Schedule](general/check-device-onboarding-exclusion_schedule.md)
+  - [Enrolled Devices Report_Scheduled](general/enrolled-devices-report_scheduled.md)
+  - [Export All Autopilot Devices](general/export-all-autopilot-devices.md)
+  - [Export All Intune Devices](general/export-all-intune-devices.md)
+  - [Export Cloudpc Usage_Scheduled](general/export-cloudpc-usage_scheduled.md)
+  - [Export Non Compliant Devices](general/export-non-compliant-devices.md)
+  - [Export Policy Report](general/export-policy-report.md)
+  - [Invite External Guest Users](general/invite-external-guest-users.md)
+  - [List All Administrative Template Policies](general/list-all-administrative-template-policies.md)
+  - [List Group License Assignment Errors](general/list-group-license-assignment-errors.md)
+  - [Office365 License Report](general/office365-license-report.md)
+  - [Report Apple Mdm Cert Expiry_Scheduled](general/report-apple-mdm-cert-expiry_scheduled.md)
+  - [Report Pim Activations_Scheduled](general/report-pim-activations_scheduled.md)
+  - [Sync All Devices](general/sync-all-devices.md)
+<a name='org-mail'></a>
+## Mail
+  - [Add Distribution List](mail/add-distribution-list.md)
+  - [Add Equipment Mailbox](mail/add-equipment-mailbox.md)
+  - [Add Or Remove Public Folder](mail/add-or-remove-public-folder.md)
+  - [Add Or Remove Teams Mailcontact](mail/add-or-remove-teams-mailcontact.md)
+  - [Add Room Mailbox](mail/add-room-mailbox.md)
+  - [Add Shared Mailbox](mail/add-shared-mailbox.md)
+  - [Hide Mailboxes_Scheduled](mail/hide-mailboxes_scheduled.md)
+  - [Set Booking Config](mail/set-booking-config.md)
+<a name='org-phone'></a>
+## Phone
+  - [Get Teams Phone Number Assignment](phone/get-teams-phone-number-assignment.md)
+<a name='org-security'></a>
+## Security
+  - [Add Defender Indicator](security/add-defender-indicator.md)
+  - [Backup Conditional Access Policies](security/backup-conditional-access-policies.md)
+  - [Export Enterprise App Users](security/export-enterprise-app-users.md)
+  - [List Admin Users](security/list-admin-users.md)
+  - [List Application Creds Expiry](security/list-application-creds-expiry.md)
+  - [List Expiring Role Assignments](security/list-expiring-role-assignments.md)
+  - [List Inactive Devices](security/list-inactive-devices.md)
+  - [List Inactive Enterprise Apps](security/list-inactive-enterprise-apps.md)
+  - [List Inactive Users](security/list-inactive-users.md)
+  - [List Information Protection Labels](security/list-information-protection-labels.md)
+  - [List Pim Rolegroups Without Owners_Scheduled](security/list-pim-rolegroups-without-owners_scheduled.md)
+  - [List Vulnerable App Regs](security/list-vulnerable-app-regs.md)
+  - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
+
+[Back to Table of Content](../../README.md)
+
