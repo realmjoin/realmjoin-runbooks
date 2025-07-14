@@ -5,14 +5,6 @@
   .DESCRIPTION
   Assign/Provision a Windows 365 instance for this user.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - User.Read.All
-  - GroupMember.ReadWrite.All 
-  - Group.ReadWrite.All
-  - User.SendMail
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -109,7 +101,7 @@
     }
 #>
 
-#Requires -Modules "RealmJoin.RunbookHelper"
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -153,7 +145,7 @@ if ($cfgProvisioningPolObj -and ($cfgProvisioningPolObj[0].provisioningType -eq 
             $cfgProvisioningSharedUseServicePlanId = $assignment.target.servicePlanId
             break
         }
-    } 
+    }
     if (-not $cfgProvisioningGroupId) {
         "## Could not find Assignment Group and Shared Use Service Plan for Provisioning policy '$cfgProvisioningGroupName'."
         throw "cfgProvisioningSharedInfo not found"
@@ -213,7 +205,7 @@ else {
     if (-not $cfgProvisioningGroupObj) {
         "## Could not find Provisioning policy group '$cfgProvisioningGroupName'."
         throw "cfgProvisioning not found"
-    } 
+    }
     $ProvPolIsDedicated = $true;
 }
 
@@ -234,8 +226,8 @@ if ($ProvPolIsDedicated) {
 
     # Get License / SKU data
     $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
-    $skuId = $assignedLicenses.skuId 
-    $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+    $skuId = $assignedLicenses.skuId
+    $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
     $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
 
     # Are licenses available?
@@ -267,7 +259,7 @@ if ($ProvPolIsDedicated) {
 
     $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members"
     if ($result -and ($result.userPrincipalName -contains $UserName)) {
-        "## '$UserName' already has a Win365 license of this type assigned." 
+        "## '$UserName' already has a Win365 license of this type assigned."
         "## Can not provision - exiting."
         throw "SKU already assigned."
     }
@@ -286,7 +278,7 @@ $cfgUserSettingsGroupIsAssigned = $false
 $licWin365GroupIsAssigned = $false
 
 if ($ProvPolIsDedicated) {
-    # Assumption: If FrontLine Policies/Groups exist they are not using the same naming/prefix. 
+    # Assumption: If FrontLine Policies/Groups exist they are not using the same naming/prefix.
     $allCfgProvisioningGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgProvisioningGroupPrefix')"
     foreach ($group in $allCfgProvisioningGroups) {
         $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
@@ -327,7 +319,7 @@ if ($ProvPolIsDedicated) {
                 $cfgProvisioningGroupIsAssigned = $true
             }
         }
-    } 
+    }
 
     while (-not $cfgUserSettingsGroupIsAssigned) {
         Start-Sleep -Seconds 15
@@ -339,12 +331,12 @@ if ($ProvPolIsDedicated) {
                 $cfgUserSettingsGroupIsAssigned = $true
             }
         }
-    } 
+    }
 
     # Assign license / Provision Cloud PC
     Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members/`$ref" -Method Post -Body $body | Out-Null
     "## Assigned '$licWin365GroupName' to '$UserName'."
-    if (-not $sendMailWhenProvisioned) { 
+    if (-not $sendMailWhenProvisioned) {
         "## Cloud PC provisioning will start shortly."
     }
     else {
@@ -368,7 +360,7 @@ if ($sendMailWhenProvisioned) {
     else {
         $cloudPC = $cloudPCs | Where-Object { $_.provisioningPolicyId -eq $cfgProvisioningPolObj.id }
     }
-    
+
     "## Waiting for Cloud PC to begin provisioning."
     [int]$maxCount = 90
     [int]$count = 0
@@ -387,7 +379,7 @@ if ($sendMailWhenProvisioned) {
 
     "## Provisioning started. Waiting for Cloud PC to be ready."
     $cloudPCId = $cloudPC.id
-    
+
     [int]$maxCount = 90
     [int]$count = 0
     do {
@@ -396,8 +388,8 @@ if ($sendMailWhenProvisioned) {
         Start-Sleep -Seconds 60
         "."
     } while ($cloudPC.status -notin @("provisioned", "failed") -and $count -lt $maxCount)
- 
-    ## customizing email is switched on (true) 
+
+    ## customizing email is switched on (true)
     if ($customizeMail) {
         if ($cloudPC.status -eq "provisioned") {
             "## Cloud PC provisioned."
@@ -408,13 +400,13 @@ if ($sendMailWhenProvisioned) {
                     content     = $customMailMessage
                 }
             }
-    
+
             $message.toRecipients = [array]@{
                 emailAddress = @{
                     address = $UserName
                 }
             }
-            
+
             ## Check if user has a mailbox. If not do not send an email but continue the RB
             $checkMailboxExists = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Get -OdSelect mail
             if ($null -ne $checkMailboxExists.mail) {
@@ -445,7 +437,7 @@ if ($sendMailWhenProvisioned) {
 "@
                 }
             }
-    
+
             $message.toRecipients = [array]@{
                 emailAddress = @{
                     address = $UserName

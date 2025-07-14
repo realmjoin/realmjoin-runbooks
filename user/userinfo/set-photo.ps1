@@ -8,10 +8,6 @@
   .PARAMETER PhotoURI
   Needs to be a JPEG
 
-  .NOTES
-  Permissions:
- - MS Graph (API): User.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -44,7 +40,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 "## Trying to update user photo of '$UserName' from URL:"
 "## $PhotoURI"

@@ -5,10 +5,6 @@ Show a local admin password for a device.
 .DESCRIPTION
 Show a local admin password for a device.
 
-.NOTES
-Permissions (Graph):
-- DeviceLocalCredential.Read.All
-  
 .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -22,7 +18,7 @@ Permissions (Graph):
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -58,7 +54,7 @@ catch {
 [string] $accountName = ""
 [string] $password = ""
 [datetime] $backupDateTime = [datetime]::MinValue
-$result.credentials | ForEach-Object { 
+$result.credentials | ForEach-Object {
     [datetime] $newBackupDateTime = [datetime]$_.backupDateTime
     if ($newBackupDateTime -gt $backupDateTime) {
         $accountName = $_.accountName
@@ -70,7 +66,7 @@ $result.credentials | ForEach-Object {
 "$accountName"
 ""
 "## Password"
-"$password" 
+"$password"
 ""
 "## Time of Backup / Last Rotation"
 get-date -Format 'dd.MM.yyyy HH:mm' -Date $backupDateTime

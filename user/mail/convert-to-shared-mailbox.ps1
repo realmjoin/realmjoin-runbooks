@@ -5,13 +5,6 @@
   .DESCRIPTION
   Turn this users mailbox into a shared mailbox.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -66,11 +59,11 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
@@ -138,14 +131,14 @@ try {
     if ($result.LitigationHoldEnabled) {
         " -> Mailbox is on litigation hold -> license required"
         $archivalLicNeeded = $true
-    }    
+    }
 
     "## Check for Mailbox Archive"
-    # Not using "ArchiveState", see https://docs.microsoft.com/en-us/office365/troubleshoot/archive-mailboxes/archivestatus-set-none 
+    # Not using "ArchiveState", see https://docs.microsoft.com/en-us/office365/troubleshoot/archive-mailboxes/archivestatus-set-none
     if (($result.ArchiveGuid -and ($result.ArchiveGuid.GUID -ne "00000000-0000-0000-0000-000000000000")) -or ($result.ArchiveDatabase)) {
         " -> Mailbox has an archive -> license required"
         $archivalLicNeeded = $true
-    }    
+    }
 
     if ($Remove) {
         "## Removing access for other users..."
@@ -161,7 +154,7 @@ try {
         }
 
         if ($RegularLicenseGroup) {
-            # Assign lic. group 
+            # Assign lic. group
             $groupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$RegularLicenseGroup'"
             if ($groupObj) {
                 $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members"
@@ -176,8 +169,8 @@ try {
                     "## License group '$RegularLicenseGroup' already assigned to mailbox '$UserName'"
                 }
             }
-        }        
-    
+        }
+
         "## Enabling user object '$UserName'"
         $userObj = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
         $body = @{
@@ -234,7 +227,7 @@ try {
         }
 
         if ($ArchivalLicenseGroup -and $archivalLicNeeded) {
-            # Assign lic. group to preserve online arhive etc. 
+            # Assign lic. group to preserve online arhive etc.
             $groupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$ArchivalLicenseGroup'"
             if ($groupObj) {
                 $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$($groupObj.id)/members"
@@ -249,7 +242,7 @@ try {
                     "## License group '$ArchivalLicenseGroup' already assigned to mailbox '$UserName'"
                 }
             }
-        } 
+        }
 
         ""
         "## Success: Mailbox '$UserName' is now a shared mailbox."

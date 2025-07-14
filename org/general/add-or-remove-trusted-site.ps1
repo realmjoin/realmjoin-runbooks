@@ -12,12 +12,9 @@
   Will use an existing policy or default policy name if left empty.
 
   .NOTES
-  Permissions: MS Graph API permissions:
-  - DeviceManagementConfiguration.ReadWrite.All
- 
-  This runbook uses calls as described in 
+  This runbook uses calls as described in
   https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
-  to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this. 
+  to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this.
   Please switch to "v1.0" as soon, as this funtionality is available.
 
   .INPUTS
@@ -68,14 +65,14 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
     [int] $Action = 2,
     [string] $Url,
     [int] $Zone = 1,
-    [string] $DefaultPolicyName = "Windows 10 - Trusted Sites", 
+    [string] $DefaultPolicyName = "Windows 10 - Trusted Sites",
     [string] $IntunePolicyName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -104,7 +101,7 @@ if ($Action -eq 2) {
             "## Policy: $($_.displayName)"
             ""
             $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($_.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($_.omaSettings.secretReferenceValueId)')"
-            $innerValue = ($omaValue.split('"')[3]) -replace ('&#xF000;', ';') 
+            $innerValue = ($omaValue.split('"')[3]) -replace ('&#xF000;', ';')
             [array]$pairs = $innerValue.Split(';')
             if (($pairs.Count % 2) -eq 0) {
                 [int]$i = 0;
@@ -141,7 +138,7 @@ $pol = $null
 
 # Use given policy name
 if ($IntunePolicyName) {
-    $pol = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations" -OdFilter "displayName eq '$intunePolicyName'" 
+    $pol = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations" -OdFilter "displayName eq '$intunePolicyName'"
     if (-not $pol) {
         "## Policy '$intunePolicyName' not found."
         if ($Action -eq 1) {
@@ -153,7 +150,7 @@ if ($IntunePolicyName) {
 
 # Do we have existing "Trusted Site" policies we should use?
 if ((-not $IntunePolicyName) -and (-not $pol)) {
-    $pols = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations" 
+    $pols = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations"
     [array]$trustedSitesPols = $pols | Where-Object { $_.omaSettings.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList" }
     if ($trustedSitesPols.count -eq 0) {
         "## No Trusted Site Policies found."
@@ -164,7 +161,7 @@ if ((-not $IntunePolicyName) -and (-not $pol)) {
     }
     elseif ($trustedSitesPols.count -eq 1) {
         "## Exactly one policy found: '$($trustedSitesPols[0].displayName)'"
-        $pol = $trustedSitesPols[0]  
+        $pol = $trustedSitesPols[0]
         ""
     }
     elseif ($trustedSitesPols.count -gt 1) {
@@ -201,7 +198,7 @@ if (-not $pol) {
                 value         = '<enabled/><data id="IZ_ZonemapPrompt" value=""/>'
             })
     }
-    $pol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Beta -Method Post -Body $body 
+    $pol = Invoke-RjRbRestMethodGraph -resource "/deviceManagement/deviceConfigurations" -Beta -Method Post -Body $body
     "## - Please assign users to the policy to activate it."
     ""
 }
@@ -214,7 +211,7 @@ if ($pol) {
     $omaValue = Invoke-RjRbRestMethodGraph -Beta -resource "/deviceManagement/deviceConfigurations/$($pol.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($pol.omaSettings.secretReferenceValueId)')"
 
     if ($Action -eq 1) {
-        # Find and remove entry... 
+        # Find and remove entry...
         # ... either not at the end
         if ($omaValue | Select-String -SimpleMatch -Pattern ($Url + '&#xF000;' + $Zone + '&#xF000;')) {
             $newValue = $omaValue -replace (($Url + '&#xF000;' + $Zone + '&#xF000;'), "")
@@ -245,7 +242,7 @@ if ($pol) {
             }
             else {
                 # Was empty, build new one
-                $newValue = '<enabled/><data id="IZ_ZonemapPrompt" value="' + $Url + '&#xF000;' + $Zone + '"/>' 
+                $newValue = '<enabled/><data id="IZ_ZonemapPrompt" value="' + $Url + '&#xF000;' + $Zone + '"/>'
             }
         }
     }

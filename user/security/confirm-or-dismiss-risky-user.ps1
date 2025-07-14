@@ -5,10 +5,6 @@
   .DESCRIPTION
   Confirm compromise / Dismiss a "risky user"
 
-  .NOTES
-  Permissions needed:
-  - IdentityRiskyUser.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -29,7 +25,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -52,7 +48,7 @@ if ($Dismiss) {
 }
 else {
     $outputString += "confirm "
-} 
+}
 $outputString += "user risk for '$UserName'."
 $outputString
 
@@ -69,7 +65,7 @@ if (-not $targetUser) {
 #if ($targetUser.riskState -eq "confirmedCompromised") {
 # "User risk for $UserName already set to 'confirmed compromised'. No action taken."
 # exit
-#} 
+#}
 
 $body = @{ "userIds" = ([array]$targetUser.id) }
 if ($Dismiss) {
@@ -79,10 +75,10 @@ if ($Dismiss) {
     }
     else {
         "## User '$UserName' not at risk. No action taken."
-    }    
+    }
 }
 else {
     Invoke-RjRbRestMethodGraph -Resource "/identityProtection/riskyUsers/confirmCompromised" -Body $body -Method Post | Out-Null
-    "## Compromise for '$UserName' successfully confirmed."    
+    "## Compromise for '$UserName' successfully confirmed."
 }
 

@@ -5,11 +5,6 @@
   .DESCRIPTION
   Set a users password policy to "(Do not) Expire"
 
-  .NOTES
-  Permissions needed:
-   MS Graph (API Permissions):
-   - User.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -27,7 +22,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]

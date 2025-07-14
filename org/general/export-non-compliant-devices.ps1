@@ -5,14 +5,9 @@
 .DESCRIPTION
     Report on non-compliant devices and policies
 
-.NOTES
-    Permissions
-    MS Graph
-    - DeviceManagementConfiguration.Read.All
-    Storage Account (optional)
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "IntuneDevicesReport.CreateLinks" } )]
@@ -66,9 +61,9 @@ if ($produceLinks) {
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
     }
- 
+
     # Get access to the Storage Account
     $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
     $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
@@ -77,7 +72,7 @@ if ($produceLinks) {
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
         "## Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+        $container = New-AzStorageContainer -Name $ContainerName -Context $context
     }
 }
 
@@ -109,7 +104,7 @@ foreach ($id in $devices.id) {
             "## Throttling exceeded - Waiting/Cooldown 2min"
             Start-Sleep -Seconds 120
             Connect-RjRbGraph -Force
-            $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging    
+            $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
         }
         else {
             throw $_
@@ -146,7 +141,7 @@ foreach ($id in $devices.id) {
                     $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
                 }
                 else {
-                    throw $_ 
+                    throw $_
                 }
             }
             $settings = @{}
@@ -182,7 +177,7 @@ foreach ($id in $devices.id) {
 $fullCsv = @()
 foreach ($device in $deviceToPolicy.Keys) {
     foreach ($policy in $deviceToPolicy[$device].Keys) {
-        $row = "" | Select-Object DeviceName, UPN, ManagedDeviceOwnerType, OperatingSystem, PolicyName, PolicyStatus_loc, SettingName, SettingStatus_loc, LastContact, SerialNumber, PolicyId, SettingId, DeviceId 
+        $row = "" | Select-Object DeviceName, UPN, ManagedDeviceOwnerType, OperatingSystem, PolicyName, PolicyStatus_loc, SettingName, SettingStatus_loc, LastContact, SerialNumber, PolicyId, SettingId, DeviceId
         $deviceObject = $devices | Where-Object { $_.id -eq $device }
         $row.DeviceId = $device
         $row.SerialNumber = $deviceObject.serialNumber
@@ -214,7 +209,7 @@ if ($produceLinks) {
     $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" > $filename
     $content = Get-Content $filename
     Set-Content -Path $filename -Value $content -Encoding UTF8
-    
+
     Write-RjRbLog "Upload Full CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
 
@@ -256,10 +251,10 @@ if ($produceLinks) {
 
     Write-RjRbLog "Upload Policy CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
-    
+
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $fileName -FullUri -ExpiryTime $EndTime
-    
+
     "## Export of policy statistics created."
     "## Expiry of Link: $EndTime"
     $SASLink | Out-String
@@ -278,7 +273,7 @@ $settingStatistics = @{}
 foreach ($device in $deviceToPolicy.Keys) {
     foreach ($policy in $deviceToPolicy[$device].Keys) {
         foreach ($setting in $deviceToPolicy[$device][$policy].Settings.Keys) {
-            
+
             if ($settingStatistics.ContainsKey($setting)) {
                 $settingStatistics[$setting][1] += 1
             }
@@ -302,10 +297,10 @@ if ($produceLinks) {
 
     Write-RjRbLog "Upload Settings CSV Report"
     Set-AzStorageBlobContent -File $fileName -Container $ContainerName -Blob $fileName -Context $context -Force | Out-Null
-    
+
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $fileName -FullUri -ExpiryTime $EndTime
-    
+
     "## Export of settings statistics created."
     "## Expiry of Link: $EndTime"
     $SASLink | Out-String

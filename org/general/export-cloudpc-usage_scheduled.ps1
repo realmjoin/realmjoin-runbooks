@@ -5,11 +5,6 @@
   .DESCRIPTION
   Write daily Windows 365 Utilization Data to Azure Tables. Will write data about the last full day.
 
-  .NOTES
-  Permissions: 
-  MS Graph: CloudPC.Read.All
-  StorageAccount: Contributor
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -20,7 +15,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" },"Az.Storage","Az.Resources"
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" },"Az.Storage","Az.Resources"
 
 param(
     # CallerName is tracked purely for auditing purposes
@@ -46,7 +41,7 @@ function Get-StorageContext() {
         New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
     }
     catch {
-        "## Failed to get Az storage context." 
+        "## Failed to get Az storage context."
         ""
         $_
     }
@@ -171,7 +166,7 @@ function Get-SanitizedRowKey {
     return ($RowKey -replace $Pattern).Trim()
 }
 
-Connect-RjRbGraph 
+Connect-RjRbGraph
 Connect-RjRbAzAccount
 
 $ReportDateLower = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format 'yyyy-MM-dd'
@@ -234,7 +229,7 @@ foreach ($cloudPc in $allCloudPcs) {
     }
     else {
         # Write each row to the table
-        foreach ($row in $rawConnectionsReport.Values) {    
+        foreach ($row in $rawConnectionsReport.Values) {
             $properties = @{}
             for ($i = 0; $i -lt $rawConnectionsReport.Schema.Column.count; $i++) {
                 if ($row[$i] -eq $null) {
@@ -255,7 +250,7 @@ foreach ($cloudPc in $allCloudPcs) {
             #$RowKey
             #$properties | ConvertTo-Json | Out-String
             #""
-    
+
             try {
                 Save-ToDataTable @DataTable -RowKey $RowKey -Properties $properties
                 $rowsWritten++

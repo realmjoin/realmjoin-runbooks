@@ -5,13 +5,6 @@
   .DESCRIPTION
   Grant another user sendOnBehalf permissions on this mailbox.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -55,7 +48,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
@@ -85,7 +78,7 @@ try {
         throw "User '$UserName' has no mailbox."
     }
 
-    $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue 
+    $trustee = Get-EXOMailbox -Identity $delegateTo -ErrorAction SilentlyContinue
     # Check if trustee has a mailbox
     if (-not $trustee) {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -98,7 +91,7 @@ try {
     else {
         "## Trying to give SendOnBehalf permission for mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
     }
-    
+
     if ($Remove) {
         #Remove permission
         Set-Mailbox -Identity $UserName -GrantSendOnBehalfTo @{Remove = "$delegateTo" } -Confirm:$false | Out-Null

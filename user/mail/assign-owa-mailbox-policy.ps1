@@ -5,18 +5,14 @@
   .DESCRIPTION
   Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
 
-  .NOTES
-  Permissions
-  Exchange Administrator access
-
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {    
+        "Parameters": {
             "OwaPolicyName": {
                 "SelectSimple": {
                     "Default": "OwaMailboxPolicy-Default",
                     "BookingsCreators": "BookingsCreators"
-                }            
+                }
             },
             "CallerName": {
                 "Hide": true
@@ -25,7 +21,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
@@ -45,7 +41,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 Connect-RjRbExchangeOnline
 
 try {
-    $policy = Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop       
+    $policy = Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop
 }
 catch {
     "## Could not read OWA Policy '$OwaPolicyName'. Exiting."

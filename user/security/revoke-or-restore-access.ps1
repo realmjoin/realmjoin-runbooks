@@ -5,13 +5,6 @@
   .DESCRIPTION
   Revoke user access and all active tokens or re-enable user.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - User.ReadWrite.All, Directory.ReadWrite.All,
-  AzureAD Roles
-  - User Administrator
-  
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -23,7 +16,7 @@
                 "SelectSimple": {
                     "(Re-)Enable User": false,
                     "Revoke Access": true
-                } 
+                }
             },
             "CallerName": {
                 "Hide": true
@@ -33,7 +26,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -59,7 +52,7 @@ else {
 }
 
 # "Find the user object $UserName"
-$targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -ErrorAction SilentlyContinue 
+$targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -ErrorAction SilentlyContinue
 if ($null -eq $targetUser) {
     throw ("User '$UserName' not found.")
 }

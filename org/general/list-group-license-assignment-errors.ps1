@@ -5,11 +5,6 @@
   .DESCRIPTION
   Report groups that have license assignment errors
 
-  .NOTES
-  Permissions (MS Graph, API)
-  - GroupMember.Read.All
-  - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -21,7 +16,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     # CallerName is tracked purely for auditing purposes

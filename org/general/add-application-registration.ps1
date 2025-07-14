@@ -6,12 +6,6 @@
 .DESCRIPTION
     Add an application registration to Azure AD
 
-.NOTES
-    Permissions: 
-    MS Graph (API):
-    - Application.ReadWrite.All
-    - RoleManagement.ReadWrite.Directory
-
 .INPUTS
     RunbookCustomization: {
         "Parameters": {
@@ -25,7 +19,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]

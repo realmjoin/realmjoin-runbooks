@@ -5,10 +5,6 @@
   .DESCRIPTION
   Check if given serial numbers are present in AutoPilot.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementServiceConfig.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -22,7 +18,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -37,14 +33,14 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-Connect-RjRbGraph 
+Connect-RjRbGraph
 
 $SerialNumberobject = $SerialNumbers.Split(',')
 $presentSerials = @()
 $missingSerials = @()
 foreach ($SerialNumber in $SerialNumberobject) {
     $SerialNumber = $SerialNumber.TrimStart()
-    $autopilotdevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$($SerialNumber)')" -ErrorAction SilentlyContinue 
+    $autopilotdevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$($SerialNumber)')" -ErrorAction SilentlyContinue
     if ($autopilotdevice) {
         $presentSerials += $autopilotdevice
     }

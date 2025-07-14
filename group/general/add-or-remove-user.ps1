@@ -5,12 +5,6 @@
   .DESCRIPTION
   Add/remove users to/from an AzureAD or Exchange Online group.
 
-  .NOTES
-  Permissions: 
-  MS Graph (API)
-  - Group.ReadWrite.All
-  - Directory.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -34,7 +28,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -55,7 +49,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
 
-# "Find the user object " 
+# "Find the user object "
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
     throw ("User '$UserId' not found.")
@@ -73,14 +67,14 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
     $body = @{
         "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
     }
-    
-    # "Is user member of the the group?" 
+
+    # "Is user member of the the group?"
     if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserID" -ErrorAction SilentlyContinue) {
         if ($Remove) {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserId/`$ref" -Method Delete -Body $body | Out-Null
             "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)'."
         }
-        else {    
+        else {
             "## User '$($targetUser.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
         }
     }
@@ -90,10 +84,10 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
         }
         else {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."  
+            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."
         }
     }
-} 
+}
 else {
     "## Group type: Exchange Online"
     try {

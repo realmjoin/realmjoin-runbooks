@@ -5,11 +5,6 @@
   .DESCRIPTION
   List all devices owned by group members.
 
-  .NOTES
-  Permissions: 
-  MS Graph (API)
-  - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "ParameterList": [
@@ -57,7 +52,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -82,7 +77,7 @@ try {
     $GroupMembers = Invoke-RjRbRestMethodGraph -Resource "/Groups/$($GroupID)/Members" -FollowPaging
     foreach ($GroupMember in $GroupMembers) {
 
-        try {  
+        try {
             $UserDevices = Invoke-RjRbRestMethodGraph -Resource "/users/$($GroupMember.id)/registeredDevices"
             if ($UserDevices) {
                 $devicelist += $UserDevices
@@ -91,7 +86,7 @@ try {
         catch {
             $_
         }
-       
+
     }
 }
 catch {
@@ -118,7 +113,7 @@ if ($devicelist.Count -gt 0) {
             $_
         }
     }
-    
+
 }
 else {
     "## No devices found (or no access)."

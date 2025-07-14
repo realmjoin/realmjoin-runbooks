@@ -5,11 +5,6 @@
   .DESCRIPTION
   List Room configuration.
 
-  .NOTES
-  Permissions
-  MS Graph (API):
-  - Place.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -23,10 +18,10 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $UserName,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -44,7 +39,7 @@ $User = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName" -OdSelect "mail,
 
 "## Basic Infos:"
 try {
-    Invoke-RjRbRestMethodGraph -Resource "/places/$($User.Mail)/microsoft.graph.room" 
+    Invoke-RjRbRestMethodGraph -Resource "/places/$($User.Mail)/microsoft.graph.room"
 }
 catch {
     "## Fetching Room Configuration for '$UserName' failed. Either missing permissions or this is not a Room-Mailbox."

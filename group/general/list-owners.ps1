@@ -5,11 +5,6 @@
   .DESCRIPTION
   List all owners of an Office 365 group.
 
-  .NOTES
-  Permissions: 
-  MS Graph (API)
-  - Group.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -23,7 +18,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]

@@ -21,11 +21,6 @@
     }
   }
 
-  .NOTES
-  New permission: 
-  MSGraph 
-  - Reports.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "ParameterList": [
@@ -53,7 +48,7 @@
             "Name": "SubscriptionId",
             "Hide": true
         },
-        {   
+        {
             "Name": "CallerName",
             "Hide": true
         }
@@ -61,7 +56,7 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
@@ -130,7 +125,7 @@ Connect-RjRbGraph
 
 # "Get SKUs and build a lookuptable for SKU IDs"
 $SkuHashtable = @{}
-$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
 $SKUs | ForEach-Object {
     $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
 }
@@ -191,7 +186,7 @@ function Get-LicenseOverviewReport {
     $SKUs | ForEach-Object {
         #only look at active and relevant licenses
         if (($_.prepaidUnits.enabled -gt 0) -and (-not $ignoreListe.contains($_.skuPartNumber))) {
-            $entry = [LicReportObject]::new() 
+            $entry = [LicReportObject]::new()
 
             if ($SkuNames.contains($_.skuPartNumber)) {
                 # "Well known SKU found: $($SkuNames[$_.SkuPartNumber])"
@@ -231,13 +226,13 @@ function Get-UnusedLicenseReport {
         '"skuPartNumber";"ActiveUnits";"ConsumedUnits";"LockedOutUnits"' > $Path
         $SKUs | ForEach-Object {
             $_.skuPartNumber + ";" + $_.prepaidUnits.enabled + ";" + $_.consumedUnits + ";" + $_.prepaidUnits.suspended >> $Path
-        } 
+        }
         $content = Get-Content -Path $Path
         set-content -Path $Path -Value $content -Encoding utf8
     }
     catch {
         "## Error fetching unused licenses"
-        $_.Exception.Message 
+        $_.Exception.Message
         "## Maybe missing MS Graph permission: Reports.Read.All"
     }
 }
@@ -247,7 +242,7 @@ function Get-SharedMailboxLicensing {
         [parameter(Mandatory = $true)][string]$CSVPath
     )
     $CSVPath = $CSVPath + "\SharedMailboxLicensing.csv"
-    $mailbox = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox 
+    $mailbox = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox
     foreach ($mail in $mailbox) {
         if (Invoke-RjRbRestMethodGraph -Resource "/users/$($mail.UserPrincipalName)/licenseDetails" -ErrorAction SilentlyContinue) {
             Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
@@ -262,7 +257,7 @@ function Get-GraphReports {
         [parameter(Mandatory = $true)][string]$CSVPath,
         $graphUris = ("/reports/getOffice365ServicesUserCounts(period='D90')",
             "/reports/getOffice365ActivationsUserDetail",
-            "/reports/getOffice365ActivationsUserCounts", 
+            "/reports/getOffice365ActivationsUserCounts",
             "/reports/getMailboxUsageDetail(period='D90')",
             "/reports/getSharePointActivityUserDetail(period='D90')",
             "/reports/getEmailActivityUserDetail(period='D90')",
@@ -272,15 +267,15 @@ function Get-GraphReports {
             "/reports/getYammerActivityUserDetail(period='D90')",
             "/reports/getOffice365ActiveUserDetail(period='D90')")
     )
-    
+
     try {
         foreach ($Uri in $graphUris) {
             $reportname = ($uri.Replace("/reports/", "").split('('))[0]
             $Path = $CSVPath + "\" + $reportname + ".csv"
-            $Results = Invoke-RjRbRestMethodGraph -resource $Uri 
-              
+            $Results = Invoke-RjRbRestMethodGraph -resource $Uri
+
             if ($Results) {
-                $Results = $Results.Remove(0, 3)        
+                $Results = $Results.Remove(0, 3)
                 $Results = ConvertFrom-Csv -InputObject $Results
                 $Results | Export-Csv -Path $Path -NoTypeInformation
             }
@@ -297,7 +292,7 @@ function Get-LoginLogs {
         [parameter(Mandatory = $true)][string]$CSVPath,
         $Applications = ("Power BI Premium",
             "Microsoft Planner",
-            "Office Sway", 
+            "Office Sway",
             "Microsoft To-Do",
             "Microsoft Stream",
             "Microsoft Forms",
@@ -317,8 +312,8 @@ function Get-LoginLogs {
         $appFileName = $app.Replace(" ", "")
         # Slow down to avoid http 429 errors
         Start-Sleep -Seconds 5
-        $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"        
-        $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter 
+        $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"
+        $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter
         $outputFile = $CSVPath + "\" + "Audit-" + $appFileName + ".csv"
         $logs | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Add-Content -Path $outputFile -Encoding utf8
     }
@@ -332,14 +327,14 @@ function Get-AssignedPlans {
     $reportname = "\assignedPlans"
     $Path = $CSVPath + $reportname + ".csv"
     #alle lizenzierten Benutzer
-    $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"  
+    $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"
 
     $users | ForEach-Object {
         $thisUser = $_
         #        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
         (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
     } | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Out-File $Path -Append -Encoding utf8
-}   
+}
 function Get-LicenseAssignmentPath {
     [cmdletbinding()]
     param(
@@ -357,7 +352,7 @@ function Get-LicenseAssignmentPath {
             $UserHasLicenseAssignedFromGroup = -not $UserHasLicenseAssignedDirectly
 
             $obj = $user
-            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force 
+            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force
             $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -value $UserHasLicenseAssignedDirectly -Force
             $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -value $UserHasLicenseAssignedFromGroup -Force
             $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation -Delimiter ";"
@@ -365,7 +360,7 @@ function Get-LicenseAssignmentPath {
     }
     $content = Get-Content $Path
     set-content -Path $Path -value $content -Encoding utf8
-}  
+}
 function Get-LicensingGroups {
     [cmdletbinding()]
     param(
@@ -387,8 +382,8 @@ function Get-LicensingGroups {
         $obj | Export-Csv $Path -Append -NoTypeInformation -Delimiter ";"
         $content = Get-Content $Path
         set-content -Path $Path -value $content -Encoding utf8
-    } 
-}   
+    }
+}
 
 function Get-AdminReport {
     [cmdletbinding()]
@@ -406,7 +401,7 @@ function Get-AdminReport {
         $Admins = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$RoleId'" -ErrorAction SilentlyContinue
         foreach ($AdminCandidate in $Admins) {
             $user = Invoke-RjRbRestMethodGraph -Resource "/users/$($AdminCandidate.principalId)" -ErrorAction SilentlyContinue
-            if ($user.mail) {                
+            if ($user.mail) {
                 [string]$licensesString = ""
                 $Licenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -OdSelect "licenseAssignmentStates"
                 $Licenses | ForEach-Object {
@@ -444,7 +439,7 @@ else {
 "## Collecting: License Usage Overview"
 Get-LicenseOverviewReport -TXTPath $OutPutPath -printOverview $printOverview
 
-if ($exportToFile) {  
+if ($exportToFile) {
 
     if ($includeExchange) {
         "## Collecting: Shared Mailbox licensing"
@@ -479,29 +474,29 @@ if ($exportToFile) {
     if ($SubscriptionId) {
         Set-AzContext -Subscription $SubscriptionId | Out-Null
     }
-  
+
     if (-not $ContainerName) {
         $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
     }
-  
+
     # Make sure storage account exists
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
     }
-   
+
     # Get access to the Storage Account
     $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
     $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-  
+
     # Make sure, container exists
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
         "## Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+        $container = New-AzStorageContainer -Name $ContainerName -Context $context
     }
-   
+
     $EndTime = (Get-Date).AddDays(6)
 
     "## Upload"

@@ -1,13 +1,6 @@
 <#
-.SYNOPSIS 
+.SYNOPSIS
     Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
-
-.NOTES
- Permissions (Graph):
-    - DeviceManagementConfiguration.Read.All
-    - Policy.Read.All
- Permissions AzureRM:
-    - Storage Account Contributor
 
 .INPUTS
   RunbookCustomization: {
@@ -20,6 +13,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.2.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
@@ -52,14 +46,14 @@ function ConvertToMarkdown-PolicyAssignments {
     param(
         $assignments
     )
-    
+
     "| Assignment | Target |"
     "|-|-|"
     # enumerate the assignments, will not do anything if there are no assignments
     foreach ($assignment in $assignments.value) {
         if (($assignment.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeDeviceGroupsAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeUsersAssignmentTarget")) {
             try {
-                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName" 
+                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
             }
             catch {}
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
@@ -92,7 +86,7 @@ function ConvertToMarkdown-PolicyAssignments {
         }
         elseif (($assignment.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "microsoft.graph.allDevicesExcludingGroupsAssignmentTarget")) {
             try {
-                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName" 
+                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
             }
             catch {}
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
@@ -102,7 +96,7 @@ function ConvertToMarkdown-PolicyAssignments {
             else {
                 "| Excluded Groups | $($groupID.displayName) |"
             }
-        
+
         }
 
     }
@@ -382,7 +376,7 @@ function ConvertToMarkdown-CompliancePolicy {
           "roleScopeTagIds": "List of Scope Tags for this Entity instance. Inherited from [deviceCompliancePolicy](../resources/intune-shared-devicecompliancepolicy.md)",
           "passwordBlockSimple": "Indicates whether or not to block simple password."
         }
-      }          
+      }
 '@
     # convert the JSON to a Hash
     $propHash = ConvertFrom-Json -InputObject $propHashJSON
@@ -390,7 +384,7 @@ function ConvertToMarkdown-CompliancePolicy {
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
     # go thru every property (key) of the policy
-    foreach ($key in $policy.keys) { 
+    foreach ($key in $policy.keys) {
         # check if the property exists (not null) and is not one of the following types, bc they r selfexplanatory and we dont need the description
         if (($null -ne $policy.$key) -and ($key -notin ("@odata.type", "id", "createdDateTime", "lastModifiedDateTime", "displayName", "version"))) {
             # check if the property exists in the nested Hash
@@ -402,7 +396,7 @@ function ConvertToMarkdown-CompliancePolicy {
                     "|$($key.Substring(0, 34))...|$($policy.$key)|$($propHash.$odataType.$key)|"
                 }
                 else {
-                    "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"       
+                    "|$key|$($policy.$key)|$($propHash.$odataType.$key)|"
                 }
             }
             # check if the property is not in the hash  and print description as "Not documented yet."
@@ -472,7 +466,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
                     }
                     else {
                         "|Exclude application|$($displayApp.value.displayName)||"
-                    } 
+                    }
                 }
                 catch {
                     "|Exclude application|$app||"
@@ -511,7 +505,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     if ($policy.conditions.locations.excludeLocations) {
         foreach ($location in $policy.conditions.locations.excludeLocations) {
             "|Exclude location|$location||"
-        }	
+        }
     }
     if ($policy.conditions.users.includeGroups) {
         foreach ($group in $policy.conditions.users.includeGroups) {
@@ -545,7 +539,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
                 "|Include role|$role||"
             }
         }
-    }  
+    }
     if ($policy.conditions.users.excludeRoles) {
         foreach ($role in $policy.conditions.users.excludeRoles) {
             try {
@@ -556,7 +550,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
                 "|Exclude role|$role||"
             }
         }
-    }  
+    }
     if ($policy.conditions.users.includeUsers) {
         foreach ($user in $policy.conditions.users.includeUsers) {
             try {
@@ -583,7 +577,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
                 else {
                     "|Exclude user|$user||"
                 }
-            } 
+            }
             catch {
                 "|Exclude user|$user||"
             }
@@ -665,15 +659,15 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
     "|-------|-----|-----------|"
     if ($policy.sessionControls.applicationEnforcedRestrictions.isEnabled) {
         "|Session control enabled|$True||"
-    }	
+    }
     if ($policy.sessionControls.cloudAppSecurity) {
         foreach ($app in $policy.sessionControls.cloudAppSecurity) {
             "|Cloud app securit is enabled|$($app.isEnabled)||"
             "|Cloud app security type|$($app.cloudAppSecurityType)||"
         }
-    }	
+    }
     if ($policy.sessionControls.signinFrequency.isEnabled) {
-        "|Sign-in frequency enabled|$($policy.sessionControls.signinFrequency.isEnabled)||"	
+        "|Sign-in frequency enabled|$($policy.sessionControls.signinFrequency.isEnabled)||"
     }
     if ($policy.sessionControls.signinFrequency.frequencyInterval) {
         "|Sign-in frequency interval|$($policy.sessionControls.signinFrequency.frequencyInterval)|Enforce reauth every time, or only after a certain time|"
@@ -756,7 +750,7 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     }
                     else {
                         $description = ""
-                    }                    
+                    }
                     "|$($definition.displayName)|$displayValue|$description|"
                 }
 
@@ -805,7 +799,7 @@ function ConvertToMarkdown-ConfigurationPolicy {
                     }
                 }
             }
-        } 
+        }
         elseif ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance") {
             foreach ($value in $setting.simpleSettingCollectionValue.value) {
                 $definition = $setting.settingDefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
@@ -875,7 +869,7 @@ function ConvertToMarkdown-DeviceConfiguration {
         $policy
     )
 
-    "### $($policy.displayName)" 
+    "### $($policy.displayName)"
     ""
 
     "| Setting | Value |"
@@ -936,7 +930,7 @@ function ConvertToMarkdown-DeviceConfiguration {
                                     }
                                     else {
                                         if ($key.length -gt 40) {
-                                            "| $($key.Substring(0, 39))... | $result<br/> |" 
+                                            "| $($key.Substring(0, 39))... | $result<br/> |"
                                         }
                                         else {
                                             "| $key | $result<br/> |"
@@ -958,22 +952,22 @@ function ConvertToMarkdown-DeviceConfiguration {
                             }
                         }
                         if ($key.length -gt 40) {
-                            "| $($key.Substring(0, 39))... | $result<br/> |" 
+                            "| $($key.Substring(0, 39))... | $result<br/> |"
                         }
                         else {
                             "| $key | $result<br/> |"
                         }
-                    }   
+                    }
                 }
             }
         }
     }
     ""
-            
+
     # "#### Assignments"
     # get the policy's assignments
     $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
-            
+
     ConvertToMarkdown-PolicyAssignments -assignments $assignments
 }
 
@@ -1020,7 +1014,7 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
             }
         }
         "| Enabled | $($definitionValue.enabled) | $explainText |"
-        $presentationValues = $null 
+        $presentationValues = $null
         try {
             $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
         }
@@ -1144,21 +1138,21 @@ toc-own-page: true
 "## Configuration Policies (Settings Catalog)" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$policies = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies`?`$top=1000" 
+$policies = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies`?`$top=1000"
 
 foreach ($policy in $policies.value) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8 
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8
         $settings = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings`?`$expand=settingDefinitions`&top=1000"
         $settings | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-settings.json" -Encoding UTF8
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"	
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown  
+    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
-    }  
+    }
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1172,15 +1166,15 @@ $deviceConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/
 
 foreach ($policy in $deviceConfigurations.value) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id).json" -Encoding UTF8 
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"	
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id).json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-DeviceConfiguration -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
-    }  
+    }
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1194,17 +1188,17 @@ $groupPolicyConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft
 
 foreach ($policy in $groupPolicyConfigurations.value) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id).json" -Encoding UTF8 
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id).json" -Encoding UTF8
         $definitionValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues?`$expand=definition,presentationValues"
         $definitionValues | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-definitionValues.json" -Encoding UTF8
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"	
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-GroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
-    }  
+    }
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1218,15 +1212,15 @@ $compliancePolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/be
 
 foreach ($policy in $compliancePolicies.value) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id).json" -Encoding UTF8 
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"	
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id).json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertToMarkdown-CompliancePolicy -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
-    }  
+    }
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1240,13 +1234,13 @@ $conditionalAccessPolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft
 
 foreach ($policy in $conditionalAccessPolicies.value) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8 
-    }	
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8
+    }
     ConvertToMarkdown-ConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
-    }  
+    }
     "" >> $outputFileMarkdown
 }
 #endregion
@@ -1278,7 +1272,7 @@ $context = New-AzStorageContext -StorageAccountName $StorageAccountName -Storage
 $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
 if (-not $container) {
     "## Creating Azure Storage Account Container $($ContainerName)"
-    $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+    $container = New-AzStorageContainer -Name $ContainerName -Context $context
 }
 
 $EndTime = (Get-Date).AddDays(6)

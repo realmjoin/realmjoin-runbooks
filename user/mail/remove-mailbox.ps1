@@ -5,13 +5,9 @@
   .DESCRIPTION
   Hard delete a shared mailbox, room or bookings calendar.
 
-  .NOTES
-  Permissions
-  Exchange Administrator access
-
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {            
+        "Parameters": {
             "CallerName": {
                 "Hide": true
             }
@@ -19,7 +15,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
@@ -45,7 +41,7 @@ catch {
     throw $_
 }
 
-"## Object Type: $($targetMBox.RecipientTypeDetails)"    
+"## Object Type: $($targetMBox.RecipientTypeDetails)"
 if ($targetMBox.RecipientTypeDetails -in ("SchedulingMailbox", "RoomMailbox", "SharedMailbox")) {
     "## Trying to hard delete mailbox '$UserName'."
     remove-mailbox -Identity $UserName -Confirm:$false

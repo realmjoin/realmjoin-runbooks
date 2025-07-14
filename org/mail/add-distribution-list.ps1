@@ -5,15 +5,6 @@
   .DESCRIPTION
   Create a classic distribution group.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-  MS Graph (API):
-  -Oranization.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -43,10 +34,10 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $Alias,
     [string] $PrimarySMTPAddress,
     [string] $GroupName,
@@ -56,7 +47,7 @@ param (
     [bool] $AllowExternalSenders = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
-    [string] $CallerName 
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
@@ -65,10 +56,10 @@ $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 try {
-    $script:Alias = ([mailaddress]"$Alias@demo.com").user 
+    $script:Alias = ([mailaddress]"$Alias@demo.com").user
 }
 catch {
-    "## $Alias is not a valid alias." 
+    "## $Alias is not a valid alias."
 }
 
 if (-not $GroupName) {
@@ -81,7 +72,7 @@ try {
     $invokeParams = @{
         RequireSenderAuthenticationEnabled = (-not $AllowExternalSenders)
         Alias                              = $Alias
-        Name                               = $GroupName 
+        Name                               = $GroupName
         Type                               = "Distribution"
         MemberDepartRestriction            = "Closed"
         MemberJoinRestriction              = "Closed"
@@ -89,14 +80,14 @@ try {
     }
 
     if ($Owner) {
-        $invokeParams += @{ 
-            ManagedBy         = $Owner 
+        $invokeParams += @{
+            ManagedBy         = $Owner
             CopyOwnerToMember = $true
         }
     }
 
     if ($PrimarySMTPAddress) {
-        $invokeParams += @{ 
+        $invokeParams += @{
             PrimarySMTPAddress = $PrimarySMTPAddress
         }
     }
@@ -109,7 +100,7 @@ try {
             }
         }
         $DesiredPrimarySMTPAddress = $Alias + "@" + $defaultDomain.name
-        $invokeParams += @{ 
+        $invokeParams += @{
             PrimarySMTPAddress = $DesiredPrimarySMTPAddress
         }
     }

@@ -5,12 +5,9 @@
   .DESCRIPTION
     Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
-  .NOTES
-  Permissions
-   MS Graph (API): 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param(
   # EntraID exclusion group for Defender Compliance.
@@ -18,7 +15,7 @@ param(
   [int] $maxAgeInDays = 1,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
-  [string]$CallerName    
+  [string]$CallerName
 )
 
 Connect-RjRbGraph
@@ -50,7 +47,7 @@ if (-not $exclusionGroupId) {
 $InGraceDevices = @()
 
 ## Get all Autopiolt Devices
-$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -FollowPaging 
+$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -FollowPaging
 
 "## Search for the Autopilot Devices not yet present in Intune"
 $count = 0;

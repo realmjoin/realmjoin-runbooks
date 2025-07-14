@@ -5,10 +5,6 @@
   .DESCRIPTION
   Rename a group MailNickname, DisplayName and Description. Will NOT change eMail addresses!
 
-  .NOTES
-  Permissions: MS Graph (API):
-   - Group.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -32,10 +28,10 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $GroupId,
     [string] $DisplayName,
     [string] $MailNickname,

@@ -5,13 +5,9 @@
   .DESCRIPTION
   Hide / Unhide special mailboxes in Global Address Book. Currently intended for Booking calendars.
 
-  .NOTES
-  Permissions
-  Exchange Administrator access
-
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {    
+        "Parameters": {
             "CallerName": {
                 "Hide": true
             }
@@ -19,7 +15,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
@@ -39,7 +35,7 @@ Connect-RjRbExchangeOnline
 Get-Mailbox -RecipientTypeDetails SchedulingMailbox | ForEach-Object {
     Set-Mailbox -HiddenFromAddressListsEnabled $HideBookingCalendars -Identity $_.Identity
     "## Updated Booking Calendar '$($_.Alias)' - hide in address book: '$HideBookingCalendars'."
-} 
+}
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 

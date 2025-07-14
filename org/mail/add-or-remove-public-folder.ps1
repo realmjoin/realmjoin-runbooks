@@ -5,13 +5,6 @@
   .DESCRIPTION
   Assumes you already have at least on Public Folder Mailbox. It will not provision P.F. Mailboxes.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
         "ParameterList": [
@@ -63,14 +56,14 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $PublicFolderName,
     [string] $MailboxName,
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [bool] $AddPublicFolder,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

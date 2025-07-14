@@ -12,20 +12,13 @@
   .PARAMETER PolicyName
   Optional, will overwrite default values
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
         "Action": {
             "DisplayName": "Add or Remove URL Pattern to/from Policy",
             "Select": {
-                "Options": 
+                "Options":
                 [
                     {
                         "Display": "Add URL Pattern to Policy" ,
@@ -64,7 +57,8 @@
 }
 #>
 
-#Requires -Module @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.7.2" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Action to execute" } )]
@@ -111,7 +105,7 @@ function createGroupFromPolicyName {
     $groupObj = New-DistributionGroup @groupDescription
 
     return $groupObj
-    
+
 }
 
 function createSafeLinksPolicy {
@@ -127,7 +121,7 @@ function createSafeLinksPolicy {
         IsEnabled                  = $true
         AllowClickThrough          = $false
         DoNotAllowClickThrough     = $true
-        ScanUrls                   = $true 
+        ScanUrls                   = $true
         EnableForInternalSenders   = $true
         DeliverMessageAfterScan    = $true
         EnableOrganizationBranding = $true
@@ -138,7 +132,7 @@ function createSafeLinksPolicy {
     }
 
     $policy = New-SafeLinksPolicy @policyDescription
-    
+
     # The Web Portal actually shows "rules" not the "policies" - so we name them identically
     New-SafeLinksRule -name $SafeLinksPolName -SafeLinksPolicy $SafeLinksPolName -SentToMemberOf $GroupName | Out-Null
 
@@ -156,16 +150,16 @@ try {
             "## Policy name: $($_.Name)"
             $_ | Select-Object -Property IsEnabled, AllowClickThrough, DoNotAllowClickThrough, ScanUrls, EnableForInternalSenders, DeliverMessageAfterScan, EnableOrganizationBranding, TrackClicks, DoNotTrackUserClicks, EnableSafeLinksForTeams, DisableUrlRewrite, DoNotRewriteUrls | Format-List | Out-String
         }
-        
+
         exit
     }
-    
+
     $policy = $null
 
     # Work using a required Policy Name
     if ($PolicyName) {
         $policy = Get-SafeLinksPolicy -Identity $PolicyName -ErrorAction SilentlyContinue
-        
+
         if (-not $policy) {
             "## Policy '$PolicyName' not found."
             # Remove...
@@ -182,7 +176,7 @@ try {
                     $groupObj = createGroupFromPolicyName -PolicyGroupName $PolicyName
                     "## Created group '$($groupObj.Name)'"
                     "## Add users to this group to apply SafeLinks to them."
-            
+
                     ""
                     "## Creating SafeLinks Policy from template"
                     $policy = createSafeLinksPolicy -SafeLinksPolName $PolicyName -GroupName $groupObj.Name
@@ -194,7 +188,7 @@ try {
                 }
             }
         }
-    } 
+    }
 
     # Is our default policy available?
     if ((-not $policy) -and $DefaultPolicyName) {
@@ -239,7 +233,7 @@ try {
                         $groupObj = createGroupFromPolicyName -PolicyGroupName $DefaultPolicyName
                         "## Created group '$($groupObj.Name)'"
                         "## Add users to this group to apply SafeLinks to them."
-            
+
                         ""
                         "## Creating SafeLinks Policy from template"
                         $policy = createSafeLinksPolicy -SafeLinksPolName $DefaultPolicyName -GroupName $groupObj.Name
@@ -281,7 +275,7 @@ try {
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {
                 $DoNotRewriteUrls += $entry
-            } 
+            }
         }
     }
     else {

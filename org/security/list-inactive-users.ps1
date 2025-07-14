@@ -33,7 +33,7 @@
   Beware: This has to enumerate all users / Can take a long time.
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
   [int] $Days = 30,

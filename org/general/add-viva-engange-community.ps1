@@ -24,7 +24,7 @@
     }
 #>
 
-#Requires -Modules "RealmJoin.RunbookHelper"
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -45,10 +45,10 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 # "Authenticate" to Yammer
 #viva engage / yammer dev token - Create one at: https://www.yammer.com/client_applications/
 #TODO: Needs to come from configuration of the runbook and needs to be secure as this is confidential information
-#Get a dev token from your tenant: https://learn.microsoft.com/en-us/rest/api/yammer/app-registration -> create the dev token and this is the bearer token .·´¯`(>▂<)´¯`·. 
+#Get a dev token from your tenant: https://learn.microsoft.com/en-us/rest/api/yammer/app-registration -> create the dev token and this is the bearer token .·´¯`(>▂<)´¯`·.
 try {
-    $appSecret = Get-AutomationPSCredential -Name 'yammer-app-secret' 
-    $authToken = $appSecret.GetNetworkCredential().Password 
+    $appSecret = Get-AutomationPSCredential -Name 'yammer-app-secret'
+    $authToken = $appSecret.GetNetworkCredential().Password
 }
 catch {
     "## Could not get credentials from Azure Automation. Please create a credential named 'yammer-app-secret' with the Yammer dev token as the password. Exiting..."
@@ -81,16 +81,16 @@ try {
     #create group
     $apiCreateGroupResponse = Invoke-RestMethod -Method Post -Uri $apiGroupRequestUri -Headers $headers -UserAgent $scriptUserAgent -ContentType $apiContentType
     "## Group '$($apiCreateGroupResponse.name)' created."
-    
+
     #use mail nick name to get group from AAD and then add owner
     $mailnickname = $apiCreateGroupResponse.name;
-    $aadGroup = Invoke-RjRbRestMethodGraph -Method Get -Resource "/groups" -OdFilter "mailNickname eq '$mailnickname'" 
+    $aadGroup = Invoke-RjRbRestMethodGraph -Method Get -Resource "/groups" -OdFilter "mailNickname eq '$mailnickname'"
     [int]$retryCount = 0
     while (($aadGroup -eq $null) -and ($retryCount -lt 10)) {
         "## Group not available in Azure AD yet. Waiting 10 seconds and retrying."
         Start-Sleep -Seconds 10
         $retryCount++
-        $aadGroup = Invoke-RjRbRestMethodGraph -Method Get -Resource "/groups" -OdFilter "mailNickname eq '$mailnickname'" 
+        $aadGroup = Invoke-RjRbRestMethodGraph -Method Get -Resource "/groups" -OdFilter "mailNickname eq '$mailnickname'"
     }
     if ($aadGroup -eq $null) {
         "## Could not find group in Azure AD. Exiting..."
@@ -128,11 +128,11 @@ if ($CommunityOwners) {
             }
 
             Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/owners/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($targetUser.userPrincipalName)' is added to '$($aadGroup.DisplayName)' owners."  
-        
+            "## '$($targetUser.userPrincipalName)' is added to '$($aadGroup.DisplayName)' owners."
+
             # Owners also have to be members
             Invoke-RjRbRestMethodGraph -Resource "/groups/$($aadGroup.id)/members/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($targetUser.userPrincipalName)' is added to '$($aadGroup.DisplayName)' members." 
+            "## '$($targetUser.userPrincipalName)' is added to '$($aadGroup.DisplayName)' members."
         }
     }
     catch {
@@ -144,19 +144,19 @@ if ($CommunityOwners) {
     if ($removeCreatorFromGroup) {
         #remove api user from group. Will only work if there is at least one other owner!
         $retryCount = 0
-        $requestFailed = $true 
+        $requestFailed = $true
         while ($requestFailed -and ($retryCount -lt 10)) {
-            $requestFailed = $false            
+            $requestFailed = $false
             try {
-                $result = Invoke-RestMethod -Method delete -Headers $headers -Uri ($apiGroupMembershipUri + '?group_id=' + $apiCreateGroupResponse.id + '&user_id=' + $apiCreateGroupResponse.creator_id) -UserAgent $scriptUserAgent 
+                $result = Invoke-RestMethod -Method delete -Headers $headers -Uri ($apiGroupMembershipUri + '?group_id=' + $apiCreateGroupResponse.id + '&user_id=' + $apiCreateGroupResponse.creator_id) -UserAgent $scriptUserAgent
             }
             catch {
                 "## Could not remove API user from group. Waiting 10 seconds and retrying."
                 $requestFailed = $true
                 $retryCount++
                 Start-Sleep -Seconds 10
-            } 
-        } 
+            }
+        }
         if ($requestFailed) {
             "## Could not remove API user from group. Exiting..."
             $_
@@ -165,7 +165,7 @@ if ($CommunityOwners) {
         else {
             "## Removed API user from group."
         }
-    } 
+    }
 }
 else {
     "## No owners specified. Skipping owner assignment/removal."

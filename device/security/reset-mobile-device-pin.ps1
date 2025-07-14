@@ -5,11 +5,6 @@
   .DESCRIPTION
   Reset a mobile device's password/PIN code. Warning: Not possible for all types of devices.
 
-  .NOTES
-  Permissions needed:
-  - DeviceManagementManagedDevices.Read.All,
-  - DeviceManagementManagedDevices.PrivilegedOperations.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -23,7 +18,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -37,7 +32,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-Connect-RjRbGraph 
+Connect-RjRbGraph
 
 $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -Beta
 ## Checking device has been found

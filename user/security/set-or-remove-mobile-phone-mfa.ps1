@@ -8,10 +8,6 @@
   .PARAMETER phoneNumber
   Needs to be in '+###########' syntax
 
-  .NOTES
-  Permissions needed:
- - UserAuthenticationMethod.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -32,7 +28,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -59,7 +55,7 @@ else {
     "## Trying to add phone MFA number '$phoneNumber' to user '$UserName'."
 }
 
-# Sanity check 
+# Sanity check
 if (-not $phoneNumber.startswith("+")) {
     throw "Phone Number needs to be in international E.164 format ('+' + Country Code + Number)"
 }

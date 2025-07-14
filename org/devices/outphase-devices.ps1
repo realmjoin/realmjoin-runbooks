@@ -5,18 +5,9 @@
   .DESCRIPTION
   Remove/Outphase multiple devices. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
 
-  .NOTES
-  PERMISSIONS
-   DeviceManagementManagedDevices.PrivilegedOperations.All (Wipe,Retire / seems to allow us to delete from AzureAD)
-   DeviceManagementManagedDevices.ReadWrite.All (Delete Inunte Device)
-   DeviceManagementServiceConfig.ReadWrite.All (Delete Autopilot enrollment)
-   Device.Read.All
-  ROLES
-   Cloud device administrator
-
   .INPUTS
   RunbookCustomization: {
-    
+
     "Parameters": {
         "DeviceListChoice": {
             "DisplayName": "Select List Type",
@@ -31,10 +22,10 @@
                     "Value": 1
                 }
                 ]
-           }
+            }
         },
         "DeviceList": {
-            "DisplayName": "Comma separated list", 
+            "DisplayName": "Comma separated list",
         },
         "intuneAction": {
             "DisplayName": "Wipe this device?",
@@ -47,7 +38,7 @@
                     {
                         "Display": "Delete device from Intune (only if device is already wiped or destroyed)",
                         "Value": 1
-                    },                    
+                    },
                     {
                         "Display": "Do not wipe or remove device from Intune",
                         "Value": 0
@@ -102,7 +93,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -141,7 +132,7 @@ switch ($aadAction) {
     1 {
         $removeAADDevice = $false
         $disableAADDevice = $true
-    } 
+    }
     0 {
         $removeAADDevice = $false
         $disableAADDevice = $false
@@ -177,8 +168,8 @@ $DeviceList.Split(",") | ForEach-Object {
         $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
         if (-not $targetDevice) {
             "## Warning Message: DeviceId '$DeviceId' not found in AzureAD."
-            return 
-        } 
+            return
+        }
         $owner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)/registeredOwners" -ErrorAction SilentlyContinue
 
         "## Outphasing device '$($targetDevice.displayName)' (DeviceId '$DeviceId')"
@@ -199,8 +190,8 @@ $DeviceList.Split(",") | ForEach-Object {
                 catch {
                     "## Error Message: $($_.Exception.Message)"
                     "## Please see 'All logs' for more details."
-                    "## Execution stopped." 
-                    "## Warning Message: Disabling Object ID $($targetDevice.id) in AzureAD failed!" 
+                    "## Execution stopped."
+                    "## Warning Message: Disabling Object ID $($targetDevice.id) in AzureAD failed!"
                 }
             }
             else {
@@ -216,9 +207,9 @@ $DeviceList.Split(",") | ForEach-Object {
             catch {
                 "## Error Message: $($_.Exception.Message)"
                 "## Please see 'All logs' for more details."
-                "## Execution stopped." 
+                "## Execution stopped."
                 "## Warning Message: Deleting Object ID $($targetDevice.id) from AzureAD failed!"
-        
+
             }
         }
 
@@ -240,7 +231,7 @@ $DeviceList.Split(",") | ForEach-Object {
                 catch {
                     "## Error Message: $($_.Exception.Message)"
                     "## Please see 'All logs' for more details."
-                    "## Execution stopped."     
+                    "## Execution stopped."
                     "## Warning Message: Wiping DeviceID $DeviceID (Intune ID: $($mgdDevice.id)) failed!"
                 }
             }
@@ -252,7 +243,7 @@ $DeviceList.Split(",") | ForEach-Object {
                 catch {
                     "## Error Message: $($_.Exception.Message)"
                     "## Please see 'All logs' for more details."
-                    "## Execution stopped."     
+                    "## Execution stopped."
                     "## Warning Message: Deleting Intune ID: $($mgdDevice.id) from Intune failed!"
                 }
             }
@@ -274,7 +265,7 @@ $DeviceList.Split(",") | ForEach-Object {
                 catch {
                     "## Error Message: $($_.Exception.Message)"
                     "## Please see 'All logs' for more details."
-                    "## Execution stopped."     
+                    "## Execution stopped."
                     "## Warning Message: Deleting Autopilot ID: $($apDevice.id) from Autopilot failed!"
                 }
             }

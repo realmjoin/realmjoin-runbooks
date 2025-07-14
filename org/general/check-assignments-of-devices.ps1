@@ -5,14 +5,6 @@
   .DESCRIPTION
   This script checks the Intune assignments for a single or multiple specified Device Names.
 
-  .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  - Group.Read.All
-  - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementApps.Read.All
-
   .PARAMETER DeviceNames
   Device Names of the devices to check assignments for, separated by commas.
 
@@ -26,7 +18,7 @@
   DeviceNames, CallerName, and IncludeApps
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -276,10 +268,10 @@ foreach ($deviceName in $DeviceNamesArray) {
         "## ------- Assigned Apps (Available) for $deviceName -------"
         foreach ($app in $deviceRelevantAppsAvailable) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
-            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)" 
+            "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"
         }
 
-        "## ------- Assigned Apps (Uninstall) for $deviceName -------" 
+        "## ------- Assigned Apps (Uninstall) for $deviceName -------"
         foreach ($app in $deviceRelevantAppsUninstall) {
             $appName = if ([string]::IsNullOrWhiteSpace($app.name)) { $app.displayName } else { $app.name }
             "## App Name: $appName, App ID: $($app.id), Assignment Reason: $($app.AssignmentReason)"

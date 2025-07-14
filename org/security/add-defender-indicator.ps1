@@ -5,10 +5,6 @@
   .DESCRIPTION
   Create a new Indicator in Defender for Endpoint e.g. to allow a specific file using it's hash value or allow a specific url that by default is blocked by Defender for Endpoint
 
-  .NOTES
-  Permissions (WindowsDefenderATP, Application):
-  - Ti.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -65,7 +61,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]

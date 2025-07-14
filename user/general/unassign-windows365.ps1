@@ -5,14 +5,6 @@
   .DESCRIPTION
   Remove/Deprovision a Windows 365 instance
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - User.Read.All
-  - GroupMember.ReadWrite.All 
-  - Group.ReadWrite.All
-  - CloudPC.ReadWrite.All (Beta)
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -54,7 +46,7 @@
 
 #>
 
-#Requires -Modules "RealmJoin.RunbookHelper"
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -96,7 +88,7 @@ if ($cfgProvisioningPolObj -and ($cfgProvisioningPolObj[0].provisioningType -eq 
             #$cfgProvisioningSharedUseServicePlanId = $assignment.target.servicePlanId
             break
         }
-    } 
+    }
     if (-not $cfgProvisioningGroupId) {
         "## Could not find Assignment Group for Provisioning policy '$($cfgProvisioningPolObj.displayName)'."
         throw "cfgProvisioningSharedInfo not found"
@@ -119,7 +111,7 @@ if ($cfgProvisioningPolObj -and ($cfgProvisioningPolObj[0].provisioningType -eq 
                 Start-Sleep -Seconds 30
                 "## ."
                 $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)" -Beta -ErrorAction SilentlyContinue
-            } 
+            }
             if ($cloudPC.status -eq "inGracePeriod") {
                 Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/endGracePeriod" -Method Post -Beta
                 "## CloudPC grace period ended."
@@ -127,7 +119,7 @@ if ($cfgProvisioningPolObj -and ($cfgProvisioningPolObj[0].provisioningType -eq 
             elseif ($cloudPC) {
                 "## CloudPC in state '$($cloudPC.status)'. Please check manually."
             }
-        } 
+        }
     }
 }
 else {
@@ -145,8 +137,8 @@ else {
         # Find Cloud PC via SKU
         $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/assignedLicenses"
         if (([array]$assignedLicenses).count -eq 1) {
-            $skuId = $assignedLicenses.skuId 
-            $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+            $skuId = $assignedLicenses.skuId
+            $SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
             $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
             $cloudPCs = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs" -Beta -OdFilter "userPrincipalName eq '$UserName'"
             $cloudPC = $cloudPCs | Where-Object { $_.servicePlanId -in $skuObj.servicePlans.servicePlanId }
@@ -156,7 +148,7 @@ else {
         }
         Invoke-RjRbRestMethodGraph -Resource "/groups/$($licWin365GroupObj.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
         "## Unassgined '$licWin365GroupName' from '$UserName'."
-    
+
         if ($skipGracePeriod) {
             "## Skip grace period of Cloud PC"
             if (([array]$cloudPC).count -eq 1) {
@@ -166,7 +158,7 @@ else {
                     Start-Sleep -Seconds 30
                     "## ."
                     $cloudPC = invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)" -Beta -ErrorAction SilentlyContinue
-                } 
+                }
                 if ($cloudPC.status -eq "inGracePeriod") {
                     Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/virtualEndpoint/cloudPCs/$($cloudPC.id)/endGracePeriod" -Method Post -Beta
                     "## CloudPC grace period ended."
@@ -174,11 +166,11 @@ else {
                 elseif ($cloudPC) {
                     "## CloudPC in state '$($cloudPC.status)'. Please check manually."
                 }
-            } 
+            }
         }
     }
     else {
-        "## '$UserName' does not have '$licWin365GroupName'." 
+        "## '$UserName' does not have '$licWin365GroupName'."
         "## Can not deprovision."
     }
 }

@@ -5,11 +5,6 @@
   .DESCRIPTION
   List Azure AD role assignments that will expire before a given number of days.
 
-  .NOTES
-  Permissions: MS Graph
-  - Organization.Read.All
-  - RoleManagement.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -24,7 +19,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
   [int] $Days = 30,
@@ -60,7 +55,7 @@ foreach ($roleAssignment in $roleAssignments) {
 ""
 
 "## PIM eligible AzureAD role assignment sthat will expire before $($expiringDate):"
-$allPimEligigble = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta 
+$allPimEligigble = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta
 $pimEligible = $allPimEligigble | Where-Object { $_.scheduleInfo.expiration.endDateTime -lt $expiringDate }
 foreach ($roleAssignment in $pimEligible) {
   $roleName = (Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions/$($roleAssignment.roleDefinitionId)").DisplayName

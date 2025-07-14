@@ -5,12 +5,6 @@
   .DESCRIPTION
   This script checks if single or multiple devices (by Group Object ID) are onboarded to Windows Update for Business.
 
-  .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  - Group.Read.All
-  - WindowsUpdates.ReadWrite.All
-
   .PARAMETER GroupId
   Object ID of the group to check onboarding status for its members.
 
@@ -21,7 +15,7 @@
   GroupId, and CallerName
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -54,9 +48,9 @@ foreach ($deviceObject in $deviceObjects) {
 
     $onboardingResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method GET -Beta -ErrorAction SilentlyContinue -ErrorVariable errorGraph
     if ($onboardingResponse) {
-        $status = "Onboarded"       
+        $status = "Onboarded"
         Write-Output "- Status: $status"
-        
+
         # update categories
         Write-Output "- Update categories: "
         $updateCategories = $onboardingResponse.enrollment
@@ -73,12 +67,12 @@ foreach ($deviceObject in $deviceObjects) {
         else {
             Write-Output "None (empty response)."
         }
-        
+
         # errors
-        $errors = if ($onboardingResponse.errors) { 
+        $errors = if ($onboardingResponse.errors) {
                 ($onboardingResponse.errors | ForEach-Object { $_.reason }) -join ", "
         }
-        else { 
+        else {
             "None"
         }
         Write-Output "- Errors: $errors"

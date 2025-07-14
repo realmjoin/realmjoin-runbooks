@@ -5,11 +5,6 @@
   .DESCRIPTION
   This script updates the logos for Microsoft Store Apps (new) in Intune by fetching them from the Microsoft Store.
 
-  .NOTES
-  Permissions:
-  MS Graph (API):
-  - DeviceManagementApps.ReadWrite.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -20,7 +15,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     # CallerName is tracked purely for auditing purposes
@@ -39,7 +34,7 @@ function Get-Base64EncodedImage {
     param (
         [string]$ImageUrl
     )
-    
+
     try {
         $webClient = New-Object System.Net.WebClient
         $imageBytes = $webClient.DownloadData($ImageUrl)
@@ -78,8 +73,8 @@ foreach ($app in $StoreApps) {
 # Process each app
 foreach ($app in $StoreApps) {
     Write-RjRbLog -Message "Processing $($app.displayName)..." -Verbose
-    
-    # Check if the app already has a logo 
+
+    # Check if the app already has a logo
     $appDetails = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps/$($app.id)" -UriQueryRaw '$expand=categories' -Beta
 
     if ($appDetails.largeIcon -and $appDetails.largeIcon.value) {
@@ -89,7 +84,7 @@ foreach ($app in $StoreApps) {
     }
 
     $storeUrl = "https://apps.microsoft.com/detail/$($app.packageIdentifier)"
-    
+
     try {
         $response = Invoke-WebRequest -Uri $storeUrl -UseBasicParsing
         $html = $response.Content
@@ -97,7 +92,7 @@ foreach ($app in $StoreApps) {
         # Extract image URL using regex
         $imgPattern = '"iconUrl":"(https://store-images\.s-microsoft\.com/[^"]+)"'
         $imgMatch = [regex]::Match($html, $imgPattern)
-        
+
         if ($imgMatch.Success) {
             $imageUrl = $imgMatch.Groups[1].Value
             Write-RjRbLog -Message "Found image URL: $imageUrl" -Verbose

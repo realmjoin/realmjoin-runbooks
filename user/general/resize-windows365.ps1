@@ -5,16 +5,6 @@
  .DESCRIPTION
  Resize an already existing Windows 365 Cloud PC by derpovisioning and assigning a new differently sized license to the user. Warning: All local data will be lost. Proceed with caution.
 
- .NOTES
- Permissions:
- MS Graph (API):
- - GroupMember.ReadWrite.All 
- - Group.ReadWrite.All
- - Directory.Read.All
- - CloudPC.ReadWrite.All (Beta)
- - User.Read.All
- - User.SendMail
-
  .INPUTS
  RunbookCustomization: {
  "Parameters": {
@@ -105,7 +95,7 @@
         "DisplayName": "Remove the old Cloud PC immediately?"
     }
  }
- 
+
  .EXAMPLE
  "user_general_resizing-windows365": {
     "Parameters": {
@@ -120,7 +110,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -180,7 +170,7 @@ if ($result -and ($result.userPrincipalName -contains $UserName)) {
     }
 }
 else {
-    "## '$UserName' does not have '$currentLicWin365GroupName'." 
+    "## '$UserName' does not have '$currentLicWin365GroupName'."
     "## Can not resize."
     throw "Cloud PC with license '$currentLicWin365GroupName' does not exist."
 }
@@ -191,8 +181,8 @@ $newLicWin365GroupObj = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter
 
 # Get License / SKU data
 $assignedLicenses = invoke-RjRbRestMethodGraph -Resource "/groups/$($newLicWin365GroupObj.id)/assignedLicenses"
-$skuId = $assignedLicenses.skuId 
-$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus" 
+$skuId = $assignedLicenses.skuId
+$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
 $skuObj = $SKUs | Where-Object { $_.skuId -eq $skuId }
 
 # Are licenses available?
@@ -205,7 +195,7 @@ if ($skuObj.prepaidUnits.enabled -le $skuObj.consumedUnits) {
 $currentUserSettingsPolicy = $null
 $allCfgUserSettingsGroups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "startswith(DisplayName,'$cfgUserSettingsGroupPrefix')"
 foreach ($group in $allCfgUserSettingsGroups) {
-    if (-not $currentUserSettingsPolicy) {       
+    if (-not $currentUserSettingsPolicy) {
         $result = Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members"
         if ($result -and ($result.userPrincipalName -contains $UserName)) {
             $currentUserSettingsPolicy = $group.displayName
@@ -232,7 +222,7 @@ if (-not $currentProvisioningPolicy) {
     "## Warning: '$UserName' has no Provisioning Group assigned."
 }
 
-# Calling Runbooks 
+# Calling Runbooks
 "## Starting Runbook Job to remove '$currentLicWin365GroupName' from '$UserName':"
 Start-AutomationRunbook -Name $unassignRunbook -Parameters @{UserName = $UserName ; licWin365GroupName = $currentLicWin365GroupName ; skipGracePeriod = $skipGracePeriod ; keepUserSettingsAndProvisioningGroups = $true; CallerName = $CallerName ; }
 ""

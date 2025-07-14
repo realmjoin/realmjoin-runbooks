@@ -5,13 +5,6 @@
   .DESCRIPTION
   Collect devices based on the date of last user logon or last Intune sync.
 
-  .NOTES
-  Permissions
-  MS Graph (API):
-  - DeviceManagementManagedDevices.Read.All
-  - Directory.Read.All
-  - Device.Read.All
-
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -63,7 +56,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Number of days without Sync/Login being considered inactive." } )]
@@ -154,7 +147,7 @@ else {
     $filter = 'approximateLastSignInDateTime le ' + $beforedate + 'T00:00:00Z'
     "## Listing inactive devices (no SignIn since at least $Days days)"
     ""
-    $Devices = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter -OdSelect $SelectString -FollowPaging 
+    $Devices = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter -OdSelect $SelectString -FollowPaging
 }
 
 foreach ($Device in $Devices) {
@@ -196,20 +189,20 @@ if ($ExportToFile) {
         $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
         if (-not $storAccount) {
             "## Creating Azure Storage Account $($StorageAccountName)"
-            $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+            $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
         }
-     
+
         # Get access to the Storage Account
         $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
         $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-    
+
         # Make sure, container exists
         $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
         if (-not $container) {
             "## Creating Azure Storage Account Container $($ContainerName)"
-            $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+            $container = New-AzStorageContainer -Name $ContainerName -Context $context
         }
-    
+
         if ($Sync) {
             $FileName = "$(Get-Date -Format "yyyy-MM-dd")-stale-sync-devices.csv"
             $Exportdevices | ConvertTo-Csv -Delimiter ";" > $FileName
@@ -218,15 +211,15 @@ if ($ExportToFile) {
             $FileName = "$(Get-Date -Format "yyyy-MM-dd")-stale-login-devices.csv"
             $Exportdevices | ConvertTo-Csv -Delimiter ";" > $FileName
         }
-        $content = Get-Content -Path $FileName 
+        $content = Get-Content -Path $FileName
         set-content -Path $FileName -Value $content -Encoding utf8
-        
+
         # Upload
         Set-AzStorageBlobContent -File $FileName -Container $ContainerName -Blob $FileName -Context $context -Force | Out-Null
-    
+
         $EndTime = (Get-Date).AddDays(6)
         $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $FileName -FullUri -ExpiryTime $EndTime
-    
+
         "## Inactive Devices Export created."
         "## Expiry of Link: $EndTime"
         $SASLink | Out-String
@@ -236,7 +229,7 @@ if ($ExportToFile) {
     }
     finally {
         Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
-    }    
+    }
 }
 else {
     if ($Sync) {

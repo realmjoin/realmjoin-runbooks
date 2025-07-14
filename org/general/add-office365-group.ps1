@@ -7,8 +7,8 @@
 
   .NOTES
   Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-  MS Graph (API): 
-  - Group.Create 
+  MS Graph (API):
+  - Group.Create
   - Team.Create
 
   .INPUTS
@@ -38,7 +38,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -107,7 +107,7 @@ if ($CreateTeam) {
 
     # A team needs an owner
     if (-not $Owner) {
-        $Owner = $CallerName    
+        $Owner = $CallerName
     }
 }
 

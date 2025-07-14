@@ -11,15 +11,6 @@
   .PARAMETER UsageLocation
   Examples: "DE" or "US"
 
-  .NOTES
-  Permissions
-  Graph
-  - UserAuthenticationMethod.Read.All
-  AzureAD Roles
-  - User administrator
-  Exchange
-  - Exchange Admin
-
   .EXAMPLE
   // Full Runbook Customizing Example
       "Templates": {
@@ -191,7 +182,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -302,7 +293,7 @@ try {
                 if ($enoughlicenses) {
                     "## Adding '$Username' to license group '$($group.displayName)'"
                     $body = @{
-                        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)" 
+                        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
                     }
                     try {
                         Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
@@ -319,7 +310,7 @@ try {
                     "## WARNING - Licensegroup '$DefaultLicense' lacks sufficient licenses! Not provisioning license / group membership."
                 }
             }
-        
+
         }
     }
 
@@ -330,7 +321,7 @@ try {
             #"Searching default group $groupname."
             $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$groupname'" -ErrorAction SilentlyContinue
             if (-not $group) {
-                "## Group '$groupname' not found!" 
+                "## Group '$groupname' not found!"
                 "## Reauth..."
                 Connect-RjRbGraph -force
             }
@@ -352,25 +343,25 @@ try {
                             "## ... failed. Skipping '$($group.displayName)'."
                             Write-RjRbLog $_
                             "## Reauth..."
-                            Connect-RjRbGraph -force    
+                            Connect-RjRbGraph -force
                         }
                     }
                 }
                 else {
                     try {
                         "## Adding to exchange group/list '$($group.displayName)'"
-                        # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
+                        # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox.
                         $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue
                         if (-not $mbox) {
                             $MaxRuns = 30
                             "## - Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
-                            $mbox = $null; 
+                            $mbox = $null;
                             $counter = 0
                             while ((-not $mbox) -and ($counter -le $MaxRuns)) {
                                 $counter++;
-                                Start-Sleep 30; 
-                                $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue; 
-                            }; 
+                                Start-Sleep 30;
+                                $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue;
+                            };
                         }
                         Add-DistributionGroupMember -Identity $group.id -Member $Username -BypassSecurityGroupManagerCheck:$true -Confirm:$false
                     }
@@ -387,27 +378,27 @@ try {
     if ($EnableEXOArchive) {
         try {
             "## Enabling EXO Archive Mailbox"
-            # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox. 
+            # Mailbox needs to be provisioned first. EXO takes multiple minutes to privision a fresh mailbox.
             $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue
             if (-not $mbox) {
                 $MaxRuns = 30
                 "## - Waiting for Mailbox creation. Max Wait Time ca. $($MaxRuns/2) minutes."
-                $mbox = $null; 
+                $mbox = $null;
                 $counter = 0
                 while ((-not $mbox) -and ($counter -le $MaxRuns)) {
                     $counter++;
-                    Start-Sleep 30; 
-                    $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue; 
-                }; 
+                    Start-Sleep 30;
+                    $mbox = get-exomailbox -Identity $Username -ErrorAction SilentlyContinue;
+                };
             }
-            $archivembox = get-exomailbox -Identity $Username -Archive -ErrorAction SilentlyContinue        
+            $archivembox = get-exomailbox -Identity $Username -Archive -ErrorAction SilentlyContinue
             if (-not $archivembox) {
                 Enable-Mailbox -Archive -Identity $Username | Out-Null
             }
             else {
                 "## EXO Archive is already configured for '$Username'. Skipping."
             }
-            
+
         }
         catch {
             Write-Error "Enabling Mail Archive for '$Username' failed"
@@ -421,7 +412,7 @@ finally {
 
 if ($ResetPassword) {
     # Check if user has MFA methods already
-    # "Find phone auth. methods" 
+    # "Find phone auth. methods"
     $phoneAMs = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/authentication/phoneMethods" -Beta
 
     # "Find Authenticator App auth methods"

@@ -5,16 +5,6 @@
   .DESCRIPTION
   Add/remove owners to/from an Office 365 group.
 
-  .NOTES
-  Permissions: 
-  MS Graph (API)
-  - Group.ReadWrite.All
-  - Directory.ReadWrite.All
-  Office 365 Exchange Online
-   - Exchange.ManageAsApp
-  Azure AD Roles
-   - Exchange administrator
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -38,7 +28,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -61,7 +51,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 Connect-RjRbGraph
 
 
-# "Find the user object " 
+# "Find the user object "
 $targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserId" -ErrorAction SilentlyContinue
 if (-not $targetUser) {
     throw ("User '$UserId' not found.")
@@ -78,14 +68,14 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
     $body = @{
         "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$UserId"
     }
-    
-    # "Is user owner of the the group?" 
+
+    # "Is user owner of the the group?"
     if (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserID" -ErrorAction SilentlyContinue) {
         if ($Remove) {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/$UserId/`$ref" -Method Delete -Body $body | Out-Null
             "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)' owners"
         }
-        else {    
+        else {
             "## User '$($targetUser.UserPrincipalName)' is already an owner of '$($targetGroup.DisplayName)'. No action taken."
         }
     }
@@ -95,8 +85,8 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
         }
         else {
             Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/owners/`$ref" -Method Post -Body $body | Out-Null
-            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)' owners."  
-            
+            "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)' owners."
+
             # Check members - owners also have to be members
             if (-not (Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/$UserID" -ErrorAction SilentlyContinue)) {
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$GroupID/members/`$ref" -Method Post -Body $body | Out-Null
@@ -104,14 +94,14 @@ if (($targetGroup.GroupTypes -contains "Unified") -or (-not $targetGroup.MailEna
             }
         }
     }
-} 
+}
 # Work on Exchange groups
 else {
     try {
         $ProgressPreference = "SilentlyContinue"
-    
+
         Connect-RjRbExchangeOnline
-    
+
         $exgroup = Get-DistributionGroup -Identity $GroupID
         # Checking if group is of type "distribution"
         if (-not $exgroup) {
@@ -142,7 +132,7 @@ else {
                 Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
                 "## Added '$($targetUser.UserPrincipalName)' to the list of owners for '$($targetGroup.DisplayName)'."
             }
-        }    
+        }
     }
     finally {
         Disconnect-ExchangeOnline -Confirm:$false | Out-Null

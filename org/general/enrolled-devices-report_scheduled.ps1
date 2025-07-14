@@ -9,15 +9,6 @@
   Please configure an Azure Storage Account to use this feature.
 
   .NOTES
-  Permissions: 
-  MS Graph (API):
-  - DeviceManagementServiceConfig.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - User.Read.All
-  - Device.ReadWrite.All
-  Azure Subscription (for Storage Account)
-  - Contributor on Storage Account
-
 
   .EXAMPLE
   Example of Azure Storage Account configuration for RJ central datastore
@@ -139,7 +130,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
   [int] $Weeks = 4,
@@ -222,14 +213,14 @@ Connect-RjRbGraph
 $date = (Get-Date) - (New-TimeSpan -Days ($Weeks * 7))
 
 # Get AutoPilot-Devices newer than cutoff
-# $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta | Where-Object { ([datetime]$_.deploymentProfileAssignedDateTime) -ge $date } 
+# $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta | Where-Object { ([datetime]$_.deploymentProfileAssignedDateTime) -ge $date }
 try {
   $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta
 
   $data = $devices | ForEach-Object {
     if (($dataSource -eq 1) -or (([datetime]$_.deploymentProfileAssignedDateTime) -ge $date)) {
       # Only process this device if either Intune datasource is used, or Autopilot assignment is not too old.
-      $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue 
+      $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue
       if (($dataSource -eq 0) -or ($intuneDevice -and ([datetime]$intuneDevice.enrolledDateTime) -ge $date)) {
         # Only process this device if either Autopilot datasource is used, or Intune enrollment is not too old.
         $output = [PSCustomObject]@{
@@ -250,7 +241,7 @@ try {
         }
 
         # Take this device into account / print data
-        $output  
+        $output
       }
     }
   }
@@ -267,7 +258,7 @@ try {
     ""
     $data | Sort-Object -Property $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute | Out-String
 
-  } 
+  }
 
   if ($groupingSource -eq 1) {
     "## - AzureAD User: $groupingAttribute"
@@ -279,9 +270,9 @@ try {
         if ($azureADUser) {
           $_.$groupingAttribute = $azureADUser.$groupingAttribute
         }
-      
+
         $_
-      } 
+      }
     } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
   }
 
@@ -289,7 +280,7 @@ try {
     "## - AzureAD Device: $groupingAttribute"
     ""
     $data | ForEach-Object {
-      $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.apDevice.azureAdDeviceId)'" -ErrorAction SilentlyContinue 
+      $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.apDevice.azureAdDeviceId)'" -ErrorAction SilentlyContinue
 
       if ($azureADDevice) {
         $_.$groupingAttribute = $azureADDevice.$groupingAttribute
@@ -321,7 +312,7 @@ try {
     } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
   }
 
-  if ($exportCsv) {  
+  if ($exportCsv) {
     Connect-RjRbAzAccount
 
     if (-not $ContainerName) {
@@ -341,9 +332,9 @@ try {
     $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
       "## Creating Azure Storage Account $($StorageAccountName)"
-      $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku 
+      $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
     }
- 
+
     # Get access to the Storage Account
     $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
     $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
@@ -352,14 +343,14 @@ try {
     $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
       "## Creating Azure Storage Account Container $($ContainerName)"
-      $container = New-AzStorageContainer -Name $ContainerName -Context $context 
+      $container = New-AzStorageContainer -Name $ContainerName -Context $context
     }
- 
+
     # Upload
     $content = get-content -Path "enrolled-devices.csv"
     Set-Content -Path "enrolled-devices.csv" -Value $content -Encoding UTF8
     Set-AzStorageBlobContent -File "enrolled-devices.csv" -Container $ContainerName -Blob "enrolled-devices.csv" -Context $context -Force | Out-Null
- 
+
     #Create signed (SAS) link
     $EndTime = (Get-Date).AddDays(6)
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob "enrolled-devices.csv" -FullUri -ExpiryTime $EndTime

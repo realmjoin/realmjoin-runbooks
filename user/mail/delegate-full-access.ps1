@@ -5,13 +5,6 @@
   .DESCRIPTION
   Grant another user full access to this mailbox.
 
-  .NOTES
-  Permissions given to the Az Automation RunAs Account:
-  AzureAD Roles:
-  - Exchange administrator
-  Office 365 Exchange Online API
-  - Exchange.ManageAsApp
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -59,11 +52,11 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 param
 (
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
@@ -100,18 +93,18 @@ try {
     if (-not $trustee) {
         throw "Trustee '$delegateTo' has no mailbox."
     }
-    
+
     if ($Remove) {
         "## Trying to remove full access to mailbox '$UserName' from user '$($trustee.UserPrincipalName)'."
     }
     else {
         "## Trying to give full access to mailbox '$UserName' to user '$($trustee.UserPrincipalName)'."
     }
-    
+
     if ((-not $Remove) -and $AutoMapping) {
         "## Mailbox will automatically appear in Outlook."
     }
-    
+
     "## Current Mailbox Access Permissions for '$UserName'"
     Get-MailboxPermission -Identity $UserName | Where-Object { ($_.user -like '*@*') } | Format-Table -Property Identity, User, AccessRights -AutoSize | Out-String
 

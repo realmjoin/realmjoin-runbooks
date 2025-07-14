@@ -5,10 +5,6 @@
   .DESCRIPTION
   This script enrolls devices into Windows Update for Business.
 
-  .NOTES
-  Permissions (Graph):
-  - WindowsUpdates.ReadWrite.All
-
   .PARAMETER DeviceId
   DeviceId of the device to unenroll.
 
@@ -22,7 +18,7 @@
   DeviceId, UpdateCategory, and CallerName
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -57,7 +53,7 @@ function Enroll-Device {
                 id            = $DeviceId
             }
         )
-    } 
+    }
 
     try {
         $enrollResponse = $null

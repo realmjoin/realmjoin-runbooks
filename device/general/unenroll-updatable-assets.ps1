@@ -5,10 +5,6 @@
   .DESCRIPTION
   This script unenrolls devices from Windows Update for Business.
 
-  .NOTES
-  Permissions (Graph):
-  - WindowsUpdates.ReadWrite.All
-
   .PARAMETER DeviceId
   DeviceId of the device to unenroll.
 
@@ -22,7 +18,7 @@
   DeviceId, UpdateCategory, and CallerName
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -57,13 +53,13 @@ function Unenroll-Device {
                 id            = $DeviceId
             }
         )
-    } 
+    }
 
     try {
         $unenrollResponse = $null
         if ($UpdateCategory -eq "all") {
             $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/$DeviceId" -Method DELETE -Beta
-            Write-Output "- Triggered unenroll from updatableAssets via deletion."    
+            Write-Output "- Triggered unenroll from updatableAssets via deletion."
         }
         else {
             $unenrollResponse = Invoke-RjRbRestMethodGraph -Resource "/admin/windows/updates/updatableAssets/unenrollAssets" -Method POST -Body $unenrollBody -Beta

@@ -5,12 +5,6 @@
   .DESCRIPTION
   Permanently offboard a user.
 
-  .NOTES
-  Permissions
-  AzureAD Roles
-  - User administrator
-  Azure IaaS: "Contributor" access on subscription or resource group used for the export
-
   .PARAMETER ReplacementOwnerName
   Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
 
@@ -94,7 +88,7 @@
                         {
                             "Display": "Remove all groups",
                             "Value": 2,
-                        }    
+                        }
                     ]
                 }
             },
@@ -177,7 +171,7 @@
 
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {            
+        "Parameters": {
             "CallerName": {
                 "Hide": true
             }
@@ -185,7 +179,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
@@ -271,7 +265,7 @@ if ($RevokeAccess) {
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
 }
 
-Write-RjRbLog "Getting list of group memberships for user '$UserName'." 
+Write-RjRbLog "Getting list of group memberships for user '$UserName'."
 # Write to file, as Set-AzStorageBlobContent needs a file to upload.
 $membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false } -FollowPaging
 $memberships = $membershipIds | ForEach-Object {
@@ -287,14 +281,14 @@ if ($exportGroupMemberships) {
     $storAccount = Get-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -ErrorAction SilentlyContinue
     if (-not $storAccount) {
         "## Creating Azure Storage Account $($exportStorAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -Location $exportStorAccountLocation -SkuName $exportStorAccountSKU 
+        $storAccount = New-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -Location $exportStorAccountLocation -SkuName $exportStorAccountSKU
     }
     $keys = Get-AzStorageAccountKey -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName
     $context = New-AzStorageContext -StorageAccountName $exportStorAccountName -StorageAccountKey $keys[0].Value
     $container = Get-AzStorageContainer -Name $exportStorContainerGroupMembershipExports -Context $context -ErrorAction SilentlyContinue
     if (-not $container) {
         "## Creating Azure Storage Account Container '$exportStorContainerGroupmembershipExports'"
-        $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context 
+        $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context
     }
 
     "## Uploading list of memberships. This might overwrite older versions."
@@ -336,7 +330,7 @@ if ($RevokeGroupOwnership) {
                     else {
                         "## No Replacement Owner given."
                     }
-                    "## Skipping ownership change for group '$($OwnedGroup.displayName)'." 
+                    "## Skipping ownership change for group '$($OwnedGroup.displayName)'."
                     "## Please verify owners of group '$($OwnedGroup.displayName)' manually!"
                 }
             }
@@ -344,7 +338,7 @@ if ($RevokeGroupOwnership) {
                 Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
                 "## Revoked Ownership of group '$($OwnedGroup.displayName)'"
             }
-            
+
         }
     }
 }
@@ -364,7 +358,7 @@ if ($DeleteUser) {
 if ($ChangeGroupsSelector -ne 0) {
     # Add new licensing group, if not already assigned
     if ($GroupToAdd -and ($memberships.DisplayName -notcontains $GroupToAdd)) {
-        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupToAdd'" 
+        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupToAdd'"
         if (([array]$group).count -eq 1) {
             "## Adding group '$GroupToAdd' to user $UserName"
             $body = @{
@@ -376,16 +370,16 @@ if ($ChangeGroupsSelector -ne 0) {
             "## Could not resove group name '$GroupToAdd', skipping..."
         }
     }
-    
+
 
     # Search groups by prefix
     if (($ChangeGroupsSelector -eq 1) -and $GroupsToRemovePrefix) {
-        $groupsToRemove = $memberships  | Where-Object { $_.displayName.startswith($GroupsToRemovePrefix) } 
+        $groupsToRemove = $memberships  | Where-Object { $_.displayName.startswith($GroupsToRemovePrefix) }
     }
 
     # Choose all groups
     if ($ChangeGroupsSelector -eq 2) {
-        $groupsToRemove = $memberships 
+        $groupsToRemove = $memberships
     }
 
     # Remove group memberships
@@ -397,13 +391,13 @@ if ($ChangeGroupsSelector -ne 0) {
             else {
                 "## Removing group '$($_.DisplayName)' from $UserName"
                 if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
-                    # group is AAD group            
+                    # group is AAD group
                     try {
                         Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
                     }
                     catch {
                         "## ... group removal failed. Please check."
-                    }                
+                    }
                 }
                 else {
                     # Handle Exchange Distr. Lists etc.
@@ -413,13 +407,13 @@ if ($ChangeGroupsSelector -ne 0) {
                         }
                         catch {
                             "## ... group removal failed. Please check."
-                        }   
+                        }
                     }
                     else {
                         "## ... failed - '$($_.DisplayName)' is neither an AAD group, nor has an eMail-Address"
-                    }           
+                    }
                 }
-            
+
             }
         }
     }
