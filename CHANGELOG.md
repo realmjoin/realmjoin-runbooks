@@ -1,55 +1,81 @@
 # RealmJoin Runbooks Changelog
+
+## 2025-07-21
+
+- Add runbook in Org/Devices:
+  - "Delete stale devices (scheduled)"
+    - Scheduled deletion of stale devices based on last activity date and platform.
+    - Can be scheduled to run automatically and send a report via email.
+  - "List stale devices (scheduled)"
+    - Scheduled report of stale devices based on last activity date and platform.
+    - Automatically sends a report via email.
+  - "Sync device serial numbers to Entra ID (scheduled)"
+    - Syncs serial numbers from Intune devices to Entra ID device extension attributes.
+    - Helps maintain consistency between Intune and Entra ID device records.
+
 ## 2025-06-18
+
 - Add runbook in Org/General:
-  - "Invite external guest users" 
+  - "Invite external guest users"
     - Invite external guest users to the tenant and optionally add them to a specified group.
-  - "Remove primary user" 
+  - "Remove primary user"
     - Remove the primary user from devices in Intune.
 
 ## 2025-06-16
-- Add runbook in Org/Devices: 
-  - "Report Last Device Contact by Range" 
-    - Get the devices based on the last device contact date and time, grouped by the specified ranges. 
-    - Also includes the filtering options for operating system.                                            
-  - "Report Users with more than five devices" 
+
+- Add runbook in Org/Devices:
+  - "Report Last Device Contact by Range"
+    - Get the devices based on the last device contact date and time, grouped by the specified ranges.
+    - Also includes the filtering options for operating system.
+  - "Report Users with more than five devices"
     - Get the users with more than five devices enrolled in Intune.
-  - "Report devices without primary user" 
+  - "Report devices without primary user"
     - Get the devices without a primary user assigned in Intune.
 
 ## 2025-05-02
+
 - Update RealmJoin.RunbookHelper to v0.8.4 in all runbooks
 
 ## 2025-04-22
+
 - Add documentation workflow and scripts to the repository
 
 ## 2025-03-05
-- Update User/Phone/Set Teams permanent call forwarding 
+
+- Update User/Phone/Set Teams permanent call forwarding
   - Make sure, that unanswered calls settings would be disabled before setting the forwarding
 
 ## 2025-02-24
+
 - Update all phone related runbooks:
   - Teams PowerShell module updated to 6.8.0
   - Add Permissions in .Notes section
-  - Remove outdated service user (credential) based connection 
+  - Remove outdated service user (credential) based connection
   - Update version number
 
 ## 2025-02-19
+
 - New Runbook: Org/Phone/Get Teams Phone Number Assignment - Get the phone number assignment of the specified phone number and output the user if assigned
 
 ## 2025-02-13
+
 - Update Runbook org/devices/ "outphase-devices" - add support for serialnumbers
 
 ## 2025-02-12
+
 - Fix: add-devices-of-users-to-group_scheduled - add AndroidForWork condition
 
 ## 2025-02-11
+
 - New Runbook: Group/General/List all members - list members of a specified EntraID group, including members from nested groups
 
 ## 2025-01-24
+
 - Check UpdateAbleAssets (device and group): Adapted to new graph response, general rework
 - Minor fixes (like typos) to multiple runbooks
 
 ## 2025-01-15
+
 - Update Runbook: get-teams-user-info
   - Version 1.0.1
   - Changes:
@@ -62,17 +88,20 @@
     - Remove old credential based connect from the Teams PowerShell Module
 
 ## 2024-12-05
+
 - Add version info to all runbooks
 
 ## 2024-11-19
+
 - Fix: Add devices of users to group: Filters for iOS/iPadOS updated
 
 ## 2024-11-27
+
 - New Runbook: Multi-Device Outphasing
 
 ## 2024-11-14
 
-- New Runbook: Add/remove a nested group to/from a group. 
+- New Runbook: Add/remove a nested group to/from a group.
 
 ## 2024-11-11
 

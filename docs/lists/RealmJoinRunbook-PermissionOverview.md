@@ -30,11 +30,14 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Mail | Enable Or Disable External Mail | Enable/disable external parties to send eMails to O365 groups. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Show Or Hide In Address Book | (Un)hide an O365- or static Distribution-group in Address Book. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Teams | Archive Team | Archive a team. | - **Type**: Microsoft Graph<br>&emsp;- TeamSettings.ReadWrite.All<br> |  |
-| Org | Devices | Get Bitlocker Recovery Key | Get BitLocker recovery key | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  |
+| Org | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |  |  |
+|  | Devices | Get Bitlocker Recovery Key | Get BitLocker recovery key | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  |
+|  | Devices | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |  |  |
 |  | Devices | Outphase Devices | Remove/Outphase multiple devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> |
 |  | Devices | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Devices | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Devices | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br> |  |
+|  | Devices | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |  |  |
 |  | General | Add Application Registration | Add an application registration to Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- RoleManagement.ReadWrite.Directory<br> |  |
 |  | General | Add Autopilot Device | Import a windows device into Windows Autopilot. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | General | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |

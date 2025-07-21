@@ -49,11 +49,14 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Archive Team](#archive-team)
 - [Org](#org)
   - [Devices](#org-devices)
+      - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
+      - [List Stale Devices_Scheduled](#list-stale-devices_scheduled)
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
+      - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
   - [General](#org-general)
       - [Add Application Registration](#add-application-registration)
       - [Add Autopilot Device](#add-autopilot-device)
@@ -663,6 +666,24 @@ Group \ Teams \ Archive Team
 <a name='org-devices'></a>
 
 ## Devices
+<a name='org-devices-delete-stale-devices_scheduled'></a>
+
+### Delete Stale Devices_Scheduled
+#### Scheduled deletion of stale devices based on last activity date and platform.
+
+#### Description
+Identifies, lists, and deletes devices that haven't been active for a specified number of days.
+Can be scheduled to run automatically and send a report via email.
+
+#### Where to find
+Org \ Devices \ Delete Stale Devices_Scheduled
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-get-bitlocker-recovery-key'></a>
 
 ### Get Bitlocker Recovery Key
@@ -673,6 +694,24 @@ Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
 
 #### Where to find
 Org \ Devices \ Get Bitlocker Recovery Key
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-list-stale-devices_scheduled'></a>
+
+### List Stale Devices_Scheduled
+#### Scheduled report of stale devices based on last activity date and platform.
+
+#### Description
+Identifies and lists devices that haven't been active for a specified number of days.
+Automatically sends a report via email.
+
+#### Where to find
+Org \ Devices \ List Stale Devices_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -745,6 +784,25 @@ The output includes the users ObjectId, UPN, and the number of devices.
 
 #### Where to find
 Org \ Devices \ Report Users With More Than 5-Devices
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-sync-device-serialnumbers-to-entraid_scheduled'></a>
+
+### Sync Device Serialnumbers To Entraid_Scheduled
+#### Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+
+#### Description
+This runbook retrieves all managed devices from Intune, extracts their serial numbers,
+and updates the corresponding Azure AD device objects' extension attributes.
+This helps maintain consistency between Intune and Azure AD device records.
+
+#### Where to find
+Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
