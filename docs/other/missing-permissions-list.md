@@ -6,17 +6,14 @@ This document lists all the runbooks that are missing permissions JSON files. Th
 
 Total runbooks: 129
 
-Runbooks with permissions: 117
+Runbooks with permissions: 120
 
-Runbooks missing permissions: 12
+Runbooks missing permissions: 9
 
 ## List of files
 
 Runbooks, which currently have missing permission files:
 
- - org/devices/delete-stale-devices_scheduled
- - org/devices/list-stale-devices_scheduled
- - org/devices/sync-device-serialnumbers-to-entraid_scheduled
  - org/general/add-devices-of-users-to-group_scheduled
  - org/general/add-management-partner
  - org/general/add-viva-engange-community

@@ -16,6 +16,15 @@ Permissions (Graph):
 - Device.Read.All
 - Mail.Send
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - Directory.Read.All
+  - Device.Read.All
+  - Mail.Send
+
+
 ## Parameters
 ### -Days
 Description: Number of days without activity to be considered stale.
