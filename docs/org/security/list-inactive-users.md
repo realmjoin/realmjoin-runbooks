@@ -8,12 +8,6 @@ List users, that have no recent interactive signins.
 ## Where to find
 Org \ Security \ List Inactive Users
 
-## Notes
-Permissions: MS Graph
-- User.Read.All
-- AuditLog.Read.All
-- Organization.Read.All
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
