@@ -116,6 +116,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Inactive Users](#list-inactive-users)
       - [List Information Protection Labels](#list-information-protection-labels)
       - [List Pim Rolegroups Without Owners_Scheduled](#list-pim-rolegroups-without-owners_scheduled)
+      - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
 - [User](#user)
@@ -1765,6 +1766,25 @@ Org \ Security \ List Information Protection Labels
 
 #### Where to find
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-list-users-by-mfa-methods-count'></a>
+
+### List Users By MFA Methods Count
+#### Reports users by the count of their registered MFA methods.
+
+#### Description
+This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
+As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
+The output includes the user display name, user principal name, and the count of registered MFA methods.
+
+#### Where to find
+Org \ Security \ List Users By MFA Methods Count
 
 
 [Back to Table of Content](#table-of-contents)

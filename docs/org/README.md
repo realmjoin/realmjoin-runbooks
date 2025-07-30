@@ -73,6 +73,7 @@
   - [List Inactive Users](security/list-inactive-users.md)
   - [List Information Protection Labels](security/list-information-protection-labels.md)
   - [List Pim Rolegroups Without Owners_Scheduled](security/list-pim-rolegroups-without-owners_scheduled.md)
+  - [List Users By MFA Methods Count](security/list-users-by-mfa-methods-count.md)
   - [List Vulnerable App Regs](security/list-vulnerable-app-regs.md)
   - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
 

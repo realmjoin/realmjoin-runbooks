@@ -93,6 +93,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Inactive Users | List users, that have no recent interactive signins. |
 |  |  | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 |  |  | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+|  |  | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 |  |  | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
 | User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |

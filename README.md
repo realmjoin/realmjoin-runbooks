@@ -136,6 +136,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Inactive Users](docs/org/security/list-inactive-users.md)
     - [List Information Protection Labels](docs/org/security/list-information-protection-labels.md)
     - [List Pim Rolegroups Without Owners_Scheduled](docs/org/security/list-pim-rolegroups-without-owners_scheduled.md)
+    - [List Users By MFA Methods Count](docs/org/security/list-users-by-mfa-methods-count.md)
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
 - [User](docs/user/README.md)

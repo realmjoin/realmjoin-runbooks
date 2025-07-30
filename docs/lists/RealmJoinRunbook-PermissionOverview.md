@@ -93,6 +93,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Security | List Inactive Users | List users, that have no recent interactive signins. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- AuditLog.Read.All<br>&emsp;- Organization.Read.All<br> |  |
 |  | Security | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. | - **Type**: Microsoft Graph<br>&emsp;- InformationProtectionPolicy.Read.All<br> |  |
 |  | Security | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- Mail.Send<br> |  |
+|  | Security | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  |
 |  | Security | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Security | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br> |  |
 | User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  |
