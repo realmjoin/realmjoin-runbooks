@@ -5,12 +5,6 @@
   .DESCRIPTION
   List users, that have no recent interactive signins.
 
-  .NOTES
-  Permissions: MS Graph
-  - User.Read.All
-  - AuditLog.Read.All
-  - Organization.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
