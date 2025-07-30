@@ -1661,7 +1661,8 @@ Org \ Security \ List Admin Users
 #### List expiry date of all AppRegistration credentials
 
 #### Description
-List expiry date of all AppRegistration credentials
+List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
+Optionally, filter by Application IDs and list only those credentials that are about to expire.
 
 #### Where to find
 Org \ Security \ List Application Creds Expiry
