@@ -3,7 +3,18 @@
   List expiry date of all AppRegistration credentials
 
   .DESCRIPTION
-  List expiry date of all AppRegistration credentials
+  List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
+  Optionally, filter by Application IDs and list only those credentials that are about to expire.
+
+  .PARAMETER listOnlyExpiring
+  If set to true, only credentials that are about to expire within the specified number of days will be listed.
+  If set to false, all credentials will be listed regardless of their expiry date.
+
+  .PARAMETER Days
+  The number of days before a credential expires to consider it "about to expire".
+
+  .PARAMETER ApplicationIds
+  A comma-separated list of Application IDs to filter the credentials.
 
   .INPUTS
   RunbookCustomization: {
