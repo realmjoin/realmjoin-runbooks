@@ -5,10 +5,6 @@
   .DESCRIPTION
   Prints a list of all available InformationProtectionPolicy labels.
 
-  .NOTES
-  Permissions MS Graph, at least:
-  - InformationProtectionPolicy.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
