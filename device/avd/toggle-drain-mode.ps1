@@ -83,10 +83,6 @@ catch {
 ##
 ########################################################
 
-$SubscriptionIds = @("06c17688-db5c-4ee3-a93c-84a629d1ebab", "3961220d-6be2-40e5-8d8f-d12e3a191503")
-$Hostname = "vmapopdweuwrea2"
-$DrainMode = $false
-
 function Set-DrainMode {
     param(
         [Parameter(Mandatory = $true)]
