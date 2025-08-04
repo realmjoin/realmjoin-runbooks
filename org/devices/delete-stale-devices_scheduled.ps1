@@ -6,14 +6,6 @@
   Identifies, lists, and deletes devices that haven't been active for a specified number of days.
   Can be scheduled to run automatically and send a report via email.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementManagedDevices.DeleteAll
-  - Directory.Read.All
-  - Device.Read.All
-  - Mail.Send
-
   .PARAMETER Days
   Number of days without activity to be considered stale.
 
@@ -99,7 +91,7 @@ $filteredDevices = @()
 
 foreach ($device in $devices) {
     $include = $false
-    
+
     # Check if the device's platform matches any of the selected platforms
     if ($Windows -and $device.operatingSystem -eq "Windows") {
         $include = $true
@@ -113,12 +105,12 @@ foreach ($device in $devices) {
     elseif ($Android -and $device.operatingSystem -eq "Android") {
         $include = $true
     }
-    
+
     if ($include) {
         # Try to get additional user information
         try {
             $userInfo = Invoke-RjRbRestMethodGraph -Resource "/Users/$($device.userPrincipalName)" -OdSelect "displayName, city, usageLocation" -ErrorAction SilentlyContinue
-            
+
             if ($userInfo) {
                 $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
                 $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
@@ -127,7 +119,7 @@ foreach ($device in $devices) {
         catch {
             Write-RjRbLog -Message "Could not retrieve user info for $($device.userPrincipalName): $_" -Verbose
         }
-        
+
         $filteredDevices += $device
     }
 }
@@ -228,9 +220,9 @@ if ($filteredDevices.Count -gt 0) {
     $HTMLBody += "<th style='padding: 8px; text-align: left;'>Primary User</th>"
     $HTMLBody += "<th style='padding: 8px; text-align: left;'>OS</th>"
     $HTMLBody += "</tr>"
-    
+
     $sortedDevices = $filteredDevices | Sort-Object -Property lastSyncDateTime
-    
+
     foreach ($device in $sortedDevices) {
         $lastSync = Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd
         $deviceName = $device.deviceName
@@ -238,7 +230,7 @@ if ($filteredDevices.Count -gt 0) {
         $serialNumber = $device.serialNumber
         $user = $device.userPrincipalName
         $os = $device.operatingSystem
-        
+
         $HTMLBody += "<tr>"
         $HTMLBody += "<td style='padding: 8px;'>$lastSync</td>"
         $HTMLBody += "<td style='padding: 8px;'>$deviceName</td>"
@@ -248,7 +240,7 @@ if ($filteredDevices.Count -gt 0) {
         $HTMLBody += "<td style='padding: 8px;'>$os</td>"
         $HTMLBody += "</tr>"
     }
-    
+
     $HTMLBody += "</table>"
 }
 else {
@@ -267,7 +259,7 @@ $failedDeletions = @()
 
 if ($DeleteDevices -and $filteredDevices.Count -gt 0) {
     Write-Output "## Device Deletion"
-    
+
     # Confirm deletion if required
     $proceedWithDeletion = $true
     if ($ConfirmDeletion) {
@@ -277,10 +269,10 @@ if ($DeleteDevices -and $filteredDevices.Count -gt 0) {
             Write-Output "Deletion cancelled by user."
         }
     }
-    
+
     if ($proceedWithDeletion) {
         Write-Output "Deleting $($filteredDevices.Count) stale devices..."
-        
+
         foreach ($device in $filteredDevices) {
             try {
                 Write-Output "Deleting device: $($device.deviceName) (ID: $($device.id))"
@@ -294,11 +286,11 @@ if ($DeleteDevices -and $filteredDevices.Count -gt 0) {
                 $failedDeletions += $device
             }
         }
-        
+
         # Add deletion results to HTML
         $HTMLBody += "<h3>Deletion Results</h3>"
         $HTMLBody += "<p>Successfully deleted: $($deletedDevices.Count) devices</p>"
-        
+
         if ($failedDeletions.Count -gt 0) {
             $HTMLBody += "<p>Failed to delete: $($failedDeletions.Count) devices</p>"
             $HTMLBody += "<h4>Failed Deletions</h4>"

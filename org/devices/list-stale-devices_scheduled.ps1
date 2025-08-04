@@ -6,13 +6,6 @@
   Identifies and lists devices that haven't been active for a specified number of days.
   Automatically sends a report via email.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementManagedDevices.Read.All
-  - Directory.Read.All
-  - Device.Read.All
-  - Mail.Send
-
   .PARAMETER Days
   Number of days without activity to be considered stale.
 
@@ -89,7 +82,7 @@ $filteredDevices = @()
 
 foreach ($device in $devices) {
     $include = $false
-    
+
     # Check if the device's platform matches any of the selected platforms
     if ($Windows -and $device.operatingSystem -eq "Windows") {
         $include = $true
@@ -103,12 +96,12 @@ foreach ($device in $devices) {
     elseif ($Android -and $device.operatingSystem -eq "Android") {
         $include = $true
     }
-    
+
     if ($include) {
         # Try to get additional user information
         try {
             $userInfo = Invoke-RjRbRestMethodGraph -Resource "/Users/$($device.userPrincipalName)" -OdSelect "displayName, city, usageLocation" -ErrorAction SilentlyContinue
-            
+
             if ($userInfo) {
                 $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
                 $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
@@ -117,7 +110,7 @@ foreach ($device in $devices) {
         catch {
             Write-RjRbLog -Message "Could not retrieve user info for $($device.userPrincipalName): $_" -Verbose
         }
-        
+
         $filteredDevices += $device
     }
 }
@@ -215,16 +208,16 @@ if ($filteredDevices.Count -gt 0) {
     $HTMLBody += "<th style='padding: 8px; text-align: left;'>Serial Number</th>"
     $HTMLBody += "<th style='padding: 8px; text-align: left;'>Primary User</th>"
     $HTMLBody += "</tr>"
-    
+
     $sortedDevices = $filteredDevices | Sort-Object -Property lastSyncDateTime
-    
+
     foreach ($device in $sortedDevices) {
         $lastSync = Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd
         $deviceName = $device.deviceName
         $deviceId = $device.id
         $serialNumber = $device.serialNumber
         $user = $device.userPrincipalName
-        
+
         $HTMLBody += "<tr>"
         $HTMLBody += "<td style='padding: 8px;'>$lastSync</td>"
         $HTMLBody += "<td style='padding: 8px;'>$deviceName</td>"
@@ -233,7 +226,7 @@ if ($filteredDevices.Count -gt 0) {
         $HTMLBody += "<td style='padding: 8px;'>$user</td>"
         $HTMLBody += "</tr>"
     }
-    
+
     $HTMLBody += "</table>"
 }
 else {
