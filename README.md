@@ -65,11 +65,14 @@ Apart from the following runbook descriptions, further content such as runbook o
 - [Org](docs/org/README.md)
   - [Devices](docs/org/README.md#org-devices)
 
+    - [Delete Stale Devices_Scheduled](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
+    - [List Stale Devices_Scheduled](docs/org/devices/list-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
     - [Report Last Device Contact By Range](docs/org/devices/report-last-device-contact-by-range.md)
     - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
+    - [Sync Device Serialnumbers To Entraid_Scheduled](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)
 
     - [Add Application Registration](docs/org/general/add-application-registration.md)
@@ -133,6 +136,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Inactive Users](docs/org/security/list-inactive-users.md)
     - [List Information Protection Labels](docs/org/security/list-information-protection-labels.md)
     - [List Pim Rolegroups Without Owners_Scheduled](docs/org/security/list-pim-rolegroups-without-owners_scheduled.md)
+    - [List Users By MFA Methods Count](docs/org/security/list-users-by-mfa-methods-count.md)
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
 - [User](docs/user/README.md)

@@ -48,11 +48,14 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Archive Team
 - [Org](#org)
   - [Devices](#org-devices)
+    - Delete Stale Devices_Scheduled
     - Get Bitlocker Recovery Key
+    - List Stale Devices_Scheduled
     - Outphase Devices
     - Report Devices Without Primary User
     - Report Last Device Contact By Range
     - Report Users With More Than 5-Devices
+    - Sync Device Serialnumbers To Entraid_Scheduled
   - [General](#org-general)
     - Add Application Registration
     - Add Autopilot Device
@@ -112,6 +115,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Inactive Users
     - List Information Protection Labels
     - List Pim Rolegroups Without Owners_Scheduled
+    - List Users By MFA Methods Count
     - List Vulnerable App Regs
     - Notify Changed CA Policies
 - [User](#user)
@@ -237,11 +241,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## Devices
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
 | Get Bitlocker Recovery Key | Get BitLocker recovery key |
+| List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 | Outphase Devices | Remove/Outphase multiple devices |
 | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
 | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
 | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
+| Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
@@ -325,6 +332,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Inactive Users | List users, that have no recent interactive signins. |
 | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+| List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
 

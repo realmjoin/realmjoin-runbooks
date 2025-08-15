@@ -49,11 +49,14 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Archive Team](#archive-team)
 - [Org](#org)
   - [Devices](#org-devices)
+      - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
+      - [List Stale Devices_Scheduled](#list-stale-devices_scheduled)
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
+      - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
   - [General](#org-general)
       - [Add Application Registration](#add-application-registration)
       - [Add Autopilot Device](#add-autopilot-device)
@@ -113,6 +116,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Inactive Users](#list-inactive-users)
       - [List Information Protection Labels](#list-information-protection-labels)
       - [List Pim Rolegroups Without Owners_Scheduled](#list-pim-rolegroups-without-owners_scheduled)
+      - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
 - [User](#user)
@@ -663,6 +667,24 @@ Group \ Teams \ Archive Team
 <a name='org-devices'></a>
 
 ## Devices
+<a name='org-devices-delete-stale-devices_scheduled'></a>
+
+### Delete Stale Devices_Scheduled
+#### Scheduled deletion of stale devices based on last activity date and platform.
+
+#### Description
+Identifies, lists, and deletes devices that haven't been active for a specified number of days.
+Can be scheduled to run automatically and send a report via email.
+
+#### Where to find
+Org \ Devices \ Delete Stale Devices_Scheduled
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-get-bitlocker-recovery-key'></a>
 
 ### Get Bitlocker Recovery Key
@@ -673,6 +695,24 @@ Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
 
 #### Where to find
 Org \ Devices \ Get Bitlocker Recovery Key
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-list-stale-devices_scheduled'></a>
+
+### List Stale Devices_Scheduled
+#### Scheduled report of stale devices based on last activity date and platform.
+
+#### Description
+Identifies and lists devices that haven't been active for a specified number of days.
+Automatically sends a report via email.
+
+#### Where to find
+Org \ Devices \ List Stale Devices_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -745,6 +785,25 @@ The output includes the users ObjectId, UPN, and the number of devices.
 
 #### Where to find
 Org \ Devices \ Report Users With More Than 5-Devices
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-sync-device-serialnumbers-to-entraid_scheduled'></a>
+
+### Sync Device Serialnumbers To Entraid_Scheduled
+#### Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+
+#### Description
+This runbook retrieves all managed devices from Intune, extracts their serial numbers,
+and updates the corresponding Azure AD device objects' extension attributes.
+This helps maintain consistency between Intune and Azure AD device records.
+
+#### Where to find
+Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1603,7 +1662,8 @@ Org \ Security \ List Admin Users
 #### List expiry date of all AppRegistration credentials
 
 #### Description
-List expiry date of all AppRegistration credentials
+List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
+Optionally, filter by Application IDs and list only those credentials that are about to expire.
 
 #### Where to find
 Org \ Security \ List Application Creds Expiry
@@ -1706,6 +1766,25 @@ Org \ Security \ List Information Protection Labels
 
 #### Where to find
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-list-users-by-mfa-methods-count'></a>
+
+### List Users By MFA Methods Count
+#### Reports users by the count of their registered MFA methods.
+
+#### Description
+This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
+As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
+The output includes the user display name, user principal name, and the count of registered MFA methods.
+
+#### Where to find
+Org \ Security \ List Users By MFA Methods Count
 
 
 [Back to Table of Content](#table-of-contents)

@@ -30,11 +30,14 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Mail | Enable Or Disable External Mail | Enable/disable external parties to send eMails to O365 groups. |
 |  |  | Show Or Hide In Address Book | (Un)hide an O365- or static Distribution-group in Address Book. |
 |  | Teams | Archive Team | Archive a team. |
-| Org | Devices | Get Bitlocker Recovery Key | Get BitLocker recovery key |
+| Org | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
+|  |  | Get Bitlocker Recovery Key | Get BitLocker recovery key |
+|  |  | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Outphase Devices | Remove/Outphase multiple devices |
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
 |  |  | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
 |  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
+|  |  | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
 |  | General | Add Application Registration | Add an application registration to Azure AD |
 |  |  | Add Autopilot Device | Import a windows device into Windows Autopilot. |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
@@ -90,6 +93,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Inactive Users | List users, that have no recent interactive signins. |
 |  |  | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 |  |  | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+|  |  | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 |  |  | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
 | User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |

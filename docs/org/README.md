@@ -2,11 +2,14 @@
 
 <a name='org-devices'></a>
 ## Devices
+  - [Delete Stale Devices_Scheduled](devices/delete-stale-devices_scheduled.md)
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
+  - [List Stale Devices_Scheduled](devices/list-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
   - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
   - [Report Last Device Contact By Range](devices/report-last-device-contact-by-range.md)
   - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
+  - [Sync Device Serialnumbers To Entraid_Scheduled](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
 <a name='org-general'></a>
 ## General
   - [Add Application Registration](general/add-application-registration.md)
@@ -70,6 +73,7 @@
   - [List Inactive Users](security/list-inactive-users.md)
   - [List Information Protection Labels](security/list-information-protection-labels.md)
   - [List Pim Rolegroups Without Owners_Scheduled](security/list-pim-rolegroups-without-owners_scheduled.md)
+  - [List Users By MFA Methods Count](security/list-users-by-mfa-methods-count.md)
   - [List Vulnerable App Regs](security/list-vulnerable-app-regs.md)
   - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
 

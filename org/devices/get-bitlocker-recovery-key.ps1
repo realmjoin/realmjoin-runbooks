@@ -5,11 +5,6 @@
   .DESCRIPTION
   Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
 
-  .NOTES
-  Permissions (Graph):
-  - Device.Read.All
-  - BitlockerKey.Read.All
-
   .PARAMETER bitlockeryRecoveryKeyId
   bitlockeryRecoveryKeyId of the desired recovery key. Displayed in the BitLocker recovery screen (format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX).
 
