@@ -1,0 +1,5 @@
+{
+    "Permissions": [],
+    "Roles": [],
+    "ManualPermissions": [ "Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool" ]
+}
