@@ -22,6 +22,10 @@ Apart from the following runbook descriptions, further content such as runbook o
 ## Table of contents
 
 - [Device](docs/device/README.md)
+  - [Avd](docs/device/README.md#device-avd)
+
+    - [Restart Host](docs/device/avd/restart-host.md)
+    - [Toggle Drain Mode](docs/device/avd/toggle-drain-mode.md)
   - [General](docs/device/README.md#device-general)
 
     - [Change Grouptag](docs/device/general/change-grouptag.md)
@@ -140,6 +144,9 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
 - [User](docs/user/README.md)
+  - [Avd](docs/user/README.md#user-avd)
+
+    - [User Signout](docs/user/avd/user-signout.md)
   - [General](docs/user/README.md#user-general)
 
     - [Assign Groups By Template](docs/user/general/assign-groups-by-template.md)

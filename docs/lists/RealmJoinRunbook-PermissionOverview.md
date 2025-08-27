@@ -3,7 +3,9 @@ This document provides an overview of the permissions and RBAC roles required fo
 
 | Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles |
 |----------|-------------|--------------|----------|-------------|------------|
-| Device | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
+| Device | Avd | Restart Host | Sets Drainmode on true or false for a specific AVD Session Host. |  |  |
+|  | Avd | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |  |  |
+|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | General | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
 |  | General | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
 |  | General | Outphase Device | Remove/Outphase a windows device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> |
@@ -96,7 +98,8 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Security | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  |
 |  | Security | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Security | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br> |  |
-| User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  |
+| User | Avd | User Signout | Removes (Signs Out) a specific User from their AVD Session. |  |  |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  |
 |  | General | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  |
 |  | General | Assign Windows365 | Assign/Provision a Windows 365 instance | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  |
 |  | General | List Group Ownerships | List group ownerships for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  |

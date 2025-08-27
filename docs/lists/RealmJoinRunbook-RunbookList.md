@@ -12,6 +12,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 # Table of Contents
 - [Device](#device)
+  - [Avd](#device-avd)
+    - Restart Host
+    - Toggle Drain Mode
   - [General](#device-general)
     - Change Grouptag
     - Check Updatable Assets
@@ -119,6 +122,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Vulnerable App Regs
     - Notify Changed CA Policies
 - [User](#user)
+  - [Avd](#user-avd)
+    - User Signout
   - [General](#user-general)
     - Assign Groups By Template
     - Assign Or Unassign License
@@ -164,6 +169,15 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='device'></a>
 # Device
+<a name='device-avd'></a>
+## Avd
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Restart Host | Sets Drainmode on true or false for a specific AVD Session Host. |
+| Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='device-general'></a>
 ## General
 | Runbook Name | Synopsis |
@@ -340,6 +354,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='user'></a>
 # User
+<a name='user-avd'></a>
+## Avd
+| Runbook Name | Synopsis |
+|--------------|----------|
+| User Signout | Removes (Signs Out) a specific User from their AVD Session. |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='user-general'></a>
 ## General
 | Runbook Name | Synopsis |

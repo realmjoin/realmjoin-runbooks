@@ -1,5 +1,9 @@
 # Device Overview
 
+<a name='device-avd'></a>
+## Avd
+  - [Restart Host](avd/restart-host.md)
+  - [Toggle Drain Mode](avd/toggle-drain-mode.md)
 <a name='device-general'></a>
 ## General
   - [Change Grouptag](general/change-grouptag.md)

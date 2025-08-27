@@ -13,6 +13,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Runbooks - Table of contents
 
 - [Device](#device)
+  - [Avd](#device-avd)
+      - [Restart Host](#restart-host)
+      - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
       - [Change Grouptag](#change-grouptag)
       - [Check Updatable Assets](#check-updatable-assets)
@@ -120,6 +123,8 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
 - [User](#user)
+  - [Avd](#user-avd)
+      - [User Signout](#user-signout)
   - [General](#user-general)
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
@@ -162,6 +167,48 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Rename User](#rename-user)
       - [Set Photo](#set-photo)
       - [Update User](#update-user)
+
+<a name='device'></a>
+
+# Device
+<a name='device-avd'></a>
+
+## Avd
+<a name='device-avd-restart-host'></a>
+
+### Restart Host
+#### Sets Drainmode on true or false for a specific AVD Session Host.
+
+#### Description
+This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted. 
+If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
+
+#### Where to find
+Device \ Avd \ Restart Host
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-avd-toggle-drain-mode'></a>
+
+### Toggle Drain Mode
+#### Sets Drainmode on true or false for a specific AVD Session Host.
+
+#### Description
+This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
+The SubscriptionId value must be defined in the runbooks customization.
+
+#### Where to find
+Device \ Avd \ Toggle Drain Mode
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
 
 <a name='device'></a>
 
@@ -1819,6 +1866,30 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 
 #### Where to find
 Org \ Security \ Notify Changed CA Policies
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user'></a>
+
+# User
+<a name='user-avd'></a>
+
+## Avd
+<a name='user-avd-user-signout'></a>
+
+### User Signout
+#### Removes (Signs Out) a specific User from their AVD Session.
+
+#### Description
+This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
+The SubscriptionIds value must be defined in the runbooks customization.
+
+#### Where to find
+User \ Avd \ User Signout
 
 
 [Back to Table of Content](#table-of-contents)
