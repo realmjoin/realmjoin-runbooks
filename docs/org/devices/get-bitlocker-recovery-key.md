@@ -8,11 +8,6 @@ Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
 ## Where to find
 Org \ Devices \ Get Bitlocker Recovery Key
 
-## Notes
-Permissions (Graph):
-- Device.Read.All
-- BitlockerKey.Read.All
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph

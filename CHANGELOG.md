@@ -1,4 +1,12 @@
 # RealmJoin Runbooks Changelog
+## 2025-08-27
+  - Add AVD runbook
+    - device/avd/restart-host
+      - Restart the AVD Session Host.
+    - device/avd/toggle-drain-mode
+      - Sets Drainmode on true or false for a specific AVD Session Host.
+    - user/avd/user-signout
+      - Removes (Signs Out) a specific User from their AVD Session.
 
 ## 2025-07-21
 

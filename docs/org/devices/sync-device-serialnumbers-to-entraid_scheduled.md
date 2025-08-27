@@ -16,6 +16,14 @@ Permissions (Graph):
 - Directory.ReadWrite.All
 - Device.ReadWrite.All
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - Directory.ReadWrite.All
+  - Device.ReadWrite.All
+
+
 ## Parameters
 ### -ExtensionAttributeNumber
 Description: 

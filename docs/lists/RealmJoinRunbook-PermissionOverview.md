@@ -3,7 +3,9 @@ This document provides an overview of the permissions and RBAC roles required fo
 
 | Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles |
 |----------|-------------|--------------|----------|-------------|------------|
-| Device | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
+| Device | Avd | Restart Host | Reboots a specific AVD Session Host. |  |  |
+|  | Avd | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |  |  |
+|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | General | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
 |  | General | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
 |  | General | Outphase Device | Remove/Outphase a windows device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> |
@@ -30,14 +32,14 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Mail | Enable Or Disable External Mail | Enable/disable external parties to send eMails to O365 groups. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Show Or Hide In Address Book | (Un)hide an O365- or static Distribution-group in Address Book. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Teams | Archive Team | Archive a team. | - **Type**: Microsoft Graph<br>&emsp;- TeamSettings.ReadWrite.All<br> |  |
-| Org | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |  |  |
+| Org | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementManagedDevices.DeleteAll<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  | Devices | Get Bitlocker Recovery Key | Get BitLocker recovery key | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  |
-|  | Devices | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |  |  |
+|  | Devices | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  | Devices | Outphase Devices | Remove/Outphase multiple devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> |
 |  | Devices | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Devices | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Devices | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br> |  |
-|  | Devices | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |  |  |
+|  | Devices | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.ReadWrite.All<br>&emsp;- Device.ReadWrite.All<br> |  |
 |  | General | Add Application Registration | Add an application registration to Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- RoleManagement.ReadWrite.Directory<br> |  |
 |  | General | Add Autopilot Device | Import a windows device into Windows Autopilot. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | General | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
@@ -93,9 +95,11 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Security | List Inactive Users | List users, that have no recent interactive signins. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- AuditLog.Read.All<br>&emsp;- Organization.Read.All<br> |  |
 |  | Security | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. | - **Type**: Microsoft Graph<br>&emsp;- InformationProtectionPolicy.Read.All<br> |  |
 |  | Security | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- Mail.Send<br> |  |
+|  | Security | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  |
 |  | Security | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  | Security | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br> |  |
-| User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  |
+| User | Avd | User Signout | Removes (Signs Out) a specific User from their AVD Session. |  |  |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  |
 |  | General | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  |
 |  | General | Assign Windows365 | Assign/Provision a Windows 365 instance | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  |
 |  | General | List Group Ownerships | List group ownerships for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  |

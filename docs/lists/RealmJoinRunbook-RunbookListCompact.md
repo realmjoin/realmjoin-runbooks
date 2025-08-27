@@ -3,7 +3,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 
 | Category | Subcategory | Runbook Name | Synopsis |
 |----------|-------------|--------------|----------|
-| Device | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+| Device | Avd | Restart Host | Reboots a specific AVD Session Host. |
+|  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
+|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 |  |  | Outphase Device | Remove/Outphase a windows device |
@@ -93,9 +95,11 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Inactive Users | List users, that have no recent interactive signins. |
 |  |  | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 |  |  | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+|  |  | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 |  |  | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
-| User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |
+| User | Avd | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |
 |  |  | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. |
 |  |  | Assign Windows365 | Assign/Provision a Windows 365 instance |
 |  |  | List Group Ownerships | List group ownerships for this user. |

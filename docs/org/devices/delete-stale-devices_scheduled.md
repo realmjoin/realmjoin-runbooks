@@ -9,13 +9,15 @@ Can be scheduled to run automatically and send a report via email.
 ## Where to find
 Org \ Devices \ Delete Stale Devices_Scheduled
 
-## Notes
-Permissions (Graph):
-- DeviceManagementManagedDevices.Read.All
-- DeviceManagementManagedDevices.DeleteAll
-- Directory.Read.All
-- Device.Read.All
-- Mail.Send
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementManagedDevices.DeleteAll
+  - Directory.Read.All
+  - Device.Read.All
+  - Mail.Send
+
 
 ## Parameters
 ### -Days

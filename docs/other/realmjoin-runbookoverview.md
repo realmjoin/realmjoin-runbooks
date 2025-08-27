@@ -13,6 +13,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Runbooks - Table of contents
 
 - [Device](#device)
+  - [Avd](#device-avd)
+      - [Restart Host](#restart-host)
+      - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
       - [Change Grouptag](#change-grouptag)
       - [Check Updatable Assets](#check-updatable-assets)
@@ -116,9 +119,12 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Inactive Users](#list-inactive-users)
       - [List Information Protection Labels](#list-information-protection-labels)
       - [List Pim Rolegroups Without Owners_Scheduled](#list-pim-rolegroups-without-owners_scheduled)
+      - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
 - [User](#user)
+  - [Avd](#user-avd)
+      - [User Signout](#user-signout)
   - [General](#user-general)
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
@@ -161,6 +167,48 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Rename User](#rename-user)
       - [Set Photo](#set-photo)
       - [Update User](#update-user)
+
+<a name='device'></a>
+
+# Device
+<a name='device-avd'></a>
+
+## Avd
+<a name='device-avd-restart-host'></a>
+
+### Restart Host
+#### Reboots a specific AVD Session Host.
+
+#### Description
+This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted.
+If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
+
+#### Where to find
+Device \ Avd \ Restart Host
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-avd-toggle-drain-mode'></a>
+
+### Toggle Drain Mode
+#### Sets Drainmode on true or false for a specific AVD Session Host.
+
+#### Description
+This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
+The SubscriptionId value must be defined in the runbooks customization.
+
+#### Where to find
+Device \ Avd \ Toggle Drain Mode
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
 
 <a name='device'></a>
 
@@ -1661,7 +1709,8 @@ Org \ Security \ List Admin Users
 #### List expiry date of all AppRegistration credentials
 
 #### Description
-List expiry date of all AppRegistration credentials
+List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
+Optionally, filter by Application IDs and list only those credentials that are about to expire.
 
 #### Where to find
 Org \ Security \ List Application Creds Expiry
@@ -1771,6 +1820,25 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
  
  
 
+<a name='org-security-list-users-by-mfa-methods-count'></a>
+
+### List Users By MFA Methods Count
+#### Reports users by the count of their registered MFA methods.
+
+#### Description
+This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
+As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
+The output includes the user display name, user principal name, and the count of registered MFA methods.
+
+#### Where to find
+Org \ Security \ List Users By MFA Methods Count
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-security-list-vulnerable-app-regs'></a>
 
 ### List Vulnerable App Regs
@@ -1798,6 +1866,30 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 
 #### Where to find
 Org \ Security \ Notify Changed CA Policies
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user'></a>
+
+# User
+<a name='user-avd'></a>
+
+## Avd
+<a name='user-avd-user-signout'></a>
+
+### User Signout
+#### Removes (Signs Out) a specific User from their AVD Session.
+
+#### Description
+This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
+The SubscriptionIds value must be defined in the runbooks customization.
+
+#### Where to find
+User \ Avd \ User Signout
 
 
 [Back to Table of Content](#table-of-contents)

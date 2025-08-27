@@ -12,6 +12,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 # Table of Contents
 - [Device](#device)
+  - [Avd](#device-avd)
+    - Restart Host
+    - Toggle Drain Mode
   - [General](#device-general)
     - Change Grouptag
     - Check Updatable Assets
@@ -115,9 +118,12 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Inactive Users
     - List Information Protection Labels
     - List Pim Rolegroups Without Owners_Scheduled
+    - List Users By MFA Methods Count
     - List Vulnerable App Regs
     - Notify Changed CA Policies
 - [User](#user)
+  - [Avd](#user-avd)
+    - User Signout
   - [General](#user-general)
     - Assign Groups By Template
     - Assign Or Unassign License
@@ -163,6 +169,15 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='device'></a>
 # Device
+<a name='device-avd'></a>
+## Avd
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Restart Host | Reboots a specific AVD Session Host. |
+| Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='device-general'></a>
 ## General
 | Runbook Name | Synopsis |
@@ -331,6 +346,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Inactive Users | List users, that have no recent interactive signins. |
 | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+| List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
 
@@ -338,6 +354,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='user'></a>
 # User
+<a name='user-avd'></a>
+## Avd
+| Runbook Name | Synopsis |
+|--------------|----------|
+| User Signout | Removes (Signs Out) a specific User from their AVD Session. |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='user-general'></a>
 ## General
 | Runbook Name | Synopsis |

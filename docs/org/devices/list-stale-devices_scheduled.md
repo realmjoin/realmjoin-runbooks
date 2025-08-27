@@ -9,12 +9,14 @@ Automatically sends a report via email.
 ## Where to find
 Org \ Devices \ List Stale Devices_Scheduled
 
-## Notes
-Permissions (Graph):
-- DeviceManagementManagedDevices.Read.All
-- Directory.Read.All
-- Device.Read.All
-- Mail.Send
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - DeviceManagementManagedDevices.Read.All
+  - Directory.Read.All
+  - Device.Read.All
+  - Mail.Send
+
 
 ## Parameters
 ### -Days

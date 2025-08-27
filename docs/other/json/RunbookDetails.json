@@ -1,5 +1,119 @@
 [
   {
+    "RunbookDisplayName": "Restart Host",
+    "RunbookDisplayPath": "Device \\ Avd \\ Restart Host",
+    "RelativeRunbookPath": "device/avd/restart-host.ps1",
+    "RelativeRunbookPath_PathOnly": "device/avd",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Avd",
+    "Synopsis": "Reboots a specific AVD Session Host.",
+    "Description": "This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted.\nIf the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "name": "DeviceName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "1"
+      },
+      {
+        "name": "SubscriptionIds",
+        "defaultValue": "",
+        "parameterValue": "String[]",
+        "type": {
+          "name": "String[]"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "2"
+      },
+      {
+        "name": "CallerName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "3"
+      }
+    ],
+    "DocsContent": null,
+    "PermissionsContent": null
+  },
+  {
+    "RunbookDisplayName": "Toggle Drain Mode",
+    "RunbookDisplayPath": "Device \\ Avd \\ Toggle Drain Mode",
+    "RelativeRunbookPath": "device/avd/toggle-drain-mode.ps1",
+    "RelativeRunbookPath_PathOnly": "device/avd",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Avd",
+    "Synopsis": "Sets Drainmode on true or false for a specific AVD Session Host.",
+    "Description": "This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.\nThe SubscriptionId value must be defined in the runbooks customization.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "name": "DeviceName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "1"
+      },
+      {
+        "name": "DrainMode",
+        "defaultValue": "False",
+        "parameterValue": "Boolean",
+        "type": {
+          "name": "Boolean"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "2"
+      },
+      {
+        "name": "SubscriptionIds",
+        "defaultValue": "",
+        "parameterValue": "String[]",
+        "type": {
+          "name": "String[]"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "3"
+      },
+      {
+        "name": "CallerName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "4"
+      }
+    ],
+    "DocsContent": null,
+    "PermissionsContent": null
+  },
+  {
     "RunbookDisplayName": "Change Grouptag",
     "RunbookDisplayPath": "Device \\ General \\ Change Grouptag",
     "RelativeRunbookPath": "device/general/change-groupTag.ps1",
@@ -11,9 +125,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -23,9 +137,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "newGroupTag",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -35,9 +149,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -68,8 +182,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -85,8 +199,8 @@
           }
         ],
         "name": "DeviceId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -117,8 +231,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -134,8 +248,8 @@
           }
         ],
         "name": "DeviceId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -151,8 +265,8 @@
           }
         ],
         "name": "UpdateCategory",
-        "parameterValue": "String",
         "defaultValue": "feature",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -177,9 +291,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -189,9 +303,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
         "name": "intuneAction",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -201,9 +315,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Int32",
         "name": "aadAction",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -213,9 +327,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "wipeDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -225,9 +339,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeIntuneDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -237,9 +351,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeAutopilotDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -249,9 +363,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeAADDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -261,9 +375,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "disableAADDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -279,8 +393,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -311,8 +425,8 @@
           }
         ],
         "name": "DeviceId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -328,8 +442,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -354,9 +468,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -366,9 +480,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "NewDeviceName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -378,9 +492,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -411,8 +525,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -428,8 +542,8 @@
           }
         ],
         "name": "DeviceId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -445,8 +559,8 @@
           }
         ],
         "name": "UpdateCategory",
-        "parameterValue": "String",
         "defaultValue": "all",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -471,9 +585,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -483,9 +597,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "wipeDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -495,9 +609,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "useProtectedWipe",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -507,9 +621,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeIntuneDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -519,9 +633,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeAutopilotDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -531,9 +645,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeAADDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -543,9 +657,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "disableAADDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -561,8 +675,8 @@
           }
         ],
         "name": "macOsRecevoryCode",
-        "parameterValue": "String",
         "defaultValue": "123456",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -578,8 +692,8 @@
           }
         ],
         "name": "macOsObliterationBehavior",
-        "parameterValue": "String",
         "defaultValue": "default",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -595,8 +709,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -621,9 +735,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -633,9 +747,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Enable",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -651,8 +765,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -677,9 +791,9 @@
     "Notes": "Permissions (WindowsDefenderATP, Application):\n- Machine.Read.All\n- Machine.Isolate",
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -689,9 +803,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Release",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -701,9 +815,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "IsolationType",
         "defaultValue": "Full",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -713,9 +827,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "Comment",
         "defaultValue": "Possible security risk.",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -731,8 +845,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -757,9 +871,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -769,9 +883,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -796,9 +910,9 @@
     "Notes": "Permissions (WindowsDefenderATP, Application):\n- Machine.Read.All\n- Machine.RestrictExecution",
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -808,9 +922,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Release",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -820,9 +934,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "Comment",
         "defaultValue": "Possible security risk.",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -838,8 +952,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -864,9 +978,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "DeviceId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -876,9 +990,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -909,8 +1023,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -926,8 +1040,8 @@
           }
         ],
         "name": "GroupId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -958,8 +1072,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -975,8 +1089,8 @@
           }
         ],
         "name": "GroupId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -992,8 +1106,8 @@
           }
         ],
         "name": "UpdateCategory",
-        "parameterValue": "String",
         "defaultValue": "all",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1018,9 +1132,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1030,9 +1144,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "NestedGroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1042,9 +1156,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1060,8 +1174,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1092,8 +1206,8 @@
           }
         ],
         "name": "GroupID",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1103,9 +1217,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "UserId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1115,9 +1229,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1133,8 +1247,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1159,9 +1273,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1171,9 +1285,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "UserId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1183,9 +1297,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1201,8 +1315,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1227,9 +1341,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1239,9 +1353,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Public",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1257,8 +1371,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1289,8 +1403,8 @@
           }
         ],
         "name": "GroupId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1306,8 +1420,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1332,9 +1446,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1350,8 +1464,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1376,9 +1490,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1388,9 +1502,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "moveGroup",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1400,9 +1514,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "targetgroup",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1418,8 +1532,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1444,9 +1558,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1462,8 +1576,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1488,9 +1602,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1500,9 +1614,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1512,9 +1626,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "MailNickname",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1524,9 +1638,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "Description",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1542,8 +1656,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1568,9 +1682,9 @@
     "Notes": "Notes: Setting this via graph is currently broken as of 2021-06-28:\n attribute: allowExternalSenders\n https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property",
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1580,9 +1694,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
         "name": "Action",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -1598,8 +1712,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1624,9 +1738,9 @@
     "Notes": "Note, as of 2021-06-28 MS Graph does not support updating existing groups - only on initial creation.\n PATCH : https://graph.microsoft.com/v1.0/groups/{id}\n body = { \"resourceBehaviorOptions\":[\"HideGroupInOutlook\"] }",
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1636,9 +1750,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
         "name": "Action",
         "defaultValue": "1",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -1654,8 +1768,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1680,9 +1794,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GroupID",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1698,8 +1812,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1721,7 +1835,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Scheduled deletion of stale devices based on last activity date and platform.",
     "Description": "Identifies, lists, and deletes devices that haven't been active for a specified number of days.\nCan be scheduled to run automatically and send a report via email.",
-    "Notes": "Permissions (Graph):\n- DeviceManagementManagedDevices.Read.All\n- DeviceManagementManagedDevices.DeleteAll\n- Directory.Read.All\n- Device.Read.All\n- Mail.Send",
+    "Notes": null,
     "Parameters": [
       {
         "description": [
@@ -1730,8 +1844,8 @@
           }
         ],
         "name": "Days",
-        "parameterValue": "Int32",
         "defaultValue": "30",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -1747,8 +1861,8 @@
           }
         ],
         "name": "Windows",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1764,8 +1878,8 @@
           }
         ],
         "name": "MacOS",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1781,8 +1895,8 @@
           }
         ],
         "name": "iOS",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1798,8 +1912,8 @@
           }
         ],
         "name": "Android",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1815,8 +1929,8 @@
           }
         ],
         "name": "DeleteDevices",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1832,8 +1946,8 @@
           }
         ],
         "name": "ConfirmDeletion",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1849,8 +1963,8 @@
           }
         ],
         "name": "sendAlertTo",
-        "parameterValue": "String",
         "defaultValue": "support@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1866,8 +1980,8 @@
           }
         ],
         "name": "sendAlertFrom",
-        "parameterValue": "String",
         "defaultValue": "runbook@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1883,8 +1997,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1895,7 +2009,7 @@
       }
     ],
     "DocsContent": null,
-    "PermissionsContent": null
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"DeviceManagementManagedDevices.DeleteAll\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n"
   },
   {
     "RunbookDisplayName": "Get Bitlocker Recovery Key",
@@ -1906,7 +2020,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Get BitLocker recovery key",
     "Description": "Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.",
-    "Notes": "Permissions (Graph):\n- Device.Read.All\n- BitlockerKey.Read.All",
+    "Notes": null,
     "Parameters": [
       {
         "description": [
@@ -1915,8 +2029,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1932,8 +2046,8 @@
           }
         ],
         "name": "bitlockeryRecoveryKeyId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -1955,7 +2069,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Scheduled report of stale devices based on last activity date and platform.",
     "Description": "Identifies and lists devices that haven't been active for a specified number of days.\nAutomatically sends a report via email.",
-    "Notes": "Permissions (Graph):\n- DeviceManagementManagedDevices.Read.All\n- Directory.Read.All\n- Device.Read.All\n- Mail.Send",
+    "Notes": null,
     "Parameters": [
       {
         "description": [
@@ -1964,8 +2078,8 @@
           }
         ],
         "name": "Days",
-        "parameterValue": "Int32",
         "defaultValue": "30",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -1981,8 +2095,8 @@
           }
         ],
         "name": "Windows",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -1998,8 +2112,8 @@
           }
         ],
         "name": "MacOS",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2015,8 +2129,8 @@
           }
         ],
         "name": "iOS",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2032,8 +2146,8 @@
           }
         ],
         "name": "Android",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2049,8 +2163,8 @@
           }
         ],
         "name": "sendAlertTo",
-        "parameterValue": "String",
         "defaultValue": "support@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2066,8 +2180,8 @@
           }
         ],
         "name": "sendAlertFrom",
-        "parameterValue": "String",
         "defaultValue": "runbook@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2083,8 +2197,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2095,7 +2209,7 @@
       }
     ],
     "DocsContent": null,
-    "PermissionsContent": null
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n"
   },
   {
     "RunbookDisplayName": "Outphase Devices",
@@ -2109,9 +2223,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "DeviceListChoice",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2121,9 +2235,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DeviceList",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2133,9 +2247,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Int32",
         "name": "intuneAction",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2145,9 +2259,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Int32",
         "name": "aadAction",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2157,9 +2271,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "wipeDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2169,9 +2283,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeIntuneDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2181,9 +2295,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeAutopilotDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2193,9 +2307,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeAADDevice",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2205,9 +2319,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "Boolean",
         "name": "disableAADDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2223,8 +2337,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2254,8 +2368,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -2285,8 +2399,8 @@
           }
         ],
         "name": "dateRange",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2302,8 +2416,8 @@
           }
         ],
         "name": "systemType",
-        "parameterValue": "String",
         "defaultValue": "Windows",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2319,8 +2433,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2350,8 +2464,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -2375,9 +2489,9 @@
     "Notes": "Permissions (Graph):\n- DeviceManagementManagedDevices.Read.All\n- Directory.ReadWrite.All\n- Device.ReadWrite.All",
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "ExtensionAttributeNumber",
         "defaultValue": "1",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2393,8 +2507,8 @@
           }
         ],
         "name": "ProcessAllDevices",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2410,8 +2524,8 @@
           }
         ],
         "name": "MaxDevicesToProcess",
-        "parameterValue": "Int32",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2427,8 +2541,8 @@
           }
         ],
         "name": "sendReportTo",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2444,8 +2558,8 @@
           }
         ],
         "name": "sendReportFrom",
-        "parameterValue": "String",
         "defaultValue": "runbook@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2461,8 +2575,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2473,7 +2587,7 @@
       }
     ],
     "DocsContent": null,
-    "PermissionsContent": null
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.ReadWrite.All\",\n        \"Device.ReadWrite.All\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n"
   },
   {
     "RunbookDisplayName": "Add Application Registration",
@@ -2487,9 +2601,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "ApplicationName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2499,9 +2613,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "signInAudience",
         "defaultValue": "AzureADMyOrg",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2511,9 +2625,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "targetUserId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2523,9 +2637,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "customPermissionRoleName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2541,8 +2655,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2567,9 +2681,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "SerialNumber",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2579,9 +2693,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "HardwareIdentifier",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2597,8 +2711,8 @@
           }
         ],
         "name": "AssignedUser",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2608,9 +2722,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Wait",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2620,9 +2734,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "GroupTag",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2638,8 +2752,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2664,9 +2778,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "CorpIdentifierType",
         "defaultValue": "serialNumber",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2676,9 +2790,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "CorpIdentifier",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2688,9 +2802,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "DeviceDescripton",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2700,9 +2814,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "OverwriteExistingEntry",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2718,8 +2832,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2744,9 +2858,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserGroup",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2756,9 +2870,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DeviceGroup",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2768,9 +2882,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2780,9 +2894,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "IncludeWindowsDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2792,9 +2906,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "IncludeMacOSDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2804,9 +2918,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "IncludeLinuxDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2816,9 +2930,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "IncludeAndroidDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2828,9 +2942,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "IncludeIOSDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2840,9 +2954,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "Boolean",
         "name": "IncludeIPadOSDevice",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2867,9 +2981,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Action",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2879,9 +2993,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
         "name": "PartnerId",
         "defaultValue": "6457701",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -2897,8 +3011,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2928,8 +3042,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -2953,9 +3067,9 @@
     "Notes": "Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )\nMS Graph (API):\n- Group.Create\n- Team.Create",
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "MailNickname",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2965,9 +3079,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -2977,9 +3091,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "CreateTeam",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -2995,8 +3109,8 @@
           }
         ],
         "name": "Private",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3012,8 +3126,8 @@
           }
         ],
         "name": "MailEnabled",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3029,8 +3143,8 @@
           }
         ],
         "name": "SecurityEnabled",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3040,9 +3154,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "Owner",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3052,9 +3166,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "Owner2",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3070,8 +3184,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3096,9 +3210,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Action",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -3114,8 +3228,8 @@
           }
         ],
         "name": "LinkPattern",
-        "parameterValue": "String",
         "defaultValue": "https://*.microsoft.com/*",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3131,8 +3245,8 @@
           }
         ],
         "name": "DefaultPolicyName",
-        "parameterValue": "String",
         "defaultValue": "Default SafeLinks Policy",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3148,8 +3262,8 @@
           }
         ],
         "name": "PolicyName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3159,9 +3273,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "CreateNewPolicyIfNeeded",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3177,8 +3291,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3209,8 +3323,8 @@
           }
         ],
         "name": "action",
-        "parameterValue": "Int32",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -3226,8 +3340,8 @@
           }
         ],
         "name": "Url",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3243,8 +3357,8 @@
           }
         ],
         "name": "mode",
-        "parameterValue": "Int32",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -3254,9 +3368,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "explanationTitle",
         "defaultValue": "Allow this domain in SmartScreen",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3266,9 +3380,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "explanationDescription",
         "defaultValue": "Required exclusion. Please provide more details.",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3284,8 +3398,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3310,9 +3424,9 @@
     "Notes": "This runbook uses calls as described in\nhttps://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/\nto decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this.\nPlease switch to \"v1.0\" as soon, as this funtionality is available.",
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Action",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -3328,8 +3442,8 @@
           }
         ],
         "name": "Url",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3339,9 +3453,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Int32",
         "name": "Zone",
         "defaultValue": "1",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -3351,9 +3465,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "DefaultPolicyName",
         "defaultValue": "Windows 10 - Trusted Sites",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3369,8 +3483,8 @@
           }
         ],
         "name": "IntunePolicyName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3386,8 +3500,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3418,8 +3532,8 @@
           }
         ],
         "name": "GroupName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3435,8 +3549,8 @@
           }
         ],
         "name": "GroupDescription",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3452,8 +3566,8 @@
           }
         ],
         "name": "Owner",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3469,8 +3583,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3495,9 +3609,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "GivenName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3507,9 +3621,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "Surname",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3519,9 +3633,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "UserPrincipalName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3531,9 +3645,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "MailNickname",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3543,9 +3657,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3555,9 +3669,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "CompanyName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3567,9 +3681,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "JobTitle",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3579,9 +3693,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "Department",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3591,9 +3705,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "ManagerId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3603,9 +3717,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "String",
         "name": "MobilePhone",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3615,9 +3729,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "String",
         "name": "LocationName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3627,9 +3741,9 @@
         "position": "11"
       },
       {
-        "parameterValue": "String",
         "name": "StreetAddress",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3639,9 +3753,9 @@
         "position": "12"
       },
       {
-        "parameterValue": "String",
         "name": "PostalCode",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3651,9 +3765,9 @@
         "position": "13"
       },
       {
-        "parameterValue": "String",
         "name": "City",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3663,9 +3777,9 @@
         "position": "14"
       },
       {
-        "parameterValue": "String",
         "name": "State",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3675,9 +3789,9 @@
         "position": "15"
       },
       {
-        "parameterValue": "String",
         "name": "Country",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3687,9 +3801,9 @@
         "position": "16"
       },
       {
-        "parameterValue": "String",
         "name": "UsageLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3699,9 +3813,9 @@
         "position": "17"
       },
       {
-        "parameterValue": "String",
         "name": "DefaultLicense",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3717,8 +3831,8 @@
           }
         ],
         "name": "DefaultGroups",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3734,8 +3848,8 @@
           }
         ],
         "name": "InitialPassword",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3745,9 +3859,9 @@
         "position": "20"
       },
       {
-        "parameterValue": "Boolean",
         "name": "EnableEXOArchive",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3763,8 +3877,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3795,8 +3909,8 @@
           }
         ],
         "name": "CommunityName",
-        "parameterValue": "String",
         "defaultValue": "Sample Community",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3806,9 +3920,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "CommunityPrivate",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3818,9 +3932,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "CommunityShowInDirectory",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3836,8 +3950,8 @@
           }
         ],
         "name": "CommunityOwners",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3847,9 +3961,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "removeCreatorFromGroup",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3859,9 +3973,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3886,9 +4000,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "SourceGroupId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3898,9 +4012,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ExclusionGroupId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3916,8 +4030,8 @@
           }
         ],
         "name": "GroupsTemplate",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3927,9 +4041,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "GroupsString",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3945,8 +4059,8 @@
           }
         ],
         "name": "UseDisplaynames",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -3962,8 +4076,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -3988,9 +4102,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "SerialNumbers",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4006,8 +4120,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4032,9 +4146,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "SerialNumbers",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4044,9 +4158,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4077,8 +4191,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4088,9 +4202,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "sendAlertTo",
         "defaultValue": "support@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4100,9 +4214,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "sendAlertFrom",
         "defaultValue": "runbooks@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4133,8 +4247,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4150,8 +4264,8 @@
           }
         ],
         "name": "DeviceNames",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4167,8 +4281,8 @@
           }
         ],
         "name": "IncludeApps",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -4199,8 +4313,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4216,8 +4330,8 @@
           }
         ],
         "name": "GroupNames",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4233,8 +4347,8 @@
           }
         ],
         "name": "IncludeApps",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -4265,8 +4379,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4282,8 +4396,8 @@
           }
         ],
         "name": "UPN",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4299,8 +4413,8 @@
           }
         ],
         "name": "IncludeApps",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -4325,9 +4439,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "SerialNumbers",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4343,8 +4457,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4375,8 +4489,8 @@
           }
         ],
         "name": "exclusionGroupName",
-        "parameterValue": "String",
         "defaultValue": "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4386,9 +4500,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
         "name": "maxAgeInDays",
         "defaultValue": "1",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -4404,8 +4518,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4430,9 +4544,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Weeks",
         "defaultValue": "4",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -4448,8 +4562,8 @@
           }
         ],
         "name": "dataSource",
-        "parameterValue": "Int32",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -4465,8 +4579,8 @@
           }
         ],
         "name": "groupingSource",
-        "parameterValue": "Int32",
         "defaultValue": "1",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -4482,8 +4596,8 @@
           }
         ],
         "name": "groupingAttribute",
-        "parameterValue": "String",
         "defaultValue": "country",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4499,8 +4613,8 @@
           }
         ],
         "name": "exportCsv",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -4510,9 +4624,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4522,9 +4636,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4534,9 +4648,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4546,9 +4660,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4558,9 +4672,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4576,8 +4690,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4602,9 +4716,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "ExportToFile",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -4614,9 +4728,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4626,9 +4740,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4638,9 +4752,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4650,9 +4764,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4662,9 +4776,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4680,8 +4794,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4706,9 +4820,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4718,9 +4832,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4730,9 +4844,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4742,9 +4856,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4754,9 +4868,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4766,9 +4880,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "SubscriptionId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4778,9 +4892,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4811,8 +4925,8 @@
           }
         ],
         "name": "Table",
-        "parameterValue": "String",
         "defaultValue": "CloudPCUsageV2",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4822,9 +4936,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4834,9 +4948,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4846,9 +4960,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Int32",
         "name": "days",
         "defaultValue": "2",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -4858,9 +4972,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4885,9 +4999,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "produceLinks",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -4897,9 +5011,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "rjrb-device-compliance-report-v2",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4909,9 +5023,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4921,9 +5035,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4933,9 +5047,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4945,9 +5059,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4957,9 +5071,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "SubscriptionId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -4975,8 +5089,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5001,9 +5115,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "produceLinks",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5013,9 +5127,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "exportJson",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5025,9 +5139,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "renderLatexPagebreaks",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5037,9 +5151,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "rjrb-licensing-report-v2",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5049,9 +5163,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5061,9 +5175,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5073,9 +5187,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5085,9 +5199,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5103,8 +5217,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5135,8 +5249,8 @@
           }
         ],
         "name": "InvitedUserEmail",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5152,8 +5266,8 @@
           }
         ],
         "name": "InvitedUserDisplayName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5169,8 +5283,8 @@
           }
         ],
         "name": "GroupId",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5200,8 +5314,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -5230,8 +5344,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -5255,9 +5369,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "printOverview",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5267,9 +5381,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "includeExhange",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5279,9 +5393,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "exportToFile",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5291,9 +5405,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "exportAsZip",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5303,9 +5417,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "produceLinks",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5321,8 +5435,8 @@
           }
         ],
         "name": "ContainerName",
-        "parameterValue": "String",
         "defaultValue": "rjrb-licensing-report-v2",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5332,9 +5446,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5344,9 +5458,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5356,9 +5470,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5368,9 +5482,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5380,9 +5494,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "String",
         "name": "SubscriptionId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5398,8 +5512,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5424,9 +5538,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5436,9 +5550,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
         "name": "Days",
         "defaultValue": "300",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -5448,9 +5562,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "sendAlertTo",
         "defaultValue": "support@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5466,8 +5580,8 @@
           }
         ],
         "name": "sendAlertFrom",
-        "parameterValue": "String",
         "defaultValue": "runbook@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5498,8 +5612,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5509,9 +5623,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "sendAlertTo",
         "defaultValue": "support@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5521,9 +5635,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "sendAlertFrom",
         "defaultValue": "runbook@glueckkanja.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5553,8 +5667,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -5578,9 +5692,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "Alias",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5590,9 +5704,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "PrimarySMTPAddress",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5602,9 +5716,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "GroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5614,9 +5728,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "Owner",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5626,9 +5740,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Roomlist",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5638,9 +5752,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AllowExternalSenders",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5656,8 +5770,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5682,9 +5796,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "MailboxName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5694,9 +5808,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5706,9 +5820,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "DelegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5718,9 +5832,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoAccept",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5730,9 +5844,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoMapping",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5742,9 +5856,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "DisableUser",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5760,8 +5874,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5786,9 +5900,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "PublicFolderName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5798,9 +5912,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "MailboxName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5810,9 +5924,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AddPublicFolder",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5828,8 +5942,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5860,8 +5974,8 @@
           }
         ],
         "name": "RealAddress",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5877,8 +5991,8 @@
           }
         ],
         "name": "DesiredAddress",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5888,9 +6002,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5900,9 +6014,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -5918,8 +6032,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5944,9 +6058,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "MailboxName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5956,9 +6070,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5968,9 +6082,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "DelegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -5980,9 +6094,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Int32",
         "name": "Capacity",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -5992,9 +6106,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoAccept",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6004,9 +6118,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoMapping",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6022,8 +6136,8 @@
           }
         ],
         "name": "DisableUser",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6033,9 +6147,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6060,9 +6174,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "MailboxName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6072,9 +6186,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6084,9 +6198,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "DomainName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6096,9 +6210,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "Language",
         "defaultValue": "en-US",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6108,9 +6222,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "DelegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6120,9 +6234,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoMapping",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6132,9 +6246,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "MessageCopyForSentAsEnabled",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6144,9 +6258,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "MessageCopyForSendOnBehalfEnabled",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6156,9 +6270,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "Boolean",
         "name": "DisableUser",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6174,8 +6288,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6200,9 +6314,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "HideBookingCalendars",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6218,8 +6332,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6264,8 +6378,8 @@
           }
         ],
         "name": "PhoneNumber",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6281,8 +6395,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6307,9 +6421,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "IndicatorValue",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6319,9 +6433,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "IndicatorType",
         "defaultValue": "FileSha256",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6331,9 +6445,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "Title",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6343,9 +6457,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "Description",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6355,9 +6469,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "Action",
         "defaultValue": "Allowed",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6367,9 +6481,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "Severity",
         "defaultValue": "Informational",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6379,9 +6493,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "GenerateAlert",
         "defaultValue": "False",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6397,8 +6511,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6429,8 +6543,8 @@
           }
         ],
         "name": "ContainerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6440,9 +6554,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6452,9 +6566,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6464,9 +6578,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6476,9 +6590,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6494,8 +6608,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6520,9 +6634,9 @@
     "Notes": "Permissions:\nMS Graph (API)\n- Directory.Read.All\n- Application.Read.All\nAzure IaaS: \"Contributor\" access on subscription or resource group used for the export",
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "entAppsOnly",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6532,9 +6646,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6544,9 +6658,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6556,9 +6670,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6568,9 +6682,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6580,9 +6694,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6598,8 +6712,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6624,9 +6738,9 @@
     "Notes": "Permissions: MS Graph\n- User.Read.All\n- Directory.Read.All\n- RoleManagement.Read.All",
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "exportToFile",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6636,9 +6750,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6648,9 +6762,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6660,9 +6774,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6672,9 +6786,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6684,9 +6798,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6696,9 +6810,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "QueryMfaState",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6708,9 +6822,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "TrustEmailMfa",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6720,9 +6834,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "Boolean",
         "name": "TrustPhoneMfa",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6732,9 +6846,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "Boolean",
         "name": "TrustSoftwareOathMfa",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6744,9 +6858,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "Boolean",
         "name": "TrustWinHelloMFA",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6762,8 +6876,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6784,13 +6898,18 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Security",
     "Synopsis": "List expiry date of all AppRegistration credentials",
-    "Description": "List expiry date of all AppRegistration credentials",
+    "Description": "List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.\nOptionally, filter by Application IDs and list only those credentials that are about to expire.",
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
+        "description": [
+          {
+            "Text": "If set to true, only credentials that are about to expire within the specified number of days will be listed.\nIf set to false, all credentials will be listed regardless of their expiry date."
+          }
+        ],
         "name": "listOnlyExpiring",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6800,9 +6919,14 @@
         "position": "1"
       },
       {
-        "parameterValue": "Int32",
+        "description": [
+          {
+            "Text": "The number of days before a credential expires to consider it \"about to expire\"."
+          }
+        ],
         "name": "Days",
         "defaultValue": "30",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -6812,9 +6936,14 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
+        "description": [
+          {
+            "Text": "A comma-separated list of Application IDs to filter the credentials."
+          }
+        ],
         "name": "ApplicationIds",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6830,8 +6959,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6856,9 +6985,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Days",
         "defaultValue": "30",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -6874,8 +7003,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6900,9 +7029,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Days",
         "defaultValue": "30",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -6912,9 +7041,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Sync",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6924,9 +7053,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "ExportToFile",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -6936,9 +7065,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6948,9 +7077,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6960,9 +7089,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6972,9 +7101,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -6984,9 +7113,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7002,8 +7131,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7028,9 +7157,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Days",
         "defaultValue": "90",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -7046,8 +7175,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7069,12 +7198,12 @@
     "SubFolder": "Security",
     "Synopsis": "List users, that have no recent interactive signins.",
     "Description": "List users, that have no recent interactive signins.",
-    "Notes": "Permissions: MS Graph\n- User.Read.All\n- AuditLog.Read.All\n- Organization.Read.All",
+    "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Int32",
         "name": "Days",
         "defaultValue": "30",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -7084,9 +7213,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "showBlockedUsers",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7102,8 +7231,8 @@
           }
         ],
         "name": "showUsersThatNeverLoggedIn",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7119,8 +7248,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7142,7 +7271,7 @@
     "SubFolder": "Security",
     "Synopsis": "Prints a list of all available InformationProtectionPolicy labels.",
     "Description": "Prints a list of all available InformationProtectionPolicy labels.",
-    "Notes": "Permissions MS Graph, at least:\n- InformationProtectionPolicy.Read.All",
+    "Notes": null,
     "Parameters": {
       "description": [
         {
@@ -7150,8 +7279,8 @@
         }
       ],
       "name": "CallerName",
-      "parameterValue": "String",
       "defaultValue": "",
+      "parameterValue": "String",
       "type": {
         "name": "String"
       },
@@ -7175,9 +7304,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "sendEmailIfFound",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7187,9 +7316,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "From",
         "defaultValue": "reports@contoso.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7199,9 +7328,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "To",
         "defaultValue": "support@glueckkanja-gab.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7217,8 +7346,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7232,6 +7361,55 @@
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.Read.All\",\n                \"RoleManagement.Read.Directory\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}"
   },
   {
+    "RunbookDisplayName": "List Users By MFA Methods Count",
+    "RunbookDisplayPath": "Org \\ Security \\ List Users By MFA Methods Count",
+    "RelativeRunbookPath": "org/security/list-users-by-MFA-methods-count.ps1",
+    "RelativeRunbookPath_PathOnly": "org/security",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Security",
+    "Synopsis": "Reports users by the count of their registered MFA methods.",
+    "Description": "This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.\nAs a dropdown for the MFA methods count range, you can select from \"0 methods (no MFA)\", \"1-3 methods\", \"4-5 methods\", or \"6+ methods\".\nThe output includes the user display name, user principal name, and the count of registered MFA methods.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "description": [
+          {
+            "Text": "Range for filtering users based on the count of their registered MFA methods."
+          }
+        ],
+        "name": "mfaMethodsRange",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "1"
+      },
+      {
+        "description": [
+          {
+            "Text": "CallerName is tracked purely for auditing purposes"
+          }
+        ],
+        "name": "CallerName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "2"
+      }
+    ],
+    "DocsContent": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}"
+  },
+  {
     "RunbookDisplayName": "List Vulnerable App Regs",
     "RunbookDisplayPath": "Org \\ Security \\ List Vulnerable App Regs",
     "RelativeRunbookPath": "org/security/list-vulnerable-app-regs.ps1",
@@ -7243,9 +7421,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "Boolean",
         "name": "ExportToFile",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7255,9 +7433,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "ContainerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7267,9 +7445,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "ResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7279,9 +7457,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7291,9 +7469,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7303,9 +7481,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "StorageAccountSku",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7321,8 +7499,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7347,9 +7525,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "From",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7359,9 +7537,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "To",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7377,8 +7555,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7392,6 +7570,57 @@
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Policy.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}"
   },
   {
+    "RunbookDisplayName": "User Signout",
+    "RunbookDisplayPath": "User \\ Avd \\ User Signout",
+    "RelativeRunbookPath": "user/avd/user-signout.ps1",
+    "RelativeRunbookPath_PathOnly": "user/avd",
+    "PrimaryFolder": "User",
+    "SubFolder": "Avd",
+    "Synopsis": "Removes (Signs Out) a specific User from their AVD Session.",
+    "Description": "This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.\nThe SubscriptionIds value must be defined in the runbooks customization.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "name": "UserName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "1"
+      },
+      {
+        "name": "SubscriptionIds",
+        "defaultValue": "",
+        "parameterValue": "String[]",
+        "type": {
+          "name": "String[]"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "2"
+      },
+      {
+        "name": "CallerName",
+        "defaultValue": "",
+        "parameterValue": "String",
+        "type": {
+          "name": "String"
+        },
+        "required": "true",
+        "globbing": "false",
+        "pipelineInput": "false",
+        "position": "3"
+      }
+    ],
+    "DocsContent": null,
+    "PermissionsContent": null
+  },
+  {
     "RunbookDisplayName": "Assign Groups By Template",
     "RunbookDisplayPath": "User \\ General \\ Assign Groups By Template",
     "RelativeRunbookPath": "user/general/assign-groups-by-template.ps1",
@@ -7403,9 +7632,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserId",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7421,8 +7650,8 @@
           }
         ],
         "name": "GroupsTemplate",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7432,9 +7661,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "GroupsString",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7450,8 +7679,8 @@
           }
         ],
         "name": "UseDisplaynames",
-        "parameterValue": "Boolean",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7467,8 +7696,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7493,9 +7722,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7511,8 +7740,8 @@
           }
         ],
         "name": "GroupID_License",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7522,9 +7751,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7540,8 +7769,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7566,9 +7795,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7578,9 +7807,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "cfgProvisioningGroupName",
         "defaultValue": "cfg - Windows 365 - Provisioning - Win11",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7590,9 +7819,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "cfgUserSettingsGroupName",
         "defaultValue": "cfg - Windows 365 - User Settings - restore allowed",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7602,9 +7831,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "licWin365GroupName",
         "defaultValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7614,9 +7843,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "cfgProvisioningGroupPrefix",
         "defaultValue": "cfg - Windows 365 - Provisioning -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7626,9 +7855,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "cfgUserSettingsGroupPrefix",
         "defaultValue": "cfg - Windows 365 - User Settings -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7638,9 +7867,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "sendMailWhenProvisioned",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7650,9 +7879,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "customizeMail",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7662,9 +7891,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "customMailMessage",
         "defaultValue": "Insert Custom Message here. (Capped at 3000 characters)",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7674,9 +7903,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "Boolean",
         "name": "createTicketOutOfLicenses",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7686,9 +7915,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "String",
         "name": "ticketQueueAddress",
         "defaultValue": "support@glueckkanja-gab.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7698,9 +7927,9 @@
         "position": "11"
       },
       {
-        "parameterValue": "String",
         "name": "fromMailAddress",
         "defaultValue": "runbooks@contoso.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7710,9 +7939,9 @@
         "position": "12"
       },
       {
-        "parameterValue": "String",
         "name": "ticketCustomerId",
         "defaultValue": "Contoso",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7722,9 +7951,9 @@
         "position": "13"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7749,9 +7978,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7767,8 +7996,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7793,9 +8022,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7811,8 +8040,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7837,9 +8066,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7849,9 +8078,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "DeleteUser",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7861,9 +8090,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "DisableUser",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7873,9 +8102,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "RevokeAccess",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7885,9 +8114,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "exportResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7897,9 +8126,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7909,9 +8138,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7921,9 +8150,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorAccountSKU",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7933,9 +8162,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorContainerGroupMembershipExports",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7945,9 +8174,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "Boolean",
         "name": "exportGroupMemberships",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -7957,9 +8186,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "Int32",
         "name": "ChangeLicensesSelector",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -7975,8 +8204,8 @@
           }
         ],
         "name": "ChangeGroupsSelector",
-        "parameterValue": "Int32",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -7986,9 +8215,9 @@
         "position": "12"
       },
       {
-        "parameterValue": "String",
         "name": "GroupToAdd",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -7998,9 +8227,9 @@
         "position": "13"
       },
       {
-        "parameterValue": "String",
         "name": "GroupsToRemovePrefix",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8010,9 +8239,9 @@
         "position": "14"
       },
       {
-        "parameterValue": "Boolean",
         "name": "RevokeGroupOwnership",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8022,9 +8251,9 @@
         "position": "15"
       },
       {
-        "parameterValue": "Boolean",
         "name": "ManagerAsReplacementOwner",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8040,8 +8269,8 @@
           }
         ],
         "name": "ReplacementOwnerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8057,8 +8286,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8083,9 +8312,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8095,9 +8324,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "RevokeAccess",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8107,9 +8336,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "DisableUser",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8119,9 +8348,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "exportResourceGroupName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8131,9 +8360,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorAccountName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8143,9 +8372,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorAccountLocation",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8155,9 +8384,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorAccountSKU",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8167,9 +8396,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "exportStorContainerGroupMembershipExports",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8179,9 +8408,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "Boolean",
         "name": "exportGroupMemberships",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8191,9 +8420,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "Int32",
         "name": "ChangeLicensesSelector",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -8209,8 +8438,8 @@
           }
         ],
         "name": "ChangeGroupsSelector",
-        "parameterValue": "Int32",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -8220,9 +8449,9 @@
         "position": "11"
       },
       {
-        "parameterValue": "String",
         "name": "GroupToAdd",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8232,9 +8461,9 @@
         "position": "12"
       },
       {
-        "parameterValue": "String",
         "name": "GroupsToRemovePrefix",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8244,9 +8473,9 @@
         "position": "13"
       },
       {
-        "parameterValue": "Boolean",
         "name": "RevokeGroupOwnership",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8262,8 +8491,8 @@
           }
         ],
         "name": "ReplacementOwnerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8279,8 +8508,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8305,9 +8534,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8317,9 +8546,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "licWin365GroupName",
         "defaultValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8329,9 +8558,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "sendMailWhenReprovisioning",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8341,9 +8570,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "fromMailAddress",
         "defaultValue": "reports@contoso.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8353,9 +8582,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "customizeMail",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8365,9 +8594,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "customMailMessage",
         "defaultValue": "Insert Custom Message here. (Capped at 3000 characters)",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8383,8 +8612,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8409,9 +8638,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8421,9 +8650,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "currentLicWin365GroupName",
         "defaultValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8433,9 +8662,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "newLicWin365GroupName",
         "defaultValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8445,9 +8674,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "sendMailWhenDoneResizing",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8457,9 +8686,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "fromMailAddress",
         "defaultValue": "reports@contoso.com",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8469,9 +8698,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "customizeMail",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8481,9 +8710,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "customMailMessage",
         "defaultValue": "Insert Custom Message here. (Capped at 3000 characters)",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8493,9 +8722,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "cfgProvisioningGroupPrefix",
         "defaultValue": "cfg - Windows 365 - Provisioning -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8505,9 +8734,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "cfgUserSettingsGroupPrefix",
         "defaultValue": "cfg - Windows 365 - User Settings -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8517,9 +8746,9 @@
         "position": "9"
       },
       {
-        "parameterValue": "String",
         "name": "unassignRunbook",
         "defaultValue": "rjgit-user_general_unassign-windows365",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8529,9 +8758,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "String",
         "name": "assignRunbook",
         "defaultValue": "rjgit-user_general_assign-windows365",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8541,9 +8770,9 @@
         "position": "11"
       },
       {
-        "parameterValue": "Boolean",
         "name": "skipGracePeriod",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8559,8 +8788,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8585,9 +8814,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8597,9 +8826,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "licWin365GroupName",
         "defaultValue": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8609,9 +8838,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "cfgProvisioningGroupPrefix",
         "defaultValue": "cfg - Windows 365 - Provisioning -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8621,9 +8850,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "cfgUserSettingsGroupPrefix",
         "defaultValue": "cfg - Windows 365 - User Settings -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8633,9 +8862,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "licWin365GroupPrefix",
         "defaultValue": "lic - Windows 365 Enterprise -",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8645,9 +8874,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Boolean",
         "name": "skipGracePeriod",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8657,9 +8886,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "KeepUserSettingsAndProvisioningGroups",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8669,9 +8898,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8696,9 +8925,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8708,9 +8937,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "eMailAddress",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8720,9 +8949,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8732,9 +8961,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "asPrimary",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8750,8 +8979,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8776,9 +9005,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8788,9 +9017,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "OwaPolicyName",
         "defaultValue": "OwaMailboxPolicy-Default",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8806,8 +9035,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8832,9 +9061,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8844,9 +9073,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "delegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8856,9 +9085,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8868,9 +9097,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoMapping",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8880,9 +9109,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "Boolean",
         "name": "RemoveGroups",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8892,9 +9121,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "ArchivalLicenseGroup",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8904,9 +9133,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "RegularLicenseGroup",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8922,8 +9151,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8948,9 +9177,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8960,9 +9189,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "delegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -8972,9 +9201,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -8984,9 +9213,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AutoMapping",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9002,8 +9231,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9028,9 +9257,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9040,9 +9269,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "delegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9052,9 +9281,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9070,8 +9299,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9096,9 +9325,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9108,9 +9337,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "delegateTo",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9120,9 +9349,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9138,8 +9367,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9164,9 +9393,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9176,9 +9405,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "HideMailbox",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9194,8 +9423,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9220,9 +9449,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9232,9 +9461,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "CallerName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9259,9 +9488,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9277,8 +9506,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9303,9 +9532,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9321,8 +9550,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9347,9 +9576,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9359,9 +9588,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Disable",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9371,9 +9600,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "DateTime",
         "name": "Start",
         "defaultValue": "(get-date)",
+        "parameterValue": "DateTime",
         "type": {
           "name": "DateTime"
         },
@@ -9389,8 +9618,8 @@
           }
         ],
         "name": "End",
-        "parameterValue": "DateTime",
         "defaultValue": "((get-date) + (new-timespan -Days 3650))",
+        "parameterValue": "DateTime",
         "type": {
           "name": "DateTime"
         },
@@ -9400,9 +9629,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "MessageInternal",
         "defaultValue": "Sorry, this person is currently not able to receive your message.",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9412,9 +9641,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "MessageExternal",
         "defaultValue": "Sorry, this person is currently not able to receive your message.",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9424,9 +9653,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Boolean",
         "name": "CreateEvent",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9436,9 +9665,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "EventSubject",
         "defaultValue": "Out of Office",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9454,8 +9683,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9480,9 +9709,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9492,9 +9721,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AllBookInPolicy",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9504,9 +9733,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "BookInPolicyGroup",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9516,9 +9745,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AllowRecurringMeetings",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9528,9 +9757,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "AutomateProcessing",
         "defaultValue": "AutoAccept",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9540,9 +9769,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "Int32",
         "name": "BookingWindowInDays",
         "defaultValue": "180",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -9552,9 +9781,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "Int32",
         "name": "MaximumDurationInMinutes",
         "defaultValue": "1440",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -9564,9 +9793,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "Boolean",
         "name": "AllowConflicts",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9576,9 +9805,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "Int32",
         "name": "Capacity",
         "defaultValue": "0",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -9594,8 +9823,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9626,8 +9855,8 @@
           }
         ],
         "name": "UserName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9643,8 +9872,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9675,8 +9904,8 @@
           }
         ],
         "name": "UserName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9692,8 +9921,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9724,8 +9953,8 @@
           }
         ],
         "name": "UserName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9741,8 +9970,8 @@
           }
         ],
         "name": "OnlineVoiceRoutingPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9758,8 +9987,8 @@
           }
         ],
         "name": "TenantDialPlan",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9775,8 +10004,8 @@
           }
         ],
         "name": "TeamsCallingPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9792,8 +10021,8 @@
           }
         ],
         "name": "TeamsIPPhonePolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9809,8 +10038,8 @@
           }
         ],
         "name": "OnlineVoicemailPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9826,8 +10055,8 @@
           }
         ],
         "name": "TeamsMeetingPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9843,8 +10072,8 @@
           }
         ],
         "name": "TeamsMeetingBroadcastPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9860,8 +10089,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9892,8 +10121,8 @@
           }
         ],
         "name": "UserName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9909,8 +10138,8 @@
           }
         ],
         "name": "ForwardTargetPhoneNumber",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9926,8 +10155,8 @@
           }
         ],
         "name": "ForwardTargetTeamsUser",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -9943,8 +10172,8 @@
           }
         ],
         "name": "ForwardToVoicemail",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9960,8 +10189,8 @@
           }
         ],
         "name": "ForwardToDelegates",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9977,8 +10206,8 @@
           }
         ],
         "name": "TurnOffForward",
-        "parameterValue": "Boolean",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -9994,8 +10223,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10026,8 +10255,8 @@
           }
         ],
         "name": "UserName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10043,8 +10272,8 @@
           }
         ],
         "name": "PhoneNumber",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10060,8 +10289,8 @@
           }
         ],
         "name": "OnlineVoiceRoutingPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10077,8 +10306,8 @@
           }
         ],
         "name": "TenantDialPlan",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10094,8 +10323,8 @@
           }
         ],
         "name": "TeamsCallingPolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10111,8 +10340,8 @@
           }
         ],
         "name": "TeamsIPPhonePolicy",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10128,8 +10357,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10154,9 +10383,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10166,9 +10395,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Dismiss",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10184,8 +10413,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10210,9 +10439,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10228,8 +10457,8 @@
           }
         ],
         "name": "LifetimeInMinutes",
-        "parameterValue": "Int32",
         "defaultValue": "240",
+        "parameterValue": "Int32",
         "type": {
           "name": "Int32"
         },
@@ -10239,9 +10468,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "OneTimeUseOnly",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10257,8 +10486,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10283,9 +10512,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10295,9 +10524,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "DisablePasswordExpiration",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10313,8 +10542,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10339,9 +10568,9 @@
     "Notes": "Permissions needed:\n- UserAuthenticationMethod.ReadWrite.All",
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10357,8 +10586,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10383,9 +10612,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10395,9 +10624,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "EnableUserIfNeeded",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10407,9 +10636,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "ForceChangePasswordNextSignIn",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10425,8 +10654,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10451,9 +10680,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10463,9 +10692,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Revoke",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10481,8 +10710,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10507,9 +10736,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10525,8 +10754,8 @@
           }
         ],
         "name": "phoneNumber",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10536,9 +10765,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "Remove",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10554,8 +10783,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10580,9 +10809,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10592,9 +10821,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "NewUpn",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10604,9 +10833,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "Boolean",
         "name": "ChangeMailnickname",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10616,9 +10845,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "Boolean",
         "name": "UpdatePrimaryAddress",
         "defaultValue": "True",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10634,8 +10863,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10660,9 +10889,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10678,8 +10907,8 @@
           }
         ],
         "name": "PhotoURI",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10695,8 +10924,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10721,9 +10950,9 @@
     "Notes": null,
     "Parameters": [
       {
-        "parameterValue": "String",
         "name": "UserName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10733,9 +10962,9 @@
         "position": "1"
       },
       {
-        "parameterValue": "String",
         "name": "GivenName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10745,9 +10974,9 @@
         "position": "2"
       },
       {
-        "parameterValue": "String",
         "name": "Surname",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10757,9 +10986,9 @@
         "position": "3"
       },
       {
-        "parameterValue": "String",
         "name": "DisplayName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10769,9 +10998,9 @@
         "position": "4"
       },
       {
-        "parameterValue": "String",
         "name": "CompanyName",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10781,9 +11010,9 @@
         "position": "5"
       },
       {
-        "parameterValue": "String",
         "name": "City",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10793,9 +11022,9 @@
         "position": "6"
       },
       {
-        "parameterValue": "String",
         "name": "Country",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10805,9 +11034,9 @@
         "position": "7"
       },
       {
-        "parameterValue": "String",
         "name": "JobTitle",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10817,9 +11046,9 @@
         "position": "8"
       },
       {
-        "parameterValue": "String",
         "name": "Department",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10835,8 +11064,8 @@
           }
         ],
         "name": "OfficeLocation",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10846,9 +11075,9 @@
         "position": "10"
       },
       {
-        "parameterValue": "String",
         "name": "PostalCode",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10864,8 +11093,8 @@
           }
         ],
         "name": "PreferredLanguage",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10875,9 +11104,9 @@
         "position": "12"
       },
       {
-        "parameterValue": "String",
         "name": "State",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10887,9 +11116,9 @@
         "position": "13"
       },
       {
-        "parameterValue": "String",
         "name": "StreetAddress",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10905,8 +11134,8 @@
           }
         ],
         "name": "UsageLocation",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10916,9 +11145,9 @@
         "position": "15"
       },
       {
-        "parameterValue": "String",
         "name": "DefaultLicense",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10928,9 +11157,9 @@
         "position": "16"
       },
       {
-        "parameterValue": "String",
         "name": "DefaultGroups",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
@@ -10940,9 +11169,9 @@
         "position": "17"
       },
       {
-        "parameterValue": "Boolean",
         "name": "EnableEXOArchive",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10952,9 +11181,9 @@
         "position": "18"
       },
       {
-        "parameterValue": "Boolean",
         "name": "ResetPassword",
         "defaultValue": "False",
+        "parameterValue": "Boolean",
         "type": {
           "name": "Boolean"
         },
@@ -10970,8 +11199,8 @@
           }
         ],
         "name": "CallerName",
-        "parameterValue": "String",
         "defaultValue": "",
+        "parameterValue": "String",
         "type": {
           "name": "String"
         },
