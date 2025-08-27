@@ -3,7 +3,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 
 | Category | Subcategory | Runbook Name | Synopsis |
 |----------|-------------|--------------|----------|
-| Device | Avd | Restart Host | Sets Drainmode on true or false for a specific AVD Session Host. |
+| Device | Avd | Restart Host | Reboots a specific AVD Session Host. |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
 |  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. |

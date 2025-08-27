@@ -3,7 +3,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 
 | Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles |
 |----------|-------------|--------------|----------|-------------|------------|
-| Device | Avd | Restart Host | Sets Drainmode on true or false for a specific AVD Session Host. |  |  |
+| Device | Avd | Restart Host | Reboots a specific AVD Session Host. |  |  |
 |  | Avd | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |  |  |
 |  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | General | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |

@@ -173,7 +173,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## Avd
 | Runbook Name | Synopsis |
 |--------------|----------|
-| Restart Host | Sets Drainmode on true or false for a specific AVD Session Host. |
+| Restart Host | Reboots a specific AVD Session Host. |
 | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
