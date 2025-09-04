@@ -135,7 +135,12 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     else { $null }
 
     $docsContent = if ($null -ne $docsPath) { Get-Content -Path $docsPath -Raw }
-    $docsContentEncoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($docsContent))
+    if ($null -ne $docsContent) {
+        $docsContentEncoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($docsContent))
+    }else {
+        $docsContentEncoded = $null
+    }
+
     $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw }
     $permissionsJSON = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw | ConvertFrom-Json }
 
