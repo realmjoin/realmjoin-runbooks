@@ -51,6 +51,14 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
       - [Archive Team](#archive-team)
 - [Org](#org)
+  - [Applications](#org-applications)
+      - [Add Application Registration](#add-application-registration)
+      - [Delete Application Registration](#delete-application-registration)
+      - [Export Enterprise App Users](#export-enterprise-app-users)
+      - [List Application Creds Expiry](#list-application-creds-expiry)
+      - [List Inactive Enterprise Apps](#list-inactive-enterprise-apps)
+      - [Report App Registration](#report-app-registration)
+      - [Update Application Registration](#update-application-registration)
   - [Devices](#org-devices)
       - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
@@ -61,7 +69,6 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
       - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
   - [General](#org-general)
-      - [Add Application Registration](#add-application-registration)
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Add Devices Of Users To Group_Scheduled](#add-devices-of-users-to-group_scheduled)
@@ -110,12 +117,9 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#org-security)
       - [Add Defender Indicator](#add-defender-indicator)
       - [Backup Conditional Access Policies](#backup-conditional-access-policies)
-      - [Export Enterprise App Users](#export-enterprise-app-users)
       - [List Admin Users](#list-admin-users)
-      - [List Application Creds Expiry](#list-application-creds-expiry)
       - [List Expiring Role Assignments](#list-expiring-role-assignments)
       - [List Inactive Devices](#list-inactive-devices)
-      - [List Inactive Enterprise Apps](#list-inactive-enterprise-apps)
       - [List Inactive Users](#list-inactive-users)
       - [List Information Protection Labels](#list-information-protection-labels)
       - [List Pim Rolegroups Without Owners_Scheduled](#list-pim-rolegroups-without-owners_scheduled)
@@ -711,6 +715,144 @@ Group \ Teams \ Archive Team
 <a name='org'></a>
 
 # Org
+<a name='org-applications'></a>
+
+## Applications
+<a name='org-applications-add-application-registration'></a>
+
+### Add Application Registration
+#### Add an application registration to Azure AD
+
+#### Description
+This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+
+The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
+throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
+and certificate expiry notifications.
+
+#### Where to find
+Org \ Applications \ Add Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-delete-application-registration'></a>
+
+### Delete Application Registration
+#### Delete an application registration from Azure AD
+
+#### Description
+This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
+
+This script is the counterpart to the add-application-registration script and ensures
+proper cleanup of all resources created during application registration.
+
+#### Where to find
+Org \ Applications \ Delete Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-export-enterprise-app-users'></a>
+
+### Export Enterprise App Users
+#### Export a CSV of all (entprise) app owners and users
+
+#### Description
+Export a CSV of all (entprise) app owners and users.
+
+#### Where to find
+Org \ Applications \ Export Enterprise App Users
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-list-application-creds-expiry'></a>
+
+### List Application Creds Expiry
+#### List expiry date of all AppRegistration credentials
+
+#### Description
+List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
+Optionally, filter by Application IDs and list only those credentials that are about to expire.
+
+#### Where to find
+Org \ Applications \ List Application Creds Expiry
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-list-inactive-enterprise-apps'></a>
+
+### List Inactive Enterprise Apps
+#### List App registrations, which had no recent user logons.
+
+#### Description
+List App registrations, which had no recent user logons.
+
+#### Where to find
+Org \ Applications \ List Inactive Enterprise Apps
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-report-app-registration'></a>
+
+### Report App Registration
+#### Generate and email a comprehensive App Registration report
+
+#### Description
+This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
+exports them to CSV files, and sends them via email.
+
+#### Where to find
+Org \ Applications \ Report App Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-update-application-registration'></a>
+
+### Update Application Registration
+#### Update an application registration in Azure AD
+
+#### Description
+This script modifies an existing application registration in Azure Active Directory (Entra ID) with comprehensive configuration updates.
+
+The script intelligently determines what changes need to be applied by comparing current settings
+with requested parameters, ensuring only necessary updates are performed. It maintains backward
+compatibility while supporting modern authentication patterns and security requirements.
+
+#### Where to find
+Org \ Applications \ Update Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org'></a>
+
+# Org
 <a name='org-devices'></a>
 
 ## Devices
@@ -864,23 +1006,6 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 <a name='org-general'></a>
 
 ## General
-<a name='org-general-add-application-registration'></a>
-
-### Add Application Registration
-#### Add an application registration to Azure AD
-
-#### Description
-Add an application registration to Azure AD
-
-#### Where to find
-Org \ General \ Add Application Registration
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-general-add-autopilot-device'></a>
 
 ### Add Autopilot Device
@@ -1668,23 +1793,6 @@ Org \ Security \ Backup Conditional Access Policies
  
  
 
-<a name='org-security-export-enterprise-app-users'></a>
-
-### Export Enterprise App Users
-#### Export a CSV of all (entprise) app owners and users
-
-#### Description
-Export a CSV of all (entprise) app owners and users.
-
-#### Where to find
-Org \ Security \ Export Enterprise App Users
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-security-list-admin-users'></a>
 
 ### List Admin Users
@@ -1696,24 +1804,6 @@ Admins will be queried for valid MFA methods.
 
 #### Where to find
 Org \ Security \ List Admin Users
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-security-list-application-creds-expiry'></a>
-
-### List Application Creds Expiry
-#### List expiry date of all AppRegistration credentials
-
-#### Description
-List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
-Optionally, filter by Application IDs and list only those credentials that are about to expire.
-
-#### Where to find
-Org \ Security \ List Application Creds Expiry
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1748,23 +1838,6 @@ Collect devices based on the date of last user logon or last Intune sync.
 
 #### Where to find
 Org \ Security \ List Inactive Devices
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-security-list-inactive-enterprise-apps'></a>
-
-### List Inactive Enterprise Apps
-#### List App registrations, which had no recent user logons.
-
-#### Description
-List App registrations, which had no recent user logons.
-
-#### Where to find
-Org \ Security \ List Inactive Enterprise Apps
 
 
 [Back to Table of Content](#table-of-contents)

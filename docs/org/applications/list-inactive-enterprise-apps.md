@@ -6,7 +6,7 @@
 List App registrations, which had no recent user logons.
 
 ## Where to find
-Org \ Security \ List Inactive Enterprise Apps
+Org \ Applications \ List Inactive Enterprise Apps
 
 ## Permissions
 ### Application permissions

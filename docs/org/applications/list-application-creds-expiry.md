@@ -7,7 +7,7 @@ List the expiry date of all AppRegistration credentials, including Client Secret
 Optionally, filter by Application IDs and list only those credentials that are about to expire.
 
 ## Where to find
-Org \ Security \ List Application Creds Expiry
+Org \ Applications \ List Application Creds Expiry
 
 ## Permissions
 ### Application permissions
