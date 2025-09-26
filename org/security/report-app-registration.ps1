@@ -939,7 +939,8 @@ function Send-RjReportEmail {
         Write-RjRbLog -Message "Email sent successfully" -Verbose
     }
     catch {
-        Write-RjRbLog -Message "Failed to send email: $($_.Exception.Message)" -ErrorAction Stop
+    Write-Output "Failed to send email: $($_.Exception.Message)"
+    throw $_.Exception
     }
 }
 
@@ -949,8 +950,8 @@ function Send-RjReportEmail {
 #region     Connect and Initialize
 ########################################################
 
-Write-RjRbLog -Message "Connecting to Microsoft Graph..." -Verbose
-Connect-MgGraph
+Write-Output -Message "Connecting to Microsoft Graph..."
+Connect-MgGraph -Identity
 
 # Get tenant information
 $tenant = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method GET
@@ -962,7 +963,8 @@ elseif ($tenant.'@odata.context') {
     $tenant = $tenant
 }
 else {
-    Write-RjRbLog -Message "Could not retrieve tenant information" -ErrorAction Stop
+    Write-Output "Could not retrieve tenant information"
+    throw "Could not retrieve tenant information"
 }
 
 $tenantDisplayName = $tenant.displayName
@@ -1223,7 +1225,8 @@ try {
     Write-Output "🗑️ Deleted Apps: $($deletedAppRegResults.Count)"
 }
 catch {
-    Write-RjRbLog -Message "Failed to send email report: $($_.Exception.Message)" -ErrorAction Stop
+    Write-Output "Failed to send email report: $($_.Exception.Message)"
+    throw $_.Exception
 }
 
 #endregion
