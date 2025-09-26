@@ -1120,14 +1120,14 @@ $csvFiles = @()
 $activeAppRegCsv = Join-Path $tempDir "AppRegistrations_Active.csv"
 $appRegResults | Export-Csv -Path $activeAppRegCsv -NoTypeInformation -Encoding UTF8
 $csvFiles += $activeAppRegCsv
-Write-Output "Exported active App Registrations to: $activeAppRegCsv"
+Write-Verbose "Exported active App Registrations to: $activeAppRegCsv"
 
 # Export deleted App Registrations (if any)
 if ((($(($deletedAppRegResults) | Measure-Object).Count) -gt 0)) {
     $deletedAppRegCsv = Join-Path $tempDir "AppRegistrations_Deleted.csv"
     $deletedAppRegResults | Export-Csv -Path $deletedAppRegCsv -NoTypeInformation -Encoding UTF8
     $csvFiles += $deletedAppRegCsv
-    Write-Output "Exported deleted App Registrations to: $deletedAppRegCsv"
+    Write-Verbose "Exported deleted App Registrations to: $deletedAppRegCsv"
 }
 
 #endregion
