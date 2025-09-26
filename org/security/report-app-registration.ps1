@@ -939,8 +939,8 @@ function Send-RjReportEmail {
         Write-RjRbLog -Message "Email sent successfully" -Verbose
     }
     catch {
-    Write-Output "Failed to send email: $($_.Exception.Message)"
-    throw $_.Exception
+        Write-Error "Failed to send email: $($_.Exception.Message)" -ErrorAction Continue
+        throw "Failed to send email: $($_.Exception.Message)"
     }
 }
 
@@ -950,9 +950,10 @@ function Send-RjReportEmail {
 #region     Connect and Initialize
 ########################################################
 
-Write-Output -Message "Connecting to Microsoft Graph..."
-Connect-MgGraph -Identity
+Write-Output "Connecting to Microsoft Graph..."
+Connect-MgGraph -Identity -NoWelcome
 
+Write-Output "Getting basic tenant information..."
 # Get tenant information
 $tenant = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method GET
 if ($tenant.value -and (($(($tenant.value) | Measure-Object).Count) -gt 0)) {
@@ -963,7 +964,7 @@ elseif ($tenant.'@odata.context') {
     $tenant = $tenant
 }
 else {
-    Write-Output "Could not retrieve tenant information"
+    Write-Error "Could not retrieve tenant information" -ErrorAction Continue
     throw "Could not retrieve tenant information"
 }
 
@@ -972,6 +973,7 @@ $tenantId = $tenant.id
 
 Write-RjRbLog -Message "Tenant: $tenantDisplayName ($tenantId)" -Verbose
 
+Write-Output "Preparing temporary directory for CSV files..."
 # Create temporary directory for CSV files
 $tempDir = Join-Path (Get-Location).Path "AppRegReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
 New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
@@ -983,7 +985,7 @@ Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 #region     Get App Registrations
 ########################################################
 
-Write-RjRbLog -Message "Retrieving all App Registrations..." -Verbose
+Write-Output "Retrieving all App Registrations..."
 
 # Function to get all pages from Graph API
 function Get-AllGraphPages {
@@ -1012,7 +1014,7 @@ function Get-AllGraphPages {
 }
 
 $allAppRegs = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
-Write-RjRbLog -Message "Found $((($(($allAppRegs) | Measure-Object).Count))) App Registrations" -Verbose
+Write-Output "Found $((($(($allAppRegs) | Measure-Object).Count))) App Registrations..."
 
 $appRegResults = @()
 $processedCount = 0
@@ -1071,11 +1073,11 @@ Write-RjRbLog -Message "Processed all $((($(($appRegResults) | Measure-Object).C
 $deletedAppRegResults = @()
 
 if ($IncludeDeletedApps) {
-    Write-RjRbLog -Message "Retrieving deleted App Registrations..." -Verbose
+    Write-Output "Retrieving deleted App Registrations..."
 
     try {
         $deletedAppRegs = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/directory/deletedItems/microsoft.graph.application"
-        Write-RjRbLog -Message "Found $((($(($deletedAppRegs) | Measure-Object).Count))) deleted App Registrations" -Verbose
+        Write-Output "Found $((($(($deletedAppRegs) | Measure-Object).Count))) deleted App Registrations"
 
         foreach ($appReg in $deletedAppRegs) {
             $tempObj = [PSCustomObject]@{
@@ -1118,14 +1120,14 @@ $csvFiles = @()
 $activeAppRegCsv = Join-Path $tempDir "AppRegistrations_Active.csv"
 $appRegResults | Export-Csv -Path $activeAppRegCsv -NoTypeInformation -Encoding UTF8
 $csvFiles += $activeAppRegCsv
-Write-RjRbLog -Message "Exported active App Registrations to: $activeAppRegCsv" -Verbose
+Write-Output "Exported active App Registrations to: $activeAppRegCsv"
 
 # Export deleted App Registrations (if any)
 if ((($(($deletedAppRegResults) | Measure-Object).Count) -gt 0)) {
     $deletedAppRegCsv = Join-Path $tempDir "AppRegistrations_Deleted.csv"
     $deletedAppRegResults | Export-Csv -Path $deletedAppRegCsv -NoTypeInformation -Encoding UTF8
     $csvFiles += $deletedAppRegCsv
-    Write-RjRbLog -Message "Exported deleted App Registrations to: $deletedAppRegCsv" -Verbose
+    Write-Output "Exported deleted App Registrations to: $deletedAppRegCsv"
 }
 
 #endregion
@@ -1134,6 +1136,7 @@ if ((($(($deletedAppRegResults) | Measure-Object).Count) -gt 0)) {
 #region     Prepare Email Content
 ########################################################
 
+Write-Output "Preparing email content..."
 # Generate statistics
 $activeAppsWithSecrets = (($(($appRegResults | Where-Object { $_.HasSecrets }) | Measure-Object).Count))
 $activeAppsWithCerts = (($(($appRegResults | Where-Object { $_.HasCertificates }) | Measure-Object).Count))
@@ -1205,13 +1208,8 @@ The attached CSV files contain detailed information including:
 #region     Send Email Report
 ########################################################
 
-Write-RjRbLog -Message "Preparing to send email report..." -Verbose
-
-# Set default sender if not provided
-if ([string]::IsNullOrWhiteSpace($EmailFrom)) {
-    $EmailFrom = "reports@$($tenant.verifiedDomains | Where-Object { $_.isDefault } | Select-Object -ExpandProperty name)"
-    Write-RjRbLog -Message "Using default sender: $($EmailFrom)" -Verbose
-}
+Write-Output "Send email report..."
+Write-Output ""
 
 $emailSubject = "App Registration Report - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"
 
@@ -1225,8 +1223,8 @@ try {
     Write-Output "🗑️ Deleted Apps: $($deletedAppRegResults.Count)"
 }
 catch {
-    Write-Output "Failed to send email report: $($_.Exception.Message)"
-    throw $_.Exception
+    Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
+    throw "Failed to send email report: $($_.Exception.Message)"
 }
 
 #endregion
