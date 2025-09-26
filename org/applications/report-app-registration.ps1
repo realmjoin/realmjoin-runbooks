@@ -1214,7 +1214,7 @@ Write-Output ""
 $emailSubject = "App Registration Report - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"
 
 try {
-    Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -Attachments $csvFiles -TenantDisplayName $tenantDisplayName
+    Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -Attachments $csvFiles -TenantDisplayName $tenantDisplayName -ReportVersion $Version
 
     Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
     Write-Output "✅ App Registration report generated and sent successfully"
