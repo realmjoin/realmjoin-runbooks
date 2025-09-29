@@ -6,7 +6,7 @@
 Export a CSV of all (entprise) app owners and users.
 
 ## Where to find
-Org \ Security \ Export Enterprise App Users
+Org \ Applications \ Export Enterprise App Users
 
 ## Notes
 Permissions:

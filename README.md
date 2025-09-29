@@ -67,6 +67,15 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Archive Team](docs/group/teams/archive-team.md)
 - [Org](docs/org/README.md)
+  - [Applications](docs/org/README.md#org-applications)
+
+    - [Add Application Registration](docs/org/applications/add-application-registration.md)
+    - [Delete Application Registration](docs/org/applications/delete-application-registration.md)
+    - [Export Enterprise App Users](docs/org/applications/export-enterprise-app-users.md)
+    - [List Application Creds Expiry](docs/org/applications/list-application-creds-expiry.md)
+    - [List Inactive Enterprise Apps](docs/org/applications/list-inactive-enterprise-apps.md)
+    - [Report App Registration](docs/org/applications/report-app-registration.md)
+    - [Update Application Registration](docs/org/applications/update-application-registration.md)
   - [Devices](docs/org/README.md#org-devices)
 
     - [Delete Stale Devices_Scheduled](docs/org/devices/delete-stale-devices_scheduled.md)
@@ -79,7 +88,6 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Sync Device Serialnumbers To Entraid_Scheduled](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)
 
-    - [Add Application Registration](docs/org/general/add-application-registration.md)
     - [Add Autopilot Device](docs/org/general/add-autopilot-device.md)
     - [Add Device Via Corporate Identifier](docs/org/general/add-device-via-corporate-identifier.md)
     - [Add Devices Of Users To Group_Scheduled](docs/org/general/add-devices-of-users-to-group_scheduled.md)
@@ -131,12 +139,9 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Defender Indicator](docs/org/security/add-defender-indicator.md)
     - [Backup Conditional Access Policies](docs/org/security/backup-conditional-access-policies.md)
-    - [Export Enterprise App Users](docs/org/security/export-enterprise-app-users.md)
     - [List Admin Users](docs/org/security/list-admin-users.md)
-    - [List Application Creds Expiry](docs/org/security/list-application-creds-expiry.md)
     - [List Expiring Role Assignments](docs/org/security/list-expiring-role-assignments.md)
     - [List Inactive Devices](docs/org/security/list-inactive-devices.md)
-    - [List Inactive Enterprise Apps](docs/org/security/list-inactive-enterprise-apps.md)
     - [List Inactive Users](docs/org/security/list-inactive-users.md)
     - [List Information Protection Labels](docs/org/security/list-information-protection-labels.md)
     - [List Pim Rolegroups Without Owners_Scheduled](docs/org/security/list-pim-rolegroups-without-owners_scheduled.md)

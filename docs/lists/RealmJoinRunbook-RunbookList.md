@@ -50,6 +50,14 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
     - Archive Team
 - [Org](#org)
+  - [Applications](#org-applications)
+    - Add Application Registration
+    - Delete Application Registration
+    - Export Enterprise App Users
+    - List Application Creds Expiry
+    - List Inactive Enterprise Apps
+    - Report App Registration
+    - Update Application Registration
   - [Devices](#org-devices)
     - Delete Stale Devices_Scheduled
     - Get Bitlocker Recovery Key
@@ -60,7 +68,6 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report Users With More Than 5-Devices
     - Sync Device Serialnumbers To Entraid_Scheduled
   - [General](#org-general)
-    - Add Application Registration
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
     - Add Devices Of Users To Group_Scheduled
@@ -109,12 +116,9 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#org-security)
     - Add Defender Indicator
     - Backup Conditional Access Policies
-    - Export Enterprise App Users
     - List Admin Users
-    - List Application Creds Expiry
     - List Expiring Role Assignments
     - List Inactive Devices
-    - List Inactive Enterprise Apps
     - List Inactive Users
     - List Information Protection Labels
     - List Pim Rolegroups Without Owners_Scheduled
@@ -251,6 +255,20 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='org'></a>
 # Org
+<a name='org-applications'></a>
+## Applications
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Add Application Registration | Add an application registration to Azure AD |
+| Delete Application Registration | Delete an application registration from Azure AD |
+| Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
+| List Application Creds Expiry | List expiry date of all AppRegistration credentials |
+| List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
+| Report App Registration | Generate and email a comprehensive App Registration report |
+| Update Application Registration | Update an application registration in Azure AD |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='org-devices'></a>
 ## Devices
 | Runbook Name | Synopsis |
@@ -270,7 +288,6 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## General
 | Runbook Name | Synopsis |
 |--------------|----------|
-| Add Application Registration | Add an application registration to Azure AD |
 | Add Autopilot Device | Import a windows device into Windows Autopilot. |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
 | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
@@ -337,12 +354,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Defender Indicator | Create new Indicator in Defender for Endpoint. |
 | Backup Conditional Access Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
-| Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
 | List Admin Users | List AzureAD role holders and their MFA state. |
-| List Application Creds Expiry | List expiry date of all AppRegistration credentials |
 | List Expiring Role Assignments | List Azure AD role assignments that will expire before a given number of days. |
 | List Inactive Devices | List/export inactive evices, which had no recent user logons. |
-| List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
 | List Inactive Users | List users, that have no recent interactive signins. |
 | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |

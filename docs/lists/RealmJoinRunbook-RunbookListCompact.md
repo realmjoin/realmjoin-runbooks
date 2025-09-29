@@ -32,7 +32,14 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Mail | Enable Or Disable External Mail | Enable/disable external parties to send eMails to O365 groups. |
 |  |  | Show Or Hide In Address Book | (Un)hide an O365- or static Distribution-group in Address Book. |
 |  | Teams | Archive Team | Archive a team. |
-| Org | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
+| Org | Applications | Add Application Registration | Add an application registration to Azure AD |
+|  |  | Delete Application Registration | Delete an application registration from Azure AD |
+|  |  | Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
+|  |  | List Application Creds Expiry | List expiry date of all AppRegistration credentials |
+|  |  | List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
+|  |  | Report App Registration | Generate and email a comprehensive App Registration report |
+|  |  | Update Application Registration | Update an application registration in Azure AD |
+|  | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
 |  |  | Get Bitlocker Recovery Key | Get BitLocker recovery key |
 |  |  | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Outphase Devices | Remove/Outphase multiple devices |
@@ -40,8 +47,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
 |  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
 |  |  | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
-|  | General | Add Application Registration | Add an application registration to Azure AD |
-|  |  | Add Autopilot Device | Import a windows device into Windows Autopilot. |
+|  | General | Add Autopilot Device | Import a windows device into Windows Autopilot. |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
 |  |  | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
 |  |  | Add Management Partner | List or add or Management Partner Links (PAL) |
@@ -86,12 +92,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Phone | Get Teams Phone Number Assignment | Looks up, if the given phone number is assigned to a user in Microsoft Teams. |
 |  | Security | Add Defender Indicator | Create new Indicator in Defender for Endpoint. |
 |  |  | Backup Conditional Access Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
-|  |  | Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
 |  |  | List Admin Users | List AzureAD role holders and their MFA state. |
-|  |  | List Application Creds Expiry | List expiry date of all AppRegistration credentials |
 |  |  | List Expiring Role Assignments | List Azure AD role assignments that will expire before a given number of days. |
 |  |  | List Inactive Devices | List/export inactive evices, which had no recent user logons. |
-|  |  | List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
 |  |  | List Inactive Users | List users, that have no recent interactive signins. |
 |  |  | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 |  |  | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |

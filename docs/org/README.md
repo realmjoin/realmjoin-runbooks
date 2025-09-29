@@ -1,5 +1,14 @@
 # Org Overview
 
+<a name='org-applications'></a>
+## Applications
+  - [Add Application Registration](applications/add-application-registration.md)
+  - [Delete Application Registration](applications/delete-application-registration.md)
+  - [Export Enterprise App Users](applications/export-enterprise-app-users.md)
+  - [List Application Creds Expiry](applications/list-application-creds-expiry.md)
+  - [List Inactive Enterprise Apps](applications/list-inactive-enterprise-apps.md)
+  - [Report App Registration](applications/report-app-registration.md)
+  - [Update Application Registration](applications/update-application-registration.md)
 <a name='org-devices'></a>
 ## Devices
   - [Delete Stale Devices_Scheduled](devices/delete-stale-devices_scheduled.md)
@@ -12,7 +21,6 @@
   - [Sync Device Serialnumbers To Entraid_Scheduled](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
 <a name='org-general'></a>
 ## General
-  - [Add Application Registration](general/add-application-registration.md)
   - [Add Autopilot Device](general/add-autopilot-device.md)
   - [Add Device Via Corporate Identifier](general/add-device-via-corporate-identifier.md)
   - [Add Devices Of Users To Group_Scheduled](general/add-devices-of-users-to-group_scheduled.md)
@@ -64,12 +72,9 @@
 ## Security
   - [Add Defender Indicator](security/add-defender-indicator.md)
   - [Backup Conditional Access Policies](security/backup-conditional-access-policies.md)
-  - [Export Enterprise App Users](security/export-enterprise-app-users.md)
   - [List Admin Users](security/list-admin-users.md)
-  - [List Application Creds Expiry](security/list-application-creds-expiry.md)
   - [List Expiring Role Assignments](security/list-expiring-role-assignments.md)
   - [List Inactive Devices](security/list-inactive-devices.md)
-  - [List Inactive Enterprise Apps](security/list-inactive-enterprise-apps.md)
   - [List Inactive Users](security/list-inactive-users.md)
   - [List Information Protection Labels](security/list-information-protection-labels.md)
   - [List Pim Rolegroups Without Owners_Scheduled](security/list-pim-rolegroups-without-owners_scheduled.md)

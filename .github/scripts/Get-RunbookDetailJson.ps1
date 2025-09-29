@@ -6,7 +6,7 @@
     This script collects information from all RealmJoin runbooks in a specified folder and generates based on parameters several markdown kind of lists documents with the runbook details. The script can create the following documents:
     - A list of all runbooks with a short description. The created document also contains a table of contents and backlinks to the table of contents. In this document, the information regarding the following parameters are included: Category, Subcategory, Runbook Name, Synopsis, Description
     - A compact list of all runbooks with a short description. The created document does not contain a table of contents or other links. In the list, the columns are Category, Subcategory, Runbook Name and Synopsis
-    - A list of permissions and RBAC roles for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.    
+    - A list of permissions and RBAC roles for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.
 
     .PARAMETER includedScope
     The scope of the runbooks to include, which represents the root folder of the runbooks. The default value is "device", "group", "org", "user".
@@ -54,7 +54,7 @@ function Get-RunbookBasics {
     $runbookDisplayName = (Split-Path -LeafBase $runbookPath | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
     $runbookDisplayPath = ($relativeRunbookPath -replace "\.ps1$", "") -replace "[\\/]", ' \ ' | ForEach-Object { $TextInfo.ToTitleCase($_) }
     $runbookDisplayPath = $runbookDisplayPath -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
-    
+
 
     return @{
         RunbookDisplayName = $runbookDisplayName
@@ -110,7 +110,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $includedScope -contains $_.Directory.Parent.Name
 } | ForEach-Object {
     $CurrentObject = $_
-    
+
     $relativeRunbookPath = $CurrentObject.FullName -replace "^$rootFolder[\\/]*", ""
     $RelativeRunbookPath_PathOnly = Split-Path -Path $relativeRunbookPath
     $primaryFolder = ($RelativeRunbookPath_PathOnly -split "[\\/]" | Select-Object -First 1).Substring(0, 1).ToUpper() + ($RelativeRunbookPath_PathOnly -split "[\\/]" | Select-Object -First 1).Substring(1)
@@ -135,7 +135,14 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     else { $null }
 
     $docsContent = if ($null -ne $docsPath) { Get-Content -Path $docsPath -Raw }
-    $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw } 
+    if ($null -ne $docsContent) {
+        $docsContentEncoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($docsContent))
+    }else {
+        $docsContentEncoded = $null
+    }
+
+    $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw }
+    $permissionsJSON = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw | ConvertFrom-Json }
 
     $runbookDescriptions += [PSCustomObject]@{
         RunbookDisplayName           = $CurrentRunbookBasics.RunbookDisplayName
@@ -149,7 +156,9 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
         Notes                        = $CurrentRunbookBasics.Notes
         Parameters                   = $CurrentRunbookBasics.Parameters.parameter
         DocsContent                  = $docsContent
+        DocsContentEncoded           = $docsContentEncoded
         PermissionsContent           = $permissionsContent
+        PermissionsJson              = $permissionsJSON
     }
 }
 

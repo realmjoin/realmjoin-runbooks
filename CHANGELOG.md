@@ -1,4 +1,8 @@
 # RealmJoin Runbooks Changelog
+## 2025-09-26
+  - Add runbook in Org/Applications
+    - Updated/Added Versions add, update, delete and list application registrations
+
 ## 2025-08-27
   - Add AVD runbook
     - device/avd/restart-host
