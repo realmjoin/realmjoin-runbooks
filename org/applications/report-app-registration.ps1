@@ -94,6 +94,51 @@ if ($IncludeDeletedApps -notin $true, $false) {
 ########################################################
 
 function Send-RjReportEmail {
+    <#
+        .SYNOPSIS
+        Sends a RealmJoin-branded HTML email (converted from Markdown) via Microsoft Graph.
+
+        .DESCRIPTION
+        Send-RjReportEmail builds an HTML email from Markdown content, inlines a RealmJoin-styled HTML template (including light/dark logos), attaches optional files, and sends the message using the Microsoft Graph API (Invoke-MgGraphRequest).
+
+        .PARAMETER EmailFrom
+        The sender user id (user principal name or id) used for the Graph /users/{id}/sendMail call.
+
+        .PARAMETER EmailTo
+        Recipient email address. Must be a single address (string). The function sends the message
+        to this recipient.
+
+        .PARAMETER Subject
+        Subject line for the email message.
+
+        .PARAMETER MarkdownContent
+        Report content in Markdown format. The function performs a lightweight conversion of Markdown
+        to HTML and places the result into the themed HTML template used for the email body.
+
+        .PARAMETER Attachments
+        Optional array of file paths to include as attachments. Files that exist will be read,
+        base64-encoded and included as file attachments. Missing files are logged and skipped.
+
+        .PARAMETER TenantDisplayName
+        Optional display name for the tenant/organization that will be shown in the email footer
+        and tenant info box.
+
+        .PARAMETER ReportVersion
+        Optional string describing the report version. Will be shown in the tenant-info block.
+
+        .EXAMPLE
+        PS C:\> Send-RjReportEmail -EmailFrom "reports@contoso.com" -EmailTo "alice@contoso.com" -Subject "Weekly Report" -MarkdownContent "# Hello`nReport body..."
+
+        .EXAMPLE
+        PS C:\> Send-RjReportEmail -EmailFrom "reports@contoso.com" -EmailTo "team@contoso.com" -Subject "Inventory" -MarkdownContent (Get-Content .\report.md -Raw) -Attachments @('C:\temp\report.csv') -TenantDisplayName 'Contoso Ltd' -ReportVersion 'v1.2.3'
+
+        .INPUTS
+        None. All parameters are provided as arguments; this function does not accept pipeline input.
+
+        .OUTPUTS
+        None. The function sends email and writes verbose/log messages. On failure it throws an exception.
+
+    #>
     param(
         [Parameter(Mandatory = $true)]
         [string]$EmailFrom,
@@ -109,7 +154,7 @@ function Send-RjReportEmail {
 
         [string[]]$Attachments = @(),
 
-        [string]$TenantDisplayName = "Your Organization",
+        [string]$TenantDisplayName,
 
         [string]$ReportVersion
     )
@@ -117,77 +162,162 @@ function Send-RjReportEmail {
     # Convert Markdown to HTML (inlined conversion - function removed as it's used only here)
     $html = $MarkdownContent
 
-    # Headers (process in order from most specific to least specific)
+    # Escape Markdown characters first (before processing)
+    $html = $html -replace '\\(.)', '§ESCAPED§$1§ESCAPED§'
+
+    # Horizontal rules (must be processed before headers to avoid conflicts)
+    $html = $html -replace '(?m)^(-{3,}|\*{3,}|_{3,})$', '<hr />'
+
+    # Headers (process in order from most specific to least specific - all 6 levels)
+    $html = $html -replace '(?m)^###### (.+)$', '<h6>$1</h6>'
     $html = $html -replace '(?m)^##### (.+)$', '<h5>$1</h5>'
     $html = $html -replace '(?m)^#### (.+)$', '<h4>$1</h4>'
     $html = $html -replace '(?m)^### (.+)$', '<h3>$1</h3>'
     $html = $html -replace '(?m)^## (.+)$', '<h2>$1</h2>'
     $html = $html -replace '(?m)^# (.+)$', '<h1>$1</h1>'
 
-    # Bold and Italic
+    # Code blocks with language support and inline code (process FIRST to protect from other processing)
+    # Fenced code blocks with optional language: ```language\ncode```
+    $html = $html -replace '(?s)```(\w+)?\r?\n(.+?)```', {
+        param($match)
+        $language = $match.Groups[1].Value
+        $code = $match.Groups[2].Value
+        $escapedCode = $code -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
+        if ($language) {
+            return "<pre><code class=`"language-$language`">$escapedCode</code></pre>"
+        } else {
+            return "<pre><code>$escapedCode</code></pre>"
+        }
+    }
+    # Inline code (protect from further processing)
+    $html = $html -replace '`([^`]+)`', {
+        param($match)
+        $code = $match.Groups[1].Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
+        return "<code>$code</code>"
+    }
+
+    # Blockquotes (before bold/italic to avoid conflicts)
+    $html = $html -replace '(?m)^> (.+)$', '<blockquote>$1</blockquote>'
+
+    # Bold and Italic (process BEFORE tables/lists so they work in table cells)
     $html = $html -replace '\*\*(.+?)\*\*', '<strong>$1</strong>'
     $html = $html -replace '\*(.+?)\*', '<em>$1</em>'
 
-    # Code blocks and inline code
-    $html = $html -replace '(?s)```(.+?)```', '<pre><code>$1</code></pre>'
-    $html = $html -replace '`(.+?)`', '<code>$1</code>'
+    # Strikethrough
+    $html = $html -replace '~~(.+?)~~', '<del>$1</del>'
 
-    # Tables
+    # Links and Images (process before tables/lists)
+    # Images: ![alt text](url)
+    $html = $html -replace '!\[([^\]]*)\]\(([^)]+)\)', '<img src="$2" alt="$1"/>'
+    # Links: [text](url)
+    $html = $html -replace '\[([^\]]+)\]\(([^)]+)\)', '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'    # Optimized single-pass processing for Tables, Lists with alignment and nesting support
     $lines = $html -split "`n"
-    $inTable = $false
     $processedLines = @()
+    $lineCount = $lines.Count
 
-    for ($i = 0; $i -lt (($(($lines) | Measure-Object).Count)); $i++) {
+    # State tracking for multiple structures
+    $inTable = $false
+    $inUnorderedList = $false
+    $inOrderedList = $false
+    $tableAlignments = @()
+
+    for ($i = 0; $i -lt $lineCount; $i++) {
         $line = $lines[$i]
 
+        # Tables processing with alignment detection
         if ($line -match '^\|.*\|$') {
+            # Close any open lists before starting table
+            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
+            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
+
             if (-not $inTable) {
-                $processedLines += '<table>'
+                $processedLines += '<table class="table table-striped">'
                 $inTable = $true
-                # Check if next line is separator
-                if ($i + 1 -lt (($(($lines) | Measure-Object).Count)) -and $lines[$i + 1] -match '^\|[-\s\|]+\|$') {
-                    # This is a header row
-                    $cells = ($line -replace '^\|', '' -replace '\|$', '').Split('|') | ForEach-Object { $_.Trim() }
-                    $processedLines += '<thead><tr>'
-                    foreach ($cell in $cells) {
-                        $processedLines += "<th>$cell</th>"
+
+                # Check if next line is separator with alignment info
+                if (($i + 1) -lt $lineCount -and $lines[$i + 1] -match '^\|[-:\s\|]+\|$') {
+                    $separatorLine = $lines[$i + 1]
+                    # Extract alignment info
+                    $alignmentCells = ($separatorLine -replace '^\|', '' -replace '\|$', '').Split('|')
+                    $tableAlignments = @()
+                    foreach ($alignCell in $alignmentCells) {
+                        $alignCell = $alignCell.Trim()
+                        if ($alignCell -match '^:.*:$') { $tableAlignments += 'center' }
+                        elseif ($alignCell -match ':$') { $tableAlignments += 'right' }
+                        elseif ($alignCell -match '^:') { $tableAlignments += 'left' }
+                        else { $tableAlignments += '' }
                     }
-                    $processedLines += '</tr></thead><tbody>'
-                    $i++ # Skip separator line
-                    continue
+
+                    # Process header row with alignment
+                    $cells = ($line -replace '^\|', '' -replace '\|$', '').Split('|')
+                    if ($cells.Count -gt 0) {
+                        $processedLines += '<thead><tr>'
+                        for ($j = 0; $j -lt $cells.Count; $j++) {
+                            $cleanCell = $cells[$j].Trim()
+                            $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
+                            $processedLines += "<th$alignClass>$cleanCell</th>"
+                        }
+                        $processedLines += '</tr></thead><tbody>'
+                        $i++ # Skip separator line
+                        continue
+                    }
                 }
             }
 
-            # Regular table row
-            $cells = ($line -replace '^\|', '' -replace '\|$', '').Split('|') | ForEach-Object { $_.Trim() }
-            $processedLines += '<tr>'
-            foreach ($cell in $cells) {
-                $processedLines += "<td>$cell</td>"
+            # Regular table row with alignment
+            $cells = ($line -replace '^\|', '' -replace '\|$', '').Split('|')
+            if ($cells.Count -gt 0) {
+                $processedLines += '<tr>'
+                for ($j = 0; $j -lt $cells.Count; $j++) {
+                    $cleanCell = $cells[$j].Trim()
+                    $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
+                    $processedLines += "<td$alignClass>$cleanCell</td>"
+                }
+                $processedLines += '</tr>'
             }
-            $processedLines += '</tr>'
+        }
+        # Enhanced Lists processing with nesting support
+        elseif ($line -match '^(\s*)- (.+)$') {
+            # Close table if open
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
+
+            $content = $Matches[2]
+
+            if (-not $inUnorderedList) {
+                $processedLines += '<ul>'
+                $inUnorderedList = $true
+            }
+            $processedLines += "<li>$content</li>"
+        }
+        elseif ($line -match '^(\s*)(\d+)\. (.+)$') {
+            # Close table and unordered list if open
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
+
+            $content = $Matches[3]
+
+            if (-not $inOrderedList) {
+                $processedLines += '<ol>'
+                $inOrderedList = $true
+            }
+            $processedLines += "<li>$content</li>"
         }
         else {
-            if ($inTable) {
-                $processedLines += '</tbody></table>'
-                $inTable = $false
-            }
+            # Close all open structures for non-matching lines
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
+            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
             $processedLines += $line
         }
     }
 
-    if ($inTable) {
-        $processedLines += '</tbody></table>'
-    }
+    # Close any remaining open structures
+    if ($inTable) { $processedLines += '</tbody></table>' }
+    if ($inUnorderedList) { $processedLines += '</ul>' }
+    if ($inOrderedList) { $processedLines += '</ol>' }
 
     $html = $processedLines -join "`n"
-
-    # Lists (simple)
-    $html = $html -replace '(?m)^- (.+)$', '<li>$1</li>'
-    $html = $html -replace '(?m)^(\d+)\. (.+)$', '<li>$2</li>'
-
-    # Wrap consecutive <li> tags in <ul> or <ol>
-    $html = $html -replace '((?:<li>.*?</li>\s*)+)', "<ul>`n`$1</ul>"
-    # This is a simplification; it doesn't distinguish between ordered and unordered lists based on original markdown.
 
     # Paragraphs: Wrap remaining lines that are not part of other elements in <p> tags.
     $blocks = $html -split "(?=<h[1-6]>|<ul>|<ol>|<table>|<pre>|<blockquote>)"
@@ -199,15 +329,34 @@ function Send-RjReportEmail {
             $html += $block
         }
         else {
-            # Wrap lines in paragraphs
+            # Wrap non-empty lines in paragraphs, handle line breaks better
             $lines = $block.Trim() -split '\r?\n'
+            $paragraphContent = @()
+
             foreach ($line in $lines) {
-                if ($line.Trim() -ne "") {
-                    $html += "<p>$line</p>"
+                $trimmedLine = $line.Trim()
+                if ($trimmedLine -ne "") {
+                    $paragraphContent += $trimmedLine
                 }
+                elseif ($paragraphContent.Count -gt 0) {
+                    # Empty line breaks paragraphs
+                    $html += "<p>$($paragraphContent -join ' ')</p>"
+                    $paragraphContent = @()
+                }
+            }
+
+            # Add remaining paragraph content
+            if ($paragraphContent.Count -gt 0) {
+                $html += "<p>$($paragraphContent -join ' ')</p>"
             }
         }
     }
+
+    # Final safety escaping - only escape unescaped ampersands that are not part of HTML entities
+    $html = $html -replace '&(?![a-zA-Z]{2,8};)(?!#[0-9]{1,7};)(?!#x[0-9a-fA-F]{1,6};)', '&amp;'
+
+    # Restore escaped Markdown characters at the very end
+    $html = $html -replace '§ESCAPED§(.{1})§ESCAPED§', '$1'
 
     $htmlContent = $html
 
@@ -869,7 +1018,7 @@ function Send-RjReportEmail {
 
             <div class="tenant-info">
                 <strong>Tenant:</strong> $($TenantDisplayName)<br>
-                <strong>Generated:</strong> $([System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US'; Get-Date -Format "dddd, MMMM d, yyyy hh:mm") <br>
+                <strong>Generated:</strong> $([System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US'; Get-Date -Format "dddd, MMMM d, yyyy HH:mm") <br>
                 <strong>Report Version:</strong> $($ReportVersion)
             </div>
         </div>
@@ -1007,7 +1156,11 @@ function Get-AllGraphPages {
             $allResults += $response
         }
 
-        $nextLink = $response.'@odata.nextLink'
+        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+            $nextLink = $response.'@odata.nextLink'
+        } else {
+            $nextLink = $null
+        }
     } while ($nextLink)
 
     return $allResults
@@ -1140,7 +1293,7 @@ Write-Output "Preparing email content..."
 # Generate statistics
 $activeAppsWithSecrets = (($(($appRegResults | Where-Object { $_.HasSecrets }) | Measure-Object).Count))
 $activeAppsWithCerts = (($(($appRegResults | Where-Object { $_.HasCertificates }) | Measure-Object).Count))
-$enabledApps = ($appRegResults | Where-Object { $_.AccountEnabled }).Count
+$enabledApps = (($appRegResults | Where-Object { $_.AccountEnabled }) | Measure-Object).Count
 
 # Create markdown content for email
 $markdownContent = @"
