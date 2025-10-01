@@ -789,18 +789,18 @@ function Get-RjReportEmailBody {
         .content th {
             background: linear-gradient(135deg, #f8842c 0%, #e67c28 100%) !important;
             color: #ffffff !important;
-            padding: 10px 14px;
+            padding: 12px 16px;
             text-align: left;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
         .content td {
-            padding: 18px 24px;
+            padding: 12px 16px;
             border-bottom: 1px solid #f3f4f6;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .content tr:nth-child(even) {
