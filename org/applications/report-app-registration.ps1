@@ -789,7 +789,7 @@ function Get-RjReportEmailBody {
         .content th {
             background: linear-gradient(135deg, #f8842c 0%, #e67c28 100%) !important;
             color: #ffffff !important;
-            padding: 12px 16px;
+            padding: 10px 14px;
             text-align: left;
             font-weight: 600;
             font-size: 15px;
