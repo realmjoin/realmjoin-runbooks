@@ -80,8 +80,9 @@ Write-RjRbLog -Message "Include Deleted Apps: $IncludeDeletedApps" -Verbose
 
 # Validate Email Addresses
 if (-not $EmailFrom) {
-    Write-RjRbLog -Message "The sender email address is required. This needs to be configured in the runbook customization." -Verbose
-    throw "The sender email address is required."
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/blob/master/docs/org/applications/report-app-registration.md" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/blob/master/docs/org/applications/report-app-registration.md"
+    exit
 }
 
 if (-not $EmailTo) {
