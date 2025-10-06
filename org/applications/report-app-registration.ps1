@@ -7,10 +7,11 @@
     exports them to CSV files, and sends them via email.
 
 .PARAMETER EmailTo
-    The recipient email address for the report. Must be a valid email format!
+    Can be a single address or multiple comma-separated addresses (string).
+    The function sends individual emails to each recipient for privacy reasons.
 
 .PARAMETER EmailFrom
-    The sender email address (optional, will use default if not specified)
+    The sender email address. This needs to be configured in the runbook customization
 
 .PARAMETER IncludeDeletedApps
     Whether to include deleted application registrations in the report (default: true)
@@ -25,7 +26,7 @@
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address"
+                "DisplayName": "Recipient Email Address(es)"
             },
             "EmailFrom": {
                 "Hide": true
@@ -42,7 +43,6 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidatePattern("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
     [string]$EmailTo,
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
@@ -79,9 +79,14 @@ Write-RjRbLog -Message "Include Deleted Apps: $IncludeDeletedApps" -Verbose
 ########################################################
 
 # Validate Email Addresses
-if (-not $EmailTo -or -not $EmailFrom) {
-    Write-RjRbLog -Message "Email addresses are required." -Verbose
-    throw "Email addresses are required."
+if (-not $EmailFrom) {
+    Write-RjRbLog -Message "The sender email address is required. This needs to be configured in the runbook customization." -Verbose
+    throw "The sender email address is required."
+}
+
+if (-not $EmailTo) {
+    Write-RjRbLog -Message "The recipient email address is required. It could be a single address or multiple comma-separated addresses." -Verbose
+    throw "The recipient email address is required."
 }
 
 if ($IncludeDeletedApps -notin $true, $false) {
@@ -92,6 +97,844 @@ if ($IncludeDeletedApps -notin $true, $false) {
 ########################################################
 #region     Email Function Definitions
 ########################################################
+
+function ConvertFrom-MarkdownToHtml {
+    <#
+        .SYNOPSIS
+        Converts Markdown text to HTML with support for common Markdown syntax.
+
+        .DESCRIPTION
+        Lightweight Markdown to HTML converter supporting headers, lists, tables, code blocks,
+        links, images, bold, italic, blockquotes, and horizontal rules.
+
+        .PARAMETER MarkdownText
+        The Markdown text to convert to HTML.
+
+        .EXAMPLE
+        PS C:\> ConvertFrom-MarkdownToHtml -MarkdownText "# Hello World`n`nThis is **bold** text."
+
+        .OUTPUTS
+        System.String. Returns HTML string.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$MarkdownText
+    )
+
+    # Input validation
+    if ([string]::IsNullOrEmpty($MarkdownText)) {
+        return ""
+    }
+
+    $MarkdownText = $MarkdownText.Trim()
+    $html = $MarkdownText
+
+    # Escape Markdown characters first
+    $html = $html -replace '\\(.)', '§ESCAPED§$1§ESCAPED§'
+
+    # Horizontal rules
+    $html = $html -replace '(?m)^(-{3,}|\*{3,}|_{3,})$', '<hr />'
+
+    # Headers (all 6 levels)
+    $html = $html -replace '(?m)^###### (.+)$', '<h6>$1</h6>'
+    $html = $html -replace '(?m)^##### (.+)$', '<h5>$1</h5>'
+    $html = $html -replace '(?m)^#### (.+)$', '<h4>$1</h4>'
+    $html = $html -replace '(?m)^### (.+)$', '<h3>$1</h3>'
+    $html = $html -replace '(?m)^## (.+)$', '<h2>$1</h2>'
+    $html = $html -replace '(?m)^# (.+)$', '<h1>$1</h1>'
+
+    # Code blocks with language support
+    $html = $html -replace '(?s)```(\w+)?\r?\n(.+?)```', {
+        param($match)
+        $language = $match.Groups[1].Value
+        $code = $match.Groups[2].Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '\\`', '`'
+        if ($language) {
+            "<pre><code class=`"language-$language`">$code</code></pre>"
+        }
+        else {
+            "<pre><code>$code</code></pre>"
+        }
+    }
+
+    # Inline code
+    $html = $html -replace '`([^`]+)`', {
+        param($match)
+        $code = $match.Groups[1].Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '\\`', '`'
+        "<code>$code</code>"
+    }
+
+    # Bold and Italic (limit to single line to prevent backtracking)
+    $html = $html -replace '\*\*([^\n\r*]+)\*\*', '<strong>$1</strong>'
+    $html = $html -replace '\*([^\n\r*]+)\*', '<em>$1</em>'
+    $html = $html -replace '~~([^\n\r~]+)~~', '<del>$1</del>'
+
+    # Links and Images
+    $html = $html -replace '!\[([^\]]*)\]\(([^)]+)\)', '<img src="$2" alt="$1"/>'
+    $html = $html -replace '\[([^\]]+)\]\(([^)]+)\)', '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+
+    # Helper functions
+    function Pop-Stack {
+        param([ref]$Stack)
+        if ($Stack.Value.Count -gt 0) {
+            if ($Stack.Value.Count -eq 1) {
+                $Stack.Value = @()  # Ensure it's an array
+            }
+            else {
+                $Stack.Value = @($Stack.Value[0..($Stack.Value.Count - 2)])  # Ensure it's an array
+            }
+        }
+    }
+
+    function Update-ListNesting {
+        param(
+            [int]$TargetLevel,
+            [ref]$ListStack,
+            [ref]$ProcessedLines,
+            [string]$ListType
+        )
+
+        $currentLevel = $ListStack.Value.Count
+
+        if ($TargetLevel -gt $currentLevel) {
+            for ($n = $currentLevel; $n -lt $TargetLevel; $n++) {
+                $ProcessedLines.Value += "<$ListType>"
+                $ListStack.Value += $ListType
+            }
+        }
+        elseif ($TargetLevel -lt $currentLevel) {
+            for ($n = $currentLevel; $n -gt $TargetLevel; $n--) {
+                $closeType = $ListStack.Value[-1]
+                $ProcessedLines.Value += "</$closeType>"
+                Pop-Stack -Stack $ListStack
+            }
+        }
+    }
+
+    function Close-AllLists {
+        param(
+            [ref]$ListStack,
+            [ref]$ProcessedLines,
+            [ref]$InUnorderedList,
+            [ref]$InOrderedList
+        )
+
+        while ($ListStack.Value.Count -gt 0) {
+            $listType = $ListStack.Value[-1]
+            $closeTag = "</$listType>"
+            $ProcessedLines.Value += $closeTag
+            Pop-Stack -Stack $ListStack
+        }
+        $InUnorderedList.Value = $false
+        $InOrderedList.Value = $false
+    }
+
+    # Single-pass line processing
+    $lines = $html -split "`n"
+    $processedLines = @()
+    $lineCount = $lines.Count
+
+    $inTable = $false
+    $inUnorderedList = $false
+    $inOrderedList = $false
+    $inBlockquote = $false
+    $tableAlignments = @()
+    $listStack = @()
+
+    for ($i = 0; $i -lt $lineCount; $i++) {
+        $line = $lines[$i]
+
+        # Blockquote processing
+        if ($line -match '^>\s*(.*)$') {
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+
+            $content = $Matches[1]
+            if (-not $inBlockquote) {
+                $processedLines += '<blockquote>'
+                $inBlockquote = $true
+            }
+            if ($content.Trim() -ne '') {
+                $processedLines += $content
+            }
+        }
+        # Table processing
+        elseif ($line -match '^\|.*\|$') {
+            if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
+            Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+
+            if (-not $inTable) {
+                $processedLines += '<table class="table table-striped">'
+                $inTable = $true
+
+                # Check for separator line with alignment
+                if (($i + 1) -lt $lineCount -and $lines[$i + 1] -match '^\|[-:\s\|]+\|$') {
+                    $separatorLine = $lines[$i + 1]
+                    $alignmentCells = ($separatorLine -replace '^\|', '' -replace '\|$', '').Split('|')
+                    $tableAlignments = @()
+                    foreach ($alignCell in $alignmentCells) {
+                        $alignCell = $alignCell.Trim()
+                        if ($alignCell -match '^:.*:$') { $tableAlignments += 'center' }
+                        elseif ($alignCell -match ':$') { $tableAlignments += 'right' }
+                        elseif ($alignCell -match '^:') { $tableAlignments += 'left' }
+                        else { $tableAlignments += '' }
+                    }
+
+                    # Process header row
+                    $tempLine = $line -replace '\\\|', '§PIPE§'
+                    $cells = ($tempLine -replace '^\|', '' -replace '\|$', '').Split('|')
+                    if ($cells.Count -gt 0) {
+                        $processedLines += '<thead><tr>'
+                        for ($j = 0; $j -lt $cells.Count; $j++) {
+                            $cleanCell = $cells[$j].Trim() -replace '§PIPE§', '|'
+                            if ([string]::IsNullOrWhiteSpace($cleanCell)) { $cleanCell = '&nbsp;' }
+                            $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
+                            $processedLines += "<th$alignClass>$cleanCell</th>"
+                        }
+                        $processedLines += '</tr></thead><tbody>'
+                        $i++
+                        continue
+                    }
+                }
+            }
+
+            # Regular table row
+            $tempLine = $line -replace '\\\|', '§PIPE§'
+            $cells = ($tempLine -replace '^\|', '' -replace '\|$', '').Split('|')
+            if ($cells.Count -gt 0) {
+                $processedLines += '<tr>'
+                for ($j = 0; $j -lt $cells.Count; $j++) {
+                    $cleanCell = $cells[$j].Trim() -replace '§PIPE§', '|'
+                    if ([string]::IsNullOrWhiteSpace($cleanCell)) { $cleanCell = '&nbsp;' }
+                    $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
+                    $processedLines += "<td$alignClass>$cleanCell</td>"
+                }
+                $processedLines += '</tr>'
+            }
+        }
+        # Unordered List processing
+        elseif ($line -match '^(\s*)- (.+)$') {
+            if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
+
+            $indentation = $Matches[1].Length
+            $content = $Matches[2]
+            $nestLevel = [Math]::Floor($indentation / 2)
+
+            # Open first list if needed
+            if (-not $inUnorderedList) {
+                $processedLines += '<ul>'
+                $inUnorderedList = $true
+                $listStack += 'ul'
+            }
+
+            # Handle nesting (nestLevel+1 because nestLevel is 0-based, only update if different)
+            $targetLevel = $nestLevel + 1
+            if ($targetLevel -ne $listStack.Count) {
+                Update-ListNesting -TargetLevel $targetLevel -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -ListType 'ul'
+            }
+
+            $processedLines += "<li>$content</li>"
+        }
+        # Ordered List processing
+        elseif ($line -match '^(\s*)(\d+)\. (.+)$') {
+            if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
+
+            $indentation = $Matches[1].Length
+            $content = $Matches[3]
+            $nestLevel = [Math]::Floor($indentation / 2)
+
+            # Open first list if needed
+            if (-not $inOrderedList) {
+                $processedLines += '<ol>'
+                $inOrderedList = $true
+                $listStack += 'ol'
+            }
+
+            # Handle nesting (nestLevel+1 because nestLevel is 0-based, only update if different)
+            $targetLevel = $nestLevel + 1
+            if ($targetLevel -ne $listStack.Count) {
+                Update-ListNesting -TargetLevel $targetLevel -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -ListType 'ol'
+            }
+
+            $processedLines += "<li>$content</li>"
+        }
+        # Other lines
+        else {
+            if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
+            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+
+            $isHeader = $line -match '^<h[1-6]>'
+            $isEmptyLine = [string]::IsNullOrWhiteSpace($line)
+            $nextLineIsList = $false
+            $nextLineIsHeader = $false
+
+            if ($isEmptyLine -and ($i + 1) -lt $lineCount) {
+                for ($j = $i + 1; $j -lt $lineCount; $j++) {
+                    $nextLine = $lines[$j]
+                    if (-not [string]::IsNullOrWhiteSpace($nextLine)) {
+                        $nextLineIsList = ($nextLine -match '^(\s*)- (.+)$') -or ($nextLine -match '^(\s*)(\d+)\. (.+)$')
+                        $nextLineIsHeader = ($nextLine -match '^<h[1-6]>')
+                        break
+                    }
+                }
+            }
+
+            if ($listStack.Count -gt 0 -and ($isHeader -or ($isEmptyLine -and -not $nextLineIsList -and -not $nextLineIsHeader))) {
+                Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+            }
+
+            if (-not $isEmptyLine -or $listStack.Count -eq 0) {
+                $processedLines += $line
+            }
+        }
+    }
+
+    # Close remaining open structures
+    if ($inBlockquote) { $processedLines += '</blockquote>' }
+    if ($inTable) { $processedLines += '</tbody></table>' }
+    Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+
+    $html = $processedLines -join "`n"
+
+    # Paragraph processing
+    $blocks = $html -split "`n`n+"
+
+    $result = @()
+    foreach ($block in $blocks) {
+        $block = $block.Trim()
+        if ($block -eq "") { continue }
+
+        # Check if block starts with an HTML element tag (opening or closing)
+        if ($block -match "^<(h[1-6]|ul|ol|table|pre|blockquote|hr)[\s>]" -or
+            $block -match "^</(h[1-6]|ul|ol|table|pre|blockquote)>") {
+            $result += $block
+        }
+        # Check if it contains HTML list elements - if so, don't wrap
+        elseif ($block -match "<(h[1-6]|ul|ol|li|table|thead|tbody|tr|td|th|pre|code|blockquote|hr|/ul|/ol)[\s>]") {
+            $result += $block
+        }
+        else {
+            $lines = $block -split "`n"
+            $nonEmptyLines = $lines | Where-Object { $_.Trim() -ne "" }
+            if ($nonEmptyLines.Count -gt 0) {
+                $paragraphContent = $nonEmptyLines -join '<br>'
+                $result += "<p>$paragraphContent</p>"
+            }
+        }
+    }
+
+    $html = $result -join "`n`n"
+
+    # Final safety escaping
+    $html = $html -replace '&(?![a-zA-Z]{2,8};)(?!#[0-9]{1,7};)(?!#x[0-9a-fA-F]{1,6};)', '&amp;'
+
+    # Restore escaped Markdown characters
+    $html = $html -replace '§ESCAPED§(.{1})§ESCAPED§', '$1'
+
+    return $html
+}
+
+function Get-RjReportEmailBody {
+    <#
+        .SYNOPSIS
+        Builds the RealmJoin-branded HTML email body used for report delivery.
+
+        .DESCRIPTION
+        Assembles the static HTML template, injects the converted Markdown content, and renders
+        optional attachment metadata as well as tenant information into the footer section.
+
+        .PARAMETER Subject
+        Subject of the email, used for the HTML <title> element.
+
+        .PARAMETER HtmlContent
+        HTML fragment generated from Markdown that will be embedded in the email body.
+
+        .PARAMETER Attachments
+        Optional list of attachment file paths to surface in the "Attached Files" section.
+
+        .PARAMETER TenantDisplayName
+        Optional tenant display name shown in the tenant information box.
+
+        .PARAMETER ReportVersion
+        Optional report version string rendered in the tenant information box.
+
+        .OUTPUTS
+        System.String. Returns the composed HTML email body.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Subject,
+
+        [Parameter(Mandatory = $true)]
+        [string]$HtmlContent,
+
+        [string[]]$Attachments = @(),
+
+        [string]$TenantDisplayName,
+
+        [string]$ReportVersion
+    )
+
+    if (-not $Attachments) {
+        $Attachments = @()
+    }
+
+    $plainBase64Logo_dark = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTEiIGhlaWdodD0iNDcuOSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fS5jbHMtMntmaWxsOiNmODg0MmM7fTwvc3R5bGU+PC9kZWZzPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQ4LjgyLDQyLjc1YS40NC40NCwwLDAsMS0uMTEtLjI5VjIzLjc1QTEsMSwwLDAsMSw0OSwyM2ExLDEsMCwwLDEsLjc0LS4zaDVhNS44Miw1LjgyLDAsMCwxLDUuODgsNS44Niw1LjYsNS42LDAsMCwxLTEuMzMsMy43MSw1Ljc1LDUuNzUsMCwwLDEtMy4zNiwybDQuODEsNy43N2EuNDguNDgsMCwwLDEsLjA5LjI5LjUxLjUxLDAsMCwxLS4xNi4zOC41NS41NSwwLDAsMS0uMzkuMTRINTguODZhLjQ2LjQ2LDAsMCwxLS40NC0uMjZsLTUuMDctOC4ySDUxLjA4djguMDZhLjM5LjM5LDAsMCwxLS4xMS4yOS4zOC4zOCwwLDAsMS0uMjkuMTFINDkuMTFBLjM5LjM5LDAsMCwxLDQ4LjgyLDQyLjc1Wm01LjgtMTAuNTlhMy41NCwzLjU0LDAsMCwwLDIuNi0xLDMuNDcsMy40NywwLDAsMCwxLTIuNTUsMy41OSwzLjU5LDAsMCwwLTEtMi42MywzLjU1LDMuNTUsMCwwLDAtMi42LTFINTEuMDh2Ny4yMloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik02Niw0MmE2LjE2LDYuMTYsMCwwLDEtMi4yOS0yLjMsNi4zLDYuMywwLDAsMS0uODQtMy4xOFYzMi40YTYuMyw2LjMsMCwwLDEsLjg0LTMuMThBNi4zLDYuMywwLDAsMSw3NS40MiwzMi40djJhMSwxLDAsMCwxLS4zMS43NCwxLDEsMCwwLDEtLjc0LjNINjUuMDl2MS4yOGE0LDQsMCwwLDAsLjU0LDIsMy45MywzLjkzLDAsMCwwLDEuNDYsMS40Niw0LDQsMCwwLDAsMiwuNTRoNC4yMWEuMzguMzgsMCwwLDEsLjQuNHYxLjM0YS40NC40NCwwLDAsMS0uMTEuMjkuMzkuMzksMCwwLDEtLjI5LjExSDY5LjEyQTYuMiw2LjIsMCwwLDEsNjYsNDJabTcuMTktOC43VjMyLjI1YTQuMDcsNC4wNywwLDAsMC0uNTMtMiwzLjg5LDMuODksMCwwLDAtMS40Ny0xLjQ2LDQuMDksNC4wOSwwLDAsMC00LjA2LDAsMy44NiwzLjg2LDAsMCwwLTEuNDYsMS40Niw0LDQsMCwwLDAtLjU0LDJ2MS4wN1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03OC41Miw0MmE0LjU1LDQuNTUsMCwwLDEtLjEzLTYuNDhBNi4zMSw2LjMxLDAsMCwxLDgyLDMzLjkzbDMuNzctLjUyQTEuODcsMS44NywwLDAsMCw4NywzMi44NWEyLDIsMCwwLDAsLjM3LTEuMjl2LS4yNGEyLjcyLDIuNzIsMCwwLDAtMS4wOC0yLjI0LDQuMjcsNC4yNywwLDAsMC0yLjcyLS44Niw0LjU0LDQuNTQsMCwwLDAtMi4yMS41MSwzLjg5LDMuODksMCwwLDAtMS41LDEuNC42Ni42NiwwLDAsMS0uNTguMzguNjkuNjksMCwwLDEtLjM3LS4xNGwtLjc5LS41M2EuNTYuNTYsMCwwLDEtLjE3LS43OCw2LDYsMCwwLDEsMi4zLTIuMTksNy42LDcuNiwwLDAsMSw2LjQ5LS4xNCw0Ljg0LDQuODQsMCwwLDEsMi4xLDEuODQsNS4xMiw1LjEyLDAsMCwxLC43NCwyLjc1VjQyLjQ2YS40LjQsMCwwLDEtLjEyLjI5LjM4LjM4LDAsMCwxLS4yOS4xMUg4Ny45NGEuMzkuMzksMCwwLDEtLjI5LS4xMS40NC40NCwwLDAsMS0uMTEtLjI5di0yYTYuMyw2LjMsMCwwLDEtMi4zMSwyLDYuNDEsNi40MSwwLDAsMS0zLjA2Ljc0QTUuMjksNS4yOSwwLDAsMSw3OC41Miw0MlpNODUsNDAuNDZhNS41Nyw1LjU3LDAsMCwwLDEuODEtMS45LDQuNTgsNC41OCwwLDAsMCwuNjUtMi4yNVYzNS4xMkw4MywzNS43M2wtLjgxLjEyYy0xLjkzLjI5LTIuOSwxLjItMi45LDIuNzJhMi4zOCwyLjM4LDAsMCwwLC44NywxLjkyLDMuNDQsMy40NCwwLDAsMCwyLjI2LjcyQTQuNjksNC42OSwwLDAsMCw4NSw0MC40NloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik05NC41Nyw0Mi41NmExLDEsMCwwLDEtLjMtLjc0VjIzaC0yLjdhLjM4LjM4LDAsMCwxLS4yOS0uMTIuMzcuMzcsMCwwLDEtLjEyLS4yOVYyMS4yNmEuNDEuNDEsMCwwLDEsLjQxLS40MWgzLjkxYTEsMSwwLDAsMSwuNzQuMzEsMSwxLDAsMCwxLC4zMS43NFY0MC43Mkg5OS42YS40Mi40MiwwLDAsMSwuMjkuMTEuNC40LDAsMCwxLC4xMi4yOXYxLjM0YS40LjQsMCwwLDEtLjEyLjI5LjM4LjM4LDAsMCwxLS4yOS4xMUg5NS4zMUExLDEsMCwwLDEsOTQuNTcsNDIuNTZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTAyLjQ0LDQyLjc1YS40NC40NCwwLDAsMS0uMTEtLjI5VjI2Ljg2YS4zOS4zOSwwLDAsMSwuNC0uNDFoMS40NWEuMzguMzgsMCwwLDEsLjI5LjEyLjM3LjM3LDAsMCwxLC4xMi4yOXYxLjU2YTQuNTUsNC41NSwwLDAsMSwxLjg0LTEuNzUsNS4zOCw1LjM4LDAsMCwxLDIuNTQtLjYsNS43OCw1Ljc4LDAsMCwxLDMuMTcuODYsNC43OSw0Ljc5LDAsMCwxLDEuOTMsMi4zM0E0Ljg3LDQuODcsMCwwLDEsMTE2LDI2LjkxYTUuMjgsNS4yOCwwLDAsMSwyLjktLjgxLDUuNDIsNS40MiwwLDAsMSw0LDEuNTEsNS4zMyw1LjMzLDAsMCwxLDEuNTMsNFY0Mi40NmEuNC40LDAsMCwxLS4xMi4yOS4zOC4zOCwwLDAsMS0uMjkuMTFoLTEuNDVhLjM4LjM4LDAsMCwxLS4yOS0uMTEuNC40LDAsMCwxLS4xMi0uMjlWMzJhMy44MywzLjgzLDAsMCwwLTEtMi44MywzLjUzLDMuNTMsMCwwLDAtMi42Mi0xLDMuNzEsMy43MSwwLDAsMC0yLjkyLDEuMjgsNS4xNiw1LjE2LDAsMCwwLTEuMTEsMy41djkuNDZhLjQuNCwwLDAsMS0uMTIuMjkuMzguMzgsMCwwLDEtLjI5LjExaC0xLjQ1YS4zOC4zOCwwLDAsMS0uNC0uNFYzMmEzLjgzLDMuODMsMCwwLDAtMS0yLjgzLDMuNTYsMy41NiwwLDAsMC0yLjYyLTEsMy42OCwzLjY4LDAsMCwwLTIuOTEsMS4yOEE1LjEyLDUuMTIsMCwwLDAsMTA0LjU5LDMzdjkuNDhhLjQuNCwwLDAsMS0uMTIuMjkuMzguMzgsMCwwLDEtLjI5LjExaC0xLjQ1QS4zOS4zOSwwLDAsMSwxMDIuNDQsNDIuNzVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTI2LjM3LDQyLjc1YS40NC40NCwwLDAsMS0uMTItLjMyVjQxLjFhLjQxLjQxLDAsMCwxLC40NC0uNDRoMS43MUEyLjE5LDIuMTksMCwwLDAsMTMwLDQwYTIuMzUsMi4zNSwwLDAsMCwuNjItMS43MVYyMy4xMmEuMzkuMzksMCwwLDEsLjQtLjQxaDEuNTdhLjM4LjM4LDAsMCwxLC4yOS4xMi4zNy4zNywwLDAsMSwuMTIuMjlWMzguMzRhNS4wNyw1LjA3LDAsMCwxLS41MiwyLjI2QTQuMSw0LjEsMCwwLDEsMTMxLDQyLjI2YTQuMzgsNC4zOCwwLDAsMS0yLjMyLjZoLTJBLjQuNCwwLDAsMSwxMjYuMzcsNDIuNzVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTM5LjA3LDQyLjRhNi4xNiw2LjE2LDAsMCwxLTIuMjktMi4zLDYuMyw2LjMsMCwwLDEtLjg0LTMuMThWMzIuNGE2LjMsNi4zLDAsMCwxLC44NC0zLjE4LDYuMjgsNi4yOCwwLDAsMSwxMC45LDAsNi4zLDYuMywwLDAsMSwuODQsMy4xOHY0LjUyYTYuMyw2LjMsMCwwLDEtLjg0LDMuMTgsNi4zMiw2LjMyLDAsMCwxLTguNjEsMi4zWm01LjE5LTEuODRhNCw0LDAsMCwwLDEuNDctMS40Niw0LjA4LDQuMDgsMCwwLDAsLjUzLTJWMzIuMjVhNC4wNyw0LjA3LDAsMCwwLS41My0yLDMuODksMy44OSwwLDAsMC0xLjQ3LTEuNDYsNC4wOSw0LjA5LDAsMCwwLTQuMDYsMCwzLjc5LDMuNzksMCwwLDAtMS40NiwxLjQ2LDQsNCwwLDAsMC0uNTQsMnY0LjgxYTQsNCwwLDAsMCwuNTQsMiwzLjkzLDMuOTMsMCwwLDAsMS40NiwxLjQ2LDQuMDksNC4wOSwwLDAsMCw0LjA2LDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTUzLjQxLDQyLjU2YTEsMSwwLDAsMS0uMzEtLjc0VjI4LjZoLTNhLjQxLjQxLDAsMCwxLS40MS0uNDFWMjYuODZhLjM3LjM3LDAsMCwxLC4xMi0uMjkuMzguMzgsMCwwLDEsLjI5LS4xMmg0LjIzYTEsMSwwLDAsMSwuNzQuMzEsMSwxLDAsMCwxLC4zMS43M1Y0MC43MmgzYS4zOS4zOSwwLDAsMSwuNDEuNHYxLjM0YS40LjQsMCwwLDEtLjEyLjI5LjM2LjM2LDAsMCwxLS4yOS4xMWgtNC4yQTEsMSwwLDAsMSwxNTMuNDEsNDIuNTZabS0uMTYtMTguNDlhLjM3LjM3LDAsMCwxLS4xMi0uMjlWMjEuMjZhLjQxLjQxLDAsMCwxLC40MS0uNDFoMS4zOWEuNDEuNDEsMCwwLDEsLjQxLjQxdjIuNTJhLjM3LjM3LDAsMCwxLS4xMi4yOS4zOC4zOCwwLDAsMS0uMjkuMTJoLTEuMzlBLjM4LjM4LDAsMCwxLDE1My4yNSwyNC4wN1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNjEuMzQsNDIuNzJhLjM4LjM4LDAsMCwxLS4xMS0uMjlWMjYuODZhLjM2LjM2LDAsMCwxLC4xMS0uMjkuNC40LDAsMCwxLC4yOS0uMTJoMS40NWEuMzguMzgsMCwwLDEsLjI5LjEyLjM3LjM3LDAsMCwxLC4xMi4yOXYxLjU5YTUsNSwwLDAsMSwxLjk1LTEuOCw2LDYsMCwwLDEsMi43Mi0uNjEsNS40Miw1LjQyLDAsMCwxLDQsMS41MSw1LjM0LDUuMzQsMCwwLDEsMS41Myw0djEwLjlhLjQxLjQxLDAsMCwxLS40MS40MWgtMS40NWEuNDEuNDEsMCwwLDEtLjQxLS40MVYzMmEzLjgzLDMuODMsMCwwLDAtMS0yLjgzLDMuNTcsMy41NywwLDAsMC0yLjYyLTEsNC4wNyw0LjA3LDAsMCwwLTMuMTMsMS4yOEE0LjkxLDQuOTEsMCwwLDAsMTYzLjQ5LDMzdjkuNDhhLjQxLjQxLDAsMCwxLS40MS40MWgtMS40NUEuNC40LDAsMCwxLDE2MS4zNCw0Mi43MloiLz48cG9seWdvbiBjbGFzcz0iY2xzLTIiIHBvaW50cz0iNS44MSAxLjI4IDM1LjMgMTUuMjkgNDAuMDUgNDYuMjggMS4wNSAzOS4yOCA1LjgxIDEuMjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zLjQ2LDQzLjE2YS43OC43OCwwLDAsMS0uMjMtLjU3VjE3Ljg2YTEuNTUsMS41NSwwLDAsMSwuNDgtMS4xNiwxLjU1LDEuNTUsMCwwLDEsMS4xNi0uNDhIMTJhOC41LDguNSwwLDAsMSw0LjI2LDEuMSw4LjM5LDguMzksMCwwLDEsMy4wOCwzLDguMDgsOC4wOCwwLDAsMS0uNSw5LDguMyw4LjMsMCwwLDEtNC4yNSwyLjk1bDYuMyw5Ljc2YTEsMSwwLDAsMSwuMTYuNTMuNzYuNzYsMCwwLDEtLjI1LjU3Ljg2Ljg2LDAsMCwxLS42My4yM0gxN2ExLjEsMS4xLDAsMCwxLTEtLjUzTDkuNzMsMzIuNzFINy44N3Y5Ljg4YS43OC43OCwwLDAsMS0uMjMuNTcuNzQuNzQsMCwwLDEtLjU3LjIzSDRBLjc0Ljc0LDAsMCwxLDMuNDYsNDMuMTZabTguMjgtMTQuODJhNCw0LDAsMCwwLDIuODctMS4wOCwzLjY1LDMuNjUsMCwwLDAsMS4xMi0yLjc1LDMuNzksMy43OSwwLDAsMC0xLjEyLTIuODIsMy45MiwzLjkyLDAsMCwwLTIuODctMS4xSDcuODd2Ny43NVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMi41LDQzLjE2YS43OC43OCwwLDAsMS0uMjMtLjU3VjM5LjgyYS43OS43OSwwLDAsMSwuOC0uOGgyLjgxYTEuOTQsMS45NCwwLDAsMCwxLjUtLjU5LDIuMjUsMi4yNSwwLDAsMCwuNTUtMS42MVYxN2EuNzkuNzksMCwwLDEsLjgtLjhoM2EuNzkuNzksMCwwLDEsLjguOHYxOS44YTYuODUsNi44NSwwLDAsMS0uODIsMy4zNiw2LDYsMCwwLDEtMi4yNiwyLjM2LDYuMjgsNi4yOCwwLDAsMS0zLjI3Ljg1SDIzLjA3QS43NC43NCwwLDAsMSwyMi41LDQzLjE2WiIvPjwvc3ZnPg=="
+    $base64RJLogoDark = "data:image/svg+xml;base64,$($plainBase64Logo_dark)"
+
+    return @"
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    <title>$Subject</title>
+    <!-- Base styles for ALL clients (including Dark Mode for modern clients) -->
+<style type="text/css">
+    /* === RESET & BASICS === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: "Miriam Libre",sans-serif;
+        line-height: 1.6;
+        color: #011e33;
+        background-color: #e8ebed;
+        padding: 20px;
+    }
+
+    /* === CONTAINER === */
+    .email-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    /* === HEADER === */
+    .header {
+        background: #011e33;
+        color: #3f3f3f;
+        padding: 40px 48px 32px;
+        text-align: center;
+    }
+
+    .header .logo-container {
+        margin-bottom: 12px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .logo-dark {
+        max-width: 400px;
+        width: 400px !important;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .header .title {
+        font-size: 18px;
+        font-weight: 400;
+        margin: 0;
+        opacity: 0.9;
+        color: #ffffff;
+    }
+
+    /* === CONTENT === */
+    .content {
+        padding: 48px;
+        background-color: #ffffff;
+    }
+
+    .tenant-info {
+        background: #e8ebed;
+        border: 1px solid #e0e7ff;
+        border-left: 4px solid #f8842c;
+        padding: 10px 20px;
+        margin-top: 32px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .tenant-info strong {
+        color: #011e33;
+        font-weight: 600;
+    }
+
+    .content h1 {
+        color: #111827;
+        border-bottom: 2px solid #111827;
+        padding-bottom: 12px;
+        margin-bottom: 13px;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .content h2 {
+        color: #111827;
+        margin-top: 30px;
+        margin-bottom: 10px;
+        font-size: 22px;
+        font-weight: 800;
+    }
+
+    .content h3 {
+        color: #111827;
+        margin-top: 10px;
+        margin-bottom: 8px;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .content p {
+        color: #111827;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    .content ul, .content ol {
+        margin-left: 24px;
+        margin-bottom: 12px;
+    }
+
+    .content li {
+        color: #011e33;
+        line-height: 1.5;
+        margin-bottom: 4px;
+    }
+
+    /* === TABLES === */
+    .content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 32px 0;
+        margin-bottom: 20px 0;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .content th {
+        background: #f8842c !important;
+        color: #ffffff !important;
+        padding: 8px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+
+    .content td {
+        padding: 8px 16px;
+        border-bottom: 1px solid #e8ebed;
+        font-size: 14px;
+    }
+
+    .content tr:nth-child(even) {
+        background-color: #e8ebed;
+    }
+
+
+    /* === CODE === */
+    .content code {
+        background-color: #e8ebed;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+        font-size: 0.875em;
+        color: #011e33;
+        border: 1px solid #e5e7eb;
+    }
+
+    .content pre {
+        background-color: #e8ebed;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 20px 0;
+        border: 1px solid #e5e7eb;
+        font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+    }
+
+    .content blockquote {
+        border-left: 4px solid #3b82f6;
+        background: #e8ebed;
+        padding: 20px 24px;
+        margin: 24px 0;
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+        color: #374151;
+    }
+
+    /* === ATTACHMENTS === */
+    .attachments {
+        background: #e8ebed;
+        border: 1px solid #e0e7ff;
+        border-left: 4px solid #f8842c;
+        border-radius: 8px;
+        padding: 10px 20px;
+        margin-top: 10px;
+    }
+
+    .attachments h3 {
+        color: #011e33;
+        margin-top: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .attachment-list {
+        list-style: none;
+        margin: 0 0 16px 0;
+        padding: 0;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .attachment-list li {
+        background-color: white;
+        border: 1px solid #e0e7ff;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-bottom: 3px;
+        font-size: 14px;
+    }
+
+    .attachments p {
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    /* === FOOTER === */
+    .footer {
+        background: #011e33;
+        color: #3f3f3f;
+        padding: 40px 48px;
+        text-align: center;
+    }
+
+    .footer .logo-container {
+        margin-bottom: 16px;
+        max-width: 130px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .footer .logo-dark {
+        max-width: 130px;
+        width: 130px !important;
+        height: auto;
+        opacity: 0.9;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .footer .tagline {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 10px;
+        color: #ffffff;
+    }
+
+    .footer .links {
+        font-size: 13px;
+        opacity: 0.7;
+    }
+
+    .footer .links a {
+        color: #60a5fa;
+        text-decoration: none;
+        margin: 0 12px;
+    }
+
+        @media (max-width: 768px) {
+        body { padding: 10px; }
+        .email-container { border-radius: 8px; }
+        .header, .content, .footer { padding: 24px 20px; }
+        .logo-dark { max-width: 300px !important; width: 300px !important; }
+        .footer .logo-dark { max-width: 120px !important; }
+        .header .title { font-size: 16px !important; }
+        .content h1 { font-size: 24px; }
+        .content h2 { font-size: 20px; }
+        .content table { font-size: 13px; }
+        .content th, .content td { padding: 6px 8px; }
+        .tenant-info, .attachments { padding: 16px 20px; font-size: 13px; }
+    }
+
+    /* === TABLET === */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .email-container { max-width: 900px; }
+        .header, .content, .footer { padding: 36px; }
+        .logo-dark { max-width: 350px !important; width: 350px !important; }
+        .footer .logo-dark { max-width: 160px; }
+    }
+
+    /* === DESKTOP === */
+    @media (min-width: 1025px) {
+        .logo-dark { max-width: 400px !important; width: 400px !important; }
+        .footer .logo-dark { max-width: 160px; }
+    }
+
+    /* === DARK MODE (New Outlook, modern clients) === */
+    @media (prefers-color-scheme: dark) {
+        body { background-color: #1a1a1a !important; }
+
+        .email-container, .content {
+            background-color: #2d2d2d !important;
+            color: #e5e5e5 !important;
+        }
+
+        .header, .footer {
+            background: #2d2d2d !important;
+        }
+
+        .header .title, .footer .tagline {
+            color: #e5e5e5 !important;
+        }
+
+        .logo-dark { display: block; }
+        .footer .logo-dark { display: block; }
+
+        h1, h2, h3, p, span, strong, div, li {
+            color: #e5e5e5 !important;
+        }
+
+        h1 {
+            border-bottom: 2px solid #e5e5e5 !important;
+        }
+
+        .tenant-info {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
+            border: 1px solid #4a4a4a !important;
+            border-left-color: #f8842c !important;
+        }
+
+        .content table {
+            background-color: #3a3a3a !important;
+        }
+
+        .content td {
+            border-bottom-color: #4a4a4a !important;
+        }
+
+        .content th {
+            background: #f8842c, 12 !important;
+            color: #ffffff !important;
+        }
+
+        .content tr:nth-child(even) {
+            background-color: #404040 !important;
+        }
+
+        .attachments {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
+            border: 1px solid #4a4a4a !important;
+            border-left-color: #f8842c !important;
+        }
+
+        .attachment-list li {
+            background-color: #2d2d2d !important;
+            border-color: #4a4a4a !important;
+        }
+
+        .content code, .content pre {
+            background-color: #404040 !important;
+            color: #e5e5e5 !important;
+            border-color: #4a4a4a !important;
+        }
+
+        .content blockquote {
+            background-color: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
+            border-left-color: #f8842c !important;
+        }
+    }
+</style>
+
+<!-- Outlook Classic Fixes (only for MSO) -->
+<!--[if mso]>
+<style type="text/css">
+    /* Force Light Mode for Outlook Classic */
+    body { background-color: #f3f5f6; }
+    .email-container { background-color: #ffffff; }
+    .header { background-color: #f8f9fa; }
+    .footer { background-color: #f8f9fa; }
+    .content { background-color: #ffffff; }
+
+    /* MSO Table Fixes */
+    table { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+
+    /* MSO Line Height Fix */
+    .content p, .content li { mso-line-height-rule: exactly; }
+
+    /* Logo Display for Classic */
+    .logo-dark { display: block !important; }
+    .footer .logo-dark { display: block !important; }
+</style>
+<![endif]-->
+</head>
+<body>
+    <!--[if mso]>
+    <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+        <v:fill type="tile" color="#f5f5f5"/>
+    </v:background>
+    <![endif]-->
+    <div class="email-container">
+        <div class="header">
+            <div class="logo-container">
+                <img class="logo-dark" alt="RealmJoin logo for dark mode" src="$($base64RJLogoDark)" />
+            </div>
+            <div class="title">Insights on Demand</div>
+        </div>
+
+        <div class="content">
+
+            $($HtmlContent)
+
+            <div class="tenant-info">
+                <strong>Tenant:</strong> $($TenantDisplayName)<br>
+                <strong>Generated:</strong> $([System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US'; Get-Date -Format "dddd, MMMM d, yyyy HH:mm") <br>
+                <strong>Report Version:</strong> $($ReportVersion)
+            </div>
+
+            $(if (($(($Attachments) | Measure-Object).Count) -gt 0) {
+            @"
+
+            <div class="attachments">
+                <h3>Attached Files</h3>
+                <ul class="attachment-list">
+                    $(($Attachments | ForEach-Object { "<li>$(Split-Path $_ -Leaf)</li>" }) -join "`n                    ")
+                </ul>
+                <p><strong>Note:</strong> The attachments contain additional information from the generated report and can be used for more in-depth analysis.</p>
+            </div>
+"@
+            })
+        </div>
+
+        <div class="footer">
+            <div class="logo-container">
+                <img class="logo-dark" alt="RealmJoin logo for dark mode" src="$($base64RJLogoDark)" />
+            </div>
+            <div class="tagline">Companion to Intune – Application Lifecycle & Management Automation Platform</div>
+            <div class="links">
+                <a href="https://www.realmjoin.com">www.realmjoin.com</a> |
+                <a href="https://docs.realmjoin.com">Documentation</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"@
+}
 
 function Send-RjReportEmail {
     <#
@@ -105,8 +948,9 @@ function Send-RjReportEmail {
         The sender user id (user principal name or id) used for the Graph /users/{id}/sendMail call.
 
         .PARAMETER EmailTo
-        Recipient email address. Must be a single address (string). The function sends the message
-        to this recipient.
+        Recipient email address(es). Can be a single address or multiple comma-separated addresses (string).
+        The function sends individual emails to each recipient for privacy reasons.
+        Whitespace and empty entries are automatically removed.
 
         .PARAMETER Subject
         Subject line for the email message.
@@ -130,7 +974,7 @@ function Send-RjReportEmail {
         PS C:\> Send-RjReportEmail -EmailFrom "reports@contoso.com" -EmailTo "alice@contoso.com" -Subject "Weekly Report" -MarkdownContent "# Hello`nReport body..."
 
         .EXAMPLE
-        PS C:\> Send-RjReportEmail -EmailFrom "reports@contoso.com" -EmailTo "team@contoso.com" -Subject "Inventory" -MarkdownContent (Get-Content .\report.md -Raw) -Attachments @('C:\temp\report.csv') -TenantDisplayName 'Contoso Ltd' -ReportVersion 'v1.2.3'
+        PS C:\> Send-RjReportEmail -EmailFrom "reports@contoso.com" -EmailTo "alice@contoso.com, bob@contoso.com, team@contoso.com" -Subject "Inventory" -MarkdownContent (Get-Content .\report.md -Raw) -Attachments @('C:\temp\report.csv') -TenantDisplayName 'Contoso Ltd' -ReportVersion 'v1.2.3'
 
         .INPUTS
         None. All parameters are provided as arguments; this function does not accept pipeline input.
@@ -159,938 +1003,203 @@ function Send-RjReportEmail {
         [string]$ReportVersion
     )
 
-    # Convert Markdown to HTML (inlined conversion - function removed as it's used only here)
-    $html = $MarkdownContent
+    # Parse and clean email addresses from EmailTo parameter
+    # Split by comma, trim whitespace, remove empty entries
+    $emailRecipients = $EmailTo -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 
-    # Escape Markdown characters first (before processing)
-    $html = $html -replace '\\(.)', '§ESCAPED§$1§ESCAPED§'
+    if (($emailRecipients | Measure-Object).Count -eq 0) {
+        throw "No valid email recipients found in EmailTo parameter."
+    }
 
-    # Horizontal rules (must be processed before headers to avoid conflicts)
-    $html = $html -replace '(?m)^(-{3,}|\*{3,}|_{3,})$', '<hr />'
+    Write-RjRbLog -Message "Parsed $($emailRecipients.Count) recipient(s) from EmailTo parameter" -Verbose
 
-    # Headers (process in order from most specific to least specific - all 6 levels)
-    $html = $html -replace '(?m)^###### (.+)$', '<h6>$1</h6>'
-    $html = $html -replace '(?m)^##### (.+)$', '<h5>$1</h5>'
-    $html = $html -replace '(?m)^#### (.+)$', '<h4>$1</h4>'
-    $html = $html -replace '(?m)^### (.+)$', '<h3>$1</h3>'
-    $html = $html -replace '(?m)^## (.+)$', '<h2>$1</h2>'
-    $html = $html -replace '(?m)^# (.+)$', '<h1>$1</h1>'
+    # Convert Markdown to HTML using helper function
+    $htmlContent = ConvertFrom-MarkdownToHtml -MarkdownText $MarkdownContent
 
-    # Code blocks with language support and inline code (process FIRST to protect from other processing)
-    # Fenced code blocks with optional language: ```language\ncode```
-    $html = $html -replace '(?s)```(\w+)?\r?\n(.+?)```', {
-        param($match)
-        $language = $match.Groups[1].Value
-        $code = $match.Groups[2].Value
-        $escapedCode = $code -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-        if ($language) {
-            return "<pre><code class=`"language-$language`">$escapedCode</code></pre>"
-        } else {
-            return "<pre><code>$escapedCode</code></pre>"
+    Write-RjRbLog -Message "Successfully converted Markdown content to HTML" -Verbose
+
+    # Prepare email parameters
+    $emailAttachments = @()
+    $validatedAttachments = @()
+    foreach ($file in $Attachments) {
+        if (Test-Path $file) {
+            $contentBytes = [IO.File]::ReadAllBytes($file)
+            $content = [Convert]::ToBase64String($contentBytes)
+            $mimeType = Get-MimeTypeFromExtension -FilePath $file
+            $emailAttachments += @{
+                "@odata.type"  = "#microsoft.graph.fileAttachment"
+                "name"         = (Split-Path $file -Leaf)
+                "contentType"  = $mimeType
+                "contentBytes" = $content
+            }
+            $validatedAttachments += $file
+            Write-RjRbLog -Message "Added attachment: $(Split-Path $file -Leaf) (MIME type: $mimeType)" -Verbose
+        }
+        else {
+            Write-RjRbLog -Message "Attachment file not found: $file" -Verbose
         }
     }
-    # Inline code (protect from further processing)
-    $html = $html -replace '`([^`]+)`', {
-        param($match)
-        $code = $match.Groups[1].Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-        return "<code>$code</code>"
-    }
 
-    # Blockquotes (before bold/italic to avoid conflicts)
-    $html = $html -replace '(?m)^> (.+)$', '<blockquote>$1</blockquote>'
+    $htmlBody = Get-RjReportEmailBody -Subject $Subject -HtmlContent $htmlContent -Attachments $validatedAttachments -TenantDisplayName $TenantDisplayName -ReportVersion $ReportVersion
 
-    # Bold and Italic (process BEFORE tables/lists so they work in table cells)
-    $html = $html -replace '\*\*(.+?)\*\*', '<strong>$1</strong>'
-    $html = $html -replace '\*(.+?)\*', '<em>$1</em>'
+    # Send individual emails to each recipient for privacy
+    $successfulSends = 0
+    $failedSends = 0
+    $failedRecipients = @()
 
-    # Strikethrough
-    $html = $html -replace '~~(.+?)~~', '<del>$1</del>'
+    foreach ($recipient in $emailRecipients) {
+        try {
+            Write-RjRbLog -Message "Sending email to: $recipient" -Verbose
 
-    # Links and Images (process before tables/lists)
-    # Images: ![alt text](url)
-    $html = $html -replace '!\[([^\]]*)\]\(([^)]+)\)', '<img src="$2" alt="$1"/>'
-    # Links: [text](url)
-    $html = $html -replace '\[([^\]]+)\]\(([^)]+)\)', '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'    # Optimized single-pass processing for Tables, Lists with alignment and nesting support
-    $lines = $html -split "`n"
-    $processedLines = @()
-    $lineCount = $lines.Count
-
-    # State tracking for multiple structures
-    $inTable = $false
-    $inUnorderedList = $false
-    $inOrderedList = $false
-    $tableAlignments = @()
-
-    for ($i = 0; $i -lt $lineCount; $i++) {
-        $line = $lines[$i]
-
-        # Tables processing with alignment detection
-        if ($line -match '^\|.*\|$') {
-            # Close any open lists before starting table
-            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
-            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
-
-            if (-not $inTable) {
-                $processedLines += '<table class="table table-striped">'
-                $inTable = $true
-
-                # Check if next line is separator with alignment info
-                if (($i + 1) -lt $lineCount -and $lines[$i + 1] -match '^\|[-:\s\|]+\|$') {
-                    $separatorLine = $lines[$i + 1]
-                    # Extract alignment info
-                    $alignmentCells = ($separatorLine -replace '^\|', '' -replace '\|$', '').Split('|')
-                    $tableAlignments = @()
-                    foreach ($alignCell in $alignmentCells) {
-                        $alignCell = $alignCell.Trim()
-                        if ($alignCell -match '^:.*:$') { $tableAlignments += 'center' }
-                        elseif ($alignCell -match ':$') { $tableAlignments += 'right' }
-                        elseif ($alignCell -match '^:') { $tableAlignments += 'left' }
-                        else { $tableAlignments += '' }
-                    }
-
-                    # Process header row with alignment
-                    $cells = ($line -replace '^\|', '' -replace '\|$', '').Split('|')
-                    if ($cells.Count -gt 0) {
-                        $processedLines += '<thead><tr>'
-                        for ($j = 0; $j -lt $cells.Count; $j++) {
-                            $cleanCell = $cells[$j].Trim()
-                            $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
-                            $processedLines += "<th$alignClass>$cleanCell</th>"
+            $message = @{
+                subject      = $Subject
+                body         = @{
+                    contentType = "HTML"
+                    content     = $htmlBody
+                }
+                toRecipients = @(
+                    @{
+                        emailAddress = @{
+                            address = $recipient
                         }
-                        $processedLines += '</tr></thead><tbody>'
-                        $i++ # Skip separator line
-                        continue
                     }
-                }
+                )
             }
 
-            # Regular table row with alignment
-            $cells = ($line -replace '^\|', '' -replace '\|$', '').Split('|')
-            if ($cells.Count -gt 0) {
-                $processedLines += '<tr>'
-                for ($j = 0; $j -lt $cells.Count; $j++) {
-                    $cleanCell = $cells[$j].Trim()
-                    $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
-                    $processedLines += "<td$alignClass>$cleanCell</td>"
-                }
-                $processedLines += '</tr>'
+            if ($emailAttachments.Count -gt 0) {
+                $message.attachments = $emailAttachments
             }
+
+            # Send via Graph API using native Microsoft Graph
+            $body = @{ message = $message; saveToSentItems = $true } | ConvertTo-Json -Depth 10
+            $Uri = "https://graph.microsoft.com/v1.0/users/$($EmailFrom)/sendMail"
+            Invoke-MgGraphRequest -Uri $Uri -Method POST -Body $body -ContentType "application/json" -ErrorAction Stop
+
+            Write-RjRbLog -Message "Email sent successfully to $recipient" -Verbose
+            $successfulSends++
         }
-        # Enhanced Lists processing with nesting support
-        elseif ($line -match '^(\s*)- (.+)$') {
-            # Close table if open
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
-            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
-
-            $content = $Matches[2]
-
-            if (-not $inUnorderedList) {
-                $processedLines += '<ul>'
-                $inUnorderedList = $true
-            }
-            $processedLines += "<li>$content</li>"
+        catch {
+            $failedSends++
+            $failedRecipients += $recipient
+            Write-RjRbLog -Message "Failed to send email to ${recipient}: $($_.Exception.Message)" -Verbose
+            Write-Error "Failed to send email to ${recipient}: $($_.Exception.Message)" -ErrorAction Continue
         }
-        elseif ($line -match '^(\s*)(\d+)\. (.+)$') {
-            # Close table and unordered list if open
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
-            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
+    }
 
-            $content = $Matches[3]
+    # Summary logging
+    Write-RjRbLog -Message "Email sending completed: $successfulSends successful, $failedSends failed out of $($emailRecipients.Count) total recipient(s)" -Verbose
 
-            if (-not $inOrderedList) {
-                $processedLines += '<ol>'
-                $inOrderedList = $true
-            }
-            $processedLines += "<li>$content</li>"
+    if ($failedSends -gt 0) {
+        $failedList = $failedRecipients -join ", "
+        Write-RjRbLog -Message "Failed recipients: $failedList" -Verbose
+
+        if ($successfulSends -eq 0) {
+            throw "Failed to send email to all recipients: $failedList"
         }
         else {
-            # Close all open structures for non-matching lines
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
-            if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
-            if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
-            $processedLines += $line
+            Write-Warning "Some emails failed to send. Failed recipients: $failedList"
         }
     }
+}
 
-    # Close any remaining open structures
-    if ($inTable) { $processedLines += '</tbody></table>' }
-    if ($inUnorderedList) { $processedLines += '</ul>' }
-    if ($inOrderedList) { $processedLines += '</ol>' }
+function Get-MimeTypeFromExtension {
+    <#
+        .SYNOPSIS
+        Returns the MIME type for a given file extension.
 
-    $html = $processedLines -join "`n"
+        .DESCRIPTION
+        Maps common file extensions used for tenant data exports to their appropriate MIME types.
+        Supports CSV, Excel, JSON, XML, TXT, and other common formats.
 
-    # Paragraphs: Wrap remaining lines that are not part of other elements in <p> tags.
-    $blocks = $html -split "(?=<h[1-6]>|<ul>|<ol>|<table>|<pre>|<blockquote>)"
-    $html = ""
-    foreach ($block in $blocks) {
-        if ($block.Trim() -eq "") { continue }
+        .PARAMETER FilePath
+        The file path to determine the MIME type for.
 
-        if ($block -match "^<(h[1-6]|ul|ol|table|pre|blockquote)") {
-            $html += $block
+        .EXAMPLE
+        PS C:\> Get-MimeTypeFromExtension -FilePath "C:\temp\report.csv"
+        Returns: text/csv
+
+        .EXAMPLE
+        PS C:\> Get-MimeTypeFromExtension -FilePath "C:\temp\data.xlsx"
+        Returns: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+        .OUTPUTS
+        System.String. Returns the MIME type string.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath
+    )
+
+    $extension = [System.IO.Path]::GetExtension($FilePath).ToLower()
+
+    $mimeTypes = @{
+        '.csv'  = 'text/csv'
+        '.txt'  = 'text/plain'
+        '.json' = 'application/json'
+        '.xml'  = 'application/xml'
+        '.xlsx' = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        '.xls'  = 'application/vnd.ms-excel'
+        '.pdf'  = 'application/pdf'
+        '.zip'  = 'application/zip'
+        '.html' = 'text/html'
+        '.htm'  = 'text/html'
+        '.log'  = 'text/plain'
+        '.md'   = 'text/markdown'
+    }
+
+    if ($mimeTypes.ContainsKey($extension)) {
+        return $mimeTypes[$extension]
+    }
+    else {
+        # Default to binary stream for unknown types
+        return 'application/octet-stream'
+    }
+}
+
+function Get-AllGraphPages {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Get-AllGraphPages takes an initial Microsoft Graph API URI and retrieves all items across
+        multiple pages by following the @odata.nextLink property in the response. It aggregates
+        all items into a single array and returns it.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/applications".
+
+        .EXAMPLE
+        PS C:\> $allApps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
+#>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = @()
+    $nextLink = $Uri
+
+    do {
+        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
+
+        if ($response.value) {
+            $allResults += $response.value
+        }
+        elseif ($response.'@odata.context') {
+            # Single item response
+            $allResults += $response
+        }
+
+        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+            $nextLink = $response.'@odata.nextLink'
         }
         else {
-            # Wrap non-empty lines in paragraphs, handle line breaks better
-            $lines = $block.Trim() -split '\r?\n'
-            $paragraphContent = @()
-
-            foreach ($line in $lines) {
-                $trimmedLine = $line.Trim()
-                if ($trimmedLine -ne "") {
-                    $paragraphContent += $trimmedLine
-                }
-                elseif ($paragraphContent.Count -gt 0) {
-                    # Empty line breaks paragraphs
-                    $html += "<p>$($paragraphContent -join ' ')</p>"
-                    $paragraphContent = @()
-                }
-            }
-
-            # Add remaining paragraph content
-            if ($paragraphContent.Count -gt 0) {
-                $html += "<p>$($paragraphContent -join ' ')</p>"
-            }
+            $nextLink = $null
         }
-    }
+    } while ($nextLink)
 
-    # Final safety escaping - only escape unescaped ampersands that are not part of HTML entities
-    $html = $html -replace '&(?![a-zA-Z]{2,8};)(?!#[0-9]{1,7};)(?!#x[0-9a-fA-F]{1,6};)', '&amp;'
-
-    # Restore escaped Markdown characters at the very end
-    $html = $html -replace '§ESCAPED§(.{1})§ESCAPED§', '$1'
-
-    $htmlContent = $html
-
-    $plainBase64Logo_light = "PHN2ZyBpZD0iUmVhbG1qb2luIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTEgNTUiPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDojM2YzZjNmO30uY2xzLTJ7ZmlsbDojZjg4NDJjO30uY2xzLTN7ZmlsbDojZmZmO308L3N0eWxlPjwvZGVmcz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00OS43Nyw0Mi40NmEuMzcuMzcsMCwwLDEtLjEyLS4yOVYyMy40N2ExLDEsMCwwLDEsLjMxLS43NCwxLDEsMCwwLDEsLjc0LS4zMWg1YTUuODYsNS44NiwwLDAsMSw1LjExLDIuOTIsNS43Nyw1Ljc3LDAsMCwxLC43OCwyLjk0QTUuNjQsNS42NCwwLDAsMSw2MC4zLDMyYTUuNzQsNS43NCwwLDAsMS0zLjM3LDJsNC44Miw3Ljc3YS41Mi41MiwwLDAsMSwuMDguMjkuNDkuNDksMCwwLDEtLjE2LjM4LjU2LjU2LDAsMCwxLS4zOS4xNEg1OS44YS40Ni40NiwwLDAsMS0uNDMtLjI2bC01LjA4LTguMjFINTJ2OC4wNmEuNC40LDAsMCwxLS4xMS4yOS40MS40MSwwLDAsMS0uMy4xMkg1MC4wNkEuMzguMzgsMCwwLDEsNDkuNzcsNDIuNDZabTUuOC0xMC41OGEzLjUyLDMuNTIsMCwwLDAsMi41OS0xLDMuNCwzLjQsMCwwLDAsMS0yLjU1LDMuNTMsMy41MywwLDAsMC0xLTIuNjIsMy40OSwzLjQ5LDAsMCwwLTIuNTktMUg1MnY3LjIyWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTY2LjkxLDQxLjc0YTYuMTIsNi4xMiwwLDAsMS0yLjI5LTIuMzEsNi4yNCw2LjI0LDAsMCwxLS44NC0zLjE3VjMyLjExYTYuMjQsNi4yNCwwLDAsMSwuODQtMy4xNyw2LjIzLDYuMjMsMCwwLDEsNS40NS0zLjE1LDYuMiw2LjIsMCwwLDEsMy4xNi44NCw2LjEyLDYuMTIsMCwwLDEsMi4yOSwyLjMxLDYuMjQsNi4yNCwwLDAsMSwuODQsMy4xN3YyYTEsMSwwLDAsMS0uMy43NCwxLDEsMCwwLDEtLjc0LjMxSDY2VjM2LjRhNCw0LDAsMCwwLC41MywyQTQsNCwwLDAsMCw2OCwzOS45YTQsNCwwLDAsMCwyLC41M2g0LjJhLjM3LjM3LDAsMCwxLC4yOS4xMi4zOC4zOCwwLDAsMSwuMTIuMjl2MS4zM2EuNDEuNDEsMCwwLDEtLjQxLjQxaC00LjJBNi4xOCw2LjE4LDAsMCwxLDY2LjkxLDQxLjc0Wk03NC4xLDMzVjMyYTMuOTMsMy45MywwLDAsMC0uNTQtMiwzLjg5LDMuODksMCwwLDAtMS40Ni0xLjQ3LDQsNCwwLDAsMC01LjUzLDEuNDdBNCw0LDAsMCwwLDY2LDMyVjMzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc5LjQ2LDQxLjdhNC41Nyw0LjU3LDAsMCwxLS4xMy02LjQ5LDYuMjcsNi4yNywwLDAsMSwzLjYxLTEuNTZsMy43Ny0uNTJhMS44NSwxLjg1LDAsMCwwLDEuMjItLjU3LDIsMiwwLDAsMCwuMzgtMS4yOVYzMWEyLjcxLDIuNzEsMCwwLDAtMS4wOS0yLjI1LDQuMjQsNC4yNCwwLDAsMC0yLjcxLS44NSw0LjYsNC42LDAsMCwwLTIuMjIuNSwzLjg5LDMuODksMCwwLDAtMS40OSwxLjQxLjY5LjY5LDAsMCwxLS41OC4zOC42Ni42NiwwLDAsMS0uMzgtLjE1bC0uNzgtLjUyYS42NS42NSwwLDAsMS0uMjYtLjQ5Ljc1Ljc1LDAsMCwxLC4wOC0uMjksNiw2LDAsMCwxLDIuMzEtMi4xOSw2Ljg3LDYuODcsMCwwLDEsMy4zOC0uOCw3LjE2LDcuMTYsMCwwLDEsMy4xLjY1LDQuOTEsNC45MSwwLDAsMSwyLjEsMS44NEE1LjA3LDUuMDcsMCwwLDEsOTAuNTEsMzFWNDIuMTdhLjM5LjM5LDAsMCwxLS40LjQxSDg4Ljg5YS4zOC4zOCwwLDAsMS0uMjktLjEyLjM3LjM3LDAsMCwxLS4xMi0uMjl2LTJhNi4zOSw2LjM5LDAsMCwxLTIuMywyLDYuNTIsNi41MiwwLDAsMS0zLjA2Ljc0QTUuMzIsNS4zMiwwLDAsMSw3OS40Niw0MS43Wm02LjQ3LTEuNTNhNS4zOSw1LjM5LDAsMCwwLDEuODEtMS45QTQuNDYsNC40NiwwLDAsMCw4OC40LDM2VjM0Ljg0bC00LjQ3LjYxLS44MS4xMWMtMS45My4yOS0yLjksMS4yLTIuOSwyLjczYTIuMzYsMi4zNiwwLDAsMCwuODcsMS45MSwzLjM3LDMuMzcsMCwwLDAsMi4yNi43M0E0LjU3LDQuNTcsMCwwLDAsODUuOTMsNDAuMTdaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNOTUuNTIsNDIuMjhhMSwxLDAsMCwxLS4zMS0uNzRWMjIuNzFoLTIuN2EuMzkuMzksMCwwLDEtLjI5LS4xMS40NC40NCwwLDAsMS0uMTEtLjI5VjIxYS4zOS4zOSwwLDAsMSwuMTEtLjI4LjQuNCwwLDAsMSwuMjktLjEyaDMuOTJhMSwxLDAsMCwxLC43NC4zLDEsMSwwLDAsMSwuMy43NFY0MC40M2gzLjA4YS40LjQsMCwwLDEsLjI5LjEyLjQyLjQyLDAsMCwxLC4xMS4yOXYxLjMzYS4zOS4zOSwwLDAsMS0uNC40MUg5Ni4yNkExLDEsMCwwLDEsOTUuNTIsNDIuMjhaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTAzLjM5LDQyLjQ2YS4zNy4zNywwLDAsMS0uMTItLjI5VjI2LjU3YS40LjQsMCwwLDEsLjEyLS4yOS40Mi40MiwwLDAsMSwuMjktLjExaDEuNDVhLjQyLjQyLDAsMCwxLC4yOS4xMS4zOS4zOSwwLDAsMSwuMTEuMjl2MS41N2E0LjY3LDQuNjcsMCwwLDEsMS44NS0xLjc2LDUuNDgsNS40OCwwLDAsMSwyLjUzLS41OSw1LjgxLDUuODEsMCwwLDEsMy4xOC44NUE0Ljc3LDQuNzcsMCwwLDEsMTE1LDI5YTQuNzEsNC43MSwwLDAsMSwxLjg4LTIuMzUsNS4zLDUuMywwLDAsMSwyLjktLjgxLDUuNDEsNS40MSwwLDAsMSw0LDEuNTEsNS4zMSw1LjMxLDAsMCwxLDEuNTIsNFY0Mi4xN2EuMzkuMzksMCwwLDEtLjQuNDFoLTEuNDVhLjQxLjQxLDAsMCwxLS40MS0uNDFWMzEuNzNhMy44LDMuOCwwLDAsMC0xLTIuODIsMy41NCwzLjU0LDAsMCwwLTIuNjMtMSwzLjY3LDMuNjcsMCwwLDAtMi45MSwxLjI3LDUuMTcsNS4xNywwLDAsMC0xLjEyLDMuNTF2OS40NWEuMzkuMzksMCwwLDEtLjQuNDFoLTEuNDVhLjQxLjQxLDAsMCwxLS40MS0uNDFWMzEuNzFhMy44MywzLjgzLDAsMCwwLTEtMi44MywzLjUzLDMuNTMsMCwwLDAtMi42Mi0xLDMuNywzLjcsMCwwLDAtMi45MiwxLjI3LDUuMTcsNS4xNywwLDAsMC0xLjEyLDMuNTF2OS40OGEuMzYuMzYsMCwwLDEtLjExLjI5LjM4LjM4LDAsMCwxLS4yOS4xMmgtMS40NUEuMzguMzgsMCwwLDEsMTAzLjM5LDQyLjQ2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTEyNy4zMSw0Mi40NmEuNDMuNDMsMCwwLDEtLjExLS4zMVY0MC44MWEuMzkuMzksMCwwLDEsLjQzLS40M2gxLjcxYTIuMiwyLjIsMCwwLDAsMS42NC0uNjQsMi4zNCwyLjM0LDAsMCwwLC42My0xLjcxVjIyLjgzYS4zOC4zOCwwLDAsMSwuMTEtLjI5LjQuNCwwLDAsMSwuMjktLjEyaDEuNTdhLjQuNCwwLDAsMSwuMjkuMTIuNDIuNDIsMCwwLDEsLjExLjI5VjM4LjA2YTUsNSwwLDAsMS0uNTIsMi4yNkE0LDQsMCwwLDEsMTMyLDQyYTQuMjcsNC4yNywwLDAsMS0yLjMyLjYxaC0yQS40NC40NCwwLDAsMSwxMjcuMzEsNDIuNDZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTQwLDQyLjEyYTYuMTksNi4xOSwwLDAsMS0yLjI5LTIuMzEsNi4yOCw2LjI4LDAsMCwxLS44NC0zLjE4VjMyLjExYTYuMyw2LjMsMCwxLDEsMTIuNTksMHY0LjUyYTYuMjgsNi4yOCwwLDAsMS0uODQsMy4xOEE2LjMyLDYuMzIsMCwwLDEsMTQwLDQyLjEyWm01LjItMS44NWEzLjkzLDMuOTMsMCwwLDAsMS40Ni0xLjQ2LDQsNCwwLDAsMCwuNTQtMlYzMmEzLjkzLDMuOTMsMCwwLDAtLjU0LTIsNCw0LDAsMCwwLTEuNDYtMS40Nyw0LDQsMCwwLDAtMi0uNTMsMy45MiwzLjkyLDAsMCwwLTIsLjUzLDQsNCwwLDAsMC0xLjQ3LDEuNDcsMy45MiwzLjkyLDAsMCwwLS41MywydjQuODFhNCw0LDAsMCwwLC41MywyLDMuODksMy44OSwwLDAsMCwxLjQ3LDEuNDYsMy45MywzLjkzLDAsMCwwLDIsLjU0QTQsNCwwLDAsMCwxNDUuMjEsNDAuMjdaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTU0LjM1LDQyLjI4YTEsMSwwLDAsMS0uMy0uNzRWMjguMzFoLTNhLjM4LjM4LDAsMCwxLS40LS40VjI2LjU3YS4zOC4zOCwwLDAsMSwuNC0uNGg0LjI0YTEsMSwwLDAsMSwuNzQuMywxLDEsMCwwLDEsLjMuNzRWNDAuNDNoM2EuNDEuNDEsMCwwLDEsLjQxLjQxdjEuMzNhLjM3LjM3LDAsMCwxLS4xMi4yOS4zOC4zOCwwLDAsMS0uMjkuMTJoLTQuMjFBMSwxLDAsMCwxLDE1NC4zNSw0Mi4yOFptLS4xNS0xOC40OWEuNC40LDAsMCwxLS4xMi0uMjlWMjFhLjM2LjM2LDAsMCwxLC4xMi0uMjguMzcuMzcsMCwwLDEsLjI5LS4xMmgxLjM5YS40LjQsMCwwLDEsLjI5LjEyLjM5LjM5LDAsMCwxLC4xMS4yOFYyMy41YS40NC40NCwwLDAsMS0uMTEuMjkuMzkuMzksMCwwLDEtLjI5LjExaC0xLjM5QS4zNi4zNiwwLDAsMSwxNTQuMiwyMy43OVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNjIuMjksNDIuNDRhLjQuNCwwLDAsMS0uMTItLjI5VjI2LjU3YS4zOS4zOSwwLDAsMSwuNDEtLjRIMTY0YS4zOC4zOCwwLDAsMSwuNC40djEuNmE1LDUsMCwwLDEsMi0xLjgsNS44Nyw1Ljg3LDAsMCwxLDIuNzEtLjYxLDUuNDIsNS40MiwwLDAsMSw0LDEuNTEsNS4zNSw1LjM1LDAsMCwxLDEuNTIsNFY0Mi4xNWEuMzguMzgsMCwwLDEtLjQuNGgtMS40NWEuMzkuMzksMCwwLDEtLjQxLS40VjMxLjY4YTMuODMsMy44MywwLDAsMC0xLTIuODMsMy41NCwzLjU0LDAsMCwwLTIuNjMtMSw0LjA4LDQuMDgsMCwwLDAtMy4xMywxLjI3LDUsNSwwLDAsMC0xLjE5LDMuNTF2OS40OWEuMzguMzgsMCwwLDEtLjQuNGgtMS40NUEuNC40LDAsMCwxLDE2Mi4yOSw0Mi40NFoiLz48cG9seWdvbiBjbGFzcz0iY2xzLTIiIHBvaW50cz0iNi43NiAxIDM2LjI0IDE1IDQxIDQ2IDIgMzkgNi43NiAxIi8+PHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNC40MSw0Mi44OGEuNzQuNzQsMCwwLDEtLjIzLS41N1YxNy41N2ExLjYxLDEuNjEsMCwwLDEsMS42My0xLjYzaDcuMTFBOC40OSw4LjQ5LDAsMCwxLDE3LjE3LDE3YTguMjksOC4yOSwwLDAsMSwzLjA4LDMsOC4xMiw4LjEyLDAsMCwxLS40OSw5QTguMjEsOC4yMSwwLDAsMSwxNS41LDMybDYuMzEsOS43N2ExLjA3LDEuMDcsMCwwLDEsLjE1LjUzLjc1Ljc1LDAsMCwxLS4yNC41Ny45Mi45MiwwLDAsMS0uNjMuMjNIMThhMS4xMiwxLjEyLDAsMCwxLTEtLjUzbC02LjMtMTAuMTVIOC44MXY5Ljg4YS43Ny43NywwLDAsMS0uMjIuNTcuODEuODEsMCwwLDEtLjU3LjIzSDVBLjc4Ljc4LDAsMCwxLDQuNDEsNDIuODhabTguMjgtMTQuODJBNCw0LDAsMCwwLDE1LjU2LDI3YTMuNjcsMy42NywwLDAsMCwxLjEyLTIuNzYsMy43NywzLjc3LDAsMCwwLTEuMTItMi44MSwzLjk0LDMuOTQsMCwwLDAtMi44Ny0xLjFIOC44MXY3Ljc1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTIzLjQ0LDQyLjg4YS43Ny43NywwLDAsMS0uMjItLjU3VjM5LjU0YS43Ny43NywwLDAsMSwuNzktLjhoMi44MmEyLDIsMCwwLDAsMS41LS41OSwyLjMsMi4zLDAsMCwwLC41NS0xLjYyVjE2Ljc0YS43OS43OSwwLDAsMSwuOC0uOGgzYS43Ny43NywwLDAsMSwuNzkuOFYzNi41M2E3LDcsMCwwLDEtLjgxLDMuMzcsNi4wOCw2LjA4LDAsMCwxLTIuMjYsMi4zNSw2LjM0LDYuMzQsMCwwLDEtMy4yNy44NkgyNEEuODEuODEsMCwwLDEsMjMuNDQsNDIuODhaIi8+PC9zdmc+"
-
-    $plainBase64Logo_dark = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTEiIGhlaWdodD0iNDcuOSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fS5jbHMtMntmaWxsOiNmODg0MmM7fTwvc3R5bGU+PC9kZWZzPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQ4LjgyLDQyLjc1YS40NC40NCwwLDAsMS0uMTEtLjI5VjIzLjc1QTEsMSwwLDAsMSw0OSwyM2ExLDEsMCwwLDEsLjc0LS4zaDVhNS44Miw1LjgyLDAsMCwxLDUuODgsNS44Niw1LjYsNS42LDAsMCwxLTEuMzMsMy43MSw1Ljc1LDUuNzUsMCwwLDEtMy4zNiwybDQuODEsNy43N2EuNDguNDgsMCwwLDEsLjA5LjI5LjUxLjUxLDAsMCwxLS4xNi4zOC41NS41NSwwLDAsMS0uMzkuMTRINTguODZhLjQ2LjQ2LDAsMCwxLS40NC0uMjZsLTUuMDctOC4ySDUxLjA4djguMDZhLjM5LjM5LDAsMCwxLS4xMS4yOS4zOC4zOCwwLDAsMS0uMjkuMTFINDkuMTFBLjM5LjM5LDAsMCwxLDQ4LjgyLDQyLjc1Wm01LjgtMTAuNTlhMy41NCwzLjU0LDAsMCwwLDIuNi0xLDMuNDcsMy40NywwLDAsMCwxLTIuNTUsMy41OSwzLjU5LDAsMCwwLTEtMi42MywzLjU1LDMuNTUsMCwwLDAtMi42LTFINTEuMDh2Ny4yMloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik02Niw0MmE2LjE2LDYuMTYsMCwwLDEtMi4yOS0yLjMsNi4zLDYuMywwLDAsMS0uODQtMy4xOFYzMi40YTYuMyw2LjMsMCwwLDEsLjg0LTMuMThBNi4zLDYuMywwLDAsMSw3NS40MiwzMi40djJhMSwxLDAsMCwxLS4zMS43NCwxLDEsMCwwLDEtLjc0LjNINjUuMDl2MS4yOGE0LDQsMCwwLDAsLjU0LDIsMy45MywzLjkzLDAsMCwwLDEuNDYsMS40Niw0LDQsMCwwLDAsMiwuNTRoNC4yMWEuMzguMzgsMCwwLDEsLjQuNHYxLjM0YS40NC40NCwwLDAsMS0uMTEuMjkuMzkuMzksMCwwLDEtLjI5LjExSDY5LjEyQTYuMiw2LjIsMCwwLDEsNjYsNDJabTcuMTktOC43VjMyLjI1YTQuMDcsNC4wNywwLDAsMC0uNTMtMiwzLjg5LDMuODksMCwwLDAtMS40Ny0xLjQ2LDQuMDksNC4wOSwwLDAsMC00LjA2LDAsMy44NiwzLjg2LDAsMCwwLTEuNDYsMS40Niw0LDQsMCwwLDAtLjU0LDJ2MS4wN1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03OC41Miw0MmE0LjU1LDQuNTUsMCwwLDEtLjEzLTYuNDhBNi4zMSw2LjMxLDAsMCwxLDgyLDMzLjkzbDMuNzctLjUyQTEuODcsMS44NywwLDAsMCw4NywzMi44NWEyLDIsMCwwLDAsLjM3LTEuMjl2LS4yNGEyLjcyLDIuNzIsMCwwLDAtMS4wOC0yLjI0LDQuMjcsNC4yNywwLDAsMC0yLjcyLS44Niw0LjU0LDQuNTQsMCwwLDAtMi4yMS41MSwzLjg5LDMuODksMCwwLDAtMS41LDEuNC42Ni42NiwwLDAsMS0uNTguMzguNjkuNjksMCwwLDEtLjM3LS4xNGwtLjc5LS41M2EuNTYuNTYsMCwwLDEtLjE3LS43OCw2LDYsMCwwLDEsMi4zLTIuMTksNy42LDcuNiwwLDAsMSw2LjQ5LS4xNCw0Ljg0LDQuODQsMCwwLDEsMi4xLDEuODQsNS4xMiw1LjEyLDAsMCwxLC43NCwyLjc1VjQyLjQ2YS40LjQsMCwwLDEtLjEyLjI5LjM4LjM4LDAsMCwxLS4yOS4xMUg4Ny45NGEuMzkuMzksMCwwLDEtLjI5LS4xMS40NC40NCwwLDAsMS0uMTEtLjI5di0yYTYuMyw2LjMsMCwwLDEtMi4zMSwyLDYuNDEsNi40MSwwLDAsMS0zLjA2Ljc0QTUuMjksNS4yOSwwLDAsMSw3OC41Miw0MlpNODUsNDAuNDZhNS41Nyw1LjU3LDAsMCwwLDEuODEtMS45LDQuNTgsNC41OCwwLDAsMCwuNjUtMi4yNVYzNS4xMkw4MywzNS43M2wtLjgxLjEyYy0xLjkzLjI5LTIuOSwxLjItMi45LDIuNzJhMi4zOCwyLjM4LDAsMCwwLC44NywxLjkyLDMuNDQsMy40NCwwLDAsMCwyLjI2LjcyQTQuNjksNC42OSwwLDAsMCw4NSw0MC40NloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik05NC41Nyw0Mi41NmExLDEsMCwwLDEtLjMtLjc0VjIzaC0yLjdhLjM4LjM4LDAsMCwxLS4yOS0uMTIuMzcuMzcsMCwwLDEtLjEyLS4yOVYyMS4yNmEuNDEuNDEsMCwwLDEsLjQxLS40MWgzLjkxYTEsMSwwLDAsMSwuNzQuMzEsMSwxLDAsMCwxLC4zMS43NFY0MC43Mkg5OS42YS40Mi40MiwwLDAsMSwuMjkuMTEuNC40LDAsMCwxLC4xMi4yOXYxLjM0YS40LjQsMCwwLDEtLjEyLjI5LjM4LjM4LDAsMCwxLS4yOS4xMUg5NS4zMUExLDEsMCwwLDEsOTQuNTcsNDIuNTZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTAyLjQ0LDQyLjc1YS40NC40NCwwLDAsMS0uMTEtLjI5VjI2Ljg2YS4zOS4zOSwwLDAsMSwuNC0uNDFoMS40NWEuMzguMzgsMCwwLDEsLjI5LjEyLjM3LjM3LDAsMCwxLC4xMi4yOXYxLjU2YTQuNTUsNC41NSwwLDAsMSwxLjg0LTEuNzUsNS4zOCw1LjM4LDAsMCwxLDIuNTQtLjYsNS43OCw1Ljc4LDAsMCwxLDMuMTcuODYsNC43OSw0Ljc5LDAsMCwxLDEuOTMsMi4zM0E0Ljg3LDQuODcsMCwwLDEsMTE2LDI2LjkxYTUuMjgsNS4yOCwwLDAsMSwyLjktLjgxLDUuNDIsNS40MiwwLDAsMSw0LDEuNTEsNS4zMyw1LjMzLDAsMCwxLDEuNTMsNFY0Mi40NmEuNC40LDAsMCwxLS4xMi4yOS4zOC4zOCwwLDAsMS0uMjkuMTFoLTEuNDVhLjM4LjM4LDAsMCwxLS4yOS0uMTEuNC40LDAsMCwxLS4xMi0uMjlWMzJhMy44MywzLjgzLDAsMCwwLTEtMi44MywzLjUzLDMuNTMsMCwwLDAtMi42Mi0xLDMuNzEsMy43MSwwLDAsMC0yLjkyLDEuMjgsNS4xNiw1LjE2LDAsMCwwLTEuMTEsMy41djkuNDZhLjQuNCwwLDAsMS0uMTIuMjkuMzguMzgsMCwwLDEtLjI5LjExaC0xLjQ1YS4zOC4zOCwwLDAsMS0uNC0uNFYzMmEzLjgzLDMuODMsMCwwLDAtMS0yLjgzLDMuNTYsMy41NiwwLDAsMC0yLjYyLTEsMy42OCwzLjY4LDAsMCwwLTIuOTEsMS4yOEE1LjEyLDUuMTIsMCwwLDAsMTA0LjU5LDMzdjkuNDhhLjQuNCwwLDAsMS0uMTIuMjkuMzguMzgsMCwwLDEtLjI5LjExaC0xLjQ1QS4zOS4zOSwwLDAsMSwxMDIuNDQsNDIuNzVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTI2LjM3LDQyLjc1YS40NC40NCwwLDAsMS0uMTItLjMyVjQxLjFhLjQxLjQxLDAsMCwxLC40NC0uNDRoMS43MUEyLjE5LDIuMTksMCwwLDAsMTMwLDQwYTIuMzUsMi4zNSwwLDAsMCwuNjItMS43MVYyMy4xMmEuMzkuMzksMCwwLDEsLjQtLjQxaDEuNTdhLjM4LjM4LDAsMCwxLC4yOS4xMi4zNy4zNywwLDAsMSwuMTIuMjlWMzguMzRhNS4wNyw1LjA3LDAsMCwxLS41MiwyLjI2QTQuMSw0LjEsMCwwLDEsMTMxLDQyLjI2YTQuMzgsNC4zOCwwLDAsMS0yLjMyLjZoLTJBLjQuNCwwLDAsMSwxMjYuMzcsNDIuNzVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTM5LjA3LDQyLjRhNi4xNiw2LjE2LDAsMCwxLTIuMjktMi4zLDYuMyw2LjMsMCwwLDEtLjg0LTMuMThWMzIuNGE2LjMsNi4zLDAsMCwxLC44NC0zLjE4LDYuMjgsNi4yOCwwLDAsMSwxMC45LDAsNi4zLDYuMywwLDAsMSwuODQsMy4xOHY0LjUyYTYuMyw2LjMsMCwwLDEtLjg0LDMuMTgsNi4zMiw2LjMyLDAsMCwxLTguNjEsMi4zWm01LjE5LTEuODRhNCw0LDAsMCwwLDEuNDctMS40Niw0LjA4LDQuMDgsMCwwLDAsLjUzLTJWMzIuMjVhNC4wNyw0LjA3LDAsMCwwLS41My0yLDMuODksMy44OSwwLDAsMC0xLjQ3LTEuNDYsNC4wOSw0LjA5LDAsMCwwLTQuMDYsMCwzLjc5LDMuNzksMCwwLDAtMS40NiwxLjQ2LDQsNCwwLDAsMC0uNTQsMnY0LjgxYTQsNCwwLDAsMCwuNTQsMiwzLjkzLDMuOTMsMCwwLDAsMS40NiwxLjQ2LDQuMDksNC4wOSwwLDAsMCw0LjA2LDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTUzLjQxLDQyLjU2YTEsMSwwLDAsMS0uMzEtLjc0VjI4LjZoLTNhLjQxLjQxLDAsMCwxLS40MS0uNDFWMjYuODZhLjM3LjM3LDAsMCwxLC4xMi0uMjkuMzguMzgsMCwwLDEsLjI5LS4xMmg0LjIzYTEsMSwwLDAsMSwuNzQuMzEsMSwxLDAsMCwxLC4zMS43M1Y0MC43MmgzYS4zOS4zOSwwLDAsMSwuNDEuNHYxLjM0YS40LjQsMCwwLDEtLjEyLjI5LjM2LjM2LDAsMCwxLS4yOS4xMWgtNC4yQTEsMSwwLDAsMSwxNTMuNDEsNDIuNTZabS0uMTYtMTguNDlhLjM3LjM3LDAsMCwxLS4xMi0uMjlWMjEuMjZhLjQxLjQxLDAsMCwxLC40MS0uNDFoMS4zOWEuNDEuNDEsMCwwLDEsLjQxLjQxdjIuNTJhLjM3LjM3LDAsMCwxLS4xMi4yOS4zOC4zOCwwLDAsMS0uMjkuMTJoLTEuMzlBLjM4LjM4LDAsMCwxLDE1My4yNSwyNC4wN1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNjEuMzQsNDIuNzJhLjM4LjM4LDAsMCwxLS4xMS0uMjlWMjYuODZhLjM2LjM2LDAsMCwxLC4xMS0uMjkuNC40LDAsMCwxLC4yOS0uMTJoMS40NWEuMzguMzgsMCwwLDEsLjI5LjEyLjM3LjM3LDAsMCwxLC4xMi4yOXYxLjU5YTUsNSwwLDAsMSwxLjk1LTEuOCw2LDYsMCwwLDEsMi43Mi0uNjEsNS40Miw1LjQyLDAsMCwxLDQsMS41MSw1LjM0LDUuMzQsMCwwLDEsMS41Myw0djEwLjlhLjQxLjQxLDAsMCwxLS40MS40MWgtMS40NWEuNDEuNDEsMCwwLDEtLjQxLS40MVYzMmEzLjgzLDMuODMsMCwwLDAtMS0yLjgzLDMuNTcsMy41NywwLDAsMC0yLjYyLTEsNC4wNyw0LjA3LDAsMCwwLTMuMTMsMS4yOEE0LjkxLDQuOTEsMCwwLDAsMTYzLjQ5LDMzdjkuNDhhLjQxLjQxLDAsMCwxLS40MS40MWgtMS40NUEuNC40LDAsMCwxLDE2MS4zNCw0Mi43MloiLz48cG9seWdvbiBjbGFzcz0iY2xzLTIiIHBvaW50cz0iNS44MSAxLjI4IDM1LjMgMTUuMjkgNDAuMDUgNDYuMjggMS4wNSAzOS4yOCA1LjgxIDEuMjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zLjQ2LDQzLjE2YS43OC43OCwwLDAsMS0uMjMtLjU3VjE3Ljg2YTEuNTUsMS41NSwwLDAsMSwuNDgtMS4xNiwxLjU1LDEuNTUsMCwwLDEsMS4xNi0uNDhIMTJhOC41LDguNSwwLDAsMSw0LjI2LDEuMSw4LjM5LDguMzksMCwwLDEsMy4wOCwzLDguMDgsOC4wOCwwLDAsMS0uNSw5LDguMyw4LjMsMCwwLDEtNC4yNSwyLjk1bDYuMyw5Ljc2YTEsMSwwLDAsMSwuMTYuNTMuNzYuNzYsMCwwLDEtLjI1LjU3Ljg2Ljg2LDAsMCwxLS42My4yM0gxN2ExLjEsMS4xLDAsMCwxLTEtLjUzTDkuNzMsMzIuNzFINy44N3Y5Ljg4YS43OC43OCwwLDAsMS0uMjMuNTcuNzQuNzQsMCwwLDEtLjU3LjIzSDRBLjc0Ljc0LDAsMCwxLDMuNDYsNDMuMTZabTguMjgtMTQuODJhNCw0LDAsMCwwLDIuODctMS4wOCwzLjY1LDMuNjUsMCwwLDAsMS4xMi0yLjc1LDMuNzksMy43OSwwLDAsMC0xLjEyLTIuODIsMy45MiwzLjkyLDAsMCwwLTIuODctMS4xSDcuODd2Ny43NVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMi41LDQzLjE2YS43OC43OCwwLDAsMS0uMjMtLjU3VjM5LjgyYS43OS43OSwwLDAsMSwuOC0uOGgyLjgxYTEuOTQsMS45NCwwLDAsMCwxLjUtLjU5LDIuMjUsMi4yNSwwLDAsMCwuNTUtMS42MVYxN2EuNzkuNzksMCwwLDEsLjgtLjhoM2EuNzkuNzksMCwwLDEsLjguOHYxOS44YTYuODUsNi44NSwwLDAsMS0uODIsMy4zNiw2LDYsMCwwLDEtMi4yNiwyLjM2LDYuMjgsNi4yOCwwLDAsMS0zLjI3Ljg1SDIzLjA3QS43NC43NCwwLDAsMSwyMi41LDQzLjE2WiIvPjwvc3ZnPg=="
-
-    # Create data URIs for both logos
-    $base64RJLogoLight = "data:image/svg+xml;base64,$($plainBase64Logo_light)"
-    $base64RJLogoDark = "data:image/svg+xml;base64,$($plainBase64Logo_dark)"
-
-    # Create RealmJoin-branded HTML email template
-    $htmlBody = @"
-<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light">
-    <meta name="supported-color-schemes" content="light">
-    <title>$Subject</title>
-    <!--[if !mso]><!-->
-    <style>
-        :root {
-            --rj-orange: #f8842c;
-            --rj-midnight: #011e33;
-            --rj-light-gray: #f8f9fa;
-            --rj-white: #ffffff;
-            --rj-text-color: #333;
-            --rj-border-color: #e1e5e9;
-        }
-
-        /* Light mode specific rules - default and explicit */
-        .header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
-        }
-
-        .header .title {
-            color: rgba(255, 255, 255, 0.95) !important;
-        }
-
-        .content th {
-            background: linear-gradient(135deg, #f8842c 0%, #e67c28 100%) !important;
-            color: #ffffff !important;
-        }
-
-        @media (prefers-color-scheme: light) {
-            .header {
-                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
-            }
-            .header .title {
-                color: rgba(255, 255, 255, 0.95) !important;
-            }
-            .content th {
-                background: linear-gradient(135deg, #f8842c 0%, #e67c28 100%) !important;
-                color: #ffffff !important;
-            }
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #1a1a1a !important;
-            }
-            .email-container, .content {
-                background-color: #2d2d2d !important;
-                color: #e5e5e5 !important;
-            }
-            .header {
-                background: linear-gradient(135deg, #011e33 0%, #1a365d 100%) !important;
-            }
-            .footer {
-                background: linear-gradient(135deg, #1a365d 0%, #011e33 100%) !important;
-            }
-            h1, h2, h3, p, span, strong, div, li {
-                color: #e5e5e5 !important;
-            }
-            .tenant-info {
-                background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
-                border: 1px solid #4a4a4a !important;
-                border-left-color: #f8842c !important;
-            }
-            .content table {
-                background-color: #3a3a3a !important;
-            }
-            .content th {
-                background: #011e33 !important;
-                background: linear-gradient(135deg, #011e33 0%, #1a365d 100%) !important;
-                color: #ffffff !important;
-            }
-            .content td {
-                border-bottom-color: #4a4a4a !important;
-            }
-            .content tr:nth-child(even) {
-                background-color: #404040 !important;
-            }
-            @media (prefers-color-scheme: dark) {
-                .attachments {
-                    background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
-                    border: 1px solid #4a4a4a !important;
-                    border-left-color: #f8842c !important;
-                }
-                .attachment-list li {
-                    background-color: #2d2d2d !important;
-                    border-color: #4a4a4a !important;
-                }
-            }
-            .content code, .content pre {
-                background-color: #404040 !important;
-                color: #e5e5e5 !important;
-            }
-            .content blockquote {
-                background-color: #3a3a3a !important;
-            }
-        }
-    </style>
-    <!--<![endif]-->
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #374151;
-            background-color: #f9fafb;
-            padding: 20px;
-            margin: 0;
-        }
-
-        .email-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-        }
-
-        .header {
-            background: var(--rj-light-gray);
-            color: #374151;
-            padding: 40px 48px 32px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.03"><path d="M0,0 C300,50 700,50 1000,0 L1000,100 L0,100 Z"/></svg>') no-repeat center bottom;
-            background-size: cover;
-        }
-
-        .header .logo-container {
-            position: relative;
-            z-index: 1;
-            margin-bottom: 12px;
-            max-width: 150px;
-            width: 150px !important;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .logo-light,
-        .logo-dark {
-            max-width: 150px;
-            width: 150px !important;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* Mobile-specific logo sizing */
-        @media (max-width: 768px) {
-            .header .logo-container {
-                max-width: 140px !important;
-                width: 140px !important;
-            }
-            .logo-light,
-            .logo-dark {
-                max-width: 140px !important;
-                width: 140px !important;
-            }
-        }
-
-        /* Desktop logo sizing */
-        @media (min-width: 769px) {
-            .header .logo-container {
-                max-width: 180px !important;
-                width: 180px !important;
-            }
-            .logo-light,
-            .logo-dark {
-                max-width: 180px !important;
-            }
-        }
-
-        /* Show light logo by default (for light mode) */
-        .logo-light {
-            display: block;
-        }
-
-        .logo-dark {
-            display: none;
-        }
-
-        /* Switch to dark logo in dark mode */
-        @media (prefers-color-scheme: dark) {
-            .logo-light {
-                display: none;
-            }
-
-            .logo-dark {
-                display: block;
-            }
-        }
-
-        .header .title {
-            position: relative;
-            z-index: 1;
-            font-size: 18px;
-            font-weight: 400;
-            margin: 0;
-            opacity: 0.9;
-            color: #374151 !important;
-            text-shadow: none;
-        }
-
-        .content {
-            padding: 48px 48px;
-            background-color: #ffffff;
-        }
-
-        .tenant-info {
-            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-            border: 1px solid #e0e7ff;
-            border-left: 4px solid #f8842c;
-            padding: 20px 24px;
-            margin-bottom: 32px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .tenant-info strong {
-            color: #011e33;
-            font-weight: 600;
-        }
-
-        .content h1 {
-            color: #111827;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: -0.025em;
-        }
-
-        .content h2 {
-            color: #374151;
-            margin-top: 28px;
-            margin-bottom: 12px;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .content h3 {
-            color: #4b5563;
-            margin-top: 20px;
-            margin-bottom: 8px;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .content p {
-            margin-bottom: 12px;
-            color: #374151;
-            line-height: 1.7;
-        }
-
-        .content ul, .content ol {
-            margin-left: 24px;
-            margin-bottom: 12px;
-            color: #374151;
-        }
-
-        .content li {
-            margin-bottom: 4px;
-            line-height: 1.6;
-        }
-
-        .content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 32px 0;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        }
-
-        .content th {
-            background: linear-gradient(135deg, #f8842c 0%, #e67c28 100%) !important;
-            color: #ffffff !important;
-            padding: 18px 24px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .content td {
-            padding: 18px 24px;
-            border-bottom: 1px solid #f3f4f6;
-            font-size: 15px;
-        }
-
-        .content tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-
-        .content code {
-            background-color: #f3f4f6;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'SF Mono', Monaco, 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-            font-size: 0.875em;
-            color: #374151;
-            border: 1px solid #e5e7eb;
-        }
-
-        .content pre {
-            background-color: #f3f4f6;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 20px 0;
-            border: 1px solid #e5e7eb;
-            font-family: 'SF Mono', Monaco, 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-        }
-
-        .content blockquote {
-            border-left: 4px solid #3b82f6;
-            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-            padding: 20px 24px;
-            margin: 24px 0;
-            border-radius: 0 8px 8px 0;
-            font-style: italic;
-            color: #374151;
-        }
-
-        .attachments {
-            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-            border: 1px solid #e0e7ff;
-            border-left: 4px solid #f8842c;
-            border-radius: 8px;
-            padding: 20px 24px;
-            margin-top: 16px;
-        }
-
-        .attachments h3 {
-            color: #011e33;
-            margin-top: 0;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .attachments h3:before {
-            content: "📎";
-            margin-right: 10px;
-            font-size: 16px;
-        }
-
-        .attachment-list {
-            list-style: none;
-            margin: 0 0 16px 0;
-            padding: 0;
-        }
-
-        .attachment-list li {
-            background-color: white;
-            border: 1px solid #e0e7ff;
-            border-radius: 6px;
-            padding: 8px 12px;
-            margin-bottom: 3px;
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .attachments p {
-            margin-bottom: 0;
-            font-size: 14px;
-        }        .footer {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            color: #f9fafb;
-            padding: 40px 48px;
-            text-align: center;
-            position: relative;
-        }
-
-        .footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.02"><path d="M0,100 C300,50 700,50 1000,100 L1000,0 L0,0 Z"/></svg>') no-repeat center top;
-            background-size: cover;
-        }
-
-        .footer .logo-container {
-            position: relative;
-            z-index: 1;
-            margin-bottom: 16px;
-            max-width: 130px;
-            width: 130px !important;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .footer .logo-light,
-        .footer .logo-dark {
-            max-width: 130px;
-            width: 130px !important;
-            height: auto;
-            opacity: 0.9;
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* Mobile-specific footer logo sizing */
-        @media (max-width: 768px) {
-            .footer .logo-container {
-                max-width: 120px !important;
-                width: 120px !important;
-            }
-            .footer .logo-light,
-            .footer .logo-dark {
-                max-width: 120px !important;
-                width: 120px !important;
-            }
-        }
-
-        /* Desktop footer logo sizing */
-        @media (min-width: 769px) {
-            .footer .logo-container {
-                max-width: 160px !important;
-                width: 160px !important;
-            }
-            .footer .logo-light,
-            .footer .logo-dark {
-                max-width: 160px !important;
-            }
-        }
-
-        /* Show light logo by default (for light mode) */
-        .footer .logo-light {
-            display: block;
-        }
-
-        .footer .logo-dark {
-            display: none;
-        }
-
-        /* Switch to dark logo in dark mode */
-        @media (prefers-color-scheme: dark) {
-            .footer .logo-light {
-                display: none;
-            }
-
-            .footer .logo-dark {
-                display: block;
-            }
-        }
-
-        .footer .tagline {
-            position: relative;
-            z-index: 1;
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 20px;
-            color: var(--rj-text-color);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .footer .tagline {
-                color: var(--rj-light-gray) !important;
-            }
-        }
-
-        .footer .links {
-            position: relative;
-            z-index: 1;
-            margin-top: 24px;
-            font-size: 13px;
-            opacity: 0.7;
-        }
-
-        .footer .links a {
-            color: #60a5fa;
-            text-decoration: none;
-            margin: 0 12px;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .email-container {
-                margin: 0;
-                border-radius: 8px;
-                max-width: 100%;
-            }
-
-            .header, .content, .footer {
-                padding: 24px 20px;
-            }
-
-            .logo-light,
-            .logo-dark {
-                max-width: 90px !important;
-            }
-
-            .footer .logo-light,
-            .footer .logo-dark {
-                max-width: 80px !important;
-            }
-
-            .header .title {
-                font-size: 16px !important;
-                font-weight: 400 !important;
-                opacity: 0.85 !important;
-                margin-bottom: 8px !important;
-            }
-
-            .content h1 {
-                font-size: 24px;
-            }
-
-            .content h2 {
-                font-size: 20px;
-            }
-
-            .content table {
-                font-size: 13px;
-            }
-
-            .content th, .content td {
-                padding: 12px 8px;
-            }
-
-            .tenant-info {
-                padding: 16px 20px;
-                font-size: 13px;
-            }
-
-            .attachments {
-                padding: 16px 20px;
-                font-size: 13px;
-            }
-
-            .attachments h3 {
-                font-size: 13px;
-            }
-
-            .attachments p {
-                font-size: 13px;
-            }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .email-container {
-                max-width: 900px;
-            }
-
-            .header, .content, .footer {
-                padding: 36px;
-            }
-
-            .logo-light,
-            .logo-dark {
-                max-width: 130px;
-            }
-
-            .footer .logo-light,
-            .footer .logo-dark {
-                max-width: 110px;
-            }
-        }
-
-        @media (min-width: 1025px) {
-            .logo-light,
-            .logo-dark {
-                max-width: 160px;
-            }
-
-            .footer .logo-light,
-            .footer .logo-dark {
-                max-width: 130px;
-            }
-        }
-
-        /* Force RealmJoin Orange for table headers with highest specificity */
-        .content th,
-        .email-container .content table th,
-        table .content th {
-            background: #f8842c !important;
-            background: linear-gradient(135deg, #f8842c 0%, #e67c28 100%) !important;
-            color: #ffffff !important;
-        }
-    </style>
-</head>
-<body>
-    <!--[if mso]>
-    <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
-        <v:fill type="tile" color="#f5f5f5"/>
-    </v:background>
-    <![endif]-->
-    <div class="email-container">
-        <div class="header">
-            <div class="logo-container">
-                <img class="logo-light" alt="RealmJoin logo for light mode" src="$($base64RJLogoLight)" />
-                <img class="logo-dark" alt="RealmJoin logo for dark mode" src="$($base64RJLogoDark)" />
-            </div>
-            <div class="title">Insights on Demand</div>
-        </div>
-
-        <div class="content">
-
-            $htmlContent
-
-            $(if (($(($Attachments) | Measure-Object).Count) -gt 0) {
-                @"
-
-            <div class="attachments">
-                <h3>Attached Files</h3>
-                <ul class="attachment-list">
-                    $(($Attachments | ForEach-Object { "<li>$(Split-Path $_ -Leaf)</li>" }) -join "`n                    ")
-                </ul>
-                <p><strong>Note:</strong> The attachments contain additional information from the generated report and can be used for more in-depth analysis.</p>
-            </div>
-            <br />
-"@
-            })
-
-            <div class="tenant-info">
-                <strong>Tenant:</strong> $($TenantDisplayName)<br>
-                <strong>Generated:</strong> $([System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US'; Get-Date -Format "dddd, MMMM d, yyyy HH:mm") <br>
-                <strong>Report Version:</strong> $($ReportVersion)
-            </div>
-        </div>
-
-        <div class="footer">
-            <div class="logo-container">
-                <img class="logo-light" alt="RealmJoin logo for light mode" src="$($base64RJLogoLight)" />
-                <img class="logo-dark" alt="RealmJoin logo for dark mode" src="$($base64RJLogoDark)" />
-            </div>
-            <div class="tagline">Companion to Intune – Application Lifecycle & Management Automation Platform</div>
-            <div class="links">
-                <a href="https://www.realmjoin.com">www.realmjoin.com</a> |
-                <a href="https://docs.realmjoin.com">Documentation</a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-"@
-
-    try {
-        # Send email using Microsoft Graph
-        Write-RjRbLog -Message "Sending email to: $EmailTo" -Verbose
-
-        # Prepare attachments
-        $emailAttachments = @()
-        foreach ($file in $Attachments) {
-            if (Test-Path $file) {
-                $contentBytes = [IO.File]::ReadAllBytes($file)
-                $content = [Convert]::ToBase64String($contentBytes)
-                $emailAttachments += @{
-                    "@odata.type"  = "#microsoft.graph.fileAttachment"
-                    "name"         = (Split-Path $file -Leaf)
-                    "contentType"  = "text/csv"
-                    "contentBytes" = $content
-                }
-            }
-            else {
-                Write-RjRbLog -Message "Attachment file not found: $file" -Verbose
-            }
-        }
-
-        $message = @{
-            subject      = $Subject
-            body         = @{
-                contentType = "HTML"
-                content     = $htmlBody
-            }
-            toRecipients = @(
-                @{
-                    emailAddress = @{
-                        address = $EmailTo
-                    }
-                }
-            )
-        }
-
-        if ($emailAttachments.Count -gt 0) {
-            $message.attachments = $emailAttachments
-        }
-
-        # Send via Graph API using native Microsoft Graph
-        $body = @{ message = $message; saveToSentItems = $true } | ConvertTo-Json -Depth 10
-        $Uri = "https://graph.microsoft.com/v1.0/users/$($EmailFrom)/sendMail"
-        Invoke-MgGraphRequest -Uri $Uri -Method POST -Body $body -ContentType "application/json" -ErrorAction Stop
-
-        Write-RjRbLog -Message "Email sent successfully" -Verbose
-    }
-    catch {
-        Write-Error "Failed to send email: $($_.Exception.Message)" -ErrorAction Continue
-        throw "Failed to send email: $($_.Exception.Message)"
-    }
+    return $allResults
 }
 
 #endregion
@@ -1135,36 +1244,6 @@ Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 ########################################################
 
 Write-Output "Retrieving all App Registrations..."
-
-# Function to get all pages from Graph API
-function Get-AllGraphPages {
-    param(
-        [string]$Uri
-    )
-
-    $allResults = @()
-    $nextLink = $Uri
-
-    do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
-        if ($response.value) {
-            $allResults += $response.value
-        }
-        elseif ($response.'@odata.context') {
-            # Single item response
-            $allResults += $response
-        }
-
-        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
-            $nextLink = $response.'@odata.nextLink'
-        } else {
-            $nextLink = $null
-        }
-    } while ($nextLink)
-
-    return $allResults
-}
 
 $allAppRegs = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
 Write-Output "Found $((($(($allAppRegs) | Measure-Object).Count))) App Registrations..."
