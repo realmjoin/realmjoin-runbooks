@@ -1,4 +1,8 @@
 # RealmJoin Runbooks Changelog
+## 2025-10-06
+  - Update List Application Runbook
+  - Add Resource Account License Check to Get Teams User Info and Set Teams Phone Runbooks
+
 ## 2025-09-26
   - Add runbook in Org/Applications
     - Updated/Added Versions add, update, delete and list application registrations
