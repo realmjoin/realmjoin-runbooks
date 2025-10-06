@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Reports devices with last contact within a specified date range and optionally sends the report via email.
+    Reports devices with last contact within a specified date range.
 
 .DESCRIPTION
     This Runbook retrieves a list of devices from Intune, filtered by their last device contact time (lastSyncDateTime).
@@ -17,6 +17,7 @@
     The operating system type of the devices to filter.
 
 .PARAMETER EmailTo
+    If specified, an email with the report will be sent to the provided address(es).
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
@@ -66,7 +67,7 @@ RunbookCustomization: {
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.28.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.30.0" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -77,11 +78,11 @@ param (
     [ValidateSet("all", "Windows", "macOS", "Linux")]
     [string]$systemType = "Windows",
 
-    [Parameter(Mandatory = $false)]
-    [string]$EmailTo,
-
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
+
+    [Parameter(Mandatory = $false)]
+    [string]$EmailTo,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -119,9 +120,9 @@ if ($EmailTo) {
 # Validate Email Addresses (only if email is requested)
 if ($EmailTo) {
     if (-not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/blob/master/docs/org/applications/report-app-registration.md" -Verbose
-    throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/blob/master/docs/org/applications/report-app-registration.md"
-    exit
+        Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/blob/master/docs/org/applications/report-app-registration.md" -Verbose
+        throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/blob/master/docs/org/applications/report-app-registration.md"
+        exit
     }
 }
 
@@ -1309,7 +1310,8 @@ $baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices?$fi
 if ($systemType -ne 'all') {
     $baseFilter = "operatingSystem eq '$($systemType)'"
     $filterQuery = "$($baseFilter) and $($dateFilter)"
-}else {
+}
+else {
     $filterQuery = $dateFilter
 }
 
@@ -1354,13 +1356,13 @@ catch {
 #Prettify the property names for better readability
 $outputDevices = $allDevices | ForEach-Object {
     [PSCustomObject]@{
-        DeviceName          = $_.deviceName
-        LastSyncDateTime    = $_.lastSyncDateTime
-        IntuneDeviceId      = $_.id
-        EntraIdDeviceId     = $_.azureADDeviceId
-        UserDisplayName     = $_.userDisplayName
-        UserPrincipalName   = $_.userPrincipalName
-        UserId              = $_.userId
+        DeviceName        = $_.deviceName
+        LastSyncDateTime  = $_.lastSyncDateTime
+        IntuneDeviceId    = $_.id
+        EntraIdDeviceId   = $_.azureADDeviceId
+        UserDisplayName   = $_.userDisplayName
+        UserPrincipalName = $_.userPrincipalName
+        UserId            = $_.userId
     }
 }
 
@@ -1398,18 +1400,8 @@ if ($EmailTo) {
     }
     catch {
         Write-RjRbLog -Message "Warning: Could not retrieve tenant information: $($_.Exception.Message)" -Verbose
-        $tenantDisplayName = "Unknown Tenant"
+        $tenantDisplayName = ""
     }
-
-    # Create temporary directory for CSV files
-    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "DeviceContactReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
-
-    # Export to CSV
-    $csvFile = Join-Path $tempDir "DeviceContactReport_$($systemType)_$($dateRange)days.csv"
-    $outputDevices | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
-    Write-Verbose "Exported device data to: $csvFile"
 
     # Prepare date range description
     $dateRangeDescription = switch ($dateRange) {
@@ -1420,8 +1412,90 @@ if ($EmailTo) {
         "365+" { "more than 365 days ago" }
     }
 
-    # Create markdown content for email
-    $markdownContent = @"
+    # Check if any devices were found
+    $deviceCount = ($outputDevices | Measure-Object).Count
+    $csvFiles = @()
+
+    if ($deviceCount -eq 0) {
+        # No devices found - send email without attachments
+        Write-RjRbLog -Message "No devices found in the specified date range - sending notification email" -Verbose
+
+        $markdownContent = @"
+# Device Last Contact Report
+
+## Summary
+
+✅ **No devices found** with last contact in the specified date range.
+
+## Report Parameters
+
+| Parameter | Value |
+|-----------|-------|
+| **Date Range** | $($dateRangeDescription) |
+| **System Type** | $($systemType) |
+| **Devices Found** | 0 |
+| **Report Date** | $(Get-Date -Format 'yyyy-MM-dd HH:mm') |
+
+## Analysis
+
+This result indicates:
+- No devices match the selected criteria ($($systemType), $($dateRangeDescription))
+- All devices may be checking in more frequently (if looking at older date ranges)
+- Or no devices exist in this category
+
+## Recommendations
+
+### Next Steps
+
+$(if ($dateRange -eq "365+" -or $dateRange -eq "180-365") {
+@"
+✅ **Good News for Old Devices:**
+- No stale devices detected in this time range
+- Device management appears healthy
+- Continue regular monitoring
+"@
+} else {
+@"
+📊 **Recent Activity Check:**
+- Consider checking other date ranges
+- Verify system type filter is correct
+- Review overall device inventory
+"@
+})
+
+### Suggested Actions
+
+1. **Verify Search Criteria:**
+   - Confirm the date range and system type are correct
+   - Try different date ranges to compare results
+   - Check if devices exist for the selected system type
+
+2. **Regular Monitoring:**
+   - Schedule periodic reports with different time ranges
+   - Track device activity trends over time
+   - Set up alerts for unusual patterns
+"@
+
+        $emailSubject = "Device Last Contact Report - No Devices Found - $($systemType) ($($dateRangeDescription)) - $(Get-Date -Format 'yyyy-MM-dd')"
+
+    }
+    else {
+        # Devices found - create CSV file and send detailed report
+        Write-RjRbLog -Message "Found $($deviceCount) devices - preparing detailed report" -Verbose
+
+        # Create temporary directory for CSV files
+        $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "DeviceContactReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+        Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+
+        # Export to CSV
+        $csvFile = Join-Path $tempDir "DeviceContactReport_$($systemType)_$($dateRange)days.csv"
+        $outputDevices | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
+        Write-Verbose "Exported device data to: $csvFile"
+        $csvFiles += $csvFile
+
+        # Create markdown content for email with detailed findings
+        $markdownContent = @"
 # Device Last Contact Report
 
 This report provides an overview of devices with their last contact within the specified date range.
@@ -1432,19 +1506,28 @@ This report provides an overview of devices with their last contact within the s
 |-----------|-------|
 | **Date Range** | $($dateRangeDescription) |
 | **System Type** | $($systemType) |
-| **Total Devices Found** | $(($outputDevices | Measure-Object).Count) |
+| **Total Devices Found** | $($deviceCount) |
 
 ## Summary
 
-$(if (($outputDevices | Measure-Object).Count -eq 0) {
+$(if ($deviceCount -eq 0) {
 "No devices were found matching the specified criteria."
 } else {
 @"
-This report contains **$(($outputDevices | Measure-Object).Count) devices** that last contacted Intune within the specified timeframe.
+This report contains **$($deviceCount) devices** that last contacted Intune within the specified timeframe.
+
+### Device Statistics by Operating System
+
+$(
+    $osByType = $outputDevices | Group-Object OperatingSystem | Sort-Object Count -Descending
+    $osByType | ForEach-Object {
+        "- **$($_.Name)**: $($_.Count) device(s)"
+    }
+)
 
 ### Top 10 Devices (by Last Sync)
 
-| Device Name | Last Sync | Intune Device ID | User |
+| Device Name | Last Sync | Operating System | User |
 |-------------|-----------|------------------|------|
 $(
     $outputDevices | Sort-Object LastSyncDateTime -Descending | Select-Object -First 10 | ForEach-Object {
@@ -1453,7 +1536,7 @@ $(
         } else {
             "N/A"
         }
-        "| $($_.DeviceName) | $lastSync | $($_.IntuneDeviceId) | $($_.UserPrincipalName) |"
+        "| $($_.DeviceName) | $($lastSync) | $($_.OperatingSystem) | $($_.UserPrincipalName) |"
     }
 )
 "@
@@ -1462,11 +1545,11 @@ $(
 ## Data Export Information
 
 The attached CSV file contains detailed information including:
-- Device Name
+- Device Name and Intune Device ID
 - Last Sync Date and Time
-- Intune Device ID
 - Entra ID Device ID
-- User Principal Name
+- User Display Name and User Principal Name
+- Operating System
 - User ID
 
 ## Recommendations
@@ -1501,38 +1584,58 @@ These devices have contacted Intune recently. This indicates:
 })
 "@
 
-    # Send email
-    try {
-        $emailSubject = "Device Last Contact Report - $systemType ($dateRangeDescription) - $(Get-Date -Format 'yyyy-MM-dd')"
+        $emailSubject = "Device Last Contact Report - $systemType ($($dateRangeDescription)) - $(Get-Date -Format 'yyyy-MM-dd')"
+    }
 
-        Send-RjReportEmail `
-            -EmailFrom $EmailFrom `
-            -EmailTo $EmailTo `
-            -Subject $emailSubject `
-            -MarkdownContent $markdownContent `
-            -Attachments @($csvFile) `
-            -TenantDisplayName $tenantDisplayName `
-            -ReportVersion $Version
+    # Send email (with or without attachments depending on findings)
+    try {
+        if ($deviceCount -eq 0) {
+            Send-RjReportEmail `
+                -EmailFrom $EmailFrom `
+                -EmailTo $EmailTo `
+                -Subject $emailSubject `
+                -MarkdownContent $markdownContent `
+                -Attachments $csvFiles `
+                -TenantDisplayName $tenantDisplayName `
+                -ReportVersion $Version
+        }
+        else {
+            Send-RjReportEmail `
+                -EmailFrom $EmailFrom `
+                -EmailTo $EmailTo `
+                -Subject $emailSubject `
+                -MarkdownContent $markdownContent `
+                -TenantDisplayName $tenantDisplayName `
+                -ReportVersion $Version
+        }
+
 
         Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
         Write-Output "✅ Device contact report generated and sent successfully"
         Write-Output "📧 Recipient: $($EmailTo)"
-        Write-Output "📊 Devices reported: $(($outputDevices | Measure-Object).Count)"
+        if ($deviceCount -gt 0) {
+            Write-Output "📊 Devices reported: $deviceCount"
+        }
+        else {
+            Write-Output "✅ No devices found in specified date range"
+        }
     }
     catch {
         Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
         throw "Failed to send email report: $($_.Exception.Message)"
     }
     finally {
-        # Clean up temporary files
-        try {
-            if (Test-Path $tempDir) {
-                Remove-Item -Path $tempDir -Recurse -Force
-                Write-RjRbLog -Message "Cleaned up temporary directory: $($tempDir)" -Verbose
+        # Clean up temporary files (only if they were created)
+        if ($deviceCount -gt 0) {
+            try {
+                if (Test-Path $tempDir) {
+                    Remove-Item -Path $tempDir -Recurse -Force
+                    Write-RjRbLog -Message "Cleaned up temporary directory: $($tempDir)" -Verbose
+                }
             }
-        }
-        catch {
-            Write-RjRbLog -Message "Warning: Could not clean up temporary directory: $($_.Exception.Message)" -Verbose
+            catch {
+                Write-RjRbLog -Message "Warning: Could not clean up temporary directory: $($_.Exception.Message)" -Verbose
+            }
         }
     }
 }
