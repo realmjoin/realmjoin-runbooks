@@ -6,9 +6,9 @@ This document lists all the runbooks that are missing permissions JSON files. Th
 
 Total runbooks: 136
 
-Runbooks with permissions: 124
+Runbooks with permissions: 125
 
-Runbooks missing permissions: 12
+Runbooks missing permissions: 11
 
 ## List of files
 
@@ -21,7 +21,6 @@ Runbooks, which currently have missing permission files:
  - org/general/add-viva-engange-community
  - org/general/assign-groups-by-template_scheduled
  - org/general/check-assignments-of-groups
- - org/general/check-device-onboarding-exclusion_schedule
  - org/general/sync-all-devices
  - org/mail/set-booking-config
  - user/avd/user-signout

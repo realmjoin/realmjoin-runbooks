@@ -8,6 +8,14 @@ Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusi
 ## Where to find
 Org \ General \ Check Device Onboarding Exclusion_Schedule
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+  - Device.Read.All
+  - DeviceManagementManagedDevices.Read.All
+
+
 ## Parameters
 ### -exclusionGroupName
 Description: EntraID exclusion group for Defender Compliance.
