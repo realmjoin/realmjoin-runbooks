@@ -49,8 +49,8 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Devices | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.ReadWrite.All<br>&emsp;- Device.ReadWrite.All<br> |  |
 |  | General | Add Autopilot Device | Import a windows device into Windows Autopilot. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | General | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
-|  | General | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |  |  |
-|  | General | Add Management Partner | List or add or Management Partner Links (PAL) |  |  |
+|  | General | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  |
+|  | General | Add Management Partner | List or add or Management Partner Links (PAL) | Owner or Contributor role on the Azure Subscription<br> |  |
 |  | General | Add Microsoft Store App Logos | Update logos of Microsoft Store Apps (new) in Intune. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br> |  |
 |  | General | Add Office365 Group | Create an Office 365 group and SharePoint site, optionally create a (Teams) team. | - **Type**: Microsoft Graph<br>&emsp;- Group.Create<br>&emsp;- Team.Create<br> |  |
 |  | General | Add Or Remove Safelinks Exclusion | Add or remove a SafeLinks URL exclusion to/from a given policy. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
@@ -64,7 +64,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | General | Bulk Retire Devices From Intune | Bulk retire devices from Intune using serial numbers | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Device.Read.All<br> |  |
 |  | General | Check Aad Sync Status_Scheduled | Check for last Azure AD Connect Sync Cycle. | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br> |  |
 |  | General | Check Assignments Of Devices | Check Intune assignments for a given (or multiple) Device Names. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  |
-|  | General | Check Assignments Of Groups | Check Intune assignments for a given (or multiple) Group Names. |  |  |
+|  | General | Check Assignments Of Groups | Check Intune assignments for a given (or multiple) Group Names. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.Read.All<br> |  |
 |  | General | Check Assignments Of Users | Check Intune assignments for a given (or multiple) User Principal Names (UPNs). | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.Read.All<br> |  |
 |  | General | Check Autopilot Serialnumbers | Check if given serial numbers are present in AutoPilot. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br> |  |
 |  | General | Check Device Onboarding Exclusion_Schedule | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
@@ -80,7 +80,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | General | Office365 License Report | Generate an Office 365 licensing report. | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br> |  |
 |  | General | Report Apple Mdm Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  | General | Report Pim Activations_Scheduled | Scheduled Report on PIM Activations. | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Mail.Send<br> |  |
-|  | General | Sync All Devices | Sync all Intune devices. |  |  |
+|  | General | Sync All Devices | Sync all Intune devices. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  |
 |  | Mail | Add Distribution List | Create a classic distribution group. | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Equipment Mailbox | Create an equipment mailbox. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Or Remove Public Folder | Add or remove a public folder. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |

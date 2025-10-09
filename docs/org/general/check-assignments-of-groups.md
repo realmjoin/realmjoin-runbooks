@@ -8,13 +8,15 @@ This script checks the Intune assignments for a single or multiple specified Gro
 ## Where to find
 Org \ General \ Check Assignments Of Groups
 
-## Notes
-Permissions (Graph):
-- User.Read.All
-- Group.Read.All
-- DeviceManagementConfiguration.Read.All
-- DeviceManagementManagedDevices.Read.All
-- Device.Read.All
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - Group.Read.All
+  - DeviceManagementConfiguration.Read.All
+  - DeviceManagementManagedDevices.Read.All
+  - Device.Read.All
+
 
 ## Parameters
 ### -GroupNames

@@ -8,6 +8,14 @@ This runbook reads accounts from a specified Users group and adds their devices 
 ## Where to find
 Org \ General \ Add Devices Of Users To Group_Scheduled
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+  - User.Read.All
+  - GroupMember.ReadWrite.All
+
+
 ## Parameters
 ### -UserGroup
 Description: 
