@@ -144,7 +144,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw }
     $permissionsJSON = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw | ConvertFrom-Json }
 
-    $runbookDescriptions += [PSCustomObject]@{
+    $runbookDescriptions += [PSCustomObject][ordered]@{
         RunbookDisplayName           = $CurrentRunbookBasics.RunbookDisplayName
         RunbookDisplayPath           = $CurrentRunbookBasics.RunbookDisplayPath
         RelativeRunbookPath          = $relativeRunbookPath
@@ -190,5 +190,8 @@ if (Test-Path -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.js
     }
 }
 
+# Sort the runbook descriptions to ensure consistent output and avoid unnecessary commits
+$sortedRunbookDescriptions = $runbookDescriptions | Sort-Object -Property RelativeRunbookPath
+
 # Create the JSON file with the runbook details
-$runbookDescriptions | ConvertTo-Json -Depth 15 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.json")
+$sortedRunbookDescriptions | ConvertTo-Json -Depth 15 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.json")
