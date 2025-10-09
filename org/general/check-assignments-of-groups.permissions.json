@@ -1,0 +1,17 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "User.Read.All",
+                "Group.Read.All",
+                "DeviceManagementConfiguration.Read.All",
+                "DeviceManagementManagedDevices.Read.All",
+                "Device.Read.All"
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}
