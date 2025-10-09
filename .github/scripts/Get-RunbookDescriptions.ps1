@@ -440,6 +440,7 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
         Add-Content -Path $ResultFile -Value ""
         Add-Content -Path $ResultFile -Value "## Additional information"
         Add-Content -Path $ResultFile -Value "Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:"
+        Add-Content -Path $ResultFile -Value "- [General runbook information and setup guides]($($relativeOutputPath)general)"
         Add-Content -Path $ResultFile -Value "- [List based content]($($relativeOutputPath)lists)"
         Add-Content -Path $ResultFile -Value "- [JSON based content]($($relativeOutputPath)other/json)"
         Add-Content -Path $ResultFile -Value "- [Other content]($($relativeOutputPath)other)"
