@@ -1739,6 +1739,13 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 <a name='org-mail-set-booking-config'></a>
 
 ### Set Booking Config
+#### Configure Microsoft Bookings settings for the organization.
+
+#### Description
+Configure Microsoft Bookings settings at the organization level, including booking policies,
+naming conventions, and access restrictions. Optionally creates an OWA mailbox policy for
+Bookings creators and disables Bookings in the default OWA policy.
+
 #### Where to find
 Org \ Mail \ Set Booking Config
 

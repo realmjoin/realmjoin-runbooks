@@ -88,7 +88,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Mail | Add Room Mailbox | Create a room resource. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Shared Mailbox | Create a shared mailbox. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |  | - Exchange administrator<br> |
-|  | Mail | Set Booking Config |  |  |  |
+|  | Mail | Set Booking Config | Configure Microsoft Bookings settings for the organization. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Phone | Get Teams Phone Number Assignment | Looks up, if the given phone number is assigned to a user in Microsoft Teams. | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br> | - Teams Administrator<br> |
 |  | Security | Add Defender Indicator | Create new Indicator in Defender for Endpoint. | - **Type**: WindowsDefenderATP<br>&emsp;- Ti.ReadWrite.All<br> |  |
 |  | Security | Backup Conditional Access Policies | Exports the current set of Conditional Access policies to an Azure storage account. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>Azure IaaS: Access to the given Azure Storage Account / Resource Group<br> |  |

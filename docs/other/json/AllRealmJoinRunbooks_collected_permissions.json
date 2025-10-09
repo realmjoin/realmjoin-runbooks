@@ -22,7 +22,7 @@
   {
     "Name": "Office 365 Exchange Online",
     "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
+    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
   },
   {
     "Name": "Microsoft Graph",

@@ -88,7 +88,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Room Mailbox | Create a room resource. |
 |  |  | Add Shared Mailbox | Create a shared mailbox. |
 |  |  | Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |
-|  |  | Set Booking Config |  |
+|  |  | Set Booking Config | Configure Microsoft Bookings settings for the organization. |
 |  | Phone | Get Teams Phone Number Assignment | Looks up, if the given phone number is assigned to a user in Microsoft Teams. |
 |  | Security | Add Defender Indicator | Create new Indicator in Defender for Endpoint. |
 |  |  | Backup Conditional Access Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
