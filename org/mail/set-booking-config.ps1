@@ -1,3 +1,24 @@
+<#
+  .SYNOPSIS
+  Configure Microsoft Bookings settings for the organization.
+
+  .DESCRIPTION
+  Configure Microsoft Bookings settings at the organization level, including booking policies,
+  naming conventions, and access restrictions. Optionally creates an OWA mailbox policy for
+  Bookings creators and disables Bookings in the default OWA policy.
+
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+      "CallerName": {
+          "Hide": true
+      }
+    }
+  }
+#>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
+
 param(
         [bool] $BookingsEnabled = $true,
         [bool] $BookingsAuthEnabled = $false,
@@ -22,8 +43,6 @@ param(
         [Parameter(Mandatory = $true)]
         [string] $CallerName
 )
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 

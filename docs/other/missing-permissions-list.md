@@ -6,9 +6,9 @@ This document lists all the runbooks that are missing permissions JSON files. Th
 
 Total runbooks: 136
 
-Runbooks with permissions: 124
+Runbooks with permissions: 130
 
-Runbooks missing permissions: 12
+Runbooks missing permissions: 6
 
 ## List of files
 
@@ -16,14 +16,8 @@ Runbooks, which currently have missing permission files:
 
  - device/avd/restart-host
  - device/avd/toggle-drain-mode
- - org/general/add-devices-of-users-to-group_scheduled
- - org/general/add-management-partner
  - org/general/add-viva-engange-community
  - org/general/assign-groups-by-template_scheduled
- - org/general/check-assignments-of-groups
- - org/general/check-device-onboarding-exclusion_schedule
- - org/general/sync-all-devices
- - org/mail/set-booking-config
  - user/avd/user-signout
  - user/general/assign-groups-by-template
 

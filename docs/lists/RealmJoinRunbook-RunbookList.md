@@ -336,7 +336,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Room Mailbox | Create a room resource. |
 | Add Shared Mailbox | Create a shared mailbox. |
 | Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |
-| Set Booking Config |  |
+| Set Booking Config | Configure Microsoft Bookings settings for the organization. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
