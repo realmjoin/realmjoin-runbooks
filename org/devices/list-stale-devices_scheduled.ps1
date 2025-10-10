@@ -1,34 +1,53 @@
 <#
-  .SYNOPSIS
-  Scheduled report of stale devices based on last activity date and platform.
+    .SYNOPSIS
+    Scheduled report of stale devices based on last activity date and platform.
 
-  .DESCRIPTION
-  Identifies and lists devices that haven't been active for a specified number of days.
-  Automatically sends a report via email.
+    .DESCRIPTION
+    Identifies and lists devices that haven't been active for a specified number of days.
+    Automatically sends a report via email.
 
-  .PARAMETER Days
-  Number of days without activity to be considered stale.
+    .PARAMETER Days
+    Number of days without activity to be considered stale.
 
-  .PARAMETER Windows
-  Include Windows devices in the results.
+    .PARAMETER Windows
+    Include Windows devices in the results.
 
-  .PARAMETER MacOS
-  Include macOS devices in the results.
+    .PARAMETER MacOS
+    Include macOS devices in the results.
 
-  .PARAMETER iOS
-  Include iOS devices in the results.
+    .PARAMETER iOS
+    Include iOS devices in the results.
 
-  .PARAMETER Android
-  Include Android devices in the results.
+    .PARAMETER Android
+    Include Android devices in the results.
 
-  .PARAMETER sendAlertTo
-  Email address to send the report to.
+    .PARAMETER EmailTo
+    Can be a single address or multiple comma-separated addresses (string).
+    The function sends individual emails to each recipient for privacy reasons.
 
-  .PARAMETER sendAlertFrom
-  Email address to send the report from.
+    .PARAMETER EmailFrom
+    The sender email address. This needs to be configured in the runbook customization
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "EmailTo": {
+                "DisplayName": "Recipient Email Address(es)"
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
+            "IncludeDeletedApps": {
+                "DisplayName": "Include Deleted Applications"
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
@@ -39,8 +58,10 @@ param(
     [bool] $MacOS = $true,
     [bool] $iOS = $true,
     [bool] $Android = $true,
-    [string] $sendAlertTo = "support@glueckkanja.com",
-    [string] $sendAlertFrom = "runbook@glueckkanja.com",
+    [Parameter(Mandatory = $true)]
+    [string] $EmailTo,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
+    [string]$EmailFrom,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -60,8 +81,8 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "Email To: $sendAlertTo" -Verbose
-Write-RjRbLog -Message "Email From: $sendAlertFrom" -Verbose
+Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
+Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
 Write-RjRbLog -Message "Days: $Days" -Verbose
 Write-RjRbLog -Message "Windows: $Windows" -Verbose
 Write-RjRbLog -Message "MacOS: $MacOS" -Verbose
@@ -75,13 +96,13 @@ Write-RjRbLog -Message "Android: $Android" -Verbose
 ########################################################
 
 # Validate Email Addresses
-if (-not $sendAlertFrom) {
+if (-not $EmailFrom) {
     Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
     throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
     exit
 }
 
-if (-not $sendAlertTo) {
+if (-not $EmailTo) {
     Write-RjRbLog -Message "The recipient email address is required. It could be a single address or multiple comma-separated addresses." -Verbose
     throw "The recipient email address is required."
 }
@@ -1267,7 +1288,7 @@ $filteredDevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSi
 
 # Create Markdown content for email
 Write-Output ""
-Write-Output "## Preparing email report to send to $($sendAlertTo)"
+Write-Output "## Preparing email report to send to $($EmailTo)"
 
 # Build Markdown content
 $markdownContent = @"
@@ -1343,13 +1364,13 @@ Regularly reviewing stale devices helps:
 # Send email report
 $emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($Days) days"
 
-Write-Output "Sending report to '$sendAlertTo'..."
+Write-Output "Sending report to '$EmailTo'..."
 try {
-    Send-RjReportEmail -EmailFrom $sendAlertFrom -EmailTo $sendAlertTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+    Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
 
-    Write-RjRbLog -Message "Email report sent successfully to: $($sendAlertTo)" -Verbose
+    Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
     Write-Output "✅ Stale devices report generated and sent successfully"
-    Write-Output "📧 Recipient: $($sendAlertTo)"
+    Write-Output "📧 Recipient: $($EmailTo)"
     Write-Output "📊 Total Stale Devices: $($filteredDevices.Count)"
     Write-Output "⏱️ Inactive for: $Days days"
 }
