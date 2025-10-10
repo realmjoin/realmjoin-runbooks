@@ -1175,6 +1175,7 @@ function Get-MimeTypeFromExtension {
 
 # Connect to Microsoft Graph
 Connect-RjRbGraph
+Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 
 # Get tenant information
 Write-Output "## Retrieving tenant information..."
