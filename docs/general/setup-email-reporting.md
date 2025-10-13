@@ -28,4 +28,4 @@ In the `Settings` block, add or modify the `RJReport` section to include the `Em
 }
 ```
 
-**Example:** With this configuration, the runbook will use `realmjoin-report@contoso.com` as the sender email address for all outgoing reports. Replace `contoso.com` with your actual domain name.
+**Example:** With this configuration, the runbook will use `realmjoin-report@contoso.com` as the sender email address for all outgoing reports. Replace `realmjoin-report@contoso.com` with your actual shared mailbox address.
