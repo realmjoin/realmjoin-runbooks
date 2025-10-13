@@ -1301,6 +1301,7 @@ try {
     }
 
     foreach ($token in $vppTokens) {
+        $identifier = if ([string]::IsNullOrWhiteSpace($token.appleId)) { "Unknown Apple ID" } else { $token.appleId }
         $expiration = if ($token.expirationDateTime) { [datetime]$token.expirationDateTime } else { $null }
         $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
         $status = "Healthy"
@@ -1309,7 +1310,8 @@ try {
 
         if ($token.state -ne "valid") {
             $status = "Alert"
-            $notes = "Token state is '$($token.state)'"
+            $stateText = if ([string]::IsNullOrWhiteSpace($token.state)) { "unknown" } else { $token.state }
+            $notes = "Token state is '$stateText'"
             $isAlert = $true
         }
         elseif ($expiration -and $expiration -le $thresholdDate) {
@@ -1326,7 +1328,7 @@ try {
 
         $vppTokenResults += [PSCustomObject]@{
             Category          = "VPP Token"
-            Identifier        = $token.appleId
+            Identifier        = $identifier
             ExpirationDate    = $expiration
             DaysRemaining     = $daysRemaining
             DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
@@ -1336,7 +1338,7 @@ try {
         }
 
         if ($isAlert) {
-            $alertDetails += "- **VPP Token** '$($token.appleId)': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
+            $alertDetails += "- **VPP Token** '$identifier': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
         }
     }
 }
@@ -1358,6 +1360,7 @@ try {
     }
 
     foreach ($token in $depSettings) {
+        $identifier = if ([string]::IsNullOrWhiteSpace($token.appleIdentifier)) { "Unknown Identifier" } else { $token.appleIdentifier }
         $expiration = if ($token.tokenExpirationDateTime) { [datetime]$token.tokenExpirationDateTime } else { $null }
         $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
         $status = "Healthy"
@@ -1378,7 +1381,7 @@ try {
 
         $depTokenResults += [PSCustomObject]@{
             Category          = "DEP Token"
-            Identifier        = $token.appleIdentifier
+            Identifier        = $identifier
             ExpirationDate    = $expiration
             DaysRemaining     = $daysRemaining
             DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
@@ -1388,7 +1391,7 @@ try {
         }
 
         if ($isAlert) {
-            $alertDetails += "- **DEP Token** '$($token.appleIdentifier)': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
+            $alertDetails += "- **DEP Token** '$identifier': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
         }
     }
 }
@@ -1410,7 +1413,8 @@ $applePushTable = if ($applePushResults.Count -gt 0) {
     $rows = foreach ($entry in $applePushResults) {
         $expiresText = if ($entry.ExpirationDate) { $entry.ExpirationDate.ToString("yyyy-MM-dd") } else { "Unknown" }
         $statusText = if ($entry.Notes) { "$($entry.Status) - $($entry.Notes)" } else { $entry.Status }
-        "| $($entry.Identifier) | $expiresText | $($entry.DaysRemainingText) | $statusText |"
+        $identifierText = if ([string]::IsNullOrWhiteSpace($entry.Identifier)) { "Unknown" } else { $entry.Identifier }
+        "| $identifierText | $expiresText | $($entry.DaysRemainingText) | $statusText |"
     }
 
     @"
@@ -1427,7 +1431,8 @@ $vppTable = if ($vppTokenResults.Count -gt 0) {
     $rows = foreach ($entry in $vppTokenResults) {
         $expiresText = if ($entry.ExpirationDate) { $entry.ExpirationDate.ToString("yyyy-MM-dd") } else { "Unknown" }
         $statusText = if ($entry.Notes) { "$($entry.Status) - $($entry.Notes)" } else { $entry.Status }
-        "| $($entry.Identifier) | $expiresText | $($entry.DaysRemainingText) | $statusText |"
+        $identifierText = if ([string]::IsNullOrWhiteSpace($entry.Identifier)) { "Unknown" } else { $entry.Identifier }
+        "| $identifierText | $expiresText | $($entry.DaysRemainingText) | $statusText |"
     }
 
     @"
@@ -1444,7 +1449,8 @@ $depTable = if ($depTokenResults.Count -gt 0) {
     $rows = foreach ($entry in $depTokenResults) {
         $expiresText = if ($entry.ExpirationDate) { $entry.ExpirationDate.ToString("yyyy-MM-dd") } else { "Unknown" }
         $statusText = if ($entry.Notes) { "$($entry.Status) - $($entry.Notes)" } else { $entry.Status }
-        "| $($entry.Identifier) | $expiresText | $($entry.DaysRemainingText) | $statusText |"
+        $identifierText = if ([string]::IsNullOrWhiteSpace($entry.Identifier)) { "Unknown" } else { $entry.Identifier }
+        "| $identifierText | $expiresText | $($entry.DaysRemainingText) | $statusText |"
     }
 
     @"
@@ -1458,10 +1464,10 @@ else {
 }
 
 $alertsSection = if ($alertCount -gt 0) {
-    "## Alerts`n" + ($alertDetails -join "`n")
+    "## Alerts`n`n" + ($alertDetails -join "`n")
 }
 else {
-    "## Alerts`nNo alerts were detected. All tracked items are outside the $($Days)-day warning window."
+    "## Alerts`n`nNo alerts were detected. All tracked items are outside the $($Days)-day warning window."
 }
 
 $markdownContent = @"
@@ -1476,12 +1482,15 @@ Tenant **$($tenantDisplayName)** (ID: $($tenantId))
 $alertsSection
 
 ## Apple Push Notification Certificate
+
 $applePushTable
 
 ## Volume Purchase Program Tokens
+
 $vppTable
 
 ## Device Enrollment Program Tokens
+
 $depTable
 
 ## Recommendations
