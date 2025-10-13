@@ -1,6 +1,8 @@
 # RealmJoin Runbooks Changelog
 
 ## 2025-10-13
+  - Update Report Apple MDM Cert Expiry (scheduled) Runbook
+    - Update regarding new email functions
   - Update Report Devices Without Primary User Runbook
     - Update regarding new email functions
   - Update Report Users With More Than Five Devices Runbook
