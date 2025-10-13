@@ -59,7 +59,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 if ($EmailTo) {
     Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
@@ -1285,7 +1285,7 @@ The attached CSV file contains the following information for each device:
 | Column | Description |
 |--------|-------------|
 | **ObjectId** | Intune managed device object ID |
-| **DeviceId** | Azure AD device ID |
+| **DeviceId** | Entra ID device ID |
 | **DisplayName** | Device name in Intune |
 | **LastSyncDateTime** | Last sync date and time with Intune |
 

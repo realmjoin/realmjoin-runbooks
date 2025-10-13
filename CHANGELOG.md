@@ -1,4 +1,17 @@
 # RealmJoin Runbooks Changelog
+
+## 2025-10-13
+  - Update Report Devices Without Primary User Runbook
+    - Update regarding new email functions
+  - Update Report Users With More Than Five Devices Runbook
+    - Update regarding new email functions
+  - Update Report Last Device Contact By Range Runbook
+    - Update regarding new email functions
+  - Update List Stale Devices Runbook
+    - Update regarding new email functions
+  - Update general mail setup documentation
+    - Improve clarity and detail on email configuration steps
+
 ## 2025-10-06
   - Update List Application Runbook
   - Add Resource Account License Check to Get Teams User Info and Set Teams Phone Runbooks

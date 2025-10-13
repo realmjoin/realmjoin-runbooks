@@ -50,7 +50,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.30.0" }
 
 param(
     [int] $Days = 30,
@@ -76,7 +77,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -1171,6 +1172,52 @@ function Get-MimeTypeFromExtension {
     }
 }
 
+function Get-AllGraphPages {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Get-AllGraphPages takes an initial Microsoft Graph API URI and retrieves all items across
+        multiple pages by following the @odata.nextLink property in the response. It aggregates
+        all items into a single array and returns it.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/applications".
+
+        .EXAMPLE
+        PS C:\> $allApps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
+#>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = @()
+    $nextLink = $Uri
+
+    do {
+        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
+
+        if ($response.value) {
+            $allResults += $response.value
+        }
+        elseif ($response.'@odata.context') {
+            # Single item response
+            $allResults += $response
+        }
+
+        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+            $nextLink = $response.'@odata.nextLink'
+        }
+        else {
+            $nextLink = $null
+        }
+    } while ($nextLink)
+
+    return $allResults
+}
+
 #endregion
 
 # Connect to Microsoft Graph
@@ -1179,12 +1226,22 @@ Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 
 # Get tenant information
 Write-Output "## Retrieving tenant information..."
-$organization = Invoke-RjRbRestMethodGraph -Resource "/organization" -ErrorAction SilentlyContinue
 $tenantDisplayName = "Unknown Tenant"
+try {
+    $organizationUri = "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
+    $organizationResponse = Invoke-MgGraphRequest -Uri $organizationUri -Method GET -ErrorAction Stop
 
-if ($organization -and $organization.Count -gt 0) {
-    $tenantDisplayName = $organization[0].displayName
-    Write-Output "## Tenant: $($tenantDisplayName)"
+    if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+        $tenantDisplayName = $organizationResponse.value[0].displayName
+        Write-Output "## Tenant: $($tenantDisplayName)"
+    }
+    elseif ($organizationResponse.displayName) {
+        $tenantDisplayName = $organizationResponse.displayName
+        Write-Output "## Tenant: $($tenantDisplayName)"
+    }
+}
+catch {
+    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
 }
 Write-Output ""
 
@@ -1192,16 +1249,31 @@ Write-Output ""
 $beforeDate = (Get-Date).AddDays(-$Days) | Get-Date -Format "yyyy-MM-dd"
 
 # Prepare filter for the Graph API query
-$filter = "lastSyncDateTime le ${beforeDate}T00:00:00Z"
+$filter = "lastSyncDateTime le $($beforeDate)T00:00:00Z"
 
 # Define the properties to select
-$selectString = "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, operatingSystem, osVersion, complianceState"
+$selectProperties = @(
+    'deviceName'
+    'lastSyncDateTime'
+    'enrolledDateTime'
+    'userPrincipalName'
+    'id'
+    'serialNumber'
+    'manufacturer'
+    'model'
+    'operatingSystem'
+    'osVersion'
+    'complianceState'
+)
+$selectString = ($selectProperties -join ',')
 
 # Get all stale devices
 Write-Output "## Listing devices not active for at least $($Days) days"
 Write-Output ""
 
-$devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect $selectString -OdFilter $filter -FollowPaging
+$encodedFilter = [System.Uri]::EscapeDataString($filter)
+$devicesUri = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$selectString&`$filter=$encodedFilter"
+$devices = Get-AllGraphPages -Uri $devicesUri
 
 # Filter devices by platform based on user selection
 $filteredDevices = @()
@@ -1225,16 +1297,20 @@ foreach ($device in $devices) {
 
     if ($include) {
         # Try to get additional user information
-        try {
-            $userInfo = Invoke-RjRbRestMethodGraph -Resource "/Users/$($device.userPrincipalName)" -OdSelect "displayName, city, usageLocation" -ErrorAction SilentlyContinue
+        if ($device.userPrincipalName) {
+            try {
+                $encodedUserPrincipalName = [System.Uri]::EscapeDataString($device.userPrincipalName)
+                $userUri = "https://graph.microsoft.com/v1.0/users/{0}?`$select=displayName,city,usageLocation" -f $encodedUserPrincipalName
+                $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction SilentlyContinue
 
-            if ($userInfo) {
-                $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
-                $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
+                if ($userInfo) {
+                    $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
+                    $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
+                }
             }
-        }
-        catch {
-            Write-RjRbLog -Message "Could not retrieve user info for $($device.userPrincipalName): $_" -Verbose
+            catch {
+                Write-RjRbLog -Message "Could not retrieve user info for $($device.userPrincipalName): $($_.Exception.Message)" -Verbose
+            }
         }
 
         $filteredDevices += $device
@@ -1291,8 +1367,37 @@ $filteredDevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSi
 Write-Output ""
 Write-Output "## Preparing email report to send to $($EmailTo)"
 
+# Prepare additional metadata for the report body
+$selectedPlatforms = @()
+if ($Windows) { $selectedPlatforms += 'Windows' }
+if ($MacOS) { $selectedPlatforms += 'macOS' }
+if ($iOS) { $selectedPlatforms += 'iOS' }
+if ($Android) { $selectedPlatforms += 'Android' }
+$platformSummary = if ($selectedPlatforms.Count -gt 0) { $selectedPlatforms -join ', ' } else { 'No specific platforms selected' }
+$totalDevicesEvaluated = ($devices | Measure-Object).Count
+
 # Build Markdown content
-$markdownContent = @"
+$markdownContent = if ($filteredDevices.Count -eq 0) {
+    @"
+# Stale Devices Report
+
+Great news — no managed devices matched the stale device criteria (last sync on or before **$($beforeDate)**) for the selected platforms.
+
+## What We Checked
+
+- Inactivity threshold: **$($Days) days**
+- Platforms evaluated: $platformSummary
+- Devices evaluated: $($totalDevicesEvaluated)
+
+## Recommendations
+
+- Continue to monitor this report regularly to spot newly idle devices early
+- Keep lifecycle policies and retirement procedures current
+- Ensure device owners stay informed about required check-ins
+"@
+}
+else {
+    @"
 # Stale Devices Report
 
 This report shows devices that have not been active for at least **$($Days) days**.
@@ -1361,11 +1466,12 @@ Regularly reviewing stale devices helps:
 - Optimize license utilization
 - Ensure compliance with organizational policies
 "@
+}
 
 # Send email report
 $emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($Days) days"
 
-Write-Output "Sending report to '$EmailTo'..."
+Write-Output "Sending report to '$($EmailTo)'..."
 try {
     Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
 

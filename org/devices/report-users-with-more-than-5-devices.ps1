@@ -59,7 +59,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
