@@ -1244,10 +1244,14 @@ $vppTokenResults = @()
 $depTokenResults = @()
 $alertDetails = @()
 
+#region Apple MDM Certs
 Write-Output "Evaluating Apple device management integrations..."
 
 try {
-    $applePushResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/deviceManagement/applePushNotificationCertificate" -Method GET -ErrorAction Stop
+    $Uri = "https://graph.microsoft.com/v1.0/deviceManagement/applePushNotificationCertificate"
+    $applePushResponse = Get-AllGraphPages -Uri $Uri -ErrorAction Stop
+
+
     if ($applePushResponse) {
         $applePushCerts = @($applePushResponse)
 
@@ -1271,14 +1275,14 @@ try {
             }
 
             $applePushResults += [PSCustomObject]@{
-                Category        = "Apple Push Certificate"
-                Identifier      = $applePushCert.appleIdentifier
-                ExpirationDate  = $expiration
-                DaysRemaining   = $daysRemaining
+                Category          = "Apple Push Certificate"
+                Identifier        = $applePushCert.appleIdentifier
+                ExpirationDate    = $expiration
+                DaysRemaining     = $daysRemaining
                 DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
-                Status          = $status
-                Notes           = $notes
-                Alert           = $isAlert
+                Status            = $status
+                Notes             = $notes
+                Alert             = $isAlert
             }
 
             if ($isAlert) {
@@ -1291,117 +1295,122 @@ catch {
     Write-Warning "Failed to retrieve Apple Push Notification Certificate: $($_.Exception.Message)"
 }
 
+#endregion
+
+#region VPP and DEP Tokens
+#region VPP
+
 try {
-    $vppResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/deviceAppManagement/vppTokens" -Method GET -ErrorAction Stop
-    $vppTokens = @()
+    $Uri = "https://graph.microsoft.com/beta/deviceAppManagement/vppTokens"
+    $vppTokens = Get-AllGraphPages -Uri $Uri -ErrorAction Stop
+    if (($vppTokens.value | Measure-Object).Count -eq 0) {
+        $vppTokens = @()
+        $vppTokenResults = @()
+    }
+    else {
+        foreach ($token in $vppTokens) {
+            $identifier = if ([string]::IsNullOrWhiteSpace($token.appleId)) { "Unknown Apple ID" } else { $token.appleId }
+            $expiration = if ($token.expirationDateTime) { [datetime]$token.expirationDateTime } else { $null }
+            $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
+            $status = "Healthy"
+            $notes = ""
+            $isAlert = $false
 
-    if ($vppResponse) {
-        if ($vppResponse.value) {
-            $vppTokens = $vppResponse.value
-        }
-        else {
-            $vppTokens = @($vppResponse)
+            if ($token.state -ne "valid") {
+                $status = "Alert"
+                $stateText = if ([string]::IsNullOrWhiteSpace($token.state)) { "unknown" } else { $token.state }
+                $notes = "Token state is '$stateText'"
+                $isAlert = $true
+            }
+            elseif ($expiration -and $expiration -le $thresholdDate) {
+                $status = "Alert"
+                $notes = "Expires within $($Days) days"
+                $isAlert = $true
+            }
+
+            if (-not $expiration) {
+                $status = "Alert"
+                $notes = if ($notes) { "$($notes); expiration date unavailable" } else { "Expiration date unavailable" }
+                $isAlert = $true
+            }
+
+            $vppTokenResults += [PSCustomObject]@{
+                Category          = "VPP Token"
+                Identifier        = $identifier
+                ExpirationDate    = $expiration
+                DaysRemaining     = $daysRemaining
+                DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
+                Status            = $status
+                Notes             = $notes
+                Alert             = $isAlert
+            }
+
+            if ($isAlert) {
+                $alertDetails += "- **VPP Token** '$identifier': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
+            }
         }
     }
 
-    foreach ($token in $vppTokens) {
-        $identifier = if ([string]::IsNullOrWhiteSpace($token.appleId)) { "Unknown Apple ID" } else { $token.appleId }
-        $expiration = if ($token.expirationDateTime) { [datetime]$token.expirationDateTime } else { $null }
-        $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
-        $status = "Healthy"
-        $notes = ""
-        $isAlert = $false
 
-        if ($token.state -ne "valid") {
-            $status = "Alert"
-            $stateText = if ([string]::IsNullOrWhiteSpace($token.state)) { "unknown" } else { $token.state }
-            $notes = "Token state is '$stateText'"
-            $isAlert = $true
-        }
-        elseif ($expiration -and $expiration -le $thresholdDate) {
-            $status = "Alert"
-            $notes = "Expires within $($Days) days"
-            $isAlert = $true
-        }
-
-        if (-not $expiration) {
-            $status = "Alert"
-            $notes = if ($notes) { "$($notes); expiration date unavailable" } else { "Expiration date unavailable" }
-            $isAlert = $true
-        }
-
-        $vppTokenResults += [PSCustomObject]@{
-            Category          = "VPP Token"
-            Identifier        = $identifier
-            ExpirationDate    = $expiration
-            DaysRemaining     = $daysRemaining
-            DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
-            Status            = $status
-            Notes             = $notes
-            Alert             = $isAlert
-        }
-
-        if ($isAlert) {
-            $alertDetails += "- **VPP Token** '$identifier': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
-        }
-    }
 }
 catch {
     Write-Warning "Failed to retrieve VPP Tokens: $($_.Exception.Message)"
 }
+#endregion
 
+#region DEP
 try {
-    $depResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings" -Method GET -ErrorAction Stop
-    $depSettings = @()
+    $Uri = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
+    $depSettings = Get-AllGraphPages -Uri $Uri -ErrorAction Stop
 
-    if ($depResponse) {
-        if ($depResponse.value) {
-            $depSettings = $depResponse.value
-        }
-        else {
-            $depSettings = @($depResponse)
-        }
+    if ($depSettings.'@odata.count' -eq 0) {
+        $depSettings = @()
+        $depTokenResults = @()
     }
+    else {
+        foreach ($token in $depSettings) {
+            $identifier = if ([string]::IsNullOrWhiteSpace($token.appleIdentifier)) { "Unknown Identifier" } else { $token.appleIdentifier }
+            $expiration = if ($token.tokenExpirationDateTime) { [datetime]$token.tokenExpirationDateTime } else { $null }
+            $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
+            $status = "Healthy"
+            $notes = ""
+            $isAlert = $false
 
-    foreach ($token in $depSettings) {
-        $identifier = if ([string]::IsNullOrWhiteSpace($token.appleIdentifier)) { "Unknown Identifier" } else { $token.appleIdentifier }
-        $expiration = if ($token.tokenExpirationDateTime) { [datetime]$token.tokenExpirationDateTime } else { $null }
-        $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
-        $status = "Healthy"
-        $notes = ""
-        $isAlert = $false
+            if ($expiration -and $expiration -le $thresholdDate) {
+                $status = "Alert"
+                $notes = "Expires within $($Days) days"
+                $isAlert = $true
+            }
 
-        if ($expiration -and $expiration -le $thresholdDate) {
-            $status = "Alert"
-            $notes = "Expires within $($Days) days"
-            $isAlert = $true
-        }
+            if (-not $expiration) {
+                $status = "Alert"
+                $notes = "Expiration date unavailable"
+                $isAlert = $true
+            }
 
-        if (-not $expiration) {
-            $status = "Alert"
-            $notes = "Expiration date unavailable"
-            $isAlert = $true
-        }
+            $depTokenResults += [PSCustomObject]@{
+                Category          = "DEP Token"
+                Identifier        = $identifier
+                ExpirationDate    = $expiration
+                DaysRemaining     = $daysRemaining
+                DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
+                Status            = $status
+                Notes             = $notes
+                Alert             = $isAlert
+            }
 
-        $depTokenResults += [PSCustomObject]@{
-            Category          = "DEP Token"
-            Identifier        = $identifier
-            ExpirationDate    = $expiration
-            DaysRemaining     = $daysRemaining
-            DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
-            Status            = $status
-            Notes             = $notes
-            Alert             = $isAlert
-        }
-
-        if ($isAlert) {
-            $alertDetails += "- **DEP Token** '$identifier': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
+            if ($isAlert) {
+                $alertDetails += "- **DEP Token** '$identifier': $notes ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
+            }
         }
     }
 }
 catch {
     Write-Warning "Failed to retrieve DEP onboarding settings: $($_.Exception.Message)"
 }
+
+#endregion
+#endregion
 
 $allResults = @($applePushResults + $vppTokenResults + $depTokenResults)
 $alertCount = ($allResults | Where-Object { $_.Alert }).Count
@@ -1412,6 +1421,9 @@ Write-Output "Apple Push certificates: $($applePushResults.Count)"
 Write-Output "VPP tokens: $($vppTokenResults.Count)"
 Write-Output "DEP tokens: $($depTokenResults.Count)"
 Write-Output "Alerts detected: $alertCount"
+
+# Check if no Apple infrastructure exists
+$hasNoAppleInfrastructure = ($applePushResults.Count -eq 0 -and $vppTokenResults.Count -eq 0 -and $depTokenResults.Count -eq 0)
 
 $applePushTable = if ($applePushResults.Count -gt 0) {
     $rows = foreach ($entry in $applePushResults) {
@@ -1474,7 +1486,41 @@ else {
     "## Alerts`n`nNo alerts were detected. All tracked items are outside the $($Days)-day warning window."
 }
 
-$markdownContent = @"
+# Generate different markdown content based on whether Apple infrastructure exists
+if ($hasNoAppleInfrastructure) {
+    $markdownContent = @"
+# Apple Intune Integration Report
+
+Tenant **$($tenantDisplayName)** (ID: $($tenantId))
+
+- Report date: $($currentDate.ToString('yyyy-MM-dd HH:mm'))
+- Warning threshold: $($Days) day(s)
+
+## Summary
+
+No Apple device management infrastructure was detected in this tenant.
+
+## Details
+
+This tenant currently has:
+- **0** Apple Push Notification certificates
+- **0** Volume Purchase Program (VPP) tokens
+- **0** Device Enrollment Program (DEP) tokens
+
+## Information
+
+This report monitors Apple-specific device management integrations. If your organization does not manage Apple devices through Microsoft Intune, no action is required.
+
+If you expect to see Apple integrations here:
+- Verify that Apple Push Notification certificates have been configured in Microsoft Intune
+- Check that VPP tokens from Apple Business Manager have been added
+- Ensure DEP tokens from Apple Business Manager are properly configured
+
+For more information on setting up Apple device management, please refer to Microsoft Intune documentation.
+"@
+}
+else {
+    $markdownContent = @"
 # Apple Intune Integration Report
 
 Tenant **$($tenantDisplayName)** (ID: $($tenantId))
@@ -1503,8 +1549,12 @@ $depTable
 - Renew any items scheduled to expire within the warning window.
 - For invalid tokens, resolve state issues in Apple Business Manager.
 "@
+}
 
-$emailSubject = if ($alertCount -gt 0) {
+$emailSubject = if ($hasNoAppleInfrastructure) {
+    "[Automated eMail] Apple Intune integration status - No Apple infrastructure detected."
+}
+elseif ($alertCount -gt 0) {
     "[Automated eMail] ALERT - Apple Intune integration warnings."
 }
 else {
