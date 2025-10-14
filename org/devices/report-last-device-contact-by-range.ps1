@@ -164,6 +164,10 @@ function ConvertFrom-MarkdownToHtml {
     $MarkdownText = $MarkdownText.Trim()
     $html = $MarkdownText
 
+    # Normalize line endings to \n only (remove \r)
+    $html = $html -replace "`r`n", "`n"
+    $html = $html -replace "`r", "`n"
+
     # Escape Markdown characters first
     $html = $html -replace '\\(.)', '§ESCAPED§$1§ESCAPED§'
 
