@@ -542,11 +542,11 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
                 Add-Content -Path $runbookFilePath -Value ""
 
                 if ($runbook.Synopsis) {
-                    Add-Content -Path $runbookFilePath -Value "## $($runbook.Synopsis)"
+                    Add-Content -Path $runbookFilePath -Value "$($runbook.Synopsis)"
                     Add-Content -Path $runbookFilePath -Value ""
                 }
                 if ($runbook.Description) {
-                    Add-Content -Path $runbookFilePath -Value "## Description"
+                    Add-Content -Path $runbookFilePath -Value "## Detailed description"
                     Add-Content -Path $runbookFilePath -Value $runbook.Description
                     Add-Content -Path $runbookFilePath -Value ""
                 }
