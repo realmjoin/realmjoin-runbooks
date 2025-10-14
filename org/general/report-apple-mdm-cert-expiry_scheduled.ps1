@@ -1,9 +1,24 @@
 <#
-  .SYNOPSIS
-  Monitor/Report expiry of Apple device management certificates.
+.SYNOPSIS
+Monitor/Report expiry of Apple device management certificates.
 
-  .DESCRIPTION
-  Monitor/Report expiry of Apple device management certificates.
+.DESCRIPTION
+Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
+Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
+
+.PARAMETER Days
+The warning threshold in days. Certificates and tokens expiring within this many days will be
+flagged as alerts in the report. Default is 300 days (approximately 10 months).
+
+.PARAMETER EmailTo
+Can be a single address or multiple comma-separated addresses (string).
+The function sends individual emails to each recipient for privacy reasons.
+
+.PARAMETER EmailFrom
+The sender email address. This needs to be configured in the runbook customization
+
+.PARAMETER CallerName
+Internal parameter for tracking purposes
 
 .INPUTS
     RunbookCustomization: {
