@@ -31,7 +31,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
     [int] $Days = 300,
-    [string] $EmailTo = "support@glueckkanja.com",
+    [string] $EmailTo,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom
 )
