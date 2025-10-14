@@ -16,13 +16,13 @@ As described in detail in the [JSON Based Customizing](https://docs.realmjoin.co
 
 First, navigate to [RealmJoin Runbook Customization](https://portal.realmjoin.com/settings/runbooks-customizations) in the RealmJoin Portal (Settings > Runbook Customizations).
 
-In the `Settings` block, add or modify the `RJReport` section to include the `EmailFrom` property with your desired sender email address:
+In the `Settings` block, add or modify the `RJReport` section to include the `EmailSender` property with your desired sender email address:
 
 ```json
 {
     "Settings": {
         "RJReport": {
-            "EmailFrom": "realmjoin-report@contoso.com"
+            "EmailSender": "realmjoin-report@contoso.com"
         }
     }
 }
