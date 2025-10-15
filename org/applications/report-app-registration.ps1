@@ -621,8 +621,8 @@ function Get-RjReportEmailBody {
     .content table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 32px 0;
-        margin-bottom: 20px 0;
+        margin-top: 32px;
+        margin-bottom: 20px;
         background-color: white;
         border-radius: 8px;
         overflow: hidden;
