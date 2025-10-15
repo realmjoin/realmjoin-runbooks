@@ -42,9 +42,6 @@
             },
             "EmailFrom": {
                 "Hide": true
-            },
-            "IncludeDeletedApps": {
-                "DisplayName": "Include Deleted Applications"
             }
         }
     }
