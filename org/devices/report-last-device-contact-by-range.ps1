@@ -1319,8 +1319,6 @@ else {
     $filterQuery = $dateFilter
 }
 
-#$filterQuery = "operatingSystem eq 'macOS'"
-
 $selectQuery = '&$select='
 $selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,userId,userDisplayName,userPrincipalName,operatingSystem"
 $selectProperties_Array = $selectProperties -split ',' | ForEach-Object { $_.Trim() }
@@ -1337,9 +1335,13 @@ $currentURI = $fullURI
 try {
     Write-Verbose "Retrieving devices from Microsoft Graph with initial filter: $($filterQuery)"
     Write-Verbose "Fetching data from URI: $($currentURI)"
-    $allDevices = (Get-AllGraphPages -Uri $currentURI -ErrorAction Stop) | Select-Object -Property $selectProperties_Array
-    if ($($allDevices | Measure-Object).Count -gt 0) {
+    $allDevices_unfiltered = Get-AllGraphPages -Uri $currentURI -ErrorAction Stop
+    $allDevices = $allDevices_unfiltered | Select-Object -Property $selectProperties_Array
+    if ($($allDevices_unfiltered.'@odata.count') -notlike 0) {
         Write-Output "Retrieved devices using the current filter: $(($allDevices | Measure-Object).Count)"
+    }else {
+        Write-Output "No devices found using the current filter."
+        $allDevices = @()
     }
 }
 catch {

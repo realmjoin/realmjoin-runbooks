@@ -19,19 +19,19 @@
     Internal parameter for tracking purposes
 
 .INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "EmailTo": {
-            "DisplayName": "Recipient Email Address(es)"
-        },
-        "EmailFrom": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
+    RunbookCustomization: {
+        "Parameters": {
+            "EmailTo": {
+                "DisplayName": "Recipient Email Address(es)"
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
@@ -1245,7 +1245,7 @@ if ($EmailTo) {
 
 **No devices without primary users were found** in your tenant. This is a positive result indicating that all managed devices have proper user assignments.
 
-## What This Means
+## What does this mean
 
 - ✅ **Complete User Assignment**: All managed devices in Intune have a primary user assigned
 - ✅ **Proper Device Enrollment**: Devices are correctly enrolled and associated with users

@@ -20,29 +20,29 @@
     Internal parameter for tracking purposes
 
 .INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "EmailTo": {
-            "DisplayName": "Recipient Email Address(es)"
-        },
-        "EmailFrom": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
+    RunbookCustomization: {
+        "Parameters": {
+            "EmailTo": {
+                "DisplayName": "Recipient Email Address(es)"
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.30.0" }
 
 param (
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
+    [string]$EmailFrom,
+
     [Parameter(Mandatory = $false)]
     [string]$EmailTo,
-
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
-    [string]$EmailFrom,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -34,6 +34,21 @@
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "Days": {
+                "DisplayName": "Days Without Activity",
+            },
+            "Windows": {
+                "DisplayName": "Include Windows Devices"
+            },
+            "MacOS": {
+                "DisplayName": "Include macOS Devices"
+            },
+            "iOS": {
+                "DisplayName": "Include iOS Devices"
+            },
+            "Android": {
+                "DisplayName": "Include Android Devices"
+            },
             "CallerName": {
                 "Hide": true
             },
@@ -1222,7 +1237,6 @@ function Get-AllGraphPages {
 #endregion
 
 # Connect to Microsoft Graph
-Connect-RjRbGraph
 Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 
 # Get tenant information
@@ -1377,6 +1391,9 @@ if ($Android) { $selectedPlatforms += 'Android' }
 $platformSummary = if ($selectedPlatforms.Count -gt 0) { $selectedPlatforms -join ', ' } else { 'No specific platforms selected' }
 $totalDevicesEvaluated = ($devices | Measure-Object).Count
 
+if ($filteredDevices.Count -gt 10) {
+    $filteredDevices_moreThan10 = $true
+}
 # Build Markdown content
 $markdownContent = if ($filteredDevices.Count -eq 0) {
     @"
@@ -1387,7 +1404,7 @@ Great news — no managed devices matched the stale device criteria (last sync o
 ## What We Checked
 
 - Inactivity threshold: **$($Days) days**
-- Platforms evaluated: $platformSummary
+- Platforms evaluated: $($platformSummary)
 - Devices evaluated: $($totalDevicesEvaluated)
 
 ## Recommendations
@@ -1425,7 +1442,18 @@ $(if ($Android) {
     "| **Android Devices** | $($androidCount) |"
 })
 
-## Detailed List
+$(if ($filteredDevices_moreThan10) {
+    "## Top 10 Stale Devices (by Last Sync Date)"
+    ""
+    "This table lists the top 10 devices that have been inactive the longest, based on the current defined days ($($Days) days) threshold."
+    ""
+} else {
+    "## Stale Devices"
+    ""
+    "This table lists all devices that have been inactive for at least $($Days) days, based on the current defined days threshold."
+    ""
+})
+
 
 $(if ($filteredDevices.Count -gt 0) {
     $sortedDevices = $filteredDevices | Sort-Object -Property lastSyncDateTime
@@ -1454,6 +1482,7 @@ $(if ($filteredDevices.Count -gt 0) {
 ## Recommendations
 
 ### Review and Action
+
 Please review the listed devices and take appropriate action:
 - Contact device owners to verify device status
 - Consider retiring devices that are no longer in use
@@ -1461,20 +1490,32 @@ Please review the listed devices and take appropriate action:
 - Ensure compliance with your organization's device lifecycle policy
 
 ### Device Lifecycle Management
+
 Regularly reviewing stale devices helps:
 - Maintain accurate device inventory
 - Reduce security risks from unmanaged devices
 - Optimize license utilization
 - Ensure compliance with organizational policies
+
+## Attachments
+
+The .csv-file attached to this email contains the full list of stale devices for further analysis.
+
 "@
 }
+
+# Create CSV file in current location
+$csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "StaleDevicesReport_$($tenantDisplayName)_$($Days)Days.csv"
+$filteredDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
+$attachments = @($csvFilePath)
+Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
 
 # Send email report
 $emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($Days) days"
 
 Write-Output "Sending report to '$($EmailTo)'..."
 try {
-    Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+    Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $attachments
 
     Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
     Write-Output "✅ Stale devices report generated and sent successfully"
