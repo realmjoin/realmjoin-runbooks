@@ -285,7 +285,8 @@ function ConvertFrom-MarkdownToHtml {
                             $cleanCell = $cells[$j].Trim() -replace '§PIPE§', '|'
                             if ([string]::IsNullOrWhiteSpace($cleanCell)) { $cleanCell = '&nbsp;' }
                             $alignClass = if ($j -lt $tableAlignments.Count -and $tableAlignments[$j]) { " class=`"text-$($tableAlignments[$j])`"" } else { "" }
-                            $processedLines += "<th$alignClass>$cleanCell</th>"
+                            # Add inline style to force the orange color
+                            $processedLines += "<th$alignClass style=`"background-color: #f8842c !important; color: #ffffff !important;`">$cleanCell</th>"
                         }
                         $processedLines += '</tr></thead><tbody>'
                         $i++
@@ -825,6 +826,7 @@ function Get-RjReportEmailBody {
 
         .content th {
             background: #f8842c !important;
+            /* To enforce this regarding the auto darkening in some email clients, in the ConvertFrom-MarkdownToHtml function is this handled inline */
             color: #ffffff !important;
         }
 
