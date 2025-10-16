@@ -1,9 +1,9 @@
 ﻿<#
     .SYNOPSIS
-    List expiry date of all AppRegistration credentials
+    List expiry date of all Application Registration credentials
 
     .DESCRIPTION
-    List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
+    List the expiry date of all Application Registration credentials, including Client Secrets and Certificates.
     Optionally, filter by Application IDs and list only those credentials that are about to expire.
 
     .PARAMETER listOnlyExpiring
@@ -17,14 +17,15 @@
     Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
 
     .PARAMETER ApplicationIds
-    A comma-separated list of Application IDs to filter the credentials.
+    Optional - comma-separated list of Application IDs to filter the credentials.
 
     .PARAMETER EmailTo
+    If specified, an email with the report will be sent to the provided address(es).
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    The sender email address. This needs to be configured in the runbook customization.
 
     .INPUTS
     RunbookCustomization: {
@@ -74,16 +75,13 @@
                 }
             },
             "ApplicationIds": {
-                "DisplayName": "Application IDs",
-                "Type": "string",
-                "Description": "Comma-separated list of Application IDs to check"
+                "DisplayName": "Application IDs"
             },
             "EmailTo": {
-                "DisplayName": "Email To",
-                "Description": "Recipient email address(es). Can be a single address or multiple comma-separated addresses."
+                "DisplayName": "Recipient Email Address(es)"
             },
             "EmailFrom": {
-                "DisplayName": "Email From"
+                "Hide": true
             }
         }
     }
