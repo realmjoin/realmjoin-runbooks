@@ -1,8 +1,8 @@
 # Add Or Remove Public Folder
 
-## Add or remove a public folder.
+Add or remove a public folder.
 
-## Description
+## Detailed description
 Assumes you already have at least on Public Folder Mailbox. It will not provision P.F. Mailboxes.
 
 ## Where to find

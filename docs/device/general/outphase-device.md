@@ -1,8 +1,8 @@
 # Outphase Device
 
-## Remove/Outphase a windows device
+Remove/Outphase a windows device
 
-## Description
+## Detailed description
 Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
 
 ## Where to find

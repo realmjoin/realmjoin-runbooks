@@ -1,8 +1,8 @@
 # List Inactive Users
 
-## List users, that have no recent interactive signins.
+List users, that have no recent interactive signins.
 
-## Description
+## Detailed description
 List users, that have no recent interactive signins.
 
 ## Where to find

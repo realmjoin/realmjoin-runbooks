@@ -1,8 +1,8 @@
 # Isolate Or Release Device
 
-## Isolate this device.
+Isolate this device.
 
-## Description
+## Detailed description
 Isolate this device using Defender for Endpoint.
 
 ## Where to find

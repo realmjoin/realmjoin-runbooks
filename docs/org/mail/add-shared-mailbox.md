@@ -1,8 +1,8 @@
 # Add Shared Mailbox
 
-## Create a shared mailbox.
+Create a shared mailbox.
 
-## Description
+## Detailed description
 Create a shared mailbox.
 
 ## Where to find

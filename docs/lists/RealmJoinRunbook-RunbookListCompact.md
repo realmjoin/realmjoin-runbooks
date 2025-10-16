@@ -34,17 +34,17 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Teams | Archive Team | Archive a team. |
 | Org | Applications | Add Application Registration | Add an application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
-|  |  | Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
-|  |  | List Application Creds Expiry | List expiry date of all AppRegistration credentials |
-|  |  | List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
-|  |  | Report App Registration | Generate and email a comprehensive App Registration report |
+|  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+|  |  | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. |
+|  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
+|  |  | Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
 |  |  | Update Application Registration | Update an application registration in Azure AD |
 |  | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
 |  |  | Get Bitlocker Recovery Key | Get BitLocker recovery key |
-|  |  | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Outphase Devices | Remove/Outphase multiple devices |
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
-|  |  | Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
+|  |  | Report Last Device Contact By Range | Reports devices with last contact within a specified date range. |
+|  |  | Report Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
 |  |  | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
 |  | General | Add Autopilot Device | Import a windows device into Windows Autopilot. |

@@ -1,8 +1,8 @@
 # Rename User
 
-## Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
 
-## Description
+## Detailed description
 Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
 
 ## Where to find

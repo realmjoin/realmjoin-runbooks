@@ -1,8 +1,8 @@
 # Enroll Updatable Assets
 
-## Enroll device into Windows Update for Business.
+Enroll device into Windows Update for Business.
 
-## Description
+## Detailed description
 This script enrolls devices into Windows Update for Business.
 
 ## Where to find

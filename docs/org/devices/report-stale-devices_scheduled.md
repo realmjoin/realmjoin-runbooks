@@ -1,13 +1,13 @@
-# List Stale Devices_Scheduled
+# Report Stale Devices_Scheduled
 
-## Scheduled report of stale devices based on last activity date and platform.
+Scheduled report of stale devices based on last activity date and platform.
 
-## Description
+## Detailed description
 Identifies and lists devices that haven't been active for a specified number of days.
 Automatically sends a report via email.
 
 ## Where to find
-Org \ Devices \ List Stale Devices_Scheduled
+Org \ Devices \ Report Stale Devices_Scheduled
 
 ## Permissions
 ### Application permissions
@@ -44,14 +44,15 @@ Description: Include Android devices in the results.
 Default Value: True
 Required: false
 
-### -sendAlertTo
-Description: Email address to send the report to.
-Default Value: support@glueckkanja.com
-Required: false
+### -EmailTo
+Description: Can be a single address or multiple comma-separated addresses (string).
+The function sends individual emails to each recipient for privacy reasons.
+Default Value: 
+Required: true
 
-### -sendAlertFrom
-Description: Email address to send the report from.
-Default Value: runbook@glueckkanja.com
+### -EmailFrom
+Description: The sender email address. This needs to be configured in the runbook customization
+Default Value: 
 Required: false
 
 

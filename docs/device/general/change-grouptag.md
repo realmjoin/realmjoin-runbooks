@@ -1,8 +1,8 @@
 # Change Grouptag
 
-## Assign a new AutoPilot GroupTag to this device.
+Assign a new AutoPilot GroupTag to this device.
 
-## Description
+## Detailed description
 Assign a new AutoPilot GroupTag to this device.
 
 ## Where to find

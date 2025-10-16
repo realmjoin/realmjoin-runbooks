@@ -1,8 +1,8 @@
 # Set Teams Permanent Call Forwarding
 
-## Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
+Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
 
-## Description
+## Detailed description
 Set up instant call forwarding for a Microsoft Teams Enterprise Voice user. Forwarding to another Microsoft Teams Enterprise Voice user or to an external phone number.
 
 ## Where to find

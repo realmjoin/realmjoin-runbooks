@@ -1,8 +1,8 @@
 # Hide Or Unhide In Addressbook
 
-## (Un)Hide this mailbox in address book.
+(Un)Hide this mailbox in address book.
 
-## Description
+## Detailed description
 (Un)Hide this mailbox in address book.
 
 ## Where to find

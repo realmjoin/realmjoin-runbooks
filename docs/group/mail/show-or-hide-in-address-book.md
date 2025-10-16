@@ -1,8 +1,8 @@
 # Show Or Hide In Address Book
 
-## (Un)hide an O365- or static Distribution-group in Address Book.
+(Un)hide an O365- or static Distribution-group in Address Book.
 
-## Description
+## Detailed description
 (Un)hide an O365- or static Distribution-group in Address Book. Can also show the current state.
 
 ## Where to find

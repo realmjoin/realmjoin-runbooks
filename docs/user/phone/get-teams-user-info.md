@@ -1,8 +1,8 @@
 # Get Teams User Info
 
-## Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
 
-## Description
+## Detailed description
 Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
 
 ## Where to find

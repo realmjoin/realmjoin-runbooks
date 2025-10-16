@@ -1,8 +1,8 @@
 # Check Aad Sync Status_Scheduled
 
-## Check for last Azure AD Connect Sync Cycle.
+Check for last Azure AD Connect Sync Cycle.
 
-## Description
+## Detailed description
 This runbook checks the Azure AD Connect sync status and the last sync date and time.
 
 ## Where to find

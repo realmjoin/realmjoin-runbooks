@@ -1,8 +1,8 @@
 # Check Assignments Of Devices
 
-## Check Intune assignments for a given (or multiple) Device Names.
+Check Intune assignments for a given (or multiple) Device Names.
 
-## Description
+## Detailed description
 This script checks the Intune assignments for a single or multiple specified Device Names.
 
 ## Where to find

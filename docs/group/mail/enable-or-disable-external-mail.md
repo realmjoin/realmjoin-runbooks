@@ -1,8 +1,8 @@
 # Enable Or Disable External Mail
 
-## Enable/disable external parties to send eMails to O365 groups.
+Enable/disable external parties to send eMails to O365 groups.
 
-## Description
+## Detailed description
 Enable/disable external parties to send eMails to O365 groups.
 
 ## Where to find

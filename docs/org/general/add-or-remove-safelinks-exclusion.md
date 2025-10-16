@@ -1,8 +1,8 @@
 # Add Or Remove Safelinks Exclusion
 
-## Add or remove a SafeLinks URL exclusion to/from a given policy.
+Add or remove a SafeLinks URL exclusion to/from a given policy.
 
-## Description
+## Detailed description
 Add or remove a SafeLinks URL exclusion to/from a given policy.
 It can also be used to initially create a new policy if required.
 

@@ -1,19 +1,14 @@
 <#
-  .SYNOPSIS
-  Export a CSV of all (entprise) app owners and users
+    .SYNOPSIS
+    Export a CSV of all (enterprise) application owners and users
 
-  .DESCRIPTION
-  Export a CSV of all (entprise) app owners and users.
+    .DESCRIPTION
+    This runbook exports a comprehensive list of all enterprise applications (or all service principals)
+    in your Azure AD tenant along with their owners and assigned users/groups. Afterwards the CSV file is uploaded
+    to an Azure Storage Account, from where it can be downloaded.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Directory.Read.All
-  - Application.Read.All
-  Azure IaaS: "Contributor" access on subscription or resource group used for the export
-
-  .INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "entAppsOnly": {
                 "DisplayName": "Scope",

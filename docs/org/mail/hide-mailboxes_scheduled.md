@@ -1,8 +1,8 @@
 # Hide Mailboxes_Scheduled
 
-## Hide / Unhide special mailboxes in Global Address Book
+Hide / Unhide special mailboxes in Global Address Book
 
-## Description
+## Detailed description
 Hide / Unhide special mailboxes in Global Address Book. Currently intended for Booking calendars.
 
 ## Where to find

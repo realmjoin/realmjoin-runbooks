@@ -1,8 +1,8 @@
 # Backup Conditional Access Policies
 
-## Exports the current set of Conditional Access policies to an Azure storage account.
+Exports the current set of Conditional Access policies to an Azure storage account.
 
-## Description
+## Detailed description
 Exports the current set of Conditional Access policies to an Azure storage account.
 
 ## Where to find

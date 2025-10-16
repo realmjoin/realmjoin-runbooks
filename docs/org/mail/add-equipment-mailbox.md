@@ -1,8 +1,8 @@
 # Add Equipment Mailbox
 
-## Create an equipment mailbox.
+Create an equipment mailbox.
 
-## Description
+## Detailed description
 Create an equipment mailbox.
 
 ## Where to find

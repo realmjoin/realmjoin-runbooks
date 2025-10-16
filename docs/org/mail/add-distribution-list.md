@@ -1,8 +1,8 @@
 # Add Distribution List
 
-## Create a classic distribution group.
+Create a classic distribution group.
 
-## Description
+## Detailed description
 Create a classic distribution group.
 
 ## Where to find

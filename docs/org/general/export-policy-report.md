@@ -1,6 +1,6 @@
 # Export Policy Report
 
-## Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
+Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
 
 ## Where to find
 Org \ General \ Export Policy Report

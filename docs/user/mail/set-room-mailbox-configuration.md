@@ -1,8 +1,8 @@
 # Set Room Mailbox Configuration
 
-## Set room resource policies.
+Set room resource policies.
 
-## Description
+## Detailed description
 Set room resource policies.
 
 ## Where to find

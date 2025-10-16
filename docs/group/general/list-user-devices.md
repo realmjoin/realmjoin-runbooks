@@ -1,8 +1,8 @@
 # List User Devices
 
-## List all devices owned by group members.
+List all devices owned by group members.
 
-## Description
+## Detailed description
 List all devices owned by group members.
 
 ## Where to find

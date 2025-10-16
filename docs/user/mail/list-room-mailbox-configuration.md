@@ -1,8 +1,8 @@
 # List Room Mailbox Configuration
 
-## List Room configuration.
+List Room configuration.
 
-## Description
+## Detailed description
 List Room configuration.
 
 ## Where to find

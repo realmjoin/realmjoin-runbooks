@@ -1,8 +1,8 @@
 # Add Room Mailbox
 
-## Create a room resource.
+Create a room resource.
 
-## Description
+## Detailed description
 Create a room resource.
 
 ## Where to find

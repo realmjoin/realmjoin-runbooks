@@ -1,8 +1,8 @@
 # Add Or Remove User
 
-## Add/remove users to/from a group.
+Add/remove users to/from a group.
 
-## Description
+## Detailed description
 Add/remove users to/from an AzureAD or Exchange Online group.
 
 ## Where to find

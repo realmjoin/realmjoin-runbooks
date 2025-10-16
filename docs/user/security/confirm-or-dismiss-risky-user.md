@@ -1,8 +1,8 @@
 # Confirm Or Dismiss Risky User
 
-## Confirm compromise / Dismiss a "risky user"
+Confirm compromise / Dismiss a "risky user"
 
-## Description
+## Detailed description
 Confirm compromise / Dismiss a "risky user"
 
 ## Where to find

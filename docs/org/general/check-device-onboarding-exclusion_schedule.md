@@ -1,8 +1,8 @@
 # Check Device Onboarding Exclusion_Schedule
 
-## Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
+Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
-## Description
+## Detailed description
 Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
 ## Where to find

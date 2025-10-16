@@ -1,8 +1,8 @@
 # Add Or Remove Nested Group
 
-## Add/remove a nested group to/from a group.
+Add/remove a nested group to/from a group.
 
-## Description
+## Detailed description
 Add/remove a nested group to/from an AzureAD or Exchange Online group.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Add Devices Of Users To Group_Scheduled
 
-## Sync devices of users in a specific group to another device group.
+Sync devices of users in a specific group to another device group.
 
-## Description
+## Detailed description
 This runbook reads accounts from a specified Users group and adds their devices to a specified Devices group. It ensures new devices are also added.
 
 ## Where to find

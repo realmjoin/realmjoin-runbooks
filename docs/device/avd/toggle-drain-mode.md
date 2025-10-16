@@ -1,8 +1,8 @@
 # Toggle Drain Mode
 
-## Sets Drainmode on true or false for a specific AVD Session Host.
+Sets Drainmode on true or false for a specific AVD Session Host.
 
-## Description
+## Detailed description
 This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
 The SubscriptionId value must be defined in the runbooks customization.
 

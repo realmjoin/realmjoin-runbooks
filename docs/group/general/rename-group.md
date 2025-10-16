@@ -1,8 +1,8 @@
 # Rename Group
 
-## Rename a group.
+Rename a group.
 
-## Description
+## Detailed description
 Rename a group MailNickname, DisplayName and Description. Will NOT change eMail addresses!
 
 ## Where to find

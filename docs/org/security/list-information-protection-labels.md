@@ -1,8 +1,8 @@
 # List Information Protection Labels
 
-## Prints a list of all available InformationProtectionPolicy labels.
+Prints a list of all available InformationProtectionPolicy labels.
 
-## Description
+## Detailed description
 Prints a list of all available InformationProtectionPolicy labels.
 
 ## Where to find

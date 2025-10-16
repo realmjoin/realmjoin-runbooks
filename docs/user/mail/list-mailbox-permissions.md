@@ -1,8 +1,8 @@
 # List Mailbox Permissions
 
-## List permissions on a (shared) mailbox.
+List permissions on a (shared) mailbox.
 
-## Description
+## Detailed description
 List permissions on a (shared) mailbox.
 
 ## Where to find

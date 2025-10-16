@@ -1,8 +1,8 @@
 # Add User
 
-## Create a new user account.
+Create a new user account.
 
-## Description
+## Detailed description
 Create a new user account.
 
 ## Where to find
