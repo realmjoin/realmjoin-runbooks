@@ -1487,8 +1487,6 @@ if ($listOnlyExpiring) {
 | **Warning (≤$($Days) days)** | $($warningCreds) | **SOON** - Schedule renewal |
 | **Total Requiring Attention** | **$($totalCreds)** | Review attached CSV |
 
----
-
 $(if ($criticalCreds -gt 0) {
 @"
 ## CRITICAL - Expiring Within 7 Days ($($criticalCreds))
@@ -1504,8 +1502,6 @@ $(($credentialResults | Where-Object { $_.Status -eq "Critical" -and -not $_.IsE
 $(if ($criticalCreds -gt 15) { "*... and $($criticalCreds - 15) more (see attached CSV)*" })
 
 **Action:** Schedule credential renewal within the next few days.
-
----
 
 "@
 })
@@ -1525,8 +1521,6 @@ $(($credentialResults | Where-Object { $_.Status -eq "Warning" } | Select-Object
 $(if ($warningCreds -gt 15) { "*... and $($warningCreds - 15) more (see attached CSV)*" })
 
 **Action:** Plan credential renewal within the next few weeks.
-
----
 
 "@
 })
@@ -1572,8 +1566,6 @@ This is a comprehensive inventory of **all** Application Registration credential
 |  **Critical (≤7 days)** | $($criticalCreds) |
 |  **Warning (≤30 days)** | $($warningCreds) |
 |  **Valid (>30 days)** | $($validCreds) |
-
----
 
 $(if ($expiredCreds -gt 0) {
 @"
