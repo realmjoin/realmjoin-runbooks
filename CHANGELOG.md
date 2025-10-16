@@ -1,6 +1,6 @@
 # RealmJoin Runbooks Changelog
 
-## 2025-10-13
+## 2025-10-16
   - Update Report Apple MDM Cert Expiry (scheduled) Runbook
     - Update regarding new email functions
   - Update Report Devices Without Primary User Runbook
@@ -13,6 +13,8 @@
     - Update regarding new email functions
   - Update general mail setup documentation
     - Improve clarity and detail on email configuration steps
+  - Upgrade to List Application Credentials Expiry to Report Expiring Application Credentials (Scheduled) Runbook
+
 
 ## 2025-10-06
   - Update List Application Runbook
