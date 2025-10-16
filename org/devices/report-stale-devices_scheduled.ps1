@@ -886,7 +886,7 @@ function Get-RjReportEmailBody {
         }
 
         .content blockquote {
-            background-color: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
+            background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%) !important;
             border-left-color: #f8842c !important;
         }
     }
