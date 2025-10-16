@@ -1,8 +1,8 @@
 # Add Office365 Group
 
-## Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
+Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
-## Description
+## Detailed description
 Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
 ## Where to find

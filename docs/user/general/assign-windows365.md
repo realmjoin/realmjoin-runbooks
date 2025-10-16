@@ -1,8 +1,8 @@
 # Assign Windows365
 
-## Assign/Provision a Windows 365 instance
+Assign/Provision a Windows 365 instance
 
-## Description
+## Detailed description
 Assign/Provision a Windows 365 instance for this user.
 
 ## Where to find

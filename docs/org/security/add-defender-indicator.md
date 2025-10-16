@@ -1,8 +1,8 @@
 # Add Defender Indicator
 
-## Create new Indicator in Defender for Endpoint.
+Create new Indicator in Defender for Endpoint.
 
-## Description
+## Detailed description
 Create a new Indicator in Defender for Endpoint e.g. to allow a specific file using it's hash value or allow a specific url that by default is blocked by Defender for Endpoint
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Set Out Of Office
 
-## En-/Disable Out-of-office-notifications for a user/mailbox.
+En-/Disable Out-of-office-notifications for a user/mailbox.
 
-## Description
+## Detailed description
 En-/Disable Out-of-office-notifications for a user/mailbox.
 
 ## Where to find

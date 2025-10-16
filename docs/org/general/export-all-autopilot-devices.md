@@ -1,8 +1,8 @@
 # Export All Autopilot Devices
 
-## List/export all AutoPilot devices.
+List/export all AutoPilot devices.
 
-## Description
+## Detailed description
 List/export all AutoPilot devices.
 
 ## Where to find

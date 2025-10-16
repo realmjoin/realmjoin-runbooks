@@ -1,8 +1,8 @@
 # Archive Team
 
-## Archive a team.
+Archive a team.
 
-## Description
+## Detailed description
 Decomission an inactive team while preserving its contents for review.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Delegate Send As
 
-## Grant another user sendAs permissions on this mailbox.
+Grant another user sendAs permissions on this mailbox.
 
-## Description
+## Detailed description
 Grant another user sendAs permissions on this mailbox.
 
 ## Where to find

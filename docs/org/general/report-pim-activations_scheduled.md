@@ -1,8 +1,8 @@
 # Report Pim Activations_Scheduled
 
-## Scheduled Report on PIM Activations.
+Scheduled Report on PIM Activations.
 
-## Description
+## Detailed description
 This runbook collects and reports PIM activation details, including date, requestor, UPN, role, primary target, PIM group, reason, and status, and sends it via email.
 
 ## Where to find

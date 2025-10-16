@@ -1,6 +1,6 @@
 # List Pim Rolegroups Without Owners_Scheduled
 
-## List role-assignable groups with eligible role assignments but without owners
+List role-assignable groups with eligible role assignments but without owners
 
 ## Where to find
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled

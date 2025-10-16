@@ -1,8 +1,8 @@
 # List Group Ownerships
 
-## List group ownerships for this user.
+List group ownerships for this user.
 
-## Description
+## Detailed description
 List group ownerships for this user.
 
 ## Where to find

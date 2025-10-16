@@ -1,8 +1,8 @@
 # Assign Or Unassign License
 
-## (Un-)Assign a license to a user via group membership.
+(Un-)Assign a license to a user via group membership.
 
-## Description
+## Detailed description
 (Un-)Assign a license to a user via group membership.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Office365 License Report
 
-## Generate an Office 365 licensing report.
+Generate an Office 365 licensing report.
 
-## Description
+## Detailed description
 Generate an Office 365 licensing report.
 
 ## Where to find

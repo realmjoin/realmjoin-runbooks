@@ -1,8 +1,8 @@
 # Export Enterprise App Users
 
-## Export a CSV of all (entprise) app owners and users
+Export a CSV of all (entprise) app owners and users
 
-## Description
+## Detailed description
 Export a CSV of all (entprise) app owners and users.
 
 ## Where to find

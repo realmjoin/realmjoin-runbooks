@@ -1,8 +1,8 @@
 # Check Assignments Of Groups
 
-## Check Intune assignments for a given (or multiple) Group Names.
+Check Intune assignments for a given (or multiple) Group Names.
 
-## Description
+## Detailed description
 This script checks the Intune assignments for a single or multiple specified Group Names.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Update Application Registration
 
-## Update an application registration in Azure AD
+Update an application registration in Azure AD
 
-## Description
+## Detailed description
 This script modifies an existing application registration in Azure Active Directory (Entra ID) with comprehensive configuration updates.
 
 The script intelligently determines what changes need to be applied by comparing current settings

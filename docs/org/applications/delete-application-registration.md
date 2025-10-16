@@ -1,8 +1,8 @@
 # Delete Application Registration
 
-## Delete an application registration from Azure AD
+Delete an application registration from Azure AD
 
-## Description
+## Detailed description
 This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
 
 This script is the counterpart to the add-application-registration script and ensures

@@ -1,8 +1,8 @@
 # Assign Groups By Template_Scheduled
 
-## Assign cloud-only groups to many users based on a predefined template.
+Assign cloud-only groups to many users based on a predefined template.
 
-## Description
+## Detailed description
 Assign cloud-only groups to many users based on a predefined template.
 
 ## Where to find

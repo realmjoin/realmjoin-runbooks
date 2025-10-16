@@ -5,9 +5,9 @@
   - [Add Application Registration](applications/add-application-registration.md)
   - [Delete Application Registration](applications/delete-application-registration.md)
   - [Export Enterprise App Users](applications/export-enterprise-app-users.md)
-  - [List Application Creds Expiry](applications/list-application-creds-expiry.md)
   - [List Inactive Enterprise Apps](applications/list-inactive-enterprise-apps.md)
   - [Report App Registration](applications/report-app-registration.md)
+  - [Report Expiring Application Credentials_Scheduled](applications/report-expiring-application-credentials_scheduled.md)
   - [Update Application Registration](applications/update-application-registration.md)
 <a name='org-devices'></a>
 ## Devices

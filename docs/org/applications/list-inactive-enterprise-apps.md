@@ -1,8 +1,8 @@
 # List Inactive Enterprise Apps
 
-## List App registrations, which had no recent user logons.
+List App registrations, which had no recent user logons.
 
-## Description
+## Detailed description
 List App registrations, which had no recent user logons.
 
 ## Where to find

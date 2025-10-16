@@ -1,8 +1,8 @@
 # Wipe Device
 
-## Wipe a Windows or MacOS device
+Wipe a Windows or MacOS device
 
-## Description
+## Detailed description
 Wipe a Windows or MacOS device.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Remove Primary User
 
-## Removes the primary user from a device.
+Removes the primary user from a device.
 
-## Description
+## Detailed description
 This script removes the assigned primary user from a specified Azure AD device.
 It requires the DeviceId of the target device and the name of the caller for auditing purposes.
 

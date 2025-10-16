@@ -1,8 +1,8 @@
 # Remove Mailbox
 
-## Hard delete a shared mailbox, room or bookings calendar.
+Hard delete a shared mailbox, room or bookings calendar.
 
-## Description
+## Detailed description
 Hard delete a shared mailbox, room or bookings calendar.
 
 ## Where to find

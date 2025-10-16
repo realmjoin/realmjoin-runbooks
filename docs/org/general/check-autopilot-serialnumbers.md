@@ -1,8 +1,8 @@
 # Check Autopilot Serialnumbers
 
-## Check if given serial numbers are present in AutoPilot.
+Check if given serial numbers are present in AutoPilot.
 
-## Description
+## Detailed description
 Check if given serial numbers are present in AutoPilot.
 
 ## Where to find

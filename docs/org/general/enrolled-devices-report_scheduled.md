@@ -1,8 +1,8 @@
 # Enrolled Devices Report_Scheduled
 
-## Show recent first-time device enrollments.
+Show recent first-time device enrollments.
 
-## Description
+## Detailed description
 Show recent first-time device enrollments, grouped by a category/attribute.
 
 ## Where to find

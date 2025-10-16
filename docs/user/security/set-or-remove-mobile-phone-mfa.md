@@ -1,8 +1,8 @@
 # Set Or Remove Mobile Phone Mfa
 
-## Add, update or remove a user's mobile phone MFA information.
+Add, update or remove a user's mobile phone MFA information.
 
-## Description
+## Detailed description
 Add, update or remove a user's mobile phone MFA information.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Check Assignments Of Users
 
-## Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
+Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
 
-## Description
+## Detailed description
 This script checks the Intune assignments for a single or multiple specified UPNs.
 
 ## Where to find

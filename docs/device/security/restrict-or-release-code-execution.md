@@ -1,8 +1,8 @@
 # Restrict Or Release Code Execution
 
-## Restrict code execution.
+Restrict code execution.
 
-## Description
+## Detailed description
 Only allow Microsoft signed code to be executed.
 
 ## Where to find

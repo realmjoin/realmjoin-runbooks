@@ -1,8 +1,8 @@
 # Add Viva Engange Community
 
-## Creates a Viva Engage (Yammer) community via the Yammer API
+Creates a Viva Engage (Yammer) community via the Yammer API
 
-## Description
+## Detailed description
 Creates a Viva Engage (Yammer) community using a Yammer dev token. The API-calls used are subject to change, so this script might break in the future.
 
 ## Where to find

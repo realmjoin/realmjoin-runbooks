@@ -1,8 +1,8 @@
 # Show Laps Password
 
-## Show a local admin password for a device.
+Show a local admin password for a device.
 
-## Description
+## Detailed description
 Show a local admin password for a device.
 
 ## Where to find

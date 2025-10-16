@@ -1,8 +1,8 @@
 # List Expiring Role Assignments
 
-## List Azure AD role assignments that will expire before a given number of days.
+List Azure AD role assignments that will expire before a given number of days.
 
-## Description
+## Detailed description
 List Azure AD role assignments that will expire before a given number of days.
 
 ## Where to find

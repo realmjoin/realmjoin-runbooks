@@ -1,8 +1,8 @@
 # Add Management Partner
 
-## List or add or Management Partner Links (PAL)
+List or add or Management Partner Links (PAL)
 
-## Description
+## Detailed description
 List or add or Management Partner Links (PAL)
 
 ## Where to find

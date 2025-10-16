@@ -15,6 +15,7 @@ Also the document for each runbook contains information about permissions, where
 
 ## Additional information
 Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:
+- [General runbook information and setup guides](docs/general)
 - [List based content](docs/lists)
 - [JSON based content](docs/other/json)
 - [Other content](docs/other)
@@ -72,9 +73,9 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Application Registration](docs/org/applications/add-application-registration.md)
     - [Delete Application Registration](docs/org/applications/delete-application-registration.md)
     - [Export Enterprise App Users](docs/org/applications/export-enterprise-app-users.md)
-    - [List Application Creds Expiry](docs/org/applications/list-application-creds-expiry.md)
     - [List Inactive Enterprise Apps](docs/org/applications/list-inactive-enterprise-apps.md)
     - [Report App Registration](docs/org/applications/report-app-registration.md)
+    - [Report Expiring Application Credentials_Scheduled](docs/org/applications/report-expiring-application-credentials_scheduled.md)
     - [Update Application Registration](docs/org/applications/update-application-registration.md)
   - [Devices](docs/org/README.md#org-devices)
 

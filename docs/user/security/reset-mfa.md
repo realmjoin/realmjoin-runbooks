@@ -1,8 +1,8 @@
 # Reset Mfa
 
-## Remove all App- and Mobilephone auth methods for a user.
+Remove all App- and Mobilephone auth methods for a user.
 
-## Description
+## Detailed description
 Remove all App- and Mobilephone auth methods for a user. User can re-enroll MFA.
 
 ## Where to find

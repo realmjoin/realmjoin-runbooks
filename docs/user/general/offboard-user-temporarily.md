@@ -1,8 +1,8 @@
 # Offboard User Temporarily
 
-## Temporarily offboard a user.
+Temporarily offboard a user.
 
-## Description
+## Detailed description
 Temporarily offboard a user in cases like parental leaves or sabaticals.
 
 ## Where to find

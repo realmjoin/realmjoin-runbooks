@@ -1,8 +1,8 @@
 # Get Bitlocker Recovery Key
 
-## Get BitLocker recovery key
+Get BitLocker recovery key
 
-## Description
+## Detailed description
 Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
 
 ## Where to find

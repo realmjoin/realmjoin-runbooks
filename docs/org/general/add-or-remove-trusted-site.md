@@ -1,8 +1,8 @@
 # Add Or Remove Trusted Site
 
-## Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
 
-## Description
+## Detailed description
 Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
 
 ## Where to find

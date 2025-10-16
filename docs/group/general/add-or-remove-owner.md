@@ -1,8 +1,8 @@
 # Add Or Remove Owner
 
-## Add/remove owners to/from an Office 365 group.
+Add/remove owners to/from an Office 365 group.
 
-## Description
+## Detailed description
 Add/remove owners to/from an Office 365 group.
 
 ## Where to find

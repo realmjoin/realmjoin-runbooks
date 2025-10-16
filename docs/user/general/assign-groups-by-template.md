@@ -1,8 +1,8 @@
 # Assign Groups By Template
 
-## Assign cloud-only groups to a user based on a predefined template.
+Assign cloud-only groups to a user based on a predefined template.
 
-## Description
+## Detailed description
 Assign cloud-only groups to a user based on a predefined template.
 
 ## Where to find

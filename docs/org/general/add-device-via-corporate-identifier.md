@@ -1,8 +1,8 @@
 # Add Device Via Corporate Identifier
 
-## Import a device into Intune via corporate identifier.
+Import a device into Intune via corporate identifier.
 
-## Description
+## Detailed description
 Import a device into Intune via corporate identifier.
 
 ## Where to find

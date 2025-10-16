@@ -1,8 +1,8 @@
 # Change Visibility
 
-## Change a group's visibility
+Change a group's visibility
 
-## Description
+## Detailed description
 Change a group's visibility
 
 ## Where to find

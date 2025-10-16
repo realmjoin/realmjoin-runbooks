@@ -1,8 +1,8 @@
 # Rename Device
 
-## Rename a device.
+Rename a device.
 
-## Description
+## Detailed description
 Rename a device (in Intune and Autopilot).
 
 ## Where to find

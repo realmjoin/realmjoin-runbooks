@@ -54,9 +54,9 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Application Registration
     - Delete Application Registration
     - Export Enterprise App Users
-    - List Application Creds Expiry
     - List Inactive Enterprise Apps
     - Report App Registration
+    - Report Expiring Application Credentials_Scheduled
     - Update Application Registration
   - [Devices](#org-devices)
     - Delete Stale Devices_Scheduled
@@ -262,9 +262,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Application Registration | Add an application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
 | Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
-| List Application Creds Expiry | List expiry date of all AppRegistration credentials |
 | List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
 | Report App Registration | Generate and email a comprehensive App Registration report |
+| Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
 | Update Application Registration | Update an application registration in Azure AD |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
@@ -278,7 +278,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 | Outphase Devices | Remove/Outphase multiple devices |
 | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
-| Report Last Device Contact By Range | Reports Windows devices with last device contact within a specified date range. |
+| Report Last Device Contact By Range | Reports devices with last contact within a specified date range. |
 | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
 | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
 

@@ -1,8 +1,8 @@
 # Export Non Compliant Devices
 
-## Report on non-compliant devices and policies
+Report on non-compliant devices and policies
 
-## Description
+## Detailed description
 Report on non-compliant devices and policies
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Add Or Remove Teams Mailcontact
 
-## Create/Remove a contact, to allow pretty email addresses for Teams channels.
+Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
-## Description
+## Detailed description
 Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
 ## Where to find

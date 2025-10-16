@@ -1,8 +1,8 @@
 # Delegate Send On Behalf
 
-## Grant another user sendOnBehalf permissions on this mailbox.
+Grant another user sendOnBehalf permissions on this mailbox.
 
-## Description
+## Detailed description
 Grant another user sendOnBehalf permissions on this mailbox.
 
 ## Where to find

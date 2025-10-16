@@ -55,9 +55,9 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Application Registration](#add-application-registration)
       - [Delete Application Registration](#delete-application-registration)
       - [Export Enterprise App Users](#export-enterprise-app-users)
-      - [List Application Creds Expiry](#list-application-creds-expiry)
       - [List Inactive Enterprise Apps](#list-inactive-enterprise-apps)
       - [Report App Registration](#report-app-registration)
+      - [Report Expiring Application Credentials_Scheduled](#report-expiring-application-credentials_scheduled)
       - [Update Application Registration](#update-application-registration)
   - [Devices](#org-devices)
       - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
@@ -776,24 +776,6 @@ Org \ Applications \ Export Enterprise App Users
  
  
 
-<a name='org-applications-list-application-creds-expiry'></a>
-
-### List Application Creds Expiry
-#### List expiry date of all AppRegistration credentials
-
-#### Description
-List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
-Optionally, filter by Application IDs and list only those credentials that are about to expire.
-
-#### Where to find
-Org \ Applications \ List Application Creds Expiry
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-applications-list-inactive-enterprise-apps'></a>
 
 ### List Inactive Enterprise Apps
@@ -824,31 +806,32 @@ exports them to CSV files, and sends them via email.
 Org \ Applications \ Report App Registration
 
 ## Setup regarding email sending
-### Overview
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-### Prerequisites
-We recommend using a dedicated shared mailbox, such as `realmjoin-report@contoso.com`. This mailbox will be used as the sender address for all reports. You can use a no-reply address, as recipients are not expected to respond to automated reports.
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
-### RealmJoin Runbook Customization
-As described in detail in the [JSON Based Customizing](https://docs.realmjoin.com/automation/runbooks/runbook-customization#json-based-customizing) documentation, you need to configure the sender email address in the settings block. This configuration defines the sender email address for all reporting runbooks across your tenant.
 
-First, navigate to [RealmJoin Runbook Customization](https://portal.realmjoin.com/settings/runbooks-customizations) in the RealmJoin Portal (Settings > Runbook Customizations).
+[Back to Table of Content](#table-of-contents)
 
-In the `Settings` block, add or modify the `RJReport` section to include the `EmailFrom` property with your desired sender email address:
+ 
+ 
 
-```json
-{
-    "Settings": {
-        "RJReport": {
-            "EmailFrom": "realmjoin-report@contoso.com"
-        }
-    }
-}
-```
+<a name='org-applications-report-expiring-application-credentials_scheduled'></a>
 
-**Example:** With this configuration, the runbook will use `realmjoin-report@contoso.com` as the sender email address for all outgoing reports. Replace `contoso.com` with your actual domain name.
+### Report Expiring Application Credentials_Scheduled
+#### List expiry date of all Application Registration credentials
 
+#### Description
+List the expiry date of all Application Registration credentials, including Client Secrets and Certificates.
+Optionally, filter by Application IDs and list only those credentials that are about to expire.
+
+#### Where to find
+Org \ Applications \ Report Expiring Application Credentials_Scheduled
+
+## Setup regarding email sending
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
 
 [Back to Table of Content](#table-of-contents)
@@ -962,8 +945,15 @@ Org \ Devices \ Outphase Devices
 This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
 The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
 
+Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+
 #### Where to find
 Org \ Devices \ Report Devices Without Primary User
+
+## Setup regarding email sending
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
 
 [Back to Table of Content](#table-of-contents)
@@ -974,15 +964,23 @@ Org \ Devices \ Report Devices Without Primary User
 <a name='org-devices-report-last-device-contact-by-range'></a>
 
 ### Report Last Device Contact By Range
-#### Reports Windows devices with last device contact within a specified date range.
+#### Reports devices with last contact within a specified date range.
 
 #### Description
-This Runbook retrieves a list of Windows devices from Azure AD / Intune, filtered by their
-last device contact time (lastSyncDateTime). As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
-The output includes the device name, last sync date, user ID, user display name, and user principal name.
+This Runbook retrieves a list of devices from Intune, filtered by their last device contact time (lastSyncDateTime).
+As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
+
+The output includes the device name, last sync date, Intune device ID, and user principal name.
+
+Optionally, the report can be sent via email with a CSV attachment containing additional details (Entra ID Device ID, User ID).
 
 #### Where to find
 Org \ Devices \ Report Last Device Contact By Range
+
+## Setup regarding email sending
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
 
 [Back to Table of Content](#table-of-contents)
@@ -997,10 +995,17 @@ Org \ Devices \ Report Last Device Contact By Range
 
 #### Description
 This script queries all devices and their registered users, and reports users who have more than five devices registered.
-The output includes the users ObjectId, UPN, and the number of devices.
+The output includes the user's Object ID, UPN, display name, and the number of devices.
+
+Optionally, the report can be sent via email with a CSV attachment containing detailed device information for each user.
 
 #### Where to find
 Org \ Devices \ Report Users With More Than 5-Devices
+
+## Setup regarding email sending
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1564,7 +1569,8 @@ Org \ General \ Office365 License Report
 #### Monitor/Report expiry of Apple device management certificates.
 
 #### Description
-Monitor/Report expiry of Apple device management certificates.
+Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
+Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
 #### Where to find
 Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
