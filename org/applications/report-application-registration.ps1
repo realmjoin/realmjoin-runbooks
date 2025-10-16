@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Generate and email a comprehensive App Registration report
+    Generate and email a comprehensive Application Registration report
 
 .DESCRIPTION
     This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,

@@ -1,12 +1,13 @@
 <#
-  .SYNOPSIS
-  List App registrations, which had no recent user logons.
+    .SYNOPSIS
+    List application registrations, which had no recent user logons.
 
-  .DESCRIPTION
-  List App registrations, which had no recent user logons.
+    .DESCRIPTION
+    Identifies enterprise applications with no recent sign-in activity based on Entra ID audit logs.
+    The report includes Entra ID applications with last sign-in older than specified days (default: 90 days) or applications with no sign-in records in the audit log.
 
-  .INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
