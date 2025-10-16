@@ -28,43 +28,43 @@
     Internal parameter for tracking purposes
 
 .INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "dateRange": {
-            "DisplayName": "Select Last Device Contact Range (days)",
-            "Description": "Filter devices based on their last contact time.",
-            "Required": true,
-            "SelectSimple": {
-                "0-30 days": "0-30",
-                "30-90 days": "30-90",
-                "90-180 days": "90-180",
-                "180-365 days": "180-365",
-                "365 days and more": "365+"
+    RunbookCustomization: {
+        "Parameters": {
+            "dateRange": {
+                "DisplayName": "Select Last Device Contact Range (days)",
+                "Description": "Filter devices based on their last contact time.",
+                "Required": true,
+                "SelectSimple": {
+                    "0-30 days": "0-30",
+                    "30-90 days": "30-90",
+                    "90-180 days": "90-180",
+                    "180-365 days": "180-365",
+                    "365 days and more": "365+"
+                }
+            },
+            "systemType": {
+                "DisplayName": "Select System Type",
+                "Description": "Filter devices based on their operating system.",
+                "Required": true,
+                "SelectSimple": {
+                    "All": "all",
+                    "Windows": "Windows",
+                    "MacOS": "macOS",
+                    "Linux": "Linux",
+                    "Android": "Android"
+                }
+            },
+            "EmailTo": {
+                "DisplayName": "Recipient Email Address(es)"
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-        },
-        "systemType": {
-            "DisplayName": "Select System Type",
-            "Description": "Filter devices based on their operating system.",
-            "Required": true,
-            "SelectSimple": {
-                "All": "all",
-                "Windows": "Windows",
-                "MacOS": "macOS",
-                "Linux": "Linux"
-                "Android": "Android"
-            }
-        },
-        "EmailTo": {
-            "DisplayName": "Recipient Email Address(es)"
-        },
-        "EmailFrom": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
