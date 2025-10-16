@@ -1,8 +1,8 @@
 # Add Application Registration
 
-## Add an application registration to Azure AD
+Add an application registration to Azure AD
 
-## Description
+## Detailed description
 This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
 
 The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging

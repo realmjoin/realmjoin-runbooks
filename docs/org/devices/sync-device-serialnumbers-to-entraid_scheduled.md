@@ -1,8 +1,8 @@
 # Sync Device Serialnumbers To Entraid_Scheduled
 
-## Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+Syncs serial numbers from Intune devices to Azure AD device extension attributes.
 
-## Description
+## Detailed description
 This runbook retrieves all managed devices from Intune, extracts their serial numbers,
 and updates the corresponding Azure AD device objects' extension attributes.
 This helps maintain consistency between Intune and Azure AD device records.

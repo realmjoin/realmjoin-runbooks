@@ -1,8 +1,8 @@
 # Enable Or Disable Device
 
-## Disable a device in AzureAD.
+Disable a device in AzureAD.
 
-## Description
+## Detailed description
 Disable a device in AzureAD.
 
 ## Where to find

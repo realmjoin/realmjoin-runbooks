@@ -1,8 +1,8 @@
 # Delete Stale Devices_Scheduled
 
-## Scheduled deletion of stale devices based on last activity date and platform.
+Scheduled deletion of stale devices based on last activity date and platform.
 
-## Description
+## Detailed description
 Identifies, lists, and deletes devices that haven't been active for a specified number of days.
 Can be scheduled to run automatically and send a report via email.
 

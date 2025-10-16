@@ -1,8 +1,8 @@
 # List Owners
 
-## List all owners of an Office 365 group.
+List all owners of an Office 365 group.
 
-## Description
+## Detailed description
 List all owners of an Office 365 group.
 
 ## Where to find

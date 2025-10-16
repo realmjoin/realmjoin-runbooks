@@ -1,8 +1,8 @@
 # Reset Mobile Device Pin
 
-## Reset a mobile device's password/PIN code.
+Reset a mobile device's password/PIN code.
 
-## Description
+## Detailed description
 Reset a mobile device's password/PIN code. Warning: Not possible for all types of devices.
 
 ## Where to find

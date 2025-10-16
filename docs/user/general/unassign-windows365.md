@@ -1,8 +1,8 @@
 # Unassign Windows365
 
-## Remove/Deprovision a Windows 365 instance
+Remove/Deprovision a Windows 365 instance
 
-## Description
+## Detailed description
 Remove/Deprovision a Windows 365 instance
 
 ## Where to find

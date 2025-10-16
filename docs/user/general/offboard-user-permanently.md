@@ -1,8 +1,8 @@
 # Offboard User Permanently
 
-## Permanently offboard a user.
+Permanently offboard a user.
 
-## Description
+## Detailed description
 Permanently offboard a user.
 
 ## Where to find

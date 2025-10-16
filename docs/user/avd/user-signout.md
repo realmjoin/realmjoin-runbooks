@@ -1,8 +1,8 @@
 # User Signout
 
-## Removes (Signs Out) a specific User from their AVD Session.
+Removes (Signs Out) a specific User from their AVD Session.
 
-## Description
+## Detailed description
 This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
 The SubscriptionIds value must be defined in the runbooks customization.
 

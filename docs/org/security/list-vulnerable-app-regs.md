@@ -1,8 +1,8 @@
 # List Vulnerable App Regs
 
-## List all app registrations that suffer from the CVE-2021-42306 vulnerability.
+List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 
-## Description
+## Detailed description
 List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 
 ## Where to find

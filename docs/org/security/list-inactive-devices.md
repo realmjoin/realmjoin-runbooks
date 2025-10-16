@@ -1,8 +1,8 @@
 # List Inactive Devices
 
-## List/export inactive evices, which had no recent user logons.
+List/export inactive evices, which had no recent user logons.
 
-## Description
+## Detailed description
 Collect devices based on the date of last user logon or last Intune sync.
 
 ## Where to find

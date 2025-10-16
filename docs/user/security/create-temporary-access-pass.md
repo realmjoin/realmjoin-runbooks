@@ -1,8 +1,8 @@
 # Create Temporary Access Pass
 
-## Create an AAD temporary access pass for a user.
+Create an AAD temporary access pass for a user.
 
-## Description
+## Detailed description
 Create an AAD temporary access pass for a user.
 
 ## Where to find

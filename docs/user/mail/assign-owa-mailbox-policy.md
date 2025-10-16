@@ -1,8 +1,8 @@
 # Assign Owa Mailbox Policy
 
-## Assign a given OWA mailbox policy to a user.
+Assign a given OWA mailbox policy to a user.
 
-## Description
+## Detailed description
 Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
 
 ## Where to find

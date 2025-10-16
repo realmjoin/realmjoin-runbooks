@@ -1,8 +1,8 @@
 # Resize Windows365
 
-## Resize a Windows 365 Cloud PC
+Resize a Windows 365 Cloud PC
 
-## Description
+## Detailed description
 Resize an already existing Windows 365 Cloud PC by derpovisioning and assigning a new differently sized license to the user. Warning: All local data will be lost. Proceed with caution.
 
 ## Where to find

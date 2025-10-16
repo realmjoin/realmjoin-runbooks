@@ -1,8 +1,8 @@
 # Set Teams Phone
 
-## Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 
-## Description
+## Detailed description
 Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 

@@ -1,8 +1,8 @@
 # List Manager
 
-## List manager information for this user.
+List manager information for this user.
 
-## Description
+## Detailed description
 List manager information for the specified user.
 
 ## Where to find

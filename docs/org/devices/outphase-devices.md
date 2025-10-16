@@ -1,8 +1,8 @@
 # Outphase Devices
 
-## Remove/Outphase multiple devices
+Remove/Outphase multiple devices
 
-## Description
+## Detailed description
 Remove/Outphase multiple devices. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
 
 ## Where to find

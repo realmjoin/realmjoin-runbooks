@@ -1,8 +1,8 @@
 # Grant Teams User Policies
 
-## Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
+Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 
-## Description
+## Detailed description
 Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 

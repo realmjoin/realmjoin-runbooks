@@ -1,8 +1,8 @@
 # Add Or Remove Email Address
 
-## Add/remove eMail address to/from mailbox.
+Add/remove eMail address to/from mailbox.
 
-## Description
+## Detailed description
 Add/remove eMail address to/from mailbox, update primary eMail address.
 
 ## Where to find

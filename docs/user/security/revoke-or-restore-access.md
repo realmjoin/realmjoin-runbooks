@@ -1,8 +1,8 @@
 # Revoke Or Restore Access
 
-## Revoke user access and all active tokens or re-enable user.
+Revoke user access and all active tokens or re-enable user.
 
-## Description
+## Detailed description
 Revoke user access and all active tokens or re-enable user.
 
 ## Where to find

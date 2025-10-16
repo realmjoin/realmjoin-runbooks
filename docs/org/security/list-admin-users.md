@@ -1,8 +1,8 @@
 # List Admin Users
 
-## List AzureAD role holders and their MFA state.
+List AzureAD role holders and their MFA state.
 
-## Description
+## Detailed description
 Will list users and service principals that hold a builtin AzureAD role.
 Admins will be queried for valid MFA methods.
 

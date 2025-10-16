@@ -1,61 +1,118 @@
 ﻿<#
-.SYNOPSIS
-    Generate and email a comprehensive App Registration report
+    .SYNOPSIS
+    List expiry date of all Application Registration credentials
 
-.DESCRIPTION
-    This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
-    exports them to CSV files, and sends them via email.
+    .DESCRIPTION
+    List the expiry date of all Application Registration credentials, including Client Secrets and Certificates.
+    Optionally, filter by Application IDs and list only those credentials that are about to expire.
 
-.PARAMETER EmailTo
+    .PARAMETER listOnlyExpiring
+    If set to true, only credentials that are about to expire within the specified number of days will be listed.
+    If set to false, all credentials will be listed regardless of their expiry date.
+
+    .PARAMETER Days
+    The number of days before a credential expires to consider it "about to expire".
+
+    .PARAMETER CredentialType
+    Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
+
+    .PARAMETER ApplicationIds
+    Optional - comma-separated list of Application IDs to filter the credentials.
+
+    .PARAMETER EmailTo
+    If specified, an email with the report will be sent to the provided address(es).
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
-.PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    .PARAMETER EmailFrom
+    The sender email address. This needs to be configured in the runbook customization.
 
-.PARAMETER IncludeDeletedApps
-    Whether to include deleted application registrations in the report (default: true)
-
-.PARAMETER CallerName
-    Internal parameter for tracking purposes
-
-.INPUTS
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "listOnlyExpiring": {
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "List only credentials about to expire",
+                            "Value": true
+                        },
+                        {
+                            "Display": "List all credentials",
+                            "Value": false,
+                            "Customization": {
+                                "Hide": [
+                                    "Days"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "Days": {
+                "DisplayName": "Days before credential expiry"
+            },
+            "CredentialType": {
+                "DisplayName": "Credential Type Filter",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Client Secrets and Certificates",
+                            "Value": "Both"
+                        },
+                        {
+                            "Display": "Only Client Secrets",
+                            "Value": "ClientSecrets"
+                        },
+                        {
+                            "Display": "Only Certificates",
+                            "Value": "Certificates"
+                        }
+                    ]
+                }
+            },
+            "ApplicationIds": {
+                "DisplayName": "Application IDs"
             },
             "EmailTo": {
                 "DisplayName": "Recipient Email Address(es)"
             },
             "EmailFrom": {
                 "Hide": true
-            },
-            "IncludeDeletedApps": {
-                "DisplayName": "Include Deleted Applications"
             }
         }
     }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.30.0" }
 
 param(
+    [bool] $listOnlyExpiring = $true,
+
+    [int] $Days = 30,
+
+    [ValidateSet("Both", "ClientSecrets", "Certificates")]
+    [string] $CredentialType = "Both",
+
+    [string] $ApplicationIds,
+
     [Parameter(Mandatory = $true)]
     [string]$EmailTo,
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
-    [bool]$IncludeDeletedApps = $true,
-
+    # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
-    [string]$CallerName
+    [string] $CallerName
 )
 
 ########################################################
 #region     RJ Log Part
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -65,12 +122,16 @@ if ($CallerName) {
 
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
+Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
+Write-RjRbLog -Message "Credential Type: $CredentialType" -Verbose
+Write-RjRbLog -Message "Application IDs: $ApplicationIds" -Verbose
 
 # Add Parameter in Verbose output
-Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
-Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
-Write-RjRbLog -Message "Include Deleted Apps: $IncludeDeletedApps" -Verbose
+if ($EmailTo) {
+    Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
+    Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+}
 
 #endregion
 
@@ -80,8 +141,9 @@ Write-RjRbLog -Message "Include Deleted Apps: $IncludeDeletedApps" -Verbose
 
 # Validate Email Addresses
 if (-not $EmailFrom) {
-    Write-RjRbLog -Message "The sender email address is required. This needs to be configured in the runbook customization." -Verbose
-    throw "The sender email address is required."
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
+    exit
 }
 
 if (-not $EmailTo) {
@@ -89,10 +151,7 @@ if (-not $EmailTo) {
     throw "The recipient email address is required."
 }
 
-if ($IncludeDeletedApps -notin $true, $false) {
-    Write-RjRbLog -Message "Invalid value for IncludeDeletedApps. Please specify true or false." -Verbose
-    throw "Invalid value for IncludeDeletedApps. Please specify true or false."
-}
+#endregion
 
 ########################################################
 #region     Email Function Definitions
@@ -129,6 +188,10 @@ function ConvertFrom-MarkdownToHtml {
 
     $MarkdownText = $MarkdownText.Trim()
     $html = $MarkdownText
+
+    # Normalize line endings to \n only (remove \r)
+    $html = $html -replace "`r`n", "`n"
+    $html = $html -replace "`r", "`n"
 
     # Escape Markdown characters first
     $html = $html -replace '\\(.)', '§ESCAPED§$1§ESCAPED§'
@@ -616,8 +679,8 @@ function Get-RjReportEmailBody {
     .content table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 32px 0;
-        margin-bottom: 20px 0;
+        margin-top: 32px;
+        margin-bottom: 20px;
         background-color: white;
         border-radius: 8px;
         overflow: hidden;
@@ -1231,114 +1294,143 @@ $tenantId = $tenant.id
 
 Write-RjRbLog -Message "Tenant: $tenantDisplayName ($tenantId)" -Verbose
 
-Write-Output "Preparing temporary directory for CSV files..."
+Write-Output "Preparing temporary file paths for CSV file..."
 # Create temporary directory for CSV files
-$tempDir = Join-Path (Get-Location).Path "AppRegReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+$tempDir = (Get-Location).Path
+$credsCsv = Join-Path $tempDir "AppCredsExpiry_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+
 
 #endregion
 
 ########################################################
-#region     Get App Registrations
+#region     Retrieve Application Credentials
 ########################################################
 
-Write-Output "Retrieving all App Registrations..."
+Write-Output "Retrieving application credentials..."
 
-$allAppRegs = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
-Write-Output "Found $((($(($allAppRegs) | Measure-Object).Count))) App Registrations..."
-
-$appRegResults = @()
-$processedCount = 0
-
-foreach ($appReg in $allAppRegs) {
-    $processedCount++
-    if ($processedCount % 50 -eq 0) {
-        Write-RjRbLog -Message "Processed $processedCount of $((($(($allAppRegs) | Measure-Object).Count))) App Registrations..." -Verbose
-    }
-
-    # Create standardized object
-    $tempObj = [PSCustomObject]@{
-        AppId             = $appReg.appId
-        AppRegObjectId    = $appReg.id
-        DisplayName       = $appReg.displayName
-        CreatedDateTime   = $appReg.createdDateTime
-        PublisherDomain   = $appReg.publisherDomain
-        SignInAudience    = $appReg.signInAudience
-        AppRegPortalLink  = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/$($appReg.appId)"
-        AccountEnabled    = $false
-        TenantId          = $tenantId
-        IsDeleted         = $false
-        HasSecrets        = ((($(($appReg.passwordCredentials) | Measure-Object).Count) -gt 0))
-        HasCertificates   = ((($(($appReg.keyCredentials) | Measure-Object).Count) -gt 0))
-        SecretsCount      = (($(($appReg.passwordCredentials) | Measure-Object).Count))
-        CertificatesCount = (($(($appReg.keyCredentials) | Measure-Object).Count))
-    }
-
-    # Get associated Service Principal
-    try {
-        $spnUri = "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$($appReg.appId)'"
-        $spnResponse = Invoke-MgGraphRequest -Uri $spnUri -Method GET -ErrorAction SilentlyContinue
-
-        if ($spnResponse.value -and (($(($spnResponse.value) | Measure-Object).Count) -gt 0)) {
-            $spn = $spnResponse.value[0]
-            $tempObj.SpnObjectId = $spn.id
-            $tempObj.SpnPortalLink = "https://portal.azure.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($spn.id)/appId/$($appReg.appId)"
-            $tempObj.AccountEnabled = $spn.accountEnabled
-        }
-    }
-    catch {
-        Write-RjRbLog -Message "Could not retrieve Service Principal for App: $($appReg.displayName)" -Verbose
-    }
-
-    $appRegResults += $tempObj
+# Split the comma-separated application IDs into an array and trim whitespace
+$ApplicationIdArray = @()
+if ($ApplicationIds) {
+    $ApplicationIdArray = $ApplicationIds -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+    Write-RjRbLog -Message "Filtering by $($ApplicationIdArray.Count) Application ID(s)" -Verbose
 }
 
-Write-RjRbLog -Message "Processed all $((($(($appRegResults) | Measure-Object).Count))) App Registrations" -Verbose
+# Determine which credential types to process
+$processCertificates = ($CredentialType -eq "Both" -or $CredentialType -eq "Certificates")
+$processClientSecrets = ($CredentialType -eq "Both" -or $CredentialType -eq "ClientSecrets")
 
-#endregion
+Write-RjRbLog -Message "Processing Certificates: $processCertificates" -Verbose
+Write-RjRbLog -Message "Processing Client Secrets: $processClientSecrets" -Verbose
 
-########################################################
-#region     Get Deleted App Registrations (if requested)
-########################################################
+[array]$apps = @()
+$apps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
 
-$deletedAppRegResults = @()
+Write-Output "Found $((($(($apps) | Measure-Object).Count))) applications/service principals"
 
-if ($IncludeDeletedApps) {
-    Write-Output "Retrieving deleted App Registrations..."
+$date = Get-Date
+$credentialResults = @()
 
-    try {
-        $deletedAppRegs = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/directory/deletedItems/microsoft.graph.application"
-        Write-Output "Found $((($(($deletedAppRegs) | Measure-Object).Count))) deleted App Registrations"
+foreach ($app in $apps) {
+    if ($ApplicationIdArray -and ($ApplicationIdArray.Count -gt 0) -and ($app.appId -notin $ApplicationIdArray)) {
+        continue
+    }
 
-        foreach ($appReg in $deletedAppRegs) {
-            $tempObj = [PSCustomObject]@{
-                AppId             = $appReg.appId
-                AppRegObjectId    = $appReg.id
-                DisplayName       = $appReg.displayName
-                CreatedDateTime   = $appReg.createdDateTime
-                DeletedDateTime   = $appReg.deletedDateTime
-                PublisherDomain   = $appReg.publisherDomain
-                SignInAudience    = $appReg.signInAudience
-                AppRegPortalLink  = "" # Not accessible for deleted apps
-                AccountEnabled    = $false
-                TenantId          = $tenantId
-                IsDeleted         = $true
-                HasSecrets        = ((($(($appReg.passwordCredentials) | Measure-Object).Count) -gt 0))
-                HasCertificates   = ((($(($appReg.keyCredentials) | Measure-Object).Count) -gt 0))
-                SecretsCount      = (($(($appReg.passwordCredentials) | Measure-Object).Count))
-                CertificatesCount = (($(($appReg.keyCredentials) | Measure-Object).Count))
+    if (($app.keyCredentials) -or ($app.passwordCredentials)) {
+        # Process Certificate Credentials (only if filter allows)
+        if ($processCertificates) {
+            $app.keyCredentials | ForEach-Object {
+                $enddate = [datetime]$_.endDateTime
+                $startdate = [datetime]$_.startDateTime
+                $daysLeft = (New-TimeSpan -Start $date -End $enddate).days
+
+                if ($listOnlyExpiring) {
+                    # Only include credentials that are expiring (0 to $Days days left), exclude already expired (negative days)
+                    if ($daysLeft -ge 0 -and $daysLeft -le $Days) {
+                        $tempObj = [PSCustomObject]@{
+                            AppDisplayName = $app.displayName
+                            AppId          = $app.appId
+                            AppObjectId    = $app.id
+                            CredentialType = "Certificate"
+                            CredentialName = $_.displayName
+                            CredentialId   = $_.keyId
+                            StartDateTime  = $startdate
+                            EndDateTime    = $enddate
+                            DaysLeft       = $daysLeft
+                            IsExpired      = ($daysLeft -lt 0)
+                            Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le $Days) { "Warning" } else { "Valid" }
+                        }
+                        $credentialResults += $tempObj
+                    }
+                }
+                else {
+                    # Include all credentials (expired, expiring, and valid)
+                    $tempObj = [PSCustomObject]@{
+                        AppDisplayName = $app.displayName
+                        AppId          = $app.appId
+                        AppObjectId    = $app.id
+                        CredentialType = "Certificate"
+                        CredentialName = $_.displayName
+                        CredentialId   = $_.keyId
+                        StartDateTime  = $startdate
+                        EndDateTime    = $enddate
+                        DaysLeft       = $daysLeft
+                        IsExpired      = ($daysLeft -lt 0)
+                        Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le 30) { "Warning" } else { "Valid" }
+                    }
+                    $credentialResults += $tempObj
+                }
             }
-
-            $deletedAppRegResults += $tempObj
         }
 
-        Write-RjRbLog -Message "Processed $((($(($deletedAppRegResults) | Measure-Object).Count))) deleted App Registrations" -Verbose
-    }
-    catch {
-        Write-RjRbLog -Message "Warning: Could not retrieve deleted App Registrations: $($_.Exception.Message)" -Verbose
+        # Process Client Secret Credentials (only if filter allows)
+        if ($processClientSecrets) {
+            $app.passwordCredentials | ForEach-Object {
+                $enddate = [datetime]$_.endDateTime
+                $startdate = [datetime]$_.startDateTime
+                $daysLeft = (New-TimeSpan -Start $date -End $enddate).days
+
+                if ($listOnlyExpiring) {
+                    # Only include credentials that are expiring (0 to $Days days left), exclude already expired (negative days)
+                    if ($daysLeft -ge 0 -and $daysLeft -le $Days) {
+                        $tempObj = [PSCustomObject]@{
+                            AppDisplayName = $app.displayName
+                            AppId          = $app.appId
+                            AppObjectId    = $app.id
+                            CredentialType = "Client Secret"
+                            CredentialName = $_.displayName
+                            CredentialId   = $_.keyId
+                            StartDateTime  = $startdate
+                            EndDateTime    = $enddate
+                            DaysLeft       = $daysLeft
+                            IsExpired      = ($daysLeft -lt 0)
+                            Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le $Days) { "Warning" } else { "Valid" }
+                        }
+                        $credentialResults += $tempObj
+                    }
+                }
+                else {
+                    # Include all credentials (expired, expiring, and valid)
+                    $tempObj = [PSCustomObject]@{
+                        AppDisplayName = $app.displayName
+                        AppId          = $app.appId
+                        AppObjectId    = $app.id
+                        CredentialType = "Client Secret"
+                        CredentialName = $_.displayName
+                        CredentialId   = $_.keyId
+                        StartDateTime  = $startdate
+                        EndDateTime    = $enddate
+                        DaysLeft       = $daysLeft
+                        IsExpired      = ($daysLeft -lt 0)
+                        Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le 30) { "Warning" } else { "Valid" }
+                    }
+                    $credentialResults += $tempObj
+                }
+            }
+        }
     }
 }
+
+Write-RjRbLog -Message "Processed $((($(($credentialResults) | Measure-Object).Count))) credentials" -Verbose
 
 #endregion
 
@@ -1346,20 +1438,20 @@ if ($IncludeDeletedApps) {
 #region     Export to CSV Files
 ########################################################
 
+Write-Output "Exporting credentials to CSV..."
+
 $csvFiles = @()
 
-# Export active App Registrations
-$activeAppRegCsv = Join-Path $tempDir "AppRegistrations_Active.csv"
-$appRegResults | Export-Csv -Path $activeAppRegCsv -NoTypeInformation -Encoding UTF8
-$csvFiles += $activeAppRegCsv
-Write-Verbose "Exported active App Registrations to: $activeAppRegCsv"
+if ((($(($credentialResults) | Measure-Object).Count) -gt 0)) {
+    # Sort credentials by days left (ascending) to show most critical first
+    $credentialResults = $credentialResults | Sort-Object DaysLeft
 
-# Export deleted App Registrations (if any)
-if ((($(($deletedAppRegResults) | Measure-Object).Count) -gt 0)) {
-    $deletedAppRegCsv = Join-Path $tempDir "AppRegistrations_Deleted.csv"
-    $deletedAppRegResults | Export-Csv -Path $deletedAppRegCsv -NoTypeInformation -Encoding UTF8
-    $csvFiles += $deletedAppRegCsv
-    Write-Verbose "Exported deleted App Registrations to: $deletedAppRegCsv"
+    $credentialResults | Export-Csv -Path $credsCsv -NoTypeInformation -Encoding UTF8
+    $csvFiles += $credsCsv
+    Write-Verbose "Exported application credentials to: $credsCsv"
+}
+else {
+    Write-RjRbLog -Message "No credentials found matching the filter criteria" -Verbose
 }
 
 #endregion
@@ -1369,70 +1461,225 @@ if ((($(($deletedAppRegResults) | Measure-Object).Count) -gt 0)) {
 ########################################################
 
 Write-Output "Preparing email content..."
+
 # Generate statistics
-$activeAppsWithSecrets = (($(($appRegResults | Where-Object { $_.HasSecrets }) | Measure-Object).Count))
-$activeAppsWithCerts = (($(($appRegResults | Where-Object { $_.HasCertificates }) | Measure-Object).Count))
-$enabledApps = (($appRegResults | Where-Object { $_.AccountEnabled }) | Measure-Object).Count
+$totalCreds = (($(($credentialResults) | Measure-Object).Count))
+$expiredCreds = (($(($credentialResults | Where-Object { $_.IsExpired }) | Measure-Object).Count))
+$criticalCreds = (($(($credentialResults | Where-Object { $_.Status -eq "Critical" -and -not $_.IsExpired }) | Measure-Object).Count))
+$warningCreds = (($(($credentialResults | Where-Object { $_.Status -eq "Warning" }) | Measure-Object).Count))
+$validCreds = (($(($credentialResults | Where-Object { $_.Status -eq "Valid" }) | Measure-Object).Count))
+$secrets = (($(($credentialResults | Where-Object { $_.CredentialType -eq "Client Secret" }) | Measure-Object).Count))
+$certs = (($(($credentialResults | Where-Object { $_.CredentialType -eq "Certificate" }) | Measure-Object).Count))
 
-# Create markdown content for email
-$markdownContent = @"
-# Application Registration Report
+# Create markdown content for email - different content based on mode
+if ($listOnlyExpiring) {
+    # EXPIRING MODE: Focus on urgency and action items (NO EXPIRED CREDENTIALS)
+    $markdownContent = @"
+# Application Credentials Expiry Alert
 
-This report provides a comprehensive overview of all Application Registrations in your Entra ID.
+**Notice:** This report shows credentials that are **expiring within $Days days**.
+
+## Action Required Summary
+
+| Status | Count | Action Needed |
+|--------|-------|---------------|
+| **Critical (≤7 days)** | $($criticalCreds) | **URGENT** - Renew within 7 days |
+| **Warning (≤$($Days) days)** | $($warningCreds) | **SOON** - Schedule renewal |
+| **Total Requiring Attention** | **$($totalCreds)** | Review attached CSV |
+
+$(if ($criticalCreds -gt 0) {
+@"
+## CRITICAL - Expiring Within 7 Days ($($criticalCreds))
+
+These credentials will expire very soon and require **urgent renewal**:
+
+| Application | Credential Type | Name | Days Left |
+|-------------|----------------|------|-----------|
+$(($credentialResults | Where-Object { $_.Status -eq "Critical" -and -not $_.IsExpired } | Select-Object -First 15 | ForEach-Object {
+    "| $($_.AppDisplayName) | $($_.CredentialType) | $($_.CredentialName) | **$($_.DaysLeft)** |"
+}) -join "`n")
+
+$(if ($criticalCreds -gt 15) { "*... and $($criticalCreds - 15) more (see attached CSV)*" })
+
+**Action:** Schedule credential renewal within the next few days.
+
+"@
+})
+
+$(if ($warningCreds -gt 0) {
+@"
+## WARNING - Expiring Within $($Days) Days ($($warningCreds))
+
+These credentials should be renewed soon:
+
+| Application | Credential Type | Name | Days Left |
+|-------------|----------------|------|-----------|
+$(($credentialResults | Where-Object { $_.Status -eq "Warning" } | Select-Object -First 15 | ForEach-Object {
+    "| $($_.AppDisplayName) | $($_.CredentialType) | $($_.CredentialName) | $($_.DaysLeft) |"
+}) -join "`n")
+
+$(if ($warningCreds -gt 15) { "*... and $($warningCreds - 15) more (see attached CSV)*" })
+
+**Action:** Plan credential renewal within the next few weeks.
+
+"@
+})
+
+## Next Steps
+
+### Immediate Actions (Priority Order)
+1. $(if ($criticalCreds -gt 0) { "**Renew $($criticalCreds) critical credential(s)** expiring within 7 days" } else { "No critical credentials expiring soon" })
+2. $(if ($warningCreds -gt 0) { "**Schedule renewal for $($warningCreds) credential(s)** expiring within $($Days) days" } else { "No credentials in warning period" })
+
+### Important Information
+- **Credential Type Filter:** $($CredentialType)
+- **Credential Types in Report:** $($secrets) Client Secrets, $($certs) Certificates
+- **Filter Applied:** Showing only credentials expiring within $($Days) days (excluding already expired)
+$(if ($ApplicationIdArray -and ($ApplicationIdArray.Count -gt 0)) { "- **Application Filter:** Limited to $($ApplicationIdArray.Count) specific application(s)" })
+- **Note:** Already expired credentials are not included in this report
+
+### CSV Export Details
+The attached CSV file contains complete information for all $($totalCreds) credentials requiring attention:
+- Application details (Name, ID, Object ID)
+- Credential type and name
+- Exact expiration dates and days remaining
+- Current status classification
+
+**Use the CSV to prioritize your renewal tasks and track progress.**
+"@
+}
+else {
+    # ALL MODE: Comprehensive overview with statistics
+    $markdownContent = @"
+# Application Credentials Overview Report
+
+This is a comprehensive inventory of **all** Application Registration credentials in your tenant.
 
 ## Summary Statistics
 
 | Metric | Count |
 |--------|-------|
-| **Total Active App Registrations** | $($appRegResults.Count) |
-| **Deleted App Registrations** | $($deletedAppRegResults.Count) |
-| **Enabled Service Principals** | $($enabledApps) |
-| **Apps with Client Secrets** | $($activeAppsWithSecrets) |
-| **Apps with Certificates** | $($activeAppsWithCerts) |
+| **Total Credentials** | $($totalCreds) |
+| **Client Secrets** | $($secrets) |
+| **Certificates** | $($certs) |
+|  **Expired** | $($expiredCreds) |
+|  **Critical (≤7 days)** | $($criticalCreds) |
+|  **Warning (≤30 days)** | $($warningCreds) |
+|  **Valid (>30 days)** | $($validCreds) |
 
-## Report Details
-
-### Active Application Registrations
-- **File:** AppRegistrations_Active.csv
-- **Count:** $($appRegResults.Count) applications
-- Contains all currently active App Registrations with their associated Service Principals
-
-$(if ($deletedAppRegResults.Count -gt 0) {
+$(if ($expiredCreds -gt 0) {
 @"
+## Expired Credentials ($($expiredCreds))
 
-### Deleted Application Registrations
-- **File:** AppRegistrations_Deleted.csv
-- **Count:** $($deletedAppRegResults.Count) applications
-- Contains App Registrations that have been deleted but are still recoverable
+These credentials have already expired:
+
+| Application | Credential Type | Name | Expired Since |
+|-------------|----------------|------|---------------|
+$(($credentialResults | Where-Object { $_.IsExpired } | Select-Object -First 10 | ForEach-Object {
+    "| $($_.AppDisplayName) | $($_.CredentialType) | $($_.CredentialName) | $(([Math]::Abs($_.DaysLeft))) days ago |"
+}) -join "`n")
+
+$(if ($expiredCreds -gt 10) { "*... and $($expiredCreds - 10) more (see attached CSV)*" })
+
+
 "@
-} else {
-"### Deleted Application Registrations
-No deleted App Registrations found in the tenant."
 })
 
-## Security Recommendations
+$(if ($criticalCreds -gt 0) {
+@"
+## Critical - Expiring Soon (≤7 days) ($($criticalCreds))
 
-### Applications with Client Secrets
-$($activeAppsWithSecrets) applications have client secrets configured. Please review these regularly:
-- Ensure secrets are rotated according to your security policy
-- Remove unused secrets to reduce attack surface
-- Consider migrating to certificate-based authentication where possible
+| Application | Credential Type | Name | Days Left |
+|-------------|----------------|------|-----------|
+$(($credentialResults | Where-Object { $_.Status -eq "Critical" -and -not $_.IsExpired } | Select-Object -First 10 | ForEach-Object {
+    "| $($_.AppDisplayName) | $($_.CredentialType) | $($_.CredentialName) | $($_.DaysLeft) |"
+}) -join "`n")
 
-### Applications with Certificates
-$($activeAppsWithCerts) applications use certificate-based authentication:
-- Monitor certificate expiration dates
-- Ensure certificates are stored securely
-- Have a renewal process in place
+$(if ($criticalCreds -gt 10) { "*... and $($criticalCreds - 10) more (see attached CSV)*" })
+
+
+"@
+})
+
+$(if ($warningCreds -gt 0) {
+@"
+## Warning - Expiring Soon (≤30 days) ($($warningCreds))
+
+| Application | Credential Type | Name | Days Left |
+|-------------|----------------|------|-----------|
+$(($credentialResults | Where-Object { $_.Status -eq "Warning" } | Select-Object -First 10 | ForEach-Object {
+    "| $($_.AppDisplayName) | $($_.CredentialType) | $($_.CredentialName) | $($_.DaysLeft) |"
+}) -join "`n")
+
+$(if ($warningCreds -gt 10) { "*... and $($warningCreds - 10) more (see attached CSV)*" })
+
+
+"@
+})
+
+## Credential Health Overview
+
+### Current Status
+
+- **Healthy:** $($validCreds) credentials with >30 days remaining
+- **Attention Needed:** $($expiredCreds + $criticalCreds + $warningCreds) credentials require action
+- **Success Rate:** $(if ($totalCreds -gt 0) { [math]::Round(($validCreds / $totalCreds) * 100, 1) } else { 0 })% of credentials are in good standing
+
+### Breakdown by Type
+
+- **Client Secrets:** $($secrets) total
+  - Expired: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Client Secret" -and $_.IsExpired }) | Measure-Object).Count))
+  - Expiring Soon: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Client Secret" -and ($_.Status -eq "Critical" -or $_.Status -eq "Warning") }) | Measure-Object).Count))
+
+- **Certificates:** $($certs) total
+  - Expired: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Certificate" -and $_.IsExpired }) | Measure-Object).Count))
+  - Expiring Soon: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Certificate" -and ($_.Status -eq "Critical" -or $_.Status -eq "Warning") }) | Measure-Object).Count))
+
+## Recommendations
+
+### Immediate Actions
+
+$(if ($expiredCreds -gt 0) {
+"- **$($expiredCreds) expired credential(s)** - Review and renew or remove if no longer needed"
+} else {
+"- No expired credentials found"
+})
+
+$(if ($criticalCreds -gt 0) {
+"- **$($criticalCreds) critical credential(s) expiring within 7 days** - Schedule urgent renewal"
+})
+
+$(if ($warningCreds -gt 0) {
+"- **$($warningCreds) credential(s) expiring within 30 days** - Plan renewal activities"
+})
+
+### Best Practices
+
+- **Regular Rotation:** Rotate credentials every 6-12 months according to your security policy
+- **Automation:** Set up automated alerts for credentials expiring within 30 days
+- **Certificate Preference:** Consider migrating to certificate-based authentication where possible
+- **Documentation:** Maintain a credential renewal schedule and document processes
+- **Cleanup:** Remove unused or expired credentials to reduce security risks
+- **Monitoring:** Review this report monthly to maintain credential health
 
 ## Data Export Information
 
-The attached CSV files contain detailed information including:
-- Application ID and Object ID
-- Display Name and Creation Date
-- Publisher Domain and Sign-in Audience
-- Authentication method details (secrets/certificates)
-- Direct links to Azure Portal for management
+The attached CSV file contains the complete inventory of all $($totalCreds) credentials:
+- **Credential Type Filter:** $($CredentialType)
+- Application Display Name and ID
+- Credential Type (Client Secret or Certificate)
+- Credential Name and ID
+- Start and End DateTime
+- Days remaining until expiry
+- Current status classification (Expired, Critical, Warning, Valid)
+
+**Use this data for:**
+- Credential lifecycle management
+- Compliance reporting
+- Renewal planning and tracking
+- Security audits
 "@
+}
 
 #endregion
 
@@ -1440,19 +1687,40 @@ The attached CSV files contain detailed information including:
 #region     Send Email Report
 ########################################################
 
-Write-Output "Send email report..."
+Write-Output "Sending email report..."
 Write-Output ""
 
-$emailSubject = "App Registration Report - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"
+$dateStr = Get-Date -Format 'yyyy-MM-dd'
+$emailSubject = if ($listOnlyExpiring) {
+    "Credentials Expiring Alert (≤$($Days) days) - $($tenantDisplayName) - $($dateStr)"
+}
+else {
+    "Application Credentials Inventory - $($tenantDisplayName) - $($dateStr)"
+}
 
 try {
     Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -Attachments $csvFiles -TenantDisplayName $tenantDisplayName -ReportVersion $Version
 
     Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
-    Write-Output "✅ App Registration report generated and sent successfully"
-    Write-Output "📧 Recipient: $($EmailTo)"
-    Write-Output "📊 Active Apps: $($appRegResults.Count)"
-    Write-Output "🗑️ Deleted Apps: $($deletedAppRegResults.Count)"
+
+    if ($listOnlyExpiring) {
+        Write-Output "Application Credentials Expiry Alert sent successfully"
+        Write-Output "Mode: EXPIRING ONLY (≤$($Days) days)"
+    }
+    else {
+        Write-Output "Application Credentials Inventory Report sent successfully"
+        Write-Output "Mode: ALL CREDENTIALS"
+    }
+
+    Write-Output "Recipient: $($EmailTo)"
+    Write-Output "Total Credentials: $($totalCreds)"
+
+    if ($listOnlyExpiring) {
+        Write-Output "Requiring Attention: Expired: $($expiredCreds) | Critical: $($criticalCreds) | Warning: $($warningCreds)"
+    }
+    else {
+        Write-Output "Status: Valid: $($validCreds) | Warning: $($warningCreds) | Critical: $($criticalCreds) | Expired: $($expiredCreds)"
+    }
 }
 catch {
     Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
@@ -1467,13 +1735,13 @@ catch {
 
 # Clean up temporary files
 try {
-    Remove-Item -Path $tempDir -Recurse -Force
+    Remove-Item -Path $tempDir -Force
     Write-RjRbLog -Message "Cleaned up temporary directory: $($tempDir)" -Verbose
 }
 catch {
     Write-RjRbLog -Message "Warning: Could not clean up temporary directory: $($_.Exception.Message)" -Verbose
 }
 
-Write-RjRbLog -Message "App Registration email report completed successfully" -Verbose
+Write-RjRbLog -Message "Application Credentials Expiry email report completed successfully" -Verbose
 
 #endregion

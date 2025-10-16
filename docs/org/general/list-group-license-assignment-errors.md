@@ -1,8 +1,8 @@
 # List Group License Assignment Errors
 
-## Report groups that have license assignment errors
+Report groups that have license assignment errors
 
-## Description
+## Detailed description
 Report groups that have license assignment errors
 
 ## Where to find

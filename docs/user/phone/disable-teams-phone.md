@@ -1,8 +1,8 @@
 # Disable Teams Phone
 
-## Microsoft Teams telephony offboarding
+Microsoft Teams telephony offboarding
 
-## Description
+## Detailed description
 Remove the phone number and specific policies from a teams-enabled user.
 
 ## Where to find

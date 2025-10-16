@@ -1,8 +1,8 @@
 # Delegate Full Access
 
-## Grant another user full access to this mailbox.
+Grant another user full access to this mailbox.
 
-## Description
+## Detailed description
 Grant another user full access to this mailbox.
 
 ## Where to find

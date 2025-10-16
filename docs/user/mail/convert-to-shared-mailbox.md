@@ -1,8 +1,8 @@
 # Convert To Shared Mailbox
 
-## Turn this users mailbox into a shared mailbox.
+Turn this users mailbox into a shared mailbox.
 
-## Description
+## Detailed description
 Turn this users mailbox into a shared mailbox.
 
 ## Where to find

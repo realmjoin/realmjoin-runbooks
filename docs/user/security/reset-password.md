@@ -1,8 +1,8 @@
 # Reset Password
 
-## Reset a user's password.
+Reset a user's password.
 
-## Description
+## Detailed description
 Reset a user's password. The user will have to change it on signin. Does not work with PW writeback to onprem AD.
 
 ## Where to find

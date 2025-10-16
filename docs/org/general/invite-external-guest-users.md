@@ -1,8 +1,8 @@
 # Invite External Guest Users
 
-## Invites external guest users to the organization using Microsoft Graph.
+Invites external guest users to the organization using Microsoft Graph.
 
-## Description
+## Detailed description
 This script automates the process of inviting external users as guests to the organization. Optionally, the invited user can be added to a specified group.
 
 ## Where to find

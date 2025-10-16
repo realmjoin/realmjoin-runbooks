@@ -1,8 +1,8 @@
 # Remove Group
 
-## Removes a group, incl. SharePoint site and Teams team.
+Removes a group, incl. SharePoint site and Teams team.
 
-## Description
+## Detailed description
 Removes a group, incl. SharePoint site and Teams team.
 
 ## Where to find

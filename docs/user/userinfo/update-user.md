@@ -1,8 +1,8 @@
 # Update User
 
-## Update/Finalize an existing user object.
+Update/Finalize an existing user object.
 
-## Description
+## Detailed description
 Update the metadata, group memberships and Exchange settings of an existing user object.
 
 ## Where to find

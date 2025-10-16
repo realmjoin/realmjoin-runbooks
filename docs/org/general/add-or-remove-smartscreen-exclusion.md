@@ -1,8 +1,8 @@
 # Add Or Remove Smartscreen Exclusion
 
-## Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
+Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
 
-## Description
+## Detailed description
 List/Add/Remove URL indicators entries in MS Security Center.
 
 ## Where to find

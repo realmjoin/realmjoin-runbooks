@@ -15,6 +15,7 @@ Also the document for each runbook contains information about permissions, where
 
 ## Additional information
 Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:
+- [General runbook information and setup guides](docs/general)
 - [List based content](docs/lists)
 - [JSON based content](docs/other/json)
 - [Other content](docs/other)
@@ -71,19 +72,19 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Application Registration](docs/org/applications/add-application-registration.md)
     - [Delete Application Registration](docs/org/applications/delete-application-registration.md)
-    - [Export Enterprise App Users](docs/org/applications/export-enterprise-app-users.md)
-    - [List Application Creds Expiry](docs/org/applications/list-application-creds-expiry.md)
-    - [List Inactive Enterprise Apps](docs/org/applications/list-inactive-enterprise-apps.md)
-    - [Report App Registration](docs/org/applications/report-app-registration.md)
+    - [Export Enterprise Application Users](docs/org/applications/export-enterprise-application-users.md)
+    - [List Inactive Enterprise Applications](docs/org/applications/list-inactive-enterprise-applications.md)
+    - [Report Application Registration](docs/org/applications/report-application-registration.md)
+    - [Report Expiring Application Credentials_Scheduled](docs/org/applications/report-expiring-application-credentials_scheduled.md)
     - [Update Application Registration](docs/org/applications/update-application-registration.md)
   - [Devices](docs/org/README.md#org-devices)
 
     - [Delete Stale Devices_Scheduled](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
-    - [List Stale Devices_Scheduled](docs/org/devices/list-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
     - [Report Last Device Contact By Range](docs/org/devices/report-last-device-contact-by-range.md)
+    - [Report Stale Devices_Scheduled](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
     - [Sync Device Serialnumbers To Entraid_Scheduled](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)

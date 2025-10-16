@@ -1,8 +1,8 @@
 # Add Autopilot Device
 
-## Import a windows device into Windows Autopilot.
+Import a windows device into Windows Autopilot.
 
-## Description
+## Detailed description
 Import a windows device into Windows Autopilot.
 
 ## Where to find

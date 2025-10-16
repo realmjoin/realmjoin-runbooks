@@ -1,8 +1,8 @@
 # Enable Or Disable Password Expiration
 
-## Set a users password policy to "(Do not) Expire"
+Set a users password policy to "(Do not) Expire"
 
-## Description
+## Detailed description
 Set a users password policy to "(Do not) Expire"
 
 ## Where to find

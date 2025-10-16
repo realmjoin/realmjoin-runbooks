@@ -1,8 +1,8 @@
 # Set Photo
 
-## Set / update the photo / avatar picture of a user.
+Set / update the photo / avatar picture of a user.
 
-## Description
+## Detailed description
 Set / update the photo / avatar picture of a user.
 
 ## Where to find

@@ -1,8 +1,8 @@
 # Export All Intune Devices
 
-## Export a list of all Intune devices and where they are registered.
+Export a list of all Intune devices and where they are registered.
 
-## Description
+## Detailed description
 Export all Intune devices and metadata based on their owner, like usageLocation.
 
 ## Where to find

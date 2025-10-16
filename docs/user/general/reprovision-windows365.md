@@ -1,8 +1,8 @@
 # Reprovision Windows365
 
-## Reprovision a Windows 365 Cloud PC
+Reprovision a Windows 365 Cloud PC
 
-## Description
+## Detailed description
 Reprovision an already existing Windows 365 Cloud PC without reassigning a new instance for this user.
 
 ## Where to find

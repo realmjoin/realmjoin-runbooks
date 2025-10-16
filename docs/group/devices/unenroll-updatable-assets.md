@@ -1,8 +1,8 @@
 # Unenroll Updatable Assets
 
-## Unenroll devices from Windows Update for Business.
+Unenroll devices from Windows Update for Business.
 
-## Description
+## Detailed description
 This script unenrolls devices from Windows Update for Business.
 
 ## Where to find
