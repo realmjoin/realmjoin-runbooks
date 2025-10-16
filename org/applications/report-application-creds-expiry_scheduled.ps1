@@ -1485,15 +1485,15 @@ if ($listOnlyExpiring) {
 
 | Status | Count | Action Needed |
 |--------|-------|---------------|
-| **Critical (≤7 days)** | $criticalCreds | **URGENT** - Renew within days |
-| **Warning (≤$Days days)** | $warningCreds | **SOON** - Schedule renewal |
-| **Total Requiring Attention** | **$totalCreds** | Review attached CSV |
+| **Critical (≤7 days)** | $($criticalCreds) | **URGENT** - Renew within 7 days |
+| **Warning (≤$Days days)** | $($warningCreds) | **SOON** - Schedule renewal |
+| **Total Requiring Attention** | **$($totalCreds)** | Review attached CSV |
 
 ---
 
 $(if ($criticalCreds -gt 0) {
 @"
-## CRITICAL - Expiring Within 7 Days ($criticalCreds)
+## CRITICAL - Expiring Within 7 Days ($($criticalCreds))
 
 These credentials will expire very soon and require **urgent renewal**:
 
@@ -1514,7 +1514,7 @@ $(if ($criticalCreds -gt 15) { "*... and $($criticalCreds - 15) more (see attach
 
 $(if ($warningCreds -gt 0) {
 @"
-## WARNING - Expiring Within $Days Days ($warningCreds)
+## WARNING - Expiring Within $($Days) Days ($($warningCreds))
 
 These credentials should be renewed soon:
 
@@ -1536,18 +1536,18 @@ $(if ($warningCreds -gt 15) { "*... and $($warningCreds - 15) more (see attached
 ## Next Steps
 
 ### Immediate Actions (Priority Order)
-1. $(if ($criticalCreds -gt 0) { "**Renew $criticalCreds critical credential(s)** expiring within 7 days" } else { "No critical credentials expiring soon" })
-2. $(if ($warningCreds -gt 0) { "**Schedule renewal for $warningCreds credential(s)** expiring within $Days days" } else { "No credentials in warning period" })
+1. $(if ($criticalCreds -gt 0) { "**Renew $($criticalCreds) critical credential(s)** expiring within 7 days" } else { "No critical credentials expiring soon" })
+2. $(if ($warningCreds -gt 0) { "**Schedule renewal for $($warningCreds) credential(s)** expiring within $($Days) days" } else { "No credentials in warning period" })
 
 ### Important Information
-- **Credential Type Filter:** $CredentialType
-- **Credential Types in Report:** $secrets Client Secrets, $certs Certificates
-- **Filter Applied:** Showing only credentials expiring within $Days days (excluding already expired)
+- **Credential Type Filter:** $($CredentialType)
+- **Credential Types in Report:** $($secrets) Client Secrets, $($certs) Certificates
+- **Filter Applied:** Showing only credentials expiring within $($Days) days (excluding already expired)
 $(if ($ApplicationIdArray -and ($ApplicationIdArray.Count -gt 0)) { "- **Application Filter:** Limited to $($ApplicationIdArray.Count) specific application(s)" })
 - **Note:** Already expired credentials are not included in this report
 
 ### CSV Export Details
-The attached CSV file contains complete information for all $totalCreds credentials requiring attention:
+The attached CSV file contains complete information for all $($totalCreds) credentials requiring attention:
 - Application details (Name, ID, Object ID)
 - Credential type and name
 - Exact expiration dates and days remaining
@@ -1567,20 +1567,19 @@ This is a comprehensive inventory of **all** Application Registration credential
 
 | Metric | Count |
 |--------|-------|
-| **Total Credentials** | $totalCreds |
-| **Client Secrets** | $secrets |
-| **Certificates** | $certs |
-|  |  |
-|  **Expired** | $expiredCreds |
-|  **Critical (≤7 days)** | $criticalCreds |
-|  **Warning (≤30 days)** | $warningCreds |
-|  **Valid (>30 days)** | $validCreds |
+| **Total Credentials** | $($totalCreds) |
+| **Client Secrets** | $($secrets) |
+| **Certificates** | $($certs) |
+|  **Expired** | $($expiredCreds) |
+|  **Critical (≤7 days)** | $($criticalCreds) |
+|  **Warning (≤30 days)** | $($warningCreds) |
+|  **Valid (>30 days)** | $($validCreds) |
 
 ---
 
 $(if ($expiredCreds -gt 0) {
 @"
-## Expired Credentials ($expiredCreds)
+## Expired Credentials ($($expiredCreds))
 
 These credentials have already expired:
 
@@ -1599,7 +1598,7 @@ $(if ($expiredCreds -gt 10) { "*... and $($expiredCreds - 10) more (see attached
 
 $(if ($criticalCreds -gt 0) {
 @"
-## Critical - Expiring Soon (≤7 days) ($criticalCreds)
+## Critical - Expiring Soon (≤7 days) ($($criticalCreds))
 
 | Application | Credential Type | Name | Days Left |
 |-------------|----------------|------|-----------|
@@ -1616,7 +1615,7 @@ $(if ($criticalCreds -gt 10) { "*... and $($criticalCreds - 10) more (see attach
 
 $(if ($warningCreds -gt 0) {
 @"
-## Warning - Expiring Soon (≤30 days) ($warningCreds)
+## Warning - Expiring Soon (≤30 days) ($($warningCreds))
 
 | Application | Credential Type | Name | Days Left |
 |-------------|----------------|------|-----------|
@@ -1635,17 +1634,17 @@ $(if ($warningCreds -gt 10) { "*... and $($warningCreds - 10) more (see attached
 
 ### Current Status
 
-- **Healthy:** $validCreds credentials with >30 days remaining
+- **Healthy:** $($validCreds) credentials with >30 days remaining
 - **Attention Needed:** $($expiredCreds + $criticalCreds + $warningCreds) credentials require action
 - **Success Rate:** $(if ($totalCreds -gt 0) { [math]::Round(($validCreds / $totalCreds) * 100, 1) } else { 0 })% of credentials are in good standing
 
 ### Breakdown by Type
 
-- **Client Secrets:** $secrets total
+- **Client Secrets:** $($secrets) total
   - Expired: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Client Secret" -and $_.IsExpired }) | Measure-Object).Count))
   - Expiring Soon: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Client Secret" -and ($_.Status -eq "Critical" -or $_.Status -eq "Warning") }) | Measure-Object).Count))
 
-- **Certificates:** $certs total
+- **Certificates:** $($certs) total
   - Expired: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Certificate" -and $_.IsExpired }) | Measure-Object).Count))
   - Expiring Soon: $(($(($credentialResults | Where-Object { $_.CredentialType -eq "Certificate" -and ($_.Status -eq "Critical" -or $_.Status -eq "Warning") }) | Measure-Object).Count))
 
@@ -1654,17 +1653,17 @@ $(if ($warningCreds -gt 10) { "*... and $($warningCreds - 10) more (see attached
 ### Immediate Actions
 
 $(if ($expiredCreds -gt 0) {
-"- **$expiredCreds expired credential(s)** - Review and renew or remove if no longer needed"
+"- **$($expiredCreds) expired credential(s)** - Review and renew or remove if no longer needed"
 } else {
 "- No expired credentials found"
 })
 
 $(if ($criticalCreds -gt 0) {
-"- **$criticalCreds credential(s) expiring within 7 days** - Schedule urgent renewal"
+"- **$($criticalCreds) critical credential(s) expiring within 7 days** - Schedule urgent renewal"
 })
 
 $(if ($warningCreds -gt 0) {
-"- **$warningCreds credential(s) expiring within 30 days** - Plan renewal activities"
+"- **$($warningCreds) credential(s) expiring within 30 days** - Plan renewal activities"
 })
 
 ### Best Practices
@@ -1678,8 +1677,8 @@ $(if ($warningCreds -gt 0) {
 
 ## Data Export Information
 
-The attached CSV file contains the complete inventory of all $totalCreds credentials:
-- **Credential Type Filter:** $CredentialType
+The attached CSV file contains the complete inventory of all $($totalCreds) credentials:
+- **Credential Type Filter:** $($CredentialType)
 - Application Display Name and ID
 - Credential Type (Client Secret or Certificate)
 - Credential Name and ID
@@ -1706,10 +1705,10 @@ Write-Output ""
 
 $dateStr = Get-Date -Format 'yyyy-MM-dd'
 $emailSubject = if ($listOnlyExpiring) {
-    "Credentials Expiring Alert (≤$Days days) - $tenantDisplayName - $dateStr"
+    "Credentials Expiring Alert (≤$($Days) days) - $($tenantDisplayName) - $($dateStr)"
 }
 else {
-    "Application Credentials Inventory - $tenantDisplayName - $dateStr"
+    "Application Credentials Inventory - $($tenantDisplayName) - $($dateStr)"
 }
 
 try {
@@ -1719,7 +1718,7 @@ try {
 
     if ($listOnlyExpiring) {
         Write-Output "Application Credentials Expiry Alert sent successfully"
-        Write-Output "Mode: EXPIRING ONLY (≤$Days days)"
+        Write-Output "Mode: EXPIRING ONLY (≤$($Days) days)"
     }
     else {
         Write-Output "Application Credentials Inventory Report sent successfully"
@@ -1727,13 +1726,13 @@ try {
     }
 
     Write-Output "Recipient: $($EmailTo)"
-    Write-Output "Total Credentials: $totalCreds"
+    Write-Output "Total Credentials: $($totalCreds)"
 
     if ($listOnlyExpiring) {
-        Write-Output "Requiring Attention: Expired: $expiredCreds | Critical: $criticalCreds | Warning: $warningCreds"
+        Write-Output "Requiring Attention: Expired: $($expiredCreds) | Critical: $($criticalCreds) | Warning: $($warningCreds)"
     }
     else {
-        Write-Output "Status: Valid: $validCreds | Warning: $warningCreds | Critical: $criticalCreds | Expired: $expiredCreds"
+        Write-Output "Status: Valid: $($validCreds) | Warning: $($warningCreds) | Critical: $($criticalCreds) | Expired: $($expiredCreds)"
     }
 }
 catch {
