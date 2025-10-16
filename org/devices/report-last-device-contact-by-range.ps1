@@ -51,6 +51,7 @@ RunbookCustomization: {
                 "Windows": "Windows",
                 "MacOS": "macOS",
                 "Linux": "Linux"
+                "Android": "Android"
             }
         },
         "EmailTo": {
@@ -75,7 +76,7 @@ param (
     [string]$dateRange,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("all", "Windows", "macOS", "Linux")]
+    [ValidateSet("all", "Windows", "macOS", "Linux", "Android")]
     [string]$systemType = "Windows",
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
@@ -1339,7 +1340,8 @@ try {
     $allDevices = $allDevices_unfiltered | Select-Object -Property $selectProperties_Array
     if ($($allDevices_unfiltered.'@odata.count') -notlike 0) {
         Write-Output "Retrieved devices using the current filter: $(($allDevices | Measure-Object).Count)"
-    }else {
+    }
+    else {
         Write-Output "No devices found using the current filter."
         $allDevices = @()
     }
@@ -1366,6 +1368,7 @@ $outputDevices = $allDevices | ForEach-Object {
         LastSyncDateTime  = $_.lastSyncDateTime
         IntuneDeviceId    = $_.id
         EntraIdDeviceId   = $_.azureADDeviceId
+        OperatingSystem   = $_.operatingSystem
         UserDisplayName   = $_.userDisplayName
         UserPrincipalName = $_.userPrincipalName
         UserId            = $_.userId
@@ -1471,15 +1474,16 @@ $(if ($dateRange -eq "365+" -or $dateRange -eq "180-365") {
 
 ### Suggested Actions
 
-1. **Verify Search Criteria:**
+**Verify Search Criteria:**
    - Confirm the date range and system type are correct
    - Try different date ranges to compare results
    - Check if devices exist for the selected system type
 
-2. **Regular Monitoring:**
+**Regular Monitoring:**
    - Schedule periodic reports with different time ranges
    - Track device activity trends over time
    - Set up alerts for unusual patterns
+
 "@
 
         $emailSubject = "Device Last Contact Report - No Devices Found - $($systemType) ($($dateRangeDescription)) - $(Get-Date -Format 'yyyy-MM-dd')"
@@ -1490,7 +1494,7 @@ $(if ($dateRange -eq "365+" -or $dateRange -eq "180-365") {
         Write-RjRbLog -Message "Found $($deviceCount) devices - preparing detailed report" -Verbose
 
         # Create temporary directory for CSV files
-        $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "DeviceContactReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+        $tempDir = Join-Path ((Get-Location).Path) "DeviceContactReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
         Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
