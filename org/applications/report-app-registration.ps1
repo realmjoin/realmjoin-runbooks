@@ -80,8 +80,9 @@ Write-RjRbLog -Message "Include Deleted Apps: $IncludeDeletedApps" -Verbose
 
 # Validate Email Addresses
 if (-not $EmailFrom) {
-    Write-RjRbLog -Message "The sender email address is required. This needs to be configured in the runbook customization." -Verbose
-    throw "The sender email address is required."
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
+    exit
 }
 
 if (-not $EmailTo) {
@@ -129,6 +130,10 @@ function ConvertFrom-MarkdownToHtml {
 
     $MarkdownText = $MarkdownText.Trim()
     $html = $MarkdownText
+
+    # Normalize line endings to \n only (remove \r)
+    $html = $html -replace "`r`n", "`n"
+    $html = $html -replace "`r", "`n"
 
     # Escape Markdown characters first
     $html = $html -replace '\\(.)', '§ESCAPED§$1§ESCAPED§'
@@ -616,8 +621,8 @@ function Get-RjReportEmailBody {
     .content table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 32px 0;
-        margin-bottom: 20px 0;
+        margin-top: 32px;
+        margin-bottom: 20px;
         background-color: white;
         border-radius: 8px;
         overflow: hidden;

@@ -440,6 +440,7 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
         Add-Content -Path $ResultFile -Value ""
         Add-Content -Path $ResultFile -Value "## Additional information"
         Add-Content -Path $ResultFile -Value "Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:"
+        Add-Content -Path $ResultFile -Value "- [General runbook information and setup guides]($($relativeOutputPath)general)"
         Add-Content -Path $ResultFile -Value "- [List based content]($($relativeOutputPath)lists)"
         Add-Content -Path $ResultFile -Value "- [JSON based content]($($relativeOutputPath)other/json)"
         Add-Content -Path $ResultFile -Value "- [Other content]($($relativeOutputPath)other)"
@@ -541,11 +542,11 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
                 Add-Content -Path $runbookFilePath -Value ""
 
                 if ($runbook.Synopsis) {
-                    Add-Content -Path $runbookFilePath -Value "## $($runbook.Synopsis)"
+                    Add-Content -Path $runbookFilePath -Value "$($runbook.Synopsis)"
                     Add-Content -Path $runbookFilePath -Value ""
                 }
                 if ($runbook.Description) {
-                    Add-Content -Path $runbookFilePath -Value "## Description"
+                    Add-Content -Path $runbookFilePath -Value "## Detailed description"
                     Add-Content -Path $runbookFilePath -Value $runbook.Description
                     Add-Content -Path $runbookFilePath -Value ""
                 }
