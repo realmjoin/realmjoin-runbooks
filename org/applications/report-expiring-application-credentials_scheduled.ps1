@@ -91,6 +91,7 @@
 
 param(
     [bool] $listOnlyExpiring = $true,
+
     [int] $Days = 30,
 
     [ValidateSet("Both", "ClientSecrets", "Certificates")]
@@ -1322,8 +1323,8 @@ Write-RjRbLog -Message "Processing Certificates: $processCertificates" -Verbose
 Write-RjRbLog -Message "Processing Client Secrets: $processClientSecrets" -Verbose
 
 [array]$apps = @()
+#$apps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/servicePrincipals"
 $apps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
-$apps += Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/servicePrincipals"
 
 Write-Output "Found $((($(($apps) | Measure-Object).Count))) applications/service principals"
 
@@ -1357,7 +1358,7 @@ foreach ($app in $apps) {
                             EndDateTime    = $enddate
                             DaysLeft       = $daysLeft
                             IsExpired      = ($daysLeft -lt 0)
-                            Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le 30) { "Warning" } else { "Valid" }
+                            Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le $Days) { "Warning" } else { "Valid" }
                         }
                         $credentialResults += $tempObj
                     }
@@ -1403,7 +1404,7 @@ foreach ($app in $apps) {
                             EndDateTime    = $enddate
                             DaysLeft       = $daysLeft
                             IsExpired      = ($daysLeft -lt 0)
-                            Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le 30) { "Warning" } else { "Valid" }
+                            Status         = if ($daysLeft -lt 0) { "Expired" } elseif ($daysLeft -le 7) { "Critical" } elseif ($daysLeft -le $Days) { "Warning" } else { "Valid" }
                         }
                         $credentialResults += $tempObj
                     }
@@ -1484,7 +1485,7 @@ if ($listOnlyExpiring) {
 | Status | Count | Action Needed |
 |--------|-------|---------------|
 | **Critical (≤7 days)** | $($criticalCreds) | **URGENT** - Renew within 7 days |
-| **Warning (≤$Days days)** | $($warningCreds) | **SOON** - Schedule renewal |
+| **Warning (≤$($Days) days)** | $($warningCreds) | **SOON** - Schedule renewal |
 | **Total Requiring Attention** | **$($totalCreds)** | Review attached CSV |
 
 ---
