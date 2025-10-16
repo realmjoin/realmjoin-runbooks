@@ -1,4 +1,4 @@
-# List Stale Devices_Scheduled
+# Report Stale Devices_Scheduled
 
 Scheduled report of stale devices based on last activity date and platform.
 
@@ -7,7 +7,7 @@ Identifies and lists devices that haven't been active for a specified number of 
 Automatically sends a report via email.
 
 ## Where to find
-Org \ Devices \ List Stale Devices_Scheduled
+Org \ Devices \ Report Stale Devices_Scheduled
 
 ## Permissions
 ### Application permissions

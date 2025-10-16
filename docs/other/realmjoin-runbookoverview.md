@@ -62,10 +62,10 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#org-devices)
       - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
-      - [List Stale Devices_Scheduled](#list-stale-devices_scheduled)
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
+      - [Report Stale Devices_Scheduled](#report-stale-devices_scheduled)
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
       - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
   - [General](#org-general)
@@ -904,24 +904,6 @@ Org \ Devices \ Get Bitlocker Recovery Key
  
  
 
-<a name='org-devices-list-stale-devices_scheduled'></a>
-
-### List Stale Devices_Scheduled
-#### Scheduled report of stale devices based on last activity date and platform.
-
-#### Description
-Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
-
-#### Where to find
-Org \ Devices \ List Stale Devices_Scheduled
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-devices-outphase-devices'></a>
 
 ### Outphase Devices
@@ -984,6 +966,24 @@ Org \ Devices \ Report Last Device Contact By Range
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-stale-devices_scheduled'></a>
+
+### Report Stale Devices_Scheduled
+#### Scheduled report of stale devices based on last activity date and platform.
+
+#### Description
+Identifies and lists devices that haven't been active for a specified number of days.
+Automatically sends a report via email.
+
+#### Where to find
+Org \ Devices \ Report Stale Devices_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
