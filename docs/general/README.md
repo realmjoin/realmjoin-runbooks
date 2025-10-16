@@ -8,6 +8,4 @@ This folder contains general information and setup guides for RealmJoin runbooks
 
 ## Additional Resources
 
-For comprehensive documentation about RealmJoin runbooks and their management, please visit the official documentation:
-
-- [RealmJoin Runbooks Documentation](https://docs.realmjoin.com/automation/runbooks)
+For comprehensive documentation about RealmJoin runbooks and their management, please visit the official [RealmJoin Runbooks Documentation](https://docs.realmjoin.com/automation/runbooks)

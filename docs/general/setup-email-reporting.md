@@ -4,7 +4,8 @@
 
 Several RealmJoin runbooks include automated email reporting capabilities to deliver reports, notifications, and alerts directly to administrators. These runbooks leverage the Microsoft Graph API to send emails on behalf of a configured sender address.
 
-To enable email functionality across all reporting runbooks in your tenant, you need to configure a centralized sender email address through the RealmJoin Runbook Customization settings. This one-time configuration will be automatically applied to all runbooks that utilize the email reporting feature.
+To enable email functionality across all reporting runbooks in your tenant, you need to configure a centralized sender email address through the RealmJoin Runbook Customization settings.
+This one-time configuration will be automatically applied to all runbooks that utilize the email reporting feature.
 
 ## Prerequisites
 
