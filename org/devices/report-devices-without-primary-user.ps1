@@ -821,7 +821,7 @@ function Get-RjReportEmailBody {
         }
 
         .content th {
-            background: #f8842c, 12 !important;
+            background: #f8842c !important;
             color: #ffffff !important;
         }
 
