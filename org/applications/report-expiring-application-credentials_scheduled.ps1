@@ -679,8 +679,8 @@ function Get-RjReportEmailBody {
     .content table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 32px 0;
-        margin-bottom: 20px 0;
+        margin-top: 32px;
+        margin-bottom: 20px;
         background-color: white;
         border-radius: 8px;
         overflow: hidden;
@@ -1323,7 +1323,6 @@ Write-RjRbLog -Message "Processing Certificates: $processCertificates" -Verbose
 Write-RjRbLog -Message "Processing Client Secrets: $processClientSecrets" -Verbose
 
 [array]$apps = @()
-#$apps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/servicePrincipals"
 $apps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
 
 Write-Output "Found $((($(($apps) | Measure-Object).Count))) applications/service principals"
@@ -1590,7 +1589,6 @@ $(($credentialResults | Where-Object { $_.IsExpired } | Select-Object -First 10 
 
 $(if ($expiredCreds -gt 10) { "*... and $($expiredCreds - 10) more (see attached CSV)*" })
 
----
 
 "@
 })
@@ -1607,7 +1605,6 @@ $(($credentialResults | Where-Object { $_.Status -eq "Critical" -and -not $_.IsE
 
 $(if ($criticalCreds -gt 10) { "*... and $($criticalCreds - 10) more (see attached CSV)*" })
 
----
 
 "@
 })
@@ -1624,7 +1621,6 @@ $(($credentialResults | Where-Object { $_.Status -eq "Warning" } | Select-Object
 
 $(if ($warningCreds -gt 10) { "*... and $($warningCreds - 10) more (see attached CSV)*" })
 
----
 
 "@
 })
@@ -1747,7 +1743,7 @@ catch {
 
 # Clean up temporary files
 try {
-    Remove-Item -Path $tempDir -Recurse -Force
+    Remove-Item -Path $tempDir -Force
     Write-RjRbLog -Message "Cleaned up temporary directory: $($tempDir)" -Verbose
 }
 catch {
