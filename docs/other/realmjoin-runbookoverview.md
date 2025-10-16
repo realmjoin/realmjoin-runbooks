@@ -54,9 +54,9 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
       - [Delete Application Registration](#delete-application-registration)
-      - [Export Enterprise App Users](#export-enterprise-app-users)
-      - [List Inactive Enterprise Apps](#list-inactive-enterprise-apps)
-      - [Report App Registration](#report-app-registration)
+      - [Export Enterprise Application Users](#export-enterprise-application-users)
+      - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
+      - [Report Application Registration](#report-application-registration)
       - [Report Expiring Application Credentials_Scheduled](#report-expiring-application-credentials_scheduled)
       - [Update Application Registration](#update-application-registration)
   - [Devices](#org-devices)
@@ -759,16 +759,18 @@ Org \ Applications \ Delete Application Registration
  
  
 
-<a name='org-applications-export-enterprise-app-users'></a>
+<a name='org-applications-export-enterprise-application-users'></a>
 
-### Export Enterprise App Users
-#### Export a CSV of all (entprise) app owners and users
+### Export Enterprise Application Users
+#### Export a CSV of all (enterprise) application owners and users
 
 #### Description
-Export a CSV of all (entprise) app owners and users.
+This runbook exports a comprehensive list of all enterprise applications (or all service principals)
+in your Azure AD tenant along with their owners and assigned users/groups. Afterwards the CSV file is uploaded
+to an Azure Storage Account, from where it can be downloaded.
 
 #### Where to find
-Org \ Applications \ Export Enterprise App Users
+Org \ Applications \ Export Enterprise Application Users
 
 
 [Back to Table of Content](#table-of-contents)
@@ -776,16 +778,17 @@ Org \ Applications \ Export Enterprise App Users
  
  
 
-<a name='org-applications-list-inactive-enterprise-apps'></a>
+<a name='org-applications-list-inactive-enterprise-applications'></a>
 
-### List Inactive Enterprise Apps
-#### List App registrations, which had no recent user logons.
+### List Inactive Enterprise Applications
+#### List application registrations, which had no recent user logons.
 
 #### Description
-List App registrations, which had no recent user logons.
+Identifies enterprise applications with no recent sign-in activity based on Entra ID audit logs.
+The report includes Entra ID applications with last sign-in older than specified days (default: 90 days) or applications with no sign-in records in the audit log.
 
 #### Where to find
-Org \ Applications \ List Inactive Enterprise Apps
+Org \ Applications \ List Inactive Enterprise Applications
 
 
 [Back to Table of Content](#table-of-contents)
@@ -793,17 +796,17 @@ Org \ Applications \ List Inactive Enterprise Apps
  
  
 
-<a name='org-applications-report-app-registration'></a>
+<a name='org-applications-report-application-registration'></a>
 
-### Report App Registration
-#### Generate and email a comprehensive App Registration report
+### Report Application Registration
+#### Generate and email a comprehensive Application Registration report
 
 #### Description
 This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
 exports them to CSV files, and sends them via email.
 
 #### Where to find
-Org \ Applications \ Report App Registration
+Org \ Applications \ Report Application Registration
 
 ## Setup regarding email sending
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.

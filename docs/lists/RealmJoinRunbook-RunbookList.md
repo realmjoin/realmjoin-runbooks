@@ -53,9 +53,9 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Applications](#org-applications)
     - Add Application Registration
     - Delete Application Registration
-    - Export Enterprise App Users
-    - List Inactive Enterprise Apps
-    - Report App Registration
+    - Export Enterprise Application Users
+    - List Inactive Enterprise Applications
+    - Report Application Registration
     - Report Expiring Application Credentials_Scheduled
     - Update Application Registration
   - [Devices](#org-devices)
@@ -261,9 +261,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Application Registration | Add an application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
-| Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
-| List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
-| Report App Registration | Generate and email a comprehensive App Registration report |
+| Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+| List Inactive Enterprise Applications | List application registrations, which had no recent user logons. |
+| Report Application Registration | Generate and email a comprehensive Application Registration report |
 | Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
 | Update Application Registration | Update an application registration in Azure AD |
 

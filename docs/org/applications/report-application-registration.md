@@ -1,13 +1,13 @@
-# Report App Registration
+# Report Application Registration
 
-Generate and email a comprehensive App Registration report
+Generate and email a comprehensive Application Registration report
 
 ## Detailed description
 This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
 exports them to CSV files, and sends them via email.
 
 ## Where to find
-Org \ Applications \ Report App Registration
+Org \ Applications \ Report Application Registration
 
 ## Setup regarding email sending
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.

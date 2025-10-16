@@ -34,9 +34,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Teams | Archive Team | Archive a team. |
 | Org | Applications | Add Application Registration | Add an application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
-|  |  | Export Enterprise App Users | Export a CSV of all (entprise) app owners and users |
-|  |  | List Inactive Enterprise Apps | List App registrations, which had no recent user logons. |
-|  |  | Report App Registration | Generate and email a comprehensive App Registration report |
+|  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+|  |  | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. |
+|  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
 |  |  | Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
 |  |  | Update Application Registration | Update an application registration in Azure AD |
 |  | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
