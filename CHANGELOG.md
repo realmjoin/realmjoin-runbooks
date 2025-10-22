@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-10-22
+  - Update Add Shared Mailbox Runbook
+    - Add functionality to add shared mailbox with same alias but different domain
+  - Add List Group Memberships Runbook
+
 ## 2025-10-16
   - Update Report Apple MDM Cert Expiry (scheduled) Runbook
     - Update regarding new email functions

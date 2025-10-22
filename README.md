@@ -158,6 +158,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Assign Groups By Template](docs/user/general/assign-groups-by-template.md)
     - [Assign Or Unassign License](docs/user/general/assign-or-unassign-license.md)
     - [Assign Windows365](docs/user/general/assign-windows365.md)
+    - [List Group Memberships](docs/user/general/list-group-memberships.md)
     - [List Group Ownerships](docs/user/general/list-group-ownerships.md)
     - [List Manager](docs/user/general/list-manager.md)
     - [Offboard User Permanently](docs/user/general/offboard-user-permanently.md)

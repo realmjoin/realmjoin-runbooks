@@ -8,6 +8,7 @@
   - [Assign Groups By Template](general/assign-groups-by-template.md)
   - [Assign Or Unassign License](general/assign-or-unassign-license.md)
   - [Assign Windows365](general/assign-windows365.md)
+  - [List Group Memberships](general/list-group-memberships.md)
   - [List Group Ownerships](general/list-group-ownerships.md)
   - [List Manager](general/list-manager.md)
   - [Offboard User Permanently](general/offboard-user-permanently.md)
