@@ -187,17 +187,26 @@ try {
         $retryCount = 0
         $mailNicknameToCheck = if ($aliasConflict) { $aliasToUse } else { $MailboxName }
         while (($null -eq $user) -and ($retryCount -lt 10)) {
-            $user = Invoke-MgGraphRequest -Method Get -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mailNickname eq '$mailNicknameToCheck'" -ErrorAction Stop
-            if ($null -eq $user) {
+            $response = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mailNickname eq '$mailNicknameToCheck'" -ErrorAction Stop
+            if ($response.value -and $response.value.Count -gt 0) {
+                $user = $response.value[0]
+            }
+            else {
                 $retryCount++
                 ".. Waiting for user object to be created..."
                 Start-Sleep -Seconds 5
             }
         }
-        $body = @{
-            accountEnabled = $false
+
+        if ($null -eq $user) {
+            Write-RjRbLog -Message "Could not find user object to disable after 10 retries." -Warning
         }
-        Invoke-MgGraphRequest -Method Patch -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)" -Body $body -ErrorAction Stop
+        else {
+            $body = @{
+                accountEnabled = $false
+            } | ConvertTo-Json
+            Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)" -Body $body -ContentType "application/json" -ErrorAction Stop
+        }
     }
 
     if ($aliasConflict) {
