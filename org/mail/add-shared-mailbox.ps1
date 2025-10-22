@@ -3,7 +3,8 @@
   Create a shared mailbox.
 
   .DESCRIPTION
-  Create a shared mailbox.
+  This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
+  Also if specified, it disables the associated EntraID user account.
 
   .INPUTS
   RunbookCustomization: {
@@ -70,30 +71,94 @@ param (
     [string] $CallerName
 )
 
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+########################################################
+#region     RJ Log Part
+########################################################
+
+# Add Caller and Version in Verbose output
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
 
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-try {
-    Connect-RjRbExchangeOnline
+# Add Parameter in Verbose output
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "MailboxName: '$MailboxName'" -Verbose
+Write-RjRbLog -Message "DisplayName: '$DisplayName'" -Verbose
+Write-RjRbLog -Message "DomainName: '$DomainName'" -Verbose
+Write-RjRbLog -Message "Language: '$Language'" -Verbose
+Write-RjRbLog -Message "DelegateTo: '$DelegateTo'" -Verbose
+Write-RjRbLog -Message "AutoMapping: '$AutoMapping'" -Verbose
+Write-RjRbLog -Message "MessageCopyForSentAsEnabled: '$MessageCopyForSentAsEnabled'" -Verbose
+Write-RjRbLog -Message "MessageCopyForSendOnBehalfEnabled: '$MessageCopyForSendOnBehalfEnabled'" -Verbose
+Write-RjRbLog -Message "DisableUser: '$DisableUser'" -Verbose
 
+#endregion
+
+########################################################
+#region     Connect and Initialize
+########################################################
+
+Write-Output "Connecting to Microsoft Graph..."
+Connect-MgGraph -Identity -NoWelcome
+
+try {
+    Write-Output "Connecting to Exchange Online..."
+    Connect-RjRbExchangeOnline
+}
+catch {
+    Write-Error "Failed to connect to Exchange Online: $_"
+    throw $_
+}
+
+try {
     # make sure a displayName exists
     if (-not $DisplayName) {
         $DisplayName = $MailboxName
     }
 
+    # Check for alias conflicts and adjust if necessary
+    $aliasToUse = $MailboxName
+    $aliasConflict = $false
+
+    Write-RjRbLog -Message "Checking for alias conflicts..." -Verbose
+    $existingRecipient = Get-Recipient -Identity $aliasToUse -ErrorAction SilentlyContinue
+
+    if ($existingRecipient) {
+        Write-RjRbLog -Message "Alias '$aliasToUse' is already in use. Generating alternative alias..." -Warning
+        $aliasConflict = $true
+
+        # Generate random 4-digit number and append to alias
+        $randomNumber = Get-Random -Minimum 1000 -Maximum 9999
+        $aliasToUse = "$MailboxName$randomNumber"
+
+        Write-RjRbLog -Message "New alias will be: '$aliasToUse'" -Verbose
+
+        # Verify the new alias is available
+        $existingRecipient = Get-Recipient -Identity $aliasToUse -ErrorAction SilentlyContinue
+        if ($existingRecipient) {
+            throw "Generated alias '$aliasToUse' is also already in use. Please try again or contact support."
+        }
+    }
+
     # Create the mailbox
     if (-not $DomainName) {
-        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName
+        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $aliasToUse
     }
     else {
-        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $MailboxName -PrimarySmtpAddress ($MailboxName + "@" + $DomainName)
+        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $aliasToUse -PrimarySmtpAddress ($MailboxName + "@" + $DomainName)
+    }
+
+    if ($aliasConflict) {
+        Write-RjRbLog -Message "## Note: Due to an alias conflict, the mailbox alias was set to '$aliasToUse' instead of '$MailboxName'" -Warning
     }
 
     $found = $false
+    $identityToCheck = if ($aliasConflict) { $aliasToUse } else { $MailboxName }
     while (-not $found) {
-        $mailbox = Get-Mailbox -Identity $MailboxName -ErrorAction SilentlyContinue
+        $mailbox = Get-Mailbox -Identity $identityToCheck -ErrorAction SilentlyContinue
         if ($null -eq $mailbox) {
             ".. Waiting for mailbox to be created..."
             Start-Sleep -Seconds 5
@@ -120,8 +185,9 @@ try {
         # Deactive the user account using the Graph API
         $user = $null
         $retryCount = 0
+        $mailNicknameToCheck = if ($aliasConflict) { $aliasToUse } else { $MailboxName }
         while (($null -eq $user) -and ($retryCount -lt 10)) {
-            $user = Invoke-RjRbRestMethodGraph -Resource "/users" -Method Get -OdFilter "mailNickname eq '$MailboxName'" -ErrorAction Stop
+            $user = Invoke-MgGraphRequest -Method Get -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mailNickname eq '$mailNicknameToCheck'" -ErrorAction Stop
             if ($null -eq $user) {
                 $retryCount++
                 ".. Waiting for user object to be created..."
@@ -131,10 +197,15 @@ try {
         $body = @{
             accountEnabled = $false
         }
-        Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -Method Patch -Body $body -ErrorAction Stop
+        Invoke-MgGraphRequest -Method Patch -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)" -Body $body -ErrorAction Stop
     }
 
-    "## Shared Mailbox '$MailboxName' has been created."
+    if ($aliasConflict) {
+        "## Shared Mailbox '$MailboxName' has been created with alias '$aliasToUse' (due to conflict)."
+    }
+    else {
+        "## Shared Mailbox '$MailboxName' has been created."
+    }
 
 }
 finally {
