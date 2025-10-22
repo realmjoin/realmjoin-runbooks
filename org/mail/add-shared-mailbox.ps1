@@ -85,15 +85,15 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "MailboxName: '$MailboxName'" -Verbose
-Write-RjRbLog -Message "DisplayName: '$DisplayName'" -Verbose
-Write-RjRbLog -Message "DomainName: '$DomainName'" -Verbose
-Write-RjRbLog -Message "Language: '$Language'" -Verbose
-Write-RjRbLog -Message "DelegateTo: '$DelegateTo'" -Verbose
-Write-RjRbLog -Message "AutoMapping: '$AutoMapping'" -Verbose
-Write-RjRbLog -Message "MessageCopyForSentAsEnabled: '$MessageCopyForSentAsEnabled'" -Verbose
-Write-RjRbLog -Message "MessageCopyForSendOnBehalfEnabled: '$MessageCopyForSendOnBehalfEnabled'" -Verbose
-Write-RjRbLog -Message "DisableUser: '$DisableUser'" -Verbose
+Write-RjRbLog -Message "MailboxName: $($MailboxName)" -Verbose
+Write-RjRbLog -Message "DisplayName: $($DisplayName)" -Verbose
+Write-RjRbLog -Message "DomainName: $($DomainName)" -Verbose
+Write-RjRbLog -Message "Language: $($Language)" -Verbose
+Write-RjRbLog -Message "DelegateTo: $($DelegateTo)" -Verbose
+Write-RjRbLog -Message "AutoMapping: $($AutoMapping)" -Verbose
+Write-RjRbLog -Message "MessageCopyForSentAsEnabled: $($MessageCopyForSentAsEnabled)" -Verbose
+Write-RjRbLog -Message "MessageCopyForSendOnBehalfEnabled: $($MessageCopyForSendOnBehalfEnabled)" -Verbose
+Write-RjRbLog -Message "DisableUser: $($DisableUser)" -Verbose
 
 #endregion
 
@@ -101,8 +101,14 @@ Write-RjRbLog -Message "DisableUser: '$DisableUser'" -Verbose
 #region     Connect and Initialize
 ########################################################
 
-Write-Output "Connecting to Microsoft Graph..."
-Connect-MgGraph -Identity -NoWelcome
+try {
+    Write-Output "Connecting to Microsoft Graph..."
+    Connect-MgGraph -Identity -NoWelcome
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph: $_"
+    throw $_
+}
 
 try {
     Write-Output "Connecting to Exchange Online..."
@@ -113,6 +119,11 @@ catch {
     throw $_
 }
 
+#endregion
+
+########################################################
+#region     Create Shared Mailbox
+########################################################
 try {
     # make sure a displayName exists
     if (-not $DisplayName) {
@@ -121,42 +132,98 @@ try {
 
     # Check for alias conflicts and adjust if necessary
     $aliasToUse = $MailboxName
+    $nameToUse = $MailboxName
     $aliasConflict = $false
 
-    Write-RjRbLog -Message "Checking for alias conflicts..." -Verbose
+    # Build primary SMTP address
+    $primarySmtpAddress = if ($DomainName) { "$($MailboxName)@$($DomainName)" } else { $null }
+
+    # First check if the exact mailbox (mailboxname@domain) already exists
+    if ($primarySmtpAddress) {
+        Write-Output "Checking if mailbox '$($primarySmtpAddress)' already exists..."
+        $existingMailbox = Get-Recipient -Identity $primarySmtpAddress -ErrorAction SilentlyContinue
+        if ($existingMailbox) {
+            throw "A mailbox with the primary SMTP address '$($primarySmtpAddress)' already exists. Please use a different mailbox name or domain."
+        }
+    }
+
+    Write-Output "Checking for alias conflicts..."
     $existingRecipient = Get-Recipient -Identity $aliasToUse -ErrorAction SilentlyContinue
 
     if ($existingRecipient) {
-        Write-RjRbLog -Message "Alias '$aliasToUse' is already in use. Generating alternative alias..." -Warning
+        Write-Output "Alias '$($aliasToUse)' is already in use by another recipient."
+
+        # Check if it's the same combination of mailboxname@domain
+        if ($primarySmtpAddress) {
+            $existingPrimarySmtp = $existingRecipient.PrimarySmtpAddress
+            if ($existingPrimarySmtp -eq $primarySmtpAddress) {
+                throw "A mailbox with the exact combination '$($primarySmtpAddress)' already exists. Aborting."
+            }
+        }
+
+        Write-Output "Generating alternative alias..."
         $aliasConflict = $true
 
         # Generate random 4-digit number and append to alias
         $randomNumber = Get-Random -Minimum 1000 -Maximum 9999
-        $aliasToUse = "$MailboxName$randomNumber"
+        $aliasToUse = "$($MailboxName)$($randomNumber)"
 
-        Write-RjRbLog -Message "New alias will be: '$aliasToUse'" -Verbose
+        # Also adjust the name to include domain for better identification
+        if ($DomainName) {
+            $nameToUse = "$($MailboxName) | $($DomainName)"
+        }
+        else {
+            $nameToUse = "$($MailboxName)$($randomNumber)"
+        }
+
+        Write-Output "New alias will be: '$($aliasToUse)'"
+        Write-Output "Name will be: '$($nameToUse)'"
 
         # Verify the new alias is available
         $existingRecipient = Get-Recipient -Identity $aliasToUse -ErrorAction SilentlyContinue
         if ($existingRecipient) {
-            throw "Generated alias '$aliasToUse' is also already in use. Please try again or contact support."
+            throw "Generated alias '$($aliasToUse)' is also already in use. Please try again or contact support."
         }
+        else {
+            Write-Output "Alias '$($aliasToUse)' is available."
+        }
+    }
+
+    Write-Output ""
+    if ($primarySmtpAddress) {
+        Write-Output "Creating shared mailbox '$($primarySmtpAddress)'..."
+    }
+    else {
+        Write-Output "Creating shared mailbox '$($MailboxName)'..."
     }
 
     # Create the mailbox
     if (-not $DomainName) {
-        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $aliasToUse
+        $mailbox = New-Mailbox -Shared -Name $nameToUse -DisplayName $DisplayName -Alias $aliasToUse
     }
     else {
-        $mailbox = New-Mailbox -Shared -Name $MailboxName -DisplayName $DisplayName -Alias $aliasToUse -PrimarySmtpAddress ($MailboxName + "@" + $DomainName)
+        $mailbox = New-Mailbox -Shared -Name $nameToUse -DisplayName $DisplayName -Alias $aliasToUse -PrimarySmtpAddress $primarySmtpAddress
     }
 
     if ($aliasConflict) {
-        Write-RjRbLog -Message "## Note: Due to an alias conflict, the mailbox alias was set to '$aliasToUse' instead of '$MailboxName'" -Warning
+        Write-Warning "## Note: Due to an alias conflict, the mailbox alias was set to '$aliasToUse' instead of '$MailboxName'"
+        Write-Output "Updating MicrosoftOnlineServicesID to match primary SMTP address..."
+
+        # Update the UserPrincipalName to match the primary SMTP address
+        if ($primarySmtpAddress) {
+            $mailbox | Set-Mailbox -MicrosoftOnlineServicesID $primarySmtpAddress -ErrorAction SilentlyContinue
+        }
     }
 
+#endregion
+
+########################################################
+#region     Configure Mailbox Settings
+########################################################
+
+    Write-Output "Configuring mailbox settings..."
     $found = $false
-    $identityToCheck = if ($aliasConflict) { $aliasToUse } else { $MailboxName }
+    $identityToCheck = if ($primarySmtpAddress) { $primarySmtpAddress } elseif ($aliasConflict) { $aliasToUse } else { $MailboxName }
     while (-not $found) {
         $mailbox = Get-Mailbox -Identity $identityToCheck -ErrorAction SilentlyContinue
         if ($null -eq $mailbox) {
@@ -169,6 +236,7 @@ try {
     }
 
     if ($DelegateTo) {
+        Write-Output "Configuring delegate permissions for '$($DelegateTo)'..."
         # "Grant SendOnBehalf"
         $mailbox | Set-Mailbox -GrantSendOnBehalfTo $DelegateTo | Out-Null
         # "Grant FullAccess"
@@ -179,9 +247,11 @@ try {
     $mailbox | Set-Mailbox -MessageCopyForSendOnBehalfEnabled $MessageCopyForSendOnBehalfEnabled | Out-Null
 
     # Set Language ( i.e. rename folders like "inbox" )
+    Write-Output "Configuring mailbox regional settings..."
     $mailbox |  Set-MailboxRegionalConfiguration -Language $Language -LocalizeDefaultFolderName
 
     if ($DisableUser) {
+        Write-Output "Disabling associated EntraID user account..."
         # Deactive the user account using the Graph API
         $user = $null
         $retryCount = 0
@@ -199,7 +269,7 @@ try {
         }
 
         if ($null -eq $user) {
-            Write-RjRbLog -Message "Could not find user object to disable after 10 retries." -Warning
+            Write-Warning "Could not find user object to disable after 10 retries."
         }
         else {
             $body = @{
@@ -210,13 +280,20 @@ try {
     }
 
     if ($aliasConflict) {
-        "## Shared Mailbox '$MailboxName' has been created with alias '$aliasToUse' (due to conflict)."
+        Write-Output "## Shared Mailbox '$MailboxName' has been created."
+        Write-Output "   Primary SMTP: $($mailbox.PrimarySmtpAddress)"
+        Write-Output "   Alias: $aliasToUse (adjusted due to conflict)"
+        Write-Output "   Name: $nameToUse"
     }
     else {
-        "## Shared Mailbox '$MailboxName' has been created."
+        Write-Output "## Shared Mailbox '$MailboxName' has been created."
+        if ($mailbox.PrimarySmtpAddress) {
+            Write-Output "   Primary SMTP: $($mailbox.PrimarySmtpAddress)"
+        }
     }
 
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }
+#endregion
