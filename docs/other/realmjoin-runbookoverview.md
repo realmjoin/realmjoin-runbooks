@@ -133,6 +133,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
       - [Assign Windows365](#assign-windows365)
+      - [List Group Memberships](#list-group-memberships)
       - [List Group Ownerships](#list-group-ownerships)
       - [List Manager](#list-manager)
       - [Offboard User Permanently](#offboard-user-permanently)
@@ -1717,7 +1718,8 @@ Org \ Mail \ Add Room Mailbox
 #### Create a shared mailbox.
 
 #### Description
-Create a shared mailbox.
+This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
+Also if specified, it disables the associated EntraID user account.
 
 #### Where to find
 Org \ Mail \ Add Shared Mailbox
@@ -2065,6 +2067,24 @@ Assign/Provision a Windows 365 instance for this user.
 
 #### Where to find
 User \ General \ Assign Windows365
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-general-list-group-memberships'></a>
+
+### List Group Memberships
+#### List group memberships for this user.
+
+#### Description
+List group memberships for this user with filtering options for group type, membership type, role assignable status, Teams enabled status, and source.
+The output is in CSV format with all group details including DisplayName, ID, Type, MembershipType, RoleAssignable, TeamsEnabled, and Source.
+
+#### Where to find
+User \ General \ List Group Memberships
 
 
 [Back to Table of Content](#table-of-contents)
