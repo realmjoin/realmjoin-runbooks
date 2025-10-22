@@ -105,6 +105,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  |
 |  | General | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  |
 |  | General | Assign Windows365 | Assign/Provision a Windows 365 instance | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  |
+|  | General | List Group Memberships | List group memberships for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  |
 |  | General | List Group Ownerships | List group ownerships for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  |
 |  | General | List Manager | List manager information for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br> |  |
 |  | General | Offboard User Permanently | Permanently offboard a user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br>Azure IaaS: Contributor access on subscription or resource group used for the export<br> | - User administrator<br> |

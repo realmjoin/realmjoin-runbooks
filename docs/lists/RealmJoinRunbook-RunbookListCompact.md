@@ -105,6 +105,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |
 |  |  | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. |
 |  |  | Assign Windows365 | Assign/Provision a Windows 365 instance |
+|  |  | List Group Memberships | List group memberships for this user. |
 |  |  | List Group Ownerships | List group ownerships for this user. |
 |  |  | List Manager | List manager information for this user. |
 |  |  | Offboard User Permanently | Permanently offboard a user. |
