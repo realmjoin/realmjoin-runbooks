@@ -89,7 +89,7 @@ Write-RjRbLog -Message "WritebackEnabled: $WritebackEnabled" -Verbose
 
 try {
     Write-Output "Connecting to Microsoft Graph (RealmJoin)..."
-    Connect-RjRbGraph -Identity -NoWelcome
+    Connect-RjRbGraph
 }
 catch {
     Write-Error "Failed to connect to Microsoft Graph (RealmJoin): $_"
