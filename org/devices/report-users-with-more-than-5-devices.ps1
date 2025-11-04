@@ -263,7 +263,7 @@ function ConvertFrom-MarkdownToHtml {
 
         # Blockquote processing
         if ($line -match '^>\s*(.*)$') {
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inTable) { $processedLines += '</tbody></table></div>'; $inTable = $false; $tableAlignments = @() }
             Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
 
             $content = $Matches[1]
@@ -281,6 +281,7 @@ function ConvertFrom-MarkdownToHtml {
             Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
 
             if (-not $inTable) {
+                $processedLines += '<div class="table-wrapper">'
                 $processedLines += '<table class="table table-striped">'
                 $inTable = $true
 
@@ -332,7 +333,7 @@ function ConvertFrom-MarkdownToHtml {
         # Unordered List processing
         elseif ($line -match '^(\s*)- (.+)$') {
             if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inTable) { $processedLines += '</tbody></table></div>'; $inTable = $false; $tableAlignments = @() }
             if ($inOrderedList) { $processedLines += '</ol>'; $inOrderedList = $false }
 
             $indentation = $Matches[1].Length
@@ -357,7 +358,7 @@ function ConvertFrom-MarkdownToHtml {
         # Ordered List processing
         elseif ($line -match '^(\s*)(\d+)\. (.+)$') {
             if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inTable) { $processedLines += '</tbody></table></div>'; $inTable = $false; $tableAlignments = @() }
             if ($inUnorderedList) { $processedLines += '</ul>'; $inUnorderedList = $false }
 
             $indentation = $Matches[1].Length
@@ -382,7 +383,7 @@ function ConvertFrom-MarkdownToHtml {
         # Other lines
         else {
             if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
-            if ($inTable) { $processedLines += '</tbody></table>'; $inTable = $false; $tableAlignments = @() }
+            if ($inTable) { $processedLines += '</tbody></table></div>'; $inTable = $false; $tableAlignments = @() }
 
             $isHeader = $line -match '^<h[1-6]>'
             $isEmptyLine = [string]::IsNullOrWhiteSpace($line)
@@ -412,7 +413,7 @@ function ConvertFrom-MarkdownToHtml {
 
     # Close remaining open structures
     if ($inBlockquote) { $processedLines += '</blockquote>' }
-    if ($inTable) { $processedLines += '</tbody></table>' }
+    if ($inTable) { $processedLines += '</tbody></table></div>' }
     Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
 
     $html = $processedLines -join "`n"
@@ -524,13 +525,16 @@ function Get-RjReportEmailBody {
     <meta name="color-scheme" content="light">
     <meta name="supported-color-schemes" content="light">
     <title>$Subject</title>
+    <!--[if !mso]><!-->
+    <link href="https://fonts.googleapis.com/css2?family=Miriam+Libre:wght@400;700&display=swap" rel="stylesheet">
+    <!--<![endif]-->
     <!-- Base styles for ALL clients (including Dark Mode for modern clients) -->
 <style type="text/css">
     /* === RESET & BASICS === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-        font-family: "Miriam Libre",sans-serif;
+        font-family: 'Miriam Libre', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
         line-height: 1.6;
         color: #011e33;
         background-color: #e8ebed;
@@ -549,10 +553,12 @@ function Get-RjReportEmailBody {
 
     /* === HEADER === */
     .header {
-        background: url('data:image/png;base64,$($plainBase64Header)') no-repeat center center;
-        background-size: cover;
-        height: 200px;
+        background: url('data:image/png;base64,$($plainBase64Header)') no-repeat center top;
+        background-size: contain;
+        width: 100%;
+        padding-top: 26.67%;
         display: block;
+        position: relative;
     }
 
     /* === CONTENT === */
@@ -581,7 +587,8 @@ function Get-RjReportEmailBody {
         border-bottom: 2px solid #111827;
         padding-bottom: 12px;
         margin-bottom: 15px;
-        font-size: 28px;
+        font-size: 26px;
+        line-height: 1.4;
         font-weight: 800;
     }
 
@@ -590,6 +597,7 @@ function Get-RjReportEmailBody {
         margin-top: 42px;
         margin-bottom: 15px;
         font-size: 22px;
+        line-height: 1.4;
         font-weight: 800;
     }
 
@@ -598,20 +606,24 @@ function Get-RjReportEmailBody {
         margin-top: 27px;
         margin-bottom: 15px;
         font-size: 18px;
+        line-height: 1.4;
         font-weight: 800;
     }
 
-    .content h4 {
+    .content h4,
+    .content h5 {
         color: #111827;
         margin-top: 15px;
         margin-bottom: 15px;
-        font-size: 18px;
+        font-size: 16px;
+        line-height: 1.4;
         font-weight: 800;
     }
 
     .content p {
         color: #111827;
-        line-height: 1.5;
+        font-size: 16px;
+        line-height: 1.4;
         margin-bottom: 15px;
     }
 
@@ -641,11 +653,16 @@ function Get-RjReportEmailBody {
     }
 
     /* === TABLES === */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 15px 0;
+    }
+
     .content table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 15px;
-        margin-bottom: 15px;
+        margin: 0;
         background-color: white;
         border-radius: 8px;
         overflow: hidden;
@@ -822,11 +839,15 @@ function Get-RjReportEmailBody {
             max-width: 100%;
             border-radius: 8px;
         }
-        .header, .content, .footer { padding: 24px 20px; }
+        .content, .footer { padding: 24px 20px; }
         .footer .logo-dark { max-width: 120px !important; }
-        .content h1 { font-size: 24px; }
-        .content h2 { font-size: 20px; }
-        .content table { font-size: 13px; }
+        .content h1 { font-size: 22px; line-height: 1.4; }
+        .content h2 { font-size: 18px; line-height: 1.4; }
+        .content h3 { font-size: 16px; line-height: 1.4; }
+        .content h4, .content h5 { font-size: 16px; line-height: 1.4; }
+        .content p { font-size: 16px; line-height: 1.4; }
+        .table-wrapper { margin: 15px -20px; padding: 0 20px; }
+        .content table { font-size: 13px; min-width: 500px; }
         .content th, .content td { padding: 6px 8px; }
         .tenant-info, .attachments { padding: 16px 20px; font-size: 13px; }
     }
@@ -834,7 +855,7 @@ function Get-RjReportEmailBody {
     /* === TABLET === */
     @media (min-width: 769px) and (max-width: 1024px) {
         .email-container { max-width: 750px; }
-        .header, .content, .footer { padding: 36px; }
+        .content, .footer { padding: 36px; }
         .footer .logo-dark { max-width: 160px; }
     }
 
