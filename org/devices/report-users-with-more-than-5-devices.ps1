@@ -846,7 +846,7 @@ function Get-RjReportEmailBody {
         .content h3 { font-size: 16px; line-height: 1.4; }
         .content h4, .content h5 { font-size: 16px; line-height: 1.4; }
         .content p { font-size: 16px; line-height: 1.4; }
-        .table-wrapper { margin: 15px -20px; padding: 0 20px; }
+        .table-wrapper { margin: 15px 0; }
         .content table { font-size: 13px; min-width: 500px; }
         .content th, .content td { padding: 6px 8px; }
         .tenant-info, .attachments { padding: 16px 20px; font-size: 13px; }
@@ -880,7 +880,7 @@ function Get-RjReportEmailBody {
             background-size: cover !important;
         }
 
-        h1, h2, h3, p, span, strong, div, li {
+        h1, h2, h3, p, span, strong, div, li, td, blockquote {
             color: #e5e5e5 !important;
         }
 
