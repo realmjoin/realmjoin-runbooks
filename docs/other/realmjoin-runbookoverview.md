@@ -2628,7 +2628,7 @@ User \ Security \ Revoke Or Restore Access
 #### Add, update or remove a user's mobile phone MFA information.
 
 #### Description
-Add, update or remove a user's mobile phone MFA information.
+Add, update or remove a user's mobile phone MFA information. If you want to modify a number, remove it first and add a new number afterwards.
 
 #### Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa

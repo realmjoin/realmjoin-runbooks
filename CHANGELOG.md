@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-11-06
+  - Update Set or Remove Mobile Phone MFA Runbook
+    - Clarify phone number format in description and parameter help
+
 ## 2025-10-22
   - Update Add Shared Mailbox Runbook
     - Add functionality to add shared mailbox with same alias but different domain
