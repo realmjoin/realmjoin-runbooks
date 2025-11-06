@@ -1595,7 +1595,7 @@ The .csv-file attached to this email contains the full list of stale devices for
 }
 
 # Create CSV file in current location
-$csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "StaleDevicesReport_$($tenantDisplayName)_$($Days)Days.csv"
+$csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "StaleDevicesReport_$($tenantDisplayName)_$($Days)Days.csv"
 $filteredDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
 $attachments = @($csvFilePath)
 Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
