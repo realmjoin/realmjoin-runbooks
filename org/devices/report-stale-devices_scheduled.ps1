@@ -1427,22 +1427,22 @@ Write-Output "## Summary of stale devices for $($tenantDisplayName):"
 Write-Output "Total devices: $($filteredDevices.Count)"
 
 if ($Windows) {
-    $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" }).Count
+    $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" } | Measure-Object).Count
     Write-Output "Windows devices: $($windowsCount)"
 }
 
 if ($MacOS) {
-    $macOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "macOS" }).Count
+    $macOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "macOS" } | Measure-Object).Count
     Write-Output "macOS devices: $($macOSCount)"
 }
 
 if ($iOS) {
-    $iOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "iOS" }).Count
+    $iOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "iOS" } | Measure-Object).Count
     Write-Output "iOS devices: $($iOSCount)"
 }
 
 if ($Android) {
-    $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" }).Count
+    $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" } | Measure-Object).Count
     Write-Output "Android devices: $($androidCount)"
 }
 
@@ -1450,23 +1450,20 @@ Write-Output ""
 Write-Output "## Detailed list of stale devices:"
 Write-Output ""
 
-# Display the filtered devices
-$filteredDevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSize -Property @{
-    name       = "LastSync";
-    expression = { Get-Date $_.lastSyncDateTime -Format yyyy-MM-dd }
-}, @{
-    name       = "DeviceName";
-    expression = { if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0, 14) + ".." } else { $_.deviceName } }
-}, @{
-    name       = "DeviceID";
-    expression = { if ($_.id.Length -gt 15) { $_.id.substring(0, 14) + ".." } else { $_.id } }
-}, @{
-    name       = "SerialNumber";
-    expression = { if ($_.serialNumber.Length -gt 15) { $_.serialNumber.substring(0, 14) + ".." } else { $_.serialNumber } }
-}, @{
-    name       = "PrimaryUser";
-    expression = { if ($_.userPrincipalName.Length -gt 20) { $_.userPrincipalName.substring(0, 19) + ".." } else { $_.userPrincipalName } }
+# Convert to PSCustomObject array for consistent formatting
+$displayDevices = @()
+foreach ($device in $filteredDevices) {
+    $displayDevices += [PSCustomObject]@{
+        LastSync      = if ($device.lastSyncDateTime) { Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd } else { "N/A" }
+        DeviceName    = if ($device.deviceName -and $device.deviceName.Length -gt 15) { $device.deviceName.Substring(0, 14) + ".." } elseif ($device.deviceName) { $device.deviceName } else { "N/A" }
+        DeviceID      = if ($device.id -and $device.id.Length -gt 15) { $device.id.Substring(0, 14) + ".." } elseif ($device.id) { $device.id } else { "N/A" }
+        SerialNumber  = if ($device.serialNumber -and $device.serialNumber.Length -gt 15) { $device.serialNumber.Substring(0, 14) + ".." } elseif ($device.serialNumber) { $device.serialNumber } else { "N/A" }
+        PrimaryUser   = if ($device.userPrincipalName -and $device.userPrincipalName.Length -gt 20) { $device.userPrincipalName.Substring(0, 19) + ".." } elseif ($device.userPrincipalName) { $device.userPrincipalName } else { "N/A" }
+    }
 }
+
+# Display the filtered devices
+$displayDevices | Sort-Object -Property LastSync | Format-Table -AutoSize
 
 # Create Markdown content for email
 Write-Output ""
@@ -1516,19 +1513,19 @@ This report shows devices that have not been active for at least **$($Days) days
 |--------|-------|
 | **Total Stale Devices** | $($filteredDevices.Count) |
 $(if ($Windows) {
-    $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" }).Count
+    $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" } | Measure-Object).Count
     "| **Windows Devices** | $($windowsCount) |"
 })
 $(if ($MacOS) {
-    $macOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "macOS" }).Count
+    $macOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "macOS" } | Measure-Object).Count
     "| **macOS Devices** | $($macOSCount) |"
 })
 $(if ($iOS) {
-    $iOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "iOS" }).Count
+    $iOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "iOS" } | Measure-Object).Count
     "| **iOS Devices** | $($iOSCount) |"
 })
 $(if ($Android) {
-    $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" }).Count
+    $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" } | Measure-Object).Count
     "| **Android Devices** | $($androidCount) |"
 })
 
