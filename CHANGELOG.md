@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-11-10
+  - New Add or Remove Tenant Allow/Block List Runbook
+  - Update Teams PowerShell Module to 7.4.0 in all Teams Phone Runbooks
+  - Separate Exchange Module definitions
+
 ## 2025-11-06
   - Update Set or Remove Mobile Phone MFA Runbook
     - Clarify phone number format in description and parameter help

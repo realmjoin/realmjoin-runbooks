@@ -108,6 +108,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Equipment Mailbox](#add-equipment-mailbox)
       - [Add Or Remove Public Folder](#add-or-remove-public-folder)
       - [Add Or Remove Teams Mailcontact](#add-or-remove-teams-mailcontact)
+      - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
       - [Add Room Mailbox](#add-room-mailbox)
       - [Add Shared Mailbox](#add-shared-mailbox)
       - [Hide Mailboxes_Scheduled](#hide-mailboxes_scheduled)
@@ -1688,6 +1689,24 @@ Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
 #### Where to find
 Org \ Mail \ Add Or Remove Teams Mailcontact
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-mail-add-or-remove-tenant-allow-block-list'></a>
+
+### Add Or Remove Tenant Allow Block List
+#### Add or remove entries from the Tenant Allow/Block List.
+
+#### Description
+Add or remove entries from the Tenant Allow/Block List in Microsoft Defender for Office 365.
+Allows blocking or allowing senders, URLs, or file hashes. A new entry is set to expire in 30 days by default.
+
+#### Where to find
+Org \ Mail \ Add Or Remove Tenant Allow Block List
 
 
 [Back to Table of Content](#table-of-contents)
