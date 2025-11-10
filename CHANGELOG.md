@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-11-10
+  - New Add or Remove Tenant Allow/Block List Runbook
+
 ## 2025-11-06
   - Update Set or Remove Mobile Phone MFA Runbook
     - Clarify phone number format in description and parameter help
