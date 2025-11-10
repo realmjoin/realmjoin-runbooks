@@ -85,6 +85,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Mail | Add Equipment Mailbox | Create an equipment mailbox. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Or Remove Public Folder | Add or remove a public folder. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
+|  | Mail | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Room Mailbox | Create a room resource. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Add Shared Mailbox | Create a shared mailbox. | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Mail | Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |  | - Exchange administrator<br> |
