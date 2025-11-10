@@ -7,7 +7,8 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param(
   # EntraID exclusion group for Defender Compliance.

@@ -61,6 +61,7 @@
   - [Add Equipment Mailbox](mail/add-equipment-mailbox.md)
   - [Add Or Remove Public Folder](mail/add-or-remove-public-folder.md)
   - [Add Or Remove Teams Mailcontact](mail/add-or-remove-teams-mailcontact.md)
+  - [Add Or Remove Tenant Allow Block List](mail/add-or-remove-tenant-allow-block-list.md)
   - [Add Room Mailbox](mail/add-room-mailbox.md)
   - [Add Shared Mailbox](mail/add-shared-mailbox.md)
   - [Hide Mailboxes_Scheduled](mail/hide-mailboxes_scheduled.md)

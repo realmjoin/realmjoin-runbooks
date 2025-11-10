@@ -3,7 +3,7 @@
 Add, update or remove a user's mobile phone MFA information.
 
 ## Detailed description
-Add, update or remove a user's mobile phone MFA information.
+Add, update or remove a user's mobile phone MFA information. If you want to modify a number, remove it first and add a new number afterwards.
 
 ## Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa
@@ -21,7 +21,7 @@ Default Value:
 Required: true
 
 ### -phoneNumber
-Description: Needs to be in '+###########' syntax
+Description: Enter the user's mobile number in international format (e.g. +491701234567) to add, update, or remove.
 Default Value: 
 Required: true
 
