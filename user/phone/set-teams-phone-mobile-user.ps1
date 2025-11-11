@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
   Assigns the mobile phone number stored in the EntraID to a Microsoft Teams user as a Teams Phone Mobile number.
-  
+
   .DESCRIPTION
-  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies. 
+  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
   The prerequisite for this is that the phone number has already been added to the tenant by the carrier and the user has the appropriate licenses.
   The runbook is part of the TeamsPhoneInventory.
 
@@ -25,9 +25,9 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -46,7 +46,7 @@ param(
 
 ########################################################
 ##             function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -65,7 +65,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
@@ -74,9 +74,9 @@ function Get-TPIList {
             Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
             Exit
         }
-        
+
     }
-    
+
     $AllItems = $AllItemsResponse.value.fields
 
     #Check if response is paged:
@@ -120,7 +120,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -137,14 +137,14 @@ function Invoke-TPIRestMethod {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
-            } 
+            }
         }
     }else{
         try {
@@ -156,7 +156,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -166,19 +166,19 @@ function Invoke-TPIRestMethod {
             Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
             #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
-            } 
+            }
         }
     }
 
@@ -189,13 +189,13 @@ function Invoke-TPIRestMethod {
     }
 
     return $TPIRestMethod
-    
+
 }
 
 #region Block 0 - Connect Part
 ########################################################
 ##             Block 0 - Connect Part
-##          
+##
 ########################################################
 # Add Caller in Verbose output
 if ($CallerName) {
@@ -203,7 +203,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0" 
+$Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -215,10 +215,10 @@ Write-Output "Connection - Connect to Microsoft Teams (PowerShell as RealmJoin m
 
 $VerbosePreference = "SilentlyContinue"
 try {
-    $TeamsConnect = Connect-MicrosoftTeams -Identity -ErrorAction Stop 
+    $TeamsConnect = Connect-MicrosoftTeams -Identity -ErrorAction Stop
 }
 catch {
-    Write-Error "Connection - Teams PowerShell session could not be established. Stopping script!" 
+    Write-Error "Connection - Teams PowerShell session could not be established. Stopping script!"
 }
 
 $VerbosePreference = "Continue"
@@ -233,7 +233,7 @@ catch {
         $Test = Get-CsTenant -ErrorAction Stop | Out-Null
     }
     catch {
-        Write-Error "Connection - Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "Connection - Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -245,14 +245,14 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 
 #endregion
 #region Block 1 - preflight-check
 ########################################################
 ##             Block 1 - preflight-check
-##          
+##
 ########################################################
 Write-Output ""
 $Message = "Block 1 - preflight-check"
@@ -265,8 +265,8 @@ $StatusQuoTeamsUser = Get-CsOnlineUser $UserName
 Write-Output ""
 
     #region license check
-# If no license has been assigned to the user, respectively if the license is not yet replicated 
-# in the teams backend or if the appropriate applications are not available within the license, 
+# If no license has been assigned to the user, respectively if the license is not yet replicated
+# in the teams backend or if the appropriate applications are not available within the license,
 # the script will be stopped!
 $AssignedPlan = $StatusQuoTeamsUser.AssignedPlan
 
@@ -288,7 +288,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 if (($LicenseTimeStamp.AddHours(24) -gt $Now)) {
                     Write-Output "Note: In some cases, this may not yet be sufficient. It can take up to 24h until the license replication in the backend is completed!"
                 }
-                
+
             }else {
                 Write-Output ""
                 Write-Error "Error: The user license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Please try again at $($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss")) (MCOEV - Microsoft O365 Phone Standard)"
@@ -322,7 +322,7 @@ try {
     $StatusQuoEntraID = Invoke-MgGraphRequest -Method GET -Uri $URI
 }
 catch {
-    $StatusCode = $_.Exception.Response.StatusCode.value__ 
+    $StatusCode = $_.Exception.Response.StatusCode.value__
     $StatusDescription = $_.Exception.Response.ReasonPhrase
     Write-Error "Mobile Phone number of the user could not be retrieved. Error: $StatusCode - $StatusDescription"
 }
@@ -364,7 +364,7 @@ if ($CurrentMobileNumber -notlike "") {
                         $UPNofMobileNumber = (Invoke-MgGraphRequest -Method GET -Uri $URI | ConvertFrom-Json).UserPrincipalName
                     }
                     catch {
-                        $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                        $StatusCode = $_.Exception.Response.StatusCode.value__
                         $StatusDescription = $_.Exception.Response.ReasonPhrase
                         Write-Error "Error: $StatusCode - $StatusDescription" -ErrorAction Continue
                         Write-Warning "Phone number is already assigned, but UPN could not be identified!"
@@ -373,10 +373,10 @@ if ($CurrentMobileNumber -notlike "") {
                         Write-Error "The phone number is already assigned to a Teams user! The Teams user is: $UPNofMobileNumber" -ErrorAction Stop
                     }else {
                         Write-Error "The phone number is already assigned to a Teams user! However, the UPN of the Teams user could not be resolved. The following ObjectID has been assigned to the phone number: $($PhoneNumberInTenant.AssignedPstnTargetId)" -ErrorAction Stop
-                    }                
+                    }
                 }
             }
-        }   
+        }
 
     }else {
         Write-Error "The mobile number does not correspond to the E.164 standard with which Teams, among others, work. Adapt the number to the international E.164 standard (1 to 15 digits, starting with a plus sign (+), no other characters (e.g. () or similar) and restart the runbook" -ErrorAction Stop
@@ -392,7 +392,7 @@ if ($CurrentMobileNumber -notlike "") {
 
 ########################################################
 ##             Block 2 - Teams User StatusQuo
-##          
+##
 ########################################################
 Write-Output ""
 
@@ -454,7 +454,7 @@ Write-Output "Current TeamsIPPhonePolicy: $CurrentTeamsIPPhonePolicy"
 
 ########################################################
 ##             Block 3 - Main Part
-##          
+##
 ########################################################
 Write-Output ""
 $Message = "Block 3 - Main Part"
@@ -498,7 +498,7 @@ if ($NumberAlreadyAssigned) {
 }
 ########################################################
 ##             Block 4 - Setup base URL
-##          
+##
 ########################################################
 Write-Output ""
 $Message = "Block 4 - Check basic connection to TPI List and build base URL"
@@ -565,7 +565,7 @@ Write-Output "Related entry found - List ID: $($TPI_CurrentNumber.ID)"
 
 ########################################################
 ##             Block 6 - Write Output to TPI
-##          
+##
 ########################################################
 
 Write-Output ""

@@ -7,15 +7,15 @@
   The runbook is part of the TeamsPhoneInventory.
 
   .PARAMETER SharepointSite
-  The name of the SharePoint site in which the list is stored 
+  The name of the SharePoint site in which the list is stored
   Example: TeamsPhoneInventory
 
   .PARAMETER SharepointTPIList
-  The name of the SharePoint list, which is used as a data for the TeamsPhoneInventory. 
+  The name of the SharePoint list, which is used as a data for the TeamsPhoneInventory.
   Example: TeamsPhoneInventory
 
   .PARAMETER SharepointNumberRangeList
-  The name of the SharePoint list, which inlucde the number ranges. 
+  The name of the SharePoint list, which inlucde the number ranges.
   Example: TPI-NumberRange
 
   .PARAMETER SharepointExtensionRangeList
@@ -31,7 +31,7 @@
   Example: TPI-BlockExtension
 
   .PARAMETER BlockExtensionDays
-  How long should a number been blocked after offboarding (in days) 
+  How long should a number been blocked after offboarding (in days)
   Example: 180
 
   .INPUTS
@@ -77,21 +77,21 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
 
 #region Variable/Parameter declaration
 ########################################################
 ##             Variable/Parameter declaration
-##          
+##
 ########################################################
 
 Param(
-        # Define Sharepoint Parameters       
+        # Define Sharepoint Parameters
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointSite" } )]
         [string] $SharepointSite,
-        
+
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointTPIList" } )]
         [string] $SharepointTPIList = "TeamsPhoneInventory",
 
@@ -103,7 +103,7 @@ Param(
 
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointLegacyList" } )]
         [String] $SharepointLegacyList = "TPI-Legacy",
-        
+
         [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointBlockExtensionList" } )]
         [String] $SharepointBlockExtensionList = "TPI-BlockExtension",
 
@@ -130,7 +130,7 @@ Param(
 #region function declaration
 ########################################################
 ##             function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -149,7 +149,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
@@ -158,9 +158,9 @@ function Get-TPIList {
             Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
             Exit
         }
-        
+
     }
-    
+
     $AllItems = $AllItemsResponse.value.fields
 
     #Check if response is paged:
@@ -204,7 +204,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -221,14 +221,14 @@ function Invoke-TPIRestMethod {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
-            } 
+            }
         }
     }else{
         try {
@@ -240,7 +240,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -250,19 +250,19 @@ function Invoke-TPIRestMethod {
             Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
             #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
-            } 
+            }
         }
     }
 
@@ -273,7 +273,7 @@ function Invoke-TPIRestMethod {
     }
 
     return $TPIRestMethod
-    
+
 }
 
 # The Convert-HashtableToCustomObject function is introduced to address compatibility issues
@@ -284,7 +284,7 @@ function Convert-HashtableToCustomObject {
     param (
         [Parameter(Mandatory=$true)]
         [array]$HashtableArray,
-        
+
         [Parameter(Mandatory=$true)]
         [string[]]$Properties
     )
@@ -305,7 +305,7 @@ function Convert-HashtableToCustomObject {
 #region Logo Part
 ########################################################
 ##             Logo Part
-##          
+##
 ########################################################
 
 Write-Output ''
@@ -321,7 +321,7 @@ Write-Output ''
 #region RJ Log Part
 ########################################################
 ##             RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller in Verbose output
@@ -331,7 +331,7 @@ if ($CallerName) {
 
 # Add Version in Verbose output
 $Version = "1.0.0"
-Write-RjRbLog -Message "Version: $Version" -Verbose   
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -350,7 +350,7 @@ Write-RjRbLog -Message "BlockExtensionDays: $BlockExtensionDays" -Verbose
 #region function declaration
 ########################################################
 ##             Connect Part
-##          
+##
 ########################################################
 # Needs a Microsoft Teams Connection First!
 
@@ -372,7 +372,7 @@ catch {
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -385,14 +385,14 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 
 #endregion
 #region RampUp Connection Details
 ########################################################
 ##             Block 0 - RampUp Connection Details
-##          
+##
 ########################################################
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -431,7 +431,7 @@ Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 #region Get StatusQuo
 ########################################################
 ##             Block 1 - Get StatusQuo
-##          
+##
 ########################################################
 
 # Get all users which filled with City,Street and Company
@@ -480,7 +480,7 @@ if ($null -ne $LocationMappingTableListContentRAW) {
 #region Build work table
 ########################################################
 ##             Block 2 - Create table of current user <-> location mapping
-##          
+##
 ########################################################
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -491,7 +491,7 @@ Write-Output "$TimeStamp - Block 2 - Create table of current user <-> location m
 
 foreach ($User in $AllUsers) {
     $CurrentLocationIdentifier = $($LocationMappingTableListContent | Where-Object {($_.City -like $User.City) -and ($_.Street -like $User.Street) -and ($_.Company -like $User.Company)}).Title
-    
+
     #Add item only if matching location identifier exists
     if ($CurrentLocationIdentifier -notlike '') {
         $CurrentUserPrincipalName = $User.UserPrincipalName
@@ -499,8 +499,8 @@ foreach ($User in $AllUsers) {
         #Key has to be 'Title' and could not be 'UserPrincipalName' cause the Sharepoint List Column Name is 'Title' - important for the compare
         $NewRow += [pscustomobject]@{'Title'=$CurrentUserPrincipalName;'LocationIdentifier'=$CurrentLocationIdentifier}
         $UserMappingTable += $NewRow
-        $NewRow = $null       
-    
+        $NewRow = $null
+
         Clear-Variable CurrentLocationIdentifier,CurrentUserPrincipalName
     }
 
@@ -509,7 +509,7 @@ foreach ($User in $AllUsers) {
 #region Compare
 ########################################################
 ##             Block 3 - Compare Sharepoint List with work table
-##          
+##
 ########################################################
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -522,7 +522,7 @@ if (($SharepointUserMappingListContent | Measure-Object).Count -gt 0) {
 if (($SharepointUserMappingListContent | Measure-Object).Count -gt 0) {
     $EntrysToAdd = Compare-Object -ReferenceObject $UserMappingTable -DifferenceObject $SharepointUserMappingListContent -Property Title,LocationIdentifier | Where-Object SideIndicator -Like '<=' | Where-Object Title -NotLike ""
 }else{
-    # Empty Sharepoint List - initial RampUp 
+    # Empty Sharepoint List - initial RampUp
     $EntrysToAdd = $UserMappingTable
 }
 #endregion
@@ -532,7 +532,7 @@ if (!(($EntrysToDelete | Measure-Object).Count -eq 0)) {
     #region Delete wrong or outdated items
     ########################################################
     ##             Block 4 - Delete wrong or outdated items
-    ##          
+    ##
     ########################################################
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 4 - Delete wrong or outdated items"
@@ -540,7 +540,7 @@ if (!(($EntrysToDelete | Measure-Object).Count -eq 0)) {
 
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 4 - Number of items in the SharePoint List which will be removed: $EntrysToDeleteCount"
-            
+
     foreach ($DeleteItem in $EntrysToDelete) {
         if ($DeleteItem.Title -notlike "") {
             $UPN = $DeleteItem.Title
@@ -567,7 +567,7 @@ if (!(($EntrysToDelete | Measure-Object).Count -eq 0)) {
 if (!(($EntrysToAdd | Measure-Object).Count -eq 0)) {
     ########################################################
     ##             Block 5 - Add missing items
-    ##          
+    ##
     ########################################################
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
     Write-Output "$TimeStamp - Block 5 - Add missing items"

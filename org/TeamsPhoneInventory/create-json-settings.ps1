@@ -3,7 +3,7 @@
   Teams Phone Inventory - Create JSON Settings
 
   .DESCRIPTION
-  This runbook collects locations, team policies and other information in order to prepare them so that a JSON string is output. 
+  This runbook collects locations, team policies and other information in order to prepare them so that a JSON string is output.
   This is stored in the runbook customizations and controls the runbooks and their options. The output must then be adapted respectively consolidated with the existing settings.
   In order to use this runbook, a few variables must be stored in the Automation account.
   The runbook is part of the TeamsPhoneInventory.
@@ -24,14 +24,14 @@ param (
     [bool]$EasyDisplayName = $true
 )
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
 
 #region Functions
 ########################################################
 ##             function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -45,7 +45,7 @@ function Get-TPIList {
         # $ListBaseURL = "A valid URL"
         # $Properties = @("Title", "ID", "PhoneNumber", "Extension")
         # $ListItems = Get-TPIList -ListBaseURL $ListBaseURL -Properties $Properties
-        
+
         # In default, the first column is Title, but if the Value should be replaced, it can be done with this parameter
         [parameter(Mandatory = $false)]
         [String]$TitelNameReplacement,
@@ -65,7 +65,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             do {
@@ -135,7 +135,7 @@ function Invoke-TPIRestMethod {
         [parameter(Mandatory = $false)]
         [String]
         $SkipThrow = $false
-        
+
     )
 
     #ToFetchErrors (Throw)
@@ -149,7 +149,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -162,14 +162,14 @@ function Invoke-TPIRestMethod {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
-            } 
+            }
         }
     }else{
         try {
@@ -181,7 +181,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -193,13 +193,13 @@ function Invoke-TPIRestMethod {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
-            } 
+            }
         }
     }
 
@@ -210,14 +210,14 @@ function Invoke-TPIRestMethod {
     }
 
     return $TPIRestMethod
-    
+
 }
 
 #endregion
 #region Logo Part
 ########################################################
 ##             Logo Part
-##          
+##
 ########################################################
 
 Write-Output ''
@@ -233,7 +233,7 @@ Write-Output ''
 
 ########################################################
 #region     Properties declaration
-#          
+#
 ########################################################
 # Description for this block:
 # ===========================
@@ -241,7 +241,7 @@ Write-Output ''
 # Properties:
 # ------------------
 # To be able to get all collumns from the SharePoint Lists for each TPI List, the Get-TPIList had a parameter calles "Properties"
-# This parameter is used to define the columns that should be returned from the SharePoint List. 
+# This parameter is used to define the columns that should be returned from the SharePoint List.
 # So all Properties (=Collumns) only need to defined once.
 #
 # Title Replacement:
@@ -284,12 +284,12 @@ $TitelNameReplacement_TeamsPhoneInventory = "FullLineUri"
 
 # NumberRange List
 $ListProperties_NumberRange = @(
-    "Title", 
-    "NumberRangeName", 
-    "MainNumber", 
-    "BeginNumberRange", 
-    "EndNumberRange", 
-    "Country", 
+    "Title",
+    "NumberRangeName",
+    "MainNumber",
+    "BeginNumberRange",
+    "EndNumberRange",
+    "Country",
     "City",
     "UNLOCODE",
     "Company"
@@ -298,10 +298,10 @@ $TitelNameReplacement_NumberRange = "NumberRangeIndex"
 
 # ExtensionRange List
 $ListProperties_ExtensionRange = @(
-    "Title", 
-    "ExtensionRangeName", 
-    "BeginExtensionRange", 
-    "EndExtensionRange", 
+    "Title",
+    "ExtensionRangeName",
+    "BeginExtensionRange",
+    "EndExtensionRange",
     "NumberRangeIndex",
     "ExtensionRangeCompany"
 )
@@ -309,8 +309,8 @@ $TitelNameReplacement_ExtensionRange = "ExtensionRangeIndex"
 
 # CivicAddressMapping List
 $ListProperties_CivicAddressMapping = @(
-    "Title", 
-    "CivicAddressMappingName", 
+    "Title",
+    "CivicAddressMappingName",
     "CivicAddressID",
     "Country",
     "City",
@@ -321,7 +321,7 @@ $TitelNameReplacement_CivicAddressMapping = "CivicAddressMappingIndex"
 
 # Legacy List
 $ListProperties_Legacy = @(
-    "Title", 
+    "Title",
     "LegacyName",
     "LegacyType"
 )
@@ -329,7 +329,7 @@ $TitelNameReplacement_Legacy = "LineUri"
 
 # BlockExtension List
 $ListProperties_BlockExtension = @(
-    "Title", 
+    "Title",
     "BlockUntil",
     "BlockReason"
 )
@@ -363,7 +363,7 @@ $TitelNameReplacement_LocationMapping = "LocationIdentifier"
 
 ########################################################
 #region RJ Log Part
-#          
+#
 ########################################################
 
 # Add Caller in Verbose output
@@ -383,7 +383,7 @@ Write-RjRbLog -Message "EasyDisplayName: $EasyDisplayName" -Verbose
 
 ########################################################
 #region Connect Part
-#          
+#
 ########################################################
 # Needs a Microsoft Teams Connection First!
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -404,7 +404,7 @@ catch {
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -417,14 +417,14 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 
 #endregion
 
 ########################################################
 #region define variables
-#          
+#
 ########################################################
 
 # Define Sharepoint Parameters
@@ -435,12 +435,12 @@ try {
 }
 catch {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name does not exist! Variable: TPI_SharepointSite" 
+    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name does not exist! Variable: TPI_SharepointSite"
     Exit
 }
 if ($SharepointSite -like "") {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name is empty! Variable: TPI_SharepointSite" 
+    Write-Error "$TimeStamp - Required automation account variable for the tenant domain name is empty! Variable: TPI_SharepointSite"
     Exit
 }
 
@@ -598,7 +598,7 @@ catch {
 
 ########################################################
 #region RampUp Connection Details
-#          
+#
 ########################################################
 
 
@@ -838,7 +838,7 @@ if($EasyDisplayName){
             $TenantDialPlan = $LD.TenantDialPlan
             $TeamsIPPhonePolicy = $LD.TeamsIPPhonePolicy
             $OnlineVoicemailPolicy = $LD.OnlineVoicemailPolicy
-    
+
             $Details = [PSCustomObject]@{
                 'ExtensionRangeIndex'=$ExtensionRangeIndex;
                 'CivicAddressMappingIndex'=$CivicAddressMappingIndex;
@@ -851,7 +851,7 @@ if($EasyDisplayName){
             $Defaults = [PSCustomObject]@{
                 'Default' = $Details
             }
-    
+
             $subLocation += [pscustomobject]@{
                 'Display'=$DisplayName;
                 'Customization' = $Defaults
@@ -871,7 +871,7 @@ if($EasyDisplayName){
             $TenantDialPlan = $LD.TenantDialPlan
             $TeamsIPPhonePolicy = $LD.TeamsIPPhonePolicy
             $OnlineVoicemailPolicy = $LD.OnlineVoicemailPolicy
-    
+
             $Details = [PSCustomObject]@{
                 'ExtensionRangeIndex'=$ExtensionRangeIndex;
                 'CivicAddressMappingIndex'=$CivicAddressMappingIndex;
@@ -884,7 +884,7 @@ if($EasyDisplayName){
             $Defaults = [PSCustomObject]@{
                 'Default' = $Details
             }
-    
+
             $subLocation += [pscustomobject]@{
                 'Display'=$DisplayName;
                 'Customization' = $Defaults

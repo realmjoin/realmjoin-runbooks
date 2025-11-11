@@ -1,12 +1,12 @@
 <#
   .SYNOPSIS
-  Remove the phone number and specific policies from a teams-enabled user. 
-  
+  Remove the phone number and specific policies from a teams-enabled user.
+
   .DESCRIPTION
   Remove the phone number and specific policies from a teams-enabled user, so that a user would be offboarded from the Teams telephony.
-  If "Delay possible re-assignment of the current call number" is activated, the phone number is blocked for a defined number of days so that it is not assigned to a new user for this period. The number of days is stored in the RealmJoin settings. 
+  If "Delay possible re-assignment of the current call number" is activated, the phone number is blocked for a defined number of days so that it is not assigned to a new user for this period. The number of days is stored in the RealmJoin settings.
   The runbook is part of the TeamsPhoneInventory.
-  
+
   .INPUTS
   RunbookCustomization: {
       "Parameters": {
@@ -32,9 +32,9 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.7.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
 
 param(
     # User which should be cleared
@@ -52,7 +52,7 @@ param(
     [string] $SharepointTPIList,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TPI.SharepointBlockExtensionList" } )]
     [String] $SharepointBlockExtensionList,
-    
+
 
     # CallerName is tracked purely for auditing purposes
     [string] $CallerName
@@ -61,7 +61,7 @@ param(
 
 ########################################################
 ##             function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -80,7 +80,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
@@ -89,9 +89,9 @@ function Get-TPIList {
             Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
             Exit
         }
-        
+
     }
-    
+
     $AllItems = $AllItemsResponse.value.fields
 
     #Check if response is paged:
@@ -135,7 +135,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -152,14 +152,14 @@ function Invoke-TPIRestMethod {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
-            } 
+            }
         }
     }else{
         try {
@@ -171,7 +171,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -181,19 +181,19 @@ function Invoke-TPIRestMethod {
             Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
             #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             } catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
-            } 
+            }
         }
     }
 
@@ -204,13 +204,13 @@ function Invoke-TPIRestMethod {
     }
 
     return $TPIRestMethod
-    
+
 }
 
 
 ########################################################
 ##             Block 0 - Connect Part
-##          
+##
 ########################################################
 # Add Caller in Verbose output
 if ($CallerName) {
@@ -218,7 +218,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0" 
+$Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -226,7 +226,7 @@ Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
 Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
 Write-RjRbLog -Message "SharepointBlockExtensionList: '$SharepointBlockExtensionList'" -Verbose
 Write-RjRbLog -Message "BlockNumberforDays: '$AddDays'" -Verbose
-    
+
 # Needs a Microsoft Teams Connection First!
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - Connect to Microsoft Teams (PowerShell as RealmJoin managed identity)"
@@ -246,7 +246,7 @@ catch {
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -259,12 +259,12 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 
 ########################################################
 ##             Block 1 - Setup base URL
-##          
+##
 ########################################################
 Write-Output ""
 Write-Output "Block 1 - Check basic connection to TPI List and build base URL"
@@ -299,7 +299,7 @@ Write-Output "Connection - SharePoint TPI List URL: $TPIListURL"
 
 ########################################################
 ##             Block 2 - Getting StatusQuo
-##          
+##
 ########################################################
 
 Write-Output ""
@@ -335,7 +335,7 @@ if ($CurrentLineUri -like "none") {
 }
 ########################################################
 ##             Block 3 - Remove Number from User
-##          
+##
 ########################################################
 
 Write-Output ""
@@ -385,7 +385,7 @@ catch {
 
 ########################################################
 ##             Block 4 - GraphAPI Part
-##          
+##
 ########################################################
 
 Write-Output ""

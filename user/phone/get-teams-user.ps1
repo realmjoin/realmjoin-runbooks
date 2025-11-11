@@ -1,9 +1,9 @@
 <#
   .SYNOPSIS
   Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults.
-  
+
   .DESCRIPTION
-  Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults. 
+  Get the status quo of a Microsoft Teams user in terms Teams Enterprise Voice, including license verification and config drift detection based on Teams Phone Inventory Location Defaults.
   The runbook is part of the TeamsPhoneInventory.
 
   .NOTES
@@ -45,9 +45,9 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.4.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -70,7 +70,7 @@ param(
 
 ########################################################
 #region RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -78,7 +78,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.1" 
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
@@ -90,7 +90,7 @@ Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'"
 
 ########################################################
 #region function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -108,7 +108,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             $AllItemsResponse = Invoke-MgGraphRequest -Uri $GraphAPIUrl_StatusQuoSharepointList -Method Get -ContentType 'application/json; charset=utf-8'
@@ -117,9 +117,9 @@ function Get-TPIList {
             Write-Error "Getting TPI list failed - stopping script" -ErrorAction Continue
             Exit
         }
-        
+
     }
-    
+
     $AllItems = $AllItemsResponse.value.fields
     #Check if response is paged:
     $AllItemsResponseNextLink = $AllItemsResponse."@odata.nextLink"
@@ -154,7 +154,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -171,14 +171,14 @@ function Invoke-TPIRestMethod {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
                 $ExitError = 1
-            } 
+            }
         }
     }
     else {
@@ -191,7 +191,7 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output ""
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -201,20 +201,20 @@ function Invoke-TPIRestMethod {
             Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
             #Connect-MgGraph -Identity
             try {
-                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method 
+                $TPIRestMethod = Invoke-MgGraphRequest -Uri $Uri -Method $Method
                 Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart is Ok"
             }
             catch {
                 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
                 # $2ndLastError = $_.Exception
                 $ExitError = 1
-                $StatusCode = $_.Exception.Response.StatusCode.value__ 
+                $StatusCode = $_.Exception.Response.StatusCode.value__
                 $StatusDescription = $_.Exception.Response.ReasonPhrase
                 Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
                 Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
                 Write-Output ""
-            } 
+            }
         }
     }
     if ($ExitError -eq 1) {
@@ -223,12 +223,12 @@ function Invoke-TPIRestMethod {
         $StatusDescription = $null
     }
     return $TPIRestMethod
-    
+
 }
 
 ########################################################
 #region Connect Part
-##          
+##
 ########################################################
 
 # Needs a Microsoft Teams Connection First!
@@ -248,7 +248,7 @@ catch {
     }
     catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!" 
+        Write-Error "$TimeStamp - Teams PowerShell session could not be established. Stopping script!"
         Exit
     }
 }
@@ -260,13 +260,13 @@ try {
 }
 catch {
     Write-Error "MGGraph Connect failed - stopping script"
-    Exit 
+    Exit
 }
 ########################################################
 #region Setup base URL
-##          
+##
 ########################################################
-# Add check symbol to variable, wich is compatible with powershell 5.1 
+# Add check symbol to variable, wich is compatible with powershell 5.1
 $symbol_check = [char]0x2714
 Write-Output ""
 Write-Output "Check basic connection to TPI List and build base URL"
@@ -302,7 +302,7 @@ $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 ########################################################
 #region StatusQuo & Preflight-Check Part
-##          
+##
 ########################################################
 
 # Get StatusQuo
@@ -558,7 +558,7 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
                 else {
                     Write-Output "WARNING: The application Teams Phone System from the assigned license is NOT enabled or could not be verified!"
                 }
-                
+
             }
             else {
                 Write-Output ""
@@ -635,7 +635,7 @@ if (($CurrentTPIUser | Measure-Object).Count -eq 0) {
 $CurrentTPIUser_ExtensionRangeIndex = $CurrentTPIUser.ExtensionRangeIndex
 $CurrentTPIUser_CivicAddressMappingIndex = $CurrentTPIUser.CivicAddressMappingIndex
 #Get all entries from TPI-UserMapping List which Title (UPN) is like the given UserName
-$CurrentUserMapping = $TPI_UserMapping_AllItems | Where-Object Title -Like $UPN 
+$CurrentUserMapping = $TPI_UserMapping_AllItems | Where-Object Title -Like $UPN
 if (($CurrentUserMapping | Measure-Object).Count -eq 1) {
     if ($CurrentUserMapping.LocationIdentifier -notlike "") {
         #If there is exactly one match - go on
@@ -650,7 +650,7 @@ if (($CurrentUserMapping | Measure-Object).Count -eq 1) {
         Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
         Get-PSSession | Remove-PSSession | Out-Null
         Exit
-    }   
+    }
 }
 elseif (($CurrentUserMapping | Measure-Object).Count -gt 1) {
     #If there are duplicates - stop it!
@@ -687,7 +687,7 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         elseif ($CivicAddressMappingIndex -notlike "") {
             Write-Output "The CivicAddressMappingIndex of the user is $CivicAddressMappingIndex"
         }
-       
+
         $OnlineVoiceRoutingPolicy = $RecievedLocationDefaults.OnlineVoiceRoutingPolicy
         if ($OnlineVoiceRoutingPolicy -like "") {
             $OnlineVoiceRoutingPolicy = "Global"
@@ -721,7 +721,7 @@ if (($RecievedLocationDefaults | Measure-Object).Count -eq 1) {
         Disconnect-MicrosoftTeams -Confirm:$false | Out-Null
         Get-PSSession | Remove-PSSession | Out-Null
         Exit
-    }   
+    }
 }
 elseif (($RecievedLocationDefaults | Measure-Object).Count -eq 0) {
     Write-Output ""

@@ -3,7 +3,7 @@
     Get next free number from SharePoint List (TPI).
 
     .DESCRIPTION
-    This runbook reads the SharePoint list and displays the next three free numbers according to the filters (=parameters). The default filter "*", which is prefilled for all entries, stands for "any" (wildcard). 
+    This runbook reads the SharePoint list and displays the next three free numbers according to the filters (=parameters). The default filter "*", which is prefilled for all entries, stands for "any" (wildcard).
     The runbook is part of the TeamsPhoneInventory.
 
     .NOTES
@@ -31,8 +31,8 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
 
 Param(
         # App Registration for Update regulary TeamsPhoneInventory List - not for initializing (scoped site permission)
@@ -64,7 +64,7 @@ Param(
 
 ########################################################
 ##             function declaration
-##          
+##
 ########################################################
 function Get-TPIList {
     param (
@@ -78,7 +78,7 @@ function Get-TPIList {
         # $ListBaseURL = "A valid URL"
         # $Properties = @("Title", "ID", "PhoneNumber", "Extension")
         # $ListItems = Get-TPIList -ListBaseURL $ListBaseURL -Properties $Properties
-        
+
         # In default, the first column is Title, but if the Value should be replaced, it can be done with this parameter
         [parameter(Mandatory = $false)]
         [String]$TitelNameReplacement,
@@ -98,7 +98,7 @@ function Get-TPIList {
     }
     catch {
         Write-Warning "First try to get TPI list failed - reconnect MgGraph and test again"
-        
+
         try {
             Connect-MgGraph -Identity
             do {
@@ -177,7 +177,7 @@ function Invoke-TPIRestMethod {
     } catch {
         $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
         Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart"
-        $StatusCode = $_.Exception.Response.StatusCode.value__ 
+        $StatusCode = $_.Exception.Response.StatusCode.value__
         $StatusDescription = $_.Exception.Response.ReasonPhrase
         Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
         Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -186,11 +186,11 @@ function Invoke-TPIRestMethod {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - One Retry after 5 seconds"
             Start-Sleep -Seconds 5
-            
+
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - GraphAPI Session refresh"
             Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-            
+
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - 2nd Run for Process part: $ProcessPart"
             if ($Method -in @("Post", "Patch")) {
@@ -203,7 +203,7 @@ function Invoke-TPIRestMethod {
         } catch {
             $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
             Write-Output "$TimeStamp - GraphAPI - Error! Process part: $ProcessPart error is still present!"
-            $StatusCode = $_.Exception.Response.StatusCode.value__ 
+            $StatusCode = $_.Exception.Response.StatusCode.value__
             $StatusDescription = $_.Exception.Response.ReasonPhrase
             Write-Output "$TimeStamp - GraphAPI - Error! StatusCode: $StatusCode"
             Write-Output "$TimeStamp - GraphAPI - Error! StatusDescription: $StatusDescription"
@@ -221,7 +221,7 @@ function Invoke-TPIRestMethod {
 
 ########################################################
 ##             RJ Log Part
-##          
+##
 ########################################################
 
 # Add Caller in Verbose output
@@ -231,7 +231,7 @@ if ($CallerName) {
 
 # Add Version in Verbose output
 $Version = "1.0.1"
-Write-RjRbLog -Message "Version: $Version" -Verbose   
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -242,7 +242,7 @@ Write-RjRbLog -Message "SharepointTPIList: $SharepointTPIList" -Verbose
 
 ########################################################
 ##             Setup Part
-##          
+##
 ########################################################
 
 # Setup connection
@@ -284,7 +284,7 @@ Write-Output "SharePoint TPI List URL: $TPIListURL"
 
 #######################################################
 # 		Main Part
-#          
+#
 #######################################################
 
 #Get Status Quo of the Sharepoint List
