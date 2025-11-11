@@ -129,6 +129,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Equipment Mailbox](docs/org/mail/add-equipment-mailbox.md)
     - [Add Or Remove Public Folder](docs/org/mail/add-or-remove-public-folder.md)
     - [Add Or Remove Teams Mailcontact](docs/org/mail/add-or-remove-teams-mailcontact.md)
+    - [Add Or Remove Tenant Allow Block List](docs/org/mail/add-or-remove-tenant-allow-block-list.md)
     - [Add Room Mailbox](docs/org/mail/add-room-mailbox.md)
     - [Add Shared Mailbox](docs/org/mail/add-shared-mailbox.md)
     - [Hide Mailboxes_Scheduled](docs/org/mail/hide-mailboxes_scheduled.md)
