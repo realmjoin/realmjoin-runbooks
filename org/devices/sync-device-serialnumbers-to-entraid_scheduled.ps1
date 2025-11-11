@@ -32,7 +32,7 @@
   Caller name for auditing purposes.
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 
 param(
     [int] $ExtensionAttributeNumber = 1,
@@ -106,7 +106,7 @@ foreach ($intuneDevice in $intuneDevices) {
     }
 
     $processedCount++
-    
+
     # Skip devices without a serial number
     if ([string]::IsNullOrEmpty($intuneDevice.serialNumber)) {
         Write-Output "[$($processedCount)/$($intuneDevices.Count)] Device $($intuneDevice.deviceName) (ID: $($intuneDevice.id)) has no serial number. Skipping."
@@ -140,7 +140,7 @@ foreach ($intuneDevice in $intuneDevices) {
     # Get the corresponding Azure AD device
     try {
         $aadDevice = $matchingAadDevice
-        
+
         # Check if the extension attribute already exists and has the correct value
         $currentExtensionValue = $null
         if ($aadDevice.extensionAttributes -and $aadDevice.extensionAttributes.$ExtensionAttributeName) {
@@ -183,7 +183,7 @@ foreach ($intuneDevice in $intuneDevices) {
                 throw
             }
         }
-        
+
         Write-Output "[$($processedCount)/$($intuneDevices.Count)] Updated device $($intuneDevice.deviceName) (ID: $($intuneDevice.id)) with serial number $($intuneDevice.serialNumber)"
         $updatedDevices += [PSCustomObject]@{
             DeviceName    = $intuneDevice.deviceName
@@ -221,11 +221,11 @@ Write-Output ""
 # Send email report if requested
 if (-not [string]::IsNullOrEmpty($sendReportTo)) {
     Write-Output "## Preparing email report to send to $sendReportTo"
-    
+
     # Create HTML content for email
     $HTMLBody = "<h2>Device Serial Number Sync Report - $tenantDisplayName</h2>"
     $HTMLBody += "<p>This report shows the results of syncing serial numbers from Intune devices to Azure AD device extension attributes.</p>"
-    
+
     # Add summary section
     $HTMLBody += "<h3>Summary</h3>"
     $HTMLBody += "<ul>"
@@ -235,7 +235,7 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
     $HTMLBody += "<li>Devices skipped: $skippedCount</li>"
     $HTMLBody += "<li>Devices with errors: $errorCount</li>"
     $HTMLBody += "</ul>"
-    
+
     # Add updated devices section
     if ($updatedDevices.Count -gt 0) {
         $HTMLBody += "<h3>Updated Devices</h3>"
@@ -245,7 +245,7 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Serial Number</th>"
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Previous Value</th>"
         $HTMLBody += "</tr>"
-        
+
         foreach ($device in $updatedDevices) {
             $HTMLBody += "<tr>"
             $HTMLBody += "<td style='padding: 8px;'>$($device.DeviceName)</td>"
@@ -253,10 +253,10 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
             $HTMLBody += "<td style='padding: 8px;'>$($device.PreviousValue)</td>"
             $HTMLBody += "</tr>"
         }
-        
+
         $HTMLBody += "</table>"
     }
-    
+
     # Add skipped devices section
     if ($skippedDevices.Count -gt 0) {
         $HTMLBody += "<h3>Skipped Devices</h3>"
@@ -266,7 +266,7 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Serial Number</th>"
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Reason</th>"
         $HTMLBody += "</tr>"
-        
+
         foreach ($device in $skippedDevices) {
             $HTMLBody += "<tr>"
             $HTMLBody += "<td style='padding: 8px;'>$($device.DeviceName)</td>"
@@ -274,10 +274,10 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
             $HTMLBody += "<td style='padding: 8px;'>$($device.Reason)</td>"
             $HTMLBody += "</tr>"
         }
-        
+
         $HTMLBody += "</table>"
     }
-    
+
     # Add error devices section
     if ($errorDevices.Count -gt 0) {
         $HTMLBody += "<h3>Devices with Errors</h3>"
@@ -287,7 +287,7 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Serial Number</th>"
         $HTMLBody += "<th style='padding: 8px; text-align: left;'>Error</th>"
         $HTMLBody += "</tr>"
-        
+
         foreach ($device in $errorDevices) {
             $HTMLBody += "<tr>"
             $HTMLBody += "<td style='padding: 8px;'>$($device.DeviceName)</td>"
@@ -295,10 +295,10 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
             $HTMLBody += "<td style='padding: 8px;'>$($device.Error)</td>"
             $HTMLBody += "</tr>"
         }
-        
+
         $HTMLBody += "</table>"
     }
-    
+
     # Send email
     $message = @{
         subject      = "[Automated Report] Device Serial Number Sync - $tenantDisplayName"
@@ -314,7 +314,7 @@ if (-not [string]::IsNullOrEmpty($sendReportTo)) {
             }
         )
     }
-    
+
     Write-Output "Sending report to '$sendReportTo'..."
     try {
         Invoke-RjRbRestMethodGraph -Resource "/users/$sendReportFrom/sendMail" -Method POST -Body @{ message = $message } -ContentType "application/json" | Out-Null
