@@ -17,7 +17,7 @@
             "Hide": false
         },
         "applicationType": {
-            "DisplayName": "Application Type",
+            "DisplayName": "Application Type (Unique)",
             "Default": "nonwebapp",
             "Select": {
                 "Options": [
@@ -37,6 +37,7 @@
             "Hide": true
         },
         "connector": {
+            "DisplayName": "Connector (Please define your connectors in the Runbook Customization)",
             "Hide": false
         },
         "destinationHost": {
@@ -80,6 +81,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $applicationName,
+    [Parameter(Mandatory = $true)]
     [string] $applicationType, # nonwebapp | quickaccessapp
     [string] $connector,
     [string] $destinationHost,
@@ -148,20 +150,31 @@ $destinationType = Get-DestinationType -destination $destinationHost
 
 # Check if an application with the same name already exists
 $existingApp = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/applications?`$filter=displayName eq '$applicationName'" -ContentType "application/json" -ErrorAction Stop
-$applicationId = $existingApp.Value.id
 
-if (-not $existingApp.value -or $existingApp.value.Count -eq 0) {
-    "## Creating application '$applicationName'"
-# Create App with Template
-$response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/applicationTemplates/8adf8e6e-67b2-4cf2-a259-e3dc5476c621/instantiate" -Body @"
+$continue = $true
+if ($applicationType -eq "quickaccessapp") {
+    $existingQuickAccessApp = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/applications?`$filter=tags/any(t:t eq 'NetworkAccessQuickAccessApplication')" -ContentType "application/json" -ErrorAction Stop
+    if ($existingQuickAccessApp.value -and $existingQuickAccessApp.value.Count -gt 0) {
+        $continue = $false # Flag to track existence of quickaccessapp
+    }
+}
+
+$applicationId = $existingApp.Value.id
+if ($continue) {
+    if (-not $existingApp.value -or $existingApp.value.Count -eq 0) {
+        "## Creating application '$applicationName'"
+        
+        # Create App with Template
+        $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/applicationTemplates/8adf8e6e-67b2-4cf2-a259-e3dc5476c621/instantiate" -Body @"
 { 
   "displayName": "$applicationName" 
 } 
 "@ -ContentType "application/json" -ErrorAction Stop
 
-# Specify application Type
-$applicationId = $response.application.id
-Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/beta/applications/$applicationId" -Body @"
+        # Specify application Type
+        $applicationId = $response.application.id
+        
+        Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/beta/applications/$applicationId" -Body @"
 {
   "onPremisesPublishing":{
     "applicationType":"$applicationType",
@@ -169,42 +182,57 @@ Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/beta/appli
   }
 }
 "@ -ErrorAction Stop
-"## Application '$applicationName' created with as: $applicationType"
-}
-else {
-    "## Application '$applicationName' already exists, id: $($applicationId). App creation will be skipped and only a new segment will be added"
+        "## Application '$applicationName' created as: $applicationType"
+    }
+    else {
+        "## Application '$applicationName' already exists, id: $($applicationId). App creation will be skipped and only a new segment will be added"
+    } 
+} else {
+    "## Application of type 'quickaccessapp' already exists. App creation will be skipped and only a new segment will be added"
 }
 
-# Get Connector Group Id
-$connectorGroupResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups?`$filter=name eq 'Default'" -ContentType "application/json" -ErrorAction Stop
-$connectorGroupId = $connectorGroupResponse.value[0].id
-"## Using Connector Group Id: $connectorGroupId"
-
-# Wait for application to be fully provisioned
-$maxRetries = 10
-$retryCount = 0
-$appReady = $false
-while (-not $appReady -and $retryCount -lt $maxRetries) {
-    try {
-        $app = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/applications/$applicationId" -ErrorAction Stop
-        if ($app.id) {
-            $appReady = $true
-            "## Application is ready for connector group assignment"
-        }
-    }
-    catch {
-        $retryCount++
-        if ($retryCount -lt $maxRetries) {
-            Start-Sleep -Seconds 2
-        }
-    }
+$segmentVariables = @{
+    connector       = $connector
+    destinationHost = $destinationHost
+    ports           = $ports
 }
+# Find variables that are null, empty, or whitespace
+$emptyVars = $segmentVariables.GetEnumerator() | Where-Object { [string]::IsNullOrWhiteSpace($_.Value) } | ForEach-Object { $_.Key }
+
+if ($emptyVars.Count -gt 0) {
+    "## The following variables are empty: $($emptyVars -join ', '). Skipping segment addition."
+} else {
+    # Get Connector Group Id
+    $connectorGroupResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups?`$filter=name eq 'Default'" -ContentType "application/json" -ErrorAction Stop
+    $connectorGroupId = $connectorGroupResponse.value[0].id
+    "## Using Connector Group Id: $connectorGroupId"
+
+
+    # Wait for application to be fully provisioned
+    $maxRetries = 10
+    $retryCount = 0
+    $appReady = $false
+    while (-not $appReady -and $retryCount -lt $maxRetries) {
+        try {
+            $app = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/applications/$applicationId" -ErrorAction Stop
+            if ($app.id) {
+                $appReady = $true
+                "## Application is ready for connector group assignment"
+            }
+        }
+        catch {
+            $retryCount++
+            if ($retryCount -lt $maxRetries) {
+                Start-Sleep -Seconds 2
+            }
+        }
+    }
 
 if (-not $appReady) {
     throw "Application provisioning timeout - unable to verify application readiness"
 }
 
-# Assign App to Connector Group
+ # Assign App to Connector Group
 Invoke-MgGraphRequest -Method PUT -Uri "https://graph.microsoft.com/beta/applications/$applicationId/connectorGroup/`$ref" -Body @"
 {
   "@odata.id":"https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationproxy/connectorGroups/$connectorGroupId"
@@ -225,16 +253,17 @@ $portsArray = @($ports -split ',' | ForEach-Object {
     }
 })
 
-$bodyObject = @{
-    destinationHost = $destinationHost
-    destinationType = $destinationType
-    port = 0
-    ports = $portsArray
-    protocol = $protocol
+    $bodyObject = @{
+        destinationHost = $destinationHost
+        destinationType = $destinationType
+        port = 0
+        ports = $portsArray
+        protocol = $protocol
+    }
+
+    $Body = $bodyObject | ConvertTo-Json -Compress
+
+    Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/applications/$applicationId/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" -Body $Body -ErrorAction Stop
+    "## Added Application Segment to '$applicationName': Host='$destinationHost', Type='$destinationType', Ports='$ports', Protocol='$protocol'"
+    #endregion
 }
-
-$Body = $bodyObject | ConvertTo-Json -Compress
-
-Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/applications/$applicationId/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" -Body $Body -ErrorAction Stop
-"## Added Application Segment to '$applicationName': Host='$destinationHost', Type='$destinationType', Ports='$ports', Protocol='$protocol'"
-#endregion
