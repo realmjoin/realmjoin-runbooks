@@ -88,6 +88,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.32.0" }
 
 param(
     [bool] $listOnlyExpiring = $true,
@@ -120,7 +121,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
