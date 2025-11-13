@@ -1,8 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-11-13
+  - Enhance CSS part in all reporting runbooks
+  - Update PowerShell module version in all reporting runbooks
+
 ## 2025-11-10
   - New Add or Remove Tenant Allow/Block List Runbook
-  - Update Teams PowerShell Module to 7.4.0 in all Teams Phone Runbooks
+  - Update Teams PowerShell Module to 7.5.0 in all Teams Phone Runbooks
   - Separate Exchange Module definitions
 
 ## 2025-11-06

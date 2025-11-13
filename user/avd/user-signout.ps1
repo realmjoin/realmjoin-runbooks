@@ -22,7 +22,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.3" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
 #Requires -Modules @{ModuleName = "Az.DesktopVirtualization"; ModuleVersion = "5.4.1" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.1.1" }
 
@@ -119,7 +119,7 @@ foreach ($SubId in $SubscriptionIds) {
 
         # Get user sessions for the specified user
         $UserSessions = foreach ($SessionHost in $SessionHosts) {
-            Get-AzWvdUserSession -ResourceGroupName $SessionHost.ResourceGroupName -HostPoolName $SessionHost.HostPoolName | Where-Object { $_.UserPrincipalName -eq $UserName }     
+            Get-AzWvdUserSession -ResourceGroupName $SessionHost.ResourceGroupName -HostPoolName $SessionHost.HostPoolName | Where-Object { $_.UserPrincipalName -eq $UserName }
         }
 
         # Sign out the user if a session exists
@@ -130,7 +130,7 @@ foreach ($SubId in $SubscriptionIds) {
         else {
             "## No Session found for User $($UserName) in Subscription $($SubId)."
         }
-    }  
+    }
 }
 
 Disconnect-AzAccount | Out-Null
