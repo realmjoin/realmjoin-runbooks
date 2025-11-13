@@ -85,6 +85,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Equipment Mailbox | Create an equipment mailbox. |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder. |
 |  |  | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. |
+|  |  | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List. |
 |  |  | Add Room Mailbox | Create a room resource. |
 |  |  | Add Shared Mailbox | Create a shared mailbox. |
 |  |  | Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |
