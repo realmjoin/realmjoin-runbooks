@@ -811,9 +811,11 @@ exports them to CSV files, and sends them via email.
 Org \ Applications \ Report Application Registration
 
 ## Setup regarding email sending
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -834,9 +836,11 @@ Optionally, filter by Application IDs and list only those credentials that are a
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
 
 ## Setup regarding email sending
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -938,9 +942,11 @@ Optionally, the report can be sent via email with a CSV attachment containing de
 Org \ Devices \ Report Devices Without Primary User
 
 ## Setup regarding email sending
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -965,9 +971,11 @@ Optionally, the report can be sent via email with a CSV attachment containing ad
 Org \ Devices \ Report Last Device Contact By Range
 
 ## Setup regarding email sending
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -986,6 +994,13 @@ Automatically sends a report via email.
 
 #### Where to find
 Org \ Devices \ Report Stale Devices_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1008,9 +1023,11 @@ Optionally, the report can be sent via email with a CSV attachment containing de
 Org \ Devices \ Report Users With More Than 5-Devices
 
 ## Setup regarding email sending
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1579,6 +1596,13 @@ Sends an email report with alerts for certificates/tokens expiring within the sp
 
 #### Where to find
 Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
