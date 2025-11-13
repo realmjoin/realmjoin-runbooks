@@ -10,6 +10,9 @@
 
   .NOTES
   Version Changelog:
+  1.2.1 - 2025-11-13 - Update Module Versions
+                     - Update Array handling
+                     - Fix LineUri handling regarding Legacy numbers
   1.2.0 - 2025-03-07 - Fix region handling
                      - Add function Export-TeamsPhoneNumbers to resolve the error regarding MC950880 - Update to Get-CsPhoneNumberAssignment (Only 1000 numbers are returned)
                      - Add handling of group based policy assignments
@@ -647,7 +650,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
