@@ -86,13 +86,13 @@ try {
     $mailnickname = $apiCreateGroupResponse.name;
     $aadGroup = Invoke-RjRbRestMethodGraph -Method Get -Resource "/groups" -OdFilter "mailNickname eq '$mailnickname'"
     [int]$retryCount = 0
-    while (($aadGroup -eq $null) -and ($retryCount -lt 10)) {
+    while (($null -eq $aadGroup) -and ($retryCount -lt 10)) {
         "## Group not available in Azure AD yet. Waiting 10 seconds and retrying."
         Start-Sleep -Seconds 10
         $retryCount++
         $aadGroup = Invoke-RjRbRestMethodGraph -Method Get -Resource "/groups" -OdFilter "mailNickname eq '$mailnickname'"
     }
-    if ($aadGroup -eq $null) {
+    if ($null -eq $aadGroup) {
         "## Could not find group in Azure AD. Exiting..."
         throw "AzureAD Group creation failed"
     }
@@ -149,6 +149,7 @@ if ($CommunityOwners) {
             $requestFailed = $false
             try {
                 $result = Invoke-RestMethod -Method delete -Headers $headers -Uri ($apiGroupMembershipUri + '?group_id=' + $apiCreateGroupResponse.id + '&user_id=' + $apiCreateGroupResponse.creator_id) -UserAgent $scriptUserAgent
+                $result = $null
             }
             catch {
                 "## Could not remove API user from group. Waiting 10 seconds and retrying."
