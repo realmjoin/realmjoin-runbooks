@@ -225,7 +225,7 @@ function ConvertFrom-MarkdownToHtml {
         }
     }
 
-    function Close-AllLists {
+    function Close-AllList {
         param(
             [ref]$ListStack,
             [ref]$ProcessedLines,
@@ -261,7 +261,7 @@ function ConvertFrom-MarkdownToHtml {
         # Blockquote processing
         if ($line -match '^>\s*(.*)$') {
             if ($inTable) { $processedLines += '</tbody></table></div>'; $inTable = $false; $tableAlignments = @() }
-            Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+            Close-AllList -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
 
             $content = $Matches[1]
             if (-not $inBlockquote) {
@@ -275,7 +275,7 @@ function ConvertFrom-MarkdownToHtml {
         # Table processing
         elseif ($line -match '^\|.*\|$') {
             if ($inBlockquote) { $processedLines += '</blockquote>'; $inBlockquote = $false }
-            Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+            Close-AllList -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
 
             if (-not $inTable) {
                 $processedLines += '<div class="table-wrapper">'
@@ -399,7 +399,7 @@ function ConvertFrom-MarkdownToHtml {
             }
 
             if ($listStack.Count -gt 0 -and ($isHeader -or ($isEmptyLine -and -not $nextLineIsList -and -not $nextLineIsHeader))) {
-                Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+                Close-AllList -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
             }
 
             if (-not $isEmptyLine -or $listStack.Count -eq 0) {
@@ -411,7 +411,7 @@ function ConvertFrom-MarkdownToHtml {
     # Close remaining open structures
     if ($inBlockquote) { $processedLines += '</blockquote>' }
     if ($inTable) { $processedLines += '</tbody></table></div>' }
-    Close-AllLists -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
+    Close-AllList -ListStack ([ref]$listStack) -ProcessedLines ([ref]$processedLines) -InUnorderedList ([ref]$inUnorderedList) -InOrderedList ([ref]$inOrderedList)
 
     $html = $processedLines -join "`n"
 
@@ -1239,13 +1239,13 @@ function Get-MimeTypeFromExtension {
     }
 }
 
-function Get-AllGraphPages {
+function Get-AllGraphPage {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
 
         .DESCRIPTION
-        Get-AllGraphPages takes an initial Microsoft Graph API URI and retrieves all items across
+        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
         multiple pages by following the @odata.nextLink property in the response. It aggregates
         all items into a single array and returns it.
 
@@ -1254,7 +1254,7 @@ function Get-AllGraphPages {
         e.g., "https://graph.microsoft.com/v1.0/applications".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
 #>
     param(
         [string]$Uri

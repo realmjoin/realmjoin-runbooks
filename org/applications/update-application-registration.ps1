@@ -209,7 +209,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Connect-RjRbGraph
 
 # Check if the application exists
-$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "appId eq '$ClientId'" -errorAction SilentlyContinue
+$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "appId eq '$ClientId'" -ErrorAction SilentlyContinue
 
 if (-not $existingApp) {
     "## Application with '$ClientId' does not exists."
@@ -217,7 +217,7 @@ if (-not $existingApp) {
 }
 
 # Check if the service principal exists
-$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -errorAction SilentlyContinue
+$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -ErrorAction SilentlyContinue
 
 if (-not $existingSvcPrincipal) {
     "## Service Principal for ClientId '$ClientId' does not exists."
@@ -278,7 +278,7 @@ if ($EnableSAML) {
         "## Updating preferredSingleSignOnMode to 'saml'"
         $body["preferredSingleSignOnMode"] = "saml"
 
-        invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+        Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
         "## Waiting 20 seconds for changes to propagate to the application"
     }
 }
@@ -416,7 +416,7 @@ if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
 
             Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
 
-            $appRoleAssignments = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method GET -errorAction SilentlyContinue
+            $appRoleAssignments = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method GET -ErrorAction SilentlyContinue
             if (-not $appRoleAssignments) {
                 $ApplicationName = $existingApp.displayName
                 $ApplicationFullName = $ApplicationName
@@ -475,7 +475,7 @@ if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
 }
 
 # refresh the service principal
-$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -errorAction Stop
+$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -ErrorAction Stop
 
 # Check if the application is visible
 $body = @{}

@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
-    
+
     The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
     throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
     and certificate expiry notifications.
@@ -223,7 +223,7 @@ Connect-RjRbGraph
 $ApplicationFullName = $ApplicationName
 
 # Check if an application with the same name already exists
-$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "displayName eq '$ApplicationFullName'" -errorAction SilentlyContinue
+$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "displayName eq '$ApplicationFullName'" -ErrorAction SilentlyContinue
 
 if ($existingApp) {
     "## Application '$ApplicationFullName' already exists, id: $($existingApp.id)"
@@ -305,7 +305,7 @@ if ($EnableSAML -and (-not $SAMLReplyURL)) {
     }
     elseif ($spaRedirectURIs.Count -gt 0) {
         $SAMLReplyURL = $spaRedirectURI[0]
-    } 
+    }
 }
 
 if ($EnableSAML -and (-not $SAMLReplyURL)) {
@@ -339,7 +339,7 @@ $body["requiredResourceAccess"] = @(
     }
 )
 
-$tenantId = (invoke-RjRbRestMethodGraph -Resource "/organization").id
+$tenantId = (Invoke-RjRbRestMethodGraph -Resource "/organization").id
 
 $resultApp = Invoke-RjRbRestMethodGraph -Resource "/applications" -Method POST -Body $body
 ""
@@ -354,7 +354,7 @@ $body = @{
 
 if ($EnableSAML) {
     $body["preferredSingleSignOnMode"] = "saml"
-    
+
     $body["samlSingleSignOnSettings"] = @{
         "relayState" = $SAMLRelayState
     }
@@ -362,8 +362,8 @@ if ($EnableSAML) {
     #$body["replyUrls"] = @(
     #    $SAMLReplyURL
     #)
-    if ($SAMLSignOnURL) { 
-        $body["loginUrl"] = $SAMLSignOnURL 
+    if ($SAMLSignOnURL) {
+        $body["loginUrl"] = $SAMLSignOnURL
     }
 }
 
@@ -397,7 +397,7 @@ if ($EnableSAML) {
     if ($SAMLLogoutURL) {
         $body["web"] = @{
             "logoutUrl" = $SAMLLogoutURL
-        } 
+        }
     }
     Invoke-RjRbRestMethodGraph -Resource "/applications/$($resultApp.id)" -Method PATCH -Body $body | Out-Null
 
@@ -455,7 +455,7 @@ if ($UserAssignmentRequired) {
     }
     # Remove trailing dashes if any
     $groupMailNickname = $groupMailNickname -replace "-+$", ""
-    
+
     $groupBody = @{
         "displayName"     = "$groupAssignmentPrefix$shortAppName"
         "description"     = "Users of $ApplicationFullName"

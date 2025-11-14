@@ -343,17 +343,17 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
             }
             else {
                 Write-Output ""
-                Write-Warning "Error:"
-                Write-Warning "The license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
-                Write-Warning "The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Provisions regarding telephony not before: ($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss"))"
+                Write-Warning -Message "Error:"
+                Write-Warning -Message "The license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
+                Write-Warning -Message "The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Provisions regarding telephony not before: ($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss"))"
             }
         }
         catch {
-            Write-Warning "Warning: The time of license assignment could not be verified!"
+            Write-Warning -Message "Warning: The time of license assignment could not be verified!"
         }
     }
     else {
-        Write-Warning "Warning: The time of license assignment could not be verified!"
+        Write-Warning -Message "Warning: The time of license assignment could not be verified!"
     }
 
 }
