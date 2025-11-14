@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     This script modifies an existing application registration in Azure Active Directory (Entra ID) with comprehensive configuration updates.
-    
+
     The script intelligently determines what changes need to be applied by comparing current settings
     with requested parameters, ensuring only necessary updates are performed. It maintains backward
     compatibility while supporting modern authentication patterns and security requirements.
@@ -257,7 +257,7 @@ if ($EnableSAML -and (-not $SAMLReplyURL)) {
     }
     elseif ($spaRedirectURIs.Count -gt 0) {
         $SAMLReplyURL = $spaRedirectURI[0]
-    } 
+    }
 }
 
 if ($EnableSAML -and (-not $SAMLReplyURL)) {
@@ -294,7 +294,7 @@ if ($webRedirectURIs.count -gt 0) {
         $redirects += $SAMLReplyURL
     }
     $web["redirectUris"] = $redirects
-} 
+}
 
 if ($disableImplicitGrant) {
     $web["implicitGrantSettings"] = @{
@@ -306,21 +306,21 @@ else {
     $web["implicitGrantSettings"] = @{
         "enableAccessTokenIssuance" = $existingApp.web.implicitGrantSettings.enableAccessTokenIssuance -or $implicitGrantAccessTokens
         "enableIdTokenIssuance"     = $existingApp.web.implicitGrantSettings.enableIdTokenIssuance -or $implicitGrantIDTokens
-    }    
+    }
 }
 
 if ($spaRedirectURI) {
     "## Updating spa redirect URIs"
     $body["spa"] = @{
         "redirectUris" = $spaRedirectURis
-    } 
+    }
 }
 
-if ($publicClientRedirectURI) { 
+if ($publicClientRedirectURI) {
     "## Updating Public Client redirect URIs"
     $body["publicClient"] = @{
         "redirectUris" = $publicClientRedirectURIs
-    } 
+    }
 }
 
 $body["tags"] = [array]($existingApp.tags)
@@ -336,7 +336,7 @@ if ($EnableSAML) {
     }
     if ($SAMLLogoutURL) {
         $web["logoutUrl"] = $SAMLLogoutURL
-    } 
+    }
     if ($SAMLIdentifier) {
         "## Updating identifierUris to '$SAMLIdentifier'"
         $body["identifierUris"] = @($SAMLIdentifier)
@@ -395,7 +395,7 @@ if ($EnableSAML) {
     }
     if ($SAMLExpiryNotificationEmail -and ($resultSvcPrincipal.notificationEmailAddresses -notcontains $SAMLExpiryNotificationEmail)) {
         "## Updating Notification Email to '$SAMLExpiryNotificationEmail'"
-        $body["notificationEmailAddresses"] = @($SAMLExpiryNotificationEmail) 
+        $body["notificationEmailAddresses"] = @($SAMLExpiryNotificationEmail)
     }
 
     Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
@@ -415,14 +415,14 @@ if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
             }
 
             Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
-        
+
             $appRoleAssignments = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method GET -errorAction SilentlyContinue
             if (-not $appRoleAssignments) {
                 $ApplicationName = $existingApp.displayName
                 $ApplicationFullName = $ApplicationName
-    
+
                 [string]$shortAppName = $ApplicationFullName -replace " \| ", "-" -replace "\|", "-" # -replace " ", "-" -replace "[()]", ""
-    
+
                 [string]$mailnickname = $ApplicationName -replace " \| ", "-" -replace "\|", "-" -replace " ", "-" -replace "[()]", ""
                 if ($mailnickname.Length -gt 25) {
                     $mailnickname = $mailnickname.Substring(0, 24)
@@ -446,7 +446,7 @@ if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
                 }
                 $resultGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -Method POST -Body $groupBody
                 "## Group '$($resultGroup.displayName)' created, id: $($resultGroup.id)"
-            
+
                 # Add the group to the application
                 $groupAppRoleBody = @{
                     "appRoleId"   = "00000000-0000-0000-0000-000000000000"
@@ -470,7 +470,7 @@ if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
             Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
             "## Waiting 20 seconds for changes to propagate."
             Start-Sleep -Seconds 20
-        }    
+        }
     }
 }
 
