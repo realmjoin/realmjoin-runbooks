@@ -9590,7 +9590,7 @@
     "RelativeRunbookPath_PathOnly": "org/security",
     "PrimaryFolder": "Org",
     "SubFolder": "Security",
-    "Synopsis": "List/export inactive evices, which had no recent user logons.",
+    "Synopsis": "List/export inactive devices, which had no recent user logons.",
     "Description": "Collect devices based on the date of last user logon or last Intune sync.",
     "Notes": null,
     "Parameters": [

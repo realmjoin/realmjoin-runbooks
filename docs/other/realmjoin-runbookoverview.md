@@ -1921,7 +1921,7 @@ Org \ Security \ List Expiring Role Assignments
 <a name='org-security-list-inactive-devices'></a>
 
 ### List Inactive Devices
-#### List/export inactive evices, which had no recent user logons.
+#### List/export inactive devices, which had no recent user logons.
 
 #### Description
 Collect devices based on the date of last user logon or last Intune sync.
