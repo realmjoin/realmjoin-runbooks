@@ -9735,14 +9735,14 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Security",
     "Synopsis": "List users, that have no recent interactive signins.",
-    "Description": "List users, that have no recent interactive signins.",
+    "Description": "This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.\nIt can also include users/guests that have never logged in.",
     "Notes": null,
     "Parameters": [
       {
         "defaultValue": "",
         "description": [
           {
-            "Text": "CallerName is tracked purely for auditing purposes"
+            "Text": "Name of the caller (tracked for auditing purposes)."
           }
         ],
         "globbing": "false",
@@ -9757,6 +9757,11 @@
       },
       {
         "defaultValue": "30",
+        "description": [
+          {
+            "Text": "Number of days without interactive signin."
+          }
+        ],
         "globbing": "false",
         "name": "Days",
         "parameterValue": "Int32",
@@ -9769,6 +9774,11 @@
       },
       {
         "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include users/guests that can not sign in (accountEnabled = false)."
+          }
+        ],
         "globbing": "false",
         "name": "showBlockedUsers",
         "parameterValue": "Boolean",

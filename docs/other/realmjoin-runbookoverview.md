@@ -1941,7 +1941,8 @@ Org \ Security \ List Inactive Devices
 #### List users, that have no recent interactive signins.
 
 #### Description
-List users, that have no recent interactive signins.
+This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.
+It can also include users/guests that have never logged in.
 
 #### Where to find
 Org \ Security \ List Inactive Users
