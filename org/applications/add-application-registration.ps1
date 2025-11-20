@@ -10,6 +10,66 @@
     throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
     and certificate expiry notifications.
 
+.PARAMETER ApplicationName
+    The display name of the application registration to create.
+
+.PARAMETER RedirectURI
+    Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA).
+
+.PARAMETER signInAudience
+    Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI.
+
+.PARAMETER webRedirectURI
+    Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth").
+
+.PARAMETER spaRedirectURI
+    Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons.
+
+.PARAMETER publicClientRedirectURI
+    Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., "myapp://auth").
+
+.PARAMETER EnableSAML
+    Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required.
+
+.PARAMETER SAMLReplyURL
+    The reply URL for SAML authentication. Required when EnableSAML is true.
+
+.PARAMETER SAMLSignOnURL
+    The sign-on URL for SAML authentication.
+
+.PARAMETER SAMLLogoutURL
+    The logout URL for SAML authentication.
+
+.PARAMETER SAMLIdentifier
+    The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
+
+.PARAMETER SAMLRelayState
+    The SAML relay state parameter for maintaining application state during authentication.
+
+.PARAMETER SAMLExpiryNotificationEmail
+    Email address to receive notifications when the SAML token signing certificate is about to expire.
+
+.PARAMETER SAMLCertificateLifeYears
+    Lifetime of the SAML token signing certificate in years. Default is 3 years.
+
+.PARAMETER isApplicationVisible
+    Determines whether the application is visible in the My Apps portal. Default is true.
+
+.PARAMETER UserAssignmentRequired
+    Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
+
+.PARAMETER groupAssignmentPrefix
+    Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
+
+.PARAMETER implicitGrantAccessTokens
+    Enable implicit grant flow for access tokens. Default is false.
+
+.PARAMETER implicitGrantIDTokens
+    Enable implicit grant flow for ID tokens. Default is false.
+
+.PARAMETER CallerName
+    The name of the user executing the runbook. Used for auditing purposes.
+
 .INPUTS
     RunbookCustomization: {
     "Parameters": {
@@ -216,20 +276,156 @@ param(
     [string] $CallerName
 )
 
+############################################################
+#region RJ Log Part
+#
+############################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
+$Version = "1.0.1"
+Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "ApplicationName: $ApplicationName" -Verbose
+Write-RjRbLog -Message "RedirectURI: $RedirectURI" -Verbose
+Write-RjRbLog -Message "signInAudience: $signInAudience" -Verbose
+Write-RjRbLog -Message "webRedirectURI: $webRedirectURI" -Verbose
+Write-RjRbLog -Message "spaRedirectURI: $spaRedirectURI" -Verbose
+Write-RjRbLog -Message "publicClientRedirectURI: $publicClientRedirectURI" -Verbose
+Write-RjRbLog -Message "EnableSAML: $EnableSAML" -Verbose
+Write-RjRbLog -Message "SAMLReplyURL: $SAMLReplyURL" -Verbose
+Write-RjRbLog -Message "SAMLSignOnURL: $SAMLSignOnURL" -Verbose
+Write-RjRbLog -Message "SAMLLogoutURL: $SAMLLogoutURL" -Verbose
+Write-RjRbLog -Message "SAMLIdentifier: $SAMLIdentifier" -Verbose
+Write-RjRbLog -Message "SAMLRelayState: $SAMLRelayState" -Verbose
+Write-RjRbLog -Message "SAMLExpiryNotificationEmail: $SAMLExpiryNotificationEmail" -Verbose
+Write-RjRbLog -Message "SAMLCertificateLifeYears: $SAMLCertificateLifeYears" -Verbose
+Write-RjRbLog -Message "isApplicationVisible: $isApplicationVisible" -Verbose
+Write-RjRbLog -Message "UserAssignmentRequired: $UserAssignmentRequired" -Verbose
+Write-RjRbLog -Message "groupAssignmentPrefix: $groupAssignmentPrefix" -Verbose
+Write-RjRbLog -Message "implicitGrantAccessTokens: $implicitGrantAccessTokens" -Verbose
+Write-RjRbLog -Message "implicitGrantIDTokens: $implicitGrantIDTokens" -Verbose
+
+#endregion RJ Log Part
+
+############################################################
+#region Connect Part
+#
+############################################################
+
+Write-Output "Connecting to Microsoft Graph..."
 Connect-RjRbGraph
+
+#endregion Connect Part
+
+############################################################
+#region StatusQuo & Preflight-Check Part
+#
+############################################################
+
+Write-Output ""
+Write-Output "Preflight-Check"
+Write-Output "---------------------"
+
+# If webRedirectURI is provided, verify if it is a valid (Must start with "HTTPS" or "http://localhost". Must be a valid URL)
+$parsedUri = $null
+if ($webRedirectURI) {
+    $webRedirectURIs = $webRedirectURI.Split(";").Trim()
+    foreach ($uri in $webRedirectURIs) {
+        if (-not ($uri -match "^(https:\/\/|http:\/\/localhost)")) {
+            "## Web Redirect URI '$($uri)' is invalid. It must start with 'https://' or 'http://localhost'."
+            "## Stopping"
+            throw ("Invalid Web Redirect URI")
+        }
+        try {
+            $parsedUri = [System.Uri]::new($uri)
+        }
+        catch {
+            "## Web Redirect URI '$($uri)' is not a valid URL."
+            "## Stopping"
+            throw ("Invalid Web Redirect URI")
+        }
+    }
+}
+
+# If spaRedirectURI is provided, verify if it is a valid (Must start with "HTTPS" or "http://localhost". Must be a valid URL)
+$parsedUri = $null
+if ($spaRedirectURI) {
+    $spaRedirectURIs = $spaRedirectURI.Split(";").Trim()
+    foreach ($uri in $spaRedirectURIs) {
+        if (-not ($uri -match "^(https:\/\/|http:\/\/localhost)")) {
+            "## SPA Redirect URI '$($uri)' is invalid. It must start with 'https://' or 'http://localhost'."
+            "## Stopping"
+            throw ("Invalid SPA Redirect URI")
+        }
+        try {
+            $parsedUri = [System.Uri]::new($uri)
+        }
+        catch {
+            "## SPA Redirect URI '$($uri)' is not a valid URL."
+            "## Stopping"
+            throw ("Invalid SPA Redirect URI")
+        }
+    }
+}
+
+# If publicClientRedirectURI is provided, verify if it is a valid (Must start with "HTTPS", "http://" or a custom scheme. Must be a valid URI)
+$parsedUri = $null
+if ($publicClientRedirectURI) {
+    $publicClientRedirectURIs = $publicClientRedirectURI.Split(";").Trim()
+    foreach ($uri in $publicClientRedirectURIs) {
+        if (-not ($uri -match "^(https:\/\/|http:\/\/|[\w\-]+:\/\/)")) {
+            "## Public Client Redirect URI '$($uri)' is invalid. It must start with 'https://', 'http://', or a custom scheme (e.g., 'myapp://')."
+            "## Stopping"
+            throw ("Invalid Public Client Redirect URI")
+        }
+        try {
+            $parsedUri = [System.Uri]::new($uri)
+        }
+        catch {
+            "## Public Client Redirect URI '$($uri)' is not a valid URI."
+            "## Stopping"
+            throw ("Invalid Public Client Redirect URI")
+        }
+    }
+}
 
 $ApplicationFullName = $ApplicationName
 
 # Check if an application with the same name already exists
-$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "displayName eq '$ApplicationFullName'" -ErrorAction SilentlyContinue
+try {
+    Write-Output "Checking if application '$ApplicationFullName' already exists..."
+    $existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "displayName eq '$ApplicationFullName'" -ErrorAction Stop
 
-if ($existingApp) {
-    "## Application '$ApplicationFullName' already exists, id: $($existingApp.id)"
-    "## Stopping"
-    throw ("Application already exists")
+    if ($existingApp) {
+        "## Application '$ApplicationFullName' already exists, id: $($existingApp.id)"
+        "## Stopping"
+        throw ("Application already exists")
+    }
+    Write-Output "No existing application found with this name."
 }
+catch {
+    if ($_.Exception.Message -like "*Application already exists*") {
+        throw
+    }
+    Write-Error "Failed to check for existing applications: $_"
+    throw
+}
+
+#endregion StatusQuo & Preflight-Check Part
+
+############################################################
+#region Main Part
+#
+############################################################
+
+    #region Prepare Application Registration
+    ##############################
+
+Write-Output ""
+Write-Output "Preparing application registration..."
+Write-Output "---------------------"
 
 $body = @{
     "displayName"    = $ApplicationFullName
@@ -242,6 +438,13 @@ $body = @{
 if ($isApplicationVisible -eq $false) {
     $body["tags"] += "HideApp"
 }
+
+    #endregion Prepare Application Registration
+
+    #region Configure Redirect URIs
+    ##############################
+
+Write-Output "Configuring redirect URIs..."
 
 $webRedirectURIs = @()
 if ($webRedirectURI) {
@@ -256,18 +459,19 @@ if ($publicClientRedirectURI) {
     $publicClientRedirectURIs += $publicClientRedirectURI.Split(";").Trim()
 }
 
-if (($webRedirectURIs.count -gt 0) -or ($EnableSAML -and ($SAMLReplyURL.count -gt 0))) {
+# Validate SAML configuration if SAML is enabled
+if ($EnableSAML) {
     if ($SAMLReplyURL) {
         $webRedirectURIs = @($SAMLReplyURL)
     }
-    else {
+    elseif ($webRedirectURIs.count -eq 0) {
         "## Web redirect URI / SAML Reply URL must be specified for SAML applications."
         "## Stopping"
         throw ("Web redirect URI must be specified for SAML applications")
     }
 }
 
-$body[“web"] = @{}
+$body["web"] = @{}
 
 # Set the redirect URIs if Web redirect URIs are specified
 $redirects = @()
@@ -314,6 +518,11 @@ if ($EnableSAML -and (-not $SAMLReplyURL)) {
     throw ("SAML Reply URL must be specified for SAML applications")
 }
 
+    #endregion Configure Redirect URIs
+
+    #region Add Default Permissions
+    ##############################
+
 # Add default permissions
 $body["requiredResourceAccess"] = @(
     @{
@@ -339,14 +548,43 @@ $body["requiredResourceAccess"] = @(
     }
 )
 
-$tenantId = (Invoke-RjRbRestMethodGraph -Resource "/organization").id
+try {
+    $tenantId = (Invoke-RjRbRestMethodGraph -Resource "/organization").id
+}
+catch {
+    $tenantId = "Could not be determined"
+}
 
-$resultApp = Invoke-RjRbRestMethodGraph -Resource "/applications" -Method POST -Body $body
-""
-"## Application '$ApplicationFullName' created, AppId: $($resultApp.appId), TenantId: $tenantId"
+    #endregion Add Default Permissions
+
+    #region Create Application
+    ##############################
+
+Write-Output ""
+Write-Output "Creating application registration..."
+Write-Output "---------------------"
+
+try {
+    $resultApp = Invoke-RjRbRestMethodGraph -Resource "/applications" -Method POST -Body $body
+    ""
+    "## Application '$($ApplicationFullName)' created, AppId: $($resultApp.appId), TenantId: $($tenantId)"
+}
+catch {
+    Write-Error "Failed to create application '$($ApplicationFullName)': $_"
+    throw
+}
 
 "## Wait for the application to be ready"
 Start-Sleep -Seconds 20
+
+    #endregion Create Application
+
+    #region Create Service Principal
+    ##############################
+
+Write-Output ""
+Write-Output "Creating service principal..."
+Write-Output "---------------------"
 
 $body = @{
     "appId" = $resultApp.appId
@@ -372,13 +610,28 @@ if ($UserAssignmentRequired) {
 }
 
 
-$resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -Method POST -Body $body
-"## Service Principal for '$ApplicationFullName' created, id: $($resultSvcPrincipal.id)"
+try {
+    $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -Method POST -Body $body
+    "## Service Principal for '$($ApplicationFullName)' created, id: $($resultSvcPrincipal.id)"
+}
+catch {
+    Write-Error "Failed to create Service Principal for '$($ApplicationFullName)': $_"
+    throw
+}
 
 "## Wait for the Service Principal to be ready"
 Start-Sleep -Seconds 20
 
+    #endregion Create Service Principal
+
+    #region Configure SAML Settings
+    ##############################
+
 if ($EnableSAML) {
+    Write-Output ""
+    Write-Output "Configuring SAML settings..."
+    Write-Output "---------------------"
+
     if (-not $SAMLIdentifier) {
         $SAMLIdentifier = "urn:app:$($resultApp.appId)"
     }
@@ -387,94 +640,144 @@ if ($EnableSAML) {
     }
 
     "## Update the application object with the SAML2 settings"
-    $body = @{
-        "tags" = $resultApp.tags
-    }
-    $body["tags"] += "WindowsAzureActiveDirectoryCustomSingleSignOnApplication"
-    $body["identifierUris"] = @(
-        $SAMLIdentifier
-    )
-    if ($SAMLLogoutURL) {
-        $body["web"] = @{
-            "logoutUrl" = $SAMLLogoutURL
+    try {
+        $body = @{
+            "tags" = $resultApp.tags
         }
+        $body["tags"] += "WindowsAzureActiveDirectoryCustomSingleSignOnApplication"
+        $body["identifierUris"] = @(
+            $SAMLIdentifier
+        )
+        if ($SAMLLogoutURL) {
+            $body["web"] = @{
+                "logoutUrl" = $SAMLLogoutURL
+            }
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/applications/$($resultApp.id)" -Method PATCH -Body $body -ErrorAction Stop | Out-Null
     }
-    Invoke-RjRbRestMethodGraph -Resource "/applications/$($resultApp.id)" -Method PATCH -Body $body | Out-Null
+    catch {
+        Write-Error "Failed to update application object with SAML2 settings: $_"
+        throw
+    }
 
     "## Wait for the application to be ready"
     Start-Sleep -Seconds 20
 
     "## Update the service principal object with the SAML2 settings"
-    $body = @{}
-    $body["servicePrincipalNames"] = @(
-        $SAMLIdentifier,
-        $resultApp.appId
-    )
+    try {
+        $body = @{}
+        $body["servicePrincipalNames"] = @(
+            $SAMLIdentifier,
+            $resultApp.appId
+        )
 
-    Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+        Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body -ErrorAction Stop | Out-Null
+    }
+    catch {
+        Write-Error "Failed to update service principal object with SAML2 settings: $_"
+        throw
+    }
 
     # Create a token signing certificate
-    $certname = "CN=Microsoft Azure Federated SSO Certificate"
-    $endDate = (Get-Date).AddYears($SAMLCertificateLifeYears).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    $certBody = @{
-        "displayName" = $certname
-        "endDateTime" = $endDate
+    try {
+        $certname = "CN=Microsoft Azure Federated SSO Certificate"
+        $endDate = (Get-Date).AddYears($SAMLCertificateLifeYears).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+        $certBody = @{
+            "displayName" = $certname
+            "endDateTime" = $endDate
+        }
+        $certResult = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/addTokenSigningCertificate" -Method POST -Body $certBody -ErrorAction Stop
+        "## Token signing certificate created."
+        ""
+        "## DEBUG - Print the certificate (public key))"
+        $certResult | Format-List | Out-String
+        ""
     }
-    $certResult = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/addTokenSigningCertificate" -Method POST -Body $certBody
-    "## Token signing certificate created."
-    ""
-    "## DEBUG - Print the certificate (public key))"
-    $certResult | Format-List | Out-String
-    ""
+    catch {
+        Write-Error "Failed to create token signing certificate: $_"
+        throw
+    }
 
     if ($SAMLExpiryNotificationEmail) {
-        "## Update the certificate expiry notification email to '$SAMLExpiryNotificationEmail'"
-        $body = @{
-            "notificationEmailAddresses" = @(
-                $SAMLExpiryNotificationEmail
-            )
+        try {
+            "## Update the certificate expiry notification email to '$SAMLExpiryNotificationEmail'"
+            $body = @{
+                "notificationEmailAddresses" = @(
+                    $SAMLExpiryNotificationEmail
+                )
+            }
+            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body -ErrorAction Stop | Out-Null
         }
-        Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+        catch {
+            Write-Error "Failed to update certificate expiry notification email: $_"
+            throw
+        }
     }
 }
 
-[string]$shortAppName = $ApplicationFullName -replace " \| ", "-" -replace "\|", "-" # -replace " ", "-" -replace "[()]", ""
+    #endregion Configure SAML Settings
 
-[string]$mailnickname = $ApplicationName -replace " \| ", "-" -replace "\|", "-" -replace " ", "-" -replace "[()]", ""
-if ($mailnickname.Length -gt 25) {
-    $mailnickname = $mailnickname.Substring(0, 24)
-}
+    #region Create User Assignment Group
+    ##############################
 
 if ($UserAssignmentRequired) {
-    # Create an EntraID group for the application
-    # Create a valid mailNickname by removing invalid characters (spaces, special chars)
-    $groupMailNickname = ($groupAssignmentPrefix + $mailnickname) -replace "[^a-zA-Z0-9\-]", "" -replace "^-+", "" -replace "-+$", ""
-    # Ensure mailNickname doesn't exceed 64 characters and doesn't start/end with dash
-    if ($groupMailNickname.Length -gt 64) {
-        $groupMailNickname = $groupMailNickname.Substring(0, 63)
-    }
-    # Remove trailing dashes if any
-    $groupMailNickname = $groupMailNickname -replace "-+$", ""
+    Write-Output ""
+    Write-Output "Creating user assignment group..."
+    Write-Output "---------------------"
 
-    $groupBody = @{
-        "displayName"     = "$groupAssignmentPrefix$shortAppName"
-        "description"     = "Users of $ApplicationFullName"
-        "mailEnabled"     = $false
-        "mailNickname"    = $groupMailNickname
-        "securityEnabled" = $true
+    [string]$shortAppName = $ApplicationFullName -replace " \| ", "-" -replace "\|", "-" # -replace " ", "-" -replace "[()]", ""
+
+    [string]$mailnickname = $ApplicationName -replace " \| ", "-" -replace "\|", "-" -replace " ", "-" -replace "[()]", ""
+    if ($mailnickname.Length -gt 25) {
+        $mailnickname = $mailnickname.Substring(0, 24)
     }
-    $resultGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -Method POST -Body $groupBody
-    "## Group '$($resultGroup.displayName)' created, id: $($resultGroup.id)"
+    # Create an EntraID group for the application
+    try {
+        # Create a valid mailNickname by removing invalid characters (spaces, special chars)
+        $groupMailNickname = ($groupAssignmentPrefix + $mailnickname) -replace "[^a-zA-Z0-9\-]", "" -replace "^-+", "" -replace "-+$", ""
+        # Ensure mailNickname doesn't exceed 64 characters and doesn't start/end with dash
+        if ($groupMailNickname.Length -gt 64) {
+            $groupMailNickname = $groupMailNickname.Substring(0, 63)
+        }
+        # Remove trailing dashes if any
+        $groupMailNickname = $groupMailNickname -replace "-+$", ""
+
+        $groupBody = @{
+            "displayName"     = "$groupAssignmentPrefix$shortAppName"
+            "description"     = "Users of $ApplicationFullName"
+            "mailEnabled"     = $false
+            "mailNickname"    = $groupMailNickname
+            "securityEnabled" = $true
+        }
+        $resultGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -Method POST -Body $groupBody -ErrorAction Stop
+        "## Group '$($resultGroup.displayName)' created, id: $($resultGroup.id)"
+    }
+    catch {
+        Write-Error "Failed to create EntraID group for application: $_"
+        throw
+    }
 
     # Add the group to the application
-    $groupAppRoleBody = @{
-        "appRoleId"   = "00000000-0000-0000-0000-000000000000"
-        "principalId" = $resultGroup.id
-        "resourceId"  = $resultSvcPrincipal.id
+    try {
+        $groupAppRoleBody = @{
+            "appRoleId"   = "00000000-0000-0000-0000-000000000000"
+            "principalId" = $resultGroup.id
+            "resourceId"  = $resultSvcPrincipal.id
+        }
+        $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody -ErrorAction Stop
+        "## Group '$($resultGroup.displayName)' added to application '$ApplicationFullName'"
     }
-    $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody
-    "## Group '$($resultGroup.displayName)' added to application '$ApplicationFullName'"
+    catch {
+        Write-Error "Failed to assign group '$($resultGroup.displayName)' to application: $_"
+        throw
+    }
 }
 
+    #endregion Create User Assignment Group
 
-"## Application registration successfully created."
+#endregion Main Part
+
+Write-Output ""
+Write-Output "## Application registration successfully created."
+Write-Output ""
+Write-Output "Done!"

@@ -3,7 +3,20 @@
   List users, that have no recent interactive signins.
 
   .DESCRIPTION
-  List users, that have no recent interactive signins.
+  This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.
+  It can also include users/guests that have never logged in.
+
+  .PARAMETER showUsersThatNeverLoggedIn
+  Beware: This has to enumerate all users / Can take a long time.
+
+  .PARAMETER Days
+  Number of days without interactive signin.
+
+  .PARAMETER showBlockedUsers
+  Include users/guests that can not sign in (accountEnabled = false).
+
+  .PARAMETER CallerName
+  Name of the caller (tracked for auditing purposes).
 
   .INPUTS
   RunbookCustomization: {
@@ -21,10 +34,7 @@
                 "DisplayName": "Include users/guests that never logged in"
             }
         }
-    }
-
-  .PARAMETER showUsersThatNeverLoggedIn
-  Beware: This has to enumerate all users / Can take a long time.
+  }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }

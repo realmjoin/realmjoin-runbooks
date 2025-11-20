@@ -68,7 +68,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #region fuction declaration
 # Function to check if the group name is valid
-function Validate-GroupName {
+function Test-GroupName {
     param (
         [string]$name
     )
@@ -104,7 +104,7 @@ function Validate-GroupName {
 }
 
 # Function to create the group
-function Create-Group {
+function New-Group {
     param (
         [string]$GroupName,
         [Parameter(Mandatory = $false)]
@@ -164,7 +164,7 @@ $reservedWords = @("admin", "administrator", "system", "guest")
 
 
 # Validate the group name
-$isValid = Validate-GroupName -name $GroupName
+$isValid = Test-GroupName -name $GroupName
 
 # Output the result
 if ($isValid) {
@@ -183,7 +183,7 @@ try {
         Write-Error "Group '$GroupName' already exists."
     }
     else {
-        $newGroup = Create-Group -GroupName $GroupName -GroupDescription $GroupDescription -MembershipType $MembershipType -Owner $Owner # -AssignableToRoles $AssignableToRoles # Currently deactivated, as extended rights are required. See info in “.Notes”
+        $newGroup = New-Group -GroupName $GroupName -GroupDescription $GroupDescription -MembershipType $MembershipType -Owner $Owner # -AssignableToRoles $AssignableToRoles # Currently deactivated, as extended rights are required. See info in “.Notes”
         Write-Output "Group '$GroupName' created successfully."
     }
 }

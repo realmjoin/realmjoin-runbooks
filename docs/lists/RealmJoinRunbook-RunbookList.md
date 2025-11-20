@@ -359,7 +359,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Backup Conditional Access Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
 | List Admin Users | List AzureAD role holders and their MFA state. |
 | List Expiring Role Assignments | List Azure AD role assignments that will expire before a given number of days. |
-| List Inactive Devices | List/export inactive evices, which had no recent user logons. |
+| List Inactive Devices | List/export inactive devices, which had no recent user logons. |
 | List Inactive Users | List users, that have no recent interactive signins. |
 | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
 | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
