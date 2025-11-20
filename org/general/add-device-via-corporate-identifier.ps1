@@ -1,12 +1,12 @@
 <#
-  .SYNOPSIS
-  Import a device into Intune via corporate identifier.
+    .SYNOPSIS
+    Import a device into Intune via corporate identifier.
 
-  .DESCRIPTION
-  Import a device into Intune via corporate identifier.
+    .DESCRIPTION
+    This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
 
-  .INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CorpIdentifierType": {
                 "SelectSimple": {

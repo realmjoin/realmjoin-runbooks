@@ -1,12 +1,12 @@
 <#
-  .SYNOPSIS
-  Import a windows device into Windows Autopilot.
+    .SYNOPSIS
+    Import a windows device into Windows Autopilot.
 
-  .DESCRIPTION
-  Import a windows device into Windows Autopilot.
+    .DESCRIPTION
+    This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
 
-  .INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "SerialNumber": {
                 "DisplayName": "'Device Serial Number' from Get-WindowsAutopilotInfo"
