@@ -1921,7 +1921,7 @@ Org \ Security \ List Expiring Role Assignments
 <a name='org-security-list-inactive-devices'></a>
 
 ### List Inactive Devices
-#### List/export inactive evices, which had no recent user logons.
+#### List/export inactive devices, which had no recent user logons.
 
 #### Description
 Collect devices based on the date of last user logon or last Intune sync.
@@ -1941,7 +1941,8 @@ Org \ Security \ List Inactive Devices
 #### List users, that have no recent interactive signins.
 
 #### Description
-List users, that have no recent interactive signins.
+This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.
+It can also include users/guests that have never logged in.
 
 #### Where to find
 Org \ Security \ List Inactive Users
