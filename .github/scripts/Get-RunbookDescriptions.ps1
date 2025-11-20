@@ -101,7 +101,22 @@ function Get-RunbookBasics {
     }
 
     $TextInfo = (Get-Culture).TextInfo
-    $runbookDisplayName = (Split-Path -LeafBase $runbookPath | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+    $runbookBaseName = Split-Path -LeafBase $runbookPath
+
+    # Check if the runbook ends with _scheduled
+    $isScheduled = $runbookBaseName -match '_scheduled$'
+    if ($isScheduled) {
+        # Remove _scheduled suffix for display name
+        $runbookBaseName = $runbookBaseName -replace '_scheduled$', ''
+    }
+
+    $runbookDisplayName = ($runbookBaseName | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+
+    # Add (Scheduled) suffix if it was a scheduled runbook
+    if ($isScheduled) {
+        $runbookDisplayName = $runbookDisplayName + " (Scheduled)"
+    }
+
     $runbookDisplayPath = ($relativeRunbookPath -replace "\.ps1$", "") -replace "[\\/]", ' \ ' | ForEach-Object { $TextInfo.ToTitleCase($_) }
     $runbookDisplayPath = $runbookDisplayPath -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
 
