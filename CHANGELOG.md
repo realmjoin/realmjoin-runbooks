@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-11-20
+  - Add Report License Assignment Runbook (scheduled)
+    - Thresholds for license availability reporting:
+      - Minimum threshold: Alert when available licenses fall below this number
+      - Maximum threshold: Alert when available licenses exceed this number
+
 ## 2025-11-13
   - Enhance CSS part in all reporting runbooks
   - Update PowerShell module version in all reporting runbooks
