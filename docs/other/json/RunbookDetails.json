@@ -2263,6 +2263,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The display name of the application registration to create."
+          }
+        ],
         "globbing": "false",
         "name": "ApplicationName",
         "parameterValue": "String",
@@ -2277,7 +2282,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "CallerName is tracked purely for auditing purposes"
+            "Text": "The name of the user executing the runbook. Used for auditing purposes."
           }
         ],
         "globbing": "false",
@@ -2292,6 +2297,11 @@
       },
       {
         "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required."
+          }
+        ],
         "globbing": "false",
         "name": "EnableSAML",
         "parameterValue": "Boolean",
@@ -2304,6 +2314,11 @@
       },
       {
         "defaultValue": "col - Entra - users -",
+        "description": [
+          {
+            "Text": "Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is \"col - Entra - users - \"."
+          }
+        ],
         "globbing": "false",
         "name": "groupAssignmentPrefix",
         "parameterValue": "String",
@@ -2316,6 +2331,11 @@
       },
       {
         "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable implicit grant flow for access tokens. Default is false."
+          }
+        ],
         "globbing": "false",
         "name": "implicitGrantAccessTokens",
         "parameterValue": "Boolean",
@@ -2328,6 +2348,11 @@
       },
       {
         "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable implicit grant flow for ID tokens. Default is false."
+          }
+        ],
         "globbing": "false",
         "name": "implicitGrantIDTokens",
         "parameterValue": "Boolean",
@@ -2340,6 +2365,11 @@
       },
       {
         "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Determines whether the application is visible in the My Apps portal. Default is true."
+          }
+        ],
         "globbing": "false",
         "name": "isApplicationVisible",
         "parameterValue": "Boolean",
@@ -2352,6 +2382,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., \"myapp://auth\")."
+          }
+        ],
         "globbing": "false",
         "name": "publicClientRedirectURI",
         "parameterValue": "String",
@@ -2364,6 +2399,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA)."
+          }
+        ],
         "globbing": "false",
         "name": "RedirectURI",
         "parameterValue": "String",
@@ -2376,6 +2416,11 @@
       },
       {
         "defaultValue": "3",
+        "description": [
+          {
+            "Text": "Lifetime of the SAML token signing certificate in years. Default is 3 years."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLCertificateLifeYears",
         "parameterValue": "Int32",
@@ -2388,6 +2433,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Email address to receive notifications when the SAML token signing certificate is about to expire."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLExpiryNotificationEmail",
         "parameterValue": "String",
@@ -2400,6 +2450,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The SAML identifier (Entity ID). If not specified, defaults to \"urn:app:{AppId}\"."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLIdentifier",
         "parameterValue": "String",
@@ -2412,6 +2467,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The logout URL for SAML authentication."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLLogoutURL",
         "parameterValue": "String",
@@ -2424,6 +2484,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The SAML relay state parameter for maintaining application state during authentication."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLRelayState",
         "parameterValue": "String",
@@ -2436,6 +2501,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The reply URL for SAML authentication. Required when EnableSAML is true."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLReplyURL",
         "parameterValue": "String",
@@ -2448,6 +2518,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sign-on URL for SAML authentication."
+          }
+        ],
         "globbing": "false",
         "name": "SAMLSignOnURL",
         "parameterValue": "String",
@@ -2462,7 +2537,7 @@
         "defaultValue": "AzureADMyOrg",
         "description": [
           {
-            "Text": "Only for UI used"
+            "Text": "Specifies who can use the application. Default is \"AzureADMyOrg\" (single tenant). Hidden in UI."
           }
         ],
         "globbing": "false",
@@ -2477,6 +2552,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons."
+          }
+        ],
         "globbing": "false",
         "name": "spaRedirectURI",
         "parameterValue": "String",
@@ -2489,6 +2569,11 @@
       },
       {
         "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false."
+          }
+        ],
         "globbing": "false",
         "name": "UserAssignmentRequired",
         "parameterValue": "Boolean",
@@ -2501,6 +2586,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., \"https://app1.com/auth;https://app2.com/auth\")."
+          }
+        ],
         "globbing": "false",
         "name": "webRedirectURI",
         "parameterValue": "String",
