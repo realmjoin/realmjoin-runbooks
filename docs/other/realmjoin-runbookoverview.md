@@ -89,7 +89,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Check Assignments Of Groups](#check-assignments-of-groups)
       - [Check Assignments Of Users](#check-assignments-of-users)
       - [Check Autopilot Serialnumbers](#check-autopilot-serialnumbers)
-      - [Check Device Onboarding Exclusion_Schedule](#check-device-onboarding-exclusion_schedule)
+      - [Check Device Onboarding Exclusion (Scheduled)](#check-device-onboarding-exclusion-(scheduled))
       - [Enrolled Devices Report (Scheduled)](#enrolled-devices-report-(scheduled))
       - [Export All Autopilot Devices](#export-all-autopilot-devices)
       - [Export All Intune Devices](#export-all-intune-devices)
@@ -1402,16 +1402,16 @@ Org \ General \ Check Autopilot Serialnumbers
  
  
 
-<a name='org-general-check-device-onboarding-exclusion_schedule'></a>
+<a name='org-general-check-device-onboarding-exclusion-(scheduled)'></a>
 
-### Check Device Onboarding Exclusion_Schedule
+### Check Device Onboarding Exclusion (Scheduled)
 #### Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
 #### Description
 Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
 #### Where to find
-Org \ General \ Check Device Onboarding Exclusion_Schedule
+Org \ General \ Check Device Onboarding Exclusion_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)

@@ -6451,9 +6451,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Check Device Onboarding Exclusion_Schedule",
-    "RunbookDisplayPath": "Org \\ General \\ Check Device Onboarding Exclusion_Schedule",
-    "RelativeRunbookPath": "org/general/check-device-onboarding-exclusion_schedule.ps1",
+    "RunbookDisplayName": "Check Device Onboarding Exclusion_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Check Device Onboarding Exclusion_Scheduled",
+    "RelativeRunbookPath": "org/general/check-device-onboarding-exclusion_scheduled.ps1",
     "RelativeRunbookPath_PathOnly": "org/general",
     "PrimaryFolder": "Org",
     "SubFolder": "General",

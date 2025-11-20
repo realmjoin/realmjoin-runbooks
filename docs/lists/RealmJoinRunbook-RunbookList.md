@@ -88,7 +88,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Check Assignments Of Groups
     - Check Assignments Of Users
     - Check Autopilot Serialnumbers
-    - Check Device Onboarding Exclusion_Schedule
+    - Check Device Onboarding Exclusion_Scheduled
     - Enrolled Devices Report_Scheduled
     - Export All Autopilot Devices
     - Export All Intune Devices
@@ -311,7 +311,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Check Assignments Of Groups | Check Intune assignments for a given (or multiple) Group Names. |
 | Check Assignments Of Users | Check Intune assignments for a given (or multiple) User Principal Names (UPNs). |
 | Check Autopilot Serialnumbers | Check if given serial numbers are present in AutoPilot. |
-| Check Device Onboarding Exclusion_Schedule | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. |
+| Check Device Onboarding Exclusion_Scheduled | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. |
 | Enrolled Devices Report_Scheduled | Show recent first-time device enrollments. |
 | Export All Autopilot Devices | List/export all AutoPilot devices. |
 | Export All Intune Devices | Export a list of all Intune devices and where they are registered. |
