@@ -115,6 +115,9 @@ function Get-RunbookBasics {
 
     $runbookDisplayName = ($runbookBaseName | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
 
+    # Ensure acronyms are uppercase
+    $runbookDisplayName = $runbookDisplayName -replace '\bAvd\b', 'AVD' -replace '\bMdm\b', 'MDM'
+
     # Add (Scheduled) suffix if it was a scheduled runbook
     if ($isScheduled) {
         $runbookDisplayName = $runbookDisplayName + " (Scheduled)"
@@ -122,6 +125,8 @@ function Get-RunbookBasics {
 
     $runbookDisplayPath = ($relativeRunbookPath -replace "\.ps1$", "") -replace "[\\/]", ' \ ' | ForEach-Object { $TextInfo.ToTitleCase($_) }
     $runbookDisplayPath = $runbookDisplayPath -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+    # Ensure acronyms are uppercase in path too
+    $runbookDisplayPath = $runbookDisplayPath -replace '\bAvd\b', 'AVD' -replace '\bMdm\b', 'MDM'
 
 
     return @{
