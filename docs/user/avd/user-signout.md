@@ -7,7 +7,7 @@ This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant an
 The SubscriptionIds value must be defined in the runbooks customization.
 
 ## Where to find
-User \ Avd \ User Signout
+User \ AVD \ User Signout
 
 ## Parameters
 ### -UserName

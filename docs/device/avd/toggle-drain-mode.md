@@ -7,7 +7,7 @@ This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode
 The SubscriptionId value must be defined in the runbooks customization.
 
 ## Where to find
-Device \ Avd \ Toggle Drain Mode
+Device \ AVD \ Toggle Drain Mode
 
 ## Parameters
 ### -DeviceName

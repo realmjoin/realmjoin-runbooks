@@ -1,4 +1,4 @@
-# Report Apple Mdm Cert Expiry (Scheduled)
+# Report Apple MDM Cert Expiry (Scheduled)
 
 Monitor/Report expiry of Apple device management certificates.
 
@@ -7,7 +7,7 @@ Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens
 Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
 ## Where to find
-Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
+Org \ General \ Report Apple MDM Cert Expiry_Scheduled
 
 ## Setup regarding email sending
 

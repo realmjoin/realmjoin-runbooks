@@ -7,7 +7,7 @@ This Runbook reboots a specific AVD Session Host. If Users are signed in, they w
 If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
 
 ## Where to find
-Device \ Avd \ Restart Host
+Device \ AVD \ Restart Host
 
 ## Parameters
 ### -DeviceName

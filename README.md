@@ -120,7 +120,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List All Administrative Template Policies](docs/org/general/list-all-administrative-template-policies.md)
     - [List Group License Assignment Errors](docs/org/general/list-group-license-assignment-errors.md)
     - [Office365 License Report](docs/org/general/office365-license-report.md)
-    - [Report Apple Mdm Cert Expiry (Scheduled)](docs/org/general/report-apple-mdm-cert-expiry_scheduled.md)
+    - [Report Apple MDM Cert Expiry (Scheduled)](docs/org/general/report-apple-mdm-cert-expiry_scheduled.md)
     - [Report License Assignment (Scheduled)](docs/org/general/report-license-assignment_scheduled.md)
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)

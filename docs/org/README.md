@@ -52,7 +52,7 @@
   - [List All Administrative Template Policies](general/list-all-administrative-template-policies.md)
   - [List Group License Assignment Errors](general/list-group-license-assignment-errors.md)
   - [Office365 License Report](general/office365-license-report.md)
-  - [Report Apple Mdm Cert Expiry (Scheduled)](general/report-apple-mdm-cert-expiry_scheduled.md)
+  - [Report Apple MDM Cert Expiry (Scheduled)](general/report-apple-mdm-cert-expiry_scheduled.md)
   - [Report License Assignment (Scheduled)](general/report-license-assignment_scheduled.md)
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)

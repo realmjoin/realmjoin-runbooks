@@ -100,7 +100,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
       - [Office365 License Report](#office365-license-report)
-      - [Report Apple Mdm Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
+      - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
@@ -191,7 +191,7 @@ This Runbook reboots a specific AVD Session Host. If Users are signed in, they w
 If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
 
 #### Where to find
-Device \ Avd \ Restart Host
+Device \ AVD \ Restart Host
 
 
 [Back to Table of Content](#table-of-contents)
@@ -209,7 +209,7 @@ This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode
 The SubscriptionId value must be defined in the runbooks customization.
 
 #### Where to find
-Device \ Avd \ Toggle Drain Mode
+Device \ AVD \ Toggle Drain Mode
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1588,7 +1588,7 @@ Org \ General \ Office365 License Report
 
 <a name='org-general-report-apple-mdm-cert-expiry-(scheduled)'></a>
 
-### Report Apple Mdm Cert Expiry (Scheduled)
+### Report Apple MDM Cert Expiry (Scheduled)
 #### Monitor/Report expiry of Apple device management certificates.
 
 #### Description
@@ -1596,7 +1596,7 @@ Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens
 Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
 #### Where to find
-Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
+Org \ General \ Report Apple MDM Cert Expiry_Scheduled
 
 ## Setup regarding email sending
 
@@ -2214,7 +2214,7 @@ This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant an
 The SubscriptionIds value must be defined in the runbooks customization.
 
 #### Where to find
-User \ Avd \ User Signout
+User \ AVD \ User Signout
 
 
 [Back to Table of Content](#table-of-contents)
