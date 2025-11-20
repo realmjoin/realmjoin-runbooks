@@ -60,6 +60,8 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Expiring Application Credentials_Scheduled](#report-expiring-application-credentials_scheduled)
       - [Update Application Registration](#update-application-registration)
   - [Devices](#org-devices)
+      - [Add Autopilot Device](#add-autopilot-device)
+      - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Outphase Devices](#outphase-devices)
@@ -69,8 +71,6 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
       - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
   - [General](#org-general)
-      - [Add Autopilot Device](#add-autopilot-device)
-      - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Add Devices Of Users To Group_Scheduled](#add-devices-of-users-to-group_scheduled)
       - [Add Management Partner](#add-management-partner)
       - [Add Microsoft Store App Logos](#add-microsoft-store-app-logos)
@@ -101,6 +101,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
       - [Office365 License Report](#office365-license-report)
       - [Report Apple Mdm Cert Expiry_Scheduled](#report-apple-mdm-cert-expiry_scheduled)
+      - [Report License Assignment_Scheduled](#report-license-assignment_scheduled)
       - [Report Pim Activations_Scheduled](#report-pim-activations_scheduled)
       - [Sync All Devices](#sync-all-devices)
   - [Mail](#org-mail)
@@ -875,6 +876,40 @@ Org \ Applications \ Update Application Registration
 <a name='org-devices'></a>
 
 ## Devices
+<a name='org-devices-add-autopilot-device'></a>
+
+### Add Autopilot Device
+#### Import a windows device into Windows Autopilot.
+
+#### Description
+This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
+
+#### Where to find
+Org \ Devices \ Add Autopilot Device
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-add-device-via-corporate-identifier'></a>
+
+### Add Device Via Corporate Identifier
+#### Import a device into Intune via corporate identifier.
+
+#### Description
+This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
+
+#### Where to find
+Org \ Devices \ Add Device Via Corporate Identifier
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-delete-stale-devices_scheduled'></a>
 
 ### Delete Stale Devices_Scheduled
@@ -1060,40 +1095,6 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 <a name='org-general'></a>
 
 ## General
-<a name='org-general-add-autopilot-device'></a>
-
-### Add Autopilot Device
-#### Import a windows device into Windows Autopilot.
-
-#### Description
-Import a windows device into Windows Autopilot.
-
-#### Where to find
-Org \ General \ Add Autopilot Device
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-general-add-device-via-corporate-identifier'></a>
-
-### Add Device Via Corporate Identifier
-#### Import a device into Intune via corporate identifier.
-
-#### Description
-Import a device into Intune via corporate identifier.
-
-#### Where to find
-Org \ General \ Add Device Via Corporate Identifier
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-general-add-devices-of-users-to-group_scheduled'></a>
 
 ### Add Devices Of Users To Group_Scheduled
@@ -1602,6 +1603,166 @@ Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-report-license-assignment_scheduled'></a>
+
+### Report License Assignment_Scheduled
+#### Generate and email a license availability report based on configured thresholds
+
+#### Description
+This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
+Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
+The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
+The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
+
+#### Where to find
+Org \ General \ Report License Assignment_Scheduled
+
+## Runbook Customization
+
+### Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+### InputJson Configuration
+
+Each license configuration requires:
+
+- **SKUPartNumber** (required): Microsoft SKU identifier
+- **FriendlyName** (required): Display name
+- **MinThreshold** (optional): Alert when available licenses < threshold
+- **MaxThreshold** (optional): Alert when available licenses > threshold
+
+At least one threshold must be set per license.
+
+### Configuration Examples
+
+**Minimum threshold only** (prevent shortages):
+
+```json
+[
+    {
+        "SKUPartNumber": "ENTERPRISEPACK",
+        "FriendlyName": "Microsoft 365 E3",
+        "MinThreshold": 50
+    }
+]
+```
+
+**Maximum threshold only** (prevent over-provisioning):
+
+```json
+[
+    {
+        "SKUPartNumber": "POWER_BI_PRO",
+        "FriendlyName": "Power BI Pro",
+        "MaxThreshold": 500
+    }
+]
+```
+
+**Both thresholds** (maintain range):
+
+```json
+[
+    {
+        "SKUPartNumber": "ENTERPRISEPREMIUM",
+        "FriendlyName": "Microsoft 365 E5",
+        "MinThreshold": 50,
+        "MaxThreshold": 150
+    }
+]
+```
+
+### Complete Runbook Customization
+
+```json
+{
+    "Settings": {
+        "RJReport": {
+            "EmailSender": "sender@contoso.com"
+        }
+    },
+    "Runbooks": {
+        "rjgit-org_general_report-license-assignment_scheduled": {
+            "Parameters": {
+                "EmailTo": {
+                    "DisplayName": "Recipient Email Address(es)"
+                },
+                "InputJson": {
+                    "Hide": true,
+                    "DefaultValue": [
+                        {
+                            "SKUPartNumber": "SPE_E5",
+                            "FriendlyName": "Microsoft 365 E5",
+                            "MinThreshold": 20,
+                            "MaxThreshold": 30
+                        },
+                        {
+                            "SKUPartNumber": "FLOW_FREE",
+                            "FriendlyName": "Microsoft Power Automate Free",
+                            "MinThreshold": 10
+                        }
+                    ]
+                },
+                "EmailFrom": {
+                    "Hide": true
+                },
+                "CallerName": {
+                    "Hide": true
+                }
+            }
+        }
+    }
+}
+```
+
+## Finding SKU Part Numbers
+
+```powershell
+Connect-MgGraph -Scopes "Organization.Read.All"
+Get-MgSubscribedSku | Select-Object SkuPartNumber, SkuId | Sort-Object SkuPartNumber
+```
+
+Common SKUs:
+
+- `ENTERPRISEPACK` - Microsoft 365 E3
+- `ENTERPRISEPREMIUM` - Microsoft 365 E5
+- `EMS` - Enterprise Mobility + Security E3
+
+## Output
+
+**When violations detected:**
+
+- Console output in job log
+- CSV export (`License_Threshold_Violations.csv`)
+- Email report with summary, violations, recommendations, and CSV attachment
+
+**When all within thresholds:**
+
+- No email sent
+- Job completes successfully
+
+## Troubleshooting
+
+**SKU Not Found**: Verify SKU exists using `Get-MgSubscribedSku`
+
+**Email Not Sent**: Check EmailFrom configuration and Mail.Send permission
+
+**Invalid JSON**: Validate JSON format before configuration
+
+## Migration Note
+
+Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurations continue to work.
 
 
 

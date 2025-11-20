@@ -3,10 +3,10 @@
 Import a device into Intune via corporate identifier.
 
 ## Detailed description
-Import a device into Intune via corporate identifier.
+This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
 
 ## Where to find
-Org \ General \ Add Device Via Corporate Identifier
+Org \ Devices \ Add Device Via Corporate Identifier
 
 ## Permissions
 ### Application permissions

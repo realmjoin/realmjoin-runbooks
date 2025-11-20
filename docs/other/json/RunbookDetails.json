@@ -3379,6 +3379,211 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Autopilot Device",
+    "RunbookDisplayPath": "Org \\ Devices \\ Add Autopilot Device",
+    "RelativeRunbookPath": "org/devices/add-autopilot-device.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Import a windows device into Windows Autopilot.",
+    "Description": "This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "MS removed the ability to assign users directly via Autopilot"
+          }
+        ],
+        "globbing": "false",
+        "name": "AssignedUser",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "CallerName is tracked purely for auditing purposes"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "globbing": "false",
+        "name": "GroupTag",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "globbing": "false",
+        "name": "HardwareIdentifier",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "globbing": "false",
+        "name": "SerialNumber",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "globbing": "false",
+        "name": "Wait",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementServiceConfig.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Add Device Via Corporate Identifier",
+    "RunbookDisplayPath": "Org \\ Devices \\ Add Device Via Corporate Identifier",
+    "RelativeRunbookPath": "org/devices/add-device-via-corporate-identifier.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Import a device into Intune via corporate identifier.",
+    "Description": "This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "CallerName is tracked purely for auditing purposes"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "globbing": "false",
+        "name": "CorpIdentifier",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "serialNumber",
+        "globbing": "false",
+        "name": "CorpIdentifierType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "globbing": "false",
+        "name": "DeviceDescripton",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "globbing": "false",
+        "name": "OverwriteExistingEntry",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementServiceConfig.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",
@@ -4370,211 +4575,6 @@
             "DeviceManagementManagedDevices.Read.All",
             "Directory.ReadWrite.All",
             "Device.ReadWrite.All"
-          ]
-        }
-      ],
-      "Roles": [],
-      "ManualPermissions": []
-    }
-  },
-  {
-    "RunbookDisplayName": "Add Autopilot Device",
-    "RunbookDisplayPath": "Org \\ General \\ Add Autopilot Device",
-    "RelativeRunbookPath": "org/general/add-autopilot-device.ps1",
-    "RelativeRunbookPath_PathOnly": "org/general",
-    "PrimaryFolder": "Org",
-    "SubFolder": "General",
-    "Synopsis": "Import a windows device into Windows Autopilot.",
-    "Description": "Import a windows device into Windows Autopilot.",
-    "Notes": null,
-    "Parameters": [
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "MS removed the ability to assign users directly via Autopilot"
-          }
-        ],
-        "globbing": "false",
-        "name": "AssignedUser",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "3",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "CallerName is tracked purely for auditing purposes"
-          }
-        ],
-        "globbing": "false",
-        "name": "CallerName",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "6",
-        "required": "true",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "globbing": "false",
-        "name": "GroupTag",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "5",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "globbing": "false",
-        "name": "HardwareIdentifier",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "2",
-        "required": "true",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "globbing": "false",
-        "name": "SerialNumber",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "1",
-        "required": "true",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "True",
-        "globbing": "false",
-        "name": "Wait",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "4",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
-      }
-    ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementServiceConfig.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
-    "PermissionsJson": {
-      "Permissions": [
-        {
-          "Name": "Microsoft Graph",
-          "Id": "00000003-0000-0000-c000-000000000000",
-          "AppRoleAssignments": [
-            "DeviceManagementServiceConfig.ReadWrite.All"
-          ]
-        }
-      ],
-      "Roles": [],
-      "ManualPermissions": []
-    }
-  },
-  {
-    "RunbookDisplayName": "Add Device Via Corporate Identifier",
-    "RunbookDisplayPath": "Org \\ General \\ Add Device Via Corporate Identifier",
-    "RelativeRunbookPath": "org/general/add-device-via-corporate-identifier.ps1",
-    "RelativeRunbookPath_PathOnly": "org/general",
-    "PrimaryFolder": "Org",
-    "SubFolder": "General",
-    "Synopsis": "Import a device into Intune via corporate identifier.",
-    "Description": "Import a device into Intune via corporate identifier.",
-    "Notes": null,
-    "Parameters": [
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "CallerName is tracked purely for auditing purposes"
-          }
-        ],
-        "globbing": "false",
-        "name": "CallerName",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "5",
-        "required": "true",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "globbing": "false",
-        "name": "CorpIdentifier",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "2",
-        "required": "true",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "serialNumber",
-        "globbing": "false",
-        "name": "CorpIdentifierType",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "1",
-        "required": "true",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "globbing": "false",
-        "name": "DeviceDescripton",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "3",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "True",
-        "globbing": "false",
-        "name": "OverwriteExistingEntry",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "4",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
-      }
-    ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementServiceConfig.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
-    "PermissionsJson": {
-      "Permissions": [
-        {
-          "Name": "Microsoft Graph",
-          "Id": "00000003-0000-0000-c000-000000000000",
-          "AppRoleAssignments": [
-            "DeviceManagementServiceConfig.ReadWrite.All"
           ]
         }
       ],
@@ -7772,6 +7772,105 @@
             "DeviceManagementManagedDevices.Read.All",
             "DeviceManagementServiceConfig.Read.All",
             "DeviceManagementConfiguration.Read.All",
+            "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report License Assignment_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Report License Assignment_Scheduled",
+    "RelativeRunbookPath": "org/general/report-license-assignment_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Generate and email a license availability report based on configured thresholds",
+    "Description": "This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.\nTwo types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.\nThe second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.\nThe report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Internal parameter for tracking purposes"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization"
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Can be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "JSON array containing SKU configurations with thresholds. Each entry should include:\n- SKUPartNumber: The Microsoft SKU identifier\n- FriendlyName: Display name for the license\n- MinThreshold: (Optional) Minimum number of licenses that should be available\n- MaxThreshold: (Optional) Maximum number of licenses that should be available\n\nThis needs to be configured in the runbook customization"
+          }
+        ],
+        "globbing": "false",
+        "name": "InputJson",
+        "parameterValue": "Object",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "Object"
+        }
+      }
+    ],
+    "DocsContent": "## Runbook Customization\n\n### Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n### InputJson Configuration\n\nEach license configuration requires:\n\n- **SKUPartNumber** (required): Microsoft SKU identifier\n- **FriendlyName** (required): Display name\n- **MinThreshold** (optional): Alert when available licenses < threshold\n- **MaxThreshold** (optional): Alert when available licenses > threshold\n\nAt least one threshold must be set per license.\n\n### Configuration Examples\n\n**Minimum threshold only** (prevent shortages):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"ENTERPRISEPACK\",\n        \"FriendlyName\": \"Microsoft 365 E3\",\n        \"MinThreshold\": 50\n    }\n]\n```\n\n**Maximum threshold only** (prevent over-provisioning):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"POWER_BI_PRO\",\n        \"FriendlyName\": \"Power BI Pro\",\n        \"MaxThreshold\": 500\n    }\n]\n```\n\n**Both thresholds** (maintain range):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"ENTERPRISEPREMIUM\",\n        \"FriendlyName\": \"Microsoft 365 E5\",\n        \"MinThreshold\": 50,\n        \"MaxThreshold\": 150\n    }\n]\n```\n\n### Complete Runbook Customization\n\n```json\n{\n    \"Settings\": {\n        \"RJReport\": {\n            \"EmailSender\": \"sender@contoso.com\"\n        }\n    },\n    \"Runbooks\": {\n        \"rjgit-org_general_report-license-assignment_scheduled\": {\n            \"Parameters\": {\n                \"EmailTo\": {\n                    \"DisplayName\": \"Recipient Email Address(es)\"\n                },\n                \"InputJson\": {\n                    \"Hide\": true,\n                    \"DefaultValue\": [\n                        {\n                            \"SKUPartNumber\": \"SPE_E5\",\n                            \"FriendlyName\": \"Microsoft 365 E5\",\n                            \"MinThreshold\": 20,\n                            \"MaxThreshold\": 30\n                        },\n                        {\n                            \"SKUPartNumber\": \"FLOW_FREE\",\n                            \"FriendlyName\": \"Microsoft Power Automate Free\",\n                            \"MinThreshold\": 10\n                        }\n                    ]\n                },\n                \"EmailFrom\": {\n                    \"Hide\": true\n                },\n                \"CallerName\": {\n                    \"Hide\": true\n                }\n            }\n        }\n    }\n}\n```\n\n## Finding SKU Part Numbers\n\n```powershell\nConnect-MgGraph -Scopes \"Organization.Read.All\"\nGet-MgSubscribedSku | Select-Object SkuPartNumber, SkuId | Sort-Object SkuPartNumber\n```\n\nCommon SKUs:\n\n- `ENTERPRISEPACK` - Microsoft 365 E3\n- `ENTERPRISEPREMIUM` - Microsoft 365 E5\n- `EMS` - Enterprise Mobility + Security E3\n\n## Output\n\n**When violations detected:**\n\n- Console output in job log\n- CSV export (`License_Threshold_Violations.csv`)\n- Email report with summary, violations, recommendations, and CSV attachment\n\n**When all within thresholds:**\n\n- No email sent\n- Job completes successfully\n\n## Troubleshooting\n\n**SKU Not Found**: Verify SKU exists using `Get-MgSubscribedSku`\n\n**Email Not Sent**: Check EmailFrom configuration and Mail.Send permission\n\n**Invalid JSON**: Validate JSON format before configuration\n\n## Migration Note\n\nLegacy `WarningThreshold` automatically maps to `MinThreshold` - old configurations continue to work.\n",
+    "DocsContentEncoded": "IyMgUnVuYm9vayBDdXN0b21pemF0aW9uCgojIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCiMjIyBJbnB1dEpzb24gQ29uZmlndXJhdGlvbgoKRWFjaCBsaWNlbnNlIGNvbmZpZ3VyYXRpb24gcmVxdWlyZXM6CgotICoqU0tVUGFydE51bWJlcioqIChyZXF1aXJlZCk6IE1pY3Jvc29mdCBTS1UgaWRlbnRpZmllcgotICoqRnJpZW5kbHlOYW1lKiogKHJlcXVpcmVkKTogRGlzcGxheSBuYW1lCi0gKipNaW5UaHJlc2hvbGQqKiAob3B0aW9uYWwpOiBBbGVydCB3aGVuIGF2YWlsYWJsZSBsaWNlbnNlcyA8IHRocmVzaG9sZAotICoqTWF4VGhyZXNob2xkKiogKG9wdGlvbmFsKTogQWxlcnQgd2hlbiBhdmFpbGFibGUgbGljZW5zZXMgPiB0aHJlc2hvbGQKCkF0IGxlYXN0IG9uZSB0aHJlc2hvbGQgbXVzdCBiZSBzZXQgcGVyIGxpY2Vuc2UuCgojIyMgQ29uZmlndXJhdGlvbiBFeGFtcGxlcwoKKipNaW5pbXVtIHRocmVzaG9sZCBvbmx5KiogKHByZXZlbnQgc2hvcnRhZ2VzKToKCmBgYGpzb24KWwogICAgewogICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIkVOVEVSUFJJU0VQQUNLIiwKICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCAzNjUgRTMiLAogICAgICAgICJNaW5UaHJlc2hvbGQiOiA1MAogICAgfQpdCmBgYAoKKipNYXhpbXVtIHRocmVzaG9sZCBvbmx5KiogKHByZXZlbnQgb3Zlci1wcm92aXNpb25pbmcpOgoKYGBganNvbgpbCiAgICB7CiAgICAgICAgIlNLVVBhcnROdW1iZXIiOiAiUE9XRVJfQklfUFJPIiwKICAgICAgICAiRnJpZW5kbHlOYW1lIjogIlBvd2VyIEJJIFBybyIsCiAgICAgICAgIk1heFRocmVzaG9sZCI6IDUwMAogICAgfQpdCmBgYAoKKipCb3RoIHRocmVzaG9sZHMqKiAobWFpbnRhaW4gcmFuZ2UpOgoKYGBganNvbgpbCiAgICB7CiAgICAgICAgIlNLVVBhcnROdW1iZXIiOiAiRU5URVJQUklTRVBSRU1JVU0iLAogICAgICAgICJGcmllbmRseU5hbWUiOiAiTWljcm9zb2Z0IDM2NSBFNSIsCiAgICAgICAgIk1pblRocmVzaG9sZCI6IDUwLAogICAgICAgICJNYXhUaHJlc2hvbGQiOiAxNTAKICAgIH0KXQpgYGAKCiMjIyBDb21wbGV0ZSBSdW5ib29rIEN1c3RvbWl6YXRpb24KCmBgYGpzb24KewogICAgIlNldHRpbmdzIjogewogICAgICAgICJSSlJlcG9ydCI6IHsKICAgICAgICAgICAgIkVtYWlsU2VuZGVyIjogInNlbmRlckBjb250b3NvLmNvbSIKICAgICAgICB9CiAgICB9LAogICAgIlJ1bmJvb2tzIjogewogICAgICAgICJyamdpdC1vcmdfZ2VuZXJhbF9yZXBvcnQtbGljZW5zZS1hc3NpZ25tZW50X3NjaGVkdWxlZCI6IHsKICAgICAgICAgICAgIlBhcmFtZXRlcnMiOiB7CiAgICAgICAgICAgICAgICAiRW1haWxUbyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGlzcGxheU5hbWUiOiAiUmVjaXBpZW50IEVtYWlsIEFkZHJlc3MoZXMpIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJJbnB1dEpzb24iOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlLAogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0VmFsdWUiOiBbCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIlNQRV9FNSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCAzNjUgRTUiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1pblRocmVzaG9sZCI6IDIwLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1heFRocmVzaG9sZCI6IDMwCiAgICAgICAgICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIkZMT1dfRlJFRSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCBQb3dlciBBdXRvbWF0ZSBGcmVlIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNaW5UaHJlc2hvbGQiOiAxMAogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgXQogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJFbWFpbEZyb20iOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9LAogICAgICAgICAgICAgICAgIkNhbGxlck5hbWUiOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cn0KYGBgCgojIyBGaW5kaW5nIFNLVSBQYXJ0IE51bWJlcnMKCmBgYHBvd2Vyc2hlbGwKQ29ubmVjdC1NZ0dyYXBoIC1TY29wZXMgIk9yZ2FuaXphdGlvbi5SZWFkLkFsbCIKR2V0LU1nU3Vic2NyaWJlZFNrdSB8IFNlbGVjdC1PYmplY3QgU2t1UGFydE51bWJlciwgU2t1SWQgfCBTb3J0LU9iamVjdCBTa3VQYXJ0TnVtYmVyCmBgYAoKQ29tbW9uIFNLVXM6CgotIGBFTlRFUlBSSVNFUEFDS2AgLSBNaWNyb3NvZnQgMzY1IEUzCi0gYEVOVEVSUFJJU0VQUkVNSVVNYCAtIE1pY3Jvc29mdCAzNjUgRTUKLSBgRU1TYCAtIEVudGVycHJpc2UgTW9iaWxpdHkgKyBTZWN1cml0eSBFMwoKIyMgT3V0cHV0CgoqKldoZW4gdmlvbGF0aW9ucyBkZXRlY3RlZDoqKgoKLSBDb25zb2xlIG91dHB1dCBpbiBqb2IgbG9nCi0gQ1NWIGV4cG9ydCAoYExpY2Vuc2VfVGhyZXNob2xkX1Zpb2xhdGlvbnMuY3N2YCkKLSBFbWFpbCByZXBvcnQgd2l0aCBzdW1tYXJ5LCB2aW9sYXRpb25zLCByZWNvbW1lbmRhdGlvbnMsIGFuZCBDU1YgYXR0YWNobWVudAoKKipXaGVuIGFsbCB3aXRoaW4gdGhyZXNob2xkczoqKgoKLSBObyBlbWFpbCBzZW50Ci0gSm9iIGNvbXBsZXRlcyBzdWNjZXNzZnVsbHkKCiMjIFRyb3VibGVzaG9vdGluZwoKKipTS1UgTm90IEZvdW5kKio6IFZlcmlmeSBTS1UgZXhpc3RzIHVzaW5nIGBHZXQtTWdTdWJzY3JpYmVkU2t1YAoKKipFbWFpbCBOb3QgU2VudCoqOiBDaGVjayBFbWFpbEZyb20gY29uZmlndXJhdGlvbiBhbmQgTWFpbC5TZW5kIHBlcm1pc3Npb24KCioqSW52YWxpZCBKU09OKio6IFZhbGlkYXRlIEpTT04gZm9ybWF0IGJlZm9yZSBjb25maWd1cmF0aW9uCgojIyBNaWdyYXRpb24gTm90ZQoKTGVnYWN5IGBXYXJuaW5nVGhyZXNob2xkYCBhdXRvbWF0aWNhbGx5IG1hcHMgdG8gYE1pblRocmVzaG9sZGAgLSBvbGQgY29uZmlndXJhdGlvbnMgY29udGludWUgdG8gd29yay4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Organization.Read.All\",\n                \"User.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Organization.Read.All",
+            "User.Read.All",
             "Mail.Send"
           ]
         }

@@ -3,10 +3,10 @@
 Import a windows device into Windows Autopilot.
 
 ## Detailed description
-Import a windows device into Windows Autopilot.
+This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
 
 ## Where to find
-Org \ General \ Add Autopilot Device
+Org \ Devices \ Add Autopilot Device
 
 ## Permissions
 ### Application permissions

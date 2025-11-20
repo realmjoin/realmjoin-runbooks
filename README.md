@@ -79,6 +79,8 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Update Application Registration](docs/org/applications/update-application-registration.md)
   - [Devices](docs/org/README.md#org-devices)
 
+    - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
+    - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Delete Stale Devices_Scheduled](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
@@ -89,8 +91,6 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Sync Device Serialnumbers To Entraid_Scheduled](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)
 
-    - [Add Autopilot Device](docs/org/general/add-autopilot-device.md)
-    - [Add Device Via Corporate Identifier](docs/org/general/add-device-via-corporate-identifier.md)
     - [Add Devices Of Users To Group_Scheduled](docs/org/general/add-devices-of-users-to-group_scheduled.md)
     - [Add Management Partner](docs/org/general/add-management-partner.md)
     - [Add Microsoft Store App Logos](docs/org/general/add-microsoft-store-app-logos.md)
@@ -121,6 +121,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Group License Assignment Errors](docs/org/general/list-group-license-assignment-errors.md)
     - [Office365 License Report](docs/org/general/office365-license-report.md)
     - [Report Apple Mdm Cert Expiry_Scheduled](docs/org/general/report-apple-mdm-cert-expiry_scheduled.md)
+    - [Report License Assignment_Scheduled](docs/org/general/report-license-assignment_scheduled.md)
     - [Report Pim Activations_Scheduled](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
   - [Mail](docs/org/README.md#org-mail)

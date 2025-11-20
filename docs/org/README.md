@@ -11,6 +11,8 @@
   - [Update Application Registration](applications/update-application-registration.md)
 <a name='org-devices'></a>
 ## Devices
+  - [Add Autopilot Device](devices/add-autopilot-device.md)
+  - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
   - [Delete Stale Devices_Scheduled](devices/delete-stale-devices_scheduled.md)
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Outphase Devices](devices/outphase-devices.md)
@@ -21,8 +23,6 @@
   - [Sync Device Serialnumbers To Entraid_Scheduled](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
 <a name='org-general'></a>
 ## General
-  - [Add Autopilot Device](general/add-autopilot-device.md)
-  - [Add Device Via Corporate Identifier](general/add-device-via-corporate-identifier.md)
   - [Add Devices Of Users To Group_Scheduled](general/add-devices-of-users-to-group_scheduled.md)
   - [Add Management Partner](general/add-management-partner.md)
   - [Add Microsoft Store App Logos](general/add-microsoft-store-app-logos.md)
@@ -53,6 +53,7 @@
   - [List Group License Assignment Errors](general/list-group-license-assignment-errors.md)
   - [Office365 License Report](general/office365-license-report.md)
   - [Report Apple Mdm Cert Expiry_Scheduled](general/report-apple-mdm-cert-expiry_scheduled.md)
+  - [Report License Assignment_Scheduled](general/report-license-assignment_scheduled.md)
   - [Report Pim Activations_Scheduled](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
 <a name='org-mail'></a>

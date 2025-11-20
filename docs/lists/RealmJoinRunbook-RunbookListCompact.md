@@ -39,7 +39,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
 |  |  | Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
 |  |  | Update Application Registration | Update an application registration in Azure AD |
-|  | Devices | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
+|  | Devices | Add Autopilot Device | Import a windows device into Windows Autopilot. |
+|  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
+|  |  | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
 |  |  | Get Bitlocker Recovery Key | Get BitLocker recovery key |
 |  |  | Outphase Devices | Remove/Outphase multiple devices |
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
@@ -47,9 +49,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
 |  |  | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
-|  | General | Add Autopilot Device | Import a windows device into Windows Autopilot. |
-|  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
-|  |  | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
+|  | General | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
 |  |  | Add Management Partner | List or add or Management Partner Links (PAL) |
 |  |  | Add Microsoft Store App Logos | Update logos of Microsoft Store Apps (new) in Intune. |
 |  |  | Add Office365 Group | Create an Office 365 group and SharePoint site, optionally create a (Teams) team. |
@@ -79,6 +79,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors |
 |  |  | Office365 License Report | Generate an Office 365 licensing report. |
 |  |  | Report Apple Mdm Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. |
+|  |  | Report License Assignment_Scheduled | Generate and email a license availability report based on configured thresholds |
 |  |  | Report Pim Activations_Scheduled | Scheduled Report on PIM Activations. |
 |  |  | Sync All Devices | Sync all Intune devices. |
 |  | Mail | Add Distribution List | Create a classic distribution group. |

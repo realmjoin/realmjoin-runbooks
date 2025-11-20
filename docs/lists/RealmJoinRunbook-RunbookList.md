@@ -59,6 +59,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report Expiring Application Credentials_Scheduled
     - Update Application Registration
   - [Devices](#org-devices)
+    - Add Autopilot Device
+    - Add Device Via Corporate Identifier
     - Delete Stale Devices_Scheduled
     - Get Bitlocker Recovery Key
     - Outphase Devices
@@ -68,8 +70,6 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report Users With More Than 5-Devices
     - Sync Device Serialnumbers To Entraid_Scheduled
   - [General](#org-general)
-    - Add Autopilot Device
-    - Add Device Via Corporate Identifier
     - Add Devices Of Users To Group_Scheduled
     - Add Management Partner
     - Add Microsoft Store App Logos
@@ -100,6 +100,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Group License Assignment Errors
     - Office365 License Report
     - Report Apple Mdm Cert Expiry_Scheduled
+    - Report License Assignment_Scheduled
     - Report Pim Activations_Scheduled
     - Sync All Devices
   - [Mail](#org-mail)
@@ -275,6 +276,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## Devices
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Add Autopilot Device | Import a windows device into Windows Autopilot. |
+| Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
 | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
 | Get Bitlocker Recovery Key | Get BitLocker recovery key |
 | Outphase Devices | Remove/Outphase multiple devices |
@@ -290,8 +293,6 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## General
 | Runbook Name | Synopsis |
 |--------------|----------|
-| Add Autopilot Device | Import a windows device into Windows Autopilot. |
-| Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
 | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
 | Add Management Partner | List or add or Management Partner Links (PAL) |
 | Add Microsoft Store App Logos | Update logos of Microsoft Store Apps (new) in Intune. |
@@ -322,6 +323,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Group License Assignment Errors | Report groups that have license assignment errors |
 | Office365 License Report | Generate an Office 365 licensing report. |
 | Report Apple Mdm Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. |
+| Report License Assignment_Scheduled | Generate and email a license availability report based on configured thresholds |
 | Report Pim Activations_Scheduled | Scheduled Report on PIM Activations. |
 | Sync All Devices | Sync all Intune devices. |
 
