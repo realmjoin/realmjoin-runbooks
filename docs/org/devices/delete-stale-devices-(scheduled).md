@@ -1,4 +1,4 @@
-# Delete Stale Devices_Scheduled
+# Delete Stale Devices (Scheduled)
 
 Scheduled deletion of stale devices based on last activity date and platform.
 

@@ -1,4 +1,4 @@
-# Add Devices Of Users To Group_Scheduled
+# Add Devices Of Users To Group (Scheduled)
 
 Sync devices of users in a specific group to another device group.
 

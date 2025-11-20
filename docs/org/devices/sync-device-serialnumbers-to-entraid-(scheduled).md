@@ -1,4 +1,4 @@
-# Sync Device Serialnumbers To Entraid_Scheduled
+# Sync Device Serialnumbers To Entraid (Scheduled)
 
 Syncs serial numbers from Intune devices to Azure AD device extension attributes.
 

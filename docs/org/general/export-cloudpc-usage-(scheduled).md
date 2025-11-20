@@ -1,4 +1,4 @@
-# Export Cloudpc Usage_Scheduled
+# Export Cloudpc Usage (Scheduled)
 
 Write daily Windows 365 Utilization Data to Azure Tables
 

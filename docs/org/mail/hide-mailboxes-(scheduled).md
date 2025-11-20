@@ -1,4 +1,4 @@
-# Hide Mailboxes_Scheduled
+# Hide Mailboxes (Scheduled)
 
 Hide / Unhide special mailboxes in Global Address Book
 

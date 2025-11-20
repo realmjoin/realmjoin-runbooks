@@ -1,4 +1,4 @@
-# Assign Groups By Template_Scheduled
+# Assign Groups By Template (Scheduled)
 
 Assign cloud-only groups to many users based on a predefined template.
 

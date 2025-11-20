@@ -57,21 +57,21 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
-      - [Report Expiring Application Credentials_Scheduled](#report-expiring-application-credentials_scheduled)
+      - [Report Expiring Application Credentials (Scheduled)](#report-expiring-application-credentials-(scheduled))
       - [Update Application Registration](#update-application-registration)
   - [Devices](#org-devices)
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
-      - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
+      - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
-      - [Report Stale Devices_Scheduled](#report-stale-devices_scheduled)
+      - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
-      - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
+      - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
-      - [Add Devices Of Users To Group_Scheduled](#add-devices-of-users-to-group_scheduled)
+      - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
       - [Add Management Partner](#add-management-partner)
       - [Add Microsoft Store App Logos](#add-microsoft-store-app-logos)
       - [Add Office365 Group](#add-office365-group)
@@ -81,28 +81,28 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Security Group](#add-security-group)
       - [Add User](#add-user)
       - [Add Viva Engange Community](#add-viva-engange-community)
-      - [Assign Groups By Template_Scheduled](#assign-groups-by-template_scheduled)
+      - [Assign Groups By Template (Scheduled)](#assign-groups-by-template-(scheduled))
       - [Bulk Delete Devices From Autopilot](#bulk-delete-devices-from-autopilot)
       - [Bulk Retire Devices From Intune](#bulk-retire-devices-from-intune)
-      - [Check Aad Sync Status_Scheduled](#check-aad-sync-status_scheduled)
+      - [Check Aad Sync Status (Scheduled)](#check-aad-sync-status-(scheduled))
       - [Check Assignments Of Devices](#check-assignments-of-devices)
       - [Check Assignments Of Groups](#check-assignments-of-groups)
       - [Check Assignments Of Users](#check-assignments-of-users)
       - [Check Autopilot Serialnumbers](#check-autopilot-serialnumbers)
       - [Check Device Onboarding Exclusion_Schedule](#check-device-onboarding-exclusion_schedule)
-      - [Enrolled Devices Report_Scheduled](#enrolled-devices-report_scheduled)
+      - [Enrolled Devices Report (Scheduled)](#enrolled-devices-report-(scheduled))
       - [Export All Autopilot Devices](#export-all-autopilot-devices)
       - [Export All Intune Devices](#export-all-intune-devices)
-      - [Export Cloudpc Usage_Scheduled](#export-cloudpc-usage_scheduled)
+      - [Export Cloudpc Usage (Scheduled)](#export-cloudpc-usage-(scheduled))
       - [Export Non Compliant Devices](#export-non-compliant-devices)
       - [Export Policy Report](#export-policy-report)
       - [Invite External Guest Users](#invite-external-guest-users)
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
       - [Office365 License Report](#office365-license-report)
-      - [Report Apple Mdm Cert Expiry_Scheduled](#report-apple-mdm-cert-expiry_scheduled)
-      - [Report License Assignment_Scheduled](#report-license-assignment_scheduled)
-      - [Report Pim Activations_Scheduled](#report-pim-activations_scheduled)
+      - [Report Apple Mdm Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
+      - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
+      - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
@@ -112,7 +112,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
       - [Add Room Mailbox](#add-room-mailbox)
       - [Add Shared Mailbox](#add-shared-mailbox)
-      - [Hide Mailboxes_Scheduled](#hide-mailboxes_scheduled)
+      - [Hide Mailboxes (Scheduled)](#hide-mailboxes-(scheduled))
       - [Set Booking Config](#set-booking-config)
   - [Phone](#org-phone)
       - [Get Teams Phone Number Assignment](#get-teams-phone-number-assignment)
@@ -124,7 +124,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Inactive Devices](#list-inactive-devices)
       - [List Inactive Users](#list-inactive-users)
       - [List Information Protection Labels](#list-information-protection-labels)
-      - [List Pim Rolegroups Without Owners_Scheduled](#list-pim-rolegroups-without-owners_scheduled)
+      - [List Pim Rolegroups Without Owners (Scheduled)](#list-pim-rolegroups-without-owners-(scheduled))
       - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
@@ -824,9 +824,9 @@ This process is described in detail in the [Setup Email Reporting](https://githu
  
  
 
-<a name='org-applications-report-expiring-application-credentials_scheduled'></a>
+<a name='org-applications-report-expiring-application-credentials-(scheduled)'></a>
 
-### Report Expiring Application Credentials_Scheduled
+### Report Expiring Application Credentials (Scheduled)
 #### List expiry date of all Application Registration credentials
 
 #### Description
@@ -910,9 +910,9 @@ Org \ Devices \ Add Device Via Corporate Identifier
  
  
 
-<a name='org-devices-delete-stale-devices_scheduled'></a>
+<a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
-### Delete Stale Devices_Scheduled
+### Delete Stale Devices (Scheduled)
 #### Scheduled deletion of stale devices based on last activity date and platform.
 
 #### Description
@@ -1018,9 +1018,9 @@ This process is described in detail in the [Setup Email Reporting](https://githu
  
  
 
-<a name='org-devices-report-stale-devices_scheduled'></a>
+<a name='org-devices-report-stale-devices-(scheduled)'></a>
 
-### Report Stale Devices_Scheduled
+### Report Stale Devices (Scheduled)
 #### Scheduled report of stale devices based on last activity date and platform.
 
 #### Description
@@ -1070,9 +1070,9 @@ This process is described in detail in the [Setup Email Reporting](https://githu
  
  
 
-<a name='org-devices-sync-device-serialnumbers-to-entraid_scheduled'></a>
+<a name='org-devices-sync-device-serialnumbers-to-entraid-(scheduled)'></a>
 
-### Sync Device Serialnumbers To Entraid_Scheduled
+### Sync Device Serialnumbers To Entraid (Scheduled)
 #### Syncs serial numbers from Intune devices to Azure AD device extension attributes.
 
 #### Description
@@ -1095,9 +1095,9 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 <a name='org-general'></a>
 
 ## General
-<a name='org-general-add-devices-of-users-to-group_scheduled'></a>
+<a name='org-general-add-devices-of-users-to-group-(scheduled)'></a>
 
-### Add Devices Of Users To Group_Scheduled
+### Add Devices Of Users To Group (Scheduled)
 #### Sync devices of users in a specific group to another device group.
 
 #### Description
@@ -1266,9 +1266,9 @@ Org \ General \ Add Viva Engange Community
  
  
 
-<a name='org-general-assign-groups-by-template_scheduled'></a>
+<a name='org-general-assign-groups-by-template-(scheduled)'></a>
 
-### Assign Groups By Template_Scheduled
+### Assign Groups By Template (Scheduled)
 #### Assign cloud-only groups to many users based on a predefined template.
 
 #### Description
@@ -1317,9 +1317,9 @@ Org \ General \ Bulk Retire Devices From Intune
  
  
 
-<a name='org-general-check-aad-sync-status_scheduled'></a>
+<a name='org-general-check-aad-sync-status-(scheduled)'></a>
 
-### Check Aad Sync Status_Scheduled
+### Check Aad Sync Status (Scheduled)
 #### Check for last Azure AD Connect Sync Cycle.
 
 #### Description
@@ -1419,9 +1419,9 @@ Org \ General \ Check Device Onboarding Exclusion_Schedule
  
  
 
-<a name='org-general-enrolled-devices-report_scheduled'></a>
+<a name='org-general-enrolled-devices-report-(scheduled)'></a>
 
-### Enrolled Devices Report_Scheduled
+### Enrolled Devices Report (Scheduled)
 #### Show recent first-time device enrollments.
 
 #### Description
@@ -1470,9 +1470,9 @@ Org \ General \ Export All Intune Devices
  
  
 
-<a name='org-general-export-cloudpc-usage_scheduled'></a>
+<a name='org-general-export-cloudpc-usage-(scheduled)'></a>
 
-### Export Cloudpc Usage_Scheduled
+### Export Cloudpc Usage (Scheduled)
 #### Write daily Windows 365 Utilization Data to Azure Tables
 
 #### Description
@@ -1586,9 +1586,9 @@ Org \ General \ Office365 License Report
  
  
 
-<a name='org-general-report-apple-mdm-cert-expiry_scheduled'></a>
+<a name='org-general-report-apple-mdm-cert-expiry-(scheduled)'></a>
 
-### Report Apple Mdm Cert Expiry_Scheduled
+### Report Apple Mdm Cert Expiry (Scheduled)
 #### Monitor/Report expiry of Apple device management certificates.
 
 #### Description
@@ -1611,9 +1611,9 @@ This process is described in detail in the [Setup Email Reporting](https://githu
  
  
 
-<a name='org-general-report-license-assignment_scheduled'></a>
+<a name='org-general-report-license-assignment-(scheduled)'></a>
 
-### Report License Assignment_Scheduled
+### Report License Assignment (Scheduled)
 #### Generate and email a license availability report based on configured thresholds
 
 #### Description
@@ -1771,9 +1771,9 @@ Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurati
  
  
 
-<a name='org-general-report-pim-activations_scheduled'></a>
+<a name='org-general-report-pim-activations-(scheduled)'></a>
 
-### Report Pim Activations_Scheduled
+### Report Pim Activations (Scheduled)
 #### Scheduled Report on PIM Activations.
 
 #### Description
@@ -1934,9 +1934,9 @@ Org \ Mail \ Add Shared Mailbox
  
  
 
-<a name='org-mail-hide-mailboxes_scheduled'></a>
+<a name='org-mail-hide-mailboxes-(scheduled)'></a>
 
-### Hide Mailboxes_Scheduled
+### Hide Mailboxes (Scheduled)
 #### Hide / Unhide special mailboxes in Global Address Book
 
 #### Description
@@ -2131,9 +2131,9 @@ Org \ Security \ List Information Protection Labels
  
  
 
-<a name='org-security-list-pim-rolegroups-without-owners_scheduled'></a>
+<a name='org-security-list-pim-rolegroups-without-owners-(scheduled)'></a>
 
-### List Pim Rolegroups Without Owners_Scheduled
+### List Pim Rolegroups Without Owners (Scheduled)
 #### List role-assignable groups with eligible role assignments but without owners
 
 #### Where to find

@@ -1,13 +1,13 @@
-# Report Stale Devices_Scheduled
+# Report Apple Mdm Cert Expiry (Scheduled)
 
-Scheduled report of stale devices based on last activity date and platform.
+Monitor/Report expiry of Apple device management certificates.
 
 ## Detailed description
-Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
+Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
 ## Where to find
-Org \ Devices \ Report Stale Devices_Scheduled
+Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
 
 ## Setup regarding email sending
 
@@ -20,42 +20,23 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
-  - Directory.Read.All
-  - Device.Read.All
+  - DeviceManagementServiceConfig.Read.All
+  - DeviceManagementConfiguration.Read.All
   - Mail.Send
 
 
 ## Parameters
 ### -Days
-Description: Number of days without activity to be considered stale.
+Description: The warning threshold in days. Certificates and tokens expiring within this many days will be
+flagged as alerts in the report. Default is 300 days (approximately 10 months).
 Default Value: 30
-Required: false
-
-### -Windows
-Description: Include Windows devices in the results.
-Default Value: True
-Required: false
-
-### -MacOS
-Description: Include macOS devices in the results.
-Default Value: True
-Required: false
-
-### -iOS
-Description: Include iOS devices in the results.
-Default Value: True
-Required: false
-
-### -Android
-Description: Include Android devices in the results.
-Default Value: True
 Required: false
 
 ### -EmailTo
 Description: Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
 Default Value: 
-Required: true
+Required: false
 
 ### -EmailFrom
 Description: The sender email address. This needs to be configured in the runbook customization

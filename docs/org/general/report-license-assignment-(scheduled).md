@@ -1,4 +1,4 @@
-# Report License Assignment_Scheduled
+# Report License Assignment (Scheduled)
 
 Generate and email a license availability report based on configured thresholds
 

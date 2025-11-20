@@ -1,4 +1,4 @@
-# Check Aad Sync Status_Scheduled
+# Check Aad Sync Status (Scheduled)
 
 Check for last Azure AD Connect Sync Cycle.
 

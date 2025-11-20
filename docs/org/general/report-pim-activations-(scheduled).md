@@ -1,4 +1,4 @@
-# Report Pim Activations_Scheduled
+# Report Pim Activations (Scheduled)
 
 Scheduled Report on PIM Activations.
 

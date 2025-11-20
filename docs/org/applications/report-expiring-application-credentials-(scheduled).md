@@ -1,4 +1,4 @@
-# Report Expiring Application Credentials_Scheduled
+# Report Expiring Application Credentials (Scheduled)
 
 List expiry date of all Application Registration credentials
 

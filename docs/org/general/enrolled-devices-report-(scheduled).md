@@ -1,4 +1,4 @@
-# Enrolled Devices Report_Scheduled
+# Enrolled Devices Report (Scheduled)
 
 Show recent first-time device enrollments.
 
