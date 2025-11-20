@@ -226,6 +226,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
 
     $runbookDescriptions += [PSCustomObject]@{
         RunbookDisplayName           = $CurrentRunbookBasics.RunbookDisplayName
+        RunbookFileName              = $CurrentRunbookBasics.RunbookFileName
         RunbookDisplayPath           = $CurrentRunbookBasics.RunbookDisplayPath
         RelativeRunbookPath          = $relativeRunbookPath
         RelativeRunbookPath_PathOnly = $RelativeRunbookPath_PathOnly
@@ -536,7 +537,7 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
             Sort-Object -Property RunbookDisplayName
 
             foreach ($runbook in $runbooks) {
-                $runbookFileName = ($runbook.RunbookDisplayName -replace ' ', '-').ToLower() + ".md"
+                $runbookFileName = ($runbook.RunbookFileName -replace ' ', '-').ToLower() + ".md"
                 $runbookFilePath = Join-Path -Path $outputFolder -ChildPath "$primaryFolderLink\$(($subFolder -replace ' ', '-').ToLower())\$runbookFileName"
                 $runbookAnchor = "$subFolderLink-$(($runbook.RunbookDisplayName -replace ' ', '-').ToLower())"
 
