@@ -103,10 +103,13 @@ function Get-RunbookBasics {
     $TextInfo = (Get-Culture).TextInfo
     $runbookBaseName = Split-Path -LeafBase $runbookPath
 
+    # Keep original file name for file creation (with _scheduled)
+    $runbookFileName = ($runbookBaseName | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+
     # Check if the runbook ends with _scheduled
     $isScheduled = $runbookBaseName -match '_scheduled$'
     if ($isScheduled) {
-        # Remove _scheduled suffix for display name
+        # Remove _scheduled suffix for display name only
         $runbookBaseName = $runbookBaseName -replace '_scheduled$', ''
     }
 
@@ -123,6 +126,7 @@ function Get-RunbookBasics {
 
     return @{
         RunbookDisplayName = $runbookDisplayName
+        RunbookFileName    = $runbookFileName
         RunbookDisplayPath = $runbookDisplayPath
         Synopsis           = $runbookHelp.Synopsis
         Description        = $runbookHelp.Description.Text
