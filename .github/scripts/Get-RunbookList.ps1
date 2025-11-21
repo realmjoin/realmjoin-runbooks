@@ -388,7 +388,7 @@ if ($createParameterList) {
         Add-Content -Path $ParameterFile -Value "- $scope"
     }
     Add-Content -Path $ParameterFile -Value ""
-    Add-Content -Path $ParameterFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row. The runbook name and synopsis are only shown once per runbook to improve readability."
+    Add-Content -Path $ParameterFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row."
     Add-Content -Path $ParameterFile -Value ""
 
     # Create TOC
