@@ -9,6 +9,11 @@ The SubscriptionId value must be defined in the runbooks customization.
 ## Where to find
 Device \ AVD \ Toggle Drain Mode
 
+## Permissions
+### Permission notes
+Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool
+
+
 ## Parameters
 ### DeviceName
 

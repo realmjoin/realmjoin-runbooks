@@ -9,6 +9,11 @@ If the SessionHost is not running, it will be started. Once the Session Host is 
 ## Where to find
 Device \ AVD \ Restart Host
 
+## Permissions
+### Permission notes
+Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool
+
+
 ## Parameters
 ### DeviceName
 

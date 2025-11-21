@@ -49,8 +49,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": null,
-    "PermissionsJson": null
+    "PermissionsContent": "{\n    \"Permissions\": [],\n    \"Roles\": [],\n    \"ManualPermissions\": [ \"Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool\" ]\n}",
+    "PermissionsJson": {
+      "Permissions": [],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool"
+      ]
+    }
   },
   {
     "RunbookDisplayName": "Toggle Drain Mode",
@@ -114,8 +120,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": null,
-    "PermissionsJson": null
+    "PermissionsContent": "{\n    \"Permissions\": [],\n    \"Roles\": [],\n    \"ManualPermissions\": [ \"Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool\" ]\n}",
+    "PermissionsJson": {
+      "Permissions": [],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool"
+      ]
+    }
   },
   {
     "RunbookDisplayName": "Change Grouptag",
