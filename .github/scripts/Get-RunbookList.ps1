@@ -409,7 +409,8 @@ if ($createParameterList) {
         Add-Content -Path $ParameterFile -Value "  - [$subFolder](#$subFolderAnchor)"
 
         foreach ($runbook in $primaryGroup.Group) {
-            Add-Content -Path $ParameterFile -Value "    - $($runbook.RunbookDisplayName)"
+            $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-').ToLower())"
+            Add-Content -Path $ParameterFile -Value "    - [$($runbook.RunbookDisplayName)](#$runbookAnchor)"
         }
     }
 
@@ -435,8 +436,11 @@ if ($createParameterList) {
 
         foreach ($runbook in $primaryGroup.Group) {
             $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+            $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-').ToLower())"
 
-            # Add runbook name and synopsis as heading
+            # Add runbook name and synopsis as heading with anchor
+            Add-Content -Path $ParameterFile -Value "<a name='$runbookAnchor'></a>"
+            Add-Content -Path $ParameterFile -Value ""
             Add-Content -Path $ParameterFile -Value "### $($runbook.RunbookDisplayName)"
             if ($synopsis) {
                 Add-Content -Path $ParameterFile -Value "$synopsis"
