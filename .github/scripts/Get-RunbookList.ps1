@@ -431,41 +431,29 @@ if ($createParameterList) {
 
         Add-Content -Path $ParameterFile -Value "<a name='$subFolderAnchor'></a>"
         Add-Content -Path $ParameterFile -Value "## $subFolder"
-
-        Add-Content -Path $ParameterFile -Value "| Runbook Name | Synopsis | Parameter | Required | Type | Description |"
-        Add-Content -Path $ParameterFile -Value "|--------------|----------|-----------|----------|------|-------------|"
+        Add-Content -Path $ParameterFile -Value ""
 
         foreach ($runbook in $primaryGroup.Group) {
             $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
 
+            # Add runbook name and synopsis as heading
+            Add-Content -Path $ParameterFile -Value "### $($runbook.RunbookDisplayName)"
+            if ($synopsis) {
+                Add-Content -Path $ParameterFile -Value "$synopsis"
+                Add-Content -Path $ParameterFile -Value ""
+            }
+
+            # Create table for this runbook's parameters
+            Add-Content -Path $ParameterFile -Value "| Parameter | Required | Type | Description |"
+            Add-Content -Path $ParameterFile -Value "|-----------|----------|------|-------------|"
+
             # Handle runbooks with no parameters
             if (-not $runbook.Parameters -or $runbook.Parameters.Count -eq 0) {
-                Add-Content -Path $ParameterFile -Value "| $($runbook.RunbookDisplayName) | $synopsis | - | - | - | - |"
+                Add-Content -Path $ParameterFile -Value "| - | - | - | No parameters |"
             }
             else {
-                # First parameter row includes runbook name and synopsis
-                $firstParam = $runbook.Parameters[0]
-                $isRequired = if ($firstParam.required -eq $true -or $firstParam.required -eq 'true') { "✓" } else { "" }
-                $paramType = if ($firstParam.type.name) {
-                    if ($firstParam.type.name -eq 'String[]') {
-                        "String Array"
-                    } else {
-                        $firstParam.type.name
-                    }
-                } else { "" }
-                # Filter out ValidateScript blocks from description
-                $paramDescription = if ($firstParam.description) {
-                    $desc = ($firstParam.description.Text -join " ").Trim()
-                    # Remove ValidateScript blocks
-                    $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
-                    $desc.Trim()
-                } else { "" }
-
-                Add-Content -Path $ParameterFile -Value "| $($runbook.RunbookDisplayName) | $synopsis | $($firstParam.name) | $isRequired | $paramType | $paramDescription |"
-
-                # Subsequent parameter rows have empty runbook name and synopsis
-                for ($i = 1; $i -lt $runbook.Parameters.Count; $i++) {
-                    $param = $runbook.Parameters[$i]
+                # Add all parameters to the table
+                foreach ($param in $runbook.Parameters) {
                     $isRequired = if ($param.required -eq $true -or $param.required -eq 'true') { "✓" } else { "" }
                     $paramType = if ($param.type.name) {
                         if ($param.type.name -eq 'String[]') {
@@ -482,11 +470,11 @@ if ($createParameterList) {
                         $desc.Trim()
                     } else { "" }
 
-                    Add-Content -Path $ParameterFile -Value "| | | $($param.name) | $isRequired | $paramType | $paramDescription |"
+                    Add-Content -Path $ParameterFile -Value "| $($param.name) | $isRequired | $paramType | $paramDescription |"
                 }
             }
+            Add-Content -Path $ParameterFile -Value ""
         }
-        Add-Content -Path $ParameterFile -Value ""
         Add-Content -Path $ParameterFile -Value "[Back to the RealmJoin runbook parameter overview](#table-of-contents)"
         Add-Content -Path $ParameterFile -Value ""
     }
