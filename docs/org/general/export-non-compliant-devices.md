@@ -19,39 +19,60 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 
 ## Parameters
 ### -produceLinks
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -ContainerName
-Description: 
-Default Value: rjrb-device-compliance-report-v2
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | rjrb-device-compliance-report-v2 |
+| Required | false |
+| Type | String |
 
 ### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SubscriptionId
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

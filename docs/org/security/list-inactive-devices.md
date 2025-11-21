@@ -18,44 +18,68 @@ Org \ Security \ List Inactive Devices
 
 ## Parameters
 ### -Days
-Description: 
-Default Value: 30
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
 ### -Sync
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -ExportToFile
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -ContainerName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

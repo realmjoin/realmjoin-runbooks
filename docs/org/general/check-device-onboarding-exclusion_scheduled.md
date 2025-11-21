@@ -18,14 +18,21 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 
 ## Parameters
 ### -exclusionGroupName
-Description: EntraID exclusion group for Defender Compliance.
-Default Value: cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)
-Required: false
+EntraID exclusion group for Defender Compliance.
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices) |
+| Required | false |
+| Type | String |
 
 ### -maxAgeInDays
-Description: 
-Default Value: 1
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

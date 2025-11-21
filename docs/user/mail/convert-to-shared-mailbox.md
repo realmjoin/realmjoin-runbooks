@@ -19,39 +19,60 @@ User \ Mail \ Convert To Shared Mailbox
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -delegateTo
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -Remove
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -AutoMapping
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -RemoveGroups
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -ArchivalLicenseGroup
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -RegularLicenseGroup
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

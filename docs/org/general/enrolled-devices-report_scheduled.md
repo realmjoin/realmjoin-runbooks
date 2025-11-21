@@ -22,29 +22,40 @@ Azure: Contributor on Storage Account
 
 ## Parameters
 ### -Weeks
-Description: 
-Default Value: 4
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 4 |
+| Required | false |
+| Type | Int32 |
 
 ### -dataSource
-Description: Where to look for a devices "birthday"?
+Where to look for a devices "birthday"?
 0 - AutoPilot profile assignment date
 1 - Intune object creation date
-Default Value: 0
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
 
 ### -groupingSource
-Description: How to group results?
+How to group results?
 0 - no grouping
 1 - AzureAD User properties
 2 - AzureAD Device properties
 3 - Intune device properties
 4 - AutoPilot properties
-Default Value: 1
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
 ### -groupingAttribute
-Description: Examples:
+Examples:
 
 Autopilot:
 - "groupTag"
@@ -67,38 +78,61 @@ AzureAD Device:
 
 Intune Device:
 - "isEncrypted"
-Default Value: country
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | country |
+| Required | false |
+| Type | String |
 
 ### -exportCsv
-Description: Please configure an Azure Storage Account to use this feature.
-Default Value: True
-Required: false
+Please configure an Azure Storage Account to use this feature.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -ContainerName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

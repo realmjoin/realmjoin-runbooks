@@ -26,29 +26,48 @@ Permissions (Graph):
 
 ## Parameters
 ### -ExtensionAttributeNumber
-Description: 
-Default Value: 1
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
 ### -ProcessAllDevices
-Description: If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
-Default Value: False
-Required: false
+If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -MaxDevicesToProcess
-Description: Maximum number of devices to process in a single run. Use 0 for unlimited.
-Default Value: 0
-Required: false
+Maximum number of devices to process in a single run. Use 0 for unlimited.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
 
 ### -sendReportTo
-Description: Email address to send the report to. If empty, no email will be sent.
-Default Value: 
-Required: false
+Email address to send the report to. If empty, no email will be sent.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -sendReportFrom
-Description: Email address to send the report from.
-Default Value: runbook@glueckkanja.com
-Required: false
+Email address to send the report from.
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbook@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

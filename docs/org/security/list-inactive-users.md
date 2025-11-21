@@ -19,19 +19,31 @@ Org \ Security \ List Inactive Users
 
 ## Parameters
 ### -Days
-Description: Number of days without interactive signin.
-Default Value: 30
-Required: false
+Number of days without interactive signin.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
 ### -showBlockedUsers
-Description: Include users/guests that can not sign in (accountEnabled = false).
-Default Value: True
-Required: false
+Include users/guests that can not sign in (accountEnabled = false).
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -showUsersThatNeverLoggedIn
-Description: Beware: This has to enumerate all users / Can take a long time.
-Default Value: False
-Required: false
+Beware: This has to enumerate all users / Can take a long time.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

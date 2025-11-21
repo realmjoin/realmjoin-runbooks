@@ -22,99 +22,175 @@ Org \ Applications \ Add Application Registration
 
 ## Parameters
 ### -ApplicationName
-Description: The display name of the application registration to create.
-Default Value: 
-Required: true
+The display name of the application registration to create.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -RedirectURI
-Description: Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA).
-Default Value: 
-Required: false
+Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -signInAudience
-Description: Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI.
-Default Value: AzureADMyOrg
-Required: false
+Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI.
+
+| Property | Value |
+|----------|-------|
+| Default Value | AzureADMyOrg |
+| Required | false |
+| Type | String |
 
 ### -webRedirectURI
-Description: Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth").
-Default Value: 
-Required: false
+Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth").
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -spaRedirectURI
-Description: Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons.
-Default Value: 
-Required: false
+Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -publicClientRedirectURI
-Description: Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., "myapp://auth").
-Default Value: 
-Required: false
+Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., "myapp://auth").
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -EnableSAML
-Description: Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required.
-Default Value: False
-Required: false
+Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -SAMLReplyURL
-Description: The reply URL for SAML authentication. Required when EnableSAML is true.
-Default Value: 
-Required: false
+The reply URL for SAML authentication. Required when EnableSAML is true.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SAMLSignOnURL
-Description: The sign-on URL for SAML authentication.
-Default Value: 
-Required: false
+The sign-on URL for SAML authentication.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SAMLLogoutURL
-Description: The logout URL for SAML authentication.
-Default Value: 
-Required: false
+The logout URL for SAML authentication.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SAMLIdentifier
-Description: The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
-Default Value: 
-Required: false
+The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SAMLRelayState
-Description: The SAML relay state parameter for maintaining application state during authentication.
-Default Value: 
-Required: false
+The SAML relay state parameter for maintaining application state during authentication.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SAMLExpiryNotificationEmail
-Description: Email address to receive notifications when the SAML token signing certificate is about to expire.
-Default Value: 
-Required: false
+Email address to receive notifications when the SAML token signing certificate is about to expire.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -SAMLCertificateLifeYears
-Description: Lifetime of the SAML token signing certificate in years. Default is 3 years.
-Default Value: 3
-Required: false
+Lifetime of the SAML token signing certificate in years. Default is 3 years.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 3 |
+| Required | false |
+| Type | Int32 |
 
 ### -isApplicationVisible
-Description: Determines whether the application is visible in the My Apps portal. Default is true.
-Default Value: True
-Required: false
+Determines whether the application is visible in the My Apps portal. Default is true.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -UserAssignmentRequired
-Description: Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
-Default Value: False
-Required: false
+Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -groupAssignmentPrefix
-Description: Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
-Default Value: col - Entra - users -
-Required: false
+Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
+
+| Property | Value |
+|----------|-------|
+| Default Value | col - Entra - users - |
+| Required | false |
+| Type | String |
 
 ### -implicitGrantAccessTokens
-Description: Enable implicit grant flow for access tokens. Default is false.
-Default Value: False
-Required: false
+Enable implicit grant flow for access tokens. Default is false.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -implicitGrantIDTokens
-Description: Enable implicit grant flow for ID tokens. Default is false.
-Default Value: False
-Required: false
+Enable implicit grant flow for ID tokens. Default is false.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

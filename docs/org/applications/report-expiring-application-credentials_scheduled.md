@@ -25,37 +25,61 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 ## Parameters
 ### -listOnlyExpiring
-Description: If set to true, only credentials that are about to expire within the specified number of days will be listed.
+If set to true, only credentials that are about to expire within the specified number of days will be listed.
 If set to false, all credentials will be listed regardless of their expiry date.
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -Days
-Description: The number of days before a credential expires to consider it "about to expire".
-Default Value: 30
-Required: false
+The number of days before a credential expires to consider it "about to expire".
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
 ### -CredentialType
-Description: Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
-Default Value: Both
-Required: false
+Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
+
+| Property | Value |
+|----------|-------|
+| Default Value | Both |
+| Required | false |
+| Type | String |
 
 ### -ApplicationIds
-Description: Optional - comma-separated list of Application IDs to filter the credentials.
-Default Value: 
-Required: false
+Optional - comma-separated list of Application IDs to filter the credentials.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -EmailTo
-Description: If specified, an email with the report will be sent to the provided address(es).
+If specified, an email with the report will be sent to the provided address(es).
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -EmailFrom
-Description: The sender email address. This needs to be configured in the runbook customization.
-Default Value: 
-Required: false
+The sender email address. This needs to be configured in the runbook customization.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

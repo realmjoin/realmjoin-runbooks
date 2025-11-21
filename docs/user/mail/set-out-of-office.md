@@ -19,44 +19,69 @@ User \ Mail \ Set Out Of Office
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -Disable
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -Start
-Description: 
-Default Value: (get-date)
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | (get-date) |
+| Required | false |
+| Type | DateTime |
 
 ### -End
-Description: 10 years into the future ("forever") if left empty
-Default Value: ((get-date) + (new-timespan -Days 3650))
-Required: false
+10 years into the future ("forever") if left empty
+
+| Property | Value |
+|----------|-------|
+| Default Value | ((get-date) + (new-timespan -Days 3650)) |
+| Required | false |
+| Type | DateTime |
 
 ### -MessageInternal
-Description: 
-Default Value: Sorry, this person is currently not able to receive your message.
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Sorry, this person is currently not able to receive your message. |
+| Required | false |
+| Type | String |
 
 ### -MessageExternal
-Description: 
-Default Value: Sorry, this person is currently not able to receive your message.
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Sorry, this person is currently not able to receive your message. |
+| Required | false |
+| Type | String |
 
 ### -CreateEvent
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -EventSubject
-Description: 
-Default Value: Out of Office
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Out of Office |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

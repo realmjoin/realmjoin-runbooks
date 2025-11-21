@@ -24,14 +24,20 @@ Notes: Setting this via graph is currently broken as of 2021-06-28:
 
 ## Parameters
 ### -GroupId
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -Action
-Description: 
-Default Value: 0
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

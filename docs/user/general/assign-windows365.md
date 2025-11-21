@@ -19,69 +19,108 @@ User \ General \ Assign Windows365
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -cfgProvisioningGroupName
-Description: 
-Default Value: cfg - Windows 365 - Provisioning - Win11
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Windows 365 - Provisioning - Win11 |
+| Required | false |
+| Type | String |
 
 ### -cfgUserSettingsGroupName
-Description: 
-Default Value: cfg - Windows 365 - User Settings - restore allowed
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Windows 365 - User Settings - restore allowed |
+| Required | false |
+| Type | String |
 
 ### -licWin365GroupName
-Description: 
-Default Value: lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB |
+| Required | false |
+| Type | String |
 
 ### -cfgProvisioningGroupPrefix
-Description: 
-Default Value: cfg - Windows 365 - Provisioning -
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Windows 365 - Provisioning - |
+| Required | false |
+| Type | String |
 
 ### -cfgUserSettingsGroupPrefix
-Description: 
-Default Value: cfg - Windows 365 - User Settings -
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Windows 365 - User Settings - |
+| Required | false |
+| Type | String |
 
 ### -sendMailWhenProvisioned
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -customizeMail
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -customMailMessage
-Description: 
-Default Value: Insert Custom Message here. (Capped at 3000 characters)
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Insert Custom Message here. (Capped at 3000 characters) |
+| Required | false |
+| Type | String |
 
 ### -createTicketOutOfLicenses
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -ticketQueueAddress
-Description: 
-Default Value: support@glueckkanja-gab.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja-gab.com |
+| Required | false |
+| Type | String |
 
 ### -fromMailAddress
-Description: 
-Default Value: runbooks@contoso.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbooks@contoso.com |
+| Required | false |
+| Type | String |
 
 ### -ticketCustomerId
-Description: 
-Default Value: Contoso
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Contoso |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

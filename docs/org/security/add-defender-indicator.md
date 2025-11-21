@@ -16,39 +16,60 @@ Org \ Security \ Add Defender Indicator
 
 ## Parameters
 ### -IndicatorValue
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -IndicatorType
-Description: 
-Default Value: FileSha256
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | FileSha256 |
+| Required | true |
+| Type | String |
 
 ### -Title
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -Description
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -Action
-Description: 
-Default Value: Allowed
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | Allowed |
+| Required | true |
+| Type | String |
 
 ### -Severity
-Description: 
-Default Value: Informational
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | Informational |
+| Required | true |
+| Type | String |
 
 ### -GenerateAlert
-Description: 
-Default Value: False
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

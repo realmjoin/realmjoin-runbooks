@@ -3,7 +3,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 
 | Category | Subcategory | Runbook Name | Synopsis |
 |----------|-------------|--------------|----------|
-| Device | Avd | Restart Host | Reboots a specific AVD Session Host. |
+| Device | AVD | Restart Host | Reboots a specific AVD Session Host. |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
 |  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business. |
@@ -17,7 +17,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Isolate Or Release Device | Isolate this device. |
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 |  |  | Restrict Or Release Code Execution | Restrict code execution. |
-|  |  | Show Laps Password | Show a local admin password for a device. |
+|  |  | Show LAPS Password | Show a local admin password for a device. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
 |  |  | Unenroll Updatable Assets | Unenroll devices from Windows Update for Business. |
 |  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group. |
@@ -32,7 +32,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Mail | Enable Or Disable External Mail | Enable/disable external parties to send eMails to O365 groups. |
 |  |  | Show Or Hide In Address Book | (Un)hide an O365- or static Distribution-group in Address Book. |
 |  | Teams | Archive Team | Archive a team. |
-| Org | Applications | Add Application Registration | Add an application registration to Azure AD |
+| Organization | Applications | Add Application Registration | Add an application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
 |  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
 |  |  | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. |
@@ -62,7 +62,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Assign Groups By Template_Scheduled | Assign cloud-only groups to many users based on a predefined template. |
 |  |  | Bulk Delete Devices From Autopilot | Mass-Delete Autopilot objects based on Serial Number. |
 |  |  | Bulk Retire Devices From Intune | Bulk retire devices from Intune using serial numbers |
-|  |  | Check Aad Sync Status_Scheduled | Check for last Azure AD Connect Sync Cycle. |
+|  |  | Check AAD Sync Status_Scheduled | Check for last Azure AD Connect Sync Cycle. |
 |  |  | Check Assignments Of Devices | Check Intune assignments for a given (or multiple) Device Names. |
 |  |  | Check Assignments Of Groups | Check Intune assignments for a given (or multiple) Group Names. |
 |  |  | Check Assignments Of Users | Check Intune assignments for a given (or multiple) User Principal Names (UPNs). |
@@ -78,9 +78,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors |
 |  |  | Office365 License Report | Generate an Office 365 licensing report. |
-|  |  | Report Apple Mdm Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. |
+|  |  | Report Apple MDM Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. |
 |  |  | Report License Assignment_Scheduled | Generate and email a license availability report based on configured thresholds |
-|  |  | Report Pim Activations_Scheduled | Scheduled Report on PIM Activations. |
+|  |  | Report PIM Activations_Scheduled | Scheduled Report on PIM Activations. |
 |  |  | Sync All Devices | Sync all Intune devices. |
 |  | Mail | Add Distribution List | Create a classic distribution group. |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox. |
@@ -99,11 +99,11 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Inactive Devices | List/export inactive devices, which had no recent user logons. |
 |  |  | List Inactive Users | List users, that have no recent interactive signins. |
 |  |  | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
-|  |  | List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+|  |  | List PIM Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
 |  |  | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 |  |  | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
-| User | Avd | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
+| User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |
 |  |  | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. |
 |  |  | Assign Windows365 | Assign/Provision a Windows 365 instance |
@@ -116,7 +116,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Resize Windows365 | Resize a Windows 365 Cloud PC |
 |  |  | Unassign Windows365 | Remove/Deprovision a Windows 365 instance |
 |  | Mail | Add Or Remove Email Address | Add/remove eMail address to/from mailbox. |
-|  |  | Assign Owa Mailbox Policy | Assign a given OWA mailbox policy to a user. |
+|  |  | Assign OWA Mailbox Policy | Assign a given OWA mailbox policy to a user. |
 |  |  | Convert To Shared Mailbox | Turn this users mailbox into a shared mailbox. |
 |  |  | Delegate Full Access | Grant another user full access to this mailbox. |
 |  |  | Delegate Send As | Grant another user sendAs permissions on this mailbox. |
@@ -135,10 +135,10 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Security | Confirm Or Dismiss Risky User | Confirm compromise / Dismiss a "risky user" |
 |  |  | Create Temporary Access Pass | Create an AAD temporary access pass for a user. |
 |  |  | Enable Or Disable Password Expiration | Set a users password policy to "(Do not) Expire" |
-|  |  | Reset Mfa | Remove all App- and Mobilephone auth methods for a user. |
+|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user. |
 |  |  | Reset Password | Reset a user's password. |
 |  |  | Revoke Or Restore Access | Revoke user access and all active tokens or re-enable user. |
-|  |  | Set Or Remove Mobile Phone Mfa | Add, update or remove a user's mobile phone MFA information. |
+|  |  | Set Or Remove Mobile Phone MFA | Add, update or remove a user's mobile phone MFA information. |
 |  | Userinfo | Rename User | Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname. |
 |  |  | Set Photo | Set / update the photo / avatar picture of a user. |
 |  |  | Update User | Update/Finalize an existing user object. |

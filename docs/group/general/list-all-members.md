@@ -19,9 +19,13 @@ Group \ General \ List All Members
 
 ## Parameters
 ### -GroupId
-Description: The ObjectId of the EntraID group whose membership is to be retrieved.
-Default Value: 
-Required: true
+The ObjectId of the EntraID group whose membership is to be retrieved.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -18,19 +18,29 @@ User \ General \ Assign Or Unassign License
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -GroupID_License
-Description: production does not supprt "ref:LicenseGroup" yet
-Default Value: 
-Required: true
+production does not supprt "ref:LicenseGroup" yet
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -Remove
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

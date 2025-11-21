@@ -15,9 +15,12 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 
 ## Parameters
 ### -HideBookingCalendars
-Description: 
-Default Value: True
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | true |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

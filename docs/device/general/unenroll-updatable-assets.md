@@ -16,14 +16,22 @@ Device \ General \ Unenroll Updatable Assets
 
 ## Parameters
 ### -DeviceId
-Description: DeviceId of the device to unenroll.
-Default Value: 
-Required: true
+DeviceId of the device to unenroll.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -UpdateCategory
-Description: Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
-Default Value: all
-Required: true
+Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
+
+| Property | Value |
+|----------|-------|
+| Default Value | all |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

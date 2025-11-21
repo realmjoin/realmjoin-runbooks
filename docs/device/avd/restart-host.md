@@ -11,14 +11,20 @@ Device \ AVD \ Restart Host
 
 ## Parameters
 ### -DeviceName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -SubscriptionIds
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String Array |
 
 
 [Back to Table of Content](../../../README.md)

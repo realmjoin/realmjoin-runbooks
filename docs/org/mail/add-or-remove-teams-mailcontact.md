@@ -19,24 +19,38 @@ Org \ Mail \ Add Or Remove Teams Mailcontact
 
 ## Parameters
 ### -RealAddress
-Description: Enter the address created by MS Teams for a channel
-Default Value: 
-Required: true
+Enter the address created by MS Teams for a channel
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -DesiredAddress
-Description: Will forward/relay to the real address.
-Default Value: 
-Required: true
+Will forward/relay to the real address.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -DisplayName
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -Remove
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

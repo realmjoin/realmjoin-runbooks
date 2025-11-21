@@ -21,50 +21,86 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 
 ## Parameters
 ### -Days
-Description: Number of days without activity to be considered stale.
-Default Value: 30
-Required: false
+Number of days without activity to be considered stale.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
 ### -Windows
-Description: Include Windows devices in the results.
-Default Value: True
-Required: false
+Include Windows devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -MacOS
-Description: Include macOS devices in the results.
-Default Value: True
-Required: false
+Include macOS devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -iOS
-Description: Include iOS devices in the results.
-Default Value: True
-Required: false
+Include iOS devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -Android
-Description: Include Android devices in the results.
-Default Value: True
-Required: false
+Include Android devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -DeleteDevices
-Description: If set to true, the script will delete the stale devices. If false, it will only report them.
-Default Value: False
-Required: false
+If set to true, the script will delete the stale devices. If false, it will only report them.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -ConfirmDeletion
-Description: If set to true, the script will prompt for confirmation before deleting devices.
+If set to true, the script will prompt for confirmation before deleting devices.
 Should be set to false for scheduled runs.
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -sendAlertTo
-Description: Email address to send the report to.
-Default Value: support@glueckkanja.com
-Required: false
+Email address to send the report to.
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 ### -sendAlertFrom
-Description: Email address to send the report from.
-Default Value: runbook@glueckkanja.com
-Required: false
+Email address to send the report from.
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbook@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

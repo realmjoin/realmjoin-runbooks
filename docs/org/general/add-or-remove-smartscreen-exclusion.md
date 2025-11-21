@@ -16,29 +16,47 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 
 ## Parameters
 ### -action
-Description: 0 - list, 1 - add, 2 - remove
-Default Value: 0
-Required: false
+0 - list, 1 - add, 2 - remove
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
 
 ### -Url
-Description: please give just the name of the domain, like "exclusiondemo.com"
-Default Value: 
-Required: false
+please give just the name of the domain, like "exclusiondemo.com"
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -mode
-Description: 0 - allow, 1 - audit, 2 - warn, 3 - block
-Default Value: 0
-Required: false
+0 - allow, 1 - audit, 2 - warn, 3 - block
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
 
 ### -explanationTitle
-Description: 
-Default Value: Allow this domain in SmartScreen
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Allow this domain in SmartScreen |
+| Required | false |
+| Type | String |
 
 ### -explanationDescription
-Description: 
-Default Value: Required exclusion. Please provide more details.
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Required exclusion. Please provide more details. |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

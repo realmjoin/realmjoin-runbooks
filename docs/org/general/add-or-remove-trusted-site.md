@@ -22,29 +22,46 @@ Please switch to "v1.0" as soon, as this funtionality is available.
 
 ## Parameters
 ### -Action
-Description: 
-Default Value: 2
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | 2 |
+| Required | true |
+| Type | Int32 |
 
 ### -Url
-Description: Needs to be prefixed with "http://" or "https://"
-Default Value: 
-Required: false
+Needs to be prefixed with "http://" or "https://"
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -Zone
-Description: 
-Default Value: 1
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
 ### -DefaultPolicyName
-Description: 
-Default Value: Windows 10 - Trusted Sites
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Windows 10 - Trusted Sites |
+| Required | false |
+| Type | String |
 
 ### -IntunePolicyName
-Description: Will use an existing policy or default policy name if left empty.
-Default Value: 
-Required: false
+Will use an existing policy or default policy name if left empty.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

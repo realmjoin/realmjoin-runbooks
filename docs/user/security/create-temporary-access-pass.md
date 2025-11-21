@@ -16,19 +16,29 @@ User \ Security \ Create Temporary Access Pass
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -LifetimeInMinutes
-Description: Time the pass will stay valid in minutes
-Default Value: 240
-Required: false
+Time the pass will stay valid in minutes
+
+| Property | Value |
+|----------|-------|
+| Default Value | 240 |
+| Required | false |
+| Type | Int32 |
 
 ### -OneTimeUseOnly
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

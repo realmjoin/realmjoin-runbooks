@@ -16,24 +16,36 @@ Org \ Devices \ Add Device Via Corporate Identifier
 
 ## Parameters
 ### -CorpIdentifierType
-Description: 
-Default Value: serialNumber
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | serialNumber |
+| Required | true |
+| Type | String |
 
 ### -CorpIdentifier
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -DeviceDescripton
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -OverwriteExistingEntry
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

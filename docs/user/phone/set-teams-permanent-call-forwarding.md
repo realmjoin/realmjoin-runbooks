@@ -19,34 +19,58 @@ User \ Phone \ Set Teams Permanent Call Forwarding
 
 ## Parameters
 ### -UserName
-Description: User which should be set up. Could be filled with the user picker in the UI.
-Default Value: 
-Required: true
+User which should be set up. Could be filled with the user picker in the UI.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -ForwardTargetPhoneNumber
-Description: Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
-Default Value: 
-Required: false
+Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -ForwardTargetTeamsUser
-Description: Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
-Default Value: 
-Required: false
+Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -ForwardToVoicemail
-Description: Forward calls to voicemail.
-Default Value: False
-Required: false
+Forward calls to voicemail.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -ForwardToDelegates
-Description: Forward calls to delegates which are defined by the user.
-Default Value: False
-Required: false
+Forward calls to delegates which are defined by the user.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -TurnOffForward
-Description: Turn off immediate call forwarding.
-Default Value: False
-Required: false
+Turn off immediate call forwarding.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

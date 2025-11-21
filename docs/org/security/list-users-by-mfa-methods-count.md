@@ -19,9 +19,13 @@ Org \ Security \ List Users By MFA Methods Count
 
 ## Parameters
 ### -mfaMethodsRange
-Description: Range for filtering users based on the count of their registered MFA methods.
-Default Value: 
-Required: true
+Range for filtering users based on the count of their registered MFA methods.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

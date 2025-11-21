@@ -21,64 +21,100 @@ User \ General \ Resize Windows365
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -currentLicWin365GroupName
-Description: 
-Default Value: lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB |
+| Required | true |
+| Type | String |
 
 ### -newLicWin365GroupName
-Description: 
-Default Value: lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB |
+| Required | true |
+| Type | String |
 
 ### -sendMailWhenDoneResizing
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -fromMailAddress
-Description: 
-Default Value: reports@contoso.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | reports@contoso.com |
+| Required | false |
+| Type | String |
 
 ### -customizeMail
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -customMailMessage
-Description: 
-Default Value: Insert Custom Message here. (Capped at 3000 characters)
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | Insert Custom Message here. (Capped at 3000 characters) |
+| Required | false |
+| Type | String |
 
 ### -cfgProvisioningGroupPrefix
-Description: 
-Default Value: cfg - Windows 365 - Provisioning -
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Windows 365 - Provisioning - |
+| Required | false |
+| Type | String |
 
 ### -cfgUserSettingsGroupPrefix
-Description: 
-Default Value: cfg - Windows 365 - User Settings -
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | cfg - Windows 365 - User Settings - |
+| Required | false |
+| Type | String |
 
 ### -unassignRunbook
-Description: 
-Default Value: rjgit-user_general_unassign-windows365
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | rjgit-user_general_unassign-windows365 |
+| Required | false |
+| Type | String |
 
 ### -assignRunbook
-Description: 
-Default Value: rjgit-user_general_assign-windows365
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | rjgit-user_general_assign-windows365 |
+| Required | false |
+| Type | String |
 
 ### -skipGracePeriod
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

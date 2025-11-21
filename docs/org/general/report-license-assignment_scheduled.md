@@ -161,26 +161,38 @@ Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurati
 
 ## Parameters
 ### -InputJson
-Description: JSON array containing SKU configurations with thresholds. Each entry should include:
+JSON array containing SKU configurations with thresholds. Each entry should include:
 - SKUPartNumber: The Microsoft SKU identifier
 - FriendlyName: Display name for the license
 - MinThreshold: (Optional) Minimum number of licenses that should be available
 - MaxThreshold: (Optional) Maximum number of licenses that should be available
 
 This needs to be configured in the runbook customization
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | Object |
 
 ### -EmailTo
-Description: Can be a single address or multiple comma-separated addresses (string).
+Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -EmailFrom
-Description: The sender email address. This needs to be configured in the runbook customization
-Default Value: 
-Required: false
+The sender email address. This needs to be configured in the runbook customization
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

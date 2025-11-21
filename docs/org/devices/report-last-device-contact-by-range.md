@@ -29,26 +29,42 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 ## Parameters
 ### -dateRange
-Description: Date range for filtering devices based on their last contact time.
-Default Value: 
-Required: true
+Date range for filtering devices based on their last contact time.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -systemType
-Description: The operating system type of the devices to filter.
-Default Value: Windows
-Required: true
+The operating system type of the devices to filter.
+
+| Property | Value |
+|----------|-------|
+| Default Value | Windows |
+| Required | true |
+| Type | String |
 
 ### -EmailFrom
-Description: The sender email address. This needs to be configured in the runbook customization
-Default Value: 
-Required: false
+The sender email address. This needs to be configured in the runbook customization
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -EmailTo
-Description: If specified, an email with the report will be sent to the provided address(es).
+If specified, an email with the report will be sent to the provided address(es).
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

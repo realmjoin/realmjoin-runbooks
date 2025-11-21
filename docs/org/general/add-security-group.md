@@ -26,19 +26,31 @@ Also to reactivate this feature, the following extra is in the .INPUTS are requi
 
 ## Parameters
 ### -GroupName
-Description: The name of the security group.
-Default Value: 
-Required: true
+The name of the security group.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -GroupDescription
-Description: The description of the security group.
-Default Value: 
-Required: false
+The description of the security group.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -Owner
-Description: The owner of the security group.
-Default Value: 
-Required: false
+The owner of the security group.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

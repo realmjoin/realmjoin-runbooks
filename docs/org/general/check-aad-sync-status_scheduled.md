@@ -16,14 +16,20 @@ Org \ General \ Check Aad Sync Status_Scheduled
 
 ## Parameters
 ### -sendAlertTo
-Description: 
-Default Value: support@glueckkanja.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 ### -sendAlertFrom
-Description: 
-Default Value: runbooks@glueckkanja.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbooks@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

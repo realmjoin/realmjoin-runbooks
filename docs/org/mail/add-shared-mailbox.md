@@ -20,49 +20,85 @@ Org \ Mail \ Add Shared Mailbox
 
 ## Parameters
 ### -MailboxName
-Description: The alias (mailbox name) for the shared mailbox.
-Default Value: 
-Required: true
+The alias (mailbox name) for the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -DisplayName
-Description: The display name for the shared mailbox.
-Default Value: 
-Required: false
+The display name for the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -DomainName
-Description: The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
-Default Value: 
-Required: false
+The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -Language
-Description: The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
-Default Value: en-US
-Required: false
+The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
+
+| Property | Value |
+|----------|-------|
+| Default Value | en-US |
+| Required | false |
+| Type | String |
 
 ### -DelegateTo
-Description: The user to delegate access to the shared mailbox.
-Default Value: 
-Required: false
+The user to delegate access to the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -AutoMapping
-Description: If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
-Default Value: False
-Required: false
+If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -MessageCopyForSentAsEnabled
-Description: If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
-Default Value: True
-Required: false
+If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -MessageCopyForSendOnBehalfEnabled
-Description: If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
-Default Value: True
-Required: false
+If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -DisableUser
-Description: If set to true, the associated EntraID user account will be disabled.
-Default Value: True
-Required: false
+If set to true, the associated EntraID user account will be disabled.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

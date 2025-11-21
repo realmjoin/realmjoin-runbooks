@@ -11,19 +11,28 @@ Device \ AVD \ Toggle Drain Mode
 
 ## Parameters
 ### -DeviceName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -DrainMode
-Description: 
-Default Value: False
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | true |
+| Type | Boolean |
 
 ### -SubscriptionIds
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String Array |
 
 
 [Back to Table of Content](../../../README.md)

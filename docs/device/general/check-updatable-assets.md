@@ -16,9 +16,13 @@ Device \ General \ Check Updatable Assets
 
 ## Parameters
 ### -DeviceId
-Description: DeviceId of the device to check onboarding status for.
-Default Value: 
-Required: true
+DeviceId of the device to check onboarding status for.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -22,49 +22,78 @@ Device \ General \ Wipe Device
 
 ## Parameters
 ### -DeviceId
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -wipeDevice
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -useProtectedWipe
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -removeIntuneDevice
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -removeAutopilotDevice
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -removeAADDevice
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -disableAADDevice
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -macOsRecevoryCode
-Description: Only for old MacOS devices. Newer devices can be wiped without a recovery code.
-Default Value: 123456
-Required: false
+Only for old MacOS devices. Newer devices can be wiped without a recovery code.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 123456 |
+| Required | false |
+| Type | String |
 
 ### -macOsObliterationBehavior
-Description: "default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
-Default Value: default
-Required: false
+"default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
+
+| Property | Value |
+|----------|-------|
+| Default Value | default |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

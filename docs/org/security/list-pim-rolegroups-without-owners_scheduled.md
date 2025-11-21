@@ -15,19 +15,28 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
 ## Parameters
 ### -sendEmailIfFound
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -From
-Description: 
-Default Value: reports@contoso.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | reports@contoso.com |
+| Required | false |
+| Type | String |
 
 ### -To
-Description: 
-Default Value: support@glueckkanja-gab.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja-gab.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

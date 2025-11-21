@@ -19,49 +19,76 @@ User \ Mail \ Set Room Mailbox Configuration
 
 ## Parameters
 ### -UserName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -AllBookInPolicy
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -BookInPolicyGroup
-Description: 
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -AllowRecurringMeetings
-Description: 
-Default Value: True
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 ### -AutomateProcessing
-Description: 
-Default Value: AutoAccept
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | AutoAccept |
+| Required | false |
+| Type | String |
 
 ### -BookingWindowInDays
-Description: 
-Default Value: 180
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 180 |
+| Required | false |
+| Type | Int32 |
 
 ### -MaximumDurationInMinutes
-Description: 
-Default Value: 1440
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1440 |
+| Required | false |
+| Type | Int32 |
 
 ### -AllowConflicts
-Description: 
-Default Value: False
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 ### -Capacity
-Description: 
-Default Value: 0
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

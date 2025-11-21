@@ -19,24 +19,37 @@ Azure IaaS: `Contributor` role on the Azure Storage Account used for storing Clo
 
 ## Parameters
 ### -Table
-Description: CallerName is tracked purely for auditing purposes
-Default Value: CloudPCUsageV2
-Required: false
+CallerName is tracked purely for auditing purposes
+
+| Property | Value |
+|----------|-------|
+| Default Value | CloudPCUsageV2 |
+| Required | false |
+| Type | String |
 
 ### -ResourceGroupName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -StorageAccountName
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -days
-Description: 
-Default Value: 2
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | 2 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

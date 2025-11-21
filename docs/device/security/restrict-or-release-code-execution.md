@@ -22,19 +22,28 @@ Permissions (WindowsDefenderATP, Application):
 
 ## Parameters
 ### -DeviceId
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -Release
-Description: 
-Default Value: False
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | true |
+| Type | Boolean |
 
 ### -Comment
-Description: 
-Default Value: Possible security risk.
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value | Possible security risk. |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

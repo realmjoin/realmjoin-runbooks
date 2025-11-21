@@ -20,14 +20,22 @@ Org \ General \ Check Assignments Of Devices
 
 ## Parameters
 ### -DeviceNames
-Description: Device Names of the devices to check assignments for, separated by commas.
-Default Value: 
-Required: true
+Device Names of the devices to check assignments for, separated by commas.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -IncludeApps
-Description: Boolean to specify whether to include application assignments in the search.
-Default Value: False
-Required: false
+Boolean to specify whether to include application assignments in the search.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

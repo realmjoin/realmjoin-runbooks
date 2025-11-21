@@ -17,14 +17,20 @@ Org \ General \ Report Pim Activations_Scheduled
 
 ## Parameters
 ### -sendAlertTo
-Description: 
-Default Value: support@glueckkanja.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 ### -sendAlertFrom
-Description: 
-Default Value: runbook@glueckkanja.com
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbook@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

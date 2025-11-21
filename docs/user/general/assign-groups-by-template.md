@@ -10,24 +10,38 @@ User \ General \ Assign Groups By Template
 
 ## Parameters
 ### -UserId
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -GroupsTemplate
-Description: GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
-Default Value: 
-Required: false
+GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 ### -GroupsString
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 ### -UseDisplaynames
-Description: $UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames
-Default Value: True
-Required: false
+$UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

@@ -17,9 +17,12 @@ Device \ Security \ Reset Mobile Device Pin
 
 ## Parameters
 ### -DeviceId
-Description: 
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)
