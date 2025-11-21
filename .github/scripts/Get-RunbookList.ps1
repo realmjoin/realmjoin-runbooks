@@ -84,6 +84,10 @@ function Get-RunbookBasics {
     $runbookDisplayName = $runbookDisplayName -replace '\bMdm\b', 'MDM' -replace '\bAvd\b', 'AVD' -replace '\bAad\b', 'AAD' -replace '\bMfa\b', 'MFA' -replace '\bPim\b', 'PIM' -replace '\bCa\b', 'CA' -replace '\bPal\b', 'PAL' -replace '\bLaps\b', 'LAPS' -replace '\bOwa\b', 'OWA' -replace '\bTpm\b', 'TPM'
     $runbookDisplayPath = $runbookDisplayPath -replace '\bMdm\b', 'MDM' -replace '\bAvd\b', 'AVD' -replace '\bAad\b', 'AAD' -replace '\bMfa\b', 'MFA' -replace '\bPim\b', 'PIM' -replace '\bCa\b', 'CA' -replace '\bPal\b', 'PAL' -replace '\bLaps\b', 'LAPS' -replace '\bOwa\b', 'OWA' -replace '\bTpm\b', 'TPM'
 
+    # Replace _Scheduled with (Scheduled)
+    $runbookDisplayName = $runbookDisplayName -replace '_Scheduled$', ' (Scheduled)'
+    $runbookDisplayPath = $runbookDisplayPath -replace '_Scheduled$', ' (Scheduled)'
+
     return @{
         RunbookDisplayName = $runbookDisplayName
         RunbookDisplayPath = $runbookDisplayPath
@@ -409,7 +413,7 @@ if ($createParameterList) {
         Add-Content -Path $ParameterFile -Value "  - [$subFolder](#$subFolderAnchor)"
 
         foreach ($runbook in $primaryGroup.Group) {
-            $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-').ToLower())"
+            $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-' -replace '[()]', '').ToLower())"
             Add-Content -Path $ParameterFile -Value "    - [$($runbook.RunbookDisplayName)](#$runbookAnchor)"
         }
     }
@@ -436,7 +440,7 @@ if ($createParameterList) {
 
         foreach ($runbook in $primaryGroup.Group) {
             $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
-            $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-').ToLower())"
+            $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-' -replace '[()]', '').ToLower())"
 
             # Add runbook name and synopsis as heading with anchor
             Add-Content -Path $ParameterFile -Value "<a name='$runbookAnchor'></a>"
