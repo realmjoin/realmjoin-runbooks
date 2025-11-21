@@ -37,19 +37,19 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
 |  |  | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
-|  |  | Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
+|  |  | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
 |  |  | Update Application Registration | Update an application registration in Azure AD |
 |  | Devices | Add Autopilot Device | Import a windows device into Windows Autopilot. |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
-|  |  | Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform. |
 |  |  | Get Bitlocker Recovery Key | Get BitLocker recovery key |
 |  |  | Outphase Devices | Remove/Outphase multiple devices |
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
 |  |  | Report Last Device Contact By Range | Reports devices with last contact within a specified date range. |
-|  |  | Report Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
+|  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
-|  |  | Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
-|  | General | Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
+|  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
+|  | General | Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group. |
 |  |  | Add Management Partner | List or add or Management Partner Links (PAL) |
 |  |  | Add Microsoft Store App Logos | Update logos of Microsoft Store Apps (new) in Intune. |
 |  |  | Add Office365 Group | Create an Office 365 group and SharePoint site, optionally create a (Teams) team. |
@@ -59,28 +59,28 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Security Group | This runbook creates a Microsoft Entra ID security group with membership type "Assigned". |
 |  |  | Add User | Create a new user account. |
 |  |  | Add Viva Engange Community | Creates a Viva Engage (Yammer) community via the Yammer API |
-|  |  | Assign Groups By Template_Scheduled | Assign cloud-only groups to many users based on a predefined template. |
+|  |  | Assign Groups By Template (Scheduled) | Assign cloud-only groups to many users based on a predefined template. |
 |  |  | Bulk Delete Devices From Autopilot | Mass-Delete Autopilot objects based on Serial Number. |
 |  |  | Bulk Retire Devices From Intune | Bulk retire devices from Intune using serial numbers |
-|  |  | Check AAD Sync Status_Scheduled | Check for last Azure AD Connect Sync Cycle. |
+|  |  | Check AAD Sync Status (Scheduled) | Check for last Azure AD Connect Sync Cycle. |
 |  |  | Check Assignments Of Devices | Check Intune assignments for a given (or multiple) Device Names. |
 |  |  | Check Assignments Of Groups | Check Intune assignments for a given (or multiple) Group Names. |
 |  |  | Check Assignments Of Users | Check Intune assignments for a given (or multiple) User Principal Names (UPNs). |
 |  |  | Check Autopilot Serialnumbers | Check if given serial numbers are present in AutoPilot. |
-|  |  | Check Device Onboarding Exclusion_Scheduled | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. |
-|  |  | Enrolled Devices Report_Scheduled | Show recent first-time device enrollments. |
+|  |  | Check Device Onboarding Exclusion (Scheduled) | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. |
+|  |  | Enrolled Devices Report (Scheduled) | Show recent first-time device enrollments. |
 |  |  | Export All Autopilot Devices | List/export all AutoPilot devices. |
 |  |  | Export All Intune Devices | Export a list of all Intune devices and where they are registered. |
-|  |  | Export Cloudpc Usage_Scheduled | Write daily Windows 365 Utilization Data to Azure Tables |
+|  |  | Export Cloudpc Usage (Scheduled) | Write daily Windows 365 Utilization Data to Azure Tables |
 |  |  | Export Non Compliant Devices | Report on non-compliant devices and policies |
 |  |  | Export Policy Report | Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file. |
 |  |  | Invite External Guest Users | Invites external guest users to the organization using Microsoft Graph. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors |
 |  |  | Office365 License Report | Generate an Office 365 licensing report. |
-|  |  | Report Apple MDM Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. |
-|  |  | Report License Assignment_Scheduled | Generate and email a license availability report based on configured thresholds |
-|  |  | Report PIM Activations_Scheduled | Scheduled Report on PIM Activations. |
+|  |  | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates. |
+|  |  | Report License Assignment (Scheduled) | Generate and email a license availability report based on configured thresholds |
+|  |  | Report PIM Activations (Scheduled) | Scheduled Report on PIM Activations. |
 |  |  | Sync All Devices | Sync all Intune devices. |
 |  | Mail | Add Distribution List | Create a classic distribution group. |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox. |
@@ -89,7 +89,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List. |
 |  |  | Add Room Mailbox | Create a room resource. |
 |  |  | Add Shared Mailbox | Create a shared mailbox. |
-|  |  | Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |
+|  |  | Hide Mailboxes (Scheduled) | Hide / Unhide special mailboxes in Global Address Book |
 |  |  | Set Booking Config | Configure Microsoft Bookings settings for the organization. |
 |  | Phone | Get Teams Phone Number Assignment | Looks up, if the given phone number is assigned to a user in Microsoft Teams. |
 |  | Security | Add Defender Indicator | Create new Indicator in Defender for Endpoint. |
@@ -99,7 +99,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Inactive Devices | List/export inactive devices, which had no recent user logons. |
 |  |  | List Inactive Users | List users, that have no recent interactive signins. |
 |  |  | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
-|  |  | List PIM Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+|  |  | List PIM Rolegroups Without Owners (Scheduled) | List role-assignable groups with eligible role assignments but without owners |
 |  |  | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 |  |  | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
