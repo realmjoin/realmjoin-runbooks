@@ -417,10 +417,31 @@ if ($outputMode -eq "OneFile") {
                 if ($runbook.Parameters) {
                     Add-Content -Path $ResultFile -Value "#### Parameters"
                     foreach ($parameter in $runbook.Parameters) {
-                        Add-Content -Path $ResultFile -Value "##### -$($parameter.Name)"
-                        Add-Content -Path $ResultFile -Value "Description: $($parameter.Description.Text)"
-                        Add-Content -Path $ResultFile -Value "Default Value: $($parameter.DefaultValue)"
-                        Add-Content -Path $ResultFile -Value "Required: $($parameter.Required)"
+                        Add-Content -Path $ResultFile -Value "##### $($parameter.Name)"
+                        # Filter out ValidateScript blocks from description
+                        $paramDescription = if ($parameter.Description) {
+                            $desc = ($parameter.Description.Text -join " ").Trim()
+                            # Remove ValidateScript blocks
+                            $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                            $desc.Trim()
+                        } else { "" }
+                        if ($paramDescription) {
+                            Add-Content -Path $ResultFile -Value $paramDescription
+                        }
+                        Add-Content -Path $ResultFile -Value ""
+                        # Format type for display
+                        $paramType = if ($parameter.type.name) {
+                            if ($parameter.type.name -eq 'String[]') {
+                                "String Array"
+                            } else {
+                                $parameter.type.name
+                            }
+                        } else { "" }
+                        Add-Content -Path $ResultFile -Value "| Property | Value |"
+                        Add-Content -Path $ResultFile -Value "|----------|-------|"
+                        Add-Content -Path $ResultFile -Value "| Default Value | $($parameter.DefaultValue) |"
+                        Add-Content -Path $ResultFile -Value "| Required | $($parameter.Required) |"
+                        Add-Content -Path $ResultFile -Value "| Type | $paramType |"
                         Add-Content -Path $ResultFile -Value ""
                     }
                 }
@@ -621,9 +642,30 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
                         foreach ($parameter in $runbook.Parameters) {
                             if ($parameter.Name -notlike "CallerName") {
                                 Add-Content -Path $runbookFilePath -Value "### -$($parameter.Name)"
-                                Add-Content -Path $runbookFilePath -Value "Description: $($parameter.Description.Text)"
-                                Add-Content -Path $runbookFilePath -Value "Default Value: $($parameter.DefaultValue)"
-                                Add-Content -Path $runbookFilePath -Value "Required: $($parameter.Required)"
+                                # Filter out ValidateScript blocks from description
+                                $paramDescription = if ($parameter.Description) {
+                                    $desc = ($parameter.Description.Text -join " ").Trim()
+                                    # Remove ValidateScript blocks
+                                    $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                                    $desc.Trim()
+                                } else { "" }
+                                if ($paramDescription) {
+                                    Add-Content -Path $runbookFilePath -Value $paramDescription
+                                }
+                                Add-Content -Path $runbookFilePath -Value ""
+                                # Format type for display
+                                $paramType = if ($parameter.type.name) {
+                                    if ($parameter.type.name -eq 'String[]') {
+                                        "String Array"
+                                    } else {
+                                        $parameter.type.name
+                                    }
+                                } else { "" }
+                                Add-Content -Path $runbookFilePath -Value "| Property | Value |"
+                                Add-Content -Path $runbookFilePath -Value "|----------|-------|"
+                                Add-Content -Path $runbookFilePath -Value "| Default Value | $($parameter.DefaultValue) |"
+                                Add-Content -Path $runbookFilePath -Value "| Required | $($parameter.Required) |"
+                                Add-Content -Path $runbookFilePath -Value "| Type | $paramType |"
                                 Add-Content -Path $runbookFilePath -Value ""
                             }
                         }

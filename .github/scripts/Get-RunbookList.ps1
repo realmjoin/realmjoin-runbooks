@@ -6,28 +6,34 @@
     This script collects information from all RealmJoin runbooks in a specified folder and generates based on parameters several markdown kind of lists documents with the runbook details. The script can create the following documents:
     - A list of all runbooks with a short description. The created document also contains a table of contents and backlinks to the table of contents. In this document, the information regarding the following parameters are included: Category, Subcategory, Runbook Name, Synopsis, Description
     - A compact list of all runbooks with a short description. The created document does not contain a table of contents or other links. In the list, the columns are Category, Subcategory, Runbook Name and Synopsis
-    - A list of permissions and RBAC roles for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.    
+    - A list of permissions and RBAC roles for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.
 
     .PARAMETER includedScope
     The scope of the runbooks to include, which represents the root folder of the runbooks. The default value is "device", "group", "org", "user".
-    
+
     .PARAMETER createRunbookOverviewList
-    Creates a list of all runbooks with a short description. The created document also contains a table of contents and backlinks to the table of contents. 
+    Creates a list of all runbooks with a short description. The created document also contains a table of contents and backlinks to the table of contents.
     In this document, the information regarding the following parameters are included: Category, Subcategory, Runbook Name, Synopsis, Description
     The name of this list is "RealmJoinRunbook-RunbookList.md"
 
     .PARAMETER createCompactRunbookOverviewList
-    Creates a compact list of all runbooks with a short description. The created document does not contain a table of contents or other links. 
+    Creates a compact list of all runbooks with a short description. The created document does not contain a table of contents or other links.
     In the list, the columns are Category, Subcategory, Runbook Name and Synopsis
     The name of this list is "RealmJoinRunbook-RunbookListCompact.md"
 
     .PARAMETER createPermissionList
-    Creates a list of permissions and RBAC roles for each runbook. 
+    Creates a list of permissions and RBAC roles for each runbook.
     In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.
     The name of this list is "RealmJoinRunbook-PermissionOverview.md"
 
+    .PARAMETER createParameterList
+    Creates a list of all parameters for each runbook.
+    In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Parameter, Required and Type.
+    Each parameter is listed in a separate row. The runbook name and synopsis are only shown once per runbook.
+    The name of this list is "RealmJoinRunbook-RunbookParameterList.md"
+
     .PARAMETER outputFolder
-    The output folder for the generated markdown files or depending on the output mode for the generated folder structure. The default value is the folder "docs" in the current location. 
+    The output folder for the generated markdown files or depending on the output mode for the generated folder structure. The default value is the folder "docs" in the current location.
 
     .PARAMETER rootFolder
     The root folder where the script should start to search for runbooks. The default value is the current location.
@@ -43,6 +49,7 @@ param(
     [switch]$createRunbookOverviewList,
     [switch]$createCompactRunbookOverviewList,
     [switch]$createPermissionList,
+    [switch]$createParameterList,
     [string]$outputFolder = $(Join-Path -Path (Get-Location).Path -ChildPath "docs"),
     [string]$rootFolder = (Get-Location).Path
 )
@@ -72,7 +79,10 @@ function Get-RunbookBasics {
     $runbookDisplayName = (Split-Path -LeafBase $runbookPath | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
     $runbookDisplayPath = ($relativeRunbookPath -replace "\.ps1$", "") -replace "[\\/]", ' \ ' | ForEach-Object { $TextInfo.ToTitleCase($_) }
     $runbookDisplayPath = $runbookDisplayPath -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
-    
+
+    # Fix common acronyms to be uppercase
+    $runbookDisplayName = $runbookDisplayName -replace '\bMdm\b', 'MDM' -replace '\bAvd\b', 'AVD' -replace '\bAad\b', 'AAD' -replace '\bMfa\b', 'MFA' -replace '\bPim\b', 'PIM' -replace '\bCa\b', 'CA' -replace '\bPal\b', 'PAL' -replace '\bLaps\b', 'LAPS' -replace '\bOwa\b', 'OWA' -replace '\bTpm\b', 'TPM'
+    $runbookDisplayPath = $runbookDisplayPath -replace '\bMdm\b', 'MDM' -replace '\bAvd\b', 'AVD' -replace '\bAad\b', 'AAD' -replace '\bMfa\b', 'MFA' -replace '\bPim\b', 'PIM' -replace '\bCa\b', 'CA' -replace '\bPal\b', 'PAL' -replace '\bLaps\b', 'LAPS' -replace '\bOwa\b', 'OWA' -replace '\bTpm\b', 'TPM'
 
     return @{
         RunbookDisplayName = $runbookDisplayName
@@ -128,11 +138,19 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $includedScope -contains $_.Directory.Parent.Name
 } | ForEach-Object {
     $CurrentObject = $_
-    
+
     $relativeRunbookPath = $CurrentObject.FullName -replace "^$rootFolder[\\/]*", ""
     $RelativeRunbookPath_PathOnly = Split-Path -Path $relativeRunbookPath
     $primaryFolder = ($RelativeRunbookPath_PathOnly -split "[\\/]" | Select-Object -First 1).Substring(0, 1).ToUpper() + ($RelativeRunbookPath_PathOnly -split "[\\/]" | Select-Object -First 1).Substring(1)
     $subFolder = ($RelativeRunbookPath_PathOnly -split "[\\/]" | Select-Object -Skip 1 | Select-Object -First 1).Substring(0, 1).ToUpper() + ($RelativeRunbookPath_PathOnly -split "[\\/]" | Select-Object -Skip 1 | Select-Object -First 1).Substring(1)
+
+    # Replace "Org" with "Organization"
+    if ($primaryFolder -eq "Org") {
+        $primaryFolder = "Organization"
+    }
+
+    # Fix common acronyms to be uppercase in folder names
+    $subFolder = $subFolder -replace '\bMdm\b', 'MDM' -replace '\bAvd\b', 'AVD' -replace '\bAad\b', 'AAD' -replace '\bMfa\b', 'MFA' -replace '\bPim\b', 'PIM' -replace '\bCa\b', 'CA' -replace '\bPal\b', 'PAL' -replace '\bLaps\b', 'LAPS' -replace '\bOwa\b', 'OWA' -replace '\bTpm\b', 'TPM'
 
     # Get comment-based help content from the current runbook
     $CurrentRunbookBasics = Get-RunbookBasics -runbookPath $CurrentObject.FullName -relativeRunbookPath $relativeRunbookPath
@@ -153,7 +171,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     else { $null }
 
     $docsContent = if ($null -ne $docsPath) { Get-Content -Path $docsPath -Raw }
-    $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw } 
+    $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw }
 
     $runbookDescriptions += [PSCustomObject]@{
         RunbookDisplayName           = $CurrentRunbookBasics.RunbookDisplayName
@@ -207,7 +225,7 @@ if ($createRunbookOverviewList) {
     Add-Content -Path $ListFile_Overview -Value "# Overview"
     Add-Content -Path $ListFile_Overview -Value "This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality."
     Add-Content -Path $ListFile_Overview -Value ""
-    Add-Content -Path $ListFile_Overview -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:" 
+    Add-Content -Path $ListFile_Overview -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $includedScope) {
         Add-Content -Path $ListFile_Overview -Value "- $scope"
     }
@@ -343,6 +361,135 @@ if ($createPermissionList) {
         $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
         Add-Content -Path $PermissionFile -Value "| $primaryFolderValue | $subFolderValue | $($runbook.RunbookDisplayName) | $synopsis | $permissionsMarkdown | $rbacRolesMarkdown |"
         $lastPrimaryFolder = $runbook.PrimaryFolder
-        $lastSubFolder = $run
+        $lastSubFolder = $runbook.SubFolder
     }
 }
+
+#endregion
+
+######################################
+#region Generate Parameter overview list
+######################################
+
+if ($createParameterList) {
+    $ParameterFile = Join-Path -Path $outputFolder -ChildPath "RealmJoinRunbook-RunbookParameterList.md"
+    if (Test-Path -Path $ParameterFile) {
+        Remove-Item -Path $ParameterFile -Force -ErrorAction SilentlyContinue
+    }
+
+    $groupedRunbooks = $runbookDescriptions | Group-Object -Property PrimaryFolder, SubFolder
+
+    Add-Content -Path $ParameterFile -Value "<a name='runbook-parameter-overview'></a>"
+    Add-Content -Path $ParameterFile -Value "# Overview"
+    Add-Content -Path $ParameterFile -Value "This document provides a comprehensive overview of all parameters used in the runbooks available in the RealmJoin portal. Each parameter is listed with its type and whether it is required or optional."
+    Add-Content -Path $ParameterFile -Value ""
+    Add-Content -Path $ParameterFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
+    foreach ($scope in $includedScope) {
+        Add-Content -Path $ParameterFile -Value "- $scope"
+    }
+    Add-Content -Path $ParameterFile -Value ""
+    Add-Content -Path $ParameterFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row. The runbook name and synopsis are only shown once per runbook to improve readability."
+    Add-Content -Path $ParameterFile -Value ""
+
+    # Create TOC
+    Add-Content -Path $ParameterFile -Value "# Table of Contents"
+
+    $lastPrimaryFolder = ""
+    foreach ($primaryGroup in $groupedRunbooks) {
+        $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
+        $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
+        $primaryFolderAnchor = ($primaryFolder -replace ' ', '-').ToLower()
+        $subFolderAnchor = "$($primaryFolderAnchor)-$(($subFolder -replace ' ', '-').ToLower())"
+
+        if ($lastPrimaryFolder -ne $primaryFolder) {
+            Add-Content -Path $ParameterFile -Value "- [$primaryFolder](#$primaryFolderAnchor)"
+            $lastPrimaryFolder = $primaryFolder
+        }
+
+        Add-Content -Path $ParameterFile -Value "  - [$subFolder](#$subFolderAnchor)"
+
+        foreach ($runbook in $primaryGroup.Group) {
+            Add-Content -Path $ParameterFile -Value "    - $($runbook.RunbookDisplayName)"
+        }
+    }
+
+    Add-Content -Path $ParameterFile -Value ""
+
+    # Create content sections
+    $lastPrimaryFolder = ""
+    foreach ($primaryGroup in $groupedRunbooks) {
+        $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
+        $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
+        $primaryFolderAnchor = ($primaryFolder -replace ' ', '-').ToLower()
+        $subFolderAnchor = "$($primaryFolderAnchor)-$(($subFolder -replace ' ', '-').ToLower())"
+
+        if ($lastPrimaryFolder -ne $primaryFolder) {
+            Add-Content -Path $ParameterFile -Value "<a name='$primaryFolderAnchor'></a>"
+            Add-Content -Path $ParameterFile -Value "# $primaryFolder"
+            $lastPrimaryFolder = $primaryFolder
+        }
+
+        Add-Content -Path $ParameterFile -Value "<a name='$subFolderAnchor'></a>"
+        Add-Content -Path $ParameterFile -Value "## $subFolder"
+
+        Add-Content -Path $ParameterFile -Value "| Runbook Name | Synopsis | Parameter | Required | Type | Description |"
+        Add-Content -Path $ParameterFile -Value "|--------------|----------|-----------|----------|------|-------------|"
+
+        foreach ($runbook in $primaryGroup.Group) {
+            $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+
+            # Handle runbooks with no parameters
+            if (-not $runbook.Parameters -or $runbook.Parameters.Count -eq 0) {
+                Add-Content -Path $ParameterFile -Value "| $($runbook.RunbookDisplayName) | $synopsis | - | - | - | - |"
+            }
+            else {
+                # First parameter row includes runbook name and synopsis
+                $firstParam = $runbook.Parameters[0]
+                $isRequired = if ($firstParam.required -eq $true -or $firstParam.required -eq 'true') { "✓" } else { "" }
+                $paramType = if ($firstParam.type.name) {
+                    if ($firstParam.type.name -eq 'String[]') {
+                        "String Array"
+                    } else {
+                        $firstParam.type.name
+                    }
+                } else { "" }
+                # Filter out ValidateScript blocks from description
+                $paramDescription = if ($firstParam.description) {
+                    $desc = ($firstParam.description.Text -join " ").Trim()
+                    # Remove ValidateScript blocks
+                    $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                    $desc.Trim()
+                } else { "" }
+
+                Add-Content -Path $ParameterFile -Value "| $($runbook.RunbookDisplayName) | $synopsis | $($firstParam.name) | $isRequired | $paramType | $paramDescription |"
+
+                # Subsequent parameter rows have empty runbook name and synopsis
+                for ($i = 1; $i -lt $runbook.Parameters.Count; $i++) {
+                    $param = $runbook.Parameters[$i]
+                    $isRequired = if ($param.required -eq $true -or $param.required -eq 'true') { "✓" } else { "" }
+                    $paramType = if ($param.type.name) {
+                        if ($param.type.name -eq 'String[]') {
+                            "String Array"
+                        } else {
+                            $param.type.name
+                        }
+                    } else { "" }
+                    # Filter out ValidateScript blocks from description
+                    $paramDescription = if ($param.description) {
+                        $desc = ($param.description.Text -join " ").Trim()
+                        # Remove ValidateScript blocks
+                        $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                        $desc.Trim()
+                    } else { "" }
+
+                    Add-Content -Path $ParameterFile -Value "| | | $($param.name) | $isRequired | $paramType | $paramDescription |"
+                }
+            }
+        }
+        Add-Content -Path $ParameterFile -Value ""
+        Add-Content -Path $ParameterFile -Value "[Back to the RealmJoin runbook parameter overview](#table-of-contents)"
+        Add-Content -Path $ParameterFile -Value ""
+    }
+}
+
+#endregion
