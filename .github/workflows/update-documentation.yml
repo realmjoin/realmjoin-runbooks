@@ -90,6 +90,7 @@ jobs:
               -createRunbookOverviewList `
               -createCompactRunbookOverviewList `
               -createPermissionList `
+              -createParameterList `
               -outputFolder $env:OUTPUT_PATH_LISTS `
               -rootFolder $env:ROOT_PATH
 
