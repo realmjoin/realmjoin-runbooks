@@ -8,176 +8,178 @@ To ensure easy navigation, the runbooks are categorized into different sections 
 - org
 - user
 
-Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row. The runbook name and synopsis are only shown once per runbook to improve readability.
+Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row.
 
 # Table of Contents
 - [Device](#device)
   - [AVD](#device-avd)
-    - Restart Host
-    - Toggle Drain Mode
+    - [Restart Host](#device-avd-restart-host)
+    - [Toggle Drain Mode](#device-avd-toggle-drain-mode)
   - [General](#device-general)
-    - Change Grouptag
-    - Check Updatable Assets
-    - Enroll Updatable Assets
-    - Outphase Device
-    - Remove Primary User
-    - Rename Device
-    - Unenroll Updatable Assets
-    - Wipe Device
+    - [Change Grouptag](#device-general-change-grouptag)
+    - [Check Updatable Assets](#device-general-check-updatable-assets)
+    - [Enroll Updatable Assets](#device-general-enroll-updatable-assets)
+    - [Outphase Device](#device-general-outphase-device)
+    - [Remove Primary User](#device-general-remove-primary-user)
+    - [Rename Device](#device-general-rename-device)
+    - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
+    - [Wipe Device](#device-general-wipe-device)
   - [Security](#device-security)
-    - Enable Or Disable Device
-    - Isolate Or Release Device
-    - Reset Mobile Device Pin
-    - Restrict Or Release Code Execution
-    - Show LAPS Password
+    - [Enable Or Disable Device](#device-security-enable-or-disable-device)
+    - [Isolate Or Release Device](#device-security-isolate-or-release-device)
+    - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
+    - [Restrict Or Release Code Execution](#device-security-restrict-or-release-code-execution)
+    - [Show LAPS Password](#device-security-show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
-    - Check Updatable Assets
-    - Unenroll Updatable Assets
+    - [Check Updatable Assets](#group-devices-check-updatable-assets)
+    - [Unenroll Updatable Assets](#group-devices-unenroll-updatable-assets)
   - [General](#group-general)
-    - Add Or Remove Nested Group
-    - Add Or Remove Owner
-    - Add Or Remove User
-    - Change Visibility
-    - List All Members
-    - List Owners
-    - List User Devices
-    - Remove Group
-    - Rename Group
+    - [Add Or Remove Nested Group](#group-general-add-or-remove-nested-group)
+    - [Add Or Remove Owner](#group-general-add-or-remove-owner)
+    - [Add Or Remove User](#group-general-add-or-remove-user)
+    - [Change Visibility](#group-general-change-visibility)
+    - [List All Members](#group-general-list-all-members)
+    - [List Owners](#group-general-list-owners)
+    - [List User Devices](#group-general-list-user-devices)
+    - [Remove Group](#group-general-remove-group)
+    - [Rename Group](#group-general-rename-group)
   - [Mail](#group-mail)
-    - Enable Or Disable External Mail
-    - Show Or Hide In Address Book
+    - [Enable Or Disable External Mail](#group-mail-enable-or-disable-external-mail)
+    - [Show Or Hide In Address Book](#group-mail-show-or-hide-in-address-book)
   - [Teams](#group-teams)
-    - Archive Team
+    - [Archive Team](#group-teams-archive-team)
 - [Organization](#organization)
   - [Applications](#organization-applications)
-    - Add Application Registration
-    - Delete Application Registration
-    - Export Enterprise Application Users
-    - List Inactive Enterprise Applications
-    - Report Application Registration
-    - Report Expiring Application Credentials_Scheduled
-    - Update Application Registration
+    - [Add Application Registration](#organization-applications-add-application-registration)
+    - [Delete Application Registration](#organization-applications-delete-application-registration)
+    - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
+    - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
+    - [Report Application Registration](#organization-applications-report-application-registration)
+    - [Report Expiring Application Credentials_Scheduled](#organization-applications-report-expiring-application-credentials_scheduled)
+    - [Update Application Registration](#organization-applications-update-application-registration)
   - [Devices](#organization-devices)
-    - Add Autopilot Device
-    - Add Device Via Corporate Identifier
-    - Delete Stale Devices_Scheduled
-    - Get Bitlocker Recovery Key
-    - Outphase Devices
-    - Report Devices Without Primary User
-    - Report Last Device Contact By Range
-    - Report Stale Devices_Scheduled
-    - Report Users With More Than 5-Devices
-    - Sync Device Serialnumbers To Entraid_Scheduled
+    - [Add Autopilot Device](#organization-devices-add-autopilot-device)
+    - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
+    - [Delete Stale Devices_Scheduled](#organization-devices-delete-stale-devices_scheduled)
+    - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
+    - [Outphase Devices](#organization-devices-outphase-devices)
+    - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
+    - [Report Last Device Contact By Range](#organization-devices-report-last-device-contact-by-range)
+    - [Report Stale Devices_Scheduled](#organization-devices-report-stale-devices_scheduled)
+    - [Report Users With More Than 5-Devices](#organization-devices-report-users-with-more-than-5-devices)
+    - [Sync Device Serialnumbers To Entraid_Scheduled](#organization-devices-sync-device-serialnumbers-to-entraid_scheduled)
   - [General](#organization-general)
-    - Add Devices Of Users To Group_Scheduled
-    - Add Management Partner
-    - Add Microsoft Store App Logos
-    - Add Office365 Group
-    - Add Or Remove Safelinks Exclusion
-    - Add Or Remove Smartscreen Exclusion
-    - Add Or Remove Trusted Site
-    - Add Security Group
-    - Add User
-    - Add Viva Engange Community
-    - Assign Groups By Template_Scheduled
-    - Bulk Delete Devices From Autopilot
-    - Bulk Retire Devices From Intune
-    - Check AAD Sync Status_Scheduled
-    - Check Assignments Of Devices
-    - Check Assignments Of Groups
-    - Check Assignments Of Users
-    - Check Autopilot Serialnumbers
-    - Check Device Onboarding Exclusion_Scheduled
-    - Enrolled Devices Report_Scheduled
-    - Export All Autopilot Devices
-    - Export All Intune Devices
-    - Export Cloudpc Usage_Scheduled
-    - Export Non Compliant Devices
-    - Export Policy Report
-    - Invite External Guest Users
-    - List All Administrative Template Policies
-    - List Group License Assignment Errors
-    - Office365 License Report
-    - Report Apple MDM Cert Expiry_Scheduled
-    - Report License Assignment_Scheduled
-    - Report PIM Activations_Scheduled
-    - Sync All Devices
+    - [Add Devices Of Users To Group_Scheduled](#organization-general-add-devices-of-users-to-group_scheduled)
+    - [Add Management Partner](#organization-general-add-management-partner)
+    - [Add Microsoft Store App Logos](#organization-general-add-microsoft-store-app-logos)
+    - [Add Office365 Group](#organization-general-add-office365-group)
+    - [Add Or Remove Safelinks Exclusion](#organization-general-add-or-remove-safelinks-exclusion)
+    - [Add Or Remove Smartscreen Exclusion](#organization-general-add-or-remove-smartscreen-exclusion)
+    - [Add Or Remove Trusted Site](#organization-general-add-or-remove-trusted-site)
+    - [Add Security Group](#organization-general-add-security-group)
+    - [Add User](#organization-general-add-user)
+    - [Add Viva Engange Community](#organization-general-add-viva-engange-community)
+    - [Assign Groups By Template_Scheduled](#organization-general-assign-groups-by-template_scheduled)
+    - [Bulk Delete Devices From Autopilot](#organization-general-bulk-delete-devices-from-autopilot)
+    - [Bulk Retire Devices From Intune](#organization-general-bulk-retire-devices-from-intune)
+    - [Check AAD Sync Status_Scheduled](#organization-general-check-aad-sync-status_scheduled)
+    - [Check Assignments Of Devices](#organization-general-check-assignments-of-devices)
+    - [Check Assignments Of Groups](#organization-general-check-assignments-of-groups)
+    - [Check Assignments Of Users](#organization-general-check-assignments-of-users)
+    - [Check Autopilot Serialnumbers](#organization-general-check-autopilot-serialnumbers)
+    - [Check Device Onboarding Exclusion_Scheduled](#organization-general-check-device-onboarding-exclusion_scheduled)
+    - [Enrolled Devices Report_Scheduled](#organization-general-enrolled-devices-report_scheduled)
+    - [Export All Autopilot Devices](#organization-general-export-all-autopilot-devices)
+    - [Export All Intune Devices](#organization-general-export-all-intune-devices)
+    - [Export Cloudpc Usage_Scheduled](#organization-general-export-cloudpc-usage_scheduled)
+    - [Export Non Compliant Devices](#organization-general-export-non-compliant-devices)
+    - [Export Policy Report](#organization-general-export-policy-report)
+    - [Invite External Guest Users](#organization-general-invite-external-guest-users)
+    - [List All Administrative Template Policies](#organization-general-list-all-administrative-template-policies)
+    - [List Group License Assignment Errors](#organization-general-list-group-license-assignment-errors)
+    - [Office365 License Report](#organization-general-office365-license-report)
+    - [Report Apple MDM Cert Expiry_Scheduled](#organization-general-report-apple-mdm-cert-expiry_scheduled)
+    - [Report License Assignment_Scheduled](#organization-general-report-license-assignment_scheduled)
+    - [Report PIM Activations_Scheduled](#organization-general-report-pim-activations_scheduled)
+    - [Sync All Devices](#organization-general-sync-all-devices)
   - [Mail](#organization-mail)
-    - Add Distribution List
-    - Add Equipment Mailbox
-    - Add Or Remove Public Folder
-    - Add Or Remove Teams Mailcontact
-    - Add Or Remove Tenant Allow Block List
-    - Add Room Mailbox
-    - Add Shared Mailbox
-    - Hide Mailboxes_Scheduled
-    - Set Booking Config
+    - [Add Distribution List](#organization-mail-add-distribution-list)
+    - [Add Equipment Mailbox](#organization-mail-add-equipment-mailbox)
+    - [Add Or Remove Public Folder](#organization-mail-add-or-remove-public-folder)
+    - [Add Or Remove Teams Mailcontact](#organization-mail-add-or-remove-teams-mailcontact)
+    - [Add Or Remove Tenant Allow Block List](#organization-mail-add-or-remove-tenant-allow-block-list)
+    - [Add Room Mailbox](#organization-mail-add-room-mailbox)
+    - [Add Shared Mailbox](#organization-mail-add-shared-mailbox)
+    - [Hide Mailboxes_Scheduled](#organization-mail-hide-mailboxes_scheduled)
+    - [Set Booking Config](#organization-mail-set-booking-config)
   - [Phone](#organization-phone)
-    - Get Teams Phone Number Assignment
+    - [Get Teams Phone Number Assignment](#organization-phone-get-teams-phone-number-assignment)
   - [Security](#organization-security)
-    - Add Defender Indicator
-    - Backup Conditional Access Policies
-    - List Admin Users
-    - List Expiring Role Assignments
-    - List Inactive Devices
-    - List Inactive Users
-    - List Information Protection Labels
-    - List PIM Rolegroups Without Owners_Scheduled
-    - List Users By MFA Methods Count
-    - List Vulnerable App Regs
-    - Notify Changed CA Policies
+    - [Add Defender Indicator](#organization-security-add-defender-indicator)
+    - [Backup Conditional Access Policies](#organization-security-backup-conditional-access-policies)
+    - [List Admin Users](#organization-security-list-admin-users)
+    - [List Expiring Role Assignments](#organization-security-list-expiring-role-assignments)
+    - [List Inactive Devices](#organization-security-list-inactive-devices)
+    - [List Inactive Users](#organization-security-list-inactive-users)
+    - [List Information Protection Labels](#organization-security-list-information-protection-labels)
+    - [List PIM Rolegroups Without Owners_Scheduled](#organization-security-list-pim-rolegroups-without-owners_scheduled)
+    - [List Users By MFA Methods Count](#organization-security-list-users-by-mfa-methods-count)
+    - [List Vulnerable App Regs](#organization-security-list-vulnerable-app-regs)
+    - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
 - [User](#user)
   - [AVD](#user-avd)
-    - User Signout
+    - [User Signout](#user-avd-user-signout)
   - [General](#user-general)
-    - Assign Groups By Template
-    - Assign Or Unassign License
-    - Assign Windows365
-    - List Group Memberships
-    - List Group Ownerships
-    - List Manager
-    - Offboard User Permanently
-    - Offboard User Temporarily
-    - Reprovision Windows365
-    - Resize Windows365
-    - Unassign Windows365
+    - [Assign Groups By Template](#user-general-assign-groups-by-template)
+    - [Assign Or Unassign License](#user-general-assign-or-unassign-license)
+    - [Assign Windows365](#user-general-assign-windows365)
+    - [List Group Memberships](#user-general-list-group-memberships)
+    - [List Group Ownerships](#user-general-list-group-ownerships)
+    - [List Manager](#user-general-list-manager)
+    - [Offboard User Permanently](#user-general-offboard-user-permanently)
+    - [Offboard User Temporarily](#user-general-offboard-user-temporarily)
+    - [Reprovision Windows365](#user-general-reprovision-windows365)
+    - [Resize Windows365](#user-general-resize-windows365)
+    - [Unassign Windows365](#user-general-unassign-windows365)
   - [Mail](#user-mail)
-    - Add Or Remove Email Address
-    - Assign OWA Mailbox Policy
-    - Convert To Shared Mailbox
-    - Delegate Full Access
-    - Delegate Send As
-    - Delegate Send On Behalf
-    - Hide Or Unhide In Addressbook
-    - List Mailbox Permissions
-    - List Room Mailbox Configuration
-    - Remove Mailbox
-    - Set Out Of Office
-    - Set Room Mailbox Configuration
+    - [Add Or Remove Email Address](#user-mail-add-or-remove-email-address)
+    - [Assign OWA Mailbox Policy](#user-mail-assign-owa-mailbox-policy)
+    - [Convert To Shared Mailbox](#user-mail-convert-to-shared-mailbox)
+    - [Delegate Full Access](#user-mail-delegate-full-access)
+    - [Delegate Send As](#user-mail-delegate-send-as)
+    - [Delegate Send On Behalf](#user-mail-delegate-send-on-behalf)
+    - [Hide Or Unhide In Addressbook](#user-mail-hide-or-unhide-in-addressbook)
+    - [List Mailbox Permissions](#user-mail-list-mailbox-permissions)
+    - [List Room Mailbox Configuration](#user-mail-list-room-mailbox-configuration)
+    - [Remove Mailbox](#user-mail-remove-mailbox)
+    - [Set Out Of Office](#user-mail-set-out-of-office)
+    - [Set Room Mailbox Configuration](#user-mail-set-room-mailbox-configuration)
   - [Phone](#user-phone)
-    - Disable Teams Phone
-    - Get Teams User Info
-    - Grant Teams User Policies
-    - Set Teams Permanent Call Forwarding
-    - Set Teams Phone
+    - [Disable Teams Phone](#user-phone-disable-teams-phone)
+    - [Get Teams User Info](#user-phone-get-teams-user-info)
+    - [Grant Teams User Policies](#user-phone-grant-teams-user-policies)
+    - [Set Teams Permanent Call Forwarding](#user-phone-set-teams-permanent-call-forwarding)
+    - [Set Teams Phone](#user-phone-set-teams-phone)
   - [Security](#user-security)
-    - Confirm Or Dismiss Risky User
-    - Create Temporary Access Pass
-    - Enable Or Disable Password Expiration
-    - Reset MFA
-    - Reset Password
-    - Revoke Or Restore Access
-    - Set Or Remove Mobile Phone MFA
+    - [Confirm Or Dismiss Risky User](#user-security-confirm-or-dismiss-risky-user)
+    - [Create Temporary Access Pass](#user-security-create-temporary-access-pass)
+    - [Enable Or Disable Password Expiration](#user-security-enable-or-disable-password-expiration)
+    - [Reset MFA](#user-security-reset-mfa)
+    - [Reset Password](#user-security-reset-password)
+    - [Revoke Or Restore Access](#user-security-revoke-or-restore-access)
+    - [Set Or Remove Mobile Phone MFA](#user-security-set-or-remove-mobile-phone-mfa)
   - [Userinfo](#user-userinfo)
-    - Rename User
-    - Set Photo
-    - Update User
+    - [Rename User](#user-userinfo-rename-user)
+    - [Set Photo](#user-userinfo-set-photo)
+    - [Update User](#user-userinfo-update-user)
 
 <a name='device'></a>
 # Device
 <a name='device-avd'></a>
 ## AVD
+
+<a name='device-avd-restart-host'></a>
 
 ### Restart Host
 Reboots a specific AVD Session Host.
@@ -187,6 +189,8 @@ Reboots a specific AVD Session Host.
 | DeviceName | ✓ | String |  |
 | SubscriptionIds | ✓ | String Array |  |
 | CallerName | ✓ | String |  |
+
+<a name='device-avd-toggle-drain-mode'></a>
 
 ### Toggle Drain Mode
 Sets Drainmode on true or false for a specific AVD Session Host.
@@ -203,6 +207,8 @@ Sets Drainmode on true or false for a specific AVD Session Host.
 <a name='device-general'></a>
 ## General
 
+<a name='device-general-change-grouptag'></a>
+
 ### Change Grouptag
 Assign a new AutoPilot GroupTag to this device.
 
@@ -212,6 +218,8 @@ Assign a new AutoPilot GroupTag to this device.
 | newGroupTag |  | String |  |
 | CallerName | ✓ | String |  |
 
+<a name='device-general-check-updatable-assets'></a>
+
 ### Check Updatable Assets
 Check if a device is onboarded to Windows Update for Business.
 
@@ -219,6 +227,8 @@ Check if a device is onboarded to Windows Update for Business.
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | DeviceId | ✓ | String | DeviceId of the device to check onboarding status for. |
+
+<a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
 Enroll device into Windows Update for Business.
@@ -228,6 +238,8 @@ Enroll device into Windows Update for Business.
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | DeviceId | ✓ | String | DeviceId of the device to unenroll. |
 | UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: driver, feature or quality. |
+
+<a name='device-general-outphase-device'></a>
 
 ### Outphase Device
 Remove/Outphase a windows device
@@ -244,6 +256,8 @@ Remove/Outphase a windows device
 | disableAADDevice |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='device-general-remove-primary-user'></a>
+
 ### Remove Primary User
 Removes the primary user from a device.
 
@@ -252,6 +266,8 @@ Removes the primary user from a device.
 | DeviceId | ✓ | String | The unique identifier of the device from which the primary user will be removed.
 It will be prefilled from the RealmJoin Portal and is hidden in the UI. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='device-general-rename-device'></a>
 
 ### Rename Device
 Rename a device.
@@ -262,6 +278,8 @@ Rename a device.
 | NewDeviceName | ✓ | String |  |
 | CallerName | ✓ | String |  |
 
+<a name='device-general-unenroll-updatable-assets'></a>
+
 ### Unenroll Updatable Assets
 Unenroll device from Windows Update for Business.
 
@@ -270,6 +288,8 @@ Unenroll device from Windows Update for Business.
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | DeviceId | ✓ | String | DeviceId of the device to unenroll. |
 | UpdateCategory | ✓ | String | Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete). |
+
+<a name='device-general-wipe-device'></a>
 
 ### Wipe Device
 Wipe a Windows or MacOS device
@@ -292,6 +312,8 @@ Wipe a Windows or MacOS device
 <a name='device-security'></a>
 ## Security
 
+<a name='device-security-enable-or-disable-device'></a>
+
 ### Enable Or Disable Device
 Disable a device in AzureAD.
 
@@ -300,6 +322,8 @@ Disable a device in AzureAD.
 | DeviceId | ✓ | String |  |
 | Enable |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='device-security-isolate-or-release-device'></a>
 
 ### Isolate Or Release Device
 Isolate this device.
@@ -312,6 +336,8 @@ Isolate this device.
 | Comment | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='device-security-reset-mobile-device-pin'></a>
+
 ### Reset Mobile Device Pin
 Reset a mobile device's password/PIN code.
 
@@ -319,6 +345,8 @@ Reset a mobile device's password/PIN code.
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String |  |
 | CallerName | ✓ | String |  |
+
+<a name='device-security-restrict-or-release-code-execution'></a>
 
 ### Restrict Or Release Code Execution
 Restrict code execution.
@@ -329,6 +357,8 @@ Restrict code execution.
 | Release | ✓ | Boolean |  |
 | Comment | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='device-security-show-laps-password'></a>
 
 ### Show LAPS Password
 Show a local admin password for a device.
@@ -345,6 +375,8 @@ Show a local admin password for a device.
 <a name='group-devices'></a>
 ## Devices
 
+<a name='group-devices-check-updatable-assets'></a>
+
 ### Check Updatable Assets
 Check if devices in a group are onboarded to Windows Update for Business.
 
@@ -352,6 +384,8 @@ Check if devices in a group are onboarded to Windows Update for Business.
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | GroupId | ✓ | String | Object ID of the group to check onboarding status for its members. |
+
+<a name='group-devices-unenroll-updatable-assets'></a>
 
 ### Unenroll Updatable Assets
 Unenroll devices from Windows Update for Business.
@@ -367,6 +401,8 @@ Unenroll devices from Windows Update for Business.
 <a name='group-general'></a>
 ## General
 
+<a name='group-general-add-or-remove-nested-group'></a>
+
 ### Add Or Remove Nested Group
 Add/remove a nested group to/from a group.
 
@@ -376,6 +412,8 @@ Add/remove a nested group to/from a group.
 | NestedGroupID | ✓ | String |  |
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='group-general-add-or-remove-owner'></a>
 
 ### Add Or Remove Owner
 Add/remove owners to/from an Office 365 group.
@@ -387,6 +425,8 @@ Add/remove owners to/from an Office 365 group.
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='group-general-add-or-remove-user'></a>
+
 ### Add Or Remove User
 Add/remove users to/from a group.
 
@@ -397,6 +437,8 @@ Add/remove users to/from a group.
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='group-general-change-visibility'></a>
+
 ### Change Visibility
 Change a group's visibility
 
@@ -406,6 +448,8 @@ Change a group's visibility
 | Public |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='group-general-list-all-members'></a>
+
 ### List All Members
 Retrieves the members of a specified EntraID group, including members from nested groups.
 
@@ -414,6 +458,8 @@ Retrieves the members of a specified EntraID group, including members from neste
 | GroupId | ✓ | String | The ObjectId of the EntraID group whose membership is to be retrieved. |
 | CallerName |  | String | The name of the caller, used for auditing purposes. |
 
+<a name='group-general-list-owners'></a>
+
 ### List Owners
 List all owners of an Office 365 group.
 
@@ -421,6 +467,8 @@ List all owners of an Office 365 group.
 |-----------|----------|------|-------------|
 | GroupID | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='group-general-list-user-devices'></a>
 
 ### List User Devices
 List all devices owned by group members.
@@ -432,6 +480,8 @@ List all devices owned by group members.
 | targetgroup |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='group-general-remove-group'></a>
+
 ### Remove Group
 Removes a group, incl. SharePoint site and Teams team.
 
@@ -439,6 +489,8 @@ Removes a group, incl. SharePoint site and Teams team.
 |-----------|----------|------|-------------|
 | GroupId | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='group-general-rename-group'></a>
 
 ### Rename Group
 Rename a group.
@@ -456,6 +508,8 @@ Rename a group.
 <a name='group-mail'></a>
 ## Mail
 
+<a name='group-mail-enable-or-disable-external-mail'></a>
+
 ### Enable Or Disable External Mail
 Enable/disable external parties to send eMails to O365 groups.
 
@@ -464,6 +518,8 @@ Enable/disable external parties to send eMails to O365 groups.
 | GroupId | ✓ | String |  |
 | Action |  | Int32 |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='group-mail-show-or-hide-in-address-book'></a>
 
 ### Show Or Hide In Address Book
 (Un)hide an O365- or static Distribution-group in Address Book.
@@ -479,6 +535,8 @@ Enable/disable external parties to send eMails to O365 groups.
 <a name='group-teams'></a>
 ## Teams
 
+<a name='group-teams-archive-team'></a>
+
 ### Archive Team
 Archive a team.
 
@@ -493,6 +551,8 @@ Archive a team.
 # Organization
 <a name='organization-applications'></a>
 ## Applications
+
+<a name='organization-applications-add-application-registration'></a>
 
 ### Add Application Registration
 Add an application registration to Azure AD
@@ -520,6 +580,8 @@ Add an application registration to Azure AD
 | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. Default is false. |
 | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. |
 
+<a name='organization-applications-delete-application-registration'></a>
+
 ### Delete Application Registration
 Delete an application registration from Azure AD
 
@@ -527,6 +589,8 @@ Delete an application registration from Azure AD
 |-----------|----------|------|-------------|
 | ClientId | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-applications-export-enterprise-application-users'></a>
 
 ### Export Enterprise Application Users
 Export a CSV of all (enterprise) application owners and users
@@ -541,6 +605,8 @@ Export a CSV of all (enterprise) application owners and users
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-applications-list-inactive-enterprise-applications'></a>
+
 ### List Inactive Enterprise Applications
 List application registrations, which had no recent user logons.
 
@@ -548,6 +614,8 @@ List application registrations, which had no recent user logons.
 |-----------|----------|------|-------------|
 | Days |  | Int32 |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-applications-report-application-registration'></a>
 
 ### Report Application Registration
 Generate and email a comprehensive Application Registration report
@@ -559,6 +627,8 @@ The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 | IncludeDeletedApps |  | Boolean | Whether to include deleted application registrations in the report (default: true) |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
+
+<a name='organization-applications-report-expiring-application-credentials_scheduled'></a>
 
 ### Report Expiring Application Credentials_Scheduled
 List expiry date of all Application Registration credentials
@@ -575,6 +645,8 @@ Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-applications-update-application-registration'></a>
 
 ### Update Application Registration
 Update an application registration in Azure AD
@@ -606,6 +678,8 @@ Update an application registration in Azure AD
 <a name='organization-devices'></a>
 ## Devices
 
+<a name='organization-devices-add-autopilot-device'></a>
+
 ### Add Autopilot Device
 Import a windows device into Windows Autopilot.
 
@@ -618,6 +692,8 @@ Import a windows device into Windows Autopilot.
 | GroupTag |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-devices-add-device-via-corporate-identifier'></a>
+
 ### Add Device Via Corporate Identifier
 Import a device into Intune via corporate identifier.
 
@@ -628,6 +704,8 @@ Import a device into Intune via corporate identifier.
 | DeviceDescripton |  | String |  |
 | OverwriteExistingEntry |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-devices-delete-stale-devices_scheduled'></a>
 
 ### Delete Stale Devices_Scheduled
 Scheduled deletion of stale devices based on last activity date and platform.
@@ -646,6 +724,8 @@ Should be set to false for scheduled runs. |
 | sendAlertFrom |  | String | Email address to send the report from. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-devices-get-bitlocker-recovery-key'></a>
+
 ### Get Bitlocker Recovery Key
 Get BitLocker recovery key
 
@@ -653,6 +733,8 @@ Get BitLocker recovery key
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | bitlockeryRecoveryKeyId | ✓ | String | bitlockeryRecoveryKeyId of the desired recovery key. Displayed in the BitLocker recovery screen (format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX). |
+
+<a name='organization-devices-outphase-devices'></a>
 
 ### Outphase Devices
 Remove/Outphase multiple devices
@@ -670,6 +752,8 @@ Remove/Outphase multiple devices
 | disableAADDevice |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-devices-report-devices-without-primary-user'></a>
+
 ### Report Devices Without Primary User
 Reports all managed devices in Intune that do not have a primary user assigned.
 
@@ -680,6 +764,8 @@ Reports all managed devices in Intune that do not have a primary user assigned.
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
+
+<a name='organization-devices-report-last-device-contact-by-range'></a>
 
 ### Report Last Device Contact By Range
 Reports devices with last contact within a specified date range.
@@ -693,6 +779,8 @@ Reports devices with last contact within a specified date range.
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
+
+<a name='organization-devices-report-stale-devices_scheduled'></a>
 
 ### Report Stale Devices_Scheduled
 Scheduled report of stale devices based on last activity date and platform.
@@ -709,6 +797,8 @@ The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-devices-report-users-with-more-than-5-devices'></a>
+
 ### Report Users With More Than 5-Devices
 Reports users with more than five registered devices in Entra ID.
 
@@ -719,6 +809,8 @@ Reports users with more than five registered devices in Entra ID.
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
+
+<a name='organization-devices-sync-device-serialnumbers-to-entraid_scheduled'></a>
 
 ### Sync Device Serialnumbers To Entraid_Scheduled
 Syncs serial numbers from Intune devices to Azure AD device extension attributes.
@@ -737,6 +829,8 @@ Syncs serial numbers from Intune devices to Azure AD device extension attributes
 <a name='organization-general'></a>
 ## General
 
+<a name='organization-general-add-devices-of-users-to-group_scheduled'></a>
+
 ### Add Devices Of Users To Group_Scheduled
 Sync devices of users in a specific group to another device group.
 
@@ -752,6 +846,8 @@ Sync devices of users in a specific group to another device group.
 | IncludeIOSDevice |  | Boolean |  |
 | IncludeIPadOSDevice |  | Boolean |  |
 
+<a name='organization-general-add-management-partner'></a>
+
 ### Add Management Partner
 List or add or Management Partner Links (PAL)
 
@@ -761,12 +857,16 @@ List or add or Management Partner Links (PAL)
 | PartnerId |  | Int32 |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-add-microsoft-store-app-logos'></a>
+
 ### Add Microsoft Store App Logos
 Update logos of Microsoft Store Apps (new) in Intune.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-add-office365-group'></a>
 
 ### Add Office365 Group
 Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
@@ -783,6 +883,8 @@ Create an Office 365 group and SharePoint site, optionally create a (Teams) team
 | Owner2 |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-add-or-remove-safelinks-exclusion'></a>
+
 ### Add Or Remove Safelinks Exclusion
 Add or remove a SafeLinks URL exclusion to/from a given policy.
 
@@ -794,6 +896,8 @@ Add or remove a SafeLinks URL exclusion to/from a given policy.
 | PolicyName |  | String | Optional, will overwrite default values |
 | CreateNewPolicyIfNeeded |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-add-or-remove-smartscreen-exclusion'></a>
 
 ### Add Or Remove Smartscreen Exclusion
 Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
@@ -807,6 +911,8 @@ Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
 | explanationDescription |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-add-or-remove-trusted-site'></a>
+
 ### Add Or Remove Trusted Site
 Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
 
@@ -819,6 +925,8 @@ Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
 | IntunePolicyName |  | String | Will use an existing policy or default policy name if left empty. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-add-security-group'></a>
+
 ### Add Security Group
 This runbook creates a Microsoft Entra ID security group with membership type "Assigned".
 
@@ -828,6 +936,8 @@ This runbook creates a Microsoft Entra ID security group with membership type "A
 | GroupDescription |  | String | The description of the security group. |
 | Owner |  | String | The owner of the security group. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-add-user'></a>
 
 ### Add User
 Create a new user account.
@@ -857,6 +967,8 @@ Create a new user account.
 | EnableEXOArchive |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-add-viva-engange-community'></a>
+
 ### Add Viva Engange Community
 Creates a Viva Engage (Yammer) community via the Yammer API
 
@@ -868,6 +980,8 @@ Creates a Viva Engage (Yammer) community via the Yammer API
 | CommunityOwners |  | String | The owners of the community. Comma seperated list of UPNs. |
 | removeCreatorFromGroup |  | Boolean |  |
 | CallerName | ✓ | String |  |
+
+<a name='organization-general-assign-groups-by-template_scheduled'></a>
 
 ### Assign Groups By Template_Scheduled
 Assign cloud-only groups to many users based on a predefined template.
@@ -881,6 +995,8 @@ Assign cloud-only groups to many users based on a predefined template.
 | UseDisplaynames |  | Boolean | $UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-bulk-delete-devices-from-autopilot'></a>
+
 ### Bulk Delete Devices From Autopilot
 Mass-Delete Autopilot objects based on Serial Number.
 
@@ -889,6 +1005,8 @@ Mass-Delete Autopilot objects based on Serial Number.
 | SerialNumbers | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-bulk-retire-devices-from-intune'></a>
+
 ### Bulk Retire Devices From Intune
 Bulk retire devices from Intune using serial numbers
 
@@ -896,6 +1014,8 @@ Bulk retire devices from Intune using serial numbers
 |-----------|----------|------|-------------|
 | SerialNumbers | ✓ | String |  |
 | CallerName | ✓ | String |  |
+
+<a name='organization-general-check-aad-sync-status_scheduled'></a>
 
 ### Check AAD Sync Status_Scheduled
 Check for last Azure AD Connect Sync Cycle.
@@ -906,6 +1026,8 @@ Check for last Azure AD Connect Sync Cycle.
 | sendAlertTo |  | String |  |
 | sendAlertFrom |  | String |  |
 
+<a name='organization-general-check-assignments-of-devices'></a>
+
 ### Check Assignments Of Devices
 Check Intune assignments for a given (or multiple) Device Names.
 
@@ -914,6 +1036,8 @@ Check Intune assignments for a given (or multiple) Device Names.
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | DeviceNames | ✓ | String | Device Names of the devices to check assignments for, separated by commas. |
 | IncludeApps |  | Boolean | Boolean to specify whether to include application assignments in the search. |
+
+<a name='organization-general-check-assignments-of-groups'></a>
 
 ### Check Assignments Of Groups
 Check Intune assignments for a given (or multiple) Group Names.
@@ -924,6 +1048,8 @@ Check Intune assignments for a given (or multiple) Group Names.
 | GroupNames | ✓ | String | Group Names of the groups to check assignments for, separated by commas. |
 | IncludeApps |  | Boolean | Boolean to specify whether to include application assignments in the search. |
 
+<a name='organization-general-check-assignments-of-users'></a>
+
 ### Check Assignments Of Users
 Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
 
@@ -933,6 +1059,8 @@ Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
 | UPN | ✓ | String | User Principal Names of the users to check assignments for, separated by commas. |
 | IncludeApps |  | Boolean | Boolean to specify whether to include application assignments in the search. |
 
+<a name='organization-general-check-autopilot-serialnumbers'></a>
+
 ### Check Autopilot Serialnumbers
 Check if given serial numbers are present in AutoPilot.
 
@@ -940,6 +1068,8 @@ Check if given serial numbers are present in AutoPilot.
 |-----------|----------|------|-------------|
 | SerialNumbers | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-check-device-onboarding-exclusion_scheduled'></a>
 
 ### Check Device Onboarding Exclusion_Scheduled
 Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
@@ -949,6 +1079,8 @@ Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusi
 | exclusionGroupName |  | String | EntraID exclusion group for Defender Compliance. |
 | maxAgeInDays |  | Int32 |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-enrolled-devices-report_scheduled'></a>
 
 ### Enrolled Devices Report_Scheduled
 Show recent first-time device enrollments.
@@ -996,6 +1128,8 @@ Intune Device:
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-export-all-autopilot-devices'></a>
+
 ### Export All Autopilot Devices
 List/export all AutoPilot devices.
 
@@ -1008,6 +1142,8 @@ List/export all AutoPilot devices.
 | StorageAccountLocation |  | String |  |
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-export-all-intune-devices'></a>
 
 ### Export All Intune Devices
 Export a list of all Intune devices and where they are registered.
@@ -1022,6 +1158,8 @@ Export a list of all Intune devices and where they are registered.
 | SubscriptionId |  | String |  |
 | CallerName | ✓ | String |  |
 
+<a name='organization-general-export-cloudpc-usage_scheduled'></a>
+
 ### Export Cloudpc Usage_Scheduled
 Write daily Windows 365 Utilization Data to Azure Tables
 
@@ -1032,6 +1170,8 @@ Write daily Windows 365 Utilization Data to Azure Tables
 | StorageAccountName | ✓ | String |  |
 | days |  | Int32 |  |
 | CallerName | ✓ | String |  |
+
+<a name='organization-general-export-non-compliant-devices'></a>
 
 ### Export Non Compliant Devices
 Report on non-compliant devices and policies
@@ -1046,6 +1186,8 @@ Report on non-compliant devices and policies
 | StorageAccountSku |  | String |  |
 | SubscriptionId |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-export-policy-report'></a>
 
 ### Export Policy Report
 Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
@@ -1062,6 +1204,8 @@ Create a report of a tenant's polcies from Intune and AAD and write them to a ma
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-invite-external-guest-users'></a>
+
 ### Invite External Guest Users
 Invites external guest users to the organization using Microsoft Graph.
 
@@ -1072,6 +1216,8 @@ Invites external guest users to the organization using Microsoft Graph.
 | GroupId |  | String | The object ID of the group to add the guest user to.
 If not specified, the user will not be added to any group. |
 
+<a name='organization-general-list-all-administrative-template-policies'></a>
+
 ### List All Administrative Template Policies
 List all Administrative Template policies and their assignments.
 
@@ -1079,12 +1225,16 @@ List all Administrative Template policies and their assignments.
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-general-list-group-license-assignment-errors'></a>
+
 ### List Group License Assignment Errors
 Report groups that have license assignment errors
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-general-office365-license-report'></a>
 
 ### Office365 License Report
 Generate an Office 365 licensing report.
@@ -1104,6 +1254,8 @@ Generate an Office 365 licensing report.
 | SubscriptionId |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-general-report-apple-mdm-cert-expiry_scheduled'></a>
+
 ### Report Apple MDM Cert Expiry_Scheduled
 Monitor/Report expiry of Apple device management certificates.
 
@@ -1115,6 +1267,8 @@ flagged as alerts in the report. Default is 300 days (approximately 10 months). 
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+
+<a name='organization-general-report-license-assignment_scheduled'></a>
 
 ### Report License Assignment_Scheduled
 Generate and email a license availability report based on configured thresholds
@@ -1133,6 +1287,8 @@ The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
 
+<a name='organization-general-report-pim-activations_scheduled'></a>
+
 ### Report PIM Activations_Scheduled
 Scheduled Report on PIM Activations.
 
@@ -1141,6 +1297,8 @@ Scheduled Report on PIM Activations.
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 | sendAlertTo |  | String |  |
 | sendAlertFrom |  | String |  |
+
+<a name='organization-general-sync-all-devices'></a>
 
 ### Sync All Devices
 Sync all Intune devices.
@@ -1153,6 +1311,8 @@ Sync all Intune devices.
 
 <a name='organization-mail'></a>
 ## Mail
+
+<a name='organization-mail-add-distribution-list'></a>
 
 ### Add Distribution List
 Create a classic distribution group.
@@ -1167,6 +1327,8 @@ Create a classic distribution group.
 | AllowExternalSenders |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-mail-add-equipment-mailbox'></a>
+
 ### Add Equipment Mailbox
 Create an equipment mailbox.
 
@@ -1180,6 +1342,8 @@ Create an equipment mailbox.
 | DisableUser |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-mail-add-or-remove-public-folder'></a>
+
 ### Add Or Remove Public Folder
 Add or remove a public folder.
 
@@ -1189,6 +1353,8 @@ Add or remove a public folder.
 | MailboxName |  | String |  |
 | AddPublicFolder | ✓ | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-mail-add-or-remove-teams-mailcontact'></a>
 
 ### Add Or Remove Teams Mailcontact
 Create/Remove a contact, to allow pretty email addresses for Teams channels.
@@ -1201,6 +1367,8 @@ Create/Remove a contact, to allow pretty email addresses for Teams channels.
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-mail-add-or-remove-tenant-allow-block-list'></a>
+
 ### Add Or Remove Tenant Allow Block List
 Add or remove entries from the Tenant Allow/Block List.
 
@@ -1212,6 +1380,8 @@ Add or remove entries from the Tenant Allow/Block List.
 | Remove |  | Boolean | Decides whether to remove or add the entry. |
 | DaysToExpire |  | Int32 | Number of days until the entry expires. Default is 30 days. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-mail-add-room-mailbox'></a>
 
 ### Add Room Mailbox
 Create a room resource.
@@ -1226,6 +1396,8 @@ Create a room resource.
 | AutoMapping |  | Boolean |  |
 | DisableUser |  | Boolean | CallerName is tracked purely for auditing purposes |
 | CallerName | ✓ | String |  |
+
+<a name='organization-mail-add-shared-mailbox'></a>
 
 ### Add Shared Mailbox
 Create a shared mailbox.
@@ -1243,6 +1415,8 @@ Create a shared mailbox.
 | DisableUser |  | Boolean | If set to true, the associated EntraID user account will be disabled. |
 | CallerName | ✓ | String | The name of the caller executing this script. This parameter is used for auditing purposes. |
 
+<a name='organization-mail-hide-mailboxes_scheduled'></a>
+
 ### Hide Mailboxes_Scheduled
 Hide / Unhide special mailboxes in Global Address Book
 
@@ -1250,6 +1424,8 @@ Hide / Unhide special mailboxes in Global Address Book
 |-----------|----------|------|-------------|
 | HideBookingCalendars | ✓ | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-mail-set-booking-config'></a>
 
 ### Set Booking Config
 Configure Microsoft Bookings settings for the organization.
@@ -1282,6 +1458,8 @@ Configure Microsoft Bookings settings for the organization.
 <a name='organization-phone'></a>
 ## Phone
 
+<a name='organization-phone-get-teams-phone-number-assignment'></a>
+
 ### Get Teams Phone Number Assignment
 Looks up, if the given phone number is assigned to a user in Microsoft Teams.
 
@@ -1294,6 +1472,8 @@ Looks up, if the given phone number is assigned to a user in Microsoft Teams.
 
 <a name='organization-security'></a>
 ## Security
+
+<a name='organization-security-add-defender-indicator'></a>
 
 ### Add Defender Indicator
 Create new Indicator in Defender for Endpoint.
@@ -1309,6 +1489,8 @@ Create new Indicator in Defender for Endpoint.
 | GenerateAlert | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-security-backup-conditional-access-policies'></a>
+
 ### Backup Conditional Access Policies
 Exports the current set of Conditional Access policies to an Azure storage account.
 
@@ -1320,6 +1502,8 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 | StorageAccountLocation |  | String |  |
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-security-list-admin-users'></a>
 
 ### List Admin Users
 List AzureAD role holders and their MFA state.
@@ -1339,6 +1523,8 @@ List AzureAD role holders and their MFA state.
 | TrustWinHelloMFA |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-security-list-expiring-role-assignments'></a>
+
 ### List Expiring Role Assignments
 List Azure AD role assignments that will expire before a given number of days.
 
@@ -1346,6 +1532,8 @@ List Azure AD role assignments that will expire before a given number of days.
 |-----------|----------|------|-------------|
 | Days |  | Int32 |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-security-list-inactive-devices'></a>
 
 ### List Inactive Devices
 List/export inactive devices, which had no recent user logons.
@@ -1362,6 +1550,8 @@ List/export inactive devices, which had no recent user logons.
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-security-list-inactive-users'></a>
+
 ### List Inactive Users
 List users, that have no recent interactive signins.
 
@@ -1372,12 +1562,16 @@ List users, that have no recent interactive signins.
 | showUsersThatNeverLoggedIn |  | Boolean | Beware: This has to enumerate all users / Can take a long time. |
 | CallerName | ✓ | String | Name of the caller (tracked for auditing purposes). |
 
+<a name='organization-security-list-information-protection-labels'></a>
+
 ### List Information Protection Labels
 Prints a list of all available InformationProtectionPolicy labels.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-security-list-pim-rolegroups-without-owners_scheduled'></a>
 
 ### List PIM Rolegroups Without Owners_Scheduled
 List role-assignable groups with eligible role assignments but without owners
@@ -1389,6 +1583,8 @@ List role-assignable groups with eligible role assignments but without owners
 | To |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-security-list-users-by-mfa-methods-count'></a>
+
 ### List Users By MFA Methods Count
 Reports users by the count of their registered MFA methods.
 
@@ -1396,6 +1592,8 @@ Reports users by the count of their registered MFA methods.
 |-----------|----------|------|-------------|
 | mfaMethodsRange | ✓ | String | Range for filtering users based on the count of their registered MFA methods. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-security-list-vulnerable-app-regs'></a>
 
 ### List Vulnerable App Regs
 List all app registrations that suffer from the CVE-2021-42306 vulnerability.
@@ -1409,6 +1607,8 @@ List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 | StorageAccountLocation |  | String |  |
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-security-notify-changed-ca-policies'></a>
 
 ### Notify Changed CA Policies
 Exports the current set of Conditional Access policies to an Azure storage account.
@@ -1426,6 +1626,8 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 <a name='user-avd'></a>
 ## AVD
 
+<a name='user-avd-user-signout'></a>
+
 ### User Signout
 Removes (Signs Out) a specific User from their AVD Session.
 
@@ -1440,6 +1642,8 @@ Removes (Signs Out) a specific User from their AVD Session.
 <a name='user-general'></a>
 ## General
 
+<a name='user-general-assign-groups-by-template'></a>
+
 ### Assign Groups By Template
 Assign cloud-only groups to a user based on a predefined template.
 
@@ -1451,6 +1655,8 @@ Assign cloud-only groups to a user based on a predefined template.
 | UseDisplaynames |  | Boolean | $UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-general-assign-or-unassign-license'></a>
+
 ### Assign Or Unassign License
 (Un-)Assign a license to a user via group membership.
 
@@ -1460,6 +1666,8 @@ Assign cloud-only groups to a user based on a predefined template.
 | GroupID_License | ✓ | String | production does not supprt "ref:LicenseGroup" yet |
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-general-assign-windows365'></a>
 
 ### Assign Windows365
 Assign/Provision a Windows 365 instance
@@ -1481,6 +1689,8 @@ Assign/Provision a Windows 365 instance
 | ticketCustomerId |  | String |  |
 | CallerName | ✓ | String |  |
 
+<a name='user-general-list-group-memberships'></a>
+
 ### List Group Memberships
 List group memberships for this user.
 
@@ -1495,6 +1705,8 @@ List group memberships for this user.
 | WritebackEnabled |  | String | Filter groups with writeback to on-premises AD enabled: Yes (writeback enabled), No (writeback disabled), or All (default). |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-general-list-group-ownerships'></a>
+
 ### List Group Ownerships
 List group ownerships for this user.
 
@@ -1503,6 +1715,8 @@ List group ownerships for this user.
 | UserName | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-general-list-manager'></a>
+
 ### List Manager
 List manager information for this user.
 
@@ -1510,6 +1724,8 @@ List manager information for this user.
 |-----------|----------|------|-------------|
 | UserName | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-general-offboard-user-permanently'></a>
 
 ### Offboard User Permanently
 Permanently offboard a user.
@@ -1535,6 +1751,8 @@ Permanently offboard a user.
 | ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-general-offboard-user-temporarily'></a>
+
 ### Offboard User Temporarily
 Temporarily offboard a user.
 
@@ -1557,6 +1775,8 @@ Temporarily offboard a user.
 | ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-general-reprovision-windows365'></a>
+
 ### Reprovision Windows365
 Reprovision a Windows 365 Cloud PC
 
@@ -1569,6 +1789,8 @@ Reprovision a Windows 365 Cloud PC
 | customizeMail |  | Boolean |  |
 | customMailMessage |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-general-resize-windows365'></a>
 
 ### Resize Windows365
 Resize a Windows 365 Cloud PC
@@ -1589,6 +1811,8 @@ Resize a Windows 365 Cloud PC
 | skipGracePeriod |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-general-unassign-windows365'></a>
+
 ### Unassign Windows365
 Remove/Deprovision a Windows 365 instance
 
@@ -1608,6 +1832,8 @@ Remove/Deprovision a Windows 365 instance
 <a name='user-mail'></a>
 ## Mail
 
+<a name='user-mail-add-or-remove-email-address'></a>
+
 ### Add Or Remove Email Address
 Add/remove eMail address to/from mailbox.
 
@@ -1619,6 +1845,8 @@ Add/remove eMail address to/from mailbox.
 | asPrimary |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-mail-assign-owa-mailbox-policy'></a>
+
 ### Assign OWA Mailbox Policy
 Assign a given OWA mailbox policy to a user.
 
@@ -1627,6 +1855,8 @@ Assign a given OWA mailbox policy to a user.
 | UserName | ✓ | String |  |
 | OwaPolicyName | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-mail-convert-to-shared-mailbox'></a>
 
 ### Convert To Shared Mailbox
 Turn this users mailbox into a shared mailbox.
@@ -1642,6 +1872,8 @@ Turn this users mailbox into a shared mailbox.
 | RegularLicenseGroup |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-mail-delegate-full-access'></a>
+
 ### Delegate Full Access
 Grant another user full access to this mailbox.
 
@@ -1653,6 +1885,8 @@ Grant another user full access to this mailbox.
 | AutoMapping |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-mail-delegate-send-as'></a>
+
 ### Delegate Send As
 Grant another user sendAs permissions on this mailbox.
 
@@ -1662,6 +1896,8 @@ Grant another user sendAs permissions on this mailbox.
 | delegateTo | ✓ | String |  |
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-mail-delegate-send-on-behalf'></a>
 
 ### Delegate Send On Behalf
 Grant another user sendOnBehalf permissions on this mailbox.
@@ -1673,6 +1909,8 @@ Grant another user sendOnBehalf permissions on this mailbox.
 | Remove |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-mail-hide-or-unhide-in-addressbook'></a>
+
 ### Hide Or Unhide In Addressbook
 (Un)Hide this mailbox in address book.
 
@@ -1682,6 +1920,8 @@ Grant another user sendOnBehalf permissions on this mailbox.
 | HideMailbox |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-mail-list-mailbox-permissions'></a>
+
 ### List Mailbox Permissions
 List permissions on a (shared) mailbox.
 
@@ -1689,6 +1929,8 @@ List permissions on a (shared) mailbox.
 |-----------|----------|------|-------------|
 | UserName | ✓ | String |  |
 | CallerName | ✓ | String |  |
+
+<a name='user-mail-list-room-mailbox-configuration'></a>
 
 ### List Room Mailbox Configuration
 List Room configuration.
@@ -1698,6 +1940,8 @@ List Room configuration.
 | UserName | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-mail-remove-mailbox'></a>
+
 ### Remove Mailbox
 Hard delete a shared mailbox, room or bookings calendar.
 
@@ -1705,6 +1949,8 @@ Hard delete a shared mailbox, room or bookings calendar.
 |-----------|----------|------|-------------|
 | UserName | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
 En-/Disable Out-of-office-notifications for a user/mailbox.
@@ -1720,6 +1966,8 @@ En-/Disable Out-of-office-notifications for a user/mailbox.
 | CreateEvent |  | Boolean |  |
 | EventSubject |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-mail-set-room-mailbox-configuration'></a>
 
 ### Set Room Mailbox Configuration
 Set room resource policies.
@@ -1742,6 +1990,8 @@ Set room resource policies.
 <a name='user-phone'></a>
 ## Phone
 
+<a name='user-phone-disable-teams-phone'></a>
+
 ### Disable Teams Phone
 Microsoft Teams telephony offboarding
 
@@ -1750,6 +2000,8 @@ Microsoft Teams telephony offboarding
 | UserName | ✓ | String | User which should be cleared. Could be filled with the user picker in the UI. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-phone-get-teams-user-info'></a>
+
 ### Get Teams User Info
 Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
 
@@ -1757,6 +2009,8 @@ Get the status quo of a Microsoft Teams user in terms of phone number, if any, a
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI. |
 | CallerName |  | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-phone-grant-teams-user-policies'></a>
 
 ### Grant Teams User Policies
 Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
@@ -1773,6 +2027,8 @@ Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
 | TeamsMeetingBroadcastPolicy |  | String | Microsoft Teams Meeting Broadcast Policy Name (Live Event Policy). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-phone-set-teams-permanent-call-forwarding'></a>
+
 ### Set Teams Permanent Call Forwarding
 Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
 
@@ -1785,6 +2041,8 @@ Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
 | ForwardToDelegates |  | Boolean | Forward calls to delegates which are defined by the user. |
 | TurnOffForward |  | Boolean | Turn off immediate call forwarding. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-phone-set-teams-phone'></a>
 
 ### Set Teams Phone
 Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
@@ -1804,6 +2062,8 @@ Assign a phone number to a Microsoft Teams enabled user, enable calling and Gran
 <a name='user-security'></a>
 ## Security
 
+<a name='user-security-confirm-or-dismiss-risky-user'></a>
+
 ### Confirm Or Dismiss Risky User
 Confirm compromise / Dismiss a "risky user"
 
@@ -1812,6 +2072,8 @@ Confirm compromise / Dismiss a "risky user"
 | UserName | ✓ | String |  |
 | Dismiss |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-security-create-temporary-access-pass'></a>
 
 ### Create Temporary Access Pass
 Create an AAD temporary access pass for a user.
@@ -1823,6 +2085,8 @@ Create an AAD temporary access pass for a user.
 | OneTimeUseOnly |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-security-enable-or-disable-password-expiration'></a>
+
 ### Enable Or Disable Password Expiration
 Set a users password policy to "(Do not) Expire"
 
@@ -1832,6 +2096,8 @@ Set a users password policy to "(Do not) Expire"
 | DisablePasswordExpiration |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-security-reset-mfa'></a>
+
 ### Reset MFA
 Remove all App- and Mobilephone auth methods for a user.
 
@@ -1839,6 +2105,8 @@ Remove all App- and Mobilephone auth methods for a user.
 |-----------|----------|------|-------------|
 | UserName | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-security-reset-password'></a>
 
 ### Reset Password
 Reset a user's password.
@@ -1850,6 +2118,8 @@ Reset a user's password.
 | ForceChangePasswordNextSignIn |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='user-security-revoke-or-restore-access'></a>
+
 ### Revoke Or Restore Access
 Revoke user access and all active tokens or re-enable user.
 
@@ -1858,6 +2128,8 @@ Revoke user access and all active tokens or re-enable user.
 | UserName | ✓ | String |  |
 | Revoke |  | Boolean |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-security-set-or-remove-mobile-phone-mfa'></a>
 
 ### Set Or Remove Mobile Phone MFA
 Add, update or remove a user's mobile phone MFA information.
@@ -1874,6 +2146,8 @@ Add, update or remove a user's mobile phone MFA information.
 <a name='user-userinfo'></a>
 ## Userinfo
 
+<a name='user-userinfo-rename-user'></a>
+
 ### Rename User
 Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
 
@@ -1887,6 +2161,8 @@ Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, 
 Currently, removing the old eMail-address "in one go" seems not to work reliably
 [bool] $RemoveOldAddress = $false |
 
+<a name='user-userinfo-set-photo'></a>
+
 ### Set Photo
 Set / update the photo / avatar picture of a user.
 
@@ -1895,6 +2171,8 @@ Set / update the photo / avatar picture of a user.
 | UserName | ✓ | String |  |
 | PhotoURI | ✓ | String | Needs to be a JPEG |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='user-userinfo-update-user'></a>
 
 ### Update User
 Update/Finalize an existing user object.
