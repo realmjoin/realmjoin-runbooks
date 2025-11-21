@@ -641,7 +641,7 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
                         Add-Content -Path $runbookFilePath -Value "## Parameters"
                         foreach ($parameter in $runbook.Parameters) {
                             if ($parameter.Name -notlike "CallerName") {
-                                Add-Content -Path $runbookFilePath -Value "### -$($parameter.Name)"
+                                Add-Content -Path $runbookFilePath -Value "### $($parameter.Name)"
                                 # Filter out ValidateScript blocks from description
                                 $paramDescription = if ($parameter.Description) {
                                     $desc = ($parameter.Description.Text -join " ").Trim()
