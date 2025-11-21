@@ -1,8 +1,8 @@
 # List User Devices
 
-## List all devices owned by group members.
+List all devices owned by group members.
 
-## Description
+## Detailed description
 List all devices owned by group members.
 
 ## Where to find
@@ -15,20 +15,29 @@ Group \ General \ List User Devices
 
 
 ## Parameters
-### -GroupID
-Description: 
-Default Value: 
-Required: true
+### GroupID
 
-### -moveGroup
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -targetgroup
-Description: 
-Default Value: 
-Required: false
+### moveGroup
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### targetgroup
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

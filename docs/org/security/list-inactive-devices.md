@@ -1,8 +1,8 @@
 # List Inactive Devices
 
-## List/export inactive evices, which had no recent user logons.
+List/export inactive devices, which had no recent user logons.
 
-## Description
+## Detailed description
 Collect devices based on the date of last user logon or last Intune sync.
 
 ## Where to find
@@ -17,45 +17,69 @@ Org \ Security \ List Inactive Devices
 
 
 ## Parameters
-### -Days
-Description: 
-Default Value: 30
-Required: false
+### Days
 
-### -Sync
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
-### -ExportToFile
-Description: 
-Default Value: False
-Required: false
+### Sync
 
-### -ContainerName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+### ExportToFile
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+### ContainerName
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -18,6 +18,7 @@ permissions:
 env:
   ROOT_PATH: ${{ github.workspace }}
   OUTPUT_PATH_DOCS: ${{ github.workspace }}/docs
+  OUTPUT_PATH_GENERAL: ${{ github.workspace }}/docs/general
   OUTPUT_PATH_LISTS: ${{ github.workspace }}/docs/lists
   OUTPUT_PATH_OTHER: ${{ github.workspace }}/docs/other
   OUTPUT_PATH_JSON: ${{ github.workspace }}/docs/other/json
@@ -36,13 +37,15 @@ jobs:
       - name: 📁 Create output directories
         shell: pwsh
         run: |
-          Write-Host "🔍 Removing existing docs directory..."
+          Write-Host "🔍 Cleaning docs directory (except /docs/general/ and README.md)..."
           if (Test-Path $env:OUTPUT_PATH_DOCS) {
-            Remove-Item -Path $env:OUTPUT_PATH_DOCS -Recurse -Force
+            # Remove all items except 'general' folder and README.md
+            Get-ChildItem -Path $env:OUTPUT_PATH_DOCS | Where-Object {
+              $_.Name -ne 'general' -and $_.Name -ne 'README.md'
+            } | Remove-Item -Recurse -Force
           }
           
           Write-Host "🔍 Creating output directories..."
-          New-Item -Path $env:OUTPUT_PATH_DOCS -ItemType Directory -Force
           New-Item -Path $env:OUTPUT_PATH_LISTS -ItemType Directory -Force
           New-Item -Path $env:OUTPUT_PATH_OTHER -ItemType Directory -Force
           New-Item -Path $env:OUTPUT_PATH_JSON -ItemType Directory -Force
@@ -87,6 +90,7 @@ jobs:
               -createRunbookOverviewList `
               -createCompactRunbookOverviewList `
               -createPermissionList `
+              -createParameterList `
               -outputFolder $env:OUTPUT_PATH_LISTS `
               -rootFolder $env:ROOT_PATH
 

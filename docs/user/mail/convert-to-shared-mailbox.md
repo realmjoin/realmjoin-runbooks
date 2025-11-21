@@ -1,8 +1,8 @@
 # Convert To Shared Mailbox
 
-## Turn this users mailbox into a shared mailbox.
+Turn this users mailbox into a shared mailbox.
 
-## Description
+## Detailed description
 Turn this users mailbox into a shared mailbox.
 
 ## Where to find
@@ -18,40 +18,61 @@ User \ Mail \ Convert To Shared Mailbox
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -delegateTo
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Remove
-Description: 
-Default Value: False
-Required: false
+### delegateTo
 
-### -AutoMapping
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -RemoveGroups
-Description: 
-Default Value: True
-Required: false
+### Remove
 
-### -ArchivalLicenseGroup
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -RegularLicenseGroup
-Description: 
-Default Value: 
-Required: false
+### AutoMapping
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### RemoveGroups
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### ArchivalLicenseGroup
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RegularLicenseGroup
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

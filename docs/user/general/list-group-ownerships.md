@@ -1,8 +1,8 @@
 # List Group Ownerships
 
-## List group ownerships for this user.
+List group ownerships for this user.
 
-## Description
+## Detailed description
 List group ownerships for this user.
 
 ## Where to find
@@ -16,10 +16,13 @@ User \ General \ List Group Ownerships
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

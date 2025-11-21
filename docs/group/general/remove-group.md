@@ -1,8 +1,8 @@
 # Remove Group
 
-## Removes a group, incl. SharePoint site and Teams team.
+Removes a group, incl. SharePoint site and Teams team.
 
-## Description
+## Detailed description
 Removes a group, incl. SharePoint site and Teams team.
 
 ## Where to find
@@ -15,10 +15,13 @@ Group \ General \ Remove Group
 
 
 ## Parameters
-### -GroupId
-Description: 
-Default Value: 
-Required: true
+### GroupId
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

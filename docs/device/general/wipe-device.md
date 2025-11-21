@@ -1,8 +1,8 @@
 # Wipe Device
 
-## Wipe a Windows or MacOS device
+Wipe a Windows or MacOS device
 
-## Description
+## Detailed description
 Wipe a Windows or MacOS device.
 
 ## Where to find
@@ -21,50 +21,79 @@ Device \ General \ Wipe Device
 
 
 ## Parameters
-### -DeviceId
-Description: 
-Default Value: 
-Required: true
+### DeviceId
 
-### -wipeDevice
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -useProtectedWipe
-Description: 
-Default Value: False
-Required: false
+### wipeDevice
 
-### -removeIntuneDevice
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -removeAutopilotDevice
-Description: 
-Default Value: False
-Required: false
+### useProtectedWipe
 
-### -removeAADDevice
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -disableAADDevice
-Description: 
-Default Value: False
-Required: false
+### removeIntuneDevice
 
-### -macOsRecevoryCode
-Description: Only for old MacOS devices. Newer devices can be wiped without a recovery code.
-Default Value: 123456
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -macOsObliterationBehavior
-Description: "default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
-Default Value: default
-Required: false
+### removeAutopilotDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### removeAADDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### disableAADDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### macOsRecevoryCode
+Only for old MacOS devices. Newer devices can be wiped without a recovery code.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 123456 |
+| Required | false |
+| Type | String |
+
+### macOsObliterationBehavior
+"default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
+
+| Property | Value |
+|----------|-------|
+| Default Value | default |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

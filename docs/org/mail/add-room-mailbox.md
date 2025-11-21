@@ -1,8 +1,8 @@
 # Add Room Mailbox
 
-## Create a room resource.
+Create a room resource.
 
-## Description
+## Detailed description
 Create a room resource.
 
 ## Where to find
@@ -18,40 +18,62 @@ Org \ Mail \ Add Room Mailbox
 
 
 ## Parameters
-### -MailboxName
-Description: 
-Default Value: 
-Required: true
+### MailboxName
 
-### -DisplayName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -DelegateTo
-Description: 
-Default Value: 
-Required: false
+### DisplayName
 
-### -Capacity
-Description: 
-Default Value: 0
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -AutoAccept
-Description: 
-Default Value: False
-Required: false
+### DelegateTo
 
-### -AutoMapping
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -DisableUser
-Description: CallerName is tracked purely for auditing purposes
-Default Value: True
-Required: false
+### Capacity
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
+
+### AutoAccept
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### AutoMapping
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### DisableUser
+CallerName is tracked purely for auditing purposes
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

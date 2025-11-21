@@ -20,7 +20,7 @@
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -294,8 +294,12 @@ Write-Output "---------------------"
 
 $AssignedPlan = $StatusQuo.AssignedPlan
 
-if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
-    Write-Output "$($symbol_check) - License check - Microsoft O365 Phone Standard is generally assigned to this user"
+if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*" -or $AssignedPlan.Capability -like "MCOEV_VIRTUALUSER") {
+    if ($AssignedPlan.Capability -like "MCOEV_VIRTUALUSER") {
+        Write-Output "License check - Microsoft Teams Phone Resource Account is assigned to this user"
+    }else {
+        Write-Output "License check - Microsoft O365 Phone Standard is generally assigned to this user"
+    }
 
     #Validation whether license is already assigned long enough
     $Now = get-date
@@ -339,17 +343,17 @@ if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -l
             }
             else {
                 Write-Output ""
-                Write-Warning "Error:"
-                Write-Warning "The user license (MCOEV - Microsoft O365 Phone Standard) should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
-                Write-Warning "The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Provisions regarding telephony not before: ($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss"))"
+                Write-Warning -Message "Error:"
+                Write-Warning -Message "The license should have been assigned for at least one hour, otherwise proper provisioning cannot be ensured. "
+                Write-Warning -Message "The license was assigned at $($LicenseTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")) (UTC). Provisions regarding telephony not before: ($LicenseTimeStamp.AddHours(1).ToString("yyyy-MM-dd HH:mm:ss"))"
             }
         }
         catch {
-            Write-Warning "Warning: The time of license assignment could not be verified!"
+            Write-Warning -Message "Warning: The time of license assignment could not be verified!"
         }
     }
     else {
-        Write-Warning "Warning: The time of license assignment could not be verified!"
+        Write-Warning -Message "Warning: The time of license assignment could not be verified!"
     }
 
 }

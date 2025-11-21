@@ -1,8 +1,8 @@
 # Check Updatable Assets
 
-## Check if a device is onboarded to Windows Update for Business.
+Check if a device is onboarded to Windows Update for Business.
 
-## Description
+## Detailed description
 This script checks if single device is onboarded to Windows Update for Business.
 
 ## Where to find
@@ -15,10 +15,14 @@ Device \ General \ Check Updatable Assets
 
 
 ## Parameters
-### -DeviceId
-Description: DeviceId of the device to check onboarding status for.
-Default Value: 
-Required: true
+### DeviceId
+DeviceId of the device to check onboarding status for.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

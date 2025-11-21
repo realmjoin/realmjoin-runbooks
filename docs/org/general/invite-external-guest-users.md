@@ -1,8 +1,8 @@
 # Invite External Guest Users
 
-## Invites external guest users to the organization using Microsoft Graph.
+Invites external guest users to the organization using Microsoft Graph.
 
-## Description
+## Detailed description
 This script automates the process of inviting external users as guests to the organization. Optionally, the invited user can be added to a specified group.
 
 ## Where to find
@@ -39,21 +39,33 @@ An example would be looking like this:
 
 
 ## Parameters
-### -InvitedUserEmail
-Description: The email address of the guest user to invite.
-Default Value: 
-Required: true
+### InvitedUserEmail
+The email address of the guest user to invite.
 
-### -InvitedUserDisplayName
-Description: The display name for the guest user.
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -GroupId
-Description: The object ID of the group to add the guest user to.
+### InvitedUserDisplayName
+The display name for the guest user.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### GroupId
+The object ID of the group to add the guest user to.
 If not specified, the user will not be added to any group.
-Default Value: 
-Required: false
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,8 +1,8 @@
 # Add Or Remove Email Address
 
-## Add/remove eMail address to/from mailbox.
+Add/remove eMail address to/from mailbox.
 
-## Description
+## Detailed description
 Add/remove eMail address to/from mailbox, update primary eMail address.
 
 ## Where to find
@@ -18,25 +18,37 @@ User \ Mail \ Add Or Remove Email Address
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -eMailAddress
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Remove
-Description: 
-Default Value: False
-Required: false
+### eMailAddress
 
-### -asPrimary
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Remove
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### asPrimary
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

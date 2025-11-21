@@ -1,8 +1,8 @@
 # List Vulnerable App Regs
 
-## List all app registrations that suffer from the CVE-2021-42306 vulnerability.
+List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 
-## Description
+## Detailed description
 List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 
 ## Where to find
@@ -15,35 +15,53 @@ Org \ Security \ List Vulnerable App Regs
 
 
 ## Parameters
-### -ExportToFile
-Description: 
-Default Value: False
-Required: false
+### ExportToFile
 
-### -ContainerName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+### ContainerName
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+### ResourceGroupName
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

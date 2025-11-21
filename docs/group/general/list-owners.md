@@ -1,8 +1,8 @@
 # List Owners
 
-## List all owners of an Office 365 group.
+List all owners of an Office 365 group.
 
-## Description
+## Detailed description
 List all owners of an Office 365 group.
 
 ## Where to find
@@ -15,10 +15,13 @@ Group \ General \ List Owners
 
 
 ## Parameters
-### -GroupID
-Description: 
-Default Value: 
-Required: true
+### GroupID
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

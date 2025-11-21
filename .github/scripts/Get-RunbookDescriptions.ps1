@@ -101,13 +101,37 @@ function Get-RunbookBasics {
     }
 
     $TextInfo = (Get-Culture).TextInfo
-    $runbookDisplayName = (Split-Path -LeafBase $runbookPath | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+    $runbookBaseName = Split-Path -LeafBase $runbookPath
+
+    # Keep original file name for file creation (with _scheduled)
+    $runbookFileName = ($runbookBaseName | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+
+    # Check if the runbook ends with _scheduled
+    $isScheduled = $runbookBaseName -match '_scheduled$'
+    if ($isScheduled) {
+        # Remove _scheduled suffix for display name only
+        $runbookBaseName = $runbookBaseName -replace '_scheduled$', ''
+    }
+
+    $runbookDisplayName = ($runbookBaseName | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+
+    # Ensure acronyms are uppercase
+    $runbookDisplayName = $runbookDisplayName -replace '\bAvd\b', 'AVD' -replace '\bMdm\b', 'MDM'
+
+    # Add (Scheduled) suffix if it was a scheduled runbook
+    if ($isScheduled) {
+        $runbookDisplayName = $runbookDisplayName + " (Scheduled)"
+    }
+
     $runbookDisplayPath = ($relativeRunbookPath -replace "\.ps1$", "") -replace "[\\/]", ' \ ' | ForEach-Object { $TextInfo.ToTitleCase($_) }
     $runbookDisplayPath = $runbookDisplayPath -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+    # Ensure acronyms are uppercase in path too
+    $runbookDisplayPath = $runbookDisplayPath -replace '\bAvd\b', 'AVD' -replace '\bMdm\b', 'MDM'
 
 
     return @{
         RunbookDisplayName = $runbookDisplayName
+        RunbookFileName    = $runbookFileName
         RunbookDisplayPath = $runbookDisplayPath
         Synopsis           = $runbookHelp.Synopsis
         Description        = $runbookHelp.Description.Text
@@ -211,6 +235,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
 
     $runbookDescriptions += [PSCustomObject]@{
         RunbookDisplayName           = $CurrentRunbookBasics.RunbookDisplayName
+        RunbookFileName              = $CurrentRunbookBasics.RunbookFileName
         RunbookDisplayPath           = $CurrentRunbookBasics.RunbookDisplayPath
         RelativeRunbookPath          = $relativeRunbookPath
         RelativeRunbookPath_PathOnly = $RelativeRunbookPath_PathOnly
@@ -392,10 +417,31 @@ if ($outputMode -eq "OneFile") {
                 if ($runbook.Parameters) {
                     Add-Content -Path $ResultFile -Value "#### Parameters"
                     foreach ($parameter in $runbook.Parameters) {
-                        Add-Content -Path $ResultFile -Value "##### -$($parameter.Name)"
-                        Add-Content -Path $ResultFile -Value "Description: $($parameter.Description.Text)"
-                        Add-Content -Path $ResultFile -Value "Default Value: $($parameter.DefaultValue)"
-                        Add-Content -Path $ResultFile -Value "Required: $($parameter.Required)"
+                        Add-Content -Path $ResultFile -Value "##### $($parameter.Name)"
+                        # Filter out ValidateScript blocks from description
+                        $paramDescription = if ($parameter.Description) {
+                            $desc = ($parameter.Description.Text -join " ").Trim()
+                            # Remove ValidateScript blocks
+                            $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                            $desc.Trim()
+                        } else { "" }
+                        if ($paramDescription) {
+                            Add-Content -Path $ResultFile -Value $paramDescription
+                        }
+                        Add-Content -Path $ResultFile -Value ""
+                        # Format type for display
+                        $paramType = if ($parameter.type.name) {
+                            if ($parameter.type.name -eq 'String[]') {
+                                "String Array"
+                            } else {
+                                $parameter.type.name
+                            }
+                        } else { "" }
+                        Add-Content -Path $ResultFile -Value "| Property | Value |"
+                        Add-Content -Path $ResultFile -Value "|----------|-------|"
+                        Add-Content -Path $ResultFile -Value "| Default Value | $($parameter.DefaultValue) |"
+                        Add-Content -Path $ResultFile -Value "| Required | $($parameter.Required) |"
+                        Add-Content -Path $ResultFile -Value "| Type | $paramType |"
                         Add-Content -Path $ResultFile -Value ""
                     }
                 }
@@ -440,6 +486,7 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
         Add-Content -Path $ResultFile -Value ""
         Add-Content -Path $ResultFile -Value "## Additional information"
         Add-Content -Path $ResultFile -Value "Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:"
+        Add-Content -Path $ResultFile -Value "- [General runbook information and setup guides]($($relativeOutputPath)general)"
         Add-Content -Path $ResultFile -Value "- [List based content]($($relativeOutputPath)lists)"
         Add-Content -Path $ResultFile -Value "- [JSON based content]($($relativeOutputPath)other/json)"
         Add-Content -Path $ResultFile -Value "- [Other content]($($relativeOutputPath)other)"
@@ -520,7 +567,7 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
             Sort-Object -Property RunbookDisplayName
 
             foreach ($runbook in $runbooks) {
-                $runbookFileName = ($runbook.RunbookDisplayName -replace ' ', '-').ToLower() + ".md"
+                $runbookFileName = ($runbook.RunbookFileName -replace ' ', '-').ToLower() + ".md"
                 $runbookFilePath = Join-Path -Path $outputFolder -ChildPath "$primaryFolderLink\$(($subFolder -replace ' ', '-').ToLower())\$runbookFileName"
                 $runbookAnchor = "$subFolderLink-$(($runbook.RunbookDisplayName -replace ' ', '-').ToLower())"
 
@@ -541,11 +588,11 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
                 Add-Content -Path $runbookFilePath -Value ""
 
                 if ($runbook.Synopsis) {
-                    Add-Content -Path $runbookFilePath -Value "## $($runbook.Synopsis)"
+                    Add-Content -Path $runbookFilePath -Value "$($runbook.Synopsis)"
                     Add-Content -Path $runbookFilePath -Value ""
                 }
                 if ($runbook.Description) {
-                    Add-Content -Path $runbookFilePath -Value "## Description"
+                    Add-Content -Path $runbookFilePath -Value "## Detailed description"
                     Add-Content -Path $runbookFilePath -Value $runbook.Description
                     Add-Content -Path $runbookFilePath -Value ""
                 }
@@ -594,10 +641,31 @@ elseif ($outputMode -eq "SeperateFileSeperateFolder") {
                         Add-Content -Path $runbookFilePath -Value "## Parameters"
                         foreach ($parameter in $runbook.Parameters) {
                             if ($parameter.Name -notlike "CallerName") {
-                                Add-Content -Path $runbookFilePath -Value "### -$($parameter.Name)"
-                                Add-Content -Path $runbookFilePath -Value "Description: $($parameter.Description.Text)"
-                                Add-Content -Path $runbookFilePath -Value "Default Value: $($parameter.DefaultValue)"
-                                Add-Content -Path $runbookFilePath -Value "Required: $($parameter.Required)"
+                                Add-Content -Path $runbookFilePath -Value "### $($parameter.Name)"
+                                # Filter out ValidateScript blocks from description
+                                $paramDescription = if ($parameter.Description) {
+                                    $desc = ($parameter.Description.Text -join " ").Trim()
+                                    # Remove ValidateScript blocks
+                                    $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                                    $desc.Trim()
+                                } else { "" }
+                                if ($paramDescription) {
+                                    Add-Content -Path $runbookFilePath -Value $paramDescription
+                                }
+                                Add-Content -Path $runbookFilePath -Value ""
+                                # Format type for display
+                                $paramType = if ($parameter.type.name) {
+                                    if ($parameter.type.name -eq 'String[]') {
+                                        "String Array"
+                                    } else {
+                                        $parameter.type.name
+                                    }
+                                } else { "" }
+                                Add-Content -Path $runbookFilePath -Value "| Property | Value |"
+                                Add-Content -Path $runbookFilePath -Value "|----------|-------|"
+                                Add-Content -Path $runbookFilePath -Value "| Default Value | $($parameter.DefaultValue) |"
+                                Add-Content -Path $runbookFilePath -Value "| Required | $($parameter.Required) |"
+                                Add-Content -Path $runbookFilePath -Value "| Type | $paramType |"
                                 Add-Content -Path $runbookFilePath -Value ""
                             }
                         }

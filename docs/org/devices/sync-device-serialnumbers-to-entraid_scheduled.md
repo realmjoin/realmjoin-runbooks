@@ -1,8 +1,8 @@
-# Sync Device Serialnumbers To Entraid_Scheduled
+# Sync Device Serialnumbers To Entraid (Scheduled)
 
-## Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+Syncs serial numbers from Intune devices to Azure AD device extension attributes.
 
-## Description
+## Detailed description
 This runbook retrieves all managed devices from Intune, extracts their serial numbers,
 and updates the corresponding Azure AD device objects' extension attributes.
 This helps maintain consistency between Intune and Azure AD device records.
@@ -25,30 +25,49 @@ Permissions (Graph):
 
 
 ## Parameters
-### -ExtensionAttributeNumber
-Description: 
-Default Value: 1
-Required: false
+### ExtensionAttributeNumber
 
-### -ProcessAllDevices
-Description: If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
-### -MaxDevicesToProcess
-Description: Maximum number of devices to process in a single run. Use 0 for unlimited.
-Default Value: 0
-Required: false
+### ProcessAllDevices
+If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
 
-### -sendReportTo
-Description: Email address to send the report to. If empty, no email will be sent.
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -sendReportFrom
-Description: Email address to send the report from.
-Default Value: runbook@glueckkanja.com
-Required: false
+### MaxDevicesToProcess
+Maximum number of devices to process in a single run. Use 0 for unlimited.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
+
+### sendReportTo
+Email address to send the report to. If empty, no email will be sent.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### sendReportFrom
+Email address to send the report from.
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbook@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

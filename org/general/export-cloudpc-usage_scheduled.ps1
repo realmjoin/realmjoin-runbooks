@@ -47,7 +47,7 @@ function Get-StorageContext() {
     }
 }
 
-function Get-StorageTables([array]$tables) {
+function Get-StorageTable([array]$tables) {
     try {
 
         $storageTables = @{}
@@ -172,7 +172,7 @@ Connect-RjRbAzAccount
 $ReportDateLower = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format 'yyyy-MM-dd'
 $TenantId = (invoke-RjRbRestMethodGraph -Resource "/organization").id
 
-$StorageTables = Get-StorageTables -tables $Table
+$StorageTables = Get-StorageTable -tables $Table
 
 [int]$rowsWritten = 0
 
@@ -232,7 +232,7 @@ foreach ($cloudPc in $allCloudPcs) {
         foreach ($row in $rawConnectionsReport.Values) {
             $properties = @{}
             for ($i = 0; $i -lt $rawConnectionsReport.Schema.Column.count; $i++) {
-                if ($row[$i] -eq $null) {
+                if ($null -eq $row[$i]) {
                     $properties.add($rawConnectionsReport.Schema.Column[$i], 0 )
                 }
                 else {

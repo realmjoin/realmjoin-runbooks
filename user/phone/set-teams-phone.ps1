@@ -50,7 +50,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "6.8.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -243,8 +243,12 @@ $TMP = $null
 
 $AssignedPlan = $StatusQuo.AssignedPlan
 
-if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*") {
-    Write-Output "License check - Microsoft O365 Phone Standard is generally assigned to this user"
+if ($AssignedPlan.Capability -like "MCOSTANDARD" -or $AssignedPlan.Capability -like "MCOEV" -or $AssignedPlan.Capability -like "MCOEV-*" -or $AssignedPlan.Capability -like "MCOEV_VIRTUALUSER") {
+    if ($AssignedPlan.Capability -like "MCOEV_VIRTUALUSER") {
+        Write-Output "License check - Microsoft Teams Phone Resource Account is assigned to this user"
+    }else {
+        Write-Output "License check - Microsoft O365 Phone Standard is generally assigned to this user"
+    }
 
     #Validation whether license is already assigned long enough
     $Now = get-date

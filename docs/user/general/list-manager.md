@@ -1,8 +1,8 @@
 # List Manager
 
-## List manager information for this user.
+List manager information for this user.
 
-## Description
+## Detailed description
 List manager information for the specified user.
 
 ## Where to find
@@ -15,10 +15,13 @@ User \ General \ List Manager
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

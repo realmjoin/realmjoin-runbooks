@@ -1,23 +1,34 @@
 # Add Management Partner
 
-## List or add or Management Partner Links (PAL)
+List or add or Management Partner Links (PAL)
 
-## Description
+## Detailed description
 List or add or Management Partner Links (PAL)
 
 ## Where to find
 Org \ General \ Add Management Partner
 
-## Parameters
-### -Action
-Description: 
-Default Value: 0
-Required: true
+## Permissions
+### Permission notes
+Owner or Contributor role on the Azure Subscription
 
-### -PartnerId
-Description: 
-Default Value: 6457701
-Required: false
+
+## Parameters
+### Action
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | true |
+| Type | Int32 |
+
+### PartnerId
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6457701 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

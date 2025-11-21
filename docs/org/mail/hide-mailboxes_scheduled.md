@@ -1,8 +1,8 @@
-# Hide Mailboxes_Scheduled
+# Hide Mailboxes (Scheduled)
 
-## Hide / Unhide special mailboxes in Global Address Book
+Hide / Unhide special mailboxes in Global Address Book
 
-## Description
+## Detailed description
 Hide / Unhide special mailboxes in Global Address Book. Currently intended for Booking calendars.
 
 ## Where to find
@@ -14,10 +14,13 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 
 
 ## Parameters
-### -HideBookingCalendars
-Description: 
-Default Value: True
-Required: true
+### HideBookingCalendars
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | true |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

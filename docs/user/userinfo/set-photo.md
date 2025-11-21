@@ -1,8 +1,8 @@
 # Set Photo
 
-## Set / update the photo / avatar picture of a user.
+Set / update the photo / avatar picture of a user.
 
-## Description
+## Detailed description
 Set / update the photo / avatar picture of a user.
 
 ## Where to find
@@ -15,15 +15,22 @@ User \ Userinfo \ Set Photo
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -PhotoURI
-Description: Needs to be a JPEG
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### PhotoURI
+Needs to be a JPEG
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,8 +1,8 @@
 # Add Defender Indicator
 
-## Create new Indicator in Defender for Endpoint.
+Create new Indicator in Defender for Endpoint.
 
-## Description
+## Detailed description
 Create a new Indicator in Defender for Endpoint e.g. to allow a specific file using it's hash value or allow a specific url that by default is blocked by Defender for Endpoint
 
 ## Where to find
@@ -15,40 +15,61 @@ Org \ Security \ Add Defender Indicator
 
 
 ## Parameters
-### -IndicatorValue
-Description: 
-Default Value: 
-Required: true
+### IndicatorValue
 
-### -IndicatorType
-Description: 
-Default Value: FileSha256
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Title
-Description: 
-Default Value: 
-Required: true
+### IndicatorType
 
-### -Description
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value | FileSha256 |
+| Required | true |
+| Type | String |
 
-### -Action
-Description: 
-Default Value: Allowed
-Required: true
+### Title
 
-### -Severity
-Description: 
-Default Value: Informational
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -GenerateAlert
-Description: 
-Default Value: False
-Required: true
+### Description
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Action
+
+| Property | Value |
+|----------|-------|
+| Default Value | Allowed |
+| Required | true |
+| Type | String |
+
+### Severity
+
+| Property | Value |
+|----------|-------|
+| Default Value | Informational |
+| Required | true |
+| Type | String |
+
+### GenerateAlert
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

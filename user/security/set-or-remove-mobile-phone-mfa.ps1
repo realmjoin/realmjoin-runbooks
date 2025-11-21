@@ -3,10 +3,10 @@
   Add, update or remove a user's mobile phone MFA information.
 
   .DESCRIPTION
-  Add, update or remove a user's mobile phone MFA information.
+  Add, update or remove a user's mobile phone MFA information. If you want to modify a number, remove it first and add a new number afterwards.
 
   .PARAMETER phoneNumber
-  Needs to be in '+###########' syntax
+  Enter the user's mobile number in international format (e.g. +491701234567) to add, update, or remove.
 
   .INPUTS
   RunbookCustomization: {
@@ -20,6 +20,9 @@
                     "Add this number as Mobile Phone MFA Factor'": false,
                     "Remove this number / mobile phone MFA factor": true
                 }
+            },
+            "phoneNumber": {
+                "DisplayName": "Mobile Phone Number"
             },
             "CallerName": {
                 "Hide": true
@@ -43,7 +46,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph

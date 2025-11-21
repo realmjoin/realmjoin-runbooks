@@ -1,8 +1,8 @@
 # List Room Mailbox Configuration
 
-## List Room configuration.
+List Room configuration.
 
-## Description
+## Detailed description
 List Room configuration.
 
 ## Where to find
@@ -15,10 +15,13 @@ User \ Mail \ List Room Mailbox Configuration
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

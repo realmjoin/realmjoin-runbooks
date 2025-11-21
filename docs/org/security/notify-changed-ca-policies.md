@@ -1,8 +1,8 @@
 # Notify Changed CA Policies
 
-## Exports the current set of Conditional Access policies to an Azure storage account.
+Exports the current set of Conditional Access policies to an Azure storage account.
 
-## Description
+## Detailed description
 Exports the current set of Conditional Access policies to an Azure storage account.
 
 ## Where to find
@@ -16,15 +16,21 @@ Org \ Security \ Notify Changed CA Policies
 
 
 ## Parameters
-### -From
-Description: 
-Default Value: 
-Required: true
+### From
 
-### -To
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### To
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,8 +1,8 @@
 # Archive Team
 
-## Archive a team.
+Archive a team.
 
-## Description
+## Detailed description
 Decomission an inactive team while preserving its contents for review.
 
 ## Where to find
@@ -15,10 +15,13 @@ Group \ Teams \ Archive Team
 
 
 ## Parameters
-### -GroupID
-Description: 
-Default Value: 
-Required: true
+### GroupID
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

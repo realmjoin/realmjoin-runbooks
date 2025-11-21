@@ -1,8 +1,8 @@
 # Unenroll Updatable Assets
 
-## Unenroll devices from Windows Update for Business.
+Unenroll devices from Windows Update for Business.
 
-## Description
+## Detailed description
 This script unenrolls devices from Windows Update for Business.
 
 ## Where to find
@@ -16,15 +16,23 @@ Group \ Devices \ Unenroll Updatable Assets
 
 
 ## Parameters
-### -GroupId
-Description: Object ID of the group to unenroll its members.
-Default Value: 
-Required: true
+### GroupId
+Object ID of the group to unenroll its members.
 
-### -UpdateCategory
-Description: Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
-Default Value: all
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### UpdateCategory
+Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
+
+| Property | Value |
+|----------|-------|
+| Default Value | all |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

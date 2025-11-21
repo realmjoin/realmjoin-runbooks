@@ -1,8 +1,8 @@
 # Create Temporary Access Pass
 
-## Create an AAD temporary access pass for a user.
+Create an AAD temporary access pass for a user.
 
-## Description
+## Detailed description
 Create an AAD temporary access pass for a user.
 
 ## Where to find
@@ -15,20 +15,30 @@ User \ Security \ Create Temporary Access Pass
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -LifetimeInMinutes
-Description: Time the pass will stay valid in minutes
-Default Value: 240
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -OneTimeUseOnly
-Description: 
-Default Value: True
-Required: false
+### LifetimeInMinutes
+Time the pass will stay valid in minutes
+
+| Property | Value |
+|----------|-------|
+| Default Value | 240 |
+| Required | false |
+| Type | Int32 |
+
+### OneTimeUseOnly
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

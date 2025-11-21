@@ -1,8 +1,8 @@
 # Add Or Remove Teams Mailcontact
 
-## Create/Remove a contact, to allow pretty email addresses for Teams channels.
+Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
-## Description
+## Detailed description
 Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
 ## Where to find
@@ -18,25 +18,39 @@ Org \ Mail \ Add Or Remove Teams Mailcontact
 
 
 ## Parameters
-### -RealAddress
-Description: Enter the address created by MS Teams for a channel
-Default Value: 
-Required: true
+### RealAddress
+Enter the address created by MS Teams for a channel
 
-### -DesiredAddress
-Description: Will forward/relay to the real address.
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -DisplayName
-Description: 
-Default Value: 
-Required: false
+### DesiredAddress
+Will forward/relay to the real address.
 
-### -Remove
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### DisplayName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### Remove
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

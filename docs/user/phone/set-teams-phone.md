@@ -1,8 +1,8 @@
 # Set Teams Phone
 
-## Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 
-## Description
+## Detailed description
 Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
@@ -19,35 +19,59 @@ User \ Phone \ Set Teams Phone
 
 
 ## Parameters
-### -UserName
-Description: User which should be assigned. Could be filled with the user picker in the UI.
-Default Value: 
-Required: true
+### UserName
+User which should be assigned. Could be filled with the user picker in the UI.
 
-### -PhoneNumber
-Description: Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -OnlineVoiceRoutingPolicy
-Description: Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-Default Value: 
-Required: false
+### PhoneNumber
+Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
 
-### -TenantDialPlan
-Description: Microsoft Teams DialPlan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -TeamsCallingPolicy
-Description: Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-Default Value: 
-Required: false
+### OnlineVoiceRoutingPolicy
+Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
-### -TeamsIPPhonePolicy
-Description: Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### TenantDialPlan
+Microsoft Teams DialPlan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### TeamsCallingPolicy
+Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### TeamsIPPhonePolicy
+Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

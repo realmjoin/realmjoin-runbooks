@@ -1,5 +1,62 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-11-20
+  - Add Report License Assignment Runbook (scheduled)
+    - Thresholds for license availability reporting:
+      - Minimum threshold: Alert when available licenses fall below this number
+      - Maximum threshold: Alert when available licenses exceed this number
+
+## 2025-11-13
+  - Enhance CSS part in all reporting runbooks
+  - Update PowerShell module version in all reporting runbooks
+
+## 2025-11-10
+  - New Add or Remove Tenant Allow/Block List Runbook
+  - Update Teams PowerShell Module to 7.5.0 in all Teams Phone Runbooks
+  - Separate Exchange Module definitions
+
+## 2025-11-06
+  - Update Set or Remove Mobile Phone MFA Runbook
+    - Clarify phone number format in description and parameter help
+
+## 2025-10-22
+  - Update Add Shared Mailbox Runbook
+    - Add functionality to add shared mailbox with same alias but different domain
+  - Add List Group Memberships Runbook
+
+## 2025-10-16
+  - Update Report Apple MDM Cert Expiry (scheduled) Runbook
+    - Update regarding new email functions
+  - Update Report Devices Without Primary User Runbook
+    - Update regarding new email functions
+  - Update Report Users With More Than Five Devices Runbook
+    - Update regarding new email functions
+  - Update Report Last Device Contact By Range Runbook
+    - Update regarding new email functions
+  - Update List Stale Devices Runbook
+    - Update regarding new email functions
+  - Update general mail setup documentation
+    - Improve clarity and detail on email configuration steps
+  - Upgrade to List Application Credentials Expiry to Report Expiring Application Credentials (Scheduled) Runbook
+
+
+## 2025-10-06
+  - Update List Application Runbook
+  - Add Resource Account License Check to Get Teams User Info and Set Teams Phone Runbooks
+
+## 2025-09-26
+  - Add runbook in Org/Applications
+    - Updated/Added Versions add, update, delete and list application registrations
+
+## 2025-08-27
+  - Add AVD runbook
+    - device/avd/restart-host
+      - Restart the AVD Session Host.
+    - device/avd/toggle-drain-mode
+      - Sets Drainmode on true or false for a specific AVD Session Host.
+    - user/avd/user-signout
+      - Removes (Signs Out) a specific User from their AVD Session.
+
 ## 2025-07-21
 
 - Add runbook in Org/Devices:

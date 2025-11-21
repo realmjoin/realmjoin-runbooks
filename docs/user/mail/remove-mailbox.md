@@ -1,8 +1,8 @@
 # Remove Mailbox
 
-## Hard delete a shared mailbox, room or bookings calendar.
+Hard delete a shared mailbox, room or bookings calendar.
 
-## Description
+## Detailed description
 Hard delete a shared mailbox, room or bookings calendar.
 
 ## Where to find
@@ -14,10 +14,13 @@ User \ Mail \ Remove Mailbox
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

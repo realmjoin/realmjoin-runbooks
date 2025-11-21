@@ -1,8 +1,8 @@
 # Reprovision Windows365
 
-## Reprovision a Windows 365 Cloud PC
+Reprovision a Windows 365 Cloud PC
 
-## Description
+## Detailed description
 Reprovision an already existing Windows 365 Cloud PC without reassigning a new instance for this user.
 
 ## Where to find
@@ -20,35 +20,53 @@ User \ General \ Reprovision Windows365
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -licWin365GroupName
-Description: 
-Default Value: lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -sendMailWhenReprovisioning
-Description: 
-Default Value: False
-Required: false
+### licWin365GroupName
 
-### -fromMailAddress
-Description: 
-Default Value: reports@contoso.com
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB |
+| Required | true |
+| Type | String |
 
-### -customizeMail
-Description: 
-Default Value: False
-Required: false
+### sendMailWhenReprovisioning
 
-### -customMailMessage
-Description: 
-Default Value: Insert Custom Message here. (Capped at 3000 characters)
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### fromMailAddress
+
+| Property | Value |
+|----------|-------|
+| Default Value | reports@contoso.com |
+| Required | false |
+| Type | String |
+
+### customizeMail
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### customMailMessage
+
+| Property | Value |
+|----------|-------|
+| Default Value | Insert Custom Message here. (Capped at 3000 characters) |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

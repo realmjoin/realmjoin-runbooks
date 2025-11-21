@@ -1,8 +1,8 @@
 # Bulk Delete Devices From Autopilot
 
-## Mass-Delete Autopilot objects based on Serial Number.
+Mass-Delete Autopilot objects based on Serial Number.
 
-## Description
+## Detailed description
 This runbook deletes Autopilot objects in bulk based on a list of serial numbers.
 
 ## Where to find
@@ -15,10 +15,13 @@ Org \ General \ Bulk Delete Devices From Autopilot
 
 
 ## Parameters
-### -SerialNumbers
-Description: 
-Default Value: 
-Required: true
+### SerialNumbers
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

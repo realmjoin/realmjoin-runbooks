@@ -1,8 +1,8 @@
 # Assign Owa Mailbox Policy
 
-## Assign a given OWA mailbox policy to a user.
+Assign a given OWA mailbox policy to a user.
 
-## Description
+## Detailed description
 Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
 
 ## Where to find
@@ -14,15 +14,21 @@ User \ Mail \ Assign Owa Mailbox Policy
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -OwaPolicyName
-Description: 
-Default Value: OwaMailboxPolicy-Default
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### OwaPolicyName
+
+| Property | Value |
+|----------|-------|
+| Default Value | OwaMailboxPolicy-Default |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

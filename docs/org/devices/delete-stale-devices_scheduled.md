@@ -1,8 +1,8 @@
-# Delete Stale Devices_Scheduled
+# Delete Stale Devices (Scheduled)
 
-## Scheduled deletion of stale devices based on last activity date and platform.
+Scheduled deletion of stale devices based on last activity date and platform.
 
-## Description
+## Detailed description
 Identifies, lists, and deletes devices that haven't been active for a specified number of days.
 Can be scheduled to run automatically and send a report via email.
 
@@ -20,51 +20,87 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 
 
 ## Parameters
-### -Days
-Description: Number of days without activity to be considered stale.
-Default Value: 30
-Required: false
+### Days
+Number of days without activity to be considered stale.
 
-### -Windows
-Description: Include Windows devices in the results.
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
-### -MacOS
-Description: Include macOS devices in the results.
-Default Value: True
-Required: false
+### Windows
+Include Windows devices in the results.
 
-### -iOS
-Description: Include iOS devices in the results.
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -Android
-Description: Include Android devices in the results.
-Default Value: True
-Required: false
+### MacOS
+Include macOS devices in the results.
 
-### -DeleteDevices
-Description: If set to true, the script will delete the stale devices. If false, it will only report them.
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -ConfirmDeletion
-Description: If set to true, the script will prompt for confirmation before deleting devices.
+### iOS
+Include iOS devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### Android
+Include Android devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### DeleteDevices
+If set to true, the script will delete the stale devices. If false, it will only report them.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ConfirmDeletion
+If set to true, the script will prompt for confirmation before deleting devices.
 Should be set to false for scheduled runs.
-Default Value: True
-Required: false
 
-### -sendAlertTo
-Description: Email address to send the report to.
-Default Value: support@glueckkanja.com
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -sendAlertFrom
-Description: Email address to send the report from.
-Default Value: runbook@glueckkanja.com
-Required: false
+### sendAlertTo
+Email address to send the report to.
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja.com |
+| Required | false |
+| Type | String |
+
+### sendAlertFrom
+Email address to send the report from.
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbook@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

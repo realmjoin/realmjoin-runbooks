@@ -1,8 +1,8 @@
 # Revoke Or Restore Access
 
-## Revoke user access and all active tokens or re-enable user.
+Revoke user access and all active tokens or re-enable user.
 
-## Description
+## Detailed description
 Revoke user access and all active tokens or re-enable user.
 
 ## Where to find
@@ -19,15 +19,21 @@ User \ Security \ Revoke Or Restore Access
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -Revoke
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Revoke
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

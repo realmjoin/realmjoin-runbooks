@@ -1,8 +1,8 @@
 # Delegate Send On Behalf
 
-## Grant another user sendOnBehalf permissions on this mailbox.
+Grant another user sendOnBehalf permissions on this mailbox.
 
-## Description
+## Detailed description
 Grant another user sendOnBehalf permissions on this mailbox.
 
 ## Where to find
@@ -18,20 +18,29 @@ User \ Mail \ Delegate Send On Behalf
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -delegateTo
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Remove
-Description: 
-Default Value: False
-Required: false
+### delegateTo
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Remove
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

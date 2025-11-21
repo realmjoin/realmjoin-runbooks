@@ -1,8 +1,8 @@
 # Rename Device
 
-## Rename a device.
+Rename a device.
 
-## Description
+## Detailed description
 Rename a device (in Intune and Autopilot).
 
 ## Where to find
@@ -18,15 +18,21 @@ Device \ General \ Rename Device
 
 
 ## Parameters
-### -DeviceId
-Description: 
-Default Value: 
-Required: true
+### DeviceId
 
-### -NewDeviceName
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### NewDeviceName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

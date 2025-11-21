@@ -1,6 +1,6 @@
 <#
   .SYNOPSIS
-  List/export inactive evices, which had no recent user logons.
+  List/export inactive devices, which had no recent user logons.
 
   .DESCRIPTION
   Collect devices based on the date of last user logon or last Intune sync.

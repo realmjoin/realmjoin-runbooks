@@ -1,8 +1,8 @@
 # Reset Mobile Device Pin
 
-## Reset a mobile device's password/PIN code.
+Reset a mobile device's password/PIN code.
 
-## Description
+## Detailed description
 Reset a mobile device's password/PIN code. Warning: Not possible for all types of devices.
 
 ## Where to find
@@ -16,10 +16,13 @@ Device \ Security \ Reset Mobile Device Pin
 
 
 ## Parameters
-### -DeviceId
-Description: 
-Default Value: 
-Required: true
+### DeviceId
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

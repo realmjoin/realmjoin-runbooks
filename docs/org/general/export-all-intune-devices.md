@@ -1,8 +1,8 @@
 # Export All Intune Devices
 
-## Export a list of all Intune devices and where they are registered.
+Export a list of all Intune devices and where they are registered.
 
-## Description
+## Detailed description
 Export all Intune devices and metadata based on their owner, like usageLocation.
 
 ## Where to find
@@ -15,35 +15,53 @@ Org \ General \ Export All Intune Devices
 
 
 ## Parameters
-### -ContainerName
-Description: 
-Default Value: 
-Required: false
+### ContainerName
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+### ResourceGroupName
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+### StorageAccountName
 
-### -SubscriptionId
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

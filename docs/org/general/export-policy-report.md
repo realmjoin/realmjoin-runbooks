@@ -1,6 +1,6 @@
 # Export Policy Report
 
-## Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
+Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
 
 ## Where to find
 Org \ General \ Export Policy Report
@@ -16,45 +16,69 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 
 
 ## Parameters
-### -produceLinks
-Description: 
-Default Value: True
-Required: false
+### produceLinks
 
-### -exportJson
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -renderLatexPagebreaks
-Description: 
-Default Value: True
-Required: false
+### exportJson
 
-### -ContainerName
-Description: 
-Default Value: rjrb-licensing-report-v2
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+### renderLatexPagebreaks
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+### ContainerName
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | rjrb-licensing-report-v2 |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

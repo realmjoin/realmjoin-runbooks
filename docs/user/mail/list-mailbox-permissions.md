@@ -1,8 +1,8 @@
 # List Mailbox Permissions
 
-## List permissions on a (shared) mailbox.
+List permissions on a (shared) mailbox.
 
-## Description
+## Detailed description
 List permissions on a (shared) mailbox.
 
 ## Where to find
@@ -18,10 +18,13 @@ User \ Mail \ List Mailbox Permissions
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

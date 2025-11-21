@@ -81,6 +81,10 @@ catch {
         Write-Output "- Status: Device is not onboarded / not found (404)."
         Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
     }
+    elseif ($errorResponse -match '403') {
+        Write-Output "- Status can not be checked: Access denied (403). Please ensure RealmJoin has the required permissions."
+        Write-RjRbLog -Message "- Error: $($errorResponse)" -Verbose
+    }
     else {
         Write-Output "- Status: Device is not onboarded - see details in the following."
         Write-Output "- Error: $($errorResponse)"

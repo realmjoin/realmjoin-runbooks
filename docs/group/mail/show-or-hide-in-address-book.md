@@ -1,8 +1,8 @@
 # Show Or Hide In Address Book
 
-## (Un)hide an O365- or static Distribution-group in Address Book.
+(Un)hide an O365- or static Distribution-group in Address Book.
 
-## Description
+## Detailed description
 (Un)hide an O365- or static Distribution-group in Address Book. Can also show the current state.
 
 ## Where to find
@@ -23,15 +23,21 @@ Note, as of 2021-06-28 MS Graph does not support updating existing groups - only
 
 
 ## Parameters
-### -GroupName
-Description: 
-Default Value: 
-Required: true
+### GroupName
 
-### -Action
-Description: 
-Default Value: 1
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Action
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

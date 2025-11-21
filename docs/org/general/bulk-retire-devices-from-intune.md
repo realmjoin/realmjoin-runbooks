@@ -1,8 +1,8 @@
 # Bulk Retire Devices From Intune
 
-## Bulk retire devices from Intune using serial numbers
+Bulk retire devices from Intune using serial numbers
 
-## Description
+## Detailed description
 This runbook retires multiple devices from Intune based on a list of serial numbers.
 
 ## Where to find
@@ -16,10 +16,13 @@ Org \ General \ Bulk Retire Devices From Intune
 
 
 ## Parameters
-### -SerialNumbers
-Description: 
-Default Value: 
-Required: true
+### SerialNumbers
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,8 +1,8 @@
 # Enroll Updatable Assets
 
-## Enroll device into Windows Update for Business.
+Enroll device into Windows Update for Business.
 
-## Description
+## Detailed description
 This script enrolls devices into Windows Update for Business.
 
 ## Where to find
@@ -15,15 +15,23 @@ Device \ General \ Enroll Updatable Assets
 
 
 ## Parameters
-### -DeviceId
-Description: DeviceId of the device to unenroll.
-Default Value: 
-Required: true
+### DeviceId
+DeviceId of the device to unenroll.
 
-### -UpdateCategory
-Description: Category of updates to enroll into. Possible values are: driver, feature or quality.
-Default Value: feature
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### UpdateCategory
+Category of updates to enroll into. Possible values are: driver, feature or quality.
+
+| Property | Value |
+|----------|-------|
+| Default Value | feature |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

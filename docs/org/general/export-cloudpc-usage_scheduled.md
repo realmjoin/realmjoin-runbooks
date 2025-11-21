@@ -1,8 +1,8 @@
-# Export Cloudpc Usage_Scheduled
+# Export Cloudpc Usage (Scheduled)
 
-## Write daily Windows 365 Utilization Data to Azure Tables
+Write daily Windows 365 Utilization Data to Azure Tables
 
-## Description
+## Detailed description
 Write daily Windows 365 Utilization Data to Azure Tables. Will write data about the last full day.
 
 ## Where to find
@@ -18,25 +18,38 @@ Azure IaaS: `Contributor` role on the Azure Storage Account used for storing Clo
 
 
 ## Parameters
-### -Table
-Description: CallerName is tracked purely for auditing purposes
-Default Value: CloudPCUsageV2
-Required: false
+### Table
+CallerName is tracked purely for auditing purposes
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value | CloudPCUsageV2 |
+| Required | false |
+| Type | String |
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: true
+### ResourceGroupName
 
-### -days
-Description: 
-Default Value: 2
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### days
+
+| Property | Value |
+|----------|-------|
+| Default Value | 2 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

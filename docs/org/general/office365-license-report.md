@@ -1,8 +1,8 @@
 # Office365 License Report
 
-## Generate an Office 365 licensing report.
+Generate an Office 365 licensing report.
 
-## Description
+## Detailed description
 Generate an Office 365 licensing report.
 
 ## Where to find
@@ -17,60 +17,94 @@ Org \ General \ Office365 License Report
 
 
 ## Parameters
-### -printOverview
-Description: 
-Default Value: True
-Required: false
+### printOverview
 
-### -includeExhange
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -exportToFile
-Description: 
-Default Value: True
-Required: false
+### includeExhange
 
-### -exportAsZip
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -produceLinks
-Description: 
-Default Value: True
-Required: false
+### exportToFile
 
-### -ContainerName
-Description: Make a persistent container the default, so you can simply update PowerBI's report from the same source
-Default Value: rjrb-licensing-report-v2
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+### exportAsZip
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+### produceLinks
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -SubscriptionId
-Description: 
-Default Value: 
-Required: false
+### ContainerName
+Make a persistent container the default, so you can simply update PowerBI's report from the same source
+
+| Property | Value |
+|----------|-------|
+| Default Value | rjrb-licensing-report-v2 |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

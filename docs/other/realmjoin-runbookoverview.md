@@ -13,6 +13,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Runbooks - Table of contents
 
 - [Device](#device)
+  - [Avd](#device-avd)
+      - [Restart Host](#restart-host)
+      - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
       - [Change Grouptag](#change-grouptag)
       - [Check Updatable Assets](#check-updatable-assets)
@@ -48,20 +51,27 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
       - [Archive Team](#archive-team)
 - [Org](#org)
+  - [Applications](#org-applications)
+      - [Add Application Registration](#add-application-registration)
+      - [Delete Application Registration](#delete-application-registration)
+      - [Export Enterprise Application Users](#export-enterprise-application-users)
+      - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
+      - [Report Application Registration](#report-application-registration)
+      - [Report Expiring Application Credentials (Scheduled)](#report-expiring-application-credentials-(scheduled))
+      - [Update Application Registration](#update-application-registration)
   - [Devices](#org-devices)
-      - [Delete Stale Devices_Scheduled](#delete-stale-devices_scheduled)
+      - [Add Autopilot Device](#add-autopilot-device)
+      - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
+      - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
-      - [List Stale Devices_Scheduled](#list-stale-devices_scheduled)
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
+      - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
-      - [Sync Device Serialnumbers To Entraid_Scheduled](#sync-device-serialnumbers-to-entraid_scheduled)
+      - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
-      - [Add Application Registration](#add-application-registration)
-      - [Add Autopilot Device](#add-autopilot-device)
-      - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
-      - [Add Devices Of Users To Group_Scheduled](#add-devices-of-users-to-group_scheduled)
+      - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
       - [Add Management Partner](#add-management-partner)
       - [Add Microsoft Store App Logos](#add-microsoft-store-app-logos)
       - [Add Office365 Group](#add-office365-group)
@@ -71,59 +81,61 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Security Group](#add-security-group)
       - [Add User](#add-user)
       - [Add Viva Engange Community](#add-viva-engange-community)
-      - [Assign Groups By Template_Scheduled](#assign-groups-by-template_scheduled)
+      - [Assign Groups By Template (Scheduled)](#assign-groups-by-template-(scheduled))
       - [Bulk Delete Devices From Autopilot](#bulk-delete-devices-from-autopilot)
       - [Bulk Retire Devices From Intune](#bulk-retire-devices-from-intune)
-      - [Check Aad Sync Status_Scheduled](#check-aad-sync-status_scheduled)
+      - [Check Aad Sync Status (Scheduled)](#check-aad-sync-status-(scheduled))
       - [Check Assignments Of Devices](#check-assignments-of-devices)
       - [Check Assignments Of Groups](#check-assignments-of-groups)
       - [Check Assignments Of Users](#check-assignments-of-users)
       - [Check Autopilot Serialnumbers](#check-autopilot-serialnumbers)
-      - [Check Device Onboarding Exclusion_Schedule](#check-device-onboarding-exclusion_schedule)
-      - [Enrolled Devices Report_Scheduled](#enrolled-devices-report_scheduled)
+      - [Check Device Onboarding Exclusion (Scheduled)](#check-device-onboarding-exclusion-(scheduled))
+      - [Enrolled Devices Report (Scheduled)](#enrolled-devices-report-(scheduled))
       - [Export All Autopilot Devices](#export-all-autopilot-devices)
       - [Export All Intune Devices](#export-all-intune-devices)
-      - [Export Cloudpc Usage_Scheduled](#export-cloudpc-usage_scheduled)
+      - [Export Cloudpc Usage (Scheduled)](#export-cloudpc-usage-(scheduled))
       - [Export Non Compliant Devices](#export-non-compliant-devices)
       - [Export Policy Report](#export-policy-report)
       - [Invite External Guest Users](#invite-external-guest-users)
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
       - [Office365 License Report](#office365-license-report)
-      - [Report Apple Mdm Cert Expiry_Scheduled](#report-apple-mdm-cert-expiry_scheduled)
-      - [Report Pim Activations_Scheduled](#report-pim-activations_scheduled)
+      - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
+      - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
+      - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
       - [Add Or Remove Public Folder](#add-or-remove-public-folder)
       - [Add Or Remove Teams Mailcontact](#add-or-remove-teams-mailcontact)
+      - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
       - [Add Room Mailbox](#add-room-mailbox)
       - [Add Shared Mailbox](#add-shared-mailbox)
-      - [Hide Mailboxes_Scheduled](#hide-mailboxes_scheduled)
+      - [Hide Mailboxes (Scheduled)](#hide-mailboxes-(scheduled))
       - [Set Booking Config](#set-booking-config)
   - [Phone](#org-phone)
       - [Get Teams Phone Number Assignment](#get-teams-phone-number-assignment)
   - [Security](#org-security)
       - [Add Defender Indicator](#add-defender-indicator)
       - [Backup Conditional Access Policies](#backup-conditional-access-policies)
-      - [Export Enterprise App Users](#export-enterprise-app-users)
       - [List Admin Users](#list-admin-users)
-      - [List Application Creds Expiry](#list-application-creds-expiry)
       - [List Expiring Role Assignments](#list-expiring-role-assignments)
       - [List Inactive Devices](#list-inactive-devices)
-      - [List Inactive Enterprise Apps](#list-inactive-enterprise-apps)
       - [List Inactive Users](#list-inactive-users)
       - [List Information Protection Labels](#list-information-protection-labels)
-      - [List Pim Rolegroups Without Owners_Scheduled](#list-pim-rolegroups-without-owners_scheduled)
+      - [List Pim Rolegroups Without Owners (Scheduled)](#list-pim-rolegroups-without-owners-(scheduled))
       - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
 - [User](#user)
+  - [Avd](#user-avd)
+      - [User Signout](#user-signout)
   - [General](#user-general)
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
       - [Assign Windows365](#assign-windows365)
+      - [List Group Memberships](#list-group-memberships)
       - [List Group Ownerships](#list-group-ownerships)
       - [List Manager](#list-manager)
       - [Offboard User Permanently](#offboard-user-permanently)
@@ -162,6 +174,48 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Rename User](#rename-user)
       - [Set Photo](#set-photo)
       - [Update User](#update-user)
+
+<a name='device'></a>
+
+# Device
+<a name='device-avd'></a>
+
+## Avd
+<a name='device-avd-restart-host'></a>
+
+### Restart Host
+#### Reboots a specific AVD Session Host.
+
+#### Description
+This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted.
+If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
+
+#### Where to find
+Device \ AVD \ Restart Host
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-avd-toggle-drain-mode'></a>
+
+### Toggle Drain Mode
+#### Sets Drainmode on true or false for a specific AVD Session Host.
+
+#### Description
+This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
+The SubscriptionId value must be defined in the runbooks customization.
+
+#### Where to find
+Device \ AVD \ Toggle Drain Mode
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
 
 <a name='device'></a>
 
@@ -664,12 +718,201 @@ Group \ Teams \ Archive Team
 <a name='org'></a>
 
 # Org
+<a name='org-applications'></a>
+
+## Applications
+<a name='org-applications-add-application-registration'></a>
+
+### Add Application Registration
+#### Add an application registration to Azure AD
+
+#### Description
+This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+
+The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
+throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
+and certificate expiry notifications.
+
+#### Where to find
+Org \ Applications \ Add Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-delete-application-registration'></a>
+
+### Delete Application Registration
+#### Delete an application registration from Azure AD
+
+#### Description
+This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
+
+This script is the counterpart to the add-application-registration script and ensures
+proper cleanup of all resources created during application registration.
+
+#### Where to find
+Org \ Applications \ Delete Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-export-enterprise-application-users'></a>
+
+### Export Enterprise Application Users
+#### Export a CSV of all (enterprise) application owners and users
+
+#### Description
+This runbook exports a comprehensive list of all enterprise applications (or all service principals)
+in your Azure AD tenant along with their owners and assigned users/groups. Afterwards the CSV file is uploaded
+to an Azure Storage Account, from where it can be downloaded.
+
+#### Where to find
+Org \ Applications \ Export Enterprise Application Users
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-list-inactive-enterprise-applications'></a>
+
+### List Inactive Enterprise Applications
+#### List application registrations, which had no recent user logons.
+
+#### Description
+Identifies enterprise applications with no recent sign-in activity based on Entra ID audit logs.
+The report includes Entra ID applications with last sign-in older than specified days (default: 90 days) or applications with no sign-in records in the audit log.
+
+#### Where to find
+Org \ Applications \ List Inactive Enterprise Applications
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-report-application-registration'></a>
+
+### Report Application Registration
+#### Generate and email a comprehensive Application Registration report
+
+#### Description
+This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
+exports them to CSV files, and sends them via email.
+
+#### Where to find
+Org \ Applications \ Report Application Registration
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-report-expiring-application-credentials-(scheduled)'></a>
+
+### Report Expiring Application Credentials (Scheduled)
+#### List expiry date of all Application Registration credentials
+
+#### Description
+List the expiry date of all Application Registration credentials, including Client Secrets and Certificates.
+Optionally, filter by Application IDs and list only those credentials that are about to expire.
+
+#### Where to find
+Org \ Applications \ Report Expiring Application Credentials_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-update-application-registration'></a>
+
+### Update Application Registration
+#### Update an application registration in Azure AD
+
+#### Description
+This script modifies an existing application registration in Azure Active Directory (Entra ID) with comprehensive configuration updates.
+
+The script intelligently determines what changes need to be applied by comparing current settings
+with requested parameters, ensuring only necessary updates are performed. It maintains backward
+compatibility while supporting modern authentication patterns and security requirements.
+
+#### Where to find
+Org \ Applications \ Update Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org'></a>
+
+# Org
 <a name='org-devices'></a>
 
 ## Devices
-<a name='org-devices-delete-stale-devices_scheduled'></a>
+<a name='org-devices-add-autopilot-device'></a>
 
-### Delete Stale Devices_Scheduled
+### Add Autopilot Device
+#### Import a windows device into Windows Autopilot.
+
+#### Description
+This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
+
+#### Where to find
+Org \ Devices \ Add Autopilot Device
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-add-device-via-corporate-identifier'></a>
+
+### Add Device Via Corporate Identifier
+#### Import a device into Intune via corporate identifier.
+
+#### Description
+This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
+
+#### Where to find
+Org \ Devices \ Add Device Via Corporate Identifier
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-delete-stale-devices-(scheduled)'></a>
+
+### Delete Stale Devices (Scheduled)
 #### Scheduled deletion of stale devices based on last activity date and platform.
 
 #### Description
@@ -695,24 +938,6 @@ Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
 
 #### Where to find
 Org \ Devices \ Get Bitlocker Recovery Key
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-devices-list-stale-devices_scheduled'></a>
-
-### List Stale Devices_Scheduled
-#### Scheduled report of stale devices based on last activity date and platform.
-
-#### Description
-Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
-
-#### Where to find
-Org \ Devices \ List Stale Devices_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -746,8 +971,17 @@ Org \ Devices \ Outphase Devices
 This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
 The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
 
+Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+
 #### Where to find
 Org \ Devices \ Report Devices Without Primary User
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -758,15 +992,50 @@ Org \ Devices \ Report Devices Without Primary User
 <a name='org-devices-report-last-device-contact-by-range'></a>
 
 ### Report Last Device Contact By Range
-#### Reports Windows devices with last device contact within a specified date range.
+#### Reports devices with last contact within a specified date range.
 
 #### Description
-This Runbook retrieves a list of Windows devices from Azure AD / Intune, filtered by their
-last device contact time (lastSyncDateTime). As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
-The output includes the device name, last sync date, user ID, user display name, and user principal name.
+This Runbook retrieves a list of devices from Intune, filtered by their last device contact time (lastSyncDateTime).
+As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
+
+The output includes the device name, last sync date, Intune device ID, and user principal name.
+
+Optionally, the report can be sent via email with a CSV attachment containing additional details (Entra ID Device ID, User ID).
 
 #### Where to find
 Org \ Devices \ Report Last Device Contact By Range
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-stale-devices-(scheduled)'></a>
+
+### Report Stale Devices (Scheduled)
+#### Scheduled report of stale devices based on last activity date and platform.
+
+#### Description
+Identifies and lists devices that haven't been active for a specified number of days.
+Automatically sends a report via email.
+
+#### Where to find
+Org \ Devices \ Report Stale Devices_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -781,10 +1050,19 @@ Org \ Devices \ Report Last Device Contact By Range
 
 #### Description
 This script queries all devices and their registered users, and reports users who have more than five devices registered.
-The output includes the users ObjectId, UPN, and the number of devices.
+The output includes the user's Object ID, UPN, display name, and the number of devices.
+
+Optionally, the report can be sent via email with a CSV attachment containing detailed device information for each user.
 
 #### Where to find
 Org \ Devices \ Report Users With More Than 5-Devices
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -792,9 +1070,9 @@ Org \ Devices \ Report Users With More Than 5-Devices
  
  
 
-<a name='org-devices-sync-device-serialnumbers-to-entraid_scheduled'></a>
+<a name='org-devices-sync-device-serialnumbers-to-entraid-(scheduled)'></a>
 
-### Sync Device Serialnumbers To Entraid_Scheduled
+### Sync Device Serialnumbers To Entraid (Scheduled)
 #### Syncs serial numbers from Intune devices to Azure AD device extension attributes.
 
 #### Description
@@ -817,60 +1095,9 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 <a name='org-general'></a>
 
 ## General
-<a name='org-general-add-application-registration'></a>
+<a name='org-general-add-devices-of-users-to-group-(scheduled)'></a>
 
-### Add Application Registration
-#### Add an application registration to Azure AD
-
-#### Description
-Add an application registration to Azure AD
-
-#### Where to find
-Org \ General \ Add Application Registration
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-general-add-autopilot-device'></a>
-
-### Add Autopilot Device
-#### Import a windows device into Windows Autopilot.
-
-#### Description
-Import a windows device into Windows Autopilot.
-
-#### Where to find
-Org \ General \ Add Autopilot Device
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-general-add-device-via-corporate-identifier'></a>
-
-### Add Device Via Corporate Identifier
-#### Import a device into Intune via corporate identifier.
-
-#### Description
-Import a device into Intune via corporate identifier.
-
-#### Where to find
-Org \ General \ Add Device Via Corporate Identifier
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-general-add-devices-of-users-to-group_scheduled'></a>
-
-### Add Devices Of Users To Group_Scheduled
+### Add Devices Of Users To Group (Scheduled)
 #### Sync devices of users in a specific group to another device group.
 
 #### Description
@@ -1039,9 +1266,9 @@ Org \ General \ Add Viva Engange Community
  
  
 
-<a name='org-general-assign-groups-by-template_scheduled'></a>
+<a name='org-general-assign-groups-by-template-(scheduled)'></a>
 
-### Assign Groups By Template_Scheduled
+### Assign Groups By Template (Scheduled)
 #### Assign cloud-only groups to many users based on a predefined template.
 
 #### Description
@@ -1090,9 +1317,9 @@ Org \ General \ Bulk Retire Devices From Intune
  
  
 
-<a name='org-general-check-aad-sync-status_scheduled'></a>
+<a name='org-general-check-aad-sync-status-(scheduled)'></a>
 
-### Check Aad Sync Status_Scheduled
+### Check Aad Sync Status (Scheduled)
 #### Check for last Azure AD Connect Sync Cycle.
 
 #### Description
@@ -1175,16 +1402,16 @@ Org \ General \ Check Autopilot Serialnumbers
  
  
 
-<a name='org-general-check-device-onboarding-exclusion_schedule'></a>
+<a name='org-general-check-device-onboarding-exclusion-(scheduled)'></a>
 
-### Check Device Onboarding Exclusion_Schedule
+### Check Device Onboarding Exclusion (Scheduled)
 #### Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
 #### Description
 Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
 
 #### Where to find
-Org \ General \ Check Device Onboarding Exclusion_Schedule
+Org \ General \ Check Device Onboarding Exclusion_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1192,9 +1419,9 @@ Org \ General \ Check Device Onboarding Exclusion_Schedule
  
  
 
-<a name='org-general-enrolled-devices-report_scheduled'></a>
+<a name='org-general-enrolled-devices-report-(scheduled)'></a>
 
-### Enrolled Devices Report_Scheduled
+### Enrolled Devices Report (Scheduled)
 #### Show recent first-time device enrollments.
 
 #### Description
@@ -1243,9 +1470,9 @@ Org \ General \ Export All Intune Devices
  
  
 
-<a name='org-general-export-cloudpc-usage_scheduled'></a>
+<a name='org-general-export-cloudpc-usage-(scheduled)'></a>
 
-### Export Cloudpc Usage_Scheduled
+### Export Cloudpc Usage (Scheduled)
 #### Write daily Windows 365 Utilization Data to Azure Tables
 
 #### Description
@@ -1359,16 +1586,24 @@ Org \ General \ Office365 License Report
  
  
 
-<a name='org-general-report-apple-mdm-cert-expiry_scheduled'></a>
+<a name='org-general-report-apple-mdm-cert-expiry-(scheduled)'></a>
 
-### Report Apple Mdm Cert Expiry_Scheduled
+### Report Apple MDM Cert Expiry (Scheduled)
 #### Monitor/Report expiry of Apple device management certificates.
 
 #### Description
-Monitor/Report expiry of Apple device management certificates.
+Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
+Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
 #### Where to find
-Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
+Org \ General \ Report Apple MDM Cert Expiry_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1376,9 +1611,169 @@ Org \ General \ Report Apple Mdm Cert Expiry_Scheduled
  
  
 
-<a name='org-general-report-pim-activations_scheduled'></a>
+<a name='org-general-report-license-assignment-(scheduled)'></a>
 
-### Report Pim Activations_Scheduled
+### Report License Assignment (Scheduled)
+#### Generate and email a license availability report based on configured thresholds
+
+#### Description
+This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
+Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
+The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
+The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
+
+#### Where to find
+Org \ General \ Report License Assignment_Scheduled
+
+## Runbook Customization
+
+### Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+### InputJson Configuration
+
+Each license configuration requires:
+
+- **SKUPartNumber** (required): Microsoft SKU identifier
+- **FriendlyName** (required): Display name
+- **MinThreshold** (optional): Alert when available licenses < threshold
+- **MaxThreshold** (optional): Alert when available licenses > threshold
+
+At least one threshold must be set per license.
+
+### Configuration Examples
+
+**Minimum threshold only** (prevent shortages):
+
+```json
+[
+    {
+        "SKUPartNumber": "ENTERPRISEPACK",
+        "FriendlyName": "Microsoft 365 E3",
+        "MinThreshold": 50
+    }
+]
+```
+
+**Maximum threshold only** (prevent over-provisioning):
+
+```json
+[
+    {
+        "SKUPartNumber": "POWER_BI_PRO",
+        "FriendlyName": "Power BI Pro",
+        "MaxThreshold": 500
+    }
+]
+```
+
+**Both thresholds** (maintain range):
+
+```json
+[
+    {
+        "SKUPartNumber": "ENTERPRISEPREMIUM",
+        "FriendlyName": "Microsoft 365 E5",
+        "MinThreshold": 50,
+        "MaxThreshold": 150
+    }
+]
+```
+
+### Complete Runbook Customization
+
+```json
+{
+    "Settings": {
+        "RJReport": {
+            "EmailSender": "sender@contoso.com"
+        }
+    },
+    "Runbooks": {
+        "rjgit-org_general_report-license-assignment_scheduled": {
+            "Parameters": {
+                "EmailTo": {
+                    "DisplayName": "Recipient Email Address(es)"
+                },
+                "InputJson": {
+                    "Hide": true,
+                    "DefaultValue": [
+                        {
+                            "SKUPartNumber": "SPE_E5",
+                            "FriendlyName": "Microsoft 365 E5",
+                            "MinThreshold": 20,
+                            "MaxThreshold": 30
+                        },
+                        {
+                            "SKUPartNumber": "FLOW_FREE",
+                            "FriendlyName": "Microsoft Power Automate Free",
+                            "MinThreshold": 10
+                        }
+                    ]
+                },
+                "EmailFrom": {
+                    "Hide": true
+                },
+                "CallerName": {
+                    "Hide": true
+                }
+            }
+        }
+    }
+}
+```
+
+## Finding SKU Part Numbers
+
+```powershell
+Connect-MgGraph -Scopes "Organization.Read.All"
+Get-MgSubscribedSku | Select-Object SkuPartNumber, SkuId | Sort-Object SkuPartNumber
+```
+
+Common SKUs:
+
+- `ENTERPRISEPACK` - Microsoft 365 E3
+- `ENTERPRISEPREMIUM` - Microsoft 365 E5
+- `EMS` - Enterprise Mobility + Security E3
+
+## Output
+
+**When violations detected:**
+
+- Console output in job log
+- CSV export (`License_Threshold_Violations.csv`)
+- Email report with summary, violations, recommendations, and CSV attachment
+
+**When all within thresholds:**
+
+- No email sent
+- Job completes successfully
+
+## Troubleshooting
+
+**SKU Not Found**: Verify SKU exists using `Get-MgSubscribedSku`
+
+**Email Not Sent**: Check EmailFrom configuration and Mail.Send permission
+
+**Invalid JSON**: Validate JSON format before configuration
+
+## Migration Note
+
+Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurations continue to work.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-report-pim-activations-(scheduled)'></a>
+
+### Report Pim Activations (Scheduled)
 #### Scheduled Report on PIM Activations.
 
 #### Description
@@ -1399,7 +1794,9 @@ Org \ General \ Report Pim Activations_Scheduled
 #### Sync all Intune devices.
 
 #### Description
-Sync all Intune devices.
+This runbook triggers a sync operation for all Windows devices managed by Microsoft Intune.
+It retrieves all managed Windows devices and sends a sync command to each device.
+This is useful for forcing devices to check in with Intune and apply any pending policies or configurations.
 
 #### Where to find
 Org \ General \ Sync All Devices
@@ -1484,6 +1881,24 @@ Org \ Mail \ Add Or Remove Teams Mailcontact
  
  
 
+<a name='org-mail-add-or-remove-tenant-allow-block-list'></a>
+
+### Add Or Remove Tenant Allow Block List
+#### Add or remove entries from the Tenant Allow/Block List.
+
+#### Description
+Add or remove entries from the Tenant Allow/Block List in Microsoft Defender for Office 365.
+Allows blocking or allowing senders, URLs, or file hashes. A new entry is set to expire in 30 days by default.
+
+#### Where to find
+Org \ Mail \ Add Or Remove Tenant Allow Block List
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-mail-add-room-mailbox'></a>
 
 ### Add Room Mailbox
@@ -1507,7 +1922,8 @@ Org \ Mail \ Add Room Mailbox
 #### Create a shared mailbox.
 
 #### Description
-Create a shared mailbox.
+This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
+Also if specified, it disables the associated EntraID user account.
 
 #### Where to find
 Org \ Mail \ Add Shared Mailbox
@@ -1518,9 +1934,9 @@ Org \ Mail \ Add Shared Mailbox
  
  
 
-<a name='org-mail-hide-mailboxes_scheduled'></a>
+<a name='org-mail-hide-mailboxes-(scheduled)'></a>
 
-### Hide Mailboxes_Scheduled
+### Hide Mailboxes (Scheduled)
 #### Hide / Unhide special mailboxes in Global Address Book
 
 #### Description
@@ -1538,6 +1954,13 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 <a name='org-mail-set-booking-config'></a>
 
 ### Set Booking Config
+#### Configure Microsoft Bookings settings for the organization.
+
+#### Description
+Configure Microsoft Bookings settings at the organization level, including booking policies,
+naming conventions, and access restrictions. Optionally creates an OWA mailbox policy for
+Bookings creators and disables Bookings in the default OWA policy.
+
 #### Where to find
 Org \ Mail \ Set Booking Config
 
@@ -1621,23 +2044,6 @@ Org \ Security \ Backup Conditional Access Policies
  
  
 
-<a name='org-security-export-enterprise-app-users'></a>
-
-### Export Enterprise App Users
-#### Export a CSV of all (entprise) app owners and users
-
-#### Description
-Export a CSV of all (entprise) app owners and users.
-
-#### Where to find
-Org \ Security \ Export Enterprise App Users
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-security-list-admin-users'></a>
 
 ### List Admin Users
@@ -1649,24 +2055,6 @@ Admins will be queried for valid MFA methods.
 
 #### Where to find
 Org \ Security \ List Admin Users
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-security-list-application-creds-expiry'></a>
-
-### List Application Creds Expiry
-#### List expiry date of all AppRegistration credentials
-
-#### Description
-List the expiry date of all AppRegistration credentials, including Client Secrets and Certificates.
-Optionally, filter by Application IDs and list only those credentials that are about to expire.
-
-#### Where to find
-Org \ Security \ List Application Creds Expiry
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1694,7 +2082,7 @@ Org \ Security \ List Expiring Role Assignments
 <a name='org-security-list-inactive-devices'></a>
 
 ### List Inactive Devices
-#### List/export inactive evices, which had no recent user logons.
+#### List/export inactive devices, which had no recent user logons.
 
 #### Description
 Collect devices based on the date of last user logon or last Intune sync.
@@ -1708,30 +2096,14 @@ Org \ Security \ List Inactive Devices
  
  
 
-<a name='org-security-list-inactive-enterprise-apps'></a>
-
-### List Inactive Enterprise Apps
-#### List App registrations, which had no recent user logons.
-
-#### Description
-List App registrations, which had no recent user logons.
-
-#### Where to find
-Org \ Security \ List Inactive Enterprise Apps
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
 <a name='org-security-list-inactive-users'></a>
 
 ### List Inactive Users
 #### List users, that have no recent interactive signins.
 
 #### Description
-List users, that have no recent interactive signins.
+This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.
+It can also include users/guests that have never logged in.
 
 #### Where to find
 Org \ Security \ List Inactive Users
@@ -1759,9 +2131,9 @@ Org \ Security \ List Information Protection Labels
  
  
 
-<a name='org-security-list-pim-rolegroups-without-owners_scheduled'></a>
+<a name='org-security-list-pim-rolegroups-without-owners-(scheduled)'></a>
 
-### List Pim Rolegroups Without Owners_Scheduled
+### List Pim Rolegroups Without Owners (Scheduled)
 #### List role-assignable groups with eligible role assignments but without owners
 
 #### Where to find
@@ -1829,6 +2201,30 @@ Org \ Security \ Notify Changed CA Policies
 <a name='user'></a>
 
 # User
+<a name='user-avd'></a>
+
+## Avd
+<a name='user-avd-user-signout'></a>
+
+### User Signout
+#### Removes (Signs Out) a specific User from their AVD Session.
+
+#### Description
+This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
+The SubscriptionIds value must be defined in the runbooks customization.
+
+#### Where to find
+User \ AVD \ User Signout
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user'></a>
+
+# User
 <a name='user-general'></a>
 
 ## General
@@ -1876,6 +2272,24 @@ Assign/Provision a Windows 365 instance for this user.
 
 #### Where to find
 User \ General \ Assign Windows365
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-general-list-group-memberships'></a>
+
+### List Group Memberships
+#### List group memberships for this user.
+
+#### Description
+List group memberships for this user with filtering options for group type, membership type, role assignable status, Teams enabled status, and source.
+The output is in CSV format with all group details including DisplayName, ID, Type, MembershipType, RoleAssignable, TeamsEnabled, and Source.
+
+#### Where to find
+User \ General \ List Group Memberships
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2419,7 +2833,7 @@ User \ Security \ Revoke Or Restore Access
 #### Add, update or remove a user's mobile phone MFA information.
 
 #### Description
-Add, update or remove a user's mobile phone MFA information.
+Add, update or remove a user's mobile phone MFA information. If you want to modify a number, remove it first and add a new number afterwards.
 
 #### Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa

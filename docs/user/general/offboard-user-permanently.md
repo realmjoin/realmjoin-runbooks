@@ -1,8 +1,8 @@
 # Offboard User Permanently
 
-## Permanently offboard a user.
+Permanently offboard a user.
 
-## Description
+## Detailed description
 Permanently offboard a user.
 
 ## Where to find
@@ -23,90 +23,143 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -DeleteUser
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -DisableUser
-Description: 
-Default Value: True
-Required: false
+### DeleteUser
 
-### -RevokeAccess
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -exportResourceGroupName
-Description: 
-Default Value: 
-Required: false
+### DisableUser
 
-### -exportStorAccountName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -exportStorAccountLocation
-Description: 
-Default Value: 
-Required: false
+### RevokeAccess
 
-### -exportStorAccountSKU
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -exportStorContainerGroupMembershipExports
-Description: 
-Default Value: 
-Required: false
+### exportResourceGroupName
 
-### -exportGroupMemberships
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -ChangeLicensesSelector
-Description: 
-Default Value: 0
-Required: false
+### exportStorAccountName
 
-### -ChangeGroupsSelector
-Description: "Change" and "Remove all" will both honour "groupToAdd"
-Default Value: 0
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -GroupToAdd
-Description: 
-Default Value: 
-Required: false
+### exportStorAccountLocation
 
-### -GroupsToRemovePrefix
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -RevokeGroupOwnership
-Description: 
-Default Value: True
-Required: false
+### exportStorAccountSKU
 
-### -ManagerAsReplacementOwner
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -ReplacementOwnerName
-Description: Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
-Default Value: 
-Required: false
+### exportStorContainerGroupMembershipExports
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### exportGroupMemberships
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ChangeLicensesSelector
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
+
+### ChangeGroupsSelector
+"Change" and "Remove all" will both honour "groupToAdd"
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
+
+### GroupToAdd
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### GroupsToRemovePrefix
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RevokeGroupOwnership
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### ManagerAsReplacementOwner
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### ReplacementOwnerName
+Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

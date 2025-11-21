@@ -1,8 +1,8 @@
 # Check Autopilot Serialnumbers
 
-## Check if given serial numbers are present in AutoPilot.
+Check if given serial numbers are present in AutoPilot.
 
-## Description
+## Detailed description
 Check if given serial numbers are present in AutoPilot.
 
 ## Where to find
@@ -15,10 +15,13 @@ Org \ General \ Check Autopilot Serialnumbers
 
 
 ## Parameters
-### -SerialNumbers
-Description: 
-Default Value: 
-Required: true
+### SerialNumbers
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

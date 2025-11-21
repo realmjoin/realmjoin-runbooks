@@ -1,8 +1,8 @@
 # Export All Autopilot Devices
 
-## List/export all AutoPilot devices.
+List/export all AutoPilot devices.
 
-## Description
+## Detailed description
 List/export all AutoPilot devices.
 
 ## Where to find
@@ -17,35 +17,53 @@ Org \ General \ Export All Autopilot Devices
 
 
 ## Parameters
-### -ExportToFile
-Description: 
-Default Value: False
-Required: false
+### ExportToFile
 
-### -ContainerName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+### ContainerName
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+### ResourceGroupName
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,8 +1,8 @@
 # Show Laps Password
 
-## Show a local admin password for a device.
+Show a local admin password for a device.
 
-## Description
+## Detailed description
 Show a local admin password for a device.
 
 ## Where to find
@@ -15,10 +15,13 @@ Device \ Security \ Show Laps Password
 
 
 ## Parameters
-### -DeviceId
-Description: 
-Default Value: 
-Required: true
+### DeviceId
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)
