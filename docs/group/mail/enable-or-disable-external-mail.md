@@ -23,7 +23,7 @@ Notes: Setting this via graph is currently broken as of 2021-06-28:
 
 
 ## Parameters
-### -GroupId
+### GroupId
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Notes: Setting this via graph is currently broken as of 2021-06-28:
 | Required | true |
 | Type | String |
 
-### -Action
+### Action
 
 | Property | Value |
 |----------|-------|

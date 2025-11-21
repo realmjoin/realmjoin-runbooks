@@ -14,7 +14,7 @@ Owner or Contributor role on the Azure Subscription
 
 
 ## Parameters
-### -Action
+### Action
 
 | Property | Value |
 |----------|-------|
@@ -22,7 +22,7 @@ Owner or Contributor role on the Azure Subscription
 | Required | true |
 | Type | Int32 |
 
-### -PartnerId
+### PartnerId
 
 | Property | Value |
 |----------|-------|

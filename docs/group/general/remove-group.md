@@ -15,7 +15,7 @@ Group \ General \ Remove Group
 
 
 ## Parameters
-### -GroupId
+### GroupId
 
 | Property | Value |
 |----------|-------|

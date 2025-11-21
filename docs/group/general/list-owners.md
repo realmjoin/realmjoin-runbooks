@@ -15,7 +15,7 @@ Group \ General \ List Owners
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|

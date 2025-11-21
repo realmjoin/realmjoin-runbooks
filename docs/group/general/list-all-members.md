@@ -18,7 +18,7 @@ Group \ General \ List All Members
 
 
 ## Parameters
-### -GroupId
+### GroupId
 The ObjectId of the EntraID group whose membership is to be retrieved.
 
 | Property | Value |

@@ -15,7 +15,7 @@ Org \ Devices \ Add Autopilot Device
 
 
 ## Parameters
-### -SerialNumber
+### SerialNumber
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Org \ Devices \ Add Autopilot Device
 | Required | true |
 | Type | String |
 
-### -HardwareIdentifier
+### HardwareIdentifier
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Org \ Devices \ Add Autopilot Device
 | Required | true |
 | Type | String |
 
-### -AssignedUser
+### AssignedUser
 MS removed the ability to assign users directly via Autopilot
 
 | Property | Value |
@@ -40,7 +40,7 @@ MS removed the ability to assign users directly via Autopilot
 | Required | false |
 | Type | String |
 
-### -Wait
+### Wait
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ MS removed the ability to assign users directly via Autopilot
 | Required | false |
 | Type | Boolean |
 
-### -GroupTag
+### GroupTag
 
 | Property | Value |
 |----------|-------|

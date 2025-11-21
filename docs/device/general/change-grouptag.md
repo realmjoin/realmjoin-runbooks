@@ -16,7 +16,7 @@ Device \ General \ Change Grouptag
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Device \ General \ Change Grouptag
 | Required | true |
 | Type | String |
 
-### -newGroupTag
+### newGroupTag
 
 | Property | Value |
 |----------|-------|

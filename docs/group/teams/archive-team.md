@@ -15,7 +15,7 @@ Group \ Teams \ Archive Team
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|

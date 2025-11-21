@@ -21,7 +21,7 @@ Org \ Applications \ Add Application Registration
 
 
 ## Parameters
-### -ApplicationName
+### ApplicationName
 The display name of the application registration to create.
 
 | Property | Value |
@@ -30,7 +30,7 @@ The display name of the application registration to create.
 | Required | true |
 | Type | String |
 
-### -RedirectURI
+### RedirectURI
 Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA).
 
 | Property | Value |
@@ -39,7 +39,7 @@ Used for UI selection only. Determines which redirect URI type to configure (Non
 | Required | false |
 | Type | String |
 
-### -signInAudience
+### signInAudience
 Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI.
 
 | Property | Value |
@@ -48,7 +48,7 @@ Specifies who can use the application. Default is "AzureADMyOrg" (single tenant)
 | Required | false |
 | Type | String |
 
-### -webRedirectURI
+### webRedirectURI
 Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth").
 
 | Property | Value |
@@ -57,7 +57,7 @@ Redirect URI(s) for web applications. Supports multiple URIs separated by semico
 | Required | false |
 | Type | String |
 
-### -spaRedirectURI
+### spaRedirectURI
 Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons.
 
 | Property | Value |
@@ -66,7 +66,7 @@ Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separ
 | Required | false |
 | Type | String |
 
-### -publicClientRedirectURI
+### publicClientRedirectURI
 Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., "myapp://auth").
 
 | Property | Value |
@@ -75,7 +75,7 @@ Redirect URI(s) for public client/native applications (mobile & desktop). Suppor
 | Required | false |
 | Type | String |
 
-### -EnableSAML
+### EnableSAML
 Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required.
 
 | Property | Value |
@@ -84,7 +84,7 @@ Enable SAML-based authentication for the application. When enabled, SAML-specifi
 | Required | false |
 | Type | Boolean |
 
-### -SAMLReplyURL
+### SAMLReplyURL
 The reply URL for SAML authentication. Required when EnableSAML is true.
 
 | Property | Value |
@@ -93,7 +93,7 @@ The reply URL for SAML authentication. Required when EnableSAML is true.
 | Required | false |
 | Type | String |
 
-### -SAMLSignOnURL
+### SAMLSignOnURL
 The sign-on URL for SAML authentication.
 
 | Property | Value |
@@ -102,7 +102,7 @@ The sign-on URL for SAML authentication.
 | Required | false |
 | Type | String |
 
-### -SAMLLogoutURL
+### SAMLLogoutURL
 The logout URL for SAML authentication.
 
 | Property | Value |
@@ -111,7 +111,7 @@ The logout URL for SAML authentication.
 | Required | false |
 | Type | String |
 
-### -SAMLIdentifier
+### SAMLIdentifier
 The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
 
 | Property | Value |
@@ -120,7 +120,7 @@ The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}"
 | Required | false |
 | Type | String |
 
-### -SAMLRelayState
+### SAMLRelayState
 The SAML relay state parameter for maintaining application state during authentication.
 
 | Property | Value |
@@ -129,7 +129,7 @@ The SAML relay state parameter for maintaining application state during authenti
 | Required | false |
 | Type | String |
 
-### -SAMLExpiryNotificationEmail
+### SAMLExpiryNotificationEmail
 Email address to receive notifications when the SAML token signing certificate is about to expire.
 
 | Property | Value |
@@ -138,7 +138,7 @@ Email address to receive notifications when the SAML token signing certificate i
 | Required | false |
 | Type | String |
 
-### -SAMLCertificateLifeYears
+### SAMLCertificateLifeYears
 Lifetime of the SAML token signing certificate in years. Default is 3 years.
 
 | Property | Value |
@@ -147,7 +147,7 @@ Lifetime of the SAML token signing certificate in years. Default is 3 years.
 | Required | false |
 | Type | Int32 |
 
-### -isApplicationVisible
+### isApplicationVisible
 Determines whether the application is visible in the My Apps portal. Default is true.
 
 | Property | Value |
@@ -156,7 +156,7 @@ Determines whether the application is visible in the My Apps portal. Default is 
 | Required | false |
 | Type | Boolean |
 
-### -UserAssignmentRequired
+### UserAssignmentRequired
 Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
 
 | Property | Value |
@@ -165,7 +165,7 @@ Determines whether users must be assigned to the application before accessing it
 | Required | false |
 | Type | Boolean |
 
-### -groupAssignmentPrefix
+### groupAssignmentPrefix
 Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
 
 | Property | Value |
@@ -174,7 +174,7 @@ Prefix for the automatically created EntraID group when UserAssignmentRequired i
 | Required | false |
 | Type | String |
 
-### -implicitGrantAccessTokens
+### implicitGrantAccessTokens
 Enable implicit grant flow for access tokens. Default is false.
 
 | Property | Value |
@@ -183,7 +183,7 @@ Enable implicit grant flow for access tokens. Default is false.
 | Required | false |
 | Type | Boolean |
 
-### -implicitGrantIDTokens
+### implicitGrantIDTokens
 Enable implicit grant flow for ID tokens. Default is false.
 
 | Property | Value |

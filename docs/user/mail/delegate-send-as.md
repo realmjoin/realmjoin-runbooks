@@ -18,7 +18,7 @@ User \ Mail \ Delegate Send As
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Delegate Send As
 | Required | true |
 | Type | String |
 
-### -delegateTo
+### delegateTo
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ Mail \ Delegate Send As
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|

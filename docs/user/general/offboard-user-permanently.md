@@ -23,7 +23,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | true |
 | Type | String |
 
-### -DeleteUser
+### DeleteUser
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Boolean |
 
-### -DisableUser
+### DisableUser
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +47,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Boolean |
 
-### -RevokeAccess
+### RevokeAccess
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Boolean |
 
-### -exportResourceGroupName
+### exportResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -63,7 +63,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -exportStorAccountName
+### exportStorAccountName
 
 | Property | Value |
 |----------|-------|
@@ -71,7 +71,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -exportStorAccountLocation
+### exportStorAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -79,7 +79,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -exportStorAccountSKU
+### exportStorAccountSKU
 
 | Property | Value |
 |----------|-------|
@@ -87,7 +87,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -exportStorContainerGroupMembershipExports
+### exportStorContainerGroupMembershipExports
 
 | Property | Value |
 |----------|-------|
@@ -95,7 +95,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -exportGroupMemberships
+### exportGroupMemberships
 
 | Property | Value |
 |----------|-------|
@@ -103,7 +103,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Boolean |
 
-### -ChangeLicensesSelector
+### ChangeLicensesSelector
 
 | Property | Value |
 |----------|-------|
@@ -111,7 +111,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Int32 |
 
-### -ChangeGroupsSelector
+### ChangeGroupsSelector
 "Change" and "Remove all" will both honour "groupToAdd"
 
 | Property | Value |
@@ -120,7 +120,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Int32 |
 
-### -GroupToAdd
+### GroupToAdd
 
 | Property | Value |
 |----------|-------|
@@ -128,7 +128,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -GroupsToRemovePrefix
+### GroupsToRemovePrefix
 
 | Property | Value |
 |----------|-------|
@@ -136,7 +136,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | String |
 
-### -RevokeGroupOwnership
+### RevokeGroupOwnership
 
 | Property | Value |
 |----------|-------|
@@ -144,7 +144,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Boolean |
 
-### -ManagerAsReplacementOwner
+### ManagerAsReplacementOwner
 
 | Property | Value |
 |----------|-------|
@@ -152,7 +152,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Required | false |
 | Type | Boolean |
 
-### -ReplacementOwnerName
+### ReplacementOwnerName
 Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
 
 | Property | Value |

@@ -16,7 +16,7 @@ Group \ General \ Add Or Remove Nested Group
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Group \ General \ Add Or Remove Nested Group
 | Required | true |
 | Type | String |
 
-### -NestedGroupID
+### NestedGroupID
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +32,7 @@ Group \ General \ Add Or Remove Nested Group
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|

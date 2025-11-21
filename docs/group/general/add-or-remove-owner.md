@@ -21,7 +21,7 @@ Group \ General \ Add Or Remove Owner
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Group \ General \ Add Or Remove Owner
 | Required | true |
 | Type | String |
 
-### -UserId
+### UserId
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Group \ General \ Add Or Remove Owner
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|

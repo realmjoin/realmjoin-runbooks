@@ -18,7 +18,7 @@ User \ Mail \ List Mailbox Permissions
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|

@@ -18,7 +18,7 @@ User \ Phone \ Set Teams Permanent Call Forwarding
 
 
 ## Parameters
-### -UserName
+### UserName
 User which should be set up. Could be filled with the user picker in the UI.
 
 | Property | Value |
@@ -27,7 +27,7 @@ User which should be set up. Could be filled with the user picker in the UI.
 | Required | true |
 | Type | String |
 
-### -ForwardTargetPhoneNumber
+### ForwardTargetPhoneNumber
 Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
 
 | Property | Value |
@@ -36,7 +36,7 @@ Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +
 | Required | false |
 | Type | String |
 
-### -ForwardTargetTeamsUser
+### ForwardTargetTeamsUser
 Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
 
 | Property | Value |
@@ -45,7 +45,7 @@ Teams user to which calls should be forwarded. Could be filled with the user pic
 | Required | false |
 | Type | String |
 
-### -ForwardToVoicemail
+### ForwardToVoicemail
 Forward calls to voicemail.
 
 | Property | Value |
@@ -54,7 +54,7 @@ Forward calls to voicemail.
 | Required | false |
 | Type | Boolean |
 
-### -ForwardToDelegates
+### ForwardToDelegates
 Forward calls to delegates which are defined by the user.
 
 | Property | Value |
@@ -63,7 +63,7 @@ Forward calls to delegates which are defined by the user.
 | Required | false |
 | Type | Boolean |
 
-### -TurnOffForward
+### TurnOffForward
 Turn off immediate call forwarding.
 
 | Property | Value |

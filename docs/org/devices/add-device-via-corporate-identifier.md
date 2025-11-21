@@ -15,7 +15,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 
 
 ## Parameters
-### -CorpIdentifierType
+### CorpIdentifierType
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 | Required | true |
 | Type | String |
 
-### -CorpIdentifier
+### CorpIdentifier
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 | Required | true |
 | Type | String |
 
-### -DeviceDescripton
+### DeviceDescripton
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 | Required | false |
 | Type | String |
 
-### -OverwriteExistingEntry
+### OverwriteExistingEntry
 
 | Property | Value |
 |----------|-------|

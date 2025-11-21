@@ -21,7 +21,7 @@ Org \ Applications \ Update Application Registration
 
 
 ## Parameters
-### -ClientId
+### ClientId
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Org \ Applications \ Update Application Registration
 | Required | true |
 | Type | String |
 
-### -RedirectURI
+### RedirectURI
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Org \ Applications \ Update Application Registration
 | Required | false |
 | Type | String |
 
-### -webRedirectURI
+### webRedirectURI
 Only for UI used
 
 | Property | Value |
@@ -46,7 +46,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -publicClientRedirectURI
+### publicClientRedirectURI
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +54,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -spaRedirectURI
+### spaRedirectURI
 
 | Property | Value |
 |----------|-------|
@@ -62,7 +62,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -EnableSAML
+### EnableSAML
 
 | Property | Value |
 |----------|-------|
@@ -70,7 +70,7 @@ Only for UI used
 | Required | false |
 | Type | Boolean |
 
-### -SAMLReplyURL
+### SAMLReplyURL
 
 | Property | Value |
 |----------|-------|
@@ -78,7 +78,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -SAMLSignOnURL
+### SAMLSignOnURL
 
 | Property | Value |
 |----------|-------|
@@ -86,7 +86,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -SAMLLogoutURL
+### SAMLLogoutURL
 
 | Property | Value |
 |----------|-------|
@@ -94,7 +94,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -SAMLIdentifier
+### SAMLIdentifier
 
 | Property | Value |
 |----------|-------|
@@ -102,7 +102,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -SAMLRelayState
+### SAMLRelayState
 
 | Property | Value |
 |----------|-------|
@@ -110,7 +110,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -SAMLExpiryNotificationEmail
+### SAMLExpiryNotificationEmail
 
 | Property | Value |
 |----------|-------|
@@ -118,7 +118,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -isApplicationVisible
+### isApplicationVisible
 
 | Property | Value |
 |----------|-------|
@@ -126,7 +126,7 @@ Only for UI used
 | Required | false |
 | Type | Boolean |
 
-### -UserAssignmentRequired
+### UserAssignmentRequired
 
 | Property | Value |
 |----------|-------|
@@ -134,7 +134,7 @@ Only for UI used
 | Required | false |
 | Type | Boolean |
 
-### -groupAssignmentPrefix
+### groupAssignmentPrefix
 
 | Property | Value |
 |----------|-------|
@@ -142,7 +142,7 @@ Only for UI used
 | Required | false |
 | Type | String |
 
-### -implicitGrantAccessTokens
+### implicitGrantAccessTokens
 
 | Property | Value |
 |----------|-------|
@@ -150,7 +150,7 @@ Only for UI used
 | Required | false |
 | Type | Boolean |
 
-### -implicitGrantIDTokens
+### implicitGrantIDTokens
 
 | Property | Value |
 |----------|-------|
@@ -158,7 +158,7 @@ Only for UI used
 | Required | false |
 | Type | Boolean |
 
-### -disableImplicitGrant
+### disableImplicitGrant
 
 | Property | Value |
 |----------|-------|

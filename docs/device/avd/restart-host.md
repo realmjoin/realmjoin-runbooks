@@ -10,7 +10,7 @@ If the SessionHost is not running, it will be started. Once the Session Host is 
 Device \ AVD \ Restart Host
 
 ## Parameters
-### -DeviceName
+### DeviceName
 
 | Property | Value |
 |----------|-------|
@@ -18,7 +18,7 @@ Device \ AVD \ Restart Host
 | Required | true |
 | Type | String |
 
-### -SubscriptionIds
+### SubscriptionIds
 
 | Property | Value |
 |----------|-------|

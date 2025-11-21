@@ -15,7 +15,7 @@ User \ Mail \ List Room Mailbox Configuration
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|

@@ -14,7 +14,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
 
 ## Parameters
-### -sendEmailIfFound
+### sendEmailIfFound
 
 | Property | Value |
 |----------|-------|
@@ -22,7 +22,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 | Required | false |
 | Type | Boolean |
 
-### -From
+### From
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 | Required | false |
 | Type | String |
 
-### -To
+### To
 
 | Property | Value |
 |----------|-------|

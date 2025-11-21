@@ -18,7 +18,7 @@ User \ Mail \ Add Or Remove Email Address
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Add Or Remove Email Address
 | Required | true |
 | Type | String |
 
-### -eMailAddress
+### eMailAddress
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ Mail \ Add Or Remove Email Address
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ Mail \ Add Or Remove Email Address
 | Required | false |
 | Type | Boolean |
 
-### -asPrimary
+### asPrimary
 
 | Property | Value |
 |----------|-------|

@@ -19,7 +19,7 @@ User \ Phone \ Set Teams Phone
 
 
 ## Parameters
-### -UserName
+### UserName
 User which should be assigned. Could be filled with the user picker in the UI.
 
 | Property | Value |
@@ -28,7 +28,7 @@ User which should be assigned. Could be filled with the user picker in the UI.
 | Required | true |
 | Type | String |
 
-### -PhoneNumber
+### PhoneNumber
 Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
 
 | Property | Value |
@@ -37,7 +37,7 @@ Phone number which should be assigned to the user. The number must be in E.164 f
 | Required | true |
 | Type | String |
 
-### -OnlineVoiceRoutingPolicy
+### OnlineVoiceRoutingPolicy
 Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 | Property | Value |
@@ -46,7 +46,7 @@ Microsoft Teams Online Voice Routing Policy Name. If the policy name is left bla
 | Required | false |
 | Type | String |
 
-### -TenantDialPlan
+### TenantDialPlan
 Microsoft Teams DialPlan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 | Property | Value |
@@ -55,7 +55,7 @@ Microsoft Teams DialPlan Name. If the policy name is left blank, the correspondi
 | Required | false |
 | Type | String |
 
-### -TeamsCallingPolicy
+### TeamsCallingPolicy
 Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 | Property | Value |
@@ -64,7 +64,7 @@ Microsoft Teams Calling Policy Name. If the policy name is left blank, the corre
 | Required | false |
 | Type | String |
 
-### -TeamsIPPhonePolicy
+### TeamsIPPhonePolicy
 Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 | Property | Value |

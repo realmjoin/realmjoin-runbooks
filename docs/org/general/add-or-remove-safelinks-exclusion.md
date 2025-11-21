@@ -19,7 +19,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 
 
 ## Parameters
-### -Action
+### Action
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +27,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 | Required | false |
 | Type | Int32 |
 
-### -LinkPattern
+### LinkPattern
 URL to allow, can contain '*' as wildcard for host and paths
 
 | Property | Value |
@@ -36,7 +36,7 @@ URL to allow, can contain '*' as wildcard for host and paths
 | Required | false |
 | Type | String |
 
-### -DefaultPolicyName
+### DefaultPolicyName
 If only one policy exists, no need to specify. Will use "DefaultPolicyName" as default otherwise.
 
 | Property | Value |
@@ -45,7 +45,7 @@ If only one policy exists, no need to specify. Will use "DefaultPolicyName" as d
 | Required | true |
 | Type | String |
 
-### -PolicyName
+### PolicyName
 Optional, will overwrite default values
 
 | Property | Value |
@@ -54,7 +54,7 @@ Optional, will overwrite default values
 | Required | false |
 | Type | String |
 
-### -CreateNewPolicyIfNeeded
+### CreateNewPolicyIfNeeded
 
 | Property | Value |
 |----------|-------|

@@ -18,7 +18,7 @@ Org \ Mail \ Add Room Mailbox
 
 
 ## Parameters
-### -MailboxName
+### MailboxName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ Org \ Mail \ Add Room Mailbox
 | Required | true |
 | Type | String |
 
-### -DisplayName
+### DisplayName
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ Org \ Mail \ Add Room Mailbox
 | Required | false |
 | Type | String |
 
-### -DelegateTo
+### DelegateTo
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ Org \ Mail \ Add Room Mailbox
 | Required | false |
 | Type | String |
 
-### -Capacity
+### Capacity
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ Org \ Mail \ Add Room Mailbox
 | Required | false |
 | Type | Int32 |
 
-### -AutoAccept
+### AutoAccept
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +58,7 @@ Org \ Mail \ Add Room Mailbox
 | Required | false |
 | Type | Boolean |
 
-### -AutoMapping
+### AutoMapping
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ Org \ Mail \ Add Room Mailbox
 | Required | false |
 | Type | Boolean |
 
-### -DisableUser
+### DisableUser
 CallerName is tracked purely for auditing purposes
 
 | Property | Value |

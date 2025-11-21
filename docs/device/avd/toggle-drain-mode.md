@@ -10,7 +10,7 @@ The SubscriptionId value must be defined in the runbooks customization.
 Device \ AVD \ Toggle Drain Mode
 
 ## Parameters
-### -DeviceName
+### DeviceName
 
 | Property | Value |
 |----------|-------|
@@ -18,7 +18,7 @@ Device \ AVD \ Toggle Drain Mode
 | Required | true |
 | Type | String |
 
-### -DrainMode
+### DrainMode
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ Device \ AVD \ Toggle Drain Mode
 | Required | true |
 | Type | Boolean |
 
-### -SubscriptionIds
+### SubscriptionIds
 
 | Property | Value |
 |----------|-------|

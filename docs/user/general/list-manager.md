@@ -15,7 +15,7 @@ User \ General \ List Manager
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|

@@ -25,7 +25,7 @@ Permissions (Graph):
 
 
 ## Parameters
-### -ExtensionAttributeNumber
+### ExtensionAttributeNumber
 
 | Property | Value |
 |----------|-------|
@@ -33,7 +33,7 @@ Permissions (Graph):
 | Required | false |
 | Type | Int32 |
 
-### -ProcessAllDevices
+### ProcessAllDevices
 If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
 
 | Property | Value |
@@ -42,7 +42,7 @@ If true, processes all devices. If false, only processes devices with missing or
 | Required | false |
 | Type | Boolean |
 
-### -MaxDevicesToProcess
+### MaxDevicesToProcess
 Maximum number of devices to process in a single run. Use 0 for unlimited.
 
 | Property | Value |
@@ -51,7 +51,7 @@ Maximum number of devices to process in a single run. Use 0 for unlimited.
 | Required | false |
 | Type | Int32 |
 
-### -sendReportTo
+### sendReportTo
 Email address to send the report to. If empty, no email will be sent.
 
 | Property | Value |
@@ -60,7 +60,7 @@ Email address to send the report to. If empty, no email will be sent.
 | Required | false |
 | Type | String |
 
-### -sendReportFrom
+### sendReportFrom
 Email address to send the report from.
 
 | Property | Value |

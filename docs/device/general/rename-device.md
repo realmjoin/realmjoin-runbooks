@@ -18,7 +18,7 @@ Device \ General \ Rename Device
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ Device \ General \ Rename Device
 | Required | true |
 | Type | String |
 
-### -NewDeviceName
+### NewDeviceName
 
 | Property | Value |
 |----------|-------|

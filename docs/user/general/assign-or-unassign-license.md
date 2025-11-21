@@ -17,7 +17,7 @@ User \ General \ Assign Or Unassign License
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ User \ General \ Assign Or Unassign License
 | Required | true |
 | Type | String |
 
-### -GroupID_License
+### GroupID_License
 production does not supprt "ref:LicenseGroup" yet
 
 | Property | Value |
@@ -34,7 +34,7 @@ production does not supprt "ref:LicenseGroup" yet
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|

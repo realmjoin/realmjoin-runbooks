@@ -15,7 +15,7 @@ User \ Security \ Create Temporary Access Pass
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ User \ Security \ Create Temporary Access Pass
 | Required | true |
 | Type | String |
 
-### -LifetimeInMinutes
+### LifetimeInMinutes
 Time the pass will stay valid in minutes
 
 | Property | Value |
@@ -32,7 +32,7 @@ Time the pass will stay valid in minutes
 | Required | false |
 | Type | Int32 |
 
-### -OneTimeUseOnly
+### OneTimeUseOnly
 
 | Property | Value |
 |----------|-------|

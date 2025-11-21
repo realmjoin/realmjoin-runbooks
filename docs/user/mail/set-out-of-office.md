@@ -18,7 +18,7 @@ User \ Mail \ Set Out Of Office
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Set Out Of Office
 | Required | true |
 | Type | String |
 
-### -Disable
+### Disable
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ Mail \ Set Out Of Office
 | Required | false |
 | Type | Boolean |
 
-### -Start
+### Start
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ Mail \ Set Out Of Office
 | Required | false |
 | Type | DateTime |
 
-### -End
+### End
 10 years into the future ("forever") if left empty
 
 | Property | Value |
@@ -51,7 +51,7 @@ User \ Mail \ Set Out Of Office
 | Required | false |
 | Type | DateTime |
 
-### -MessageInternal
+### MessageInternal
 
 | Property | Value |
 |----------|-------|
@@ -59,7 +59,7 @@ User \ Mail \ Set Out Of Office
 | Required | false |
 | Type | String |
 
-### -MessageExternal
+### MessageExternal
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +67,7 @@ User \ Mail \ Set Out Of Office
 | Required | false |
 | Type | String |
 
-### -CreateEvent
+### CreateEvent
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +75,7 @@ User \ Mail \ Set Out Of Office
 | Required | false |
 | Type | Boolean |
 
-### -EventSubject
+### EventSubject
 
 | Property | Value |
 |----------|-------|

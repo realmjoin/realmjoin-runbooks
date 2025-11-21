@@ -15,7 +15,7 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 
 
 ## Parameters
-### -action
+### action
 0 - list, 1 - add, 2 - remove
 
 | Property | Value |
@@ -24,7 +24,7 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 | Required | false |
 | Type | Int32 |
 
-### -Url
+### Url
 please give just the name of the domain, like "exclusiondemo.com"
 
 | Property | Value |
@@ -33,7 +33,7 @@ please give just the name of the domain, like "exclusiondemo.com"
 | Required | false |
 | Type | String |
 
-### -mode
+### mode
 0 - allow, 1 - audit, 2 - warn, 3 - block
 
 | Property | Value |
@@ -42,7 +42,7 @@ please give just the name of the domain, like "exclusiondemo.com"
 | Required | false |
 | Type | Int32 |
 
-### -explanationTitle
+### explanationTitle
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ please give just the name of the domain, like "exclusiondemo.com"
 | Required | false |
 | Type | String |
 
-### -explanationDescription
+### explanationDescription
 
 | Property | Value |
 |----------|-------|

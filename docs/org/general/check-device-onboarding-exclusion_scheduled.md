@@ -17,7 +17,7 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 
 
 ## Parameters
-### -exclusionGroupName
+### exclusionGroupName
 EntraID exclusion group for Defender Compliance.
 
 | Property | Value |
@@ -26,7 +26,7 @@ EntraID exclusion group for Defender Compliance.
 | Required | false |
 | Type | String |
 
-### -maxAgeInDays
+### maxAgeInDays
 
 | Property | Value |
 |----------|-------|

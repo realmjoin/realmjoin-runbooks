@@ -15,7 +15,7 @@ Group \ General \ Rename Group
 
 
 ## Parameters
-### -GroupId
+### GroupId
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Group \ General \ Rename Group
 | Required | true |
 | Type | String |
 
-### -DisplayName
+### DisplayName
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Group \ General \ Rename Group
 | Required | false |
 | Type | String |
 
-### -MailNickname
+### MailNickname
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Group \ General \ Rename Group
 | Required | false |
 | Type | String |
 
-### -Description
+### Description
 
 | Property | Value |
 |----------|-------|

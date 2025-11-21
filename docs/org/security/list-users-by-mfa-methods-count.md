@@ -18,7 +18,7 @@ Org \ Security \ List Users By MFA Methods Count
 
 
 ## Parameters
-### -mfaMethodsRange
+### mfaMethodsRange
 Range for filtering users based on the count of their registered MFA methods.
 
 | Property | Value |

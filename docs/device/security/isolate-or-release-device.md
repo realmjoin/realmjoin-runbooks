@@ -21,7 +21,7 @@ Permissions (WindowsDefenderATP, Application):
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Permissions (WindowsDefenderATP, Application):
 | Required | true |
 | Type | String |
 
-### -Release
+### Release
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Permissions (WindowsDefenderATP, Application):
 | Required | true |
 | Type | Boolean |
 
-### -IsolationType
+### IsolationType
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +45,7 @@ Permissions (WindowsDefenderATP, Application):
 | Required | false |
 | Type | String |
 
-### -Comment
+### Comment
 
 | Property | Value |
 |----------|-------|

@@ -21,7 +21,7 @@ Device \ General \ Wipe Device
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Device \ General \ Wipe Device
 | Required | true |
 | Type | String |
 
-### -wipeDevice
+### wipeDevice
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### -useProtectedWipe
+### useProtectedWipe
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +45,7 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### -removeIntuneDevice
+### removeIntuneDevice
 
 | Property | Value |
 |----------|-------|
@@ -53,7 +53,7 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### -removeAutopilotDevice
+### removeAutopilotDevice
 
 | Property | Value |
 |----------|-------|
@@ -61,7 +61,7 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### -removeAADDevice
+### removeAADDevice
 
 | Property | Value |
 |----------|-------|
@@ -69,7 +69,7 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### -disableAADDevice
+### disableAADDevice
 
 | Property | Value |
 |----------|-------|
@@ -77,7 +77,7 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### -macOsRecevoryCode
+### macOsRecevoryCode
 Only for old MacOS devices. Newer devices can be wiped without a recovery code.
 
 | Property | Value |
@@ -86,7 +86,7 @@ Only for old MacOS devices. Newer devices can be wiped without a recovery code.
 | Required | false |
 | Type | String |
 
-### -macOsObliterationBehavior
+### macOsObliterationBehavior
 "default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
 
 | Property | Value |

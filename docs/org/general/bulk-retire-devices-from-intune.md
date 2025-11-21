@@ -16,7 +16,7 @@ Org \ General \ Bulk Retire Devices From Intune
 
 
 ## Parameters
-### -SerialNumbers
+### SerialNumbers
 
 | Property | Value |
 |----------|-------|

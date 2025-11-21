@@ -19,7 +19,7 @@ Org \ Applications \ Delete Application Registration
 
 
 ## Parameters
-### -ClientId
+### ClientId
 
 | Property | Value |
 |----------|-------|

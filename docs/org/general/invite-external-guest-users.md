@@ -39,7 +39,7 @@ An example would be looking like this:
 
 
 ## Parameters
-### -InvitedUserEmail
+### InvitedUserEmail
 The email address of the guest user to invite.
 
 | Property | Value |
@@ -48,7 +48,7 @@ The email address of the guest user to invite.
 | Required | true |
 | Type | String |
 
-### -InvitedUserDisplayName
+### InvitedUserDisplayName
 The display name for the guest user.
 
 | Property | Value |
@@ -57,7 +57,7 @@ The display name for the guest user.
 | Required | true |
 | Type | String |
 
-### -GroupId
+### GroupId
 The object ID of the group to add the guest user to.
 If not specified, the user will not be added to any group.
 

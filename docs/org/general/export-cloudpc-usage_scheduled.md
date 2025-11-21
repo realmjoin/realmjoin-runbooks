@@ -18,7 +18,7 @@ Azure IaaS: `Contributor` role on the Azure Storage Account used for storing Clo
 
 
 ## Parameters
-### -Table
+### Table
 CallerName is tracked purely for auditing purposes
 
 | Property | Value |
@@ -27,7 +27,7 @@ CallerName is tracked purely for auditing purposes
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -35,7 +35,7 @@ CallerName is tracked purely for auditing purposes
 | Required | true |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -43,7 +43,7 @@ CallerName is tracked purely for auditing purposes
 | Required | true |
 | Type | String |
 
-### -days
+### days
 
 | Property | Value |
 |----------|-------|

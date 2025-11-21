@@ -16,7 +16,7 @@ User \ General \ List Group Ownerships
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|

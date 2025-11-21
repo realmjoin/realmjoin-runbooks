@@ -18,7 +18,7 @@ User \ Mail \ Convert To Shared Mailbox
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Required | true |
 | Type | String |
 
-### -delegateTo
+### delegateTo
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Required | false |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Required | false |
 | Type | Boolean |
 
-### -AutoMapping
+### AutoMapping
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Required | false |
 | Type | Boolean |
 
-### -RemoveGroups
+### RemoveGroups
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +58,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Required | false |
 | Type | Boolean |
 
-### -ArchivalLicenseGroup
+### ArchivalLicenseGroup
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Required | false |
 | Type | String |
 
-### -RegularLicenseGroup
+### RegularLicenseGroup
 
 | Property | Value |
 |----------|-------|

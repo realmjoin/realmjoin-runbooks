@@ -22,7 +22,7 @@ MS Graph (API):
 
 
 ## Parameters
-### -MailNickname
+### MailNickname
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ MS Graph (API):
 | Required | true |
 | Type | String |
 
-### -DisplayName
+### DisplayName
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +38,7 @@ MS Graph (API):
 | Required | false |
 | Type | String |
 
-### -CreateTeam
+### CreateTeam
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ MS Graph (API):
 | Required | false |
 | Type | Boolean |
 
-### -Private
+### Private
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +54,7 @@ MS Graph (API):
 | Required | false |
 | Type | Boolean |
 
-### -MailEnabled
+### MailEnabled
 
 | Property | Value |
 |----------|-------|
@@ -62,7 +62,7 @@ MS Graph (API):
 | Required | false |
 | Type | Boolean |
 
-### -SecurityEnabled
+### SecurityEnabled
 
 | Property | Value |
 |----------|-------|
@@ -70,7 +70,7 @@ MS Graph (API):
 | Required | false |
 | Type | Boolean |
 
-### -Owner
+### Owner
 
 | Property | Value |
 |----------|-------|
@@ -78,7 +78,7 @@ MS Graph (API):
 | Required | false |
 | Type | String |
 
-### -Owner2
+### Owner2
 
 | Property | Value |
 |----------|-------|

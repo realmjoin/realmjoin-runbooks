@@ -24,7 +24,7 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 
 ## Parameters
-### -listOnlyExpiring
+### listOnlyExpiring
 If set to true, only credentials that are about to expire within the specified number of days will be listed.
 If set to false, all credentials will be listed regardless of their expiry date.
 
@@ -34,7 +34,7 @@ If set to false, all credentials will be listed regardless of their expiry date.
 | Required | false |
 | Type | Boolean |
 
-### -Days
+### Days
 The number of days before a credential expires to consider it "about to expire".
 
 | Property | Value |
@@ -43,7 +43,7 @@ The number of days before a credential expires to consider it "about to expire".
 | Required | false |
 | Type | Int32 |
 
-### -CredentialType
+### CredentialType
 Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
 
 | Property | Value |
@@ -52,7 +52,7 @@ Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
 | Required | false |
 | Type | String |
 
-### -ApplicationIds
+### ApplicationIds
 Optional - comma-separated list of Application IDs to filter the credentials.
 
 | Property | Value |
@@ -61,7 +61,7 @@ Optional - comma-separated list of Application IDs to filter the credentials.
 | Required | false |
 | Type | String |
 
-### -EmailTo
+### EmailTo
 If specified, an email with the report will be sent to the provided address(es).
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
@@ -72,7 +72,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Required | true |
 | Type | String |
 
-### -EmailFrom
+### EmailFrom
 The sender email address. This needs to be configured in the runbook customization.
 
 | Property | Value |

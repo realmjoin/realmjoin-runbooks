@@ -17,7 +17,7 @@ Org \ Applications \ List Inactive Enterprise Applications
 
 
 ## Parameters
-### -Days
+### Days
 
 | Property | Value |
 |----------|-------|

@@ -20,7 +20,7 @@ Org \ Mail \ Set Booking Config
 
 
 ## Parameters
-### -BookingsEnabled
+### BookingsEnabled
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsAuthEnabled
+### BookingsAuthEnabled
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +36,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsSocialSharingRestricted
+### BookingsSocialSharingRestricted
 
 | Property | Value |
 |----------|-------|
@@ -44,7 +44,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsExposureOfStaffDetailsRestricted
+### BookingsExposureOfStaffDetailsRestricted
 
 | Property | Value |
 |----------|-------|
@@ -52,7 +52,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsMembershipApprovalRequired
+### BookingsMembershipApprovalRequired
 
 | Property | Value |
 |----------|-------|
@@ -60,7 +60,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsSmsMicrosoftEnabled
+### BookingsSmsMicrosoftEnabled
 
 | Property | Value |
 |----------|-------|
@@ -68,7 +68,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsSearchEngineIndexDisabled
+### BookingsSearchEngineIndexDisabled
 
 | Property | Value |
 |----------|-------|
@@ -76,7 +76,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsAddressEntryRestricted
+### BookingsAddressEntryRestricted
 
 | Property | Value |
 |----------|-------|
@@ -84,7 +84,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsCreationOfCustomQuestionsRestricted
+### BookingsCreationOfCustomQuestionsRestricted
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +92,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsNotesEntryRestricted
+### BookingsNotesEntryRestricted
 
 | Property | Value |
 |----------|-------|
@@ -100,7 +100,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsPhoneNumberEntryRestricted
+### BookingsPhoneNumberEntryRestricted
 
 | Property | Value |
 |----------|-------|
@@ -108,7 +108,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsNamingPolicyEnabled
+### BookingsNamingPolicyEnabled
 
 | Property | Value |
 |----------|-------|
@@ -116,7 +116,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsBlockedWordsEnabled
+### BookingsBlockedWordsEnabled
 
 | Property | Value |
 |----------|-------|
@@ -124,7 +124,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsNamingPolicyPrefixEnabled
+### BookingsNamingPolicyPrefixEnabled
 
 | Property | Value |
 |----------|-------|
@@ -132,7 +132,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsNamingPolicyPrefix
+### BookingsNamingPolicyPrefix
 
 | Property | Value |
 |----------|-------|
@@ -140,7 +140,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | String |
 
-### -BookingsNamingPolicySuffixEnabled
+### BookingsNamingPolicySuffixEnabled
 
 | Property | Value |
 |----------|-------|
@@ -148,7 +148,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -BookingsNamingPolicySuffix
+### BookingsNamingPolicySuffix
 
 | Property | Value |
 |----------|-------|
@@ -156,7 +156,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | String |
 
-### -CreateOwaPolicy
+### CreateOwaPolicy
 
 | Property | Value |
 |----------|-------|
@@ -164,7 +164,7 @@ Org \ Mail \ Set Booking Config
 | Required | false |
 | Type | Boolean |
 
-### -OwaPolicyName
+### OwaPolicyName
 
 | Property | Value |
 |----------|-------|

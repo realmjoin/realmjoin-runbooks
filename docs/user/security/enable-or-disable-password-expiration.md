@@ -15,7 +15,7 @@ User \ Security \ Enable Or Disable Password Expiration
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ User \ Security \ Enable Or Disable Password Expiration
 | Required | true |
 | Type | String |
 
-### -DisablePasswordExpiration
+### DisablePasswordExpiration
 
 | Property | Value |
 |----------|-------|

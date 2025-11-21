@@ -17,7 +17,7 @@ Org \ General \ Office365 License Report
 
 
 ## Parameters
-### -printOverview
+### printOverview
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ Org \ General \ Office365 License Report
 | Required | false |
 | Type | Boolean |
 
-### -includeExhange
+### includeExhange
 
 | Property | Value |
 |----------|-------|
@@ -33,7 +33,7 @@ Org \ General \ Office365 License Report
 | Required | false |
 | Type | Boolean |
 
-### -exportToFile
+### exportToFile
 
 | Property | Value |
 |----------|-------|
@@ -41,7 +41,7 @@ Org \ General \ Office365 License Report
 | Required | false |
 | Type | Boolean |
 
-### -exportAsZip
+### exportAsZip
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +49,7 @@ Org \ General \ Office365 License Report
 | Required | false |
 | Type | Boolean |
 
-### -produceLinks
+### produceLinks
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +57,7 @@ Org \ General \ Office365 License Report
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 Make a persistent container the default, so you can simply update PowerBI's report from the same source
 
 | Property | Value |
@@ -66,7 +66,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +74,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -82,7 +82,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -90,7 +90,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|
@@ -98,7 +98,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Required | false |
 | Type | String |
 
-### -SubscriptionId
+### SubscriptionId
 
 | Property | Value |
 |----------|-------|

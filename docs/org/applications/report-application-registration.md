@@ -26,7 +26,7 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 
 ## Parameters
-### -EmailTo
+### EmailTo
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
 
@@ -36,7 +36,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Required | true |
 | Type | String |
 
-### -EmailFrom
+### EmailFrom
 The sender email address. This needs to be configured in the runbook customization
 
 | Property | Value |
@@ -45,7 +45,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Required | false |
 | Type | String |
 
-### -IncludeDeletedApps
+### IncludeDeletedApps
 Whether to include deleted application registrations in the report (default: true)
 
 | Property | Value |

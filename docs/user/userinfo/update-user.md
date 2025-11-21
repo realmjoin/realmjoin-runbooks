@@ -19,7 +19,7 @@ User \ Userinfo \ Update User
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +27,7 @@ User \ Userinfo \ Update User
 | Required | true |
 | Type | String |
 
-### -GivenName
+### GivenName
 
 | Property | Value |
 |----------|-------|
@@ -35,7 +35,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -Surname
+### Surname
 
 | Property | Value |
 |----------|-------|
@@ -43,7 +43,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -DisplayName
+### DisplayName
 
 | Property | Value |
 |----------|-------|
@@ -51,7 +51,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -CompanyName
+### CompanyName
 
 | Property | Value |
 |----------|-------|
@@ -59,7 +59,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -City
+### City
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +67,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -Country
+### Country
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +75,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -JobTitle
+### JobTitle
 
 | Property | Value |
 |----------|-------|
@@ -83,7 +83,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -Department
+### Department
 
 | Property | Value |
 |----------|-------|
@@ -91,7 +91,7 @@ User \ Userinfo \ Update User
 | Required | false |
 | Type | String |
 
-### -OfficeLocation
+### OfficeLocation
 think "physicalDeliveryOfficeName" if you are coming from on-prem
 
 | Property | Value |
@@ -100,7 +100,7 @@ think "physicalDeliveryOfficeName" if you are coming from on-prem
 | Required | false |
 | Type | String |
 
-### -PostalCode
+### PostalCode
 
 | Property | Value |
 |----------|-------|
@@ -108,7 +108,7 @@ think "physicalDeliveryOfficeName" if you are coming from on-prem
 | Required | false |
 | Type | String |
 
-### -PreferredLanguage
+### PreferredLanguage
 Examples: 'en-US' or 'de-DE'
 
 | Property | Value |
@@ -117,7 +117,7 @@ Examples: 'en-US' or 'de-DE'
 | Required | false |
 | Type | String |
 
-### -State
+### State
 
 | Property | Value |
 |----------|-------|
@@ -125,7 +125,7 @@ Examples: 'en-US' or 'de-DE'
 | Required | false |
 | Type | String |
 
-### -StreetAddress
+### StreetAddress
 
 | Property | Value |
 |----------|-------|
@@ -133,7 +133,7 @@ Examples: 'en-US' or 'de-DE'
 | Required | false |
 | Type | String |
 
-### -UsageLocation
+### UsageLocation
 Examples: "DE" or "US"
 
 | Property | Value |
@@ -142,7 +142,7 @@ Examples: "DE" or "US"
 | Required | false |
 | Type | String |
 
-### -DefaultLicense
+### DefaultLicense
 
 | Property | Value |
 |----------|-------|
@@ -150,7 +150,7 @@ Examples: "DE" or "US"
 | Required | false |
 | Type | String |
 
-### -DefaultGroups
+### DefaultGroups
 
 | Property | Value |
 |----------|-------|
@@ -158,7 +158,7 @@ Examples: "DE" or "US"
 | Required | false |
 | Type | String |
 
-### -EnableEXOArchive
+### EnableEXOArchive
 
 | Property | Value |
 |----------|-------|
@@ -166,7 +166,7 @@ Examples: "DE" or "US"
 | Required | false |
 | Type | Boolean |
 
-### -ResetPassword
+### ResetPassword
 
 | Property | Value |
 |----------|-------|

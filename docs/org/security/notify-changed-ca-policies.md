@@ -16,7 +16,7 @@ Org \ Security \ Notify Changed CA Policies
 
 
 ## Parameters
-### -From
+### From
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Org \ Security \ Notify Changed CA Policies
 | Required | true |
 | Type | String |
 
-### -To
+### To
 
 | Property | Value |
 |----------|-------|

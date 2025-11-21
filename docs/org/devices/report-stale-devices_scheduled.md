@@ -26,7 +26,7 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 
 ## Parameters
-### -Days
+### Days
 Number of days without activity to be considered stale.
 
 | Property | Value |
@@ -35,7 +35,7 @@ Number of days without activity to be considered stale.
 | Required | false |
 | Type | Int32 |
 
-### -Windows
+### Windows
 Include Windows devices in the results.
 
 | Property | Value |
@@ -44,7 +44,7 @@ Include Windows devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -MacOS
+### MacOS
 Include macOS devices in the results.
 
 | Property | Value |
@@ -53,7 +53,7 @@ Include macOS devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -iOS
+### iOS
 Include iOS devices in the results.
 
 | Property | Value |
@@ -62,7 +62,7 @@ Include iOS devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -Android
+### Android
 Include Android devices in the results.
 
 | Property | Value |
@@ -71,7 +71,7 @@ Include Android devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -EmailTo
+### EmailTo
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
 
@@ -81,7 +81,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Required | true |
 | Type | String |
 
-### -EmailFrom
+### EmailFrom
 The sender email address. This needs to be configured in the runbook customization
 
 | Property | Value |

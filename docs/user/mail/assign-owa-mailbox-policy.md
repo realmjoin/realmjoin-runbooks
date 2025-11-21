@@ -14,7 +14,7 @@ User \ Mail \ Assign Owa Mailbox Policy
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -22,7 +22,7 @@ User \ Mail \ Assign Owa Mailbox Policy
 | Required | true |
 | Type | String |
 
-### -OwaPolicyName
+### OwaPolicyName
 
 | Property | Value |
 |----------|-------|

@@ -18,7 +18,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
 | Required | true |
 | Type | String |
 
-### -HideMailbox
+### HideMailbox
 
 | Property | Value |
 |----------|-------|

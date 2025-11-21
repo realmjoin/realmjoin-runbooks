@@ -14,7 +14,7 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 
 
 ## Parameters
-### -HideBookingCalendars
+### HideBookingCalendars
 
 | Property | Value |
 |----------|-------|

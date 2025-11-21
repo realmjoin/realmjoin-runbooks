@@ -16,7 +16,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 
 
 ## Parameters
-### -produceLinks
+### produceLinks
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | Boolean |
 
-### -exportJson
+### exportJson
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +32,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | Boolean |
 
-### -renderLatexPagebreaks
+### renderLatexPagebreaks
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +40,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +56,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -64,7 +64,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -72,7 +72,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|

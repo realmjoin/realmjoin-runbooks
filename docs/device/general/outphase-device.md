@@ -21,7 +21,7 @@ Device \ General \ Outphase Device
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Device \ General \ Outphase Device
 | Required | true |
 | Type | String |
 
-### -intuneAction
+### intuneAction
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Device \ General \ Outphase Device
 | Required | false |
 | Type | Int32 |
 
-### -aadAction
+### aadAction
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +45,7 @@ Device \ General \ Outphase Device
 | Required | false |
 | Type | Int32 |
 
-### -wipeDevice
+### wipeDevice
 
 | Property | Value |
 |----------|-------|
@@ -53,7 +53,7 @@ Device \ General \ Outphase Device
 | Required | false |
 | Type | Boolean |
 
-### -removeIntuneDevice
+### removeIntuneDevice
 
 | Property | Value |
 |----------|-------|
@@ -61,7 +61,7 @@ Device \ General \ Outphase Device
 | Required | false |
 | Type | Boolean |
 
-### -removeAutopilotDevice
+### removeAutopilotDevice
 
 | Property | Value |
 |----------|-------|
@@ -69,7 +69,7 @@ Device \ General \ Outphase Device
 | Required | false |
 | Type | Boolean |
 
-### -removeAADDevice
+### removeAADDevice
 
 | Property | Value |
 |----------|-------|
@@ -77,7 +77,7 @@ Device \ General \ Outphase Device
 | Required | false |
 | Type | Boolean |
 
-### -disableAADDevice
+### disableAADDevice
 
 | Property | Value |
 |----------|-------|

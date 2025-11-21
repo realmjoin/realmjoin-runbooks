@@ -14,7 +14,7 @@ User \ Security \ Reset Password
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -22,7 +22,7 @@ User \ Security \ Reset Password
 | Required | true |
 | Type | String |
 
-### -EnableUserIfNeeded
+### EnableUserIfNeeded
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ User \ Security \ Reset Password
 | Required | false |
 | Type | Boolean |
 
-### -ForceChangePasswordNextSignIn
+### ForceChangePasswordNextSignIn
 
 | Property | Value |
 |----------|-------|

@@ -15,7 +15,7 @@ Device \ Security \ Show Laps Password
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|

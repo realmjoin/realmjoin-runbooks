@@ -15,7 +15,7 @@ User \ Userinfo \ Set Photo
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ User \ Userinfo \ Set Photo
 | Required | true |
 | Type | String |
 
-### -PhotoURI
+### PhotoURI
 Needs to be a JPEG
 
 | Property | Value |

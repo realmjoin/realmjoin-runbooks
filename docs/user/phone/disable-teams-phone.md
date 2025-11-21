@@ -18,7 +18,7 @@ User \ Phone \ Disable Teams Phone
 
 
 ## Parameters
-### -UserName
+### UserName
 User which should be cleared. Could be filled with the user picker in the UI.
 
 | Property | Value |

@@ -21,7 +21,7 @@ Azure: Contributor on Storage Account
 
 
 ## Parameters
-### -Weeks
+### Weeks
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Azure: Contributor on Storage Account
 | Required | false |
 | Type | Int32 |
 
-### -dataSource
+### dataSource
 Where to look for a devices "birthday"?
 0 - AutoPilot profile assignment date
 1 - Intune object creation date
@@ -40,7 +40,7 @@ Where to look for a devices "birthday"?
 | Required | false |
 | Type | Int32 |
 
-### -groupingSource
+### groupingSource
 How to group results?
 0 - no grouping
 1 - AzureAD User properties
@@ -54,7 +54,7 @@ How to group results?
 | Required | false |
 | Type | Int32 |
 
-### -groupingAttribute
+### groupingAttribute
 Examples:
 
 Autopilot:
@@ -85,7 +85,7 @@ Intune Device:
 | Required | false |
 | Type | String |
 
-### -exportCsv
+### exportCsv
 Please configure an Azure Storage Account to use this feature.
 
 | Property | Value |
@@ -94,7 +94,7 @@ Please configure an Azure Storage Account to use this feature.
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -102,7 +102,7 @@ Please configure an Azure Storage Account to use this feature.
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -110,7 +110,7 @@ Please configure an Azure Storage Account to use this feature.
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -118,7 +118,7 @@ Please configure an Azure Storage Account to use this feature.
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -126,7 +126,7 @@ Please configure an Azure Storage Account to use this feature.
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|

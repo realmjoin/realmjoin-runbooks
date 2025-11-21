@@ -18,7 +18,7 @@ User \ Mail \ Set Room Mailbox Configuration
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | true |
 | Type | String |
 
-### -AllBookInPolicy
+### AllBookInPolicy
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | Boolean |
 
-### -BookInPolicyGroup
+### BookInPolicyGroup
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | String |
 
-### -AllowRecurringMeetings
+### AllowRecurringMeetings
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | Boolean |
 
-### -AutomateProcessing
+### AutomateProcessing
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +58,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | String |
 
-### -BookingWindowInDays
+### BookingWindowInDays
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | Int32 |
 
-### -MaximumDurationInMinutes
+### MaximumDurationInMinutes
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +74,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | Int32 |
 
-### -AllowConflicts
+### AllowConflicts
 
 | Property | Value |
 |----------|-------|
@@ -82,7 +82,7 @@ User \ Mail \ Set Room Mailbox Configuration
 | Required | false |
 | Type | Boolean |
 
-### -Capacity
+### Capacity
 
 | Property | Value |
 |----------|-------|

@@ -15,7 +15,7 @@ Org \ General \ Check Aad Sync Status_Scheduled
 
 
 ## Parameters
-### -sendAlertTo
+### sendAlertTo
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Org \ General \ Check Aad Sync Status_Scheduled
 | Required | false |
 | Type | String |
 
-### -sendAlertFrom
+### sendAlertFrom
 
 | Property | Value |
 |----------|-------|

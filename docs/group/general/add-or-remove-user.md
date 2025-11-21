@@ -16,7 +16,7 @@ Group \ General \ Add Or Remove User
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Group \ General \ Add Or Remove User
 | Required | true |
 | Type | String |
 
-### -UserId
+### UserId
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +32,7 @@ Group \ General \ Add Or Remove User
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|

@@ -18,7 +18,7 @@ Org \ Security \ List Inactive Users
 
 
 ## Parameters
-### -Days
+### Days
 Number of days without interactive signin.
 
 | Property | Value |
@@ -27,7 +27,7 @@ Number of days without interactive signin.
 | Required | false |
 | Type | Int32 |
 
-### -showBlockedUsers
+### showBlockedUsers
 Include users/guests that can not sign in (accountEnabled = false).
 
 | Property | Value |
@@ -36,7 +36,7 @@ Include users/guests that can not sign in (accountEnabled = false).
 | Required | false |
 | Type | Boolean |
 
-### -showUsersThatNeverLoggedIn
+### showUsersThatNeverLoggedIn
 Beware: This has to enumerate all users / Can take a long time.
 
 | Property | Value |

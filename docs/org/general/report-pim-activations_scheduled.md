@@ -16,7 +16,7 @@ Org \ General \ Report Pim Activations_Scheduled
 
 
 ## Parameters
-### -sendAlertTo
+### sendAlertTo
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Org \ General \ Report Pim Activations_Scheduled
 | Required | false |
 | Type | String |
 
-### -sendAlertFrom
+### sendAlertFrom
 
 | Property | Value |
 |----------|-------|

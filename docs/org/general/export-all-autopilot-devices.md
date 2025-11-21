@@ -17,7 +17,7 @@ Org \ General \ Export All Autopilot Devices
 
 
 ## Parameters
-### -ExportToFile
+### ExportToFile
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ Org \ General \ Export All Autopilot Devices
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -33,7 +33,7 @@ Org \ General \ Export All Autopilot Devices
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -41,7 +41,7 @@ Org \ General \ Export All Autopilot Devices
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +49,7 @@ Org \ General \ Export All Autopilot Devices
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +57,7 @@ Org \ General \ Export All Autopilot Devices
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|

@@ -20,7 +20,7 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 
 
 ## Parameters
-### -Days
+### Days
 Number of days without activity to be considered stale.
 
 | Property | Value |
@@ -29,7 +29,7 @@ Number of days without activity to be considered stale.
 | Required | false |
 | Type | Int32 |
 
-### -Windows
+### Windows
 Include Windows devices in the results.
 
 | Property | Value |
@@ -38,7 +38,7 @@ Include Windows devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -MacOS
+### MacOS
 Include macOS devices in the results.
 
 | Property | Value |
@@ -47,7 +47,7 @@ Include macOS devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -iOS
+### iOS
 Include iOS devices in the results.
 
 | Property | Value |
@@ -56,7 +56,7 @@ Include iOS devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -Android
+### Android
 Include Android devices in the results.
 
 | Property | Value |
@@ -65,7 +65,7 @@ Include Android devices in the results.
 | Required | false |
 | Type | Boolean |
 
-### -DeleteDevices
+### DeleteDevices
 If set to true, the script will delete the stale devices. If false, it will only report them.
 
 | Property | Value |
@@ -74,7 +74,7 @@ If set to true, the script will delete the stale devices. If false, it will only
 | Required | false |
 | Type | Boolean |
 
-### -ConfirmDeletion
+### ConfirmDeletion
 If set to true, the script will prompt for confirmation before deleting devices.
 Should be set to false for scheduled runs.
 
@@ -84,7 +84,7 @@ Should be set to false for scheduled runs.
 | Required | false |
 | Type | Boolean |
 
-### -sendAlertTo
+### sendAlertTo
 Email address to send the report to.
 
 | Property | Value |
@@ -93,7 +93,7 @@ Email address to send the report to.
 | Required | false |
 | Type | String |
 
-### -sendAlertFrom
+### sendAlertFrom
 Email address to send the report from.
 
 | Property | Value |

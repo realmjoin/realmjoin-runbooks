@@ -16,7 +16,7 @@ Org \ Security \ List Expiring Role Assignments
 
 
 ## Parameters
-### -Days
+### Days
 
 | Property | Value |
 |----------|-------|

@@ -17,7 +17,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 
 
 ## Parameters
-### -UserGroup
+### UserGroup
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | true |
 | Type | String |
 
-### -DeviceGroup
+### DeviceGroup
 
 | Property | Value |
 |----------|-------|
@@ -33,7 +33,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | true |
 | Type | String |
 
-### -IncludeWindowsDevice
+### IncludeWindowsDevice
 
 | Property | Value |
 |----------|-------|
@@ -41,7 +41,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | false |
 | Type | Boolean |
 
-### -IncludeMacOSDevice
+### IncludeMacOSDevice
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +49,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | false |
 | Type | Boolean |
 
-### -IncludeLinuxDevice
+### IncludeLinuxDevice
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +57,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | false |
 | Type | Boolean |
 
-### -IncludeAndroidDevice
+### IncludeAndroidDevice
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +65,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | false |
 | Type | Boolean |
 
-### -IncludeIOSDevice
+### IncludeIOSDevice
 
 | Property | Value |
 |----------|-------|
@@ -73,7 +73,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 | Required | false |
 | Type | Boolean |
 
-### -IncludeIPadOSDevice
+### IncludeIPadOSDevice
 
 | Property | Value |
 |----------|-------|

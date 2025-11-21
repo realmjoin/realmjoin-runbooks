@@ -18,7 +18,7 @@ User \ General \ Unassign Windows365
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ General \ Unassign Windows365
 | Required | true |
 | Type | String |
 
-### -licWin365GroupName
+### licWin365GroupName
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ General \ Unassign Windows365
 | Required | false |
 | Type | String |
 
-### -cfgProvisioningGroupPrefix
+### cfgProvisioningGroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ General \ Unassign Windows365
 | Required | false |
 | Type | String |
 
-### -cfgUserSettingsGroupPrefix
+### cfgUserSettingsGroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ User \ General \ Unassign Windows365
 | Required | false |
 | Type | String |
 
-### -licWin365GroupPrefix
+### licWin365GroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +58,7 @@ User \ General \ Unassign Windows365
 | Required | false |
 | Type | String |
 
-### -skipGracePeriod
+### skipGracePeriod
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ User \ General \ Unassign Windows365
 | Required | false |
 | Type | Boolean |
 
-### -KeepUserSettingsAndProvisioningGroups
+### KeepUserSettingsAndProvisioningGroups
 
 | Property | Value |
 |----------|-------|

@@ -19,7 +19,7 @@ Permissions needed:
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|

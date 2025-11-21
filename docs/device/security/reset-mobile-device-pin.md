@@ -16,7 +16,7 @@ Device \ Security \ Reset Mobile Device Pin
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|

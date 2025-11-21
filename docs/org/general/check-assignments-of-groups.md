@@ -19,7 +19,7 @@ Org \ General \ Check Assignments Of Groups
 
 
 ## Parameters
-### -GroupNames
+### GroupNames
 Group Names of the groups to check assignments for, separated by commas.
 
 | Property | Value |
@@ -28,7 +28,7 @@ Group Names of the groups to check assignments for, separated by commas.
 | Required | true |
 | Type | String |
 
-### -IncludeApps
+### IncludeApps
 Boolean to specify whether to include application assignments in the search.
 
 | Property | Value |

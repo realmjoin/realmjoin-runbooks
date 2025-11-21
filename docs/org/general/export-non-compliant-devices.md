@@ -18,7 +18,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 
 
 ## Parameters
-### -produceLinks
+### produceLinks
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +58,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Required | false |
 | Type | String |
 
-### -SubscriptionId
+### SubscriptionId
 
 | Property | Value |
 |----------|-------|

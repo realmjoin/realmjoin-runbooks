@@ -21,7 +21,7 @@ Please switch to "v1.0" as soon, as this funtionality is available.
 
 
 ## Parameters
-### -Action
+### Action
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Please switch to "v1.0" as soon, as this funtionality is available.
 | Required | true |
 | Type | Int32 |
 
-### -Url
+### Url
 Needs to be prefixed with "http://" or "https://"
 
 | Property | Value |
@@ -38,7 +38,7 @@ Needs to be prefixed with "http://" or "https://"
 | Required | false |
 | Type | String |
 
-### -Zone
+### Zone
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ Needs to be prefixed with "http://" or "https://"
 | Required | false |
 | Type | Int32 |
 
-### -DefaultPolicyName
+### DefaultPolicyName
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +54,7 @@ Needs to be prefixed with "http://" or "https://"
 | Required | false |
 | Type | String |
 
-### -IntunePolicyName
+### IntunePolicyName
 Will use an existing policy or default policy name if left empty.
 
 | Property | Value |

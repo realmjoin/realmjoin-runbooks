@@ -16,7 +16,7 @@ Group \ General \ Change Visibility
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|
@@ -24,7 +24,7 @@ Group \ General \ Change Visibility
 | Required | true |
 | Type | String |
 
-### -Public
+### Public
 
 | Property | Value |
 |----------|-------|

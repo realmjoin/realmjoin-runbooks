@@ -20,7 +20,7 @@ User \ General \ Reprovision Windows365
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ User \ General \ Reprovision Windows365
 | Required | true |
 | Type | String |
 
-### -licWin365GroupName
+### licWin365GroupName
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +36,7 @@ User \ General \ Reprovision Windows365
 | Required | true |
 | Type | String |
 
-### -sendMailWhenReprovisioning
+### sendMailWhenReprovisioning
 
 | Property | Value |
 |----------|-------|
@@ -44,7 +44,7 @@ User \ General \ Reprovision Windows365
 | Required | false |
 | Type | Boolean |
 
-### -fromMailAddress
+### fromMailAddress
 
 | Property | Value |
 |----------|-------|
@@ -52,7 +52,7 @@ User \ General \ Reprovision Windows365
 | Required | false |
 | Type | String |
 
-### -customizeMail
+### customizeMail
 
 | Property | Value |
 |----------|-------|
@@ -60,7 +60,7 @@ User \ General \ Reprovision Windows365
 | Required | false |
 | Type | Boolean |
 
-### -customMailMessage
+### customMailMessage
 
 | Property | Value |
 |----------|-------|

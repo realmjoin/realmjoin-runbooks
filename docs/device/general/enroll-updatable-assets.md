@@ -15,7 +15,7 @@ Device \ General \ Enroll Updatable Assets
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 DeviceId of the device to unenroll.
 
 | Property | Value |
@@ -24,7 +24,7 @@ DeviceId of the device to unenroll.
 | Required | true |
 | Type | String |
 
-### -UpdateCategory
+### UpdateCategory
 Category of updates to enroll into. Possible values are: driver, feature or quality.
 
 | Property | Value |

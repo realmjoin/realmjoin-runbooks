@@ -15,7 +15,7 @@ User \ Security \ Confirm Or Dismiss Risky User
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ User \ Security \ Confirm Or Dismiss Risky User
 | Required | true |
 | Type | String |
 
-### -Dismiss
+### Dismiss
 
 | Property | Value |
 |----------|-------|

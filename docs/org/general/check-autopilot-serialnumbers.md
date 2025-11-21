@@ -15,7 +15,7 @@ Org \ General \ Check Autopilot Serialnumbers
 
 
 ## Parameters
-### -SerialNumbers
+### SerialNumbers
 
 | Property | Value |
 |----------|-------|

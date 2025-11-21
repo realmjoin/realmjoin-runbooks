@@ -15,7 +15,7 @@ Group \ General \ List User Devices
 
 
 ## Parameters
-### -GroupID
+### GroupID
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Group \ General \ List User Devices
 | Required | true |
 | Type | String |
 
-### -moveGroup
+### moveGroup
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Group \ General \ List User Devices
 | Required | false |
 | Type | Boolean |
 
-### -targetgroup
+### targetgroup
 
 | Property | Value |
 |----------|-------|

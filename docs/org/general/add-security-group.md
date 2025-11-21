@@ -25,7 +25,7 @@ Also to reactivate this feature, the following extra is in the .INPUTS are requi
 
 
 ## Parameters
-### -GroupName
+### GroupName
 The name of the security group.
 
 | Property | Value |
@@ -34,7 +34,7 @@ The name of the security group.
 | Required | true |
 | Type | String |
 
-### -GroupDescription
+### GroupDescription
 The description of the security group.
 
 | Property | Value |
@@ -43,7 +43,7 @@ The description of the security group.
 | Required | false |
 | Type | String |
 
-### -Owner
+### Owner
 The owner of the security group.
 
 | Property | Value |

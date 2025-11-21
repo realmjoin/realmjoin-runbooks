@@ -18,7 +18,7 @@ User \ Phone \ Get Teams User Info
 
 
 ## Parameters
-### -UserName
+### UserName
 The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
 
 | Property | Value |

@@ -15,7 +15,7 @@ Device \ General \ Check Updatable Assets
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 DeviceId of the device to check onboarding status for.
 
 | Property | Value |

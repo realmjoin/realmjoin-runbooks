@@ -15,7 +15,7 @@ Org \ General \ Export All Intune Devices
 
 
 ## Parameters
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Org \ General \ Export All Intune Devices
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Org \ General \ Export All Intune Devices
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Org \ General \ Export All Intune Devices
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +47,7 @@ Org \ General \ Export All Intune Devices
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Org \ General \ Export All Intune Devices
 | Required | false |
 | Type | String |
 
-### -SubscriptionId
+### SubscriptionId
 
 | Property | Value |
 |----------|-------|

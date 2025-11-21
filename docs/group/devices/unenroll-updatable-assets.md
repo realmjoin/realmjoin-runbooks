@@ -16,7 +16,7 @@ Group \ Devices \ Unenroll Updatable Assets
 
 
 ## Parameters
-### -GroupId
+### GroupId
 Object ID of the group to unenroll its members.
 
 | Property | Value |
@@ -25,7 +25,7 @@ Object ID of the group to unenroll its members.
 | Required | true |
 | Type | String |
 
-### -UpdateCategory
+### UpdateCategory
 Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
 
 | Property | Value |

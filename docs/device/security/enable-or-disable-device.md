@@ -18,7 +18,7 @@ Device \ Security \ Enable Or Disable Device
 
 
 ## Parameters
-### -DeviceId
+### DeviceId
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ Device \ Security \ Enable Or Disable Device
 | Required | true |
 | Type | String |
 
-### -Enable
+### Enable
 
 | Property | Value |
 |----------|-------|

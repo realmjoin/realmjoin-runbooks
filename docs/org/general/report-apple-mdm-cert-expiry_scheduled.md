@@ -26,7 +26,7 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 
 ## Parameters
-### -Days
+### Days
 The warning threshold in days. Certificates and tokens expiring within this many days will be
 flagged as alerts in the report. Default is 300 days (approximately 10 months).
 
@@ -36,7 +36,7 @@ flagged as alerts in the report. Default is 300 days (approximately 10 months).
 | Required | false |
 | Type | Int32 |
 
-### -EmailTo
+### EmailTo
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
 
@@ -46,7 +46,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Required | false |
 | Type | String |
 
-### -EmailFrom
+### EmailFrom
 The sender email address. This needs to be configured in the runbook customization
 
 | Property | Value |

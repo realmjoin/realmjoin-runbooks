@@ -20,7 +20,7 @@ Azure: Contributor on Storage Account
 
 
 ## Parameters
-### -GroupId
+### GroupId
 Object ID of the group to check onboarding status for its members.
 
 | Property | Value |

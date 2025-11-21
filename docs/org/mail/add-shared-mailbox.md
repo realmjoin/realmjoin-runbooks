@@ -19,7 +19,7 @@ Org \ Mail \ Add Shared Mailbox
 
 
 ## Parameters
-### -MailboxName
+### MailboxName
 The alias (mailbox name) for the shared mailbox.
 
 | Property | Value |
@@ -28,7 +28,7 @@ The alias (mailbox name) for the shared mailbox.
 | Required | true |
 | Type | String |
 
-### -DisplayName
+### DisplayName
 The display name for the shared mailbox.
 
 | Property | Value |
@@ -37,7 +37,7 @@ The display name for the shared mailbox.
 | Required | false |
 | Type | String |
 
-### -DomainName
+### DomainName
 The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
 
 | Property | Value |
@@ -46,7 +46,7 @@ The domain name to be used for the primary SMTP address of the shared mailbox. I
 | Required | false |
 | Type | String |
 
-### -Language
+### Language
 The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
 
 | Property | Value |
@@ -55,7 +55,7 @@ The language/locale for the shared mailbox. This setting affects folder names li
 | Required | false |
 | Type | String |
 
-### -DelegateTo
+### DelegateTo
 The user to delegate access to the shared mailbox.
 
 | Property | Value |
@@ -64,7 +64,7 @@ The user to delegate access to the shared mailbox.
 | Required | false |
 | Type | String |
 
-### -AutoMapping
+### AutoMapping
 If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
 
 | Property | Value |
@@ -73,7 +73,7 @@ If set to true, the shared mailbox will be automatically mapped in Outlook for t
 | Required | false |
 | Type | Boolean |
 
-### -MessageCopyForSentAsEnabled
+### MessageCopyForSentAsEnabled
 If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
 
 | Property | Value |
@@ -82,7 +82,7 @@ If set to true, a copy of sent emails will be saved in the shared mailbox's Sent
 | Required | false |
 | Type | Boolean |
 
-### -MessageCopyForSendOnBehalfEnabled
+### MessageCopyForSendOnBehalfEnabled
 If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
 
 | Property | Value |
@@ -91,7 +91,7 @@ If set to true, a copy of sent emails will be saved in the shared mailbox's Sent
 | Required | false |
 | Type | Boolean |
 
-### -DisableUser
+### DisableUser
 If set to true, the associated EntraID user account will be disabled.
 
 | Property | Value |

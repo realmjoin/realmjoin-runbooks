@@ -23,7 +23,7 @@ Note, as of 2021-06-28 MS Graph does not support updating existing groups - only
 
 
 ## Parameters
-### -GroupName
+### GroupName
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Note, as of 2021-06-28 MS Graph does not support updating existing groups - only
 | Required | true |
 | Type | String |
 
-### -Action
+### Action
 
 | Property | Value |
 |----------|-------|

@@ -19,7 +19,7 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
 
 
 ## Parameters
-### -Entry
+### Entry
 The entry to add or remove (e.g., domain, email address, URL, or file hash).
 
 | Property | Value |
@@ -28,7 +28,7 @@ The entry to add or remove (e.g., domain, email address, URL, or file hash).
 | Required | true |
 | Type | String |
 
-### -ListType
+### ListType
 The type of entry: Sender, Url, or FileHash.
 
 | Property | Value |
@@ -37,7 +37,7 @@ The type of entry: Sender, Url, or FileHash.
 | Required | false |
 | Type | String |
 
-### -Block
+### Block
 Decides whether to block or allow the entry.
 
 | Property | Value |
@@ -46,7 +46,7 @@ Decides whether to block or allow the entry.
 | Required | false |
 | Type | Boolean |
 
-### -Remove
+### Remove
 Decides whether to remove or add the entry.
 
 | Property | Value |
@@ -55,7 +55,7 @@ Decides whether to remove or add the entry.
 | Required | false |
 | Type | Boolean |
 
-### -DaysToExpire
+### DaysToExpire
 Number of days until the entry expires. Default is 30 days.
 
 | Property | Value |

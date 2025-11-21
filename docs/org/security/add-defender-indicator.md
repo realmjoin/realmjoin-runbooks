@@ -15,7 +15,7 @@ Org \ Security \ Add Defender Indicator
 
 
 ## Parameters
-### -IndicatorValue
+### IndicatorValue
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Org \ Security \ Add Defender Indicator
 | Required | true |
 | Type | String |
 
-### -IndicatorType
+### IndicatorType
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Org \ Security \ Add Defender Indicator
 | Required | true |
 | Type | String |
 
-### -Title
+### Title
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Org \ Security \ Add Defender Indicator
 | Required | true |
 | Type | String |
 
-### -Description
+### Description
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +47,7 @@ Org \ Security \ Add Defender Indicator
 | Required | true |
 | Type | String |
 
-### -Action
+### Action
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Org \ Security \ Add Defender Indicator
 | Required | true |
 | Type | String |
 
-### -Severity
+### Severity
 
 | Property | Value |
 |----------|-------|
@@ -63,7 +63,7 @@ Org \ Security \ Add Defender Indicator
 | Required | true |
 | Type | String |
 
-### -GenerateAlert
+### GenerateAlert
 
 | Property | Value |
 |----------|-------|

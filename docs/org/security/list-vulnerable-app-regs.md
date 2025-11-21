@@ -15,7 +15,7 @@ Org \ Security \ List Vulnerable App Regs
 
 
 ## Parameters
-### -ExportToFile
+### ExportToFile
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ Org \ Security \ List Vulnerable App Regs
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ Org \ Security \ List Vulnerable App Regs
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Org \ Security \ List Vulnerable App Regs
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +47,7 @@ Org \ Security \ List Vulnerable App Regs
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Org \ Security \ List Vulnerable App Regs
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|

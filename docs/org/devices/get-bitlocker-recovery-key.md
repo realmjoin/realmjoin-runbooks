@@ -16,7 +16,7 @@ Org \ Devices \ Get Bitlocker Recovery Key
 
 
 ## Parameters
-### -bitlockeryRecoveryKeyId
+### bitlockeryRecoveryKeyId
 bitlockeryRecoveryKeyId of the desired recovery key. Displayed in the BitLocker recovery screen (format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX).
 
 | Property | Value |

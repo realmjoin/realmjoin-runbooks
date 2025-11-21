@@ -15,7 +15,7 @@ Org \ General \ Bulk Delete Devices From Autopilot
 
 
 ## Parameters
-### -SerialNumbers
+### SerialNumbers
 
 | Property | Value |
 |----------|-------|

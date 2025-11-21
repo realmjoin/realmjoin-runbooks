@@ -17,7 +17,7 @@ User \ General \ List Group Memberships
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ User \ General \ List Group Memberships
 | Required | true |
 | Type | String |
 
-### -GroupType
+### GroupType
 Filter by group type: Security (security permissions only), M365 (Microsoft 365 groups with mailbox), or All (default).
 
 | Property | Value |
@@ -34,7 +34,7 @@ Filter by group type: Security (security permissions only), M365 (Microsoft 365 
 | Required | false |
 | Type | String |
 
-### -MembershipType
+### MembershipType
 Filter by membership type: Assigned (manually added members), Dynamic (rule-based membership), or All (default).
 
 | Property | Value |
@@ -43,7 +43,7 @@ Filter by membership type: Assigned (manually added members), Dynamic (rule-base
 | Required | false |
 | Type | String |
 
-### -RoleAssignable
+### RoleAssignable
 Filter groups that can be assigned to Azure AD roles: Yes (role-assignable only) or NotSet (all groups, default).
 
 | Property | Value |
@@ -52,7 +52,7 @@ Filter groups that can be assigned to Azure AD roles: Yes (role-assignable only)
 | Required | false |
 | Type | String |
 
-### -TeamsEnabled
+### TeamsEnabled
 Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default).
 
 | Property | Value |
@@ -61,7 +61,7 @@ Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or No
 | Required | false |
 | Type | String |
 
-### -Source
+### Source
 Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default).
 
 | Property | Value |
@@ -70,7 +70,7 @@ Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-prem
 | Required | false |
 | Type | String |
 
-### -WritebackEnabled
+### WritebackEnabled
 Filter groups with writeback to on-premises AD enabled: Yes (writeback enabled), No (writeback disabled), or All (default).
 
 | Property | Value |

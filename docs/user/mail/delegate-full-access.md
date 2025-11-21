@@ -18,7 +18,7 @@ User \ Mail \ Delegate Full Access
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ Mail \ Delegate Full Access
 | Required | true |
 | Type | String |
 
-### -delegateTo
+### delegateTo
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ Mail \ Delegate Full Access
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ Mail \ Delegate Full Access
 | Required | false |
 | Type | Boolean |
 
-### -AutoMapping
+### AutoMapping
 
 | Property | Value |
 |----------|-------|

@@ -24,7 +24,7 @@ Permissions: MS Graph
 
 
 ## Parameters
-### -exportToFile
+### exportToFile
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +32,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | Boolean |
 
-### -ContainerName
+### ContainerName
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +40,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | String |
 
-### -ResourceGroupName
+### ResourceGroupName
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | String |
 
-### -StorageAccountName
+### StorageAccountName
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +56,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | String |
 
-### -StorageAccountLocation
+### StorageAccountLocation
 
 | Property | Value |
 |----------|-------|
@@ -64,7 +64,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | String |
 
-### -StorageAccountSku
+### StorageAccountSku
 
 | Property | Value |
 |----------|-------|
@@ -72,7 +72,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | String |
 
-### -QueryMfaState
+### QueryMfaState
 
 | Property | Value |
 |----------|-------|
@@ -80,7 +80,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | Boolean |
 
-### -TrustEmailMfa
+### TrustEmailMfa
 
 | Property | Value |
 |----------|-------|
@@ -88,7 +88,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | Boolean |
 
-### -TrustPhoneMfa
+### TrustPhoneMfa
 
 | Property | Value |
 |----------|-------|
@@ -96,7 +96,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | Boolean |
 
-### -TrustSoftwareOathMfa
+### TrustSoftwareOathMfa
 
 | Property | Value |
 |----------|-------|
@@ -104,7 +104,7 @@ Permissions: MS Graph
 | Required | false |
 | Type | Boolean |
 
-### -TrustWinHelloMFA
+### TrustWinHelloMFA
 
 | Property | Value |
 |----------|-------|

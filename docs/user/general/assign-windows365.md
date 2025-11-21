@@ -18,7 +18,7 @@ User \ General \ Assign Windows365
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ User \ General \ Assign Windows365
 | Required | true |
 | Type | String |
 
-### -cfgProvisioningGroupName
+### cfgProvisioningGroupName
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -cfgUserSettingsGroupName
+### cfgUserSettingsGroupName
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -licWin365GroupName
+### licWin365GroupName
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -cfgProvisioningGroupPrefix
+### cfgProvisioningGroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +58,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -cfgUserSettingsGroupPrefix
+### cfgUserSettingsGroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -sendMailWhenProvisioned
+### sendMailWhenProvisioned
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +74,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | Boolean |
 
-### -customizeMail
+### customizeMail
 
 | Property | Value |
 |----------|-------|
@@ -82,7 +82,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | Boolean |
 
-### -customMailMessage
+### customMailMessage
 
 | Property | Value |
 |----------|-------|
@@ -90,7 +90,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -createTicketOutOfLicenses
+### createTicketOutOfLicenses
 
 | Property | Value |
 |----------|-------|
@@ -98,7 +98,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | Boolean |
 
-### -ticketQueueAddress
+### ticketQueueAddress
 
 | Property | Value |
 |----------|-------|
@@ -106,7 +106,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -fromMailAddress
+### fromMailAddress
 
 | Property | Value |
 |----------|-------|
@@ -114,7 +114,7 @@ User \ General \ Assign Windows365
 | Required | false |
 | Type | String |
 
-### -ticketCustomerId
+### ticketCustomerId
 
 | Property | Value |
 |----------|-------|

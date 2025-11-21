@@ -19,7 +19,7 @@ Org \ General \ Check Assignments Of Devices
 
 
 ## Parameters
-### -DeviceNames
+### DeviceNames
 Device Names of the devices to check assignments for, separated by commas.
 
 | Property | Value |
@@ -28,7 +28,7 @@ Device Names of the devices to check assignments for, separated by commas.
 | Required | true |
 | Type | String |
 
-### -IncludeApps
+### IncludeApps
 Boolean to specify whether to include application assignments in the search.
 
 | Property | Value |

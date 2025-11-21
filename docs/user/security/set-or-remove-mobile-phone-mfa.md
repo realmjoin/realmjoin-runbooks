@@ -15,7 +15,7 @@ User \ Security \ Set Or Remove Mobile Phone Mfa
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ User \ Security \ Set Or Remove Mobile Phone Mfa
 | Required | true |
 | Type | String |
 
-### -phoneNumber
+### phoneNumber
 Enter the user's mobile number in international format (e.g. +491701234567) to add, update, or remove.
 
 | Property | Value |
@@ -32,7 +32,7 @@ Enter the user's mobile number in international format (e.g. +491701234567) to a
 | Required | true |
 | Type | String |
 
-### -Remove
+### Remove
 
 | Property | Value |
 |----------|-------|

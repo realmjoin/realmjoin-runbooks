@@ -19,7 +19,7 @@ User \ Security \ Revoke Or Restore Access
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +27,7 @@ User \ Security \ Revoke Or Restore Access
 | Required | true |
 | Type | String |
 
-### -Revoke
+### Revoke
 
 | Property | Value |
 |----------|-------|

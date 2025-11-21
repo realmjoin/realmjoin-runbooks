@@ -20,7 +20,7 @@ Org \ Mail \ Add Distribution List
 
 
 ## Parameters
-### -Alias
+### Alias
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ Org \ Mail \ Add Distribution List
 | Required | true |
 | Type | String |
 
-### -PrimarySMTPAddress
+### PrimarySMTPAddress
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +36,7 @@ Org \ Mail \ Add Distribution List
 | Required | false |
 | Type | String |
 
-### -GroupName
+### GroupName
 
 | Property | Value |
 |----------|-------|
@@ -44,7 +44,7 @@ Org \ Mail \ Add Distribution List
 | Required | false |
 | Type | String |
 
-### -Owner
+### Owner
 
 | Property | Value |
 |----------|-------|
@@ -52,7 +52,7 @@ Org \ Mail \ Add Distribution List
 | Required | false |
 | Type | String |
 
-### -Roomlist
+### Roomlist
 
 | Property | Value |
 |----------|-------|
@@ -60,7 +60,7 @@ Org \ Mail \ Add Distribution List
 | Required | false |
 | Type | Boolean |
 
-### -AllowExternalSenders
+### AllowExternalSenders
 
 | Property | Value |
 |----------|-------|

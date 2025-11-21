@@ -18,7 +18,7 @@ Org \ Mail \ Add Or Remove Public Folder
 
 
 ## Parameters
-### -PublicFolderName
+### PublicFolderName
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ Org \ Mail \ Add Or Remove Public Folder
 | Required | true |
 | Type | String |
 
-### -MailboxName
+### MailboxName
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ Org \ Mail \ Add Or Remove Public Folder
 | Required | false |
 | Type | String |
 
-### -AddPublicFolder
+### AddPublicFolder
 
 | Property | Value |
 |----------|-------|

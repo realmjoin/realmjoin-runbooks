@@ -21,7 +21,7 @@ User \ Userinfo \ Rename User
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ User \ Userinfo \ Rename User
 | Required | true |
 | Type | String |
 
-### -NewUpn
+### NewUpn
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ User \ Userinfo \ Rename User
 | Required | true |
 | Type | String |
 
-### -ChangeMailnickname
+### ChangeMailnickname
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +45,7 @@ User \ Userinfo \ Rename User
 | Required | false |
 | Type | Boolean |
 
-### -UpdatePrimaryAddress
+### UpdatePrimaryAddress
 
 | Property | Value |
 |----------|-------|

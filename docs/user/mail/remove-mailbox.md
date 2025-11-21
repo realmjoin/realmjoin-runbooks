@@ -14,7 +14,7 @@ User \ Mail \ Remove Mailbox
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|

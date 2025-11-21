@@ -9,7 +9,7 @@ Creates a Viva Engage (Yammer) community using a Yammer dev token. The API-calls
 Org \ General \ Add Viva Engange Community
 
 ## Parameters
-### -CommunityName
+### CommunityName
 The name of the community to create. max 264 chars.
 
 | Property | Value |
@@ -18,7 +18,7 @@ The name of the community to create. max 264 chars.
 | Required | true |
 | Type | String |
 
-### -CommunityPrivate
+### CommunityPrivate
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ The name of the community to create. max 264 chars.
 | Required | false |
 | Type | Boolean |
 
-### -CommunityShowInDirectory
+### CommunityShowInDirectory
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ The name of the community to create. max 264 chars.
 | Required | false |
 | Type | Boolean |
 
-### -CommunityOwners
+### CommunityOwners
 The owners of the community. Comma seperated list of UPNs.
 
 | Property | Value |
@@ -43,7 +43,7 @@ The owners of the community. Comma seperated list of UPNs.
 | Required | false |
 | Type | String |
 
-### -removeCreatorFromGroup
+### removeCreatorFromGroup
 
 | Property | Value |
 |----------|-------|

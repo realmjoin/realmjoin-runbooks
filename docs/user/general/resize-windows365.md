@@ -20,7 +20,7 @@ User \ General \ Resize Windows365
 
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ User \ General \ Resize Windows365
 | Required | true |
 | Type | String |
 
-### -currentLicWin365GroupName
+### currentLicWin365GroupName
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +36,7 @@ User \ General \ Resize Windows365
 | Required | true |
 | Type | String |
 
-### -newLicWin365GroupName
+### newLicWin365GroupName
 
 | Property | Value |
 |----------|-------|
@@ -44,7 +44,7 @@ User \ General \ Resize Windows365
 | Required | true |
 | Type | String |
 
-### -sendMailWhenDoneResizing
+### sendMailWhenDoneResizing
 
 | Property | Value |
 |----------|-------|
@@ -52,7 +52,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | Boolean |
 
-### -fromMailAddress
+### fromMailAddress
 
 | Property | Value |
 |----------|-------|
@@ -60,7 +60,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | String |
 
-### -customizeMail
+### customizeMail
 
 | Property | Value |
 |----------|-------|
@@ -68,7 +68,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | Boolean |
 
-### -customMailMessage
+### customMailMessage
 
 | Property | Value |
 |----------|-------|
@@ -76,7 +76,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | String |
 
-### -cfgProvisioningGroupPrefix
+### cfgProvisioningGroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -84,7 +84,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | String |
 
-### -cfgUserSettingsGroupPrefix
+### cfgUserSettingsGroupPrefix
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +92,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | String |
 
-### -unassignRunbook
+### unassignRunbook
 
 | Property | Value |
 |----------|-------|
@@ -100,7 +100,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | String |
 
-### -assignRunbook
+### assignRunbook
 
 | Property | Value |
 |----------|-------|
@@ -108,7 +108,7 @@ User \ General \ Resize Windows365
 | Required | false |
 | Type | String |
 
-### -skipGracePeriod
+### skipGracePeriod
 
 | Property | Value |
 |----------|-------|

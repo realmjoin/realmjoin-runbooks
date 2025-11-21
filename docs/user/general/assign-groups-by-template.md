@@ -9,7 +9,7 @@ Assign cloud-only groups to a user based on a predefined template.
 User \ General \ Assign Groups By Template
 
 ## Parameters
-### -UserId
+### UserId
 
 | Property | Value |
 |----------|-------|
@@ -17,7 +17,7 @@ User \ General \ Assign Groups By Template
 | Required | true |
 | Type | String |
 
-### -GroupsTemplate
+### GroupsTemplate
 GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
 
 | Property | Value |
@@ -26,7 +26,7 @@ GroupsTemplate is not used directly, but is used to populate the GroupsString pa
 | Required | false |
 | Type | String |
 
-### -GroupsString
+### GroupsString
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ GroupsTemplate is not used directly, but is used to populate the GroupsString pa
 | Required | true |
 | Type | String |
 
-### -UseDisplaynames
+### UseDisplaynames
 $UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames
 
 | Property | Value |

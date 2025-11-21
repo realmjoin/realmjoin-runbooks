@@ -10,7 +10,7 @@ The SubscriptionIds value must be defined in the runbooks customization.
 User \ AVD \ User Signout
 
 ## Parameters
-### -UserName
+### UserName
 
 | Property | Value |
 |----------|-------|
@@ -18,7 +18,7 @@ User \ AVD \ User Signout
 | Required | true |
 | Type | String |
 
-### -SubscriptionIds
+### SubscriptionIds
 
 | Property | Value |
 |----------|-------|
