@@ -9,6 +9,11 @@ The SubscriptionIds value must be defined in the runbooks customization.
 ## Where to find
 User \ AVD \ User Signout
 
+## Permissions
+### Permission notes
+Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool
+
+
 ## Parameters
 ### UserName
 

@@ -10458,8 +10458,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": null,
-    "PermissionsJson": null
+    "PermissionsContent": "{\n    \"Permissions\": [],\n    \"Roles\": [],\n    \"ManualPermissions\": [ \"Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool\" ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool"
+      ]
+    }
   },
   {
     "RunbookDisplayName": "Assign Groups By Template",
