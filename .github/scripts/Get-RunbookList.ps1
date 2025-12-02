@@ -457,8 +457,8 @@ if ($createCustomRunbookList) {
     Add-Content -Path $CustomFile -Value "# Overview"
     Add-Content -Path $CustomFile -Value "This document combines the compact RealmJoin runbook overview with detailed parameter information."
     Add-Content -Path $CustomFile -Value ""
-    Add-Content -Path $CustomFile -Value "| Category | Subcategory | Runbook Name | Synopsis | Parameter | Required | Type | Description |"
-    Add-Content -Path $CustomFile -Value "|----------|-------------|--------------|----------|-----------|----------|------|-------------|"
+    Add-Content -Path $CustomFile -Value "| Category | Subcategory | Runbook Name | Synopsis | Parameter | Required | Type | Parameter Description |"
+    Add-Content -Path $CustomFile -Value "|----------|-------------|--------------|----------|-----------|----------|------|-----------------------|"
 
     $lastPrimaryFolder = ""
     $lastSubFolder = ""
