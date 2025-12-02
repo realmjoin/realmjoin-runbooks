@@ -16,11 +16,15 @@ Device \ General \ Remove Primary User
 
 
 ## Parameters
-### -DeviceId
-Description: The unique identifier of the device from which the primary user will be removed.
+### DeviceId
+The unique identifier of the device from which the primary user will be removed.
 It will be prefilled from the RealmJoin Portal and is hidden in the UI.
-Default Value: 
-Required: true
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

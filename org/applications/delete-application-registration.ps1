@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
-    
+
     This script is the counterpart to the add-application-registration script and ensures
     proper cleanup of all resources created during application registration.
 
@@ -53,7 +53,7 @@ if ($existingServicePrincipal) {
             #$existingGroup = Invoke-RjRbRestMethodGraph -Method GET -Resource "/groups/$($_.principalId)" -ErrorAction SilentlyContinue
             $assignedGroups += $existingAppRoleAssignment
         }
-        
+
     }
 }
 
@@ -62,11 +62,11 @@ if ($existingServicePrincipal) {
 Invoke-RjRbRestMethodGraph -Method DELETE -Resource "/applications/$($existingApp.id)" | Out-Null
 
 if ($assignedGroups.count -gt 0) {
-    "## Deleting assigned groups"    
+    "## Deleting assigned groups"
     $assignedGroups | ForEach-Object {
         "## - '$($_.principalDisplayName)'"
         Invoke-RjRbRestMethodGraph -Method DELETE -Resource "/groups/$($_.principalId)" | Out-Null
     }
 }
-    
+
 "## Application deleted successfully"

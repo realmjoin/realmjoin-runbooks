@@ -1,12 +1,13 @@
 <#
     .SYNOPSIS
-    This script collects information from all RealmJoin runbooks in a specified folder and generates a JSON file with the runbook details.
+    This script collects information from all RealmJoin runbooks in a specified folder and generates JSON files with the runbook details and general documentation.
 
     .DESCRIPTION
     This script collects information from all RealmJoin runbooks in a specified folder and generates based on parameters several markdown kind of lists documents with the runbook details. The script can create the following documents:
     - A list of all runbooks with a short description. The created document also contains a table of contents and backlinks to the table of contents. In this document, the information regarding the following parameters are included: Category, Subcategory, Runbook Name, Synopsis, Description
     - A compact list of all runbooks with a short description. The created document does not contain a table of contents or other links. In the list, the columns are Category, Subcategory, Runbook Name and Synopsis
     - A list of permissions and RBAC roles for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.
+    - A general documentation JSON file containing all markdown files located in the "docs/general" folder.
 
     .PARAMETER includedScope
     The scope of the runbooks to include, which represents the root folder of the runbooks. The default value is "device", "group", "org", "user".
@@ -19,13 +20,14 @@
 
     .NOTES
     The script needs read/write access to the root folder and the output folder. The script will create the output folder if it does not exist.
+    Markdown content is base64 encoded to prevent JSON formatting issues with special characters.
 
 #>
 
 
 param(
     [string[]]$includedScope = @("device", "group", "org", "user"),
-    [string]$outputFolder = $(Join-Path -Path (Join-Path -Path (Get-Location).Path -ChildPath "tools") -ChildPath "json"),
+    [string]$outputFolder = $(Join-Path -Path (Join-Path -Path (Get-Location).Path -ChildPath "/docs/other") -ChildPath "json"),
     [string]$rootFolder = (Get-Location).Path
 )
 
@@ -144,6 +146,23 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw }
     $permissionsJSON = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw | ConvertFrom-Json }
 
+    # Sort parameters by name and ensure consistent property order within each parameter
+    $sortedParameters = if ($CurrentRunbookBasics.Parameters.parameter) {
+        $CurrentRunbookBasics.Parameters.parameter | Sort-Object -Property name | ForEach-Object {
+            $param = $_
+            $orderedParam = [ordered]@{}
+
+            # Get all property names and sort them
+            $param.PSObject.Properties.Name | Sort-Object | ForEach-Object {
+                $orderedParam[$_] = $param.$_
+            }
+
+            [PSCustomObject]$orderedParam
+        }
+    } else {
+        $null
+    }
+
     $runbookDescriptions += [PSCustomObject][ordered]@{
         RunbookDisplayName           = $CurrentRunbookBasics.RunbookDisplayName
         RunbookDisplayPath           = $CurrentRunbookBasics.RunbookDisplayPath
@@ -154,7 +173,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
         Synopsis                     = $CurrentRunbookBasics.Synopsis
         Description                  = $CurrentRunbookBasics.Description
         Notes                        = $CurrentRunbookBasics.Notes
-        Parameters                   = $CurrentRunbookBasics.Parameters.parameter
+        Parameters                   = $sortedParameters
         DocsContent                  = $docsContent
         DocsContentEncoded           = $docsContentEncoded
         PermissionsContent           = $permissionsContent
@@ -165,7 +184,49 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
 #endregion
 
 ######################################
-#region Create JSON file
+#region Collect general documentation
+######################################
+
+$generalDocs = @()
+$generalDocsPath = Join-Path -Path $rootFolder -ChildPath "docs\general"
+
+if (Test-Path -Path $generalDocsPath) {
+    Get-ChildItem -Path $generalDocsPath -Recurse -Include "*.md" | ForEach-Object {
+        $currentDocFile = $_
+
+        # Get relative path from docs/general folder
+        $relativeDocPath = $currentDocFile.FullName -replace "^$([regex]::Escape($generalDocsPath))[\\/]*", ""
+
+        # Skip README.md in the root of docs/general, but include README.md in subfolders
+        if ($currentDocFile.Name -eq "README.md" -and $relativeDocPath -eq "README.md") {
+            return
+        }
+
+        # Read file content and encode to base64
+        $docContent = Get-Content -Path $currentDocFile.FullName -Raw -ErrorAction SilentlyContinue
+        $docContentEncoded = if ($null -ne $docContent) {
+            [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($docContent))
+        } else {
+            $null
+        }
+
+        # Get display name (filename without extension, formatted)
+        $TextInfo = (Get-Culture).TextInfo
+        $docDisplayName = (Split-Path -LeafBase $currentDocFile.FullName | ForEach-Object { $TextInfo.ToTitleCase($_) }) -replace "([a-zA-Z0-9])-([a-zA-Z0-9])", '$1 $2'
+
+        $generalDocs += [PSCustomObject][ordered]@{
+            Name = $currentDocFile.Name
+            DisplayName = $docDisplayName
+            RelativePath = $relativeDocPath
+            ContentEncoded = $docContentEncoded
+        }
+    }
+}
+
+#endregion
+
+######################################
+#region Create JSON files
 ######################################
 
 # Validate if the output folder exists
@@ -190,8 +251,25 @@ if (Test-Path -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.js
     }
 }
 
+# Validate if the output folder does not contain the file "DocsGeneral.json", if it does, remove it
+if (Test-Path -Path (Join-Path -Path $outputFolder -ChildPath "DocsGeneral.json")) {
+    try {
+        Remove-Item -Path (Join-Path -Path $outputFolder -ChildPath "DocsGeneral.json") -ErrorAction Stop
+    }
+    catch {
+        Write-Error "Failed to remove existing DocsGeneral.json file. Error: $_"
+        exit 1
+    }
+}
+
 # Sort the runbook descriptions to ensure consistent output and avoid unnecessary commits
 $sortedRunbookDescriptions = $runbookDescriptions | Sort-Object -Property RelativeRunbookPath
 
 # Create the JSON file with the runbook details
 $sortedRunbookDescriptions | ConvertTo-Json -Depth 15 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.json")
+
+# Sort the general docs and create the JSON file
+if ($generalDocs.Count -gt 0) {
+    $sortedGeneralDocs = $generalDocs | Sort-Object -Property RelativePath
+    $sortedGeneralDocs | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "DocsGeneral.json")
+}

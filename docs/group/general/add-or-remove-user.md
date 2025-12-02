@@ -16,20 +16,29 @@ Group \ General \ Add Or Remove User
 
 
 ## Parameters
-### -GroupID
-Description: 
-Default Value: 
-Required: true
+### GroupID
 
-### -UserId
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Remove
-Description: 
-Default Value: False
-Required: false
+### UserId
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Remove
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

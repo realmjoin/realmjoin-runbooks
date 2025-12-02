@@ -12,7 +12,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 # Table of Contents
 - [Device](#device)
-  - [Avd](#device-avd)
+  - [AVD](#device-avd)
     - Restart Host
     - Toggle Drain Mode
   - [General](#device-general)
@@ -29,7 +29,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Isolate Or Release Device
     - Reset Mobile Device Pin
     - Restrict Or Release Code Execution
-    - Show Laps Password
+    - Show LAPS Password
 - [Group](#group)
   - [Devices](#group-devices)
     - Check Updatable Assets
@@ -49,28 +49,28 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Show Or Hide In Address Book
   - [Teams](#group-teams)
     - Archive Team
-- [Org](#org)
-  - [Applications](#org-applications)
+- [Organization](#organization)
+  - [Applications](#organization-applications)
     - Add Application Registration
     - Delete Application Registration
     - Export Enterprise Application Users
     - List Inactive Enterprise Applications
     - Report Application Registration
-    - Report Expiring Application Credentials_Scheduled
+    - Report Expiring Application Credentials (Scheduled)
     - Update Application Registration
-  - [Devices](#org-devices)
-    - Delete Stale Devices_Scheduled
+  - [Devices](#organization-devices)
+    - Add Autopilot Device
+    - Add Device Via Corporate Identifier
+    - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
     - Outphase Devices
     - Report Devices Without Primary User
     - Report Last Device Contact By Range
-    - Report Stale Devices_Scheduled
+    - Report Stale Devices (Scheduled)
     - Report Users With More Than 5-Devices
-    - Sync Device Serialnumbers To Entraid_Scheduled
-  - [General](#org-general)
-    - Add Autopilot Device
-    - Add Device Via Corporate Identifier
-    - Add Devices Of Users To Group_Scheduled
+    - Sync Device Serialnumbers To Entraid (Scheduled)
+  - [General](#organization-general)
+    - Add Devices Of Users To Group (Scheduled)
     - Add Management Partner
     - Add Microsoft Store App Logos
     - Add Office365 Group
@@ -80,29 +80,30 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Security Group
     - Add User
     - Add Viva Engange Community
-    - Assign Groups By Template_Scheduled
+    - Assign Groups By Template (Scheduled)
     - Bulk Delete Devices From Autopilot
     - Bulk Retire Devices From Intune
-    - Check Aad Sync Status_Scheduled
+    - Check AAD Sync Status (Scheduled)
     - Check Assignments Of Devices
     - Check Assignments Of Groups
     - Check Assignments Of Users
     - Check Autopilot Serialnumbers
-    - Check Device Onboarding Exclusion_Schedule
-    - Enrolled Devices Report_Scheduled
+    - Check Device Onboarding Exclusion (Scheduled)
+    - Enrolled Devices Report (Scheduled)
     - Export All Autopilot Devices
     - Export All Intune Devices
-    - Export Cloudpc Usage_Scheduled
+    - Export Cloudpc Usage (Scheduled)
     - Export Non Compliant Devices
     - Export Policy Report
     - Invite External Guest Users
     - List All Administrative Template Policies
     - List Group License Assignment Errors
     - Office365 License Report
-    - Report Apple Mdm Cert Expiry_Scheduled
-    - Report Pim Activations_Scheduled
+    - Report Apple MDM Cert Expiry (Scheduled)
+    - Report License Assignment (Scheduled)
+    - Report PIM Activations (Scheduled)
     - Sync All Devices
-  - [Mail](#org-mail)
+  - [Mail](#organization-mail)
     - Add Distribution List
     - Add Equipment Mailbox
     - Add Or Remove Public Folder
@@ -110,11 +111,11 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Or Remove Tenant Allow Block List
     - Add Room Mailbox
     - Add Shared Mailbox
-    - Hide Mailboxes_Scheduled
+    - Hide Mailboxes (Scheduled)
     - Set Booking Config
-  - [Phone](#org-phone)
+  - [Phone](#organization-phone)
     - Get Teams Phone Number Assignment
-  - [Security](#org-security)
+  - [Security](#organization-security)
     - Add Defender Indicator
     - Backup Conditional Access Policies
     - List Admin Users
@@ -122,12 +123,12 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Inactive Devices
     - List Inactive Users
     - List Information Protection Labels
-    - List Pim Rolegroups Without Owners_Scheduled
+    - List PIM Rolegroups Without Owners (Scheduled)
     - List Users By MFA Methods Count
     - List Vulnerable App Regs
     - Notify Changed CA Policies
 - [User](#user)
-  - [Avd](#user-avd)
+  - [AVD](#user-avd)
     - User Signout
   - [General](#user-general)
     - Assign Groups By Template
@@ -143,7 +144,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Unassign Windows365
   - [Mail](#user-mail)
     - Add Or Remove Email Address
-    - Assign Owa Mailbox Policy
+    - Assign OWA Mailbox Policy
     - Convert To Shared Mailbox
     - Delegate Full Access
     - Delegate Send As
@@ -164,10 +165,10 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Confirm Or Dismiss Risky User
     - Create Temporary Access Pass
     - Enable Or Disable Password Expiration
-    - Reset Mfa
+    - Reset MFA
     - Reset Password
     - Revoke Or Restore Access
-    - Set Or Remove Mobile Phone Mfa
+    - Set Or Remove Mobile Phone MFA
   - [Userinfo](#user-userinfo)
     - Rename User
     - Set Photo
@@ -176,7 +177,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 <a name='device'></a>
 # Device
 <a name='device-avd'></a>
-## Avd
+## AVD
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Restart Host | Reboots a specific AVD Session Host. |
@@ -207,7 +208,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Isolate Or Release Device | Isolate this device. |
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 | Restrict Or Release Code Execution | Restrict code execution. |
-| Show Laps Password | Show a local admin password for a device. |
+| Show LAPS Password | Show a local admin password for a device. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
@@ -255,9 +256,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
-<a name='org'></a>
-# Org
-<a name='org-applications'></a>
+<a name='organization'></a>
+# Organization
+<a name='organization-applications'></a>
 ## Applications
 | Runbook Name | Synopsis |
 |--------------|----------|
@@ -266,33 +267,33 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
 | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. |
 | Report Application Registration | Generate and email a comprehensive Application Registration report |
-| Report Expiring Application Credentials_Scheduled | List expiry date of all Application Registration credentials |
+| Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
 | Update Application Registration | Update an application registration in Azure AD |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
-<a name='org-devices'></a>
+<a name='organization-devices'></a>
 ## Devices
-| Runbook Name | Synopsis |
-|--------------|----------|
-| Delete Stale Devices_Scheduled | Scheduled deletion of stale devices based on last activity date and platform. |
-| Get Bitlocker Recovery Key | Get BitLocker recovery key |
-| Outphase Devices | Remove/Outphase multiple devices |
-| Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
-| Report Last Device Contact By Range | Reports devices with last contact within a specified date range. |
-| Report Stale Devices_Scheduled | Scheduled report of stale devices based on last activity date and platform. |
-| Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
-| Sync Device Serialnumbers To Entraid_Scheduled | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
-
-[Back to the RealmJoin runbook overview](#table-of-contents)
-
-<a name='org-general'></a>
-## General
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Autopilot Device | Import a windows device into Windows Autopilot. |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier. |
-| Add Devices Of Users To Group_Scheduled | Sync devices of users in a specific group to another device group. |
+| Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform. |
+| Get Bitlocker Recovery Key | Get BitLocker recovery key |
+| Outphase Devices | Remove/Outphase multiple devices |
+| Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+| Report Last Device Contact By Range | Reports devices with last contact within a specified date range. |
+| Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
+| Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. |
+| Sync Device Serialnumbers To Entraid (Scheduled) | Syncs serial numbers from Intune devices to Azure AD device extension attributes. |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
+<a name='organization-general'></a>
+## General
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group. |
 | Add Management Partner | List or add or Management Partner Links (PAL) |
 | Add Microsoft Store App Logos | Update logos of Microsoft Store Apps (new) in Intune. |
 | Add Office365 Group | Create an Office 365 group and SharePoint site, optionally create a (Teams) team. |
@@ -302,32 +303,33 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Security Group | This runbook creates a Microsoft Entra ID security group with membership type "Assigned". |
 | Add User | Create a new user account. |
 | Add Viva Engange Community | Creates a Viva Engage (Yammer) community via the Yammer API |
-| Assign Groups By Template_Scheduled | Assign cloud-only groups to many users based on a predefined template. |
+| Assign Groups By Template (Scheduled) | Assign cloud-only groups to many users based on a predefined template. |
 | Bulk Delete Devices From Autopilot | Mass-Delete Autopilot objects based on Serial Number. |
 | Bulk Retire Devices From Intune | Bulk retire devices from Intune using serial numbers |
-| Check Aad Sync Status_Scheduled | Check for last Azure AD Connect Sync Cycle. |
+| Check AAD Sync Status (Scheduled) | Check for last Azure AD Connect Sync Cycle. |
 | Check Assignments Of Devices | Check Intune assignments for a given (or multiple) Device Names. |
 | Check Assignments Of Groups | Check Intune assignments for a given (or multiple) Group Names. |
 | Check Assignments Of Users | Check Intune assignments for a given (or multiple) User Principal Names (UPNs). |
 | Check Autopilot Serialnumbers | Check if given serial numbers are present in AutoPilot. |
-| Check Device Onboarding Exclusion_Schedule | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. |
-| Enrolled Devices Report_Scheduled | Show recent first-time device enrollments. |
+| Check Device Onboarding Exclusion (Scheduled) | Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group. |
+| Enrolled Devices Report (Scheduled) | Show recent first-time device enrollments. |
 | Export All Autopilot Devices | List/export all AutoPilot devices. |
 | Export All Intune Devices | Export a list of all Intune devices and where they are registered. |
-| Export Cloudpc Usage_Scheduled | Write daily Windows 365 Utilization Data to Azure Tables |
+| Export Cloudpc Usage (Scheduled) | Write daily Windows 365 Utilization Data to Azure Tables |
 | Export Non Compliant Devices | Report on non-compliant devices and policies |
 | Export Policy Report | Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file. |
 | Invite External Guest Users | Invites external guest users to the organization using Microsoft Graph. |
 | List All Administrative Template Policies | List all Administrative Template policies and their assignments. |
 | List Group License Assignment Errors | Report groups that have license assignment errors |
 | Office365 License Report | Generate an Office 365 licensing report. |
-| Report Apple Mdm Cert Expiry_Scheduled | Monitor/Report expiry of Apple device management certificates. |
-| Report Pim Activations_Scheduled | Scheduled Report on PIM Activations. |
+| Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates. |
+| Report License Assignment (Scheduled) | Generate and email a license availability report based on configured thresholds |
+| Report PIM Activations (Scheduled) | Scheduled Report on PIM Activations. |
 | Sync All Devices | Sync all Intune devices. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
-<a name='org-mail'></a>
+<a name='organization-mail'></a>
 ## Mail
 | Runbook Name | Synopsis |
 |--------------|----------|
@@ -338,12 +340,12 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List. |
 | Add Room Mailbox | Create a room resource. |
 | Add Shared Mailbox | Create a shared mailbox. |
-| Hide Mailboxes_Scheduled | Hide / Unhide special mailboxes in Global Address Book |
+| Hide Mailboxes (Scheduled) | Hide / Unhide special mailboxes in Global Address Book |
 | Set Booking Config | Configure Microsoft Bookings settings for the organization. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
-<a name='org-phone'></a>
+<a name='organization-phone'></a>
 ## Phone
 | Runbook Name | Synopsis |
 |--------------|----------|
@@ -351,7 +353,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
-<a name='org-security'></a>
+<a name='organization-security'></a>
 ## Security
 | Runbook Name | Synopsis |
 |--------------|----------|
@@ -359,10 +361,10 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Backup Conditional Access Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
 | List Admin Users | List AzureAD role holders and their MFA state. |
 | List Expiring Role Assignments | List Azure AD role assignments that will expire before a given number of days. |
-| List Inactive Devices | List/export inactive evices, which had no recent user logons. |
+| List Inactive Devices | List/export inactive devices, which had no recent user logons. |
 | List Inactive Users | List users, that have no recent interactive signins. |
 | List Information Protection Labels | Prints a list of all available InformationProtectionPolicy labels. |
-| List Pim Rolegroups Without Owners_Scheduled | List role-assignable groups with eligible role assignments but without owners |
+| List PIM Rolegroups Without Owners (Scheduled) | List role-assignable groups with eligible role assignments but without owners |
 | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
 | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
@@ -372,7 +374,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 <a name='user'></a>
 # User
 <a name='user-avd'></a>
-## Avd
+## AVD
 | Runbook Name | Synopsis |
 |--------------|----------|
 | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
@@ -402,7 +404,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Or Remove Email Address | Add/remove eMail address to/from mailbox. |
-| Assign Owa Mailbox Policy | Assign a given OWA mailbox policy to a user. |
+| Assign OWA Mailbox Policy | Assign a given OWA mailbox policy to a user. |
 | Convert To Shared Mailbox | Turn this users mailbox into a shared mailbox. |
 | Delegate Full Access | Grant another user full access to this mailbox. |
 | Delegate Send As | Grant another user sendAs permissions on this mailbox. |
@@ -435,10 +437,10 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Confirm Or Dismiss Risky User | Confirm compromise / Dismiss a "risky user" |
 | Create Temporary Access Pass | Create an AAD temporary access pass for a user. |
 | Enable Or Disable Password Expiration | Set a users password policy to "(Do not) Expire" |
-| Reset Mfa | Remove all App- and Mobilephone auth methods for a user. |
+| Reset MFA | Remove all App- and Mobilephone auth methods for a user. |
 | Reset Password | Reset a user's password. |
 | Revoke Or Restore Access | Revoke user access and all active tokens or re-enable user. |
-| Set Or Remove Mobile Phone Mfa | Add, update or remove a user's mobile phone MFA information. |
+| Set Or Remove Mobile Phone MFA | Add, update or remove a user's mobile phone MFA information. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 

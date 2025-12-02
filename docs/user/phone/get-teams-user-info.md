@@ -18,10 +18,14 @@ User \ Phone \ Get Teams User Info
 
 
 ## Parameters
-### -UserName
-Description: The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
-Default Value: 
-Required: true
+### UserName
+The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

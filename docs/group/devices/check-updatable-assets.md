@@ -20,10 +20,14 @@ Azure: Contributor on Storage Account
 
 
 ## Parameters
-### -GroupId
-Description: Object ID of the group to check onboarding status for its members.
-Default Value: 
-Required: true
+### GroupId
+Object ID of the group to check onboarding status for its members.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

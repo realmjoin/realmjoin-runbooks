@@ -17,10 +17,13 @@ Org \ Applications \ List Inactive Enterprise Applications
 
 
 ## Parameters
-### -Days
-Description: 
-Default Value: 90
-Required: false
+### Days
+
+| Property | Value |
+|----------|-------|
+| Default Value | 90 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

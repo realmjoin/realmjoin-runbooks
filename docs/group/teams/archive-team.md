@@ -15,10 +15,13 @@ Group \ Teams \ Archive Team
 
 
 ## Parameters
-### -GroupID
-Description: 
-Default Value: 
-Required: true
+### GroupID
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

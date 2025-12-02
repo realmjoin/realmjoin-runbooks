@@ -1,4 +1,4 @@
-# List Pim Rolegroups Without Owners_Scheduled
+# List Pim Rolegroups Without Owners (Scheduled)
 
 List role-assignable groups with eligible role assignments but without owners
 
@@ -14,20 +14,29 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
 
 ## Parameters
-### -sendEmailIfFound
-Description: 
-Default Value: True
-Required: false
+### sendEmailIfFound
 
-### -From
-Description: 
-Default Value: reports@contoso.com
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -To
-Description: 
-Default Value: support@glueckkanja-gab.com
-Required: false
+### From
+
+| Property | Value |
+|----------|-------|
+| Default Value | reports@contoso.com |
+| Required | false |
+| Type | String |
+
+### To
+
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja-gab.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

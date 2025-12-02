@@ -57,7 +57,6 @@ try {
     Invoke-RjRbRestMethodGraph -Resource "/teams/$GroupID/archive" -Method Post | Out-Null
 }
 catch {
-    # Currently this always return a "BadRequest" - but seems to be working
+    ""
+    "## Triggered archival of team '$($group.displayName)' "
 }
-""
-"## Triggered archival of team '$($group.displayName)' "

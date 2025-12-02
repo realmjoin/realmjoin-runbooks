@@ -16,10 +16,13 @@ Org \ Security \ List Expiring Role Assignments
 
 
 ## Parameters
-### -Days
-Description: 
-Default Value: 30
-Required: false
+### Days
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

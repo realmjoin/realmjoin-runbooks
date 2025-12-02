@@ -14,15 +14,21 @@ Owner or Contributor role on the Azure Subscription
 
 
 ## Parameters
-### -Action
-Description: 
-Default Value: 0
-Required: true
+### Action
 
-### -PartnerId
-Description: 
-Default Value: 6457701
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | true |
+| Type | Int32 |
+
+### PartnerId
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6457701 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

@@ -18,45 +18,70 @@ User \ Mail \ Set Out Of Office
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -Disable
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Start
-Description: 
-Default Value: (get-date)
-Required: false
+### Disable
 
-### -End
-Description: 10 years into the future ("forever") if left empty
-Default Value: ((get-date) + (new-timespan -Days 3650))
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -MessageInternal
-Description: 
-Default Value: Sorry, this person is currently not able to receive your message.
-Required: false
+### Start
 
-### -MessageExternal
-Description: 
-Default Value: Sorry, this person is currently not able to receive your message.
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | (get-date) |
+| Required | false |
+| Type | DateTime |
 
-### -CreateEvent
-Description: 
-Default Value: False
-Required: false
+### End
+10 years into the future ("forever") if left empty
 
-### -EventSubject
-Description: 
-Default Value: Out of Office
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | ((get-date) + (new-timespan -Days 3650)) |
+| Required | false |
+| Type | DateTime |
+
+### MessageInternal
+
+| Property | Value |
+|----------|-------|
+| Default Value | Sorry, this person is currently not able to receive your message. |
+| Required | false |
+| Type | String |
+
+### MessageExternal
+
+| Property | Value |
+|----------|-------|
+| Default Value | Sorry, this person is currently not able to receive your message. |
+| Required | false |
+| Type | String |
+
+### CreateEvent
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### EventSubject
+
+| Property | Value |
+|----------|-------|
+| Default Value | Out of Office |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

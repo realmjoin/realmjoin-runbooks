@@ -20,100 +20,157 @@ Org \ Mail \ Set Booking Config
 
 
 ## Parameters
-### -BookingsEnabled
-Description: 
-Default Value: True
-Required: false
+### BookingsEnabled
 
-### -BookingsAuthEnabled
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsSocialSharingRestricted
-Description: 
-Default Value: False
-Required: false
+### BookingsAuthEnabled
 
-### -BookingsExposureOfStaffDetailsRestricted
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsMembershipApprovalRequired
-Description: 
-Default Value: True
-Required: false
+### BookingsSocialSharingRestricted
 
-### -BookingsSmsMicrosoftEnabled
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsSearchEngineIndexDisabled
-Description: 
-Default Value: False
-Required: false
+### BookingsExposureOfStaffDetailsRestricted
 
-### -BookingsAddressEntryRestricted
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsCreationOfCustomQuestionsRestricted
-Description: 
-Default Value: False
-Required: false
+### BookingsMembershipApprovalRequired
 
-### -BookingsNotesEntryRestricted
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsPhoneNumberEntryRestricted
-Description: 
-Default Value: False
-Required: false
+### BookingsSmsMicrosoftEnabled
 
-### -BookingsNamingPolicyEnabled
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsBlockedWordsEnabled
-Description: 
-Default Value: False
-Required: false
+### BookingsSearchEngineIndexDisabled
 
-### -BookingsNamingPolicyPrefixEnabled
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsNamingPolicyPrefix
-Description: 
-Default Value: Booking-
-Required: false
+### BookingsAddressEntryRestricted
 
-### -BookingsNamingPolicySuffixEnabled
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -BookingsNamingPolicySuffix
-Description: 
-Default Value: 
-Required: false
+### BookingsCreationOfCustomQuestionsRestricted
 
-### -CreateOwaPolicy
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -OwaPolicyName
-Description: 
-Default Value: BookingsCreators
-Required: false
+### BookingsNotesEntryRestricted
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### BookingsPhoneNumberEntryRestricted
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### BookingsNamingPolicyEnabled
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### BookingsBlockedWordsEnabled
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### BookingsNamingPolicyPrefixEnabled
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### BookingsNamingPolicyPrefix
+
+| Property | Value |
+|----------|-------|
+| Default Value | Booking- |
+| Required | false |
+| Type | String |
+
+### BookingsNamingPolicySuffixEnabled
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### BookingsNamingPolicySuffix
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### CreateOwaPolicy
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### OwaPolicyName
+
+| Property | Value |
+|----------|-------|
+| Default Value | BookingsCreators |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)
