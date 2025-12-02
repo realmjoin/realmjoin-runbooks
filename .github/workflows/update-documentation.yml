@@ -92,7 +92,7 @@ jobs:
               -createCompactRunbookOverviewList `
               -createPermissionList `
               -createParameterList `
-              -createCustomRunbookList \
+              -createCustomRunbookList `
               -outputFolder $env:OUTPUT_PATH_LISTS `
               -rootFolder $env:ROOT_PATH
 
