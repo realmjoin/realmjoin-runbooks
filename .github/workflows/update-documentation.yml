@@ -47,6 +47,7 @@ jobs:
           
           Write-Host "🔍 Creating output directories..."
           New-Item -Path $env:OUTPUT_PATH_LISTS -ItemType Directory -Force
+          New-Item -Path (Join-Path $env:OUTPUT_PATH_LISTS 'custom') -ItemType Directory -Force
           New-Item -Path $env:OUTPUT_PATH_OTHER -ItemType Directory -Force
           New-Item -Path $env:OUTPUT_PATH_JSON -ItemType Directory -Force
 
@@ -91,6 +92,7 @@ jobs:
               -createCompactRunbookOverviewList `
               -createPermissionList `
               -createParameterList `
+              -createCustomRunbookList \
               -outputFolder $env:OUTPUT_PATH_LISTS `
               -rootFolder $env:ROOT_PATH
 

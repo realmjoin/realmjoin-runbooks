@@ -32,6 +32,11 @@
     Each parameter is listed in a separate row. The runbook name and synopsis are only shown once per runbook.
     The name of this list is "RealmJoinRunbook-RunbookParameterList.md"
 
+    .PARAMETER createCustomRunbookList
+    Creates a custom list located in the sub folder "custom" which extends the compact runbook list with parameter information.
+    The list preserves the compact tabular structure but adds the parameter columns (Parameter, Required, Type, Description).
+    The name of this list is "custom/RealmJoinRunbook-RunbookListWithParameters.md"
+
     .PARAMETER outputFolder
     The output folder for the generated markdown files or depending on the output mode for the generated folder structure. The default value is the folder "docs" in the current location.
 
@@ -50,6 +55,7 @@ param(
     [switch]$createCompactRunbookOverviewList,
     [switch]$createPermissionList,
     [switch]$createParameterList,
+    [switch]$createCustomRunbookList,
     [string]$outputFolder = $(Join-Path -Path (Get-Location).Path -ChildPath "docs"),
     [string]$rootFolder = (Get-Location).Path
 )
@@ -129,6 +135,66 @@ function Convert-PermissionJsonToMarkdown {
         RBACRoles   = $rbacRolesMarkdown
         ManualPermissions = $manualPermissionsMarkdown
     }
+}
+
+function ConvertTo-MarkdownCellValue {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$InputText
+    )
+
+    if ($null -eq $InputText) {
+        return ""
+    }
+
+    $text = if ($InputText -is [System.Array]) {
+        ($InputText -join "`n")
+    }
+    else {
+        [string]$InputText
+    }
+
+    $text = $text -replace "(\r\n|\n|\r)", "<br>"
+    return $text.Trim()
+}
+
+function Get-ParameterDescriptionText {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$DescriptionObject
+    )
+
+    if ($null -eq $DescriptionObject) {
+        return ""
+    }
+
+    $text = if ($DescriptionObject -is [System.Array]) {
+        ($DescriptionObject -join "`n")
+    }
+    else {
+        [string]$DescriptionObject
+    }
+
+    $text = $text -replace '\[ValidateScript\([^\]]+\)\]', ''
+    return ConvertTo-MarkdownCellValue -InputText $text
+}
+
+function Get-RunbookSynopsisText {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$Synopsis,
+        [Parameter(Mandatory = $false)]
+        [object]$Description
+    )
+
+    if ($Synopsis) {
+        return ConvertTo-MarkdownCellValue -InputText $Synopsis
+    }
+    elseif ($Description) {
+        return ConvertTo-MarkdownCellValue -InputText $Description
+    }
+
+    return ""
 }
 #endregion
 
@@ -279,7 +345,7 @@ if ($createRunbookOverviewList) {
         Add-Content -Path $ListFile_Overview -Value "|--------------|----------|"
 
         foreach ($runbook in $primaryGroup.Group) {
-            $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+            $synopsis = Get-RunbookSynopsisText -Synopsis $runbook.Synopsis -Description $runbook.Description
             Add-Content -Path $ListFile_Overview -Value "| $($runbook.RunbookDisplayName) | $synopsis |"
         }
         Add-Content -Path $ListFile_Overview -Value ""
@@ -314,7 +380,7 @@ if ($createCompactRunbookOverviewList) {
         $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
         $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
         foreach ($runbook in $primaryGroup.Group) {
-            $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+            $synopsis = Get-RunbookSynopsisText -Synopsis $runbook.Synopsis -Description $runbook.Description
             $primaryFolderValue = if ($lastPrimaryFolder -ne $primaryFolder) { $primaryFolder } else { "" }
             $subFolderValue = if ($lastSubFolder -ne $subFolder) { $subFolder } else { "" }
             Add-Content -Path $ListFile_Compact -Value "| $primaryFolderValue | $subFolderValue | $($runbook.RunbookDisplayName) | $synopsis |"
@@ -362,10 +428,96 @@ if ($createPermissionList) {
             $rbacRolesMarkdown = $permissionsAndRoles.RBACRoles
         }
 
-        $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+        $synopsis = Get-RunbookSynopsisText -Synopsis $runbook.Synopsis -Description $runbook.Description
         Add-Content -Path $PermissionFile -Value "| $primaryFolderValue | $subFolderValue | $($runbook.RunbookDisplayName) | $synopsis | $permissionsMarkdown | $rbacRolesMarkdown |"
         $lastPrimaryFolder = $runbook.PrimaryFolder
         $lastSubFolder = $runbook.SubFolder
+    }
+}
+
+#endregion
+
+######################################
+#region Generate Custom runbook compact parameter list
+######################################
+
+if ($createCustomRunbookList) {
+    $customFolder = Join-Path -Path $outputFolder -ChildPath "custom"
+    if (-not (Test-Path -Path $customFolder)) {
+        New-Item -Path $customFolder -ItemType Directory -Force | Out-Null
+    }
+
+    $CustomFile = Join-Path -Path $customFolder -ChildPath "RealmJoinRunbook-RunbookListWithParameters.md"
+    if (Test-Path -Path $CustomFile) {
+        Remove-Item -Path $CustomFile -Force -ErrorAction SilentlyContinue
+    }
+
+    $groupedRunbooks = $runbookDescriptions | Group-Object -Property PrimaryFolder, SubFolder
+
+    Add-Content -Path $CustomFile -Value "# Overview"
+    Add-Content -Path $CustomFile -Value "This document combines the compact RealmJoin runbook overview with detailed parameter information."
+    Add-Content -Path $CustomFile -Value ""
+    Add-Content -Path $CustomFile -Value "| Category | Subcategory | Runbook Name | Synopsis | Parameter | Required | Type | Description |"
+    Add-Content -Path $CustomFile -Value "|----------|-------------|--------------|----------|-----------|----------|------|-------------|"
+
+    $lastPrimaryFolder = ""
+    $lastSubFolder = ""
+
+    foreach ($primaryGroup in $groupedRunbooks) {
+        $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
+        $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
+
+        foreach ($runbook in $primaryGroup.Group) {
+            $synopsis = Get-RunbookSynopsisText -Synopsis $runbook.Synopsis -Description $runbook.Description
+            $primaryFolderValue = if ($lastPrimaryFolder -ne $primaryFolder) { $primaryFolder } else { "" }
+            $subFolderValue = if (($lastPrimaryFolder -ne $primaryFolder) -or ($lastSubFolder -ne $subFolder)) { $subFolder } else { "" }
+
+            if (-not $runbook.Parameters -or $runbook.Parameters.Count -eq 0) {
+                Add-Content -Path $CustomFile -Value "| $primaryFolderValue | $subFolderValue | $($runbook.RunbookDisplayName) | $synopsis | - | - | - | - |"
+            }
+            else {
+                $firstParam = $runbook.Parameters[0]
+                $firstRequired = if ($firstParam.required -eq $true -or $firstParam.required -eq 'true') { "✓" } else { "" }
+                $firstType = if ($firstParam.type.name) {
+                    if ($firstParam.type.name -eq 'String[]') {
+                        "String Array"
+                    }
+                    else {
+                        $firstParam.type.name
+                    }
+                }
+                else { "" }
+                $firstDescription = if ($firstParam.description) {
+                    Get-ParameterDescriptionText -DescriptionObject $firstParam.description.Text
+                }
+                else { "" }
+
+                Add-Content -Path $CustomFile -Value "| $primaryFolderValue | $subFolderValue | $($runbook.RunbookDisplayName) | $synopsis | $($firstParam.name) | $firstRequired | $firstType | $firstDescription |"
+
+                for ($i = 1; $i -lt $runbook.Parameters.Count; $i++) {
+                    $param = $runbook.Parameters[$i]
+                    $isRequired = if ($param.required -eq $true -or $param.required -eq 'true') { "✓" } else { "" }
+                    $paramType = if ($param.type.name) {
+                        if ($param.type.name -eq 'String[]') {
+                            "String Array"
+                        }
+                        else {
+                            $param.type.name
+                        }
+                    }
+                    else { "" }
+                    $paramDescription = if ($param.description) {
+                        Get-ParameterDescriptionText -DescriptionObject $param.description.Text
+                    }
+                    else { "" }
+
+                    Add-Content -Path $CustomFile -Value "|  |  |  |  | $($param.name) | $isRequired | $paramType | $paramDescription |"
+                }
+            }
+
+            $lastPrimaryFolder = $primaryFolder
+            $lastSubFolder = $subFolder
+        }
     }
 }
 
@@ -439,7 +591,7 @@ if ($createParameterList) {
         Add-Content -Path $ParameterFile -Value ""
 
         foreach ($runbook in $primaryGroup.Group) {
-            $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+            $synopsis = Get-RunbookSynopsisText -Synopsis $runbook.Synopsis -Description $runbook.Description
             $runbookAnchor = "$($subFolderAnchor)-$(($runbook.RunbookDisplayName -replace ' ', '-' -replace '[()]', '').ToLower())"
 
             # Add runbook name and synopsis as heading with anchor
@@ -470,12 +622,9 @@ if ($createParameterList) {
                             $param.type.name
                         }
                     } else { "" }
-                    # Filter out ValidateScript blocks from description
+                    # Format description for markdown tables
                     $paramDescription = if ($param.description) {
-                        $desc = ($param.description.Text -join " ").Trim()
-                        # Remove ValidateScript blocks
-                        $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
-                        $desc.Trim()
+                        Get-ParameterDescriptionText -DescriptionObject $param.description.Text
                     } else { "" }
 
                     Add-Content -Path $ParameterFile -Value "| $($param.name) | $isRequired | $paramType | $paramDescription |"
