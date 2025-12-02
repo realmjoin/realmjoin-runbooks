@@ -1,8 +1,8 @@
 # Overview
 This document combines the compact RealmJoin runbook overview with detailed parameter information.
 
-| Category | Subcategory | Runbook Name | Synopsis | Parameter | Required | Type | Description |
-|----------|-------------|--------------|----------|-----------|----------|------|-------------|
+| Category | Subcategory | Runbook Name | Synopsis | Parameter | Required | Type | Parameter Description |
+|----------|-------------|--------------|----------|-----------|----------|------|-----------------------|
 | Device | AVD | Restart Host | Reboots a specific AVD Session Host. | DeviceName | ✓ | String |  |
 |  |  |  |  | SubscriptionIds | ✓ | String Array |  |
 |  |  |  |  | CallerName | ✓ | String |  |
