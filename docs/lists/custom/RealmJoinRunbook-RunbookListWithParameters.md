@@ -1,8 +1,8 @@
 # Overview
 This document combines the permission requirements and RBAC roles with the exposed parameters of each runbook. It helps to understand which access levels are needed alongside the required inputs to execute the runbooks.
 
-| Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles | Parameter | Required | Type | Description |
-|----------|-------------|--------------|----------|-------------|------------|-----------|----------|------|-------------|
+| Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles | Parameter | Required | Type | Parameter Description |
+|----------|-------------|--------------|----------|-------------|------------|-----------|----------|------|-----------------------|
 | Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String |  |
 |  |  |  |  |  |  | SubscriptionIds | ✓ | String Array |  |
 |  |  |  |  |  |  | CallerName | ✓ | String |  |
