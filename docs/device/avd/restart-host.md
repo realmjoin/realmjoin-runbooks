@@ -16,6 +16,7 @@ Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contribu
 
 ## Parameters
 ### DeviceName
+The name of the AVD Session Host device to restart. Hidden in UI.
 
 | Property | Value |
 |----------|-------|
@@ -24,6 +25,7 @@ Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contribu
 | Type | String |
 
 ### SubscriptionIds
+Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
 
 | Property | Value |
 |----------|-------|

@@ -16,6 +16,7 @@ Azure: Desktop Virtualization Host Pool Contributor on Subscription which contai
 
 ## Parameters
 ### DeviceName
+The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI.
 
 | Property | Value |
 |----------|-------|
@@ -24,6 +25,7 @@ Azure: Desktop Virtualization Host Pool Contributor on Subscription which contai
 | Type | String |
 
 ### DrainMode
+Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false.
 
 | Property | Value |
 |----------|-------|
@@ -32,6 +34,7 @@ Azure: Desktop Virtualization Host Pool Contributor on Subscription which contai
 | Type | Boolean |
 
 ### SubscriptionIds
+Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
 
 | Property | Value |
 |----------|-------|

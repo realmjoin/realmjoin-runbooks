@@ -12,6 +12,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "CallerName",
         "parameterValue": "String",
@@ -24,6 +29,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the AVD Session Host device to restart. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "DeviceName",
         "parameterValue": "String",
@@ -36,6 +46,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "SubscriptionIds",
         "parameterValue": "String[]",
@@ -71,6 +86,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "CallerName",
         "parameterValue": "String",
@@ -83,6 +103,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "DeviceName",
         "parameterValue": "String",
@@ -95,6 +120,11 @@
       },
       {
         "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false."
+          }
+        ],
         "globbing": "false",
         "name": "DrainMode",
         "parameterValue": "Boolean",
@@ -107,6 +137,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "SubscriptionIds",
         "parameterValue": "String[]",
@@ -10421,6 +10456,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "CallerName",
         "parameterValue": "String",
@@ -10433,6 +10473,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "SubscriptionIds",
         "parameterValue": "String[]",
@@ -10445,6 +10490,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The username (UPN) of the user to sign out from their AVD session. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "UserName",
         "parameterValue": "String",

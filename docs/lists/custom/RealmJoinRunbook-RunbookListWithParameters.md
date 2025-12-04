@@ -3,13 +3,13 @@ This document combines the permission requirements and RBAC roles with the expos
 
 | Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles | Parameter | Required | Type | Parameter Description |
 |----------|-------------|--------------|----------|-------------|------------|-----------|----------|------|-----------------------|
-| Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String |  |
-|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array |  |
-|  |  |  |  |  |  | CallerName | ✓ | String |  |
-|  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String |  |
-|  |  |  |  |  |  | DrainMode | ✓ | Boolean |  |
-|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array |  |
-|  |  |  |  |  |  | CallerName | ✓ | String |  |
+| Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI. |
+|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
+|  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String | The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI. |
+|  |  |  |  |  |  | DrainMode | ✓ | Boolean | Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false. |
+|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 |  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String |  |
 |  |  |  |  |  |  | newGroupTag |  | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String |  |
@@ -527,9 +527,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br> |  | From | ✓ | String |  |
 |  |  |  |  |  |  | To | ✓ | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-| User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | UserName | ✓ | String |  |
-|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array |  |
-|  |  |  |  |  |  | CallerName | ✓ | String |  |
+| User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
+|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |  |  | UserId | ✓ | String |  |
 |  |  |  |  |  |  | GroupsTemplate |  | String | GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization |
 |  |  |  |  |  |  | GroupsString | ✓ | String |  |
