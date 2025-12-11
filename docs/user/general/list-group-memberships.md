@@ -17,40 +17,67 @@ User \ General \ List Group Memberships
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -GroupType
-Description: Filter by group type: Security (security permissions only), M365 (Microsoft 365 groups with mailbox), or All (default).
-Default Value: All
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -MembershipType
-Description: Filter by membership type: Assigned (manually added members), Dynamic (rule-based membership), or All (default).
-Default Value: All
-Required: false
+### GroupType
+Filter by group type: Security (security permissions only), M365 (Microsoft 365 groups with mailbox), or All (default).
 
-### -RoleAssignable
-Description: Filter groups that can be assigned to Azure AD roles: Yes (role-assignable only) or NotSet (all groups, default).
-Default Value: NotSet
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | All |
+| Required | false |
+| Type | String |
 
-### -TeamsEnabled
-Description: Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default).
-Default Value: NotSet
-Required: false
+### MembershipType
+Filter by membership type: Assigned (manually added members), Dynamic (rule-based membership), or All (default).
 
-### -Source
-Description: Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default).
-Default Value: All
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | All |
+| Required | false |
+| Type | String |
 
-### -WritebackEnabled
-Description: Filter groups with writeback to on-premises AD enabled: Yes (writeback enabled), No (writeback disabled), or All (default).
-Default Value: All
-Required: false
+### RoleAssignable
+Filter groups that can be assigned to Azure AD roles: Yes (role-assignable only) or NotSet (all groups, default).
+
+| Property | Value |
+|----------|-------|
+| Default Value | NotSet |
+| Required | false |
+| Type | String |
+
+### TeamsEnabled
+Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default).
+
+| Property | Value |
+|----------|-------|
+| Default Value | NotSet |
+| Required | false |
+| Type | String |
+
+### Source
+Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default).
+
+| Property | Value |
+|----------|-------|
+| Default Value | All |
+| Required | false |
+| Type | String |
+
+### WritebackEnabled
+Filter groups with writeback to on-premises AD enabled: Yes (writeback enabled), No (writeback disabled), or All (default).
+
+| Property | Value |
+|----------|-------|
+| Default Value | All |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -15,25 +15,37 @@ Group \ General \ Rename Group
 
 
 ## Parameters
-### -GroupId
-Description: 
-Default Value: 
-Required: true
+### GroupId
 
-### -DisplayName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -MailNickname
-Description: 
-Default Value: 
-Required: false
+### DisplayName
 
-### -Description
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### MailNickname
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### Description
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

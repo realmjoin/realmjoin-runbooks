@@ -1,4 +1,4 @@
-# Check Aad Sync Status_Scheduled
+# Check Aad Sync Status (Scheduled)
 
 Check for last Azure AD Connect Sync Cycle.
 
@@ -15,15 +15,21 @@ Org \ General \ Check Aad Sync Status_Scheduled
 
 
 ## Parameters
-### -sendAlertTo
-Description: 
-Default Value: support@glueckkanja.com
-Required: false
+### sendAlertTo
 
-### -sendAlertFrom
-Description: 
-Default Value: runbooks@glueckkanja.com
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja.com |
+| Required | false |
+| Type | String |
+
+### sendAlertFrom
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbooks@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

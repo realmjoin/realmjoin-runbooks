@@ -19,30 +19,50 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
 
 
 ## Parameters
-### -Entry
-Description: The entry to add or remove (e.g., domain, email address, URL, or file hash).
-Default Value: 
-Required: true
+### Entry
+The entry to add or remove (e.g., domain, email address, URL, or file hash).
 
-### -ListType
-Description: The type of entry: Sender, Url, or FileHash.
-Default Value: Sender
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Block
-Description: Decides whether to block or allow the entry.
-Default Value: True
-Required: false
+### ListType
+The type of entry: Sender, Url, or FileHash.
 
-### -Remove
-Description: Decides whether to remove or add the entry.
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | Sender |
+| Required | false |
+| Type | String |
 
-### -DaysToExpire
-Description: Number of days until the entry expires. Default is 30 days.
-Default Value: 30
-Required: false
+### Block
+Decides whether to block or allow the entry.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### Remove
+Decides whether to remove or add the entry.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### DaysToExpire
+Number of days until the entry expires. Default is 30 days.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

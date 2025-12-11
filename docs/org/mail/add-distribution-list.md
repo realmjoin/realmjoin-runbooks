@@ -20,35 +20,53 @@ Org \ Mail \ Add Distribution List
 
 
 ## Parameters
-### -Alias
-Description: 
-Default Value: 
-Required: true
+### Alias
 
-### -PrimarySMTPAddress
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -GroupName
-Description: 
-Default Value: 
-Required: false
+### PrimarySMTPAddress
 
-### -Owner
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -Roomlist
-Description: 
-Default Value: False
-Required: false
+### GroupName
 
-### -AllowExternalSenders
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### Owner
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### Roomlist
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### AllowExternalSenders
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

@@ -18,35 +18,53 @@ Org \ Mail \ Add Equipment Mailbox
 
 
 ## Parameters
-### -MailboxName
-Description: 
-Default Value: 
-Required: true
+### MailboxName
 
-### -DisplayName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -DelegateTo
-Description: 
-Default Value: 
-Required: false
+### DisplayName
 
-### -AutoAccept
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -AutoMapping
-Description: 
-Default Value: False
-Required: false
+### DelegateTo
 
-### -DisableUser
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### AutoAccept
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### AutoMapping
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### DisableUser
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

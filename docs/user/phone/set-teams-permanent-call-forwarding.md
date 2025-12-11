@@ -18,35 +18,59 @@ User \ Phone \ Set Teams Permanent Call Forwarding
 
 
 ## Parameters
-### -UserName
-Description: User which should be set up. Could be filled with the user picker in the UI.
-Default Value: 
-Required: true
+### UserName
+User which should be set up. Could be filled with the user picker in the UI.
 
-### -ForwardTargetPhoneNumber
-Description: Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -ForwardTargetTeamsUser
-Description: Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
-Default Value: 
-Required: false
+### ForwardTargetPhoneNumber
+Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
 
-### -ForwardToVoicemail
-Description: Forward calls to voicemail.
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -ForwardToDelegates
-Description: Forward calls to delegates which are defined by the user.
-Default Value: False
-Required: false
+### ForwardTargetTeamsUser
+Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
 
-### -TurnOffForward
-Description: Turn off immediate call forwarding.
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ForwardToVoicemail
+Forward calls to voicemail.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ForwardToDelegates
+Forward calls to delegates which are defined by the user.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### TurnOffForward
+Turn off immediate call forwarding.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

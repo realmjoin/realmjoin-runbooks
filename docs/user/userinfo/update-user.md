@@ -19,100 +19,160 @@ User \ Userinfo \ Update User
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -GivenName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Surname
-Description: 
-Default Value: 
-Required: false
+### GivenName
 
-### -DisplayName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -CompanyName
-Description: 
-Default Value: 
-Required: false
+### Surname
 
-### -City
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -Country
-Description: 
-Default Value: 
-Required: false
+### DisplayName
 
-### -JobTitle
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -Department
-Description: 
-Default Value: 
-Required: false
+### CompanyName
 
-### -OfficeLocation
-Description: think "physicalDeliveryOfficeName" if you are coming from on-prem
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -PostalCode
-Description: 
-Default Value: 
-Required: false
+### City
 
-### -PreferredLanguage
-Description: Examples: 'en-US' or 'de-DE'
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -State
-Description: 
-Default Value: 
-Required: false
+### Country
 
-### -StreetAddress
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -UsageLocation
-Description: Examples: "DE" or "US"
-Default Value: 
-Required: false
+### JobTitle
 
-### -DefaultLicense
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -DefaultGroups
-Description: 
-Default Value: 
-Required: false
+### Department
 
-### -EnableEXOArchive
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -ResetPassword
-Description: 
-Default Value: False
-Required: false
+### OfficeLocation
+think "physicalDeliveryOfficeName" if you are coming from on-prem
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### PostalCode
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### PreferredLanguage
+Examples: 'en-US' or 'de-DE'
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### State
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StreetAddress
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### UsageLocation
+Examples: "DE" or "US"
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### DefaultLicense
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### DefaultGroups
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### EnableEXOArchive
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ResetPassword
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

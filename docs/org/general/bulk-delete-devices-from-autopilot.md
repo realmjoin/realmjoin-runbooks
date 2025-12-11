@@ -15,10 +15,13 @@ Org \ General \ Bulk Delete Devices From Autopilot
 
 
 ## Parameters
-### -SerialNumbers
-Description: 
-Default Value: 
-Required: true
+### SerialNumbers
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

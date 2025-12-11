@@ -21,95 +21,150 @@ Org \ Applications \ Update Application Registration
 
 
 ## Parameters
-### -ClientId
-Description: 
-Default Value: 
-Required: true
+### ClientId
 
-### -RedirectURI
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -webRedirectURI
-Description: Only for UI used
-Default Value: 
-Required: false
+### RedirectURI
 
-### -publicClientRedirectURI
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -spaRedirectURI
-Description: 
-Default Value: 
-Required: false
+### webRedirectURI
+Only for UI used
 
-### -EnableSAML
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -SAMLReplyURL
-Description: 
-Default Value: 
-Required: false
+### publicClientRedirectURI
 
-### -SAMLSignOnURL
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -SAMLLogoutURL
-Description: 
-Default Value: 
-Required: false
+### spaRedirectURI
 
-### -SAMLIdentifier
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -SAMLRelayState
-Description: 
-Default Value: 
-Required: false
+### EnableSAML
 
-### -SAMLExpiryNotificationEmail
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -isApplicationVisible
-Description: 
-Default Value: True
-Required: false
+### SAMLReplyURL
 
-### -UserAssignmentRequired
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -groupAssignmentPrefix
-Description: 
-Default Value: col - Entra - users -
-Required: false
+### SAMLSignOnURL
 
-### -implicitGrantAccessTokens
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -implicitGrantIDTokens
-Description: 
-Default Value: False
-Required: false
+### SAMLLogoutURL
 
-### -disableImplicitGrant
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SAMLIdentifier
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SAMLRelayState
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SAMLExpiryNotificationEmail
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### isApplicationVisible
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### UserAssignmentRequired
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### groupAssignmentPrefix
+
+| Property | Value |
+|----------|-------|
+| Default Value | col - Entra - users - |
+| Required | false |
+| Type | String |
+
+### implicitGrantAccessTokens
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### implicitGrantIDTokens
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### disableImplicitGrant
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)
