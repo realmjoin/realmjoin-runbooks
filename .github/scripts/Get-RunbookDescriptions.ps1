@@ -31,15 +31,15 @@
     .PARAMETER outputMode
     The output mode for the generated markdown files. The default value is "OneFile".
     - "OneFile": Generates a single markdown file with all runbook details.
-    - "SeperateFileSeperateFolder": Generates a folder structure with root folders (for example, org) and subfolders (for example, general) and separate markdown files for each runbook.
+    - "SeparateFileSeparateFolder": Generates a folder structure with root folders (for example, org) and subfolders (for example, general) and separate markdown files for each runbook.
 
     .PARAMETER nameTOCFilesAlwaysREADME
-    Only relevant in "SeperateFileSeperateFolder" output mode. Otherwise, the value is ignored.
+    Only relevant in "SeparateFileSeparateFolder" output mode. Otherwise, the value is ignored.
     If specified, the script will always name the overview files for the scope folders "README.md". Otherwise the name would be generated based on the folder name - for example, "org-overview.md"
 
     .PARAMETER mainOutfile
     The name of the main output file. The default value is "RealmJoin-RunbookOverview.md".
-    In "SeperateFileSeperateFolder" output mode, the main output file will contain the TOC.
+    In "SeparateFileSeparateFolder" output mode, the main output file will contain the TOC.
 
     .PARAMETER outputFolder
     The output folder for the generated markdown files or depending on the output mode for the generated folder structure. The default value is the folder "docs" in the current location.
@@ -61,7 +61,7 @@ param(
     [switch]$includeNotes,
     [switch]$includeParameters,
     [switch]$includeAdditionalLinks,
-    [ValidateSet("OneFile", "SeperateFileSeperateFolder")]
+    [ValidateSet("OneFile", "SeparateFileSeparateFolder")]
     [string]$outputMode = "OneFile",
     [switch]$nameTOCFilesAlwaysREADME,
     [string]$mainOutfile = "RealmJoin-RunbookOverview.md",
@@ -184,7 +184,7 @@ function Convert-PermissionJsonToMarkdown {
 # $includeParameters = $false
 # $includeDocs = $true
 # $includeNotes = $true
-# # "OneFile", "SeperateFileSeperateFolder"
+# # "OneFile", "SeparateFileSeparateFolder"
 # $outputMode = "OneFile"
 # $mainOutfile = "RealmJoin-RunbookOverview.md"
 # $ListOverviewFile = "RealmJoin-RunbookList.md"
@@ -216,18 +216,18 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $CurrentRunbookBasics = Get-RunbookBasics -runbookPath $CurrentObject.FullName -relativeRunbookPath $relativeRunbookPath
 
     # Get additional content from .docs and .permissions files, if they exist. If they exist in the same folder as the runbook, they will be preferred.
-    $docsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".docs\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).md"
+    $docsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".docs\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).md"
     $docsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".md"
 
     $docsPath = if (Test-Path -Path $docsPath_sameFolder) { $docsPath_sameFolder }
-    elseif (Test-Path -Path $docsPath_seperateFolder) { $docsPath_seperateFolder }
+    elseif (Test-Path -Path $docsPath_separateFolder) { $docsPath_separateFolder }
     else { $null }
 
-    $permissionsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
+    $permissionsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
     $permissionsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".permissions.json"
 
     $permissionsPath = if (Test-Path -Path $permissionsPath_sameFolder) { $permissionsPath_sameFolder }
-    elseif (Test-Path -Path $permissionsPath_seperateFolder) { $permissionsPath_seperateFolder }
+    elseif (Test-Path -Path $permissionsPath_separateFolder) { $permissionsPath_separateFolder }
     else { $null }
 
     $docsContent = if ($null -ne $docsPath) { Get-Content -Path $docsPath -Raw }
@@ -453,9 +453,9 @@ if ($outputMode -eq "OneFile") {
     }
     #endregion
 }
-elseif ($outputMode -eq "SeperateFileSeperateFolder") {
+elseif ($outputMode -eq "SeparateFileSeparateFolder") {
     ################################################################################################
-    #region SeperateFileSeperateFolder
+    #region SeparateFileSeparateFolder
     ################################################################################################
     $ResultFile = Join-Path -Path $rootFolder -ChildPath ($mainOutfile)
     if (Test-Path -Path $ResultFile) {

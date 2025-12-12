@@ -45,11 +45,11 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $relativeRunbookPath = $CurrentObject.FullName -replace "^$rootFolder[\\/]*", ""
     $RelativeRunbookPath_PathOnly = Split-Path -Path $relativeRunbookPath
 
-    $permissionsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
+    $permissionsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
     $permissionsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".permissions.json"
 
     # Check if the permissions file exists in the same folder as the runbook or in the .permissions folder
-    if (-not (Test-Path -Path $permissionsPath_sameFolder) -and -not (Test-Path -Path $permissionsPath_seperateFolder)) {
+    if (-not (Test-Path -Path $permissionsPath_sameFolder) -and -not (Test-Path -Path $permissionsPath_separateFolder)) {
         $missingPermissions += " - $($RelativeRunbookPath_PathOnly)/$($CurrentObject.BaseName)`n"
         $missingPermissionsCounter ++
     }
