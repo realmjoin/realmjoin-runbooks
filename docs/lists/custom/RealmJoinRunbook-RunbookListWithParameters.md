@@ -292,7 +292,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Add Viva Engange Community | Creates a Viva Engage (Yammer) community via the Yammer API |  |  | CommunityName | ✓ | String | The name of the community to create. max 264 chars. |
 |  |  |  |  |  |  | CommunityPrivate |  | Boolean |  |
 |  |  |  |  |  |  | CommunityShowInDirectory |  | Boolean |  |
-|  |  |  |  |  |  | CommunityOwners |  | String | The owners of the community. Comma seperated list of UPNs. |
+|  |  |  |  |  |  | CommunityOwners |  | String | The owners of the community. Comma separated list of UPNs. |
 |  |  |  |  |  |  | removeCreatorFromGroup |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String |  |
 |  |  | Assign Groups By Template (Scheduled) | Assign cloud-only groups to many users based on a predefined template. |  |  | SourceGroupId | ✓ | String |  |

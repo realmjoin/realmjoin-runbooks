@@ -964,7 +964,7 @@ Creates a Viva Engage (Yammer) community via the Yammer API
 | CommunityName | ✓ | String | The name of the community to create. max 264 chars. |
 | CommunityPrivate |  | Boolean |  |
 | CommunityShowInDirectory |  | Boolean |  |
-| CommunityOwners |  | String | The owners of the community. Comma seperated list of UPNs. |
+| CommunityOwners |  | String | The owners of the community. Comma separated list of UPNs. |
 | removeCreatorFromGroup |  | Boolean |  |
 | CallerName | ✓ | String |  |
 

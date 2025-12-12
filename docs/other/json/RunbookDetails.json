@@ -5846,7 +5846,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "The owners of the community. Comma seperated list of UPNs."
+            "Text": "The owners of the community. Comma separated list of UPNs."
           }
         ],
         "globbing": "false",
