@@ -9,7 +9,7 @@
     The name of the community to create. max 264 chars.
 
 .PARAMETER CommunityOwners
-    The owners of the community. Comma seperated list of UPNs.
+    The owners of the community. Comma separated list of UPNs.
 
 .INPUTS
   RunbookCustomization: {

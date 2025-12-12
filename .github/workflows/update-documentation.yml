@@ -63,7 +63,7 @@ jobs:
               -includeNotes `
               -includeParameters `
               -includeAdditionalLinks `
-              -outputMode "SeperateFileSeperateFolder" `
+              -outputMode "SeparateFileSeparateFolder" `
               -nameTOCFilesAlwaysREADME `
               -outputFolder $env:OUTPUT_PATH_DOCS `
               -rootFolder $env:ROOT_PATH `
