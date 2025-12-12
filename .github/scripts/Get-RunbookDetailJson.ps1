@@ -122,18 +122,18 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $CurrentRunbookBasics = Get-RunbookBasics -runbookPath $CurrentObject.FullName -relativeRunbookPath $relativeRunbookPath
 
     # Get additional content from .docs and .permissions files, if they exist. If they exist in the same folder as the runbook, they will be preferred.
-    $docsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".docs\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).md"
+    $docsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".docs\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).md"
     $docsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".md"
 
     $docsPath = if (Test-Path -Path $docsPath_sameFolder) { $docsPath_sameFolder }
-    elseif (Test-Path -Path $docsPath_seperateFolder) { $docsPath_seperateFolder }
+    elseif (Test-Path -Path $docsPath_separateFolder) { $docsPath_separateFolder }
     else { $null }
 
-    $permissionsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
+    $permissionsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
     $permissionsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".permissions.json"
 
     $permissionsPath = if (Test-Path -Path $permissionsPath_sameFolder) { $permissionsPath_sameFolder }
-    elseif (Test-Path -Path $permissionsPath_seperateFolder) { $permissionsPath_seperateFolder }
+    elseif (Test-Path -Path $permissionsPath_separateFolder) { $permissionsPath_separateFolder }
     else { $null }
 
     $docsContent = if ($null -ne $docsPath) { Get-Content -Path $docsPath -Raw }

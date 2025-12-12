@@ -9,8 +9,14 @@ The SubscriptionIds value must be defined in the runbooks customization.
 ## Where to find
 User \ AVD \ User Signout
 
+## Permissions
+### Permission notes
+Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool
+
+
 ## Parameters
 ### UserName
+The username (UPN) of the user to sign out from their AVD session. Hidden in UI.
 
 | Property | Value |
 |----------|-------|
@@ -19,6 +25,7 @@ User \ AVD \ User Signout
 | Type | String |
 
 ### SubscriptionIds
+Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
 
 | Property | Value |
 |----------|-------|

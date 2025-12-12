@@ -186,9 +186,9 @@ Reboots a specific AVD Session Host.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| DeviceName | ✓ | String |  |
-| SubscriptionIds | ✓ | String Array |  |
-| CallerName | ✓ | String |  |
+| DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 
 <a name='device-avd-toggle-drain-mode'></a>
 
@@ -197,10 +197,10 @@ Sets Drainmode on true or false for a specific AVD Session Host.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| DeviceName | ✓ | String |  |
-| DrainMode | ✓ | Boolean |  |
-| SubscriptionIds | ✓ | String Array |  |
-| CallerName | ✓ | String |  |
+| DeviceName | ✓ | String | The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI. |
+| DrainMode | ✓ | Boolean | Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -263,8 +263,7 @@ Removes the primary user from a device.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| DeviceId | ✓ | String | The unique identifier of the device from which the primary user will be removed.
-It will be prefilled from the RealmJoin Portal and is hidden in the UI. |
+| DeviceId | ✓ | String | The unique identifier of the device from which the primary user will be removed.<br>It will be prefilled from the RealmJoin Portal and is hidden in the UI. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
 <a name='device-general-rename-device'></a>
@@ -622,8 +621,7 @@ Generate and email a comprehensive Application Registration report
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 | IncludeDeletedApps |  | Boolean | Whether to include deleted application registrations in the report (default: true) |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
@@ -635,14 +633,11 @@ List expiry date of all Application Registration credentials
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| listOnlyExpiring |  | Boolean | If set to true, only credentials that are about to expire within the specified number of days will be listed.
-If set to false, all credentials will be listed regardless of their expiry date. |
+| listOnlyExpiring |  | Boolean | If set to true, only credentials that are about to expire within the specified number of days will be listed.<br>If set to false, all credentials will be listed regardless of their expiry date. |
 | Days |  | Int32 | The number of days before a credential expires to consider it "about to expire". |
 | CredentialType |  | String | Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates". |
 | ApplicationIds |  | String | Optional - comma-separated list of Application IDs to filter the credentials. |
-| EmailTo | ✓ | String | If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo | ✓ | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
@@ -718,8 +713,7 @@ Scheduled deletion of stale devices based on last activity date and platform.
 | iOS |  | Boolean | Include iOS devices in the results. |
 | Android |  | Boolean | Include Android devices in the results. |
 | DeleteDevices |  | Boolean | If set to true, the script will delete the stale devices. If false, it will only report them. |
-| ConfirmDeletion |  | Boolean | If set to true, the script will prompt for confirmation before deleting devices.
-Should be set to false for scheduled runs. |
+| ConfirmDeletion |  | Boolean | If set to true, the script will prompt for confirmation before deleting devices.<br>Should be set to false for scheduled runs. |
 | sendAlertTo |  | String | Email address to send the report to. |
 | sendAlertFrom |  | String | Email address to send the report from. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -760,9 +754,7 @@ Reports all managed devices in Intune that do not have a primary user assigned.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
-| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
 
 <a name='organization-devices-report-last-device-contact-by-range'></a>
@@ -775,9 +767,7 @@ Reports devices with last contact within a specified date range.
 | dateRange | ✓ | String | Date range for filtering devices based on their last contact time. |
 | systemType | ✓ | String | The operating system type of the devices to filter. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
-| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
 
 <a name='organization-devices-report-stale-devices-scheduled'></a>
@@ -792,8 +782,7 @@ Scheduled report of stale devices based on last activity date and platform.
 | MacOS |  | Boolean | Include macOS devices in the results. |
 | iOS |  | Boolean | Include iOS devices in the results. |
 | Android |  | Boolean | Include Android devices in the results. |
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
@@ -805,9 +794,7 @@ Reports users with more than five registered devices in Entra ID.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
-| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
 
 <a name='organization-devices-sync-device-serialnumbers-to-entraid-scheduled'></a>
@@ -977,7 +964,7 @@ Creates a Viva Engage (Yammer) community via the Yammer API
 | CommunityName | ✓ | String | The name of the community to create. max 264 chars. |
 | CommunityPrivate |  | Boolean |  |
 | CommunityShowInDirectory |  | Boolean |  |
-| CommunityOwners |  | String | The owners of the community. Comma seperated list of UPNs. |
+| CommunityOwners |  | String | The owners of the community. Comma separated list of UPNs. |
 | removeCreatorFromGroup |  | Boolean |  |
 | CallerName | ✓ | String |  |
 
@@ -1088,38 +1075,9 @@ Show recent first-time device enrollments.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | Weeks |  | Int32 |  |
-| dataSource |  | Int32 | Where to look for a devices "birthday"?
-0 - AutoPilot profile assignment date
-1 - Intune object creation date |
-| groupingSource |  | Int32 | How to group results?
-0 - no grouping
-1 - AzureAD User properties
-2 - AzureAD Device properties
-3 - Intune device properties
-4 - AutoPilot properties |
-| groupingAttribute |  | String | Examples:
-
-Autopilot:
-- "groupTag"
-- "systemFamily"
-- "skuNumber"
-
-AzureAD User:
-- "city"
-- "companyName"
-- "department"
-- "officeLocation"
-- "preferredLanguage"
-- "state"
-- "usageLocation"
-- "manager"?
-
-AzureAD Device:
-- "manufacturer"
-- "model"
-
-Intune Device:
-- "isEncrypted" |
+| dataSource |  | Int32 | Where to look for a devices "birthday"?<br>0 - AutoPilot profile assignment date<br>1 - Intune object creation date |
+| groupingSource |  | Int32 | How to group results?<br>0 - no grouping<br>1 - AzureAD User properties<br>2 - AzureAD Device properties<br>3 - Intune device properties<br>4 - AutoPilot properties |
+| groupingAttribute |  | String | Examples:<br><br>Autopilot:<br>- "groupTag"<br>- "systemFamily"<br>- "skuNumber"<br><br>AzureAD User:<br>- "city"<br>- "companyName"<br>- "department"<br>- "officeLocation"<br>- "preferredLanguage"<br>- "state"<br>- "usageLocation"<br>- "manager"?<br><br>AzureAD Device:<br>- "manufacturer"<br>- "model"<br><br>Intune Device:<br>- "isEncrypted" |
 | exportCsv |  | Boolean | Please configure an Azure Storage Account to use this feature. |
 | ContainerName |  | String |  |
 | ResourceGroupName |  | String |  |
@@ -1213,8 +1171,7 @@ Invites external guest users to the organization using Microsoft Graph.
 |-----------|----------|------|-------------|
 | InvitedUserEmail | ✓ | String | The email address of the guest user to invite. |
 | InvitedUserDisplayName | ✓ | String | The display name for the guest user. |
-| GroupId |  | String | The object ID of the group to add the guest user to.
-If not specified, the user will not be added to any group. |
+| GroupId |  | String | The object ID of the group to add the guest user to.<br>If not specified, the user will not be added to any group. |
 
 <a name='organization-general-list-all-administrative-template-policies'></a>
 
@@ -1262,10 +1219,8 @@ Monitor/Report expiry of Apple device management certificates.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
-| Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be
-flagged as alerts in the report. Default is 300 days (approximately 10 months). |
-| EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 300 days (approximately 10 months). |
+| EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 
 <a name='organization-general-report-license-assignment-scheduled'></a>
@@ -1275,15 +1230,8 @@ Generate and email a license availability report based on configured thresholds
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| InputJson | ✓ | Object | JSON array containing SKU configurations with thresholds. Each entry should include:
-- SKUPartNumber: The Microsoft SKU identifier
-- FriendlyName: Display name for the license
-- MinThreshold: (Optional) Minimum number of licenses that should be available
-- MaxThreshold: (Optional) Maximum number of licenses that should be available
-
-This needs to be configured in the runbook customization |
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons. |
+| InputJson | ✓ | Object | JSON array containing SKU configurations with thresholds. Each entry should include:<br>- SKUPartNumber: The Microsoft SKU identifier<br>- FriendlyName: Display name for the license<br>- MinThreshold: (Optional) Minimum number of licenses that should be available<br>- MaxThreshold: (Optional) Maximum number of licenses that should be available<br><br>This needs to be configured in the runbook customization |
+| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
 
@@ -1633,9 +1581,9 @@ Removes (Signs Out) a specific User from their AVD Session.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String |  |
-| SubscriptionIds | ✓ | String Array |  |
-| CallerName | ✓ | String |  |
+| UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -2157,9 +2105,7 @@ Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, 
 | NewUpn | ✓ | String |  |
 | ChangeMailnickname |  | Boolean |  |
 | UpdatePrimaryAddress |  | Boolean |  |
-| CallerName | ✓ | String | CallerName is tracked purely for auditing purposes
-Currently, removing the old eMail-address "in one go" seems not to work reliably
-[bool] $RemoveOldAddress = $false |
+| CallerName | ✓ | String | CallerName is tracked purely for auditing purposes<br>Currently, removing the old eMail-address "in one go" seems not to work reliably<br>[bool] $RemoveOldAddress = $false |
 
 <a name='user-userinfo-set-photo'></a>
 

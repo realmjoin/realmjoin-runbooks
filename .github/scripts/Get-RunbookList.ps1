@@ -7,6 +7,8 @@
     - A list of all runbooks with a short description. The created document also contains a table of contents and backlinks to the table of contents. In this document, the information regarding the following parameters are included: Category, Subcategory, Runbook Name, Synopsis, Description
     - A compact list of all runbooks with a short description. The created document does not contain a table of contents or other links. In the list, the columns are Category, Subcategory, Runbook Name and Synopsis
     - A list of permissions and RBAC roles for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions and RBAC Roles.
+    - A list of parameters for each runbook. In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Parameter, Required, Type and Description. Each parameter is listed in a separate row per runbook.
+    - A combined list of permissions, RBAC roles, and parameters for each runbook. In the list, the columns of the permission overview are extended with the parameter-specific columns (Parameter, Required, Type, Description).
 
     .PARAMETER includedScope
     The scope of the runbooks to include, which represents the root folder of the runbooks. The default value is "device", "group", "org", "user".
@@ -32,6 +34,12 @@
     Each parameter is listed in a separate row. The runbook name and synopsis are only shown once per runbook.
     The name of this list is "RealmJoinRunbook-RunbookParameterList.md"
 
+    .PARAMETER createCustomRunbookList
+    Creates a combined list of permissions, RBAC roles, and parameters for each runbook.
+    In the list, the columns are Category, Subcategory, Runbook Name, Synopsis, Permissions, RBAC Roles, Parameter, Required, Type and Description.
+    Each parameter is listed in a separate row per runbook, while the permission information is shown once per runbook.
+    The name of this list is "RealmJoinRunbook-RunbookListWithParameters.md" and it is stored in the subfolder "custom" of the output folder.
+
     .PARAMETER outputFolder
     The output folder for the generated markdown files or depending on the output mode for the generated folder structure. The default value is the folder "docs" in the current location.
 
@@ -50,6 +58,7 @@ param(
     [switch]$createCompactRunbookOverviewList,
     [switch]$createPermissionList,
     [switch]$createParameterList,
+    [switch]$createCustomRunbookList,
     [string]$outputFolder = $(Join-Path -Path (Get-Location).Path -ChildPath "docs"),
     [string]$rootFolder = (Get-Location).Path
 )
@@ -160,18 +169,18 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
     $CurrentRunbookBasics = Get-RunbookBasics -runbookPath $CurrentObject.FullName -relativeRunbookPath $relativeRunbookPath
 
     # Get additional content from .docs and .permissions files, if they exist. If they exist in the same folder as the runbook, they will be preferred.
-    $docsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".docs\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).md"
+    $docsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".docs\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).md"
     $docsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".md"
 
     $docsPath = if (Test-Path -Path $docsPath_sameFolder) { $docsPath_sameFolder }
-    elseif (Test-Path -Path $docsPath_seperateFolder) { $docsPath_seperateFolder }
+    elseif (Test-Path -Path $docsPath_separateFolder) { $docsPath_separateFolder }
     else { $null }
 
-    $permissionsPath_seperateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
+    $permissionsPath_separateFolder = Join-Path -Path $rootFolder -ChildPath ".permissions\$RelativeRunbookPath_PathOnly\$($CurrentObject.BaseName).json"
     $permissionsPath_sameFolder = $($CurrentObject.FullName) -replace ".ps1", ".permissions.json"
 
     $permissionsPath = if (Test-Path -Path $permissionsPath_sameFolder) { $permissionsPath_sameFolder }
-    elseif (Test-Path -Path $permissionsPath_seperateFolder) { $permissionsPath_seperateFolder }
+    elseif (Test-Path -Path $permissionsPath_separateFolder) { $permissionsPath_separateFolder }
     else { $null }
 
     $docsContent = if ($null -ne $docsPath) { Get-Content -Path $docsPath -Raw }
@@ -475,7 +484,8 @@ if ($createParameterList) {
                         $desc = ($param.description.Text -join " ").Trim()
                         # Remove ValidateScript blocks
                         $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
-                        $desc.Trim()
+                                $desc = $desc -replace "(\r\n|\n|\r)", "<br>"
+                                $desc.Trim()
                     } else { "" }
 
                     Add-Content -Path $ParameterFile -Value "| $($param.name) | $isRequired | $paramType | $paramDescription |"
@@ -485,6 +495,125 @@ if ($createParameterList) {
         }
         Add-Content -Path $ParameterFile -Value "[Back to the RealmJoin runbook parameter overview](#table-of-contents)"
         Add-Content -Path $ParameterFile -Value ""
+    }
+}
+
+#endregion
+
+######################################
+#region Generate combined permission and parameter list
+######################################
+
+if ($createCustomRunbookList) {
+    $customOutputFolder = Join-Path -Path $outputFolder -ChildPath "custom"
+    if (-not (Test-Path -Path $customOutputFolder)) {
+        New-Item -Path $customOutputFolder -ItemType Directory -Force | Out-Null
+    }
+
+    $CustomListFile = Join-Path -Path $customOutputFolder -ChildPath "RealmJoinRunbook-RunbookListWithParameters.md"
+    if (Test-Path -Path $CustomListFile) {
+        Remove-Item -Path $CustomListFile -Force -ErrorAction SilentlyContinue
+    }
+
+    Add-Content -Path $CustomListFile -Value "# Overview"
+    Add-Content -Path $CustomListFile -Value "This document combines the permission requirements and RBAC roles with the exposed parameters of each runbook. It helps to understand which access levels are needed alongside the required inputs to execute the runbooks."
+    Add-Content -Path $CustomListFile -Value ""
+
+    Add-Content -Path $CustomListFile -Value "| Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles | Parameter | Required | Type | Parameter Description |"
+    Add-Content -Path $CustomListFile -Value "|----------|-------------|--------------|----------|-------------|------------|-----------|----------|------|-----------------------|"
+
+    $lastPrimaryFolder = ""
+    $lastSubFolder = ""
+
+    foreach ($runbook in $runbookDescriptions) {
+        $primaryFolderValue = if ($lastPrimaryFolder -ne $runbook.PrimaryFolder) { $runbook.PrimaryFolder } else { "" }
+        $subFolderValue = if ($primaryFolderValue -ne "" -or $lastSubFolder -ne $runbook.SubFolder) { $runbook.SubFolder } else { "" }
+
+        $permissionsMarkdown = ""
+        $rbacRolesMarkdown = ""
+        if ($runbook.PermissionsContent) {
+            $permissionsAndRoles = Convert-PermissionJsonToMarkdown -JsonContent $runbook.PermissionsContent
+            $permissionsMarkdown = $permissionsAndRoles.Permissions
+            if ($permissionsAndRoles.ManualPermissions) {
+                $permissionsMarkdown += $permissionsAndRoles.ManualPermissions
+            }
+            $rbacRolesMarkdown = $permissionsAndRoles.RBACRoles
+        }
+
+        $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+
+        $parameterCollection = @()
+        if ($runbook.Parameters) {
+            $parameterCollection = @($runbook.Parameters)
+        }
+
+        $parameterRows = @()
+        if ($parameterCollection.Count -eq 0 -or ($parameterCollection.Count -eq 1 -and $null -eq $parameterCollection[0])) {
+            $parameterRows = @([PSCustomObject]@{
+                    Name        = "-"
+                    Required    = "-"
+                    Type        = "-"
+                    Description = "No parameters"
+                })
+        }
+        else {
+            foreach ($param in $parameterCollection) {
+                if ($null -eq $param) {
+                    continue
+                }
+
+                $isRequired = if ($param.required -eq $true -or $param.required -eq 'true') { "✓" } else { "" }
+                $paramType = if ($param.type.name) {
+                    if ($param.type.name -eq 'String[]') {
+                        "String Array"
+                    }
+                    else {
+                        $param.type.name
+                    }
+                }
+                else { "" }
+
+                $paramDescription = if ($param.description) {
+                    $desc = ($param.description.Text -join " ").Trim()
+                    $desc = $desc -replace '\[ValidateScript\([^\]]+\)\]', ''
+                    $desc = $desc -replace "(\r\n|\n|\r)", "<br>"
+                    $desc.Trim()
+                }
+                else { "" }
+
+                $parameterRows += [PSCustomObject]@{
+                    Name        = $param.name
+                    Required    = $isRequired
+                    Type        = $paramType
+                    Description = $paramDescription
+                }
+            }
+
+            if ($parameterRows.Count -eq 0) {
+                $parameterRows = @([PSCustomObject]@{
+                        Name        = "-"
+                        Required    = "-"
+                        Type        = "-"
+                        Description = "No parameters"
+                    })
+            }
+        }
+
+        $rowIndex = 0
+        foreach ($parameterRow in $parameterRows) {
+            $categoryCell = if ($rowIndex -eq 0) { $primaryFolderValue } else { "" }
+            $subCategoryCell = if ($rowIndex -eq 0) { $subFolderValue } else { "" }
+            $runbookNameCell = if ($rowIndex -eq 0) { $runbook.RunbookDisplayName } else { "" }
+            $synopsisCell = if ($rowIndex -eq 0) { $synopsis } else { "" }
+            $permissionsCell = if ($rowIndex -eq 0) { $permissionsMarkdown } else { "" }
+            $rbacCell = if ($rowIndex -eq 0) { $rbacRolesMarkdown } else { "" }
+
+            Add-Content -Path $CustomListFile -Value "| $categoryCell | $subCategoryCell | $runbookNameCell | $synopsisCell | $permissionsCell | $rbacCell | $($parameterRow.Name) | $($parameterRow.Required) | $($parameterRow.Type) | $($parameterRow.Description) |"
+            $rowIndex++
+        }
+
+        $lastPrimaryFolder = $runbook.PrimaryFolder
+        $lastSubFolder = $runbook.SubFolder
     }
 }
 
