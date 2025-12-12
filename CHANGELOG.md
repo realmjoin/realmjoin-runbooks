@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2025-12-12
+  - Fix nested group handling in Add Devices of Users to Group (scheduled) Runbook
+
 ## 2025-11-20
   - Add Report License Assignment Runbook (scheduled)
     - Thresholds for license availability reporting:
