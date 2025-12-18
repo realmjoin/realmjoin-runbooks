@@ -40,6 +40,12 @@
     Each parameter is listed in a separate row per runbook, while the permission information is shown once per runbook.
     The name of this list is "RealmJoinRunbook-RunbookListWithParameters.md" and it is stored in the subfolder "custom" of the output folder.
 
+    .PARAMETER createAutomationAccountNameList
+    Creates a JSON-like list of all runbook names as they appear in the Azure Automation Account after sync.
+    The format is: "rjgit-<folder>_<subfolder>_<runbookname>" (all lowercase, without .ps1 extension).
+    Example: "rjgit-org_general_add-devices-of-users-to-group_scheduled"
+    The name of this list is "RealmJoinRunbook-AutomationAccountNames.md"
+
     .PARAMETER outputFolder
     The output folder for the generated markdown files or depending on the output mode for the generated folder structure. The default value is the folder "docs" in the current location.
 
@@ -59,6 +65,7 @@ param(
     [switch]$createPermissionList,
     [switch]$createParameterList,
     [switch]$createCustomRunbookList,
+    [switch]$createAutomationAccountNameList,
     [string]$outputFolder = $(Join-Path -Path (Get-Location).Path -ChildPath "docs"),
     [string]$rootFolder = (Get-Location).Path
 )
@@ -615,6 +622,54 @@ if ($createCustomRunbookList) {
         $lastPrimaryFolder = $runbook.PrimaryFolder
         $lastSubFolder = $runbook.SubFolder
     }
+}
+
+#endregion
+
+######################################
+#region Generate Automation Account name list
+######################################
+
+if ($createAutomationAccountNameList) {
+    $AutomationAccountNameListFile = Join-Path -Path $outputFolder -ChildPath "RealmJoinRunbook-AutomationAccountNames.md"
+    if (Test-Path -Path $AutomationAccountNameListFile) {
+        Remove-Item -Path $AutomationAccountNameListFile -Force -ErrorAction SilentlyContinue
+    }
+
+    Add-Content -Path $AutomationAccountNameListFile -Value "# Automation Account Runbook Names"
+    Add-Content -Path $AutomationAccountNameListFile -Value ""
+    Add-Content -Path $AutomationAccountNameListFile -Value "This document lists all runbook names as they appear in the Azure Automation Account after synchronization."
+    Add-Content -Path $AutomationAccountNameListFile -Value "The naming format is: ``rjgit-<folder>_<subfolder>_<runbookname>`` (all lowercase, without .ps1 extension)."
+    Add-Content -Path $AutomationAccountNameListFile -Value ""
+    Add-Content -Path $AutomationAccountNameListFile -Value '```json'
+    Add-Content -Path $AutomationAccountNameListFile -Value "{"
+
+    $automationAccountNames = @()
+    foreach ($runbook in $runbookDescriptions) {
+        # Get the original folder and subfolder names (lowercase)
+        $folderParts = $runbook.RelativeRunbookPath_PathOnly -split "[\\/]"
+        $folder = $folderParts[0].ToLower()
+        $subfolder = $folderParts[1].ToLower()
+
+        # Get runbook name without extension (lowercase)
+        $runbookFileName = [System.IO.Path]::GetFileNameWithoutExtension($runbook.RelativeRunbookPath).ToLower()
+
+        # Build the Automation Account name
+        $automationAccountName = "rjgit-${folder}_${subfolder}_${runbookFileName}"
+        $automationAccountNames += $automationAccountName
+    }
+
+    # Sort the names alphabetically
+    $automationAccountNames = $automationAccountNames | Sort-Object
+
+    # Write each name with proper formatting
+    for ($i = 0; $i -lt $automationAccountNames.Count; $i++) {
+        $separator = if ($i -lt $automationAccountNames.Count - 1) { "," } else { "" }
+        Add-Content -Path $AutomationAccountNameListFile -Value "    `"$($automationAccountNames[$i])`"$separator"
+    }
+
+    Add-Content -Path $AutomationAccountNameListFile -Value "}"
+    Add-Content -Path $AutomationAccountNameListFile -Value '```'
 }
 
 #endregion
