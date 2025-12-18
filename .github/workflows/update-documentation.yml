@@ -93,6 +93,7 @@ jobs:
               -createPermissionList `
               -createParameterList `
               -createCustomRunbookList `
+              -createAutomationAccountNameList `
               -outputFolder $env:OUTPUT_PATH_LISTS `
               -rootFolder $env:ROOT_PATH
 
