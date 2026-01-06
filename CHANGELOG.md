@@ -18,6 +18,13 @@
   - org/general/report-license-assignment_scheduled
   - org/security/list-users-by-MFA-methods-count
 
+## 2025-12-30
+
+- Add handling for skipping role and on-premises groups in offboarding scripts in following runbooks:
+  - user/general/offboard-user-permanently
+  - user/general/offboard-user-temporarily
+  - user/mail/convert-to-shared-mailbox
+
 ## 2025-12-12
   
 - Fix nested group handling in Add Devices of Users to Group (scheduled) Runbook
