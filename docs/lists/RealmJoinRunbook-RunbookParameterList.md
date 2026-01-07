@@ -611,8 +611,8 @@ List application registrations, which had no recent user logons.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 |  |
-| CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+| Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+| CallerName | ✓ | String | Name of the caller executing this runbook. Used for auditing purposes. |
 
 <a name='organization-applications-report-application-registration'></a>
 
