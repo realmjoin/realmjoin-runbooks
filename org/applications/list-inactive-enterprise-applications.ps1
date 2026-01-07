@@ -6,6 +6,12 @@
     Identifies enterprise applications with no recent sign-in activity based on Entra ID audit logs.
     The report includes Entra ID applications with last sign-in older than specified days (default: 90 days) or applications with no sign-in records in the audit log.
 
+    .PARAMETER Days
+    Number of days without user logon to consider an application as inactive. Default is 90 days.
+
+    .PARAMETER CallerName
+    Name of the caller executing this runbook. Used for auditing purposes.
+
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
@@ -31,7 +37,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -59,9 +65,7 @@ try {
     }
 }
 catch {
-    "## Listing AuditLog or ServicePrincipals failed. Missing permissions?"
-    "## Error details:"
-    $_
+    Write-Error "Listing AuditLog or ServicePrincipals failed. Missing permissions? Error details: $($_)" -ErrorAction Stop
 }
 
 ""
@@ -83,7 +87,5 @@ try {
     }
 }
 catch {
-    "## Listing ServicePrincipals failed. Missing permissions?"
-    "## Error details:"
-    $_
+    Write-Error "Listing ServicePrincipals failed. Missing permissions? Error details: $($_)" -ErrorAction Stop
 }
