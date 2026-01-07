@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-01-07
+
+- Fix error handling in list inactive enterprise applications runbook
+
 ## 2026-01-06
 
 - Update Graph PowerShell Module to 2.34.0 in following runbooks:
