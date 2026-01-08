@@ -18,6 +18,7 @@ Org \ Applications \ List Inactive Enterprise Applications
 
 ## Parameters
 ### Days
+Number of days without user logon to consider an application as inactive. Default is 90 days.
 
 | Property | Value |
 |----------|-------|

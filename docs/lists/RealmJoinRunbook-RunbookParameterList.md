@@ -611,8 +611,8 @@ List application registrations, which had no recent user logons.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 |  |
-| CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+| Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+| CallerName | ✓ | String | Name of the caller executing this runbook. Used for auditing purposes. |
 
 <a name='organization-applications-report-application-registration'></a>
 
@@ -964,7 +964,7 @@ Creates a Viva Engage (Yammer) community via the Yammer API
 | CommunityName | ✓ | String | The name of the community to create. max 264 chars. |
 | CommunityPrivate |  | Boolean |  |
 | CommunityShowInDirectory |  | Boolean |  |
-| CommunityOwners |  | String | The owners of the community. Comma seperated list of UPNs. |
+| CommunityOwners |  | String | The owners of the community. Comma separated list of UPNs. |
 | removeCreatorFromGroup |  | Boolean |  |
 | CallerName | ✓ | String |  |
 
