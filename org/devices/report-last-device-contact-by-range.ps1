@@ -195,7 +195,7 @@ function ConvertFrom-MarkdownToHtml {
 
         $placeholder = "§CODEBLOCK§$codeBlockIndex§"
         $codeBlocks += $htmlBlock
-        $script:codeBlockIndex++
+        $codeBlockIndex++
         return $placeholder
     }
 
@@ -208,7 +208,7 @@ function ConvertFrom-MarkdownToHtml {
 
         $placeholder = "§INLINECODE§$inlineCodeIndex§"
         $inlineCodeBlocks += $htmlInline
-        $script:inlineCodeIndex++
+        $inlineCodeIndex++
         return $placeholder
     }
 
@@ -480,7 +480,7 @@ function ConvertFrom-MarkdownToHtml {
         }
         else {
             $lines = $block -split "`n"
-            $nonEmptyLines = $lines | Where-Object { $_.Trim() -ne "" }
+            $nonEmptyLines = @($lines | Where-Object { $_.Trim() -ne "" })
             if ($nonEmptyLines.Count -gt 0) {
                 $paragraphContent = $nonEmptyLines -join '<br>'
                 $result += "<p>$paragraphContent</p>"
@@ -1035,7 +1035,7 @@ function Get-RjReportEmailBody {
                 <strong>Report Version:</strong> $($ReportVersion)
             </div>
 
-            $(if (($(($Attachments) | Measure-Object).Count) -gt 0) {
+            $(if (@($Attachments).Count -gt 0) {
             @"
 
             <div class="attachments">
@@ -1063,6 +1063,60 @@ function Get-RjReportEmailBody {
 </body>
 </html>
 "@
+}
+
+function Get-MimeTypeFromExtension {
+    <#
+        .SYNOPSIS
+        Returns the MIME type for a given file extension.
+
+        .DESCRIPTION
+        Maps common file extensions used for tenant data exports to their appropriate MIME types.
+        Supports CSV, Excel, JSON, XML, TXT, and other common formats.
+
+        .PARAMETER FilePath
+        The file path to determine the MIME type for.
+
+        .EXAMPLE
+        PS C:\> Get-MimeTypeFromExtension -FilePath "C:\temp\report.csv"
+        Returns: text/csv
+
+        .EXAMPLE
+        PS C:\> Get-MimeTypeFromExtension -FilePath "C:\temp\data.xlsx"
+        Returns: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+        .OUTPUTS
+        System.String. Returns the MIME type string.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath
+    )
+
+    $extension = [System.IO.Path]::GetExtension($FilePath).ToLower()
+
+    $mimeTypes = @{
+        '.csv'  = 'text/csv'
+        '.txt'  = 'text/plain'
+        '.json' = 'application/json'
+        '.xml'  = 'application/xml'
+        '.xlsx' = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        '.xls'  = 'application/vnd.ms-excel'
+        '.pdf'  = 'application/pdf'
+        '.zip'  = 'application/zip'
+        '.html' = 'text/html'
+        '.htm'  = 'text/html'
+        '.log'  = 'text/plain'
+        '.md'   = 'text/markdown'
+    }
+
+    if ($mimeTypes.ContainsKey($extension)) {
+        return $mimeTypes[$extension]
+    }
+    else {
+        # Default to binary stream for unknown types
+        return 'application/octet-stream'
+    }
 }
 
 function Send-RjReportEmail {
@@ -1134,9 +1188,12 @@ function Send-RjReportEmail {
 
     # Parse and clean email addresses from EmailTo parameter
     # Split by comma, trim whitespace, remove empty entries
-    $emailRecipients = $EmailTo -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+    # Important: Wrap in @() to ensure we always get an array (StrictMode-friendly)
+    $emailRecipients = @(
+        $EmailTo -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+    )
 
-    if (($emailRecipients | Measure-Object).Count -eq 0) {
+    if ($emailRecipients.Count -eq 0) {
         throw "No valid email recipients found in EmailTo parameter."
     }
 
@@ -1228,60 +1285,6 @@ function Send-RjReportEmail {
         else {
             Write-Warning "Some emails failed to send. Failed recipients: $failedList"
         }
-    }
-}
-
-function Get-MimeTypeFromExtension {
-    <#
-        .SYNOPSIS
-        Returns the MIME type for a given file extension.
-
-        .DESCRIPTION
-        Maps common file extensions used for tenant data exports to their appropriate MIME types.
-        Supports CSV, Excel, JSON, XML, TXT, and other common formats.
-
-        .PARAMETER FilePath
-        The file path to determine the MIME type for.
-
-        .EXAMPLE
-        PS C:\> Get-MimeTypeFromExtension -FilePath "C:\temp\report.csv"
-        Returns: text/csv
-
-        .EXAMPLE
-        PS C:\> Get-MimeTypeFromExtension -FilePath "C:\temp\data.xlsx"
-        Returns: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-
-        .OUTPUTS
-        System.String. Returns the MIME type string.
-    #>
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$FilePath
-    )
-
-    $extension = [System.IO.Path]::GetExtension($FilePath).ToLower()
-
-    $mimeTypes = @{
-        '.csv'  = 'text/csv'
-        '.txt'  = 'text/plain'
-        '.json' = 'application/json'
-        '.xml'  = 'application/xml'
-        '.xlsx' = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        '.xls'  = 'application/vnd.ms-excel'
-        '.pdf'  = 'application/pdf'
-        '.zip'  = 'application/zip'
-        '.html' = 'text/html'
-        '.htm'  = 'text/html'
-        '.log'  = 'text/plain'
-        '.md'   = 'text/markdown'
-    }
-
-    if ($mimeTypes.ContainsKey($extension)) {
-        return $mimeTypes[$extension]
-    }
-    else {
-        # Default to binary stream for unknown types
-        return 'application/octet-stream'
     }
 }
 
