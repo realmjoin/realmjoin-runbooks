@@ -3,6 +3,7 @@
 ## 2026-01-07
 
 - Fix error handling in list inactive enterprise applications runbook
+- Add parameter validation to rename device runbook
 
 ## 2026-01-06
 
