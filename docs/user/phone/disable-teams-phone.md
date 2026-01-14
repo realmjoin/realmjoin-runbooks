@@ -18,10 +18,14 @@ User \ Phone \ Disable Teams Phone
 
 
 ## Parameters
-### -UserName
-Description: User which should be cleared. Could be filled with the user picker in the UI.
-Default Value: 
-Required: true
+### UserName
+User which should be cleared. Could be filled with the user picker in the UI.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

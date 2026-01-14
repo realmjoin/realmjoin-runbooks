@@ -21,50 +21,77 @@ Org \ Devices \ Outphase Devices
 
 
 ## Parameters
-### -DeviceListChoice
-Description: 
-Default Value: 0
-Required: true
+### DeviceListChoice
 
-### -DeviceList
-Description: 
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | true |
+| Type | Int32 |
 
-### -intuneAction
-Description: 
-Default Value: 2
-Required: false
+### DeviceList
 
-### -aadAction
-Description: 
-Default Value: 2
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -wipeDevice
-Description: 
-Default Value: True
-Required: false
+### intuneAction
 
-### -removeIntuneDevice
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 2 |
+| Required | false |
+| Type | Int32 |
 
-### -removeAutopilotDevice
-Description: 
-Default Value: True
-Required: false
+### aadAction
 
-### -removeAADDevice
-Description: 
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 2 |
+| Required | false |
+| Type | Int32 |
 
-### -disableAADDevice
-Description: 
-Default Value: False
-Required: false
+### wipeDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### removeIntuneDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### removeAutopilotDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### removeAADDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### disableAADDevice
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,4 +1,4 @@
-# Report Pim Activations_Scheduled
+# Report Pim Activations (Scheduled)
 
 Scheduled Report on PIM Activations.
 
@@ -16,15 +16,21 @@ Org \ General \ Report Pim Activations_Scheduled
 
 
 ## Parameters
-### -sendAlertTo
-Description: 
-Default Value: support@glueckkanja.com
-Required: false
+### sendAlertTo
 
-### -sendAlertFrom
-Description: 
-Default Value: runbook@glueckkanja.com
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | support@glueckkanja.com |
+| Required | false |
+| Type | String |
+
+### sendAlertFrom
+
+| Property | Value |
+|----------|-------|
+| Default Value | runbook@glueckkanja.com |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

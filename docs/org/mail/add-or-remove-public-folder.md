@@ -18,20 +18,29 @@ Org \ Mail \ Add Or Remove Public Folder
 
 
 ## Parameters
-### -PublicFolderName
-Description: 
-Default Value: 
-Required: true
+### PublicFolderName
 
-### -MailboxName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -AddPublicFolder
-Description: 
-Default Value: False
-Required: true
+### MailboxName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### AddPublicFolder
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | true |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

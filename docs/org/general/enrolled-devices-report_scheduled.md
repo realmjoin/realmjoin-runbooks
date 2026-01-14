@@ -1,4 +1,4 @@
-# Enrolled Devices Report_Scheduled
+# Enrolled Devices Report (Scheduled)
 
 Show recent first-time device enrollments.
 
@@ -21,30 +21,41 @@ Azure: Contributor on Storage Account
 
 
 ## Parameters
-### -Weeks
-Description: 
-Default Value: 4
-Required: false
+### Weeks
 
-### -dataSource
-Description: Where to look for a devices "birthday"?
+| Property | Value |
+|----------|-------|
+| Default Value | 4 |
+| Required | false |
+| Type | Int32 |
+
+### dataSource
+Where to look for a devices "birthday"?
 0 - AutoPilot profile assignment date
 1 - Intune object creation date
-Default Value: 0
-Required: false
 
-### -groupingSource
-Description: How to group results?
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
+| Required | false |
+| Type | Int32 |
+
+### groupingSource
+How to group results?
 0 - no grouping
 1 - AzureAD User properties
 2 - AzureAD Device properties
 3 - Intune device properties
 4 - AutoPilot properties
-Default Value: 1
-Required: false
 
-### -groupingAttribute
-Description: Examples:
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
+
+### groupingAttribute
+Examples:
 
 Autopilot:
 - "groupTag"
@@ -67,38 +78,61 @@ AzureAD Device:
 
 Intune Device:
 - "isEncrypted"
-Default Value: country
-Required: false
 
-### -exportCsv
-Description: Please configure an Azure Storage Account to use this feature.
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | country |
+| Required | false |
+| Type | String |
 
-### -ContainerName
-Description: 
-Default Value: 
-Required: false
+### exportCsv
+Please configure an Azure Storage Account to use this feature.
 
-### -ResourceGroupName
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -StorageAccountName
-Description: 
-Default Value: 
-Required: false
+### ContainerName
 
-### -StorageAccountLocation
-Description: 
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -StorageAccountSku
-Description: 
-Default Value: 
-Required: false
+### ResourceGroupName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountLocation
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountSku
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -23,15 +23,21 @@ Note, as of 2021-06-28 MS Graph does not support updating existing groups - only
 
 
 ## Parameters
-### -GroupName
-Description: 
-Default Value: 
-Required: true
+### GroupName
 
-### -Action
-Description: 
-Default Value: 1
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Action
+
+| Property | Value |
+|----------|-------|
+| Default Value | 1 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

@@ -26,21 +26,33 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 
 ## Parameters
-### -EmailTo
-Description: Can be a single address or multiple comma-separated addresses (string).
+### EmailTo
+Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
-Default Value: 
-Required: true
 
-### -EmailFrom
-Description: The sender email address. This needs to be configured in the runbook customization
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -IncludeDeletedApps
-Description: Whether to include deleted application registrations in the report (default: true)
-Default Value: True
-Required: false
+### EmailFrom
+The sender email address. This needs to be configured in the runbook customization
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### IncludeDeletedApps
+Whether to include deleted application registrations in the report (default: true)
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

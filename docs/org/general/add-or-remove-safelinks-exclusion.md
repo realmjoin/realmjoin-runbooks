@@ -19,30 +19,48 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 
 
 ## Parameters
-### -Action
-Description: 
-Default Value: 2
-Required: false
+### Action
 
-### -LinkPattern
-Description: URL to allow, can contain '*' as wildcard for host and paths
-Default Value: https://*.microsoft.com/*
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 2 |
+| Required | false |
+| Type | Int32 |
 
-### -DefaultPolicyName
-Description: If only one policy exists, no need to specify. Will use "DefaultPolicyName" as default otherwise.
-Default Value: Default SafeLinks Policy
-Required: true
+### LinkPattern
+URL to allow, can contain '*' as wildcard for host and paths
 
-### -PolicyName
-Description: Optional, will overwrite default values
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | https://*.microsoft.com/* |
+| Required | false |
+| Type | String |
 
-### -CreateNewPolicyIfNeeded
-Description: 
-Default Value: True
-Required: false
+### DefaultPolicyName
+If only one policy exists, no need to specify. Will use "DefaultPolicyName" as default otherwise.
+
+| Property | Value |
+|----------|-------|
+| Default Value | Default SafeLinks Policy |
+| Required | true |
+| Type | String |
+
+### PolicyName
+Optional, will overwrite default values
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### CreateNewPolicyIfNeeded
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

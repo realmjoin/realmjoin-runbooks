@@ -6,6 +6,18 @@
   This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
   The SubscriptionId value must be defined in the runbooks customization.
 
+  .PARAMETER DeviceName
+  The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI.
+
+  .PARAMETER DrainMode
+  Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false.
+
+  .PARAMETER SubscriptionIds
+  Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
+
+  .PARAMETER CallerName
+  The name of the user executing the runbook. Used for auditing purposes. Hidden in UI.
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {

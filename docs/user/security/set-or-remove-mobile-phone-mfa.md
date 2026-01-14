@@ -15,20 +15,30 @@ User \ Security \ Set Or Remove Mobile Phone Mfa
 
 
 ## Parameters
-### -UserName
-Description: 
-Default Value: 
-Required: true
+### UserName
 
-### -phoneNumber
-Description: Enter the user's mobile number in international format (e.g. +491701234567) to add, update, or remove.
-Default Value: 
-Required: true
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -Remove
-Description: 
-Default Value: False
-Required: false
+### phoneNumber
+Enter the user's mobile number in international format (e.g. +491701234567) to add, update, or remove.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### Remove
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

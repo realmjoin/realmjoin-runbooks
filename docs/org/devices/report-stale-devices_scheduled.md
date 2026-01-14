@@ -1,4 +1,4 @@
-# Report Stale Devices_Scheduled
+# Report Stale Devices (Scheduled)
 
 Scheduled report of stale devices based on last activity date and platform.
 
@@ -26,41 +26,69 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 
 
 ## Parameters
-### -Days
-Description: Number of days without activity to be considered stale.
-Default Value: 30
-Required: false
+### Days
+Number of days without activity to be considered stale.
 
-### -Windows
-Description: Include Windows devices in the results.
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
 
-### -MacOS
-Description: Include macOS devices in the results.
-Default Value: True
-Required: false
+### Windows
+Include Windows devices in the results.
 
-### -iOS
-Description: Include iOS devices in the results.
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
-### -Android
-Description: Include Android devices in the results.
-Default Value: True
-Required: false
+### MacOS
+Include macOS devices in the results.
 
-### -EmailTo
-Description: Can be a single address or multiple comma-separated addresses (string).
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### iOS
+Include iOS devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### Android
+Include Android devices in the results.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### EmailTo
+Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
-Default Value: 
-Required: true
 
-### -EmailFrom
-Description: The sender email address. This needs to be configured in the runbook customization
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
+
+### EmailFrom
+The sender email address. This needs to be configured in the runbook customization
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

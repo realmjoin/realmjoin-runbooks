@@ -9,30 +9,47 @@ Creates a Viva Engage (Yammer) community using a Yammer dev token. The API-calls
 Org \ General \ Add Viva Engange Community
 
 ## Parameters
-### -CommunityName
-Description: The name of the community to create. max 264 chars.
-Default Value: Sample Community
-Required: true
+### CommunityName
+The name of the community to create. max 264 chars.
 
-### -CommunityPrivate
-Description: 
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | Sample Community |
+| Required | true |
+| Type | String |
 
-### -CommunityShowInDirectory
-Description: 
-Default Value: True
-Required: false
+### CommunityPrivate
 
-### -CommunityOwners
-Description: The owners of the community. Comma seperated list of UPNs.
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
 
-### -removeCreatorFromGroup
-Description: 
-Default Value: True
-Required: false
+### CommunityShowInDirectory
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### CommunityOwners
+The owners of the community. Comma separated list of UPNs.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### removeCreatorFromGroup
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)

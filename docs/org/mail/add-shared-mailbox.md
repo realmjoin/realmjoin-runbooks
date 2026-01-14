@@ -19,50 +19,86 @@ Org \ Mail \ Add Shared Mailbox
 
 
 ## Parameters
-### -MailboxName
-Description: The alias (mailbox name) for the shared mailbox.
-Default Value: 
-Required: true
+### MailboxName
+The alias (mailbox name) for the shared mailbox.
 
-### -DisplayName
-Description: The display name for the shared mailbox.
-Default Value: 
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | true |
+| Type | String |
 
-### -DomainName
-Description: The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
-Default Value: 
-Required: false
+### DisplayName
+The display name for the shared mailbox.
 
-### -Language
-Description: The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
-Default Value: en-US
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -DelegateTo
-Description: The user to delegate access to the shared mailbox.
-Default Value: 
-Required: false
+### DomainName
+The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
 
-### -AutoMapping
-Description: If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
-Default Value: False
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
-### -MessageCopyForSentAsEnabled
-Description: If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
-Default Value: True
-Required: false
+### Language
+The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
 
-### -MessageCopyForSendOnBehalfEnabled
-Description: If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
-Default Value: True
-Required: false
+| Property | Value |
+|----------|-------|
+| Default Value | en-US |
+| Required | false |
+| Type | String |
 
-### -DisableUser
-Description: If set to true, the associated EntraID user account will be disabled.
-Default Value: True
-Required: false
+### DelegateTo
+The user to delegate access to the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### AutoMapping
+If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### MessageCopyForSentAsEnabled
+If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### MessageCopyForSendOnBehalfEnabled
+If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### DisableUser
+If set to true, the associated EntraID user account will be disabled.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)
