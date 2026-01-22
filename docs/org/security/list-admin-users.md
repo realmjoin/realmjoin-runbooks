@@ -9,12 +9,6 @@ Admins will be queried for valid MFA methods.
 ## Where to find
 Org \ Security \ List Admin Users
 
-## Notes
-Permissions: MS Graph
-- User.Read.All
-- Directory.Read.All
-- RoleManagement.Read.All
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -29,6 +23,14 @@ Permissions: MS Graph
 | Property | Value |
 |----------|-------|
 | Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### pimEligibleUntilInCSV
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
 | Required | false |
 | Type | Boolean |
 
