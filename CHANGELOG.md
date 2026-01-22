@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-01-22
+  - Update Show LAPS Password Runbook
+    - Add check for empty credentials to prevent script failure when no LAPS password exists
+
 ## 2025-12-12
   - Fix nested group handling in Add Devices of Users to Group (scheduled) Runbook
 
