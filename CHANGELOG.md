@@ -2,8 +2,11 @@
 
 ## 2026-01-22
 
-  - Update Show LAPS Password Runbook
-    - Add check for empty credentials to prevent script failure when no LAPS password exists
+- Update Show LAPS Password Runbook
+  - Add check for empty credentials to prevent script failure when no LAPS password exists
+- Update List Admin Users Runbook
+  - Add info, if PIM role assignments are permanent or eligible and their expiration date
+  - Add switch to also enhance the csv export
 
 ## 2026-01-07
 

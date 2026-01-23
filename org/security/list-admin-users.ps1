@@ -6,12 +6,6 @@
   Will list users and service principals that hold a builtin AzureAD role.
   Admins will be queried for valid MFA methods.
 
-  .NOTES
-  Permissions: MS Graph
-  - User.Read.All
-  - Directory.Read.All
-  - RoleManagement.Read.All
-
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -61,10 +55,13 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export Admin-to-Role Report to Az Storage Account?" } )]
     [bool] $exportToFile = $true,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include PIM eligible until date in CSV" } )]
+    [bool] $pimEligibleUntilInCSV = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
     [string] $ContainerName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
@@ -90,15 +87,113 @@ param(
     [string] $CallerName
 )
 
+############################################################
+#region RJ Log Part
+############################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-Connect-RjRbGraph
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "exportToFile: $exportToFile" -Verbose
+Write-RjRbLog -Message "pimEligibleUntilInCSV: $pimEligibleUntilInCSV" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "QueryMfaState: $QueryMfaState" -Verbose
+Write-RjRbLog -Message "TrustEmailMfa: $TrustEmailMfa" -Verbose
+Write-RjRbLog -Message "TrustPhoneMfa: $TrustPhoneMfa" -Verbose
+Write-RjRbLog -Message "TrustSoftwareOathMfa: $TrustSoftwareOathMfa" -Verbose
+Write-RjRbLog -Message "TrustWinHelloMFA: $TrustWinHelloMFA" -Verbose
+
+#endregion RJ Log Part
+
+############################################################
+#region Functions
+############################################################
+
+#region Helper Functions
+##############################
+
+function Get-AllGraphPage {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
+        multiple pages by following the @odata.nextLink property in the response. It aggregates
+        all items into a single array and returns it.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/applications".
+
+        .EXAMPLE
+        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
+#>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = @()
+    $nextLink = $Uri
+
+    do {
+        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
+
+        if ($response.value) {
+            $allResults += $response.value
+        }
+        elseif ($response.'@odata.context') {
+            # Single item response
+            $allResults += $response
+        }
+
+        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+            $nextLink = $response.'@odata.nextLink'
+        }
+        else {
+            $nextLink = $null
+        }
+    } while ($nextLink)
+
+    return $allResults
+}
+
+#endregion Helper Functions
+
+#endregion Functions
+
+############################################################
+#region Connect Part
+############################################################
+
+Write-Output "Connecting to Microsoft Graph..."
+
+try {
+    $mgContext = Get-MgContext -ErrorAction SilentlyContinue
+    if (-not $mgContext) {
+        Connect-MgGraph -Identity -ContextScope Process -NoWelcome -ErrorAction Stop | Out-Null
+    }
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the runbook identity has the required Graph permissions and Microsoft.Graph.Authentication is available." -ErrorAction Continue
+    throw
+}
+
+#endregion Connect Part
+
+############################################################
+#region Data Collection
+############################################################
 
 ## Get builtin AzureAD Roles
-$roles = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true" -FollowPaging
+$roles = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleDefinitions?`$filter=isBuiltIn eq true"
 
 if ([array]$roles.count -eq 0) {
     "## Error - No AzureAD roles found. Missing permissions?"
@@ -106,10 +201,120 @@ if ([array]$roles.count -eq 0) {
 }
 
 ## Performance issue - Get all role assignments at once
-$allRoleHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -FollowPaging -ErrorAction SilentlyContinue
-$allPimHolders = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleEligibilitySchedules" -Beta -FollowPaging -ErrorAction SilentlyContinue
+try {
+    $allRoleHolders = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments"
+}
+catch {
+    $allRoleHolders = @()
+}
 
-$AdminUsers = @()
+try {
+    $allPimHolders = Get-AllGraphPage -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules"
+}
+catch {
+    $allPimHolders = @()
+}
+
+$getPimEligibleUntilText = {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Schedules
+    )
+
+    if (-not $Schedules -or $Schedules.Count -eq 0) {
+        return $null
+    }
+
+    $expirationTypes = $Schedules | ForEach-Object { $_.scheduleInfo.expiration.type }
+    if ($expirationTypes -contains 'noExpiration') {
+        return 'Permanent'
+    }
+
+    $endDates = @()
+    $maxDays = $null
+
+    foreach ($schedule in $Schedules) {
+        $expiration = $schedule.scheduleInfo.expiration
+        $expirationType = $expiration.type
+
+        if ($expirationType -eq 'endDateTime' -and $expiration.endDateTime) {
+            try {
+                $endDates += [datetime]$expiration.endDateTime
+            }
+            catch {
+            }
+            continue
+        }
+
+        if ($schedule.endDateTime) {
+            try {
+                $endDates += [datetime]$schedule.endDateTime
+            }
+            catch {
+            }
+            continue
+        }
+
+        if ($expirationType -eq 'afterDuration' -and $expiration.duration) {
+            $durationText = [string]$expiration.duration
+            $startText = $schedule.scheduleInfo.startDateTime
+            if (-not $startText) {
+                $startText = $schedule.startDateTime
+            }
+
+            if ($startText) {
+                try {
+                    $timeSpan = [System.Xml.XmlConvert]::ToTimeSpan($durationText)
+                    $endDates += ([datetime]$startText).Add($timeSpan)
+                    continue
+                }
+                catch {
+                }
+
+                if ($durationText -match '^P(?<days>\d+)D$') {
+                    $endDates += ([datetime]$startText).AddDays([int]$Matches.days)
+                    continue
+                }
+            }
+
+            if ($durationText -match '^P(?<days>\d+)D$') {
+                $days = [int]$Matches.days
+                if ($null -eq $maxDays -or $days -gt $maxDays) {
+                    $maxDays = $days
+                }
+                continue
+            }
+        }
+    }
+
+    if ($endDates.Count -gt 0) {
+        $latest = $endDates | Sort-Object | Select-Object -Last 1
+        return (Get-Date $latest -Format 'yyyy-MM-dd')
+    }
+
+    if ($null -ne $maxDays) {
+        if ($maxDays -eq 1) {
+            return 'in 1 day'
+        }
+        return "in $maxDays days"
+    }
+
+    return 'Unknown'
+}
+
+$pimEligibleUntilByPrincipalRole = @{}
+
+if ($allPimHolders -and ([array]$allPimHolders).Count -gt 0) {
+    $allPimHolders | Group-Object -Property { "$($_.principalId)|$($_.roleDefinitionId)" } | ForEach-Object {
+        $key = $_.Name
+        $value = & $getPimEligibleUntilText $_.Group
+        if ($value) {
+            $pimEligibleUntilByPrincipalRole[$key] = $value
+        }
+    }
+}
+
+$AdminUsers = @{}
 
 $roles | ForEach-Object {
     $roleDefinitionId = $_.id
@@ -121,15 +326,20 @@ $roles | ForEach-Object {
         "## - Active Assignments"
 
         $roleHolders | ForEach-Object {
-            $principal = Invoke-RjRbRestMethodGraph -Resource "/directoryObjects/$($_.principalId)" -ErrorAction SilentlyContinue
+            try {
+                $principal = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$($_.principalId)" -Method GET -OutputType PSObject -ErrorAction Stop
+            }
+            catch {
+                $principal = $null
+            }
             if (-not $principal) {
                 "  $($_.principalId) (Unknown principal)"
             }
             else {
                 if ($principal."@odata.type" -eq "#microsoft.graph.user") {
                     "  $($principal.userPrincipalName)"
-                    if (-not $AdminUsers.Contains($principal.userPrincipalName)) {
-                        $AdminUsers += $principal.userPrincipalName
+                    if (-not $AdminUsers.ContainsKey($principal.id)) {
+                        $AdminUsers[$principal.id] = $principal.userPrincipalName
                     }
                 }
                 elseif ($principal."@odata.type" -eq "#microsoft.graph.servicePrincipal") {
@@ -146,26 +356,36 @@ $roles | ForEach-Object {
 
         "## - PIM eligbile"
 
-        $pimHolders | ForEach-Object {
-            $principal = Invoke-RjRbRestMethodGraph -Resource "/directoryObjects/$($_.principalId)" -ErrorAction SilentlyContinue
+        $pimHolders | Group-Object -Property principalId | ForEach-Object {
+            $principalId = $_.Name
+            $eligibleUntilText = & $getPimEligibleUntilText $_.Group
+            $eligibleSuffix = " (PIM eligible until: $eligibleUntilText)"
+
+            try {
+                $principal = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/directoryObjects/$principalId" -Method GET -OutputType PSObject -ErrorAction Stop
+            }
+            catch {
+                $principal = $null
+            }
+
             if (-not $principal) {
-                "  $($_.principalId) (Unknown principal)"
+                "  $principalId (Unknown principal)$eligibleSuffix"
             }
             else {
                 if ($principal."@odata.type" -eq "#microsoft.graph.user") {
-                    "  $($principal.userPrincipalName)"
-                    if (-not $AdminUsers.Contains($principal.userPrincipalName)) {
-                        $AdminUsers += $principal.userPrincipalName
+                    "  $($principal.userPrincipalName)$eligibleSuffix"
+                    if (-not $AdminUsers.ContainsKey($principal.id)) {
+                        $AdminUsers[$principal.id] = $principal.userPrincipalName
                     }
                 }
                 elseif ($principal."@odata.type" -eq "#microsoft.graph.servicePrincipal") {
-                    "  $($principal.displayName) (ServicePrincipal)"
+                    "  $($principal.displayName) (ServicePrincipal)$eligibleSuffix"
                 }
                 elseif ($principal."@odata.type" -eq "#microsoft.graph.group") {
-                    "  $($principal.displayName) (Group)"
+                    "  $($principal.displayName) (Group)$eligibleSuffix"
                 }
                 else {
-                    "  $($principal.displayName) $($principal."@odata.type")"
+                    "  $($principal.displayName) $($principal."@odata.type")$eligibleSuffix"
                 }
             }
         }
@@ -175,6 +395,12 @@ $roles | ForEach-Object {
     }
 
 }
+
+#endregion Data Collection
+
+############################################################
+#region Output/Export
+############################################################
 
 if ($exportToFile) {
     if ((-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku) -or (-not $ResourceGroupName)) {
@@ -186,37 +412,50 @@ if ($exportToFile) {
 
 if ($exportToFile) {
     $filename = "AdminRoleOverview.csv"
-    [string]$output = "UPN,"
+    [string]$output = "UPN;"
     $roles | ForEach-Object {
         $output += $_.displayName + ";"
+        if ($pimEligibleUntilInCSV) {
+            $output += ($_.displayName + "_PIMEligibleUntil;")
+        }
     }
     $output > $filename
 
-    $AdminUsers | ForEach-Object {
-        $AdminUPN = $_
-        $AdminObject = Invoke-RjRbRestMethodGraph -Resource "/users/$AdminUPN"
+    $AdminUsers.GetEnumerator() | Sort-Object -Property Value | ForEach-Object {
+        $AdminId = $_.Key
+        $AdminUPN = $_.Value
         [string]$output = $AdminUPN + ";"
         $roles | ForEach-Object {
             $roleDefinitionId = $_.id
-            if ($allRoleHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminObject.id) }) {
+            if ($allRoleHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminId) }) {
                 $output += "x;"
             }
-            elseif ($allPimHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminObject.id) }) {
+            elseif ($pimEligibleUntilByPrincipalRole.ContainsKey("$AdminId|$roleDefinitionId")) {
                 $output += "p;"
             }
             else {
                 $output += ";"
             }
+
+            if ($pimEligibleUntilInCSV) {
+                $key = "$AdminId|$roleDefinitionId"
+                if ($pimEligibleUntilByPrincipalRole.ContainsKey($key)) {
+                    $output += ($pimEligibleUntilByPrincipalRole[$key] + ";")
+                }
+                else {
+                    $output += ";"
+                }
+            }
         }
         $output >> $filename
     }
     $content = Get-Content $filename
-    set-content -Path $filename -Value $content -Encoding utf8
+    Set-Content -Path $filename -Value $content -Encoding utf8
 
     Connect-RjRbAzAccount
 
     if (-not $ContainerName) {
-        $ContainerName = "adminoverview-" + (get-date -Format "yyyy-MM-dd")
+        $ContainerName = "adminoverview-" + (Get-Date -Format "yyyy-MM-dd")
     }
 
     # Make sure storage account exists
@@ -249,16 +488,23 @@ if ($exportToFile) {
     "## Expiry of Links: $EndTime"
 }
 
+#endregion Output/Export
+
+############################################################
+#region Main Part
+############################################################
+
 if ($QueryMfaState) {
     ""
     "## MFA State of each Admin:"
     $NoMFAAdmins = @()
-    $AdminUsers | Sort-Object -Unique | ForEach-Object {
-        $AdminUPN = $_
+    $AdminUsers.GetEnumerator() | Sort-Object -Property Value | ForEach-Object {
+        $AdminId = $_.Key
+        $AdminUPN = $_.Value
         $AuthenticationMethods = @()
-        [array]$MFAData = Invoke-RjRbRestMethodGraph -Resource "/users/$AdminUPN/authentication/methods"
+        [array]$MFAData = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/users/$AdminId/authentication/methods"
         foreach ($MFA in $MFAData) {
-            Switch ($MFA."@odata.type") {
+            switch ($MFA."@odata.type") {
                 "#microsoft.graph.microsoftAuthenticatorAuthenticationMethod" {
                     $AuthenticationMethods += "- MS Authenticator App"
                 }
@@ -306,4 +552,6 @@ if ($QueryMfaState) {
         $NoMFAAdmins | Sort-Object -Unique
     }
 }
+
+#endregion Main Part
 
