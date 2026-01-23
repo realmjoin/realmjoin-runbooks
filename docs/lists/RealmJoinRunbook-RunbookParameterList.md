@@ -1459,6 +1459,7 @@ List AzureAD role holders and their MFA state.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | exportToFile |  | Boolean |  |
+| pimEligibleUntilInCSV |  | Boolean |  |
 | ContainerName |  | String |  |
 | ResourceGroupName |  | String |  |
 | StorageAccountName |  | String |  |

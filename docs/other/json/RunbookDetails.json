@@ -9594,7 +9594,7 @@
     "SubFolder": "Security",
     "Synopsis": "List AzureAD role holders and their MFA state.",
     "Description": "Will list users and service principals that hold a builtin AzureAD role.\nAdmins will be queried for valid MFA methods.",
-    "Notes": "Permissions: MS Graph\n- User.Read.All\n- Directory.Read.All\n- RoleManagement.Read.All",
+    "Notes": null,
     "Parameters": [
       {
         "defaultValue": "",
@@ -9607,7 +9607,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "true",
         "type": {
           "name": "String"
@@ -9619,7 +9619,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "String"
@@ -9638,12 +9638,24 @@
         }
       },
       {
+        "defaultValue": "False",
+        "globbing": "false",
+        "name": "pimEligibleUntilInCSV",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "True",
         "globbing": "false",
         "name": "QueryMfaState",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9655,7 +9667,7 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "String"
@@ -9667,7 +9679,7 @@
         "name": "StorageAccountLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -9679,7 +9691,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "String"
@@ -9691,7 +9703,7 @@
         "name": "StorageAccountSku",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -9703,7 +9715,7 @@
         "name": "TrustEmailMfa",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9715,7 +9727,7 @@
         "name": "TrustPhoneMfa",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9727,7 +9739,7 @@
         "name": "TrustSoftwareOathMfa",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9739,7 +9751,7 @@
         "name": "TrustWinHelloMFA",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "Boolean"
