@@ -48,6 +48,13 @@ catch {
     throw ("credential query failed")
 }
 
+if ((-not $result) -or (-not $result.credentials) -or ($result.credentials.Count -eq 0)) {
+    "## No LAPS credentials found for DeviceId '$DeviceId'."
+    ""
+    "## The device may not have LAPS enabled or no password has been backed up yet."
+    return
+}
+
 "## Reporting LAPS credentials for Device $($result.deviceName) (DeviceId '$DeviceId')"
 "## Please ensure, the passwords are rotated after use."
 ""
