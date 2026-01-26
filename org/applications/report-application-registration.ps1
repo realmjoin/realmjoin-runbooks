@@ -173,6 +173,10 @@ $tenantId = $tenant.id
 
 Write-RjRbLog -Message "Tenant: $tenantDisplayName ($tenantId)" -Verbose
 
+# Connect RJ RunbookHelper for email reporting
+Write-Output "Graph connection for RJ RunbookHelper..."
+Connect-RjRbGraph
+
 Write-Output "Preparing temporary directory for CSV files..."
 # Create temporary directory for CSV files
 $tempDir = Join-Path (Get-Location).Path "AppRegReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
