@@ -1,5 +1,17 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-01-27
+
+- Update RealmJoin.RunbookHelper to v0.8.5 in all runbooks
+- Remove redundant email functions following runbooks:
+  - org/applications/report-expiring-application-credentials_scheduled
+  - org/devices/report-devices-without-primary-user
+  - org/devices/report-last-device-contact-by-range
+  - org/devices/report-stale-devices_scheduled
+  - org/devices/report-users-with-more-than-5-devices
+  - org/general/report-apple-mdm-cert-expiry_scheduled
+  - org/general/report-license-assignment_scheduled
+
 ## 2026-01-22
 
 - Update Show LAPS Password Runbook

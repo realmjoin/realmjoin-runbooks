@@ -33,7 +33,7 @@
         }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param(
     # RJ will pass the "DeviceID" != AAD "ObjectID". Be aware :)
