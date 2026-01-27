@@ -484,6 +484,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountSku |  | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  |  | List Admin Users | List AzureAD role holders and their MFA state. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br> |  | exportToFile |  | Boolean |  |
+|  |  |  |  |  |  | pimEligibleUntilInCSV |  | Boolean |  |
 |  |  |  |  |  |  | ContainerName |  | String |  |
 |  |  |  |  |  |  | ResourceGroupName |  | String |  |
 |  |  |  |  |  |  | StorageAccountName |  | String |  |

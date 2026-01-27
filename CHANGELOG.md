@@ -1,8 +1,17 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-01-22
+
+- Update Show LAPS Password Runbook
+  - Add check for empty credentials to prevent script failure when no LAPS password exists
+- Update List Admin Users Runbook
+  - Add info, if PIM role assignments are permanent or eligible and their expiration date
+  - Add switch to also enhance the csv export
+
 ## 2026-01-07
 
 - Fix error handling in list inactive enterprise applications runbook
+- Add parameter validation to rename device runbook
 
 ## 2026-01-06
 
