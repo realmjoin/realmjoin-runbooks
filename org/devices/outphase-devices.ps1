@@ -114,7 +114,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.0"
+$Version = "1.1.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # only modify parameters, if "actions" are set to non-default values
@@ -142,6 +142,8 @@ switch ($aadAction) {
 Connect-RjRbGraph
 
 $DeviceIds = @()
+$FoundDeviceSerialNotInIntune = $false
+$DeviceSerialNotInIntune = @()
 if ($DeviceListChoice -eq 1) {
     $DeviceList.Split(",") | ForEach-Object {
         $DeviceSerial = $_.Trim()
@@ -150,6 +152,8 @@ if ($DeviceListChoice -eq 1) {
             $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "serialNumber eq '$DeviceSerial'" -ErrorAction SilentlyContinue
             if (-not $targetDevice) {
                 "## Warning Message: Serialnumber '$DeviceSerial' not found in Intune."
+                $FoundDeviceSerialNotInIntune = $true
+                $DeviceSerialNotInIntune += $DeviceSerial
             }
             else {
                 "## Found device '$($targetDevice.deviceName)' (Serialnumber '$DeviceSerial') with DeviceId $($targetDevice.azureADDeviceId)"
@@ -280,5 +284,28 @@ $DeviceList.Split(",") | ForEach-Object {
         ""
         "## Device $($targetDevice.displayName) with DeviceId $DeviceId successfully removed/outphased."
         ""
+    }
+}
+
+# If "Remove the device from AutoPilot" and a serialnumber was not found in Intune, search for it in AutoPilot database and remove it from there
+if ($removeAutopilotDevice -and $FoundDeviceSerialNotInIntune) {
+    foreach ($DeviceSerial in $DeviceSerialNotInIntune) {
+        "## Searching Serialnumber '$DeviceSerial' in AutoPilot database ..."
+        $apDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$DeviceSerial'" -ErrorAction SilentlyContinue
+        if ($apDevice) {
+            "## Deleting Serialnumber '$DeviceSerial' (Autopilot ID: $($apDevice.id)) from Autopilot"
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities/$($apDevice.id)" -Method Delete | Out-Null
+            }
+            catch {
+                "## Error Message: $($_.Exception.Message)"
+                "## Please see 'All logs' for more details."
+                "## Execution stopped."
+                "## Warning Message: Deleting Autopilot ID: $($apDevice.id) from Autopilot failed!"
+            }
+        }
+        else {
+            "## Serialnumber '$DeviceSerial' not found in AutoPilot database. Skipping."
+        }
     }
 }
