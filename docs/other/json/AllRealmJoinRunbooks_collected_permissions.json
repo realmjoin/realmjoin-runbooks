@@ -1,18 +1,8 @@
 [
   {
-    "Name": "MS Graph",
-    "Id": "00000003-0000-0000-c000-000000000000",
-    "AppRoleAssignments": "Place.Read.All"
-  },
-  {
     "Name": "Office 365 Exchange Online",
     "Id": "00000002-0000-0ff1-ce00-000000000000",
     "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
-  },
-  {
-    "Name": "Office 365 Exchange Online API",
-    "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
   },
   {
     "Name": "Microsoft Graph",
@@ -38,7 +28,6 @@
       "DeviceManagementServiceConfig.Read.All",
       "DeviceManagementServiceConfig.ReadWrite.All",
       "Directory.Read.All",
-      "Directory.ReadWrite.All",
       "Group.Create",
       "Group.Read.All",
       "Group.ReadWrite.All",
@@ -71,5 +60,15 @@
       "Machine.RestrictExecution",
       "Ti.ReadWrite.All"
     ]
+  },
+  {
+    "Name": "MS Graph",
+    "Id": "00000003-0000-0000-c000-000000000000",
+    "AppRoleAssignments": "Place.Read.All"
+  },
+  {
+    "Name": "Office 365 Exchange Online API",
+    "Id": "00000002-0000-0ff1-ce00-000000000000",
+    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
   }
 ]

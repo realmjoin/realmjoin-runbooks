@@ -11,8 +11,9 @@ Group \ General \ Add Or Remove Nested Group
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - User.Read.All
   - Group.ReadWrite.All
-  - Directory.ReadWrite.All
+  - GroupMember.ReadWrite.All
 
 
 ## Parameters

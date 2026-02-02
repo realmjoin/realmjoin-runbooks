@@ -1472,15 +1472,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "User.Read.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -1560,15 +1561,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        },\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        },\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "User.Read.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         },
         {
@@ -1652,15 +1654,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "User.Read.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -1723,15 +1726,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "Group.ReadWrite.All"
           ]
         }
       ],
@@ -4515,7 +4517,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Syncs serial numbers from Intune devices to Azure AD device extension attributes.",
     "Description": "This runbook retrieves all managed devices from Intune, extracts their serial numbers,\nand updates the corresponding Azure AD device objects' extension attributes.\nThis helps maintain consistency between Intune and Azure AD device records.",
-    "Notes": "Permissions (Graph):\n- DeviceManagementManagedDevices.Read.All\n- Directory.ReadWrite.All\n- Device.ReadWrite.All",
+    "Notes": null,
     "Parameters": [
       {
         "defaultValue": "",
@@ -4617,16 +4619,17 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.ReadWrite.All\",\n        \"Device.ReadWrite.All\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"Organization.Read.All\",\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Device.ReadWrite.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Organization.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Directory.ReadWrite.All",
-            "Device.ReadWrite.All"
+            "Device.ReadWrite.All",
+            "Mail.Send"
           ]
         }
       ],
@@ -11438,7 +11441,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -11447,7 +11450,7 @@
           "AppRoleAssignments": [
             "User.ReadWrite.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -11680,7 +11683,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -11689,7 +11692,7 @@
           "AppRoleAssignments": [
             "User.ReadWrite.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -14275,15 +14278,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User Administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User Administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "User.ReadWrite.All"
           ]
         }
       ],
