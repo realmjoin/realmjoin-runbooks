@@ -133,8 +133,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String |  |
 |  |  |  |  |  |  | StorageAccountSku |  | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br> |  | Days |  | Int32 |  |
-|  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+|  |  | List Inactive Enterprise Applications | List application registrations, which had no recent user logons. | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br> |  | Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the caller executing this runbook. Used for auditing purposes. |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report | - **Type**: Microsoft Graph<br>&emsp;- Application.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 |  |  |  |  |  |  | IncludeDeletedApps |  | Boolean | Whether to include deleted application registrations in the report (default: true) |
@@ -484,6 +484,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountSku |  | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  |  | List Admin Users | List AzureAD role holders and their MFA state. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br> |  | exportToFile |  | Boolean |  |
+|  |  |  |  |  |  | pimEligibleUntilInCSV |  | Boolean |  |
 |  |  |  |  |  |  | ContainerName |  | String |  |
 |  |  |  |  |  |  | ResourceGroupName |  | String |  |
 |  |  |  |  |  |  | StorageAccountName |  | String |  |

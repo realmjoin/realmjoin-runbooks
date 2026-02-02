@@ -59,7 +59,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param
@@ -212,6 +212,11 @@ try {
                 elseif ($_.onPremisesSyncEnabled) {
                     "## Skipping on-premises group '$($_.displayName)'"
                     "## - please remove manually"
+                }
+                elseif ($_.isAssignableToRoles) {
+                    # this would require RoleManagement.ReadWrite.Directory permission and "Privileged Role Administrator" Role for RJ
+                    "## Skipping role group '$($_.displayName)'"
+                    "## - Role assignable groups can not be managed via RJ - Privileged Role Management permission required"
                 }
                 else {
                     "## Removing group membership '$($_.displayName)' from mailbox '$UserName'"

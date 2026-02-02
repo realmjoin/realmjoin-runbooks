@@ -153,7 +153,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]
@@ -339,6 +339,15 @@ if ($ChangeGroupsSelector -ne 0) {
         if ($GroupToAdd -ne $_.DisplayName) {
             if ($_.groupTypes -contains "DynamicMembership") {
                 "## Group '$($_.DisplayName)' is a dynamic group - skipping."
+            }
+            elseif ($_.isAssignableToRoles) {
+                # this would require RoleManagement.ReadWrite.Directory permission and "Privileged Role Administrator" Role for RJ
+                "## Skipping role group '$($_.displayName)'"
+                "## - Role assignable groups can not be managed via RJ - Privileged Role Management permission required"
+            }
+            elseif ($_.onPremisesSyncEnabled) {
+                "## Skipping on-premises group '$($_.displayName)'"
+                "## - please remove manually"
             }
             else {
                 "## Removing group '$($_.DisplayName)' from $UserName"

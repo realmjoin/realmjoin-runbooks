@@ -18,7 +18,7 @@ Show a local admin password for a device.
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -29,7 +29,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -46,6 +46,13 @@ catch {
     $_
     ""
     throw ("credential query failed")
+}
+
+if ((-not $result) -or (-not $result.credentials) -or ($result.credentials.Count -eq 0)) {
+    "## No LAPS credentials found for DeviceId '$DeviceId'."
+    ""
+    "## The device may not have LAPS enabled or no password has been backed up yet."
+    return
 }
 
 "## Reporting LAPS credentials for Device $($result.deviceName) (DeviceId '$DeviceId')"

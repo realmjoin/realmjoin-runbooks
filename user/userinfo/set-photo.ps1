@@ -40,7 +40,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 "## Trying to update user photo of '$UserName' from URL:"
 "## $PhotoURI"

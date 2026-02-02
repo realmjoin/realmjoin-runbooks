@@ -18,7 +18,7 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param (
   [Parameter(Mandatory = $true)]
@@ -31,8 +31,32 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+# parameter validation
+$NewDeviceName = ($NewDeviceName ?? "").Trim()
+
+# Windows hostname / Intune SetDeviceName: assume max 15 chars
+if ($NewDeviceName.Length -gt 15) {
+  throw "Parameter 'NewDeviceName' must be max. 15 characters (Windows hostname limit). Provided length: $($NewDeviceName.Length)."
+}
+
+# Must not contain spaces
+if ($NewDeviceName -match '\s') {
+  throw "Parameter 'NewDeviceName' must not contain whitespace. Provided value: '$($NewDeviceName)'."
+}
+
+# Allowed characters: A-Z, a-z, 0-9, '-' (no leading/trailing '-')
+if ($NewDeviceName -notmatch '^[A-Za-z0-9](?:[A-Za-z0-9-]{0,13}[A-Za-z0-9])?$') {
+  throw "Parameter 'NewDeviceName' contains invalid characters. Allowed: letters, digits, hyphen (-); must start/end with alphanumeric; max 15 chars. Provided value: '$($NewDeviceName)'."
+}
+
+# Must not be only digits (DNS restriction in AD domains / Intune rule)
+if ($NewDeviceName -match '^\d+$') {
+  throw "Parameter 'NewDeviceName' must not consist of digits only. Provided value: '$($NewDeviceName)'."
+}
+
 
 Connect-RjRbGraph
 
