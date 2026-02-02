@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-01-30
+
+- Update org/devices/outphase-devices Runbook
+  - Added handling for serial numbers not found in Intune, but provided for outphasing regarding autopilot devices.
+
 ## 2026-01-27
 
 - Update RealmJoin.RunbookHelper to v0.8.5 in all runbooks
