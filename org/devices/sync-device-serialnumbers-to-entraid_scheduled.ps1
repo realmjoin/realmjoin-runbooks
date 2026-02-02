@@ -7,12 +7,6 @@
   and updates the corresponding Azure AD device objects' extension attributes.
   This helps maintain consistency between Intune and Azure AD device records.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementManagedDevices.Read.All
-  - Directory.ReadWrite.All
-  - Device.ReadWrite.All
-
   .PARAMETER ExtensionAttributeName
   The name of the extension attribute to update with the serial number.
 
