@@ -290,8 +290,9 @@ $DeviceList.Split(",") | ForEach-Object {
 # If "Remove the device from AutoPilot" and a serialnumber was not found in Intune, search for it in AutoPilot database and remove it from there
 if ($removeAutopilotDevice -and $FoundDeviceSerialNotInIntune) {
     foreach ($DeviceSerial in $DeviceSerialNotInIntune) {
+        ""
         "## Searching Serialnumber '$DeviceSerial' in AutoPilot database ..."
-        $apDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$DeviceSerial'" -ErrorAction SilentlyContinue
+        $apDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -OdFilter "contains(serialNumber,'$($DeviceSerial)')" -ErrorAction SilentlyContinue
         if ($apDevice) {
             "## Deleting Serialnumber '$DeviceSerial' (Autopilot ID: $($apDevice.id)) from Autopilot"
             try {
