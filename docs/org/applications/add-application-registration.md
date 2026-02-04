@@ -15,9 +15,12 @@ Org \ Applications \ Add Application Registration
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Application.ReadWrite.All
+  - Application.ReadWrite.OwnedBy
   - Organization.Read.All
   - Group.ReadWrite.All
+
+### RBAC roles
+- Application Developer
 
 
 ## Parameters

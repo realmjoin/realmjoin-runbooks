@@ -2653,20 +2653,22 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.OwnedBy\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Application Developer\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Application.ReadWrite.All",
+            "Application.ReadWrite.OwnedBy",
             "Organization.Read.All",
             "Group.ReadWrite.All"
           ]
         }
       ],
-      "Roles": [],
+      "Roles": [
+        "Application Developer"
+      ],
       "ManualPermissions": []
     }
   },
@@ -2713,19 +2715,21 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.OwnedBy\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Application Developer\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Application.ReadWrite.All",
+            "Application.ReadWrite.OwnedBy",
             "Group.ReadWrite.All"
           ]
         }
       ],
-      "Roles": [],
+      "Roles": [
+        "Application Developer"
+      ],
       "ManualPermissions": []
     }
   },
@@ -3415,20 +3419,22 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.OwnedBy\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Application Developer\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Application.ReadWrite.All",
+            "Application.ReadWrite.OwnedBy",
             "Organization.Read.All",
             "Group.ReadWrite.All"
           ]
         }
       ],
-      "Roles": [],
+      "Roles": [
+        "Application Developer"
+      ],
       "ManualPermissions": []
     }
   },
