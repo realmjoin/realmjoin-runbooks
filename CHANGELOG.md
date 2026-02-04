@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-02-04
+
+- Update documentation for permissions used by the Application Registration runbooks
+  - Replaced the required app role assignment **Application.ReadWrite.All** with **Application.ReadWrite.OwnedBy** to improve security.
+  - Removed **Directory.ReadWrite.All**, as it is not required for the operations performed by these runbooks.
+
 ## 2026-01-30
 
 - Update org/devices/outphase-devices Runbook
