@@ -4,12 +4,14 @@
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Application.ReadWrite.All",
+                "Application.ReadWrite.OwnedBy",
                 "Organization.Read.All",
                 "Group.ReadWrite.All"
             ]
         }
     ],
-    "Roles": [],
+    "Roles": [
+        "Application Developer"
+    ],
     "ManualPermissions": []
 }
