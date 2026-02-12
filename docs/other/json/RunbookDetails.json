@@ -12,6 +12,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "CallerName",
         "parameterValue": "String",
@@ -24,6 +29,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the AVD Session Host device to restart. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "DeviceName",
         "parameterValue": "String",
@@ -36,6 +46,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "SubscriptionIds",
         "parameterValue": "String[]",
@@ -71,6 +86,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "CallerName",
         "parameterValue": "String",
@@ -83,6 +103,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "DeviceName",
         "parameterValue": "String",
@@ -95,6 +120,11 @@
       },
       {
         "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false."
+          }
+        ],
         "globbing": "false",
         "name": "DrainMode",
         "parameterValue": "Boolean",
@@ -107,6 +137,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "SubscriptionIds",
         "parameterValue": "String[]",
@@ -1437,15 +1472,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "User.Read.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -1525,15 +1561,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        },\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        },\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "User.Read.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         },
         {
@@ -1617,15 +1654,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "User.Read.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -1688,15 +1726,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "Group.ReadWrite.All"
           ]
         }
       ],
@@ -2616,20 +2653,22 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.OwnedBy\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Application Developer\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Application.ReadWrite.All",
+            "Application.ReadWrite.OwnedBy",
             "Organization.Read.All",
             "Group.ReadWrite.All"
           ]
         }
       ],
-      "Roles": [],
+      "Roles": [
+        "Application Developer"
+      ],
       "ManualPermissions": []
     }
   },
@@ -2676,19 +2715,21 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.OwnedBy\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Application Developer\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Application.ReadWrite.All",
+            "Application.ReadWrite.OwnedBy",
             "Group.ReadWrite.All"
           ]
         }
       ],
-      "Roles": [],
+      "Roles": [
+        "Application Developer"
+      ],
       "ManualPermissions": []
     }
   },
@@ -2828,7 +2869,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "CallerName is tracked purely for auditing purposes"
+            "Text": "Name of the caller executing this runbook. Used for auditing purposes."
           }
         ],
         "globbing": "false",
@@ -2843,6 +2884,11 @@
       },
       {
         "defaultValue": "90",
+        "description": [
+          {
+            "Text": "Number of days without user logon to consider an application as inactive. Default is 90 days."
+          }
+        ],
         "globbing": "false",
         "name": "Days",
         "parameterValue": "Int32",
@@ -3373,20 +3419,22 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.OwnedBy\",\n                \"Organization.Read.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Application Developer\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Application.ReadWrite.All",
+            "Application.ReadWrite.OwnedBy",
             "Organization.Read.All",
             "Group.ReadWrite.All"
           ]
         }
       ],
-      "Roles": [],
+      "Roles": [
+        "Application Developer"
+      ],
       "ManualPermissions": []
     }
   },
@@ -4475,7 +4523,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Syncs serial numbers from Intune devices to Azure AD device extension attributes.",
     "Description": "This runbook retrieves all managed devices from Intune, extracts their serial numbers,\nand updates the corresponding Azure AD device objects' extension attributes.\nThis helps maintain consistency between Intune and Azure AD device records.",
-    "Notes": "Permissions (Graph):\n- DeviceManagementManagedDevices.Read.All\n- Directory.ReadWrite.All\n- Device.ReadWrite.All",
+    "Notes": null,
     "Parameters": [
       {
         "defaultValue": "",
@@ -4577,16 +4625,17 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.ReadWrite.All\",\n        \"Device.ReadWrite.All\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"Organization.Read.All\",\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Device.ReadWrite.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Organization.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Directory.ReadWrite.All",
-            "Device.ReadWrite.All"
+            "Device.ReadWrite.All",
+            "Mail.Send"
           ]
         }
       ],
@@ -5811,7 +5860,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "The owners of the community. Comma seperated list of UPNs."
+            "Text": "The owners of the community. Comma separated list of UPNs."
           }
         ],
         "globbing": "false",
@@ -9554,7 +9603,7 @@
     "SubFolder": "Security",
     "Synopsis": "List AzureAD role holders and their MFA state.",
     "Description": "Will list users and service principals that hold a builtin AzureAD role.\nAdmins will be queried for valid MFA methods.",
-    "Notes": "Permissions: MS Graph\n- User.Read.All\n- Directory.Read.All\n- RoleManagement.Read.All",
+    "Notes": null,
     "Parameters": [
       {
         "defaultValue": "",
@@ -9567,7 +9616,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "true",
         "type": {
           "name": "String"
@@ -9579,7 +9628,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "String"
@@ -9598,12 +9647,24 @@
         }
       },
       {
+        "defaultValue": "False",
+        "globbing": "false",
+        "name": "pimEligibleUntilInCSV",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "True",
         "globbing": "false",
         "name": "QueryMfaState",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9615,7 +9676,7 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "String"
@@ -9627,7 +9688,7 @@
         "name": "StorageAccountLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -9639,7 +9700,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "String"
@@ -9651,7 +9712,7 @@
         "name": "StorageAccountSku",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -9663,7 +9724,7 @@
         "name": "TrustEmailMfa",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9675,7 +9736,7 @@
         "name": "TrustPhoneMfa",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9687,7 +9748,7 @@
         "name": "TrustSoftwareOathMfa",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9699,7 +9760,7 @@
         "name": "TrustWinHelloMFA",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10421,6 +10482,11 @@
     "Parameters": [
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "CallerName",
         "parameterValue": "String",
@@ -10433,6 +10499,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "SubscriptionIds",
         "parameterValue": "String[]",
@@ -10445,6 +10516,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "The username (UPN) of the user to sign out from their AVD session. Hidden in UI."
+          }
+        ],
         "globbing": "false",
         "name": "UserName",
         "parameterValue": "String",
@@ -11371,7 +11447,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -11380,7 +11456,7 @@
           "AppRoleAssignments": [
             "User.ReadWrite.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -11613,7 +11689,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User administrator\"\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -11622,7 +11698,7 @@
           "AppRoleAssignments": [
             "User.ReadWrite.All",
             "Group.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "GroupMember.ReadWrite.All"
           ]
         }
       ],
@@ -14208,15 +14284,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\",\n                \"Directory.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User Administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"User Administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.ReadWrite.All",
-            "Directory.ReadWrite.All"
+            "User.ReadWrite.All"
           ]
         }
       ],

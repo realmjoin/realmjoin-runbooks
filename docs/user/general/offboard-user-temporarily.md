@@ -13,7 +13,7 @@ User \ General \ Offboard User Temporarily
 - **Type**: Microsoft Graph
   - User.ReadWrite.All
   - Group.ReadWrite.All
-  - Directory.ReadWrite.All
+  - GroupMember.ReadWrite.All
 
 ### Permission notes
 Azure IaaS: Contributor access on subscription or resource group used for the export

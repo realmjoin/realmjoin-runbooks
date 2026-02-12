@@ -63,7 +63,7 @@ jobs:
               -includeNotes `
               -includeParameters `
               -includeAdditionalLinks `
-              -outputMode "SeperateFileSeperateFolder" `
+              -outputMode "SeparateFileSeparateFolder" `
               -nameTOCFilesAlwaysREADME `
               -outputFolder $env:OUTPUT_PATH_DOCS `
               -rootFolder $env:ROOT_PATH `
@@ -93,6 +93,7 @@ jobs:
               -createPermissionList `
               -createParameterList `
               -createCustomRunbookList `
+              -createAutomationAccountNameList `
               -outputFolder $env:OUTPUT_PATH_LISTS `
               -rootFolder $env:ROOT_PATH
 

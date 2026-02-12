@@ -16,6 +16,7 @@ Azure: Desktop Virtualization Host Pool Contributor on Subscription which contai
 
 ## Parameters
 ### UserName
+The username (UPN) of the user to sign out from their AVD session. Hidden in UI.
 
 | Property | Value |
 |----------|-------|
@@ -24,6 +25,7 @@ Azure: Desktop Virtualization Host Pool Contributor on Subscription which contai
 | Type | String |
 
 ### SubscriptionIds
+Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
 
 | Property | Value |
 |----------|-------|

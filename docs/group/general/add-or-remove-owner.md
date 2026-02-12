@@ -11,8 +11,9 @@ Group \ General \ Add Or Remove Owner
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - User.Read.All
   - Group.ReadWrite.All
-  - Directory.ReadWrite.All
+  - GroupMember.ReadWrite.All
 - **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
 

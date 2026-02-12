@@ -21,7 +21,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }, Az.Storage, ExchangeOnlineManagement
 
 param (
     [Parameter(Mandatory = $true)]

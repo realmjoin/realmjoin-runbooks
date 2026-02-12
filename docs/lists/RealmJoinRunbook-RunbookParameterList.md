@@ -186,9 +186,9 @@ Reboots a specific AVD Session Host.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| DeviceName | ✓ | String |  |
-| SubscriptionIds | ✓ | String Array |  |
-| CallerName | ✓ | String |  |
+| DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 
 <a name='device-avd-toggle-drain-mode'></a>
 
@@ -197,10 +197,10 @@ Sets Drainmode on true or false for a specific AVD Session Host.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| DeviceName | ✓ | String |  |
-| DrainMode | ✓ | Boolean |  |
-| SubscriptionIds | ✓ | String Array |  |
-| CallerName | ✓ | String |  |
+| DeviceName | ✓ | String | The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI. |
+| DrainMode | ✓ | Boolean | Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -611,8 +611,8 @@ List application registrations, which had no recent user logons.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 |  |
-| CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+| Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+| CallerName | ✓ | String | Name of the caller executing this runbook. Used for auditing purposes. |
 
 <a name='organization-applications-report-application-registration'></a>
 
@@ -964,7 +964,7 @@ Creates a Viva Engage (Yammer) community via the Yammer API
 | CommunityName | ✓ | String | The name of the community to create. max 264 chars. |
 | CommunityPrivate |  | Boolean |  |
 | CommunityShowInDirectory |  | Boolean |  |
-| CommunityOwners |  | String | The owners of the community. Comma seperated list of UPNs. |
+| CommunityOwners |  | String | The owners of the community. Comma separated list of UPNs. |
 | removeCreatorFromGroup |  | Boolean |  |
 | CallerName | ✓ | String |  |
 
@@ -1459,6 +1459,7 @@ List AzureAD role holders and their MFA state.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | exportToFile |  | Boolean |  |
+| pimEligibleUntilInCSV |  | Boolean |  |
 | ContainerName |  | String |  |
 | ResourceGroupName |  | String |  |
 | StorageAccountName |  | String |  |
@@ -1581,9 +1582,9 @@ Removes (Signs Out) a specific User from their AVD Session.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String |  |
-| SubscriptionIds | ✓ | String Array |  |
-| CallerName | ✓ | String |  |
+| UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 

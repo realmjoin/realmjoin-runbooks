@@ -10,18 +10,13 @@ This helps maintain consistency between Intune and Azure AD device records.
 ## Where to find
 Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 
-## Notes
-Permissions (Graph):
-- DeviceManagementManagedDevices.Read.All
-- Directory.ReadWrite.All
-- Device.ReadWrite.All
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - Organization.Read.All
   - DeviceManagementManagedDevices.Read.All
-  - Directory.ReadWrite.All
   - Device.ReadWrite.All
+  - Mail.Send
 
 
 ## Parameters

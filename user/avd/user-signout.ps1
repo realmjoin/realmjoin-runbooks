@@ -6,6 +6,15 @@
   This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
   The SubscriptionIds value must be defined in the runbooks customization.
 
+  .PARAMETER UserName
+  The username (UPN) of the user to sign out from their AVD session. Hidden in UI.
+
+  .PARAMETER SubscriptionIds
+  Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
+
+  .PARAMETER CallerName
+  The name of the user executing the runbook. Used for auditing purposes. Hidden in UI.
+
   .INPUTS
   RunbookCustomization: {
         "Parameters": {
@@ -22,7 +31,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 #Requires -Modules @{ModuleName = "Az.DesktopVirtualization"; ModuleVersion = "5.4.1" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.1.1" }
 

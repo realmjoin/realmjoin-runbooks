@@ -12,7 +12,6 @@ User \ Security \ Revoke Or Restore Access
 ### Application permissions
 - **Type**: Microsoft Graph
   - User.ReadWrite.All
-  - Directory.ReadWrite.All
 
 ### RBAC roles
 - User Administrator
