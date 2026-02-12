@@ -9,6 +9,30 @@
     The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
     throughout the process.
 
+.PARAMETER applicationName
+    The display name of the Global Secure Access application to create. Must be unique within the tenant.
+
+.PARAMETER applicationType
+    The type of GSA application to create. Options: "nonwebapp" (Enterprise App) or "quickaccessapp" (Quick Access App).
+
+.PARAMETER connectorGroup
+    The connectorGroup to be used for the application. Must be defined in the Runbook Customization.
+
+.PARAMETER destinationHost
+    The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20).
+
+.PARAMETER destinationType
+    The type of destination specified. Options: "fqdn", "ip", "ipRangeCidr", or "ipRange". Hidden in UI as it's automatically determined from destinationHost format.
+
+.PARAMETER ports
+    The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080).
+
+.PARAMETER protocol
+    The network protocol to use. Options: "tcp", "udp", or "tcp,udp". Default is "tcp".
+
+.PARAMETER CallerName
+    The name of the user executing the runbook. Used for auditing purposes. Hidden in UI.
+
 .INPUTS
     RunbookCustomization: {
     "Parameters": {
@@ -36,8 +60,8 @@
         "CallerName": {
             "Hide": true
         },
-        "connector": {
-            "DisplayName": "Connector (Please define your connectors in the Runbook Customization)",
+        "connectorGroup": {
+            "DisplayName": "Connector Group (Please define your connector groups in the Runbook Customization)",
             "Hide": false
         },
         "destinationHost": {
@@ -83,7 +107,7 @@ param(
     [string] $applicationName,
     [Parameter(Mandatory = $true)]
     [string] $applicationType, # nonwebapp | quickaccessapp
-    [string] $connector,
+    [string] $connectorGroup,
     [string] $destinationHost,
     [string] $destinationType, # fqdn | ip | ipRangeCidr | ipRange
     [string] $ports,
@@ -192,7 +216,7 @@ if ($continue) {
 }
 
 $segmentVariables = @{
-    connector       = $connector
+    connectorGroup       = $connectorGroup
     destinationHost = $destinationHost
     ports           = $ports
 }
@@ -202,8 +226,8 @@ $emptyVars = $segmentVariables.GetEnumerator() | Where-Object { [string]::IsNull
 if ($emptyVars.Count -gt 0) {
     "## The following variables are empty: $($emptyVars -join ', '). Skipping segment addition."
 } else {
-    # Get Connector Group Id
-    $connectorGroupResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups?`$filter=name eq 'Default'" -ContentType "application/json" -ErrorAction Stop
+    # Get connectorGroup Id
+    $connectorGroupResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups?`$filter=name eq '$connectorGroup'" -ContentType "application/json" -ErrorAction Stop
     $connectorGroupId = $connectorGroupResponse.value[0].id
     "## Using Connector Group Id: $connectorGroupId"
 
