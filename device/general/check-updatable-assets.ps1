@@ -14,10 +14,10 @@
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
-            "CallerName": {
+            "DeviceId": {
                 "Hide": true
             },
-            "DeviceId": {
+            "CallerName": {
                 "Hide": true
             }
         }
