@@ -3,7 +3,7 @@
   Assign a new AutoPilot GroupTag to this device.
 
   .DESCRIPTION
-  Assign a new AutoPilot GroupTag to this device.
+  This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to trigger a new deployment with different policies and applications for the device.
 
   .INPUTS
   RunbookCustomization: {
