@@ -7,12 +7,6 @@
   and updates the corresponding Azure AD device objects' extension attributes.
   This helps maintain consistency between Intune and Azure AD device records.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementManagedDevices.Read.All
-  - Directory.ReadWrite.All
-  - Device.ReadWrite.All
-
   .PARAMETER ExtensionAttributeName
   The name of the extension attribute to update with the serial number.
 
@@ -32,7 +26,7 @@
   Caller name for auditing purposes.
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param(
     [int] $ExtensionAttributeNumber = 1,

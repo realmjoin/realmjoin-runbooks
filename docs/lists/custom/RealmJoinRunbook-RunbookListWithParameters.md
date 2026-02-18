@@ -66,19 +66,19 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Unenroll Updatable Assets | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group to unenroll its members. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete). |
-|  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group. | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
+|  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
 |  |  |  |  |  |  | NestedGroupID | ✓ | String |  |
 |  |  |  |  |  |  | Remove |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Add Or Remove Owner | Add/remove owners to/from an Office 365 group. | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | GroupID | ✓ | String |  |
+|  |  | Add Or Remove Owner | Add/remove owners to/from an Office 365 group. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | GroupID | ✓ | String |  |
 |  |  |  |  |  |  | UserId | ✓ | String |  |
 |  |  |  |  |  |  | Remove |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Add Or Remove User | Add/remove users to/from a group. | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
+|  |  | Add Or Remove User | Add/remove users to/from a group. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
 |  |  |  |  |  |  | UserId | ✓ | String |  |
 |  |  |  |  |  |  | Remove |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Change Visibility | Change a group's visibility | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
+|  |  | Change Visibility | Change a group's visibility | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
 |  |  |  |  |  |  | Public |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  |  | List All Members | Retrieves the members of a specified EntraID group, including members from nested groups. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- User.Read.All<br> |  | GroupId | ✓ | String | The ObjectId of the EntraID group whose membership is to be retrieved. |
@@ -104,7 +104,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  | Teams | Archive Team | Archive a team. | - **Type**: Microsoft Graph<br>&emsp;- TeamSettings.ReadWrite.All<br> |  | GroupID | ✓ | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-| Organization | Applications | Add Application Registration | Add an application registration to Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Organization.Read.All<br>&emsp;- Group.ReadWrite.All<br> |  | ApplicationName | ✓ | String | The display name of the application registration to create. |
+| Organization | Applications | Add Application Registration | Add an application registration to Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.OwnedBy<br>&emsp;- Organization.Read.All<br>&emsp;- Group.ReadWrite.All<br> | - Application Developer<br> | ApplicationName | ✓ | String | The display name of the application registration to create. |
 |  |  |  |  |  |  | RedirectURI |  | String | Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA). |
 |  |  |  |  |  |  | signInAudience |  | String | Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI. |
 |  |  |  |  |  |  | webRedirectURI |  | String | Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth"). |
@@ -124,7 +124,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | implicitGrantAccessTokens |  | Boolean | Enable implicit grant flow for access tokens. Default is false. |
 |  |  |  |  |  |  | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. Default is false. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. |
-|  |  | Delete Application Registration | Delete an application registration from Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  | ClientId | ✓ | String |  |
+|  |  | Delete Application Registration | Delete an application registration from Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.OwnedBy<br>&emsp;- Group.ReadWrite.All<br> | - Application Developer<br> | ClientId | ✓ | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Application.Read.All<br>Azure IaaS: - Contributor - access on subscription or resource group used for the export<br> |  | entAppsOnly |  | Boolean |  |
 |  |  |  |  |  |  | ContainerName |  | String |  |
@@ -146,7 +146,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | EmailTo | ✓ | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Update Application Registration | Update an application registration in Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Organization.Read.All<br>&emsp;- Group.ReadWrite.All<br> |  | ClientId | ✓ | String |  |
+|  |  | Update Application Registration | Update an application registration in Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.OwnedBy<br>&emsp;- Organization.Read.All<br>&emsp;- Group.ReadWrite.All<br> | - Application Developer<br> | ClientId | ✓ | String |  |
 |  |  |  |  |  |  | RedirectURI |  | String |  |
 |  |  |  |  |  |  | webRedirectURI |  | String | Only for UI used |
 |  |  |  |  |  |  | publicClientRedirectURI |  | String |  |
@@ -217,7 +217,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Report Users With More Than 5-Devices | Reports users with more than five registered devices in Entra ID. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Internal parameter for tracking purposes |
-|  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Syncs serial numbers from Intune devices to Azure AD device extension attributes. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.ReadWrite.All<br>&emsp;- Device.ReadWrite.All<br> |  | ExtensionAttributeNumber |  | Int32 |  |
+|  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Syncs serial numbers from Intune devices to Azure AD device extension attributes. | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | ExtensionAttributeNumber |  | Int32 |  |
 |  |  |  |  |  |  | ProcessAllDevices |  | Boolean | If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD. |
 |  |  |  |  |  |  | MaxDevicesToProcess |  | Int32 | Maximum number of devices to process in a single run. Use 0 for unlimited. |
 |  |  |  |  |  |  | sendReportTo |  | String | Email address to send the report to. If empty, no email will be sent. |
@@ -566,7 +566,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  |  | List Manager | List manager information for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br> |  | UserName | ✓ | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Offboard User Permanently | Permanently offboard a user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br>Azure IaaS: Contributor access on subscription or resource group used for the export<br> | - User administrator<br> | UserName | ✓ | String |  |
+|  |  | Offboard User Permanently | Permanently offboard a user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>Azure IaaS: Contributor access on subscription or resource group used for the export<br> | - User administrator<br> | UserName | ✓ | String |  |
 |  |  |  |  |  |  | DeleteUser |  | Boolean |  |
 |  |  |  |  |  |  | DisableUser |  | Boolean |  |
 |  |  |  |  |  |  | RevokeAccess |  | Boolean |  |
@@ -584,7 +584,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ManagerAsReplacementOwner |  | Boolean |  |
 |  |  |  |  |  |  | ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Offboard User Temporarily | Temporarily offboard a user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br>Azure IaaS: Contributor access on subscription or resource group used for the export<br> | - User administrator<br> | UserName | ✓ | String |  |
+|  |  | Offboard User Temporarily | Temporarily offboard a user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>Azure IaaS: Contributor access on subscription or resource group used for the export<br> | - User administrator<br> | UserName | ✓ | String |  |
 |  |  |  |  |  |  | RevokeAccess |  | Boolean |  |
 |  |  |  |  |  |  | DisableUser |  | Boolean |  |
 |  |  |  |  |  |  | exportResourceGroupName |  | String |  |
@@ -728,7 +728,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | EnableUserIfNeeded |  | Boolean |  |
 |  |  |  |  |  |  | ForceChangePasswordNextSignIn |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
-|  |  | Revoke Or Restore Access | Revoke user access and all active tokens or re-enable user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String |  |
+|  |  | Revoke Or Restore Access | Revoke user access and all active tokens or re-enable user. | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String |  |
 |  |  |  |  |  |  | Revoke |  | Boolean |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 |  |  | Set Or Remove Mobile Phone MFA | Add, update or remove a user's mobile phone MFA information. | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String |  |

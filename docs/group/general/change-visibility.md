@@ -12,7 +12,6 @@ Group \ General \ Change Visibility
 ### Application permissions
 - **Type**: Microsoft Graph
   - Group.ReadWrite.All
-  - Directory.ReadWrite.All
 
 
 ## Parameters
