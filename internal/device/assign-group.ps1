@@ -5,15 +5,6 @@
   .DESCRIPTION
   Add a device to a group. Primarily intended for Windows 11 Self Service upgrades.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Group.ReadWrite.All
-  - Directory.ReadWrite.All
-
-  if "UserGroupId"/"AddUserToGroup" is used:
-  - DeviceManagementManagedDevices.Read.All
-
   .EXAMPLE
           "rjgit-internal_device_assign-group": {
             "Parameters": {
