@@ -5,10 +5,22 @@
   .DESCRIPTION
   This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to trigger a new deployment with different policies and applications for the device.
 
+  .PARAMETER DeviceId
+  The device ID of the target device.
+
+  .PARAMETER newGroupTag
+  The new AutoPilot GroupTag to assign to the device.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
+
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
       "DeviceId": {
+          "Hide": true
+      },
+      "CallerName": {
           "Hide": true
       }
     }

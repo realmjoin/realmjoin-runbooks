@@ -1,13 +1,39 @@
 <#
-  .SYNOPSIS
-  Remove/Outphase a windows device
+    .SYNOPSIS
+    Remove/Outphase a windows device
 
-  .DESCRIPTION
-  Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+    .DESCRIPTION
+    Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER DeviceId
+    The device ID of the target device.
 
+    .PARAMETER intuneAction
+    Determines the Intune action to perform (wipe, delete, or none).
+
+    .PARAMETER aadAction
+    Determines the Entra ID (Azure AD) action to perform (delete, disable, or none).
+
+    .PARAMETER wipeDevice
+    If set to true, triggers a wipe action in Intune.
+
+    .PARAMETER removeIntuneDevice
+    If set to true, deletes the Intune device object.
+
+    .PARAMETER removeAutopilotDevice
+    If set to true, deletes the AutoPilot device identity.
+
+    .PARAMETER removeAADDevice
+    If set to true, deletes the device object from Entra ID (Azure AD).
+
+    .PARAMETER disableAADDevice
+    If set to true, disables the device object in Entra ID (Azure AD).
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
     "Parameters": {
         "DeviceId": {
             "Hide": true

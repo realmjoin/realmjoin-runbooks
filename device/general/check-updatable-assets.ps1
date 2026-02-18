@@ -1,18 +1,27 @@
 <#
-  .SYNOPSIS
-  Check if a device is onboarded to Windows Update for Business.
+    .SYNOPSIS
+    Check if a device is onboarded to Windows Update for Business
 
-  .DESCRIPTION
-  This script checks if single device is onboarded to Windows Update for Business.
+    .DESCRIPTION
+    This script checks if single device is onboarded to Windows Update for Business
 
-  .PARAMETER DeviceId
-  DeviceId of the device to check onboarding status for.
+    .PARAMETER DeviceId
+    DeviceId of the device to check.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .INPUTS
-  DeviceId and CallerName
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "DeviceId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

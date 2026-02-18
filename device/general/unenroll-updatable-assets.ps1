@@ -15,7 +15,16 @@
   Caller name for auditing purposes.
 
   .INPUTS
-  DeviceId, UpdateCategory, and CallerName
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "DeviceId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

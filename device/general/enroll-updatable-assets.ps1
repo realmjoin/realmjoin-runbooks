@@ -1,21 +1,30 @@
 <#
-  .SYNOPSIS
-  Enroll device into Windows Update for Business.
+    .SYNOPSIS
+    Enroll device into Windows Update for Business.
 
-  .DESCRIPTION
-  This script enrolls devices into Windows Update for Business.
+    .DESCRIPTION
+    This script enrolls devices into Windows Update for Business.
 
-  .PARAMETER DeviceId
-  DeviceId of the device to unenroll.
+    .PARAMETER DeviceId
+    DeviceId of the device to unenroll.
 
-  .PARAMETER UpdateCategory
-  Category of updates to enroll into. Possible values are: driver, feature or quality.
+    .PARAMETER UpdateCategory
+    Category of updates to enroll into. Possible values are: driver, feature or quality.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .INPUTS
-  DeviceId, UpdateCategory, and CallerName
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "DeviceId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

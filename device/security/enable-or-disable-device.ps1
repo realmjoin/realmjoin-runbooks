@@ -1,12 +1,12 @@
 <#
-  .SYNOPSIS
-  Disable a device in AzureAD.
+    .SYNOPSIS
+    Enable or disable a device in Entra ID
 
-  .DESCRIPTION
-  Disable a device in AzureAD.
+    .DESCRIPTION
 
-  .INPUTS
-  RunbookCustomization: {
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Enable": {
                 "DisplayName": "Disable or Enable Device",

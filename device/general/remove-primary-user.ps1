@@ -7,6 +7,8 @@
 .PARAMETER DeviceId
     The unique identifier of the device from which the primary user will be removed.
     It will be prefilled from the RealmJoin Portal and is hidden in the UI.
+.PARAMETER CallerName
+    Caller name for auditing purposes.
 .INPUTS
     RunbookCustomization: {
     "Parameters": {

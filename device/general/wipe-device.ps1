@@ -1,9 +1,39 @@
 <#
-  .SYNOPSIS
-  Wipe a Windows or MacOS device
+    .SYNOPSIS
+    Wipe a Windows or MacOS device
 
-  .DESCRIPTION
-  Wipe a Windows or MacOS device.
+    .DESCRIPTION
+    Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
+
+    .PARAMETER DeviceId
+    The device ID of the target device.
+
+    .PARAMETER wipeDevice
+    If set to true, triggers a wipe action in Intune.
+
+    .PARAMETER useProtectedWipe
+    Windows-only. If set to true, uses protected wipe.
+
+    .PARAMETER removeIntuneDevice
+    If set to true, deletes the Intune device object.
+
+    .PARAMETER removeAutopilotDevice
+    Windows-only. If set to true, deletes the AutoPilot device identity.
+
+    .PARAMETER removeAADDevice
+    If set to true, deletes the device object from Entra ID (Azure AD).
+
+    .PARAMETER disableAADDevice
+    If set to true, disables the device object in Entra ID (Azure AD).
+
+    .PARAMETER macOsRecoveryCode
+    MacOS-only. Recovery code for older devices; newer devices may not require this.
+
+    .PARAMETER macOsObliterationBehavior
+    MacOS-only. Controls the OS obliteration behavior during wipe.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
   .INPUTS
   RunbookCustomization: {
@@ -64,7 +94,7 @@
                 "Keep device / do not care": false
             }
         },
-        "macOsRecevoryCode": {
+        "macOsRecoveryCode": {
             "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
             "Hide": true
         },
@@ -96,7 +126,7 @@ param (
     [bool] $removeAADDevice = $false,
     [bool] $disableAADDevice = $false,
     # Only for old MacOS devices. Newer devices can be wiped without a recovery code.
-    [string] $macOsRecevoryCode = "123456",
+    [string] $macOsRecoveryCode = "123456",
     # "default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
     [string] $macOsObliterationBehavior = "default",
     # CallerName is tracked purely for auditing purposes
@@ -174,7 +204,7 @@ if ($mgdDevice) {
         }
         if ($mgdDevice.operatingSystem -eq "macOS") {
             "## MacOS device detected."
-            $body["macOsUnlockCode"] = $macOsRecevoryCode
+            $body["macOsUnlockCode"] = $macOsRecoveryCode
             $body["obliterationBehavior"] = $macOsObliterationBehavior
         }
         if ($mgdDevice.operatingSystem -eq "Windows") {
