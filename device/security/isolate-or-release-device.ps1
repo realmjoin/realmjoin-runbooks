@@ -3,12 +3,24 @@
   Isolate this device.
 
   .DESCRIPTION
-  Isolate this device using Defender for Endpoint.
+  This runbook isolates a device in Microsoft Defender for Endpoint to reduce the risk of lateral movement and data exfiltration.
+  Optionally, it can release a previously isolated device.
+  Provide a short reason so the action is documented in the service.
 
-  .NOTES
-  Permissions (WindowsDefenderATP, Application):
-  - Machine.Read.All
-  - Machine.Isolate
+  .PARAMETER DeviceId
+  The device ID of the target device.
+
+  .PARAMETER Release
+  Set to true to release a device from isolation, or false to isolate the device.
+
+  .PARAMETER IsolationType
+  The isolation type to use when isolating the device.
+
+  .PARAMETER Comment
+  A short reason for the (un)isolation action.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
 
   .INPUTS
   RunbookCustomization: {
