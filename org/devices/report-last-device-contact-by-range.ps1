@@ -1,14 +1,10 @@
 <#
-.SYNOPSIS
-    Reports devices with last contact within a specified date range.
+    .SYNOPSIS
+    Report last device contact by range
 
-.DESCRIPTION
-    This Runbook retrieves a list of devices from Intune, filtered by their last device contact time (lastSyncDateTime).
-    As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
-
-    The output includes the device name, last sync date, Intune device ID, and user principal name.
-
-    Optionally, the report can be sent via email with a CSV attachment containing additional details (Entra ID Device ID, User ID).
+    .DESCRIPTION
+    This runbook retrieves Intune managed devices and filters them by last contact time within a predefined date range.
+    It outputs a table and can optionally send an email with a CSV attachment.
 
 .PARAMETER dateRange
     Date range for filtering devices based on their last contact time.
@@ -25,7 +21,7 @@
     The sender email address. This needs to be configured in the runbook customization
 
 .PARAMETER CallerName
-    Internal parameter for tracking purposes
+    Caller name for auditing purposes.
 
 .INPUTS
     RunbookCustomization: {
@@ -68,7 +64,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param (
     [Parameter(Mandatory = $true)]
