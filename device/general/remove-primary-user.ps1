@@ -1,24 +1,28 @@
 ﻿<#
-.SYNOPSIS
+    .SYNOPSIS
     Removes the primary user from a device.
-.DESCRIPTION
+
+    .DESCRIPTION
     This script removes the assigned primary user from a specified Azure AD device.
     It requires the DeviceId of the target device and the name of the caller for auditing purposes.
-.PARAMETER DeviceId
+
+    .PARAMETER DeviceId
     The unique identifier of the device from which the primary user will be removed.
     It will be prefilled from the RealmJoin Portal and is hidden in the UI.
-.PARAMETER CallerName
+
+    .PARAMETER CallerName
     Caller name for auditing purposes.
-.INPUTS
+
+    .INPUTS
     RunbookCustomization: {
-    "Parameters": {
-        "DeviceId": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
+        "Parameters": {
+            "DeviceId": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            }
         }
-    }
     }
 #>
 
