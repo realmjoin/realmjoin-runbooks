@@ -1,20 +1,20 @@
 <#
-  .SYNOPSIS
-  Unenroll device from Windows Update for Business.
+    .SYNOPSIS
+    Unenroll device from Windows Update for Business.
 
-  .DESCRIPTION
-  This script unenrolls devices from Windows Update for Business.
+    .DESCRIPTION
+    This script unenrolls devices from Windows Update for Business.
 
-  .PARAMETER DeviceId
-  DeviceId of the device to unenroll.
+    .PARAMETER DeviceId
+    DeviceId of the device to unenroll.
 
-  .PARAMETER UpdateCategory
-  Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
+    .PARAMETER UpdateCategory
+    Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .INPUTS
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {

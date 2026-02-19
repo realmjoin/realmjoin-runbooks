@@ -1,19 +1,19 @@
 <#
-.SYNOPSIS
-Show a local admin password for a device.
+    .SYNOPSIS
+    Show a local admin password for a device.
 
-.DESCRIPTION
-This runbook retrieves and displays the most recent Windows LAPS local administrator password that is backed up for the specified device.
-Use it for break-glass troubleshooting and rotate the password after use.
+    .DESCRIPTION
+    This runbook retrieves and displays the most recent Windows LAPS local administrator password that is backed up for the specified device.
+    Use it for break-glass troubleshooting and rotate the password after use.
 
-.PARAMETER DeviceId
-The device ID of the target device.
+    .PARAMETER DeviceId
+    The device ID of the target device.
 
-.PARAMETER CallerName
-Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-.INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "DeviceId": {
                 "Hide": true

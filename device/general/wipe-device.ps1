@@ -35,83 +35,83 @@
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "DeviceId": {
-            "Hide": true
-        },
-        "removeAADDevice": {
-            "Hide": true
-        },
-        "disableAADDevice": {
-            "DisplayName": "Disable AzureAD device object?",
-            "SelectSimple": {
-                "Disable device in AzureAD": true,
-                "Do not modify AzureAD device / do not care": false
-            }
-        },
-        "wipeDevice": {
-            "DisplayName": "Wipe this device?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Completely wipe device (Windows: not keeping user or enrollment data)",
-                        "Value": true,
-                        "Customization": {
-                            "Hide": [
-                                "removeIntuneDevice"
-                            ]
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "DeviceId": {
+                "Hide": true
+            },
+            "removeAADDevice": {
+                "Hide": true
+            },
+            "disableAADDevice": {
+                "DisplayName": "Disable AzureAD device object?",
+                "SelectSimple": {
+                    "Disable device in AzureAD": true,
+                    "Do not modify AzureAD device / do not care": false
+                }
+            },
+            "wipeDevice": {
+                "DisplayName": "Wipe this device?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Completely wipe device (Windows: not keeping user or enrollment data)",
+                            "Value": true,
+                            "Customization": {
+                                "Hide": [
+                                    "removeIntuneDevice"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Do not wipe device",
+                            "Value": false,
+                            "Customization": {
+                                "Hide": [
+                                    "useProtectedWipe"
+                                ]
+                            }
                         }
-                    },
-                    {
-                        "Display": "Do not wipe device",
-                        "Value": false,
-                        "Customization": {
-                            "Hide": [
-                                "useProtectedWipe"
-                            ]
-                        }
-                    }
-                ],
-                "ShowValue": false
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "useProtectedWipe": {
+                "DisplayName": "Windows: Use protected wipe?"
+            },
+            "removeIntuneDevice": {
+                "DisplayName": "Delete device from Intune?",
+                "SelectSimple": {
+                    "Delete device from Intune (only if device is already wiped or destroyed)": true,
+                    "Do not modify the Intune object / do not care": false
+                }
+            },
+            "removeAutopilotDevice": {
+                "DisplayName": "Windows: Delete device from AutoPilot database?",
+                "SelectSimple": {
+                    "Remove the device from AutoPilot (the device can leave the tenant)": true,
+                    "Keep device / do not care": false
+                }
+            },
+            "macOsRecoveryCode": {
+                "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
+                "Hide": true
+            },
+            "macOsObliterationBehavior": {
+                "DisplayName": "MacOS: OS Obliteration Behavior",
+                "SelectSimple": {
+                    "Default: Try to erase user date (EACS), obliterate OS if this fails": "default",
+                    "Try to erase user data (EACS), do not obliterate the OS": "doNotObliterate",
+                    "Try to erase user data (EACS), else warn and obliterate the OS": "obliterateWithWarning",
+                    "Always obliterate OS": "always"
+                }
+            },
+            "CallerName": {
+                "Hide": true
             }
-        },
-        "useProtectedWipe": {
-            "DisplayName": "Windows: Use protected wipe?"
-        },
-        "removeIntuneDevice": {
-            "DisplayName": "Delete device from Intune?",
-            "SelectSimple": {
-                "Delete device from Intune (only if device is already wiped or destroyed)": true,
-                "Do not modify the Intune object / do not care": false
-            }
-        },
-        "removeAutopilotDevice": {
-            "DisplayName": "Windows: Delete device from AutoPilot database?",
-            "SelectSimple": {
-                "Remove the device from AutoPilot (the device can leave the tenant)": true,
-                "Keep device / do not care": false
-            }
-        },
-        "macOsRecoveryCode": {
-            "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
-            "Hide": true
-        },
-        "macOsObliterationBehavior": {
-            "DisplayName": "MacOS: OS Obliteration Behavior",
-            "SelectSimple": {
-                "Default: Try to erase user date (EACS), obliterate OS if this fails": "default",
-                "Try to erase user data (EACS), do not obliterate the OS": "doNotObliterate",
-                "Try to erase user data (EACS), else warn and obliterate the OS": "obliterateWithWarning",
-                "Always obliterate OS": "always"
-            }
-        },
-        "CallerName": {
-            "Hide": true
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
