@@ -1,15 +1,18 @@
 <#
-
-.SYNOPSIS
+    .SYNOPSIS
     Delete an application registration from Azure AD
 
-.DESCRIPTION
-    This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
+    .DESCRIPTION
+    This runbook deletes an application registration and its associated service principal from Microsoft Entra ID.
+    It verifies that the application exists before deletion and performs a best-effort cleanup of groups assigned during provisioning.
 
-    This script is the counterpart to the add-application-registration script and ensures
-    proper cleanup of all resources created during application registration.
+    .PARAMETER ClientId
+    The application client ID (appId) of the application registration to delete.
 
-.INPUTS
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {

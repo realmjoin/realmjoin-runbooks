@@ -3,9 +3,29 @@
     Export a CSV of all (enterprise) application owners and users
 
     .DESCRIPTION
-    This runbook exports a comprehensive list of all enterprise applications (or all service principals)
-    in your Azure AD tenant along with their owners and assigned users/groups. Afterwards the CSV file is uploaded
-    to an Azure Storage Account, from where it can be downloaded.
+    This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
+    It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
+
+    .PARAMETER entAppsOnly
+    If set to true, only enterprise applications are included; otherwise all service principals are included.
+
+    .PARAMETER ContainerName
+    Storage container name used for the upload.
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for the upload.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the storage account, used when the account needs to be created.
+
+    .PARAMETER StorageAccountSku
+    Storage account SKU, used when the account needs to be created.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
     .INPUTS
     RunbookCustomization: {

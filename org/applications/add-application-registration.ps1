@@ -1,76 +1,73 @@
 <#
-
-.SYNOPSIS
+    .SYNOPSIS
     Add an application registration to Azure AD
 
-.DESCRIPTION
-    This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+    .DESCRIPTION
+    This runbook creates a new application registration in Microsoft Entra ID and optionally configures redirect URIs and SAML settings.
+    It validates the submitted parameters, prevents duplicate app creation, and writes verbose logs for troubleshooting.
+    Use it to standardize application registration setup, including visibility and assignment-related options.
 
-    The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
-    throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
-    and certificate expiry notifications.
-
-.PARAMETER ApplicationName
+    .PARAMETER ApplicationName
     The display name of the application registration to create.
 
-.PARAMETER RedirectURI
-    Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA).
+    .PARAMETER RedirectURI
+    Used for UI selection only. Determines which redirect URI type to configure - None, Web, SPA, or Public Client
 
-.PARAMETER signInAudience
-    Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI.
+    .PARAMETER signInAudience
+    Specifies who can use the application. Defaults to "AzureADMyOrg" (single tenant).
 
-.PARAMETER webRedirectURI
-    Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth").
+    .PARAMETER webRedirectURI
+    Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
 
-.PARAMETER spaRedirectURI
-    Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons.
+    .PARAMETER spaRedirectURI
+    Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
 
-.PARAMETER publicClientRedirectURI
-    Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., "myapp://auth").
+    .PARAMETER publicClientRedirectURI
+    Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
 
-.PARAMETER EnableSAML
-    Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required.
+    .PARAMETER EnableSAML
+    If set to true, SAML-based authentication is configured for the application. If enabled, additional SAML-related parameters become required.
 
-.PARAMETER SAMLReplyURL
-    The reply URL for SAML authentication. Required when EnableSAML is true.
+    .PARAMETER SAMLReplyURL
+    The reply URL for SAML-based authentication
 
-.PARAMETER SAMLSignOnURL
+    .PARAMETER SAMLSignOnURL
     The sign-on URL for SAML authentication.
 
-.PARAMETER SAMLLogoutURL
+    .PARAMETER SAMLLogoutURL
     The logout URL for SAML authentication.
 
-.PARAMETER SAMLIdentifier
+    .PARAMETER SAMLIdentifier
     The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
 
-.PARAMETER SAMLRelayState
+    .PARAMETER SAMLRelayState
     The SAML relay state parameter for maintaining application state during authentication.
 
-.PARAMETER SAMLExpiryNotificationEmail
+    .PARAMETER SAMLExpiryNotificationEmail
     Email address to receive notifications when the SAML token signing certificate is about to expire.
 
-.PARAMETER SAMLCertificateLifeYears
+    .PARAMETER SAMLCertificateLifeYears
     Lifetime of the SAML token signing certificate in years. Default is 3 years.
 
-.PARAMETER isApplicationVisible
+    .PARAMETER isApplicationVisible
     Determines whether the application is visible in the My Apps portal. Default is true.
 
-.PARAMETER UserAssignmentRequired
+    .PARAMETER UserAssignmentRequired
     Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
 
-.PARAMETER groupAssignmentPrefix
+    .PARAMETER groupAssignmentPrefix
     Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
 
-.PARAMETER implicitGrantAccessTokens
+    .PARAMETER implicitGrantAccessTokens
     Enable implicit grant flow for access tokens. Default is false.
 
-.PARAMETER implicitGrantIDTokens
+    .PARAMETER implicitGrantIDTokens
     Enable implicit grant flow for ID tokens. Default is false.
 
-.PARAMETER CallerName
-    The name of the user executing the runbook. Used for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-.INPUTS
+    .INPUTS
     RunbookCustomization: {
     "Parameters": {
         "signInAudience": {
