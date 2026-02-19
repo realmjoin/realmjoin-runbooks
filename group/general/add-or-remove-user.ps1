@@ -1,12 +1,26 @@
 <#
-  .SYNOPSIS
-  Add/remove users to/from a group.
+    .SYNOPSIS
+    Add or remove a group member
 
-  .DESCRIPTION
-  Add/remove users to/from an AzureAD or Exchange Online group.
+    .DESCRIPTION
+    This runbook adds a user to a group or removes a user from a group.
+    It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
+    Use the Remove switch to remove the user instead of adding the user.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER GroupID
+    Object ID of the target group.
+
+    .PARAMETER UserId
+    Object ID of the user to add or remove.
+
+    .PARAMETER Remove
+    Set to true to remove the user from the group.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Remove": {
                 "DisplayName": "Add or Remove User",
@@ -20,9 +34,6 @@
             },
             "CallerName": {
                 "Hide": true
-            },
-            "Remove": {
-                "DisplayName": "Remove this user"
             }
         }
     }
