@@ -1,17 +1,22 @@
 <#
-  .SYNOPSIS
-  (Un)hide an O365- or static Distribution-group in Address Book.
+    .SYNOPSIS
+    Show or hide a group in the address book
 
-  .DESCRIPTION
-  (Un)hide an O365- or static Distribution-group in Address Book. Can also show the current state.
+    .DESCRIPTION
+    This runbook shows or hides a Microsoft 365 group or a distribution group from address lists.
+    You can also query the current visibility state without making changes.
 
-  .NOTES
-   Note, as of 2021-06-28 MS Graph does not support updating existing groups - only on initial creation.
-    PATCH : https://graph.microsoft.com/v1.0/groups/{id}
-    body = { "resourceBehaviorOptions":["HideGroupInOutlook"] }
+    .PARAMETER GroupName
+    The identity of the target group (name, alias, or other Exchange identity value).
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER Action
+    Show or Hide Group in Address Book
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Action": {
                 "DisplayName": "Show or Hide Group in Address Book",
@@ -31,7 +36,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.7.2" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param

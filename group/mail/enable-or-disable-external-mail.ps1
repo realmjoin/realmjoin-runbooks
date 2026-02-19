@@ -1,17 +1,28 @@
 <#
-  .SYNOPSIS
-  Enable/disable external parties to send eMails to O365 groups.
+    .SYNOPSIS
+    Enable or disable external parties to send emails to a Microsoft 365 group
 
-  .DESCRIPTION
-  Enable/disable external parties to send eMails to O365 groups.
+    .DESCRIPTION
+    This runbook configures whether external senders are allowed to email a Microsoft 365 group.
+    It uses Exchange Online to enable or disable the RequireSenderAuthenticationEnabled setting.
+    You can also query the current state without making changes.
 
-  .NOTES
-  Notes: Setting this via graph is currently broken as of 2021-06-28:
-   attribute: allowExternalSenders
-   https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property
+    .PARAMETER GroupId
+    Object ID of the Microsoft 365 group.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER Action
+    Action to perform. Use 0 to enable external mail, 1 to disable it, or 2 to query the current state.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .NOTES
+    Setting this via Microsoft Graph is broken as of 2021-06-28.
+    Attribute: allowExternalSenders.
+    See https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Action": {
                 "DisplayName": "Choose action",
