@@ -1,29 +1,29 @@
 <#
-.SYNOPSIS
-Retrieves the members of a specified EntraID group, including members from nested groups.
+    .SYNOPSIS
+    Retrieves the members of a specified EntraID group, including members from nested groups.
 
-.DESCRIPTION
-This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
-The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
-The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
+    .DESCRIPTION
+    This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
+    The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
+    The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
 
-.PARAMETER GroupId
-The ObjectId of the EntraID group whose membership is to be retrieved.
+    .PARAMETER GroupId
+    The ObjectId of the EntraID group whose membership is to be retrieved.
 
-.PARAMETER CallerName
-The name of the caller, used for auditing purposes.
+    .PARAMETER CallerName
+    The name of the caller, used for auditing purposes.
 
-.INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "GroupId": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "GroupId": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 param(
     [Parameter(Mandatory=$true)]
@@ -93,7 +93,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
