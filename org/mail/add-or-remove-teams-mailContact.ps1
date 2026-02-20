@@ -1,17 +1,26 @@
 <#
-  .SYNOPSIS
-  Create/Remove a contact, to allow pretty email addresses for Teams channels.
+    .SYNOPSIS
+    Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
-  .DESCRIPTION
-  Create/Remove a contact, to allow pretty email addresses for Teams channels.
+    .DESCRIPTION
+    Creates or updates a mail contact so a desired email address relays to the real Teams channel email address. The runbook can also remove the desired relay address again.
 
-  .PARAMETER RealAddress
-  Enter the address created by MS Teams for a channel
+    .PARAMETER RealAddress
+    Enter the address created by MS Teams for a channel
 
-  .PARAMETER DesiredAddress
-  Will forward/relay to the real address.
+    .PARAMETER DesiredAddress
+    Desired email address that should relay to the real address.
 
-  .INPUTS
+    .PARAMETER DisplayName
+    Optional display name for the contact in the address book.
+
+    .PARAMETER Remove
+    If set to true, the desired relay address is removed.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Remove": {
@@ -26,7 +35,7 @@
             },
             "DisplayName": {
                 "DisplayName": "Name in Address Book"
-            },
+            }
         }
     }
 #>

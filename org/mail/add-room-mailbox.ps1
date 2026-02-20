@@ -1,12 +1,36 @@
 <#
-  .SYNOPSIS
-  Create a room resource.
+    .SYNOPSIS
+    Create a room mailbox resource
 
-  .DESCRIPTION
-  Create a room resource.
+    .DESCRIPTION
+    Creates an Exchange Online room mailbox and optionally configures delegation and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER MailboxName
+    Alias (mail nickname) for the room mailbox.
+
+    .PARAMETER DisplayName
+    Optional display name for the room mailbox.
+
+    .PARAMETER DelegateTo
+    Optional user who receives delegated access to the mailbox.
+
+    .PARAMETER Capacity
+    Optional room capacity in number of people.
+
+    .PARAMETER AutoAccept
+    If set to true, meeting requests are automatically accepted.
+
+    .PARAMETER AutoMapping
+    If set to true, the mailbox is automatically mapped in Outlook for the delegate.
+
+    .PARAMETER DisableUser
+    If set to true, the associated Entra ID user account is disabled.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true

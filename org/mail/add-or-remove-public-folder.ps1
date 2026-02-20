@@ -1,12 +1,24 @@
 <#
-  .SYNOPSIS
-  Add or remove a public folder.
+    .SYNOPSIS
+    Add or remove a public folder
 
-  .DESCRIPTION
-  Assumes you already have at least on Public Folder Mailbox. It will not provision P.F. Mailboxes.
+    .DESCRIPTION
+    Creates or removes an Exchange Online public folder. The runbook assumes that at least one public folder mailbox already exists and does not provision public folder mailboxes.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER PublicFolderName
+    Name of the public folder to create or remove.
+
+    .PARAMETER MailboxName
+    Optional target public folder mailbox to create the folder in.
+
+    .PARAMETER AddPublicFolder
+    If set to true, the public folder is created; if set to false, it is removed.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "ParameterList": [
             {
                 "DisplayName": "Action",
@@ -20,7 +32,8 @@
                                     "AddPublicFolder": true
                                 }
                             }
-                        }, {
+                        },
+                        {
                             "Display": "Remove a Public folder",
                             "Customization": {
                                 "Default": {
@@ -47,9 +60,10 @@
             {
                 "Name": "PublicFolderName",
                 "DisplayName": "Name of the Public Folder"
-            },{
+            },
+            {
                 "Name": "MailboxName",
-                "DisplayName": "Target Public Folder Mailbox (optional)",
+                "DisplayName": "Target Public Folder Mailbox (optional)"
             }
         ]
     }
