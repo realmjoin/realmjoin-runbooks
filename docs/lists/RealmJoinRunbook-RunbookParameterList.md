@@ -126,7 +126,9 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [List PIM Rolegroups Without Owners (Scheduled)](#organization-security-list-pim-rolegroups-without-owners-scheduled)
     - [List Users By MFA Methods Count](#organization-security-list-users-by-mfa-methods-count)
     - [List Vulnerable App Regs](#organization-security-list-vulnerable-app-regs)
+    - [Monitor Pending EPM Requests (Scheduled)](#organization-security-monitor-pending-epm-requests-scheduled)
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
+    - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - [User Signout](#user-avd-user-signout)
@@ -1557,6 +1559,18 @@ List all app registrations that suffer from the CVE-2021-42306 vulnerability.
 | StorageAccountSku |  | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
+<a name='organization-security-monitor-pending-epm-requests-scheduled'></a>
+
+### Monitor Pending EPM Requests (Scheduled)
+Monitor and report pending Endpoint Privilege Management (EPM) elevation requests.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| CallerName | ✓ | String | Internal parameter for tracking purposes |
+| DetailedReport |  | Boolean | When enabled, includes detailed request information in a table and as CSV attachment.<br>When disabled, only provides a summary count of pending requests. |
+| EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+
 <a name='organization-security-notify-changed-ca-policies'></a>
 
 ### Notify Changed CA Policies
@@ -1567,6 +1581,24 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 | From | ✓ | String |  |
 | To | ✓ | String |  |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+
+<a name='organization-security-report-epm-elevation-requests-scheduled'></a>
+
+### Report EPM Elevation Requests (Scheduled)
+Generate report for Endpoint Privilege Management (EPM) elevation requests.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| CallerName | ✓ | String | Internal parameter for tracking purposes |
+| IncludeApproved |  | Boolean | Include requests with status "Approved" - Request has been approved by an administrator. |
+| IncludeDenied |  | Boolean | Include requests with status "Denied" - Request was rejected by an administrator. |
+| IncludeExpired |  | Boolean | Include requests with status "Expired" - Request expired before approval/denial. |
+| IncludeRevoked |  | Boolean | Include requests with status "Revoked" - Previously approved request was revoked. |
+| IncludePending |  | Boolean | Include requests with status "Pending" - Awaiting approval decision. |
+| IncludeCompleted |  | Boolean | Include requests with status "Completed" - Request was approved and executed successfully. |
+| MaxAgeInDays |  | Int32 | Filter requests created within the last X days (default: 30).<br>Note: Request details are retained in Intune for 30 days after creation. |
+| EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 

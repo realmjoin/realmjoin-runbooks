@@ -127,7 +127,9 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Pim Rolegroups Without Owners (Scheduled)](#list-pim-rolegroups-without-owners-(scheduled))
       - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
+      - [Monitor Pending EPM Requests (Scheduled)](#monitor-pending-epm-requests-(scheduled))
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
+      - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
 - [User](#user)
   - [Avd](#user-avd)
       - [User Signout](#user-signout)
@@ -2181,6 +2183,32 @@ Org \ Security \ List Vulnerable App Regs
  
  
 
+<a name='org-security-monitor-pending-epm-requests-(scheduled)'></a>
+
+### Monitor Pending EPM Requests (Scheduled)
+#### Monitor and report pending Endpoint Privilege Management (EPM) elevation requests.
+
+#### Description
+Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
+Email is only sent when there are pending requests.
+Optionally includes detailed information about each request in a table and CSV attachment.
+
+#### Where to find
+Org \ Security \ Monitor Pending EPM Requests_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-security-notify-changed-ca-policies'></a>
 
 ### Notify Changed CA Policies
@@ -2191,6 +2219,32 @@ Exports the current set of Conditional Access policies to an Azure storage accou
 
 #### Where to find
 Org \ Security \ Notify Changed CA Policies
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-report-epm-elevation-requests-(scheduled)'></a>
+
+### Report EPM Elevation Requests (Scheduled)
+#### Generate report for Endpoint Privilege Management (EPM) elevation requests.
+
+#### Description
+Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
+Supports filtering by multiple status types and time range.
+Sends an email report with summary statistics and detailed CSV attachment.
+
+#### Where to find
+Org \ Security \ Report EPM Elevation Requests_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)

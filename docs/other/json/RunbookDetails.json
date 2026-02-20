@@ -10399,6 +10399,104 @@
     }
   },
   {
+    "RunbookDisplayName": "Monitor Pending EPM Requests_Scheduled",
+    "RunbookDisplayPath": "Org \\ Security \\ Monitor Pending EPM Requests_Scheduled",
+    "RelativeRunbookPath": "org/security/monitor-pending-EPM-requests_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/security",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Security",
+    "Synopsis": "Monitor and report pending Endpoint Privilege Management (EPM) elevation requests.",
+    "Description": "Queries Microsoft Intune for pending EPM elevation requests and sends an email report.\nEmail is only sent when there are pending requests.\nOptionally includes detailed information about each request in a table and CSV attachment.",
+    "Notes": "Runbook Type: Scheduled (recommended: hourly or every 1 hours)\n\nEndpoint Privilege Management (EPM) Context:\n- EPM allows users to request temporary admin rights for specific applications\n- Pending requests require manual review and approval by security admins\n- Requests expire automatically if not reviewed within the configured timeframe\n- Timely review is critical for user productivity and security posture\n\nEmail Behavior:\n- Emails are sent individually to each recipient\n- No email is sent when there are zero pending requests\n- CSV attachment is only included when DetailedReport is enabled",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Internal parameter for tracking purposes"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, includes detailed request information in a table and as CSV attachment.\nWhen disabled, only provides a summary count of pending requests."
+          }
+        ],
+        "globbing": "false",
+        "name": "DetailedReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Can be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.Read.All",
+            "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Notify Changed CA Policies",
     "RunbookDisplayPath": "Org \\ Security \\ Notify Changed CA Policies",
     "RelativeRunbookPath": "org/security/notify-changed-CA-Policies.ps1",
@@ -10461,6 +10559,206 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Policy.Read.All",
+            "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report EPM Elevation Requests_Scheduled",
+    "RunbookDisplayPath": "Org \\ Security \\ Report EPM Elevation Requests_Scheduled",
+    "RelativeRunbookPath": "org/security/report-EPM-elevation-requests_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/security",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Security",
+    "Synopsis": "Generate report for Endpoint Privilege Management (EPM) elevation requests.",
+    "Description": "Queries Microsoft Intune for EPM elevation requests with flexible filtering options.\nSupports filtering by multiple status types and time range.\nSends an email report with summary statistics and detailed CSV attachment.",
+    "Notes": "Runbook Type: Scheduled (recommended: monthly)\n\nPurpose & Use Cases:\n- Regular reporting of EPM activities\n- Audit trail for approved/denied elevation requests\n- Analysis of expired requests to identify process bottlenecks\n- Identification of frequently requested applications for automatic elevation rules\n\nStatus Types Explained:\n- Pending: Awaits admin decision (use monitor-pending-EPM-requests for time-critical alerting)\n- Approved: Admin approved the request, user can proceed with elevation\n- Denied: Admin rejected the request due to security/policy concerns\n- Expired: Request expired before admin review (may indicate slow response times)\n- Revoked: Previously approved elevation was later revoked by admin\n- Completed: User successfully executed the elevated application after approval\n\nData Retention & Time Ranges:\n- Intune retains EPM request details for 30 days after creation\n- For long-term analysis, archive CSV exports outside of Intune\n- Default filter (Approved/Denied/Expired/Revoked, 30 days)\n\nEmail & Export Details:\n- Always generates CSV attachment with complete request details\n- Emails sent individually to each recipient for privacy\n- No email sent when zero requests match the filter criteria\n- CSV includes: timestamps, users, devices, applications, justifications, file hashes",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Internal parameter for tracking purposes"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Can be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include requests with status \"Approved\" - Request has been approved by an administrator."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeApproved",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include requests with status \"Completed\" - Request was approved and executed successfully."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeCompleted",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include requests with status \"Denied\" - Request was rejected by an administrator."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeDenied",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include requests with status \"Expired\" - Request expired before approval/denial."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeExpired",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include requests with status \"Pending\" - Awaiting approval decision."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludePending",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include requests with status \"Revoked\" - Previously approved request was revoked."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeRevoked",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "30",
+        "description": [
+          {
+            "Text": "Filter requests created within the last X days (default: 30).\nNote: Request details are retained in Intune for 30 days after creation."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxAgeInDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.Read.All",
             "Mail.Send"
           ]
         }
