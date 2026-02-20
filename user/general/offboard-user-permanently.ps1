@@ -1,185 +1,228 @@
 <#
-  .SYNOPSIS
-  Permanently offboard a user.
+	.SYNOPSIS
+	Permanently offboard a user
 
-  .DESCRIPTION
-  Permanently offboard a user.
+	.DESCRIPTION
+	Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
 
-  .PARAMETER ReplacementOwnerName
-  Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed.
+	.PARAMETER UserName
+	User principal name of the target user.
 
-  .Parameter ChangeGroupsSelector
-  "Change" and "Remove all" will both honour "groupToAdd"
+	.PARAMETER DeleteUser
+	If set to true, deletes the user object instead of keeping it.
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "UserName": {
-                "Hide": true
-            },
-            "DeleteUser": {
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Delete user object",
-                            "Value": true,
-                            "Customization": {
-                                "Hide": [
-                                    "ChangeLicensesSelector",
-                                    "ChangeGroupsSelector",
-                                    "DisableUser",
-                                    "GroupToAdd",
-                                    "GroupsToRemovePrefix"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Keep the user object",
-                            "Value": false
-                        }
-                    ]
-                }
-            },
-            "exportGroupMemberships": {
-                "Hide": true,
-            },
-            "exportResourceGroupName": {
-                "Hide": true
-            },
-            "exportStorAccountName": {
-                "Hide": true
-            },
-            "exportStorAccountLocation": {
-                "Hide": true
-            },
-            "exportStorAccountSKU": {
-                "Hide": true
-            },
-            "exportStorContainerGroupMembershipExports": {
-                "Hide": true
-            },
-            "ChangeLicensesSelector": {
-                "DisplayName": "Change directly assigned licenses",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Do not change assigned licenses",
-                            "Value": 0
-                        },
-                        {
-                            "Display": "Remove all directly assigned licenses",
-                            "Value": 2
-                        }
-                    ]
-                }
-            },
-            "ChangeGroupsSelector": {
-                "DisplayName": "Change assigned groups",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Do not change assigned groups",
-                            "Value": 0,
-                        },
-                        {
-                            "Display": "Change the user's groups.",
-                            "Value": 1
-                        },
-                        {
-                            "Display": "Remove all groups",
-                            "Value": 2,
-                        }
-                    ]
-                }
-            },
-            "RevokeGroupOwnership": {
-                "DisplayName": "Handle group ownerships",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "User will remain owner / Do not change",
-                            "Value": false,
-                        },
-                        {
-                            "Display": "Remove/Replace this user's group ownerships",
-                            "Value": true
-                        }
-                    ]
-                }
-            },
-            "ManagerAsReplacementOwner": {
-                "Description": "Fetch the user's manager from AzureAD as replacing owner. This takes precedence over manually specifying a replacement owner."
+	.PARAMETER DisableUser
+	If set to true, disables the user account for sign-in.
+
+	.PARAMETER RevokeAccess
+	If set to true, revokes the user's refresh tokens and active sessions.
+
+	.PARAMETER exportResourceGroupName
+	Azure Resource Group name for exporting data to storage.
+
+	.PARAMETER exportStorAccountName
+	Azure Storage Account name for exporting data to storage.
+
+	.PARAMETER exportStorAccountLocation
+	Azure region used when creating the Storage Account.
+
+	.PARAMETER exportStorAccountSKU
+	SKU name used when creating the Storage Account.
+
+	.PARAMETER exportStorContainerGroupMembershipExports
+	Container name used for group membership exports.
+
+	.PARAMETER exportGroupMemberships
+	If set to true, exports the user's current group memberships to Azure Storage.
+
+	.PARAMETER ChangeLicensesSelector
+	Controls how directly assigned licenses should be handled.
+
+    .Parameter ChangeGroupsSelector
+    "Change" and "Remove all" will both honour "groupToAdd"
+
+	.PARAMETER GroupToAdd
+	Group that should be added or kept when group changes are enabled.
+
+	.PARAMETER GroupsToRemovePrefix
+	Prefix used to remove groups matching a naming convention.
+
+	.PARAMETER RevokeGroupOwnership
+	If set to true, removes or replaces the user's group ownerships.
+
+	.PARAMETER ManagerAsReplacementOwner
+	If set to true, uses the user's manager as replacement owner where applicable.
+
+	.PARAMETER ReplacementOwnerName
+	User who will take over group or resource ownership if required.
+
+
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"UserName": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"DeleteUser": {
+				"Select": {
+					"Options": [
+						{
+							"Display": "Delete user object",
+							"Value": true,
+							"Customization": {
+								"Hide": [
+									"ChangeLicensesSelector",
+									"ChangeGroupsSelector",
+									"DisableUser",
+									"GroupToAdd",
+									"GroupsToRemovePrefix"
+								]
+							}
+						},
+						{
+							"Display": "Keep the user object",
+							"Value": false
+						}
+					]
+				}
+			},
+			"exportGroupMemberships": {
+				"Hide": true
+			},
+			"exportResourceGroupName": {
+				"Hide": true
+			},
+			"exportStorAccountName": {
+				"Hide": true
+			},
+			"exportStorAccountLocation": {
+				"Hide": true
+			},
+			"exportStorAccountSKU": {
+				"Hide": true
+			},
+			"exportStorContainerGroupMembershipExports": {
+				"Hide": true
+			},
+			"ChangeLicensesSelector": {
+				"DisplayName": "Change directly assigned licenses",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Do not change assigned licenses",
+							"Value": 0
+						},
+						{
+							"Display": "Remove all directly assigned licenses",
+							"Value": 2
+						}
+					]
+				}
+			},
+			"ChangeGroupsSelector": {
+				"DisplayName": "Change assigned groups",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Do not change assigned groups",
+							"Value": 0
+						},
+						{
+							"Display": "Change the user's groups.",
+							"Value": 1
+						},
+						{
+							"Display": "Remove all groups",
+							"Value": 2
+						}
+					]
+				}
+			},
+			"RevokeGroupOwnership": {
+				"DisplayName": "Handle group ownerships",
+				"Select": {
+					"Options": [
+						{
+							"Display": "User will remain owner / Do not change",
+							"Value": false
+						},
+						{
+							"Display": "Remove/Replace this user's group ownerships",
+							"Value": true
+						}
+					]
+				}
+			},
+			"ManagerAsReplacementOwner": {
+				"Description": "Fetch the user's manager from AzureAD as replacing owner. This takes precedence over manually specifying a replacement owner."
+			}
+		}
+	}
+
+    .EXAMPLE
+    Full Runbook Customizing Example:
+    {
+        "Settings": {
+            "OffboardUserPermanently": {
+                "deleteUser": true,
+                "disableUser": false,
+                "revokeAccess": true,
+                "exportResourceGroupName": "rj-test-runbooks-01",
+                "exportStorAccountName": "jrbexports01",
+                "exportStorAccountLocation": "West Europe",
+                "exportStorAccountSKU": "Standard_LRS",
+                "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
+                "exportGroupMemberships": true,
+                "licensesMode": 0, // "false": Do nothing, "true": remove all directly assigned licenses
+                "groupsMode": 0, // 0: Do nothing, 1: Change, 2: Remove all
+                "groupToAdd": "",
+                "groupsToRemovePrefix": ""
             }
-        }
-    }
-
-  .EXAMPLE
-  Full Runbook Customizing Example:
-{
-    "Settings": {
-        "OffboardUserPermanently": {
-            "deleteUser": true,
-            "disableUser": false,
-            "revokeAccess": true,
-            "exportResourceGroupName": "rj-test-runbooks-01",
-            "exportStorAccountName": "jrbexports01",
-            "exportStorAccountLocation": "West Europe",
-            "exportStorAccountSKU": "Standard_LRS",
-            "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
-            "exportGroupMemberships": true,
-            "licensesMode": 0, // "false": Do nothing, "true": remove all directly assigned licenses
-            "groupsMode": 0, // 0: Do nothing, 1: Change, 2: Remove all
-            "groupToAdd": "",
-            "groupsToRemovePrefix": ""
-        }
-    },
-    "Runbooks": {
-        "rjgit-user_general_offboard-user-permanently": {
-            "ParameterList": [
-                {
-                    "Name": "disableUser",
-                    "Hide": true
-                },
-                {
-                    "Name": "revokeAccess",
-                    "Hide": true
-                },
-                {
-                    "Name": "ChangeLicensesSelector",
-                    "Hide": true
-                },
-                {
-                    "Name": "ChangeGroupsSelector",
-                    "Hide": true
-                },
-                {
-                    "Name": "GroupToAdd",
-                    "Hide": true
-                },
-                {
-                    "Name": "GroupsToRemovePrefix",
-                    "Hide": true
-                },
-                {
-                    "Name": "CallerName",
-                    "Hide": true
-                }
-            ]
-        }
-    }
-}
-
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
+        },
+        "Runbooks": {
+            "rjgit-user_general_offboard-user-permanently": {
+                "ParameterList": [
+                    {
+                        "Name": "disableUser",
+                        "Hide": true
+                    },
+                    {
+                        "Name": "revokeAccess",
+                        "Hide": true
+                    },
+                    {
+                        "Name": "ChangeLicensesSelector",
+                        "Hide": true
+                    },
+                    {
+                        "Name": "ChangeGroupsSelector",
+                        "Hide": true
+                    },
+                    {
+                        "Name": "GroupToAdd",
+                        "Hide": true
+                    },
+                    {
+                        "Name": "GroupsToRemovePrefix",
+                        "Hide": true
+                    },
+                    {
+                        "Name": "CallerName",
+                        "Hide": true
+                    }
+                ]
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
+#Requires -Modules @{ ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param (
     [Parameter(Mandatory = $true)]

@@ -1,113 +1,153 @@
 <#
- .SYNOPSIS
- Resize a Windows 365 Cloud PC
+    .SYNOPSIS
+    Resize an existing Windows 365 Cloud PC for a user
 
- .DESCRIPTION
- Resize an already existing Windows 365 Cloud PC by derpovisioning and assigning a new differently sized license to the user. Warning: All local data will be lost. Proceed with caution.
+    .DESCRIPTION
+    Resizes a Windows 365 Cloud PC by removing the current assignment and provisioning a new size using a different license group.
+    WARNING: This operation deprovisions and reprovisions the Cloud PC and local data may be lost.
 
- .INPUTS
- RunbookCustomization: {
- "Parameters": {
-    "UserName": {
-        "Hide": true
-    },
-    "CallerName": {
-        "Hide": true
-    },
-    "unassignRunbook": {
-        "Hide": true
-    },
-    "assignRunbook": {
-        "Hide": true
-    },
-    "cfgProvisioningGroupPrefix": {
-        "Hide": true
-    },
-    "cfgUserSettingsGroupPrefix": {
-        "Hide": true
-    },
-    "currentLicWin365GroupName": {
-        "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",
-        "SelectSimple": {
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-        }
-    },
-    "newLicWin365GroupName": {
-        "DisplayName": "Resizing to following license: ",
-        "SelectSimple": {
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-            "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-        }
-    },
-    "sendMailWhenDoneResizing": {
-            "DisplayName": "Notify User once the Cloud PC has finished resizing?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Do not send an Email.",
-                        "ParameterValue": false,
-                        "Customization": {
-                            "Hide": [
-                                "fromMailAddress",
-                                "customizeMail",
-                                "customMailMessage"
-                            ]
-                        }
-                    },
-                    {
-                        "Display": "Send an Email.",
-                        "ParameterValue": true
-                    }
-                ]
-            }
-        },
-    "customizeMail": {
-        "DisplayName": "Would you like to customize the mail sent to the user?",
-        "Select": {
-            "Options": [
-                {
-                    "Display": "Do not customize the email.",
-                    "ParameterValue": false,
-                    "Customization": {
-                        "Hide": [
-                            "customMailMessage"
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER currentLicWin365GroupName
+    Current Windows 365 license group name used by the Cloud PC.
+
+    .PARAMETER newLicWin365GroupName
+    New Windows 365 license group name to assign for the resized Cloud PC.
+
+    .PARAMETER sendMailWhenDoneResizing
+    If set to true, sends an email after the resize process has finished.
+
+    .PARAMETER fromMailAddress
+    Mailbox used to send the notification email.
+
+    .PARAMETER customizeMail
+    If set to true, uses a custom email body.
+
+    .PARAMETER customMailMessage
+    Custom message body used for the notification email.
+
+    .PARAMETER cfgProvisioningGroupPrefix
+    Prefix used to detect provisioning-related configuration groups.
+
+    .PARAMETER cfgUserSettingsGroupPrefix
+    Prefix used to detect user-settings-related configuration groups.
+
+    .PARAMETER unassignRunbook
+    Name of the runbook used to remove the current Windows 365 assignment.
+
+    .PARAMETER assignRunbook
+    Name of the runbook used to assign the new Windows 365 configuration.
+
+    .PARAMETER skipGracePeriod
+    If set to true, ends the old Cloud PC grace period immediately.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "unassignRunbook": {
+                "Hide": true
+            },
+            "assignRunbook": {
+                "Hide": true
+            },
+            "cfgProvisioningGroupPrefix": {
+                "Hide": true
+            },
+            "cfgUserSettingsGroupPrefix": {
+                "Hide": true
+            },
+            "currentLicWin365GroupName": {
+                "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",
+                "SelectSimple": {
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                }
+            },
+            "newLicWin365GroupName": {
+                "DisplayName": "Resizing to following license: ",
+                "SelectSimple": {
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                }
+            },
+            "sendMailWhenDoneResizing": {
+                    "DisplayName": "Notify User once the Cloud PC has finished resizing?",
+                    "Select": {
+                        "Options": [
+                            {
+                                "Display": "Do not send an Email.",
+                                "ParameterValue": false,
+                                "Customization": {
+                                    "Hide": [
+                                        "fromMailAddress",
+                                        "customizeMail",
+                                        "customMailMessage"
+                                    ]
+                                }
+                            },
+                            {
+                                "Display": "Send an Email.",
+                                "ParameterValue": true
+                            }
                         ]
                     }
                 },
-                {
-                    "Display": "Customize the email.",
-                    "ParameterValue": true
+            "customizeMail": {
+                "DisplayName": "Would you like to customize the mail sent to the user?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Do not customize the email.",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "customMailMessage"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Customize the email.",
+                            "ParameterValue": true
+                        }
+                    ]
                 }
-            ]
-        }
-    },
-    "customizeMail": {
-        "DisplayName": "Would you like to customize the mail sent to the user?"
-    },
-    "customMailMessage": {
-        "DisplayName": "Custom message to be sent to the user."
-    },
-    "fromMailAddress": {
-        "DisplayName": "(Shared) Mailbox to send mail from: "
-    },
-    "skipGracePeriod": {
-        "DisplayName": "Remove the old Cloud PC immediately?"
-    }
- }
-
- .EXAMPLE
- "user_general_resizing-windows365": {
-    "Parameters": {
-        "licWin365GroupName": {
-            "SelectSimple": {
-                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+            },
+            "customizeMail": {
+                "DisplayName": "Would you like to customize the mail sent to the user?"
+            },
+            "customMailMessage": {
+                "DisplayName": "Custom message to be sent to the user."
+            },
+            "fromMailAddress": {
+                "DisplayName": "(Shared) Mailbox to send mail from: "
+            },
+            "skipGracePeriod": {
+                "DisplayName": "Remove the old Cloud PC immediately?"
             }
         }
     }
- }
 
+    .EXAMPLE
+    "user_general_resizing-windows365": {
+        "Parameters": {
+            "licWin365GroupName": {
+                "SelectSimple": {
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+                }
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

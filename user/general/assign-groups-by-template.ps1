@@ -1,72 +1,87 @@
 <#
-  .SYNOPSIS
-  Assign cloud-only groups to a user based on a predefined template.
+	.SYNOPSIS
+	Assign cloud-only groups to a user based on a template
 
-  .DESCRIPTION
-  Assign cloud-only groups to a user based on a predefined template.
+	.DESCRIPTION
+	Adds a user to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
 
-  .EXAMPLE
-  Full Runbook Customizations Example
-  {
-    "Templates": {
-        "Options": [
-            {
-                "$id": "GroupsTemplates",
-                "$values": [
-                    {
-                        "Display": "User template 1 (UseDisplaynames=false)",
-                        "Customization": {
-                            "Default": {
-                                "GroupsString": "c1f8e69f-e6c0-4e7e-b49d-241046958aa3,98c19df0-0bc1-4236-92b9-12559e1127d3"
+	.PARAMETER UserId
+	ID of the target user in Microsoft Graph.
+
+	.PARAMETER GroupsTemplate
+	Template selector used by portal customization to populate the group list.
+
+	.PARAMETER GroupsString
+	Comma-separated list of group object IDs or group display names.
+
+	.PARAMETER UseDisplaynames
+	If set to true, treats values in GroupsString as group display names instead of IDs.
+
+	.PARAMETER CallerName
+	Caller name is tracked purely for auditing purposes.
+
+    .EXAMPLE
+    Full Runbook Customizations Example
+    {
+        "Templates": {
+            "Options": [
+                {
+                    "$id": "GroupsTemplates",
+                    "$values": [
+                        {
+                            "Display": "User template 1 (UseDisplaynames=false)",
+                            "Customization": {
+                                "Default": {
+                                    "GroupsString": "c1f8e69f-e6c0-4e7e-b49d-241046958aa3,98c19df0-0bc1-4236-92b9-12559e1127d3"
+                                }
+                            }
+                        },
+                        {
+                            "Display": "User template 2 (UseDisplaynames=true)",
+                            "Customization": {
+                                "Default": {
+                                    "GroupsString": "app - Microsoft VC Redistributable 2013",
+                                }
                             }
                         }
-                    },
+                    ]
+                }
+            ]
+        },
+        "Runbooks": {
+            "rjgit-user_general_assign-groups-by-template": {
+                "ParameterList": [
                     {
-                        "Display": "User template 2 (UseDisplaynames=true)",
-                        "Customization": {
-                            "Default": {
-                                "GroupsString": "app - Microsoft VC Redistributable 2013",
+                        "Name": "GroupsTemplate",
+                        "Select": {
+                            "Options": {
+                                "$ref": "GroupsTemplates"
                             }
                         }
-                    }
+                        },
+                        {
+                            "Name": "UseDisplaynames",
+                            "Default": false
+                        }
                 ]
             }
-        ]
-    },
-    "Runbooks": {
-        "rjgit-user_general_assign-groups-by-template": {
-            "ParameterList": [
-                {
-                    "Name": "GroupsTemplate",
-                    "Select": {
-                        "Options": {
-                            "$ref": "GroupsTemplates"
-                        }
-                    }
-                 },
-                 {
-                     "Name": "UseDisplaynames",
-                     "Default": false
-                 }
-            ]
         }
     }
-  }
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "UserId": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "UseDisplaynames": {
-                "Hide": true
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"UserId": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"UseDisplaynames": {
+				"Hide": true
+			}
+		}
+	}
 
 #>
 
