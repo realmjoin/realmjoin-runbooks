@@ -525,9 +525,23 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String |  |
 |  |  |  |  |  |  | StorageAccountSku |  | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+|  |  | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Internal parameter for tracking purposes |
+|  |  |  |  |  |  | DetailedReport |  | Boolean | When enabled, includes detailed request information in a table and as CSV attachment.<br>When disabled, only provides a summary count of pending requests. |
+|  |  |  |  |  |  | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br> |  | From | ✓ | String |  |
 |  |  |  |  |  |  | To | ✓ | String |  |
 |  |  |  |  |  |  | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
+|  |  | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Internal parameter for tracking purposes |
+|  |  |  |  |  |  | IncludeApproved |  | Boolean | Include requests with status "Approved" - Request has been approved by an administrator. |
+|  |  |  |  |  |  | IncludeDenied |  | Boolean | Include requests with status "Denied" - Request was rejected by an administrator. |
+|  |  |  |  |  |  | IncludeExpired |  | Boolean | Include requests with status "Expired" - Request expired before approval/denial. |
+|  |  |  |  |  |  | IncludeRevoked |  | Boolean | Include requests with status "Revoked" - Previously approved request was revoked. |
+|  |  |  |  |  |  | IncludePending |  | Boolean | Include requests with status "Pending" - Awaiting approval decision. |
+|  |  |  |  |  |  | IncludeCompleted |  | Boolean | Include requests with status "Completed" - Request was approved and executed successfully. |
+|  |  |  |  |  |  | MaxAgeInDays |  | Int32 | Filter requests created within the last X days (default: 30).<br>Note: Request details are retained in Intune for 30 days after creation. |
+|  |  |  |  |  |  | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
 |  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |

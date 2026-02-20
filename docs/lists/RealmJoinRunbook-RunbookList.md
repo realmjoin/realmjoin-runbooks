@@ -126,7 +126,9 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List PIM Rolegroups Without Owners (Scheduled)
     - List Users By MFA Methods Count
     - List Vulnerable App Regs
+    - Monitor Pending EPM Requests (Scheduled)
     - Notify Changed CA Policies
+    - Report EPM Elevation Requests (Scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - User Signout
@@ -367,7 +369,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List PIM Rolegroups Without Owners (Scheduled) | List role-assignable groups with eligible role assignments but without owners |
 | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
+| Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests. |
 | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
+| Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 

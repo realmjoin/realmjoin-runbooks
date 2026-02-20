@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-02-20
+
+- Add two new Endpoint Privilege Management (EPM) runbooks for org/security:
+  - **Monitor Pending EPM Requests (Scheduled)**: Monitoring for pending elevation requests requiring admin review. Sends email notifications only when pending requests exist, includes optional detailed CSV export.
+  - **Report EPM Elevation Requests (Scheduled)**: Reporting for EPM elevation requests with flexible filtering by status (Pending, Approved, Denied, Expired, Revoked, Completed) and time range.
+
 ## 2026-02-04
 
 - Update documentation for permissions used by the Application Registration runbooks

@@ -102,7 +102,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List PIM Rolegroups Without Owners (Scheduled) | List role-assignable groups with eligible role assignments but without owners |
 |  |  | List Users By MFA Methods Count | Reports users by the count of their registered MFA methods. |
 |  |  | List Vulnerable App Regs | List all app registrations that suffer from the CVE-2021-42306 vulnerability. |
+|  |  | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests. |
 |  |  | Notify Changed CA Policies | Exports the current set of Conditional Access policies to an Azure storage account. |
+|  |  | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests. |
 | User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a predefined template. |
 |  |  | Assign Or Unassign License | (Un-)Assign a license to a user via group membership. |

@@ -150,7 +150,9 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Pim Rolegroups Without Owners (Scheduled)](docs/org/security/list-pim-rolegroups-without-owners_scheduled.md)
     - [List Users By MFA Methods Count](docs/org/security/list-users-by-mfa-methods-count.md)
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
+    - [Monitor Pending EPM Requests (Scheduled)](docs/org/security/monitor-pending-epm-requests_scheduled.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
+    - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
 - [User](docs/user/README.md)
   - [Avd](docs/user/README.md#user-avd)
 
