@@ -26,6 +26,9 @@
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
 
+    .PARAMETER FilterGroupID
+    Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported.
+
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
@@ -51,16 +54,32 @@ param (
     [string] $StorageAccountSku,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.SubscriptionId" } )]
     [string] $SubscriptionId,
+    [Parameter(Mandatory = $false)]
+    [string] $FilterGroupID = $null,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 "## Trying to export all Intune devices and metadata based on their owner, like usageLocation."
+
+############################################################
+#region Variables
+#
+############################################################
+
+$OwnerMetadataSelect = "city, country, companyName, department, jobTitle, usageLocation, onPremisesExtensionAttributes"
+
+#endregion Variables
+
+############################################################
+#region Main Logic
+#
+############################################################
 
 if (-not $ContainerName) {
     $ContainerName = "intune-devices-list"
@@ -88,26 +107,89 @@ Connect-RjRbAzAccount
 if ($SubscriptionId) {
     Set-AzContext -Subscription $SubscriptionId | Out-Null
 }
+
+$groupUserLookup = $null
+if ($FilterGroupID) {
+    Write-RjRbLog -Message "FilterGroupID provided: '$FilterGroupID'" -Verbose
+
+    Write-RjRbLog -Message "Fetching transitive user members for group filter." -Verbose
+    $userIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $upnSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$FilterGroupID/transitiveMembers/microsoft.graph.user" -OdSelect "id,userPrincipalName" -FollowPaging
+    foreach ($member in @($members)) {
+        if ($member.id) {
+            [void] $userIdSet.Add([string] $member.id)
+        }
+        if ($member.userPrincipalName) {
+            [void] $upnSet.Add([string] $member.userPrincipalName)
+        }
+    }
+
+    $groupUserLookup = @{ UserIds = $userIdSet; UserPrincipalNames = $upnSet }
+    Write-RjRbLog -Message ("FilterGroupID user members loaded. IDs: {0}, UPNs: {1}" -f $groupUserLookup.UserIds.Count, $groupUserLookup.UserPrincipalNames.Count) -Verbose
+}
+
 try {
     $Exportdevices = @()
     Write-RjRbLog "Fetching all Intune devices."
-    $Devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState" -FollowPaging
+    $Devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, userId, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState" -FollowPaging
 
     foreach ($Device in $Devices) {
-        $Exportdevice = @()
-        $Exportdevice += $Device
+        if ($groupUserLookup) {
+            $deviceUserId = [string] $Device.userId
+            $deviceUpn = [string] $Device.userPrincipalName
 
-        if ($($Device.userPrincipalName) -notlike "") {
-            # Only enrich device data, if there is a userPrincipalName assigned to the device
-            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/Users/$($Device.userPrincipalName)" -OdSelect "city, country, companyName, department, jobTitle, usageLocation" -ErrorAction SilentlyContinue
+            $isOwnerInGroup = $false
+            if ($deviceUserId -and $groupUserLookup.UserIds.Contains($deviceUserId)) {
+                $isOwnerInGroup = $true
+            }
+            elseif ($deviceUpn -and $groupUserLookup.UserPrincipalNames.Contains($deviceUpn)) {
+                $isOwnerInGroup = $true
+            }
+
+            if (-not $isOwnerInGroup) {
+                continue
+            }
+        }
+
+        $Exportdevice = $Device | Select-Object *
+
+        for ($i = 1; $i -le 15; $i++) {
+            $Exportdevice | Add-Member -Name "extensionAttribute$i" -Value $null -MemberType "NoteProperty" -Force
+        }
+
+        $hasOwnerReference = ($Device.userId -and ([string] $Device.userId) -ne "") -or ($Device.userPrincipalName -and ([string] $Device.userPrincipalName) -ne "")
+        if ($hasOwnerReference) {
+            # Only enrich device data if there is a user reference assigned to the device
+            $userResource = $null
+            if ($Device.userId) {
+                $userResource = "/Users/$($Device.userId)"
+            }
+            else {
+                $userResource = "/Users/$($Device.userPrincipalName)"
+            }
+
+            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource $userResource -OdSelect $OwnerMetadataSelect -ErrorAction SilentlyContinue
 
             if ($primaryOwner) {
-                $Exportdevice | Add-Member -Name "city" -Value $primaryOwner.city -MemberType "NoteProperty"
-                $Exportdevice | Add-Member -Name "country" -Value $primaryOwner.country -MemberType "NoteProperty"
-                $Exportdevice | Add-Member -Name "companyName" -Value $primaryOwner.companyName -MemberType "NoteProperty"
-                $Exportdevice | Add-Member -Name "department" -Value $primaryOwner.department -MemberType "NoteProperty"
-                $Exportdevice | Add-Member -Name "jobTitle" -Value $primaryOwner.jobTitle -MemberType "NoteProperty"
-                $Exportdevice | Add-Member -Name "usageLocation" -Value $primaryOwner.usageLocation -MemberType "NoteProperty"
+                $Exportdevice | Add-Member -Name "city" -Value $primaryOwner.city -MemberType "NoteProperty" -Force
+                $Exportdevice | Add-Member -Name "country" -Value $primaryOwner.country -MemberType "NoteProperty" -Force
+                $Exportdevice | Add-Member -Name "companyName" -Value $primaryOwner.companyName -MemberType "NoteProperty" -Force
+                $Exportdevice | Add-Member -Name "department" -Value $primaryOwner.department -MemberType "NoteProperty" -Force
+                $Exportdevice | Add-Member -Name "jobTitle" -Value $primaryOwner.jobTitle -MemberType "NoteProperty" -Force
+                $Exportdevice | Add-Member -Name "usageLocation" -Value $primaryOwner.usageLocation -MemberType "NoteProperty" -Force
+
+                for ($i = 1; $i -le 15; $i++) {
+                    $attributeName = "extensionAttribute$i"
+                    $attributeValue = $null
+
+                    if ($primaryOwner.onPremisesExtensionAttributes) {
+                        $attributeValue = $primaryOwner.onPremisesExtensionAttributes.$attributeName
+                    }
+
+                    $Exportdevice | Add-Member -Name $attributeName -Value $attributeValue -MemberType "NoteProperty" -Force
+                }
             }
         }
 
@@ -153,3 +235,5 @@ catch {
 finally {
     Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
 }
+
+#endregion Main Logic
