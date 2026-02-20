@@ -1,13 +1,51 @@
 <#
-  .SYNOPSIS
-  List AzureAD role holders and their MFA state.
+    .SYNOPSIS
+    List Entra ID role holders and optionally evaluate their MFA methods
 
-  .DESCRIPTION
-  Will list users and service principals that hold a builtin AzureAD role.
-  Admins will be queried for valid MFA methods.
+    .DESCRIPTION
+    Lists users and service principals holding built-in Entra ID roles and produces an admin-to-role report. Optionally queries each admin for registered authentication methods to assess MFA coverage.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER ExportToFile
+    If set to true, exports the report to an Azure Storage Account.
+
+    .PARAMETER PimEligibleUntilInCSV
+    If set to true, includes PIM eligible until information in the CSV report.
+
+    .PARAMETER ContainerName
+    Name of the Azure Storage container to upload the CSV report to.
+
+    .PARAMETER ResourceGroupName
+    Name of the Azure Resource Group containing the Storage Account.
+
+    .PARAMETER StorageAccountName
+    Name of the Azure Storage Account used for upload.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the Storage Account if it needs to be created.
+
+    .PARAMETER StorageAccountSku
+    SKU name for the Storage Account if it needs to be created.
+
+    .PARAMETER QueryMfaState
+    If set to true, queries admins for registered authentication methods.
+
+    .PARAMETER TrustEmailMfa
+    If set to true, regards email as a valid MFA method.
+
+    .PARAMETER TrustPhoneMfa
+    If set to true, regards phone/SMS as a valid MFA method.
+
+    .PARAMETER TrustSoftwareOathMfa
+    If set to true, regards software OATH token as a valid MFA method.
+
+    .PARAMETER TrustWinHelloMFA
+    If set to true, regards Windows Hello for Business as a valid MFA method.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
@@ -28,7 +66,7 @@
                 "Hide": true
             },
             "QueryMfaState": {
-                "Select" : {
+                "Select": {
                     "Options": [
                         {
                             "Display": "Check and report every admin's MFA state",
@@ -55,13 +93,13 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export Admin-to-Role Report to Az Storage Account?" } )]
-    [bool] $exportToFile = $true,
+    [bool] $ExportToFile = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include PIM eligible until date in CSV" } )]
-    [bool] $pimEligibleUntilInCSV = $false,
+    [bool] $PimEligibleUntilInCSV = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
     [string] $ContainerName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
@@ -97,8 +135,8 @@ $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "exportToFile: $exportToFile" -Verbose
-Write-RjRbLog -Message "pimEligibleUntilInCSV: $pimEligibleUntilInCSV" -Verbose
+Write-RjRbLog -Message "ExportToFile: $ExportToFile" -Verbose
+Write-RjRbLog -Message "PimEligibleUntilInCSV: $PimEligibleUntilInCSV" -Verbose
 Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
 Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
 Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose

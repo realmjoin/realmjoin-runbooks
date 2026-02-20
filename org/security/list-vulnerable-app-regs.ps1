@@ -1,46 +1,69 @@
 <#
-  .SYNOPSIS
-  List all app registrations that suffer from the CVE-2021-42306 vulnerability.
+    .SYNOPSIS
+    List app registrations potentially vulnerable to CVE-2021-42306
 
-  .DESCRIPTION
-  List all app registrations that suffer from the CVE-2021-42306 vulnerability.
+    .DESCRIPTION
+    Lists Azure AD app registrations that may be affected by CVE-2021-42306 by inspecting stored key credentials. Optionally exports the findings to a CSV file in Azure Storage.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "CallerName": {
-            "Hide": true
-        },
-        "ExportToFile": {
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Export to a CSV file",
-                        "ParameterValue": true
-                    },
-                    {
-                        "Display": "List in Console",
-                        "ParameterValue": false,
-                        "Customization": {
-                            "Hide": [
-                                "ContainerName",
-                                "ResourceGroupName",
-                                "StorageAccountName",
-                                "StorageAccountLocation",
-                                "StorageAccountSku"
-                            ]
+    .PARAMETER ExportToFile
+    If set to true, exports the results to a CSV file in Azure Storage.
+
+    .PARAMETER ContainerName
+    Name of the Azure Storage container to upload the CSV report to.
+
+    .PARAMETER ResourceGroupName
+    Name of the Azure Resource Group containing the Storage Account.
+
+    .PARAMETER StorageAccountName
+    Name of the Azure Storage Account used for upload.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the Storage Account if it needs to be created.
+
+    .PARAMETER StorageAccountSku
+    SKU name for the Storage Account if it needs to be created.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "ExportToFile": {
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Export to a CSV file",
+                            "ParameterValue": true
+                        },
+                        {
+                            "Display": "List in Console",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ContainerName",
+                                    "ResourceGroupName",
+                                    "StorageAccountName",
+                                    "StorageAccountLocation",
+                                    "StorageAccountSku"
+                                ]
+                            }
                         }
-                    }
-                ],
-                "ShowValue": false
+                    ],
+                    "ShowValue": false
+                }
             }
         }
     }
-}
 
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
+#Requires -Modules @{ ModuleName = "Az.Resources"; ModuleVersion = "9.0.1" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save report to CSV file (instead of printing it to console)?" } )]

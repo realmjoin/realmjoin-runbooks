@@ -1,62 +1,91 @@
 <#
-  .SYNOPSIS
-  List/export inactive devices, which had no recent user logons.
+    .SYNOPSIS
+    List or export inactive devices with no recent logon or Intune sync
 
-  .DESCRIPTION
-  Collect devices based on the date of last user logon or last Intune sync.
+    .DESCRIPTION
+    Collects devices based on either last interactive sign-in or last Intune sync date and lists them in the console. Optionally exports the results to a CSV file in Azure Storage.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "Sync": {
-            "DisplayName": "Last Login or Last Intune Sync",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Show by Last Intune Sync",
-                        "ParameterValue": true
-                    },
-                    {
-                        "Display": "Show by Last Login",
-                        "ParameterValue": false
-                    }
-                ],
-                "ShowValue": false
-            }
-        },
-        "CallerName": {
-            "Hide": true
-        },
-        "ExportToFile": {
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Export to a CSV file",
-                        "ParameterValue": true
-                    },
-                    {
-                        "Display": "List in Console",
-                        "ParameterValue": false,
-                        "Customization": {
-                            "Hide": [
-                                "ContainerName",
-                                "ResourceGroupName",
-                                "StorageAccountName",
-                                "StorageAccountLocation",
-                                "StorageAccountSku"
-                            ]
+    .PARAMETER Days
+    Number of days without sync or sign-in used to consider a device inactive.
+
+    .PARAMETER Sync
+    If set to true, inactivity is based on last Intune sync; otherwise it is based on last interactive sign-in.
+
+    .PARAMETER ExportToFile
+    If set to true, exports the results to a CSV file in Azure Storage.
+
+    .PARAMETER ContainerName
+    Name of the Azure Storage container to upload the CSV report to.
+
+    .PARAMETER ResourceGroupName
+    Name of the Azure Resource Group containing the Storage Account.
+
+    .PARAMETER StorageAccountName
+    Name of the Azure Storage Account used for upload.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the Storage Account if it needs to be created.
+
+    .PARAMETER StorageAccountSku
+    SKU name for the Storage Account if it needs to be created.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "Sync": {
+                "DisplayName": "Last Login or Last Intune Sync",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Show by Last Intune Sync",
+                            "ParameterValue": true
+                        },
+                        {
+                            "Display": "Show by Last Login",
+                            "ParameterValue": false
                         }
-                    }
-                ],
-                "ShowValue": false
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "ExportToFile": {
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Export to a CSV file",
+                            "ParameterValue": true
+                        },
+                        {
+                            "Display": "List in Console",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ContainerName",
+                                    "ResourceGroupName",
+                                    "StorageAccountName",
+                                    "StorageAccountLocation",
+                                    "StorageAccountSku"
+                                ]
+                            }
+                        }
+                    ],
+                    "ShowValue": false
+                }
             }
         }
     }
-}
 
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
+#Requires -Modules @{ ModuleName = "Az.Resources"; ModuleVersion = "9.0.1" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Number of days without Sync/Login being considered inactive." } )]

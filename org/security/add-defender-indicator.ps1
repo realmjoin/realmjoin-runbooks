@@ -1,64 +1,91 @@
 <#
-  .SYNOPSIS
-  Create new Indicator in Defender for Endpoint.
+    .SYNOPSIS
+    Create a new Microsoft Defender for Endpoint indicator
 
-  .DESCRIPTION
-  Create a new Indicator in Defender for Endpoint e.g. to allow a specific file using it's hash value or allow a specific url that by default is blocked by Defender for Endpoint
+    .DESCRIPTION
+    Creates a new indicator in Microsoft Defender for Endpoint to allow or block a specific file hash, certificate thumbprint, IP, domain, or URL. The indicator action can generate alerts automatically for audit or alert-and-block actions.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "IndicatorValue": {
-            "Hide": false
-        },
-        "IndicatorType": {
-            "DisplayName": "IndicatorType",
-            "SelectSimple": {
-                "File Sha256": "FileSha256",
-                "File Sha1": "FileSha1",
-                "File Md5": "FileMd5",
-                "Certificate Thumbprint": "CertificateThumbprint",
-                "Ip Address": "IpAddress",
-                "Domain Name": "DomainName",
-                "Url": "Url"
-            }
-        },
-        "Title": {
-            "Hide": false
-        },
-        "Description": {
-            "Hide": false
-        },
-        "Action": {
-            "DisplayName": "Action",
-            "SelectSimple": {
-                "Alert": "Alert",
-                "Warn": "Warn",
-                "Block": "Block",
-                "Audit": "Audit",
-                "Block And Remediate": "BlockAndRemediate",
-                "Alert And Block": "AlertAndBlock",
-                "Allowed": "Allowed"
-            }
-        },
-        "Severity": {
-            "DisplayName": "Severity",
-            "SelectSimple": {
-                "Informational": "Informational",
-                "Low": "Low",
-                "Medium": "Medium",
-                "High": "High"
-            }
-        },
-        "GenerateAlert": {
-            "DisplayName": "GenerateAlert",
-            "SelectSimple": {
-                "false": false,
-                "true": true
+    .PARAMETER IndicatorValue
+    Value of the indicator, such as a hash, thumbprint, IP address, domain name, or URL.
+
+    .PARAMETER IndicatorType
+    Type of the indicator value.
+
+    .PARAMETER Title
+    Title of the indicator entry.
+
+    .PARAMETER Description
+    Description of the indicator entry.
+
+    .PARAMETER Action
+    Action applied to the indicator.
+
+    .PARAMETER Severity
+    Severity used for the indicator.
+
+    .PARAMETER GenerateAlert
+    If set to true, an alert is generated when the indicator matches.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "IndicatorValue": {
+                "Hide": false
+            },
+            "IndicatorType": {
+                "DisplayName": "IndicatorType",
+                "SelectSimple": {
+                    "File Sha256": "FileSha256",
+                    "File Sha1": "FileSha1",
+                    "File Md5": "FileMd5",
+                    "Certificate Thumbprint": "CertificateThumbprint",
+                    "Ip Address": "IpAddress",
+                    "Domain Name": "DomainName",
+                    "Url": "Url"
+                }
+            },
+            "Title": {
+                "Hide": false
+            },
+            "Description": {
+                "Hide": false
+            },
+            "Action": {
+                "DisplayName": "Action",
+                "SelectSimple": {
+                    "Alert": "Alert",
+                    "Warn": "Warn",
+                    "Block": "Block",
+                    "Audit": "Audit",
+                    "Block And Remediate": "BlockAndRemediate",
+                    "Alert And Block": "AlertAndBlock",
+                    "Allowed": "Allowed"
+                }
+            },
+            "Severity": {
+                "DisplayName": "Severity",
+                "SelectSimple": {
+                    "Informational": "Informational",
+                    "Low": "Low",
+                    "Medium": "Medium",
+                    "High": "High"
+                }
+            },
+            "GenerateAlert": {
+                "DisplayName": "GenerateAlert",
+                "SelectSimple": {
+                    "false": false,
+                    "true": true
+                }
             }
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

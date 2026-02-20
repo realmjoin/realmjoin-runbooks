@@ -1,21 +1,21 @@
 <#
-.SYNOPSIS
-    Generate report for Endpoint Privilege Management (EPM) elevation requests.
+    .SYNOPSIS
+    Generate report for Endpoint Privilege Management (EPM) elevation requests
 
-.DESCRIPTION
+    .DESCRIPTION
     Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
     Supports filtering by multiple status types and time range.
     Sends an email report with summary statistics and detailed CSV attachment.
 
-.NOTES
+    .NOTES
     Runbook Type: Scheduled (recommended: monthly)
-    
+
     Purpose & Use Cases:
     - Regular reporting of EPM activities
     - Audit trail for approved/denied elevation requests
     - Analysis of expired requests to identify process bottlenecks
     - Identification of frequently requested applications for automatic elevation rules
-    
+
     Status Types Explained:
     - Pending: Awaits admin decision (use monitor-pending-EPM-requests for time-critical alerting)
     - Approved: Admin approved the request, user can proceed with elevation
@@ -23,89 +23,89 @@
     - Expired: Request expired before admin review (may indicate slow response times)
     - Revoked: Previously approved elevation was later revoked by admin
     - Completed: User successfully executed the elevated application after approval
-    
+
     Data Retention & Time Ranges:
     - Intune retains EPM request details for 30 days after creation
     - For long-term analysis, archive CSV exports outside of Intune
     - Default filter (Approved/Denied/Expired/Revoked, 30 days)
-    
+
     Email & Export Details:
     - Always generates CSV attachment with complete request details
     - Emails sent individually to each recipient for privacy
     - No email sent when zero requests match the filter criteria
     - CSV includes: timestamps, users, devices, applications, justifications, file hashes
 
-.PARAMETER EmailTo
+    .PARAMETER EmailTo
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
-.PARAMETER EmailFrom
+    .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization.
 
-.PARAMETER IncludePending
+    .PARAMETER IncludePending
     Include requests with status "Pending" - Awaiting approval decision.
 
-.PARAMETER IncludeApproved
+    .PARAMETER IncludeApproved
     Include requests with status "Approved" - Request has been approved by an administrator.
 
-.PARAMETER IncludeDenied
+    .PARAMETER IncludeDenied
     Include requests with status "Denied" - Request was rejected by an administrator.
 
-.PARAMETER IncludeExpired
+    .PARAMETER IncludeExpired
     Include requests with status "Expired" - Request expired before approval/denial.
 
-.PARAMETER IncludeRevoked
+    .PARAMETER IncludeRevoked
     Include requests with status "Revoked" - Previously approved request was revoked.
 
-.PARAMETER IncludeCompleted
+    .PARAMETER IncludeCompleted
     Include requests with status "Completed" - Request was approved and executed successfully.
 
-.PARAMETER MaxAgeInDays
+    .PARAMETER MaxAgeInDays
     Filter requests created within the last X days (default: 30).
     Note: Request details are retained in Intune for 30 days after creation.
 
-.PARAMETER CallerName
+    .PARAMETER CallerName
     Internal parameter for tracking purposes
 
-.INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "IncludePending": {
-                "DisplayName": "Pending Requests (awaiting approval)"
-            },
-            "IncludeApproved": {
-                "DisplayName": "Approved Requests (approved by admin)"
-            },
-            "IncludeDenied": {
-                "DisplayName": "Denied Requests (rejected by admin)"
-            },
-            "IncludeExpired": {
-                "DisplayName": "Expired Requests (expired before decision)"
-            },
-            "IncludeRevoked": {
-                "DisplayName": "Revoked Requests (approval revoked)"
-            },
-            "IncludeCompleted": {
-                "DisplayName": "Completed Requests (approved and executed)"
-            },
-            "MaxAgeInDays": {
-                "DisplayName": "Filter requests created within last X days (retention: 30 days)"
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient Email Address(es)"
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"IncludePending": {
+				"DisplayName": "Pending Requests (awaiting approval)"
+			},
+			"IncludeApproved": {
+				"DisplayName": "Approved Requests (approved by admin)"
+			},
+			"IncludeDenied": {
+				"DisplayName": "Denied Requests (rejected by admin)"
+			},
+			"IncludeExpired": {
+				"DisplayName": "Expired Requests (expired before decision)"
+			},
+			"IncludeRevoked": {
+				"DisplayName": "Revoked Requests (approval revoked)"
+			},
+			"IncludeCompleted": {
+				"DisplayName": "Completed Requests (approved and executed)"
+			},
+			"MaxAgeInDays": {
+				"DisplayName": "Filter requests created within last X days (retention: 30 days)"
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -308,9 +308,9 @@ $currentDate = Get-Date
 
 try {
     $filteredRequests = Get-AllGraphPage -Uri $Uri -ErrorAction Stop
-    
+
     Write-Output "Retrieved $($filteredRequests.Count) request(s) matching filter criteria."
-    
+
     # If no requests found, exit without sending email
     if ($filteredRequests.Count -eq 0) {
         Write-Output ""
@@ -318,7 +318,7 @@ try {
         Write-Output "No email will be sent as there are no matching requests."
         exit 0
     }
-    
+
 }
 catch {
     Write-Error "Failed to retrieve EPM elevation requests: $($_.Exception.Message)" -ErrorAction Continue
@@ -338,36 +338,36 @@ Write-Output "## Processing request data..."
 $processedRequests = @()
 
 foreach ($request in $filteredRequests) {
-    $requestCreated = if ($request.requestCreatedDateTime) { 
-        [datetime]$request.requestCreatedDateTime 
-    } else { 
-        $null 
+    $requestCreated = if ($request.requestCreatedDateTime) {
+        [datetime]$request.requestCreatedDateTime
+    } else {
+        $null
     }
-    
-    $requestModified = if ($request.requestLastModifiedDateTime) { 
-        [datetime]$request.requestLastModifiedDateTime 
-    } else { 
-        $null 
+
+    $requestModified = if ($request.requestLastModifiedDateTime) {
+        [datetime]$request.requestLastModifiedDateTime
+    } else {
+        $null
     }
-    
-    $requestExpiry = if ($request.requestExpiryDateTime) { 
-        [datetime]$request.requestExpiryDateTime 
-    } else { 
-        $null 
+
+    $requestExpiry = if ($request.requestExpiryDateTime) {
+        [datetime]$request.requestExpiryDateTime
+    } else {
+        $null
     }
-    
+
     $fileName = if ($request.applicationDetail.fileName) {
         $request.applicationDetail.fileName
     } else {
         "Unknown"
     }
-    
+
     $productName = if ($request.applicationDetail.productName) {
         $request.applicationDetail.productName
     } else {
         "Unknown"
     }
-    
+
     $processedRequests += [PSCustomObject]@{
         RequestId               = $request.id
         Status                  = $request.status
