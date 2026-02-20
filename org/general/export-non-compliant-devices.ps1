@@ -1,9 +1,43 @@
 <#
-.SYNOPSIS
-    Report on non-compliant devices and policies
+    .SYNOPSIS
+    Export non-compliant Intune devices and settings
 
-.DESCRIPTION
-    Report on non-compliant devices and policies
+    .DESCRIPTION
+    This runbook queries Intune for non-compliant and in-grace-period devices and retrieves detailed policy and setting compliance data.
+    It can export the results to CSV with SAS (download) links.
+
+    .PARAMETER produceLinks
+    If set to true, uploads artifacts and produces SAS (download) links when storage settings are available.
+
+    .PARAMETER ContainerName
+    Storage container name used for uploads.
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for uploads.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the storage account.
+
+    .PARAMETER StorageAccountSku
+    Storage account SKU.
+
+    .PARAMETER SubscriptionId
+    Azure subscription ID used for storage operations.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 
 #>
 

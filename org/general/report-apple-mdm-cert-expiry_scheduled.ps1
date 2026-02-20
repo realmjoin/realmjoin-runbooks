@@ -1,26 +1,26 @@
 <#
-.SYNOPSIS
-    Monitor/Report expiry of Apple device management certificates.
+    .SYNOPSIS
+    Monitor/Report expiry of Apple device management certificates
 
-.DESCRIPTION
+    .DESCRIPTION
     Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
     Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
-.PARAMETER Days
+    .PARAMETER Days
     The warning threshold in days. Certificates and tokens expiring within this many days will be
     flagged as alerts in the report. Default is 300 days (approximately 10 months).
 
-.PARAMETER EmailTo
+    .PARAMETER EmailTo
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
-.PARAMETER EmailFrom
+    .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization
 
-.PARAMETER CallerName
-    Internal parameter for tracking purposes
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-.INPUTS
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {
@@ -33,14 +33,14 @@
                 "Hide": true
             },
             "Days": {
-                "DisplayName": "Days Until Expiration Warning",
+                "DisplayName": "Days Until Expiration Warning"
             }
         }
     }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [Parameter(Mandatory = $true)]

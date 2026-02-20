@@ -1,13 +1,44 @@
 <#
-  .SYNOPSIS
-  Sync devices of users in a specific group to another device group.
+    .SYNOPSIS
+    Sync devices of users in a specific group to another device group
 
-  .DESCRIPTION
-  This runbook reads accounts from a specified Users group and adds their devices to a specified Devices group. It ensures new devices are also added.
+    .DESCRIPTION
+    This runbook reads accounts from a specified users group and adds their devices to a specified device group.
+    It can filter devices by operating system and keeps the target group in sync.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserGroup
+    Name or object ID of the users group.
+
+    .PARAMETER DeviceGroup
+    Name or object ID of the device group.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .PARAMETER IncludeWindowsDevice
+    If set to true, includes Windows devices.
+
+    .PARAMETER IncludeMacOSDevice
+    If set to true, includes macOS devices.
+
+    .PARAMETER IncludeLinuxDevice
+    If set to true, includes Linux devices.
+
+    .PARAMETER IncludeAndroidDevice
+    If set to true, includes Android devices.
+
+    .PARAMETER IncludeIOSDevice
+    If set to true, includes iOS devices.
+
+    .PARAMETER IncludeIPadOSDevice
+    If set to true, includes iPadOS devices.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
             "UserGroup": {
                 "DisplayName": "Name or Object ID of the Users Group"
             },
@@ -32,7 +63,6 @@
             "IncludeIPadOSDevice": {
                 "DisplayName": "Include iPadOS-Devices (Default: False)"
             }
-
         }
     }
 

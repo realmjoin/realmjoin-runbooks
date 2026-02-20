@@ -1,41 +1,64 @@
 <#
-  .SYNOPSIS
-  Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
+    .SYNOPSIS
+    Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
-  .DESCRIPTION
-  Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
+	.DESCRIPTION
+	This runbook creates a Microsoft 365 group and provisions the related SharePoint site.
+	It can optionally promote the group to a Microsoft Teams team after creation.
 
-  .NOTES
-  Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-  MS Graph (API):
-  - Group.Create
-  - Team.Create
+	.PARAMETER MailNickname
+	Mail nickname used for group creation.
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "CreateTeam": {
-                "DisplayName":  "Create a Teams Team",
-                "SelectSimple": {
-                    "Only create a SharePoint Site": false,
-                    "Create a Team (and SharePoint Site)": true
-                }
-            },
-            "Private": {
-                "DisplayName":  "Visibility",
-                "SelectSimple": {
-                    "Public": false,
-                    "Private": true
-                }
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "DisplayName": {
-                "DisplayName": "DisplayName - will use MailNickname if left empty"
-            }
-        }
-    }
+	.PARAMETER DisplayName
+	Optional display name. If empty, MailNickname is used.
+
+	.PARAMETER CreateTeam
+	If set to true, a team is created for the new group.
+
+	.PARAMETER Private
+	If set to true, the group visibility is private.
+
+	.PARAMETER MailEnabled
+	If set to true, the group is mail-enabled.
+
+	.PARAMETER SecurityEnabled
+	If set to true, the group is security-enabled.
+
+	.PARAMETER Owner
+	Optional owner of the group.
+
+	.PARAMETER Owner2
+	Optional second owner of the group.
+
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CreateTeam": {
+				"DisplayName": "Create a Teams Team",
+				"SelectSimple": {
+					"Only create a SharePoint Site": false,
+					"Create a Team (and SharePoint Site)": true
+				}
+			},
+			"Private": {
+				"DisplayName": "Visibility",
+				"SelectSimple": {
+					"Public": false,
+					"Private": true
+				}
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"DisplayName": {
+				"DisplayName": "DisplayName - will use MailNickname if left empty"
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

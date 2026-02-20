@@ -1,19 +1,39 @@
 <#
-  .SYNOPSIS
-  Export a list of all Intune devices and where they are registered.
+    .SYNOPSIS
+    Export a list of all Intune devices and where they are registered
 
-  .DESCRIPTION
-  Export all Intune devices and metadata based on their owner, like usageLocation.
+    .DESCRIPTION
+    Exports all Intune managed devices and enriches them with selected owner metadata such as usage location. The report is uploaded as a CSV file to an Azure Storage container.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER ContainerName
+    Name of the Azure Storage container to upload the CSV report to.
+
+    .PARAMETER ResourceGroupName
+    Name of the Azure Resource Group containing the Storage Account.
+
+    .PARAMETER StorageAccountName
+    Name of the Azure Storage Account used for upload.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the Storage Account if it needs to be created.
+
+    .PARAMETER StorageAccountSku
+    SKU name for the Storage Account if it needs to be created.
+
+    .PARAMETER SubscriptionId
+    Optional Azure Subscription Id to set the context for Storage Account operations.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
