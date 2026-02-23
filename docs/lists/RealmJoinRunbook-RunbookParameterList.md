@@ -188,9 +188,9 @@ Reboots a specific AVD Session Host.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI. |
-| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
-| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
+| DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI |
 
 <a name='device-avd-toggle-drain-mode'></a>
 
@@ -820,7 +820,7 @@ Sync Intune serial numbers to Entra ID extension attributes
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| ExtensionAttributeNumber |  | Int32 | Extension attribute number to update. |
+| ExtensionAttributeNumber |  | Int32 | Extension attribute number to update |
 | ProcessAllDevices |  | Boolean | If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed. |
 | MaxDevicesToProcess |  | Int32 | Maximum number of devices to process in a single run. Use 0 for unlimited. |
 | sendReportTo |  | String | Email address to send the report to. If empty, no email will be sent. |

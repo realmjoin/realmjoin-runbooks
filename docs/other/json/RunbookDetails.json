@@ -14,7 +14,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI"
           }
         ],
         "globbing": "false",
@@ -31,7 +31,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "The name of the AVD Session Host device to restart. Hidden in UI."
+            "Text": "The name of the AVD Session Host device to restart. Hidden in UI"
           }
         ],
         "globbing": "false",
@@ -48,7 +48,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+            "Text": "Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI"
           }
         ],
         "globbing": "false",
@@ -5282,7 +5282,7 @@
         "defaultValue": "1",
         "description": [
           {
-            "Text": "Extension attribute number to update."
+            "Text": "Extension attribute number to update"
           }
         ],
         "globbing": "false",
@@ -5366,7 +5366,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"Organization.Read.All\",\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Device.ReadWrite.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"Organization.Read.All\",\n        \"Device.ReadWrite.All\",\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -5374,8 +5374,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Organization.Read.All",
-            "DeviceManagementManagedDevices.Read.All",
             "Device.ReadWrite.All",
+            "DeviceManagementManagedDevices.Read.All",
             "Mail.Send"
           ]
         }

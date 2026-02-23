@@ -3,9 +3,9 @@ This document combines the permission requirements and RBAC roles with the expos
 
 | Category | Subcategory | Runbook Name | Synopsis | Permissions | RBAC Roles | Parameter | Required | Type | Parameter Description |
 |----------|-------------|--------------|----------|-------------|------------|-----------|----------|------|-----------------------|
-| Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI. |
-|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
-|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
+| Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String | The name of the AVD Session Host device to restart. Hidden in UI |
+|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | DeviceName | ✓ | String | The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI. |
 |  |  |  |  |  |  | DrainMode | ✓ | Boolean | Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false. |
 |  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
@@ -231,7 +231,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | ExtensionAttributeNumber |  | Int32 | Extension attribute number to update. |
+|  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- Device.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Mail.Send<br> |  | ExtensionAttributeNumber |  | Int32 | Extension attribute number to update |
 |  |  |  |  |  |  | ProcessAllDevices |  | Boolean | If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed. |
 |  |  |  |  |  |  | MaxDevicesToProcess |  | Int32 | Maximum number of devices to process in a single run. Use 0 for unlimited. |
 |  |  |  |  |  |  | sendReportTo |  | String | Email address to send the report to. If empty, no email will be sent. |
