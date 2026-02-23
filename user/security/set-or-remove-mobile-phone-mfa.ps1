@@ -1,15 +1,24 @@
 <#
-  .SYNOPSIS
-  Add, update or remove a user's mobile phone MFA information.
+    .SYNOPSIS
+    Set or remove a user's mobile phone MFA method
 
-  .DESCRIPTION
-  Add, update or remove a user's mobile phone MFA information. If you want to modify a number, remove it first and add a new number afterwards.
+    .DESCRIPTION
+    Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number.
 
-  .PARAMETER phoneNumber
-  Enter the user's mobile number in international format (e.g. +491701234567) to add, update, or remove.
+    .PARAMETER UserName
+    User principal name of the target user.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER phoneNumber
+    Mobile phone number in international E.164 format (e.g., +491701234567).
+
+    .PARAMETER Remove
+    If set to true, removes the mobile phone MFA method instead of adding or updating it.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
@@ -17,7 +26,7 @@
             "Remove": {
                 "DisplayName": "Add or Remove Member",
                 "SelectSimple": {
-                    "Add this number as Mobile Phone MFA Factor'": false,
+                    "Add this number as Mobile Phone MFA factor": false,
                     "Remove this number / mobile phone MFA factor": true
                 }
             },
