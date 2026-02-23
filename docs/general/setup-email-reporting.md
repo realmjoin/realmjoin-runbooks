@@ -30,3 +30,25 @@ In the `Settings` block, add or modify the `RJReport` section to include the `Em
 ```
 
 **Example:** With this configuration, the runbook will use `realmjoin-report@contoso.com` as the sender email address for all outgoing reports. Replace `realmjoin-report@contoso.com` with your actual shared mailbox address.
+
+## Setup of Service Desk contact information (optional)
+
+To include Service Desk contact information in the notification emails, you can configure the following settings in your runbook customization:
+
+```json
+"Settings": {
+  "RJReport": {
+    "ServiceDesk_DisplayName": "IT Service Desk",
+    "ServiceDesk_EMail": "servicedesk@domain.com",
+    "ServiceDesk_Phone": "+49123456789"
+  }
+}
+```
+
+**Parameters:**
+- `ServiceDesk_DisplayName` - Display name of your Service Desk (e.g., "IT Support", "Help Desk")
+- `ServiceDesk_EMail` - Service Desk email address (will be shown as clickable mailto link)
+- `ServiceDesk_Phone` - Service Desk phone number in international format (will be shown as clickable tel link)
+
+All three parameters are optional. If configured, they will be displayed in the email footer as clickable links, making it easy for users to contact support.
+
