@@ -1,6 +1,6 @@
 <#
-    .SYNOPSIS
-    Create a shared mailbox.
+	.SYNOPSIS
+	Create a shared mailbox
 
     .DESCRIPTION
     This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
@@ -9,48 +9,48 @@
     .PARAMETER MailboxName
     The alias (mailbox name) for the shared mailbox.
 
-    .PARAMETER DisplayName
-    The display name for the shared mailbox.
+	.PARAMETER DisplayName
+	Display name for the shared mailbox.
 
-    .PARAMETER DomainName
-    The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
+	.PARAMETER DomainName
+	Optional domain used for the primary SMTP address; if not provided, the default domain is used.
 
     .PARAMETER Language
     The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
 
-    .PARAMETER DelegateTo
-    The user to delegate access to the shared mailbox.
+	.PARAMETER DelegateTo
+	Optional user who receives delegated access to the mailbox.
 
-    .PARAMETER AutoMapping
-    If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
+	.PARAMETER AutoMapping
+	If set to true, the mailbox is automatically mapped in Outlook for the delegate.
 
-    .PARAMETER MessageCopyForSentAsEnabled
-    If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
+	.PARAMETER MessageCopyForSentAsEnabled
+	If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items.
 
-    .PARAMETER MessageCopyForSendOnBehalfEnabled
-    If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
+	.PARAMETER MessageCopyForSendOnBehalfEnabled
+	If set to true, copies of messages sent on behalf of the mailbox are stored in the mailbox sent items.
 
-    .PARAMETER DisableUser
-    If set to true, the associated EntraID user account will be disabled.
+	.PARAMETER DisableUser
+	If set to true, the associated Entra ID user account is disabled.
 
-    .PARAMETER CallerName
-    The name of the caller executing this script. This parameter is used for auditing purposes.
+	.PARAMETER CallerName
+	Caller name is tracked purely for auditing purposes.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "Language": {
-                "SelectSimple": {
-                    "en-US": "en-US",
-                    "de-DE": "de-DE",
-                    "fr-FR": "fr-FR"
-                }
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"Language": {
+				"SelectSimple": {
+					"en-US": "en-US",
+					"de-DE": "de-DE",
+					"fr-FR": "fr-FR"
+				}
+			}
+		}
+	}
 
     .EXAMPLE
         "Runbooks": {

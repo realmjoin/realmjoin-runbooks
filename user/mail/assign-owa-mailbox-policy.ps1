@@ -1,12 +1,21 @@
 <#
-  .SYNOPSIS
-  Assign a given OWA mailbox policy to a user.
+    .SYNOPSIS
+    Assign an OWA mailbox policy to a user
 
-  .DESCRIPTION
-  Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
+    .DESCRIPTION
+    Assigns an OWA mailbox policy to a mailbox in Exchange Online. This can be used to enable or restrict features such as Microsoft Bookings.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target mailbox.
+
+    .PARAMETER OwaPolicyName
+    Name of the OWA mailbox policy to assign.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "OwaPolicyName": {
                 "SelectSimple": {
@@ -16,12 +25,16 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "UserName": {
+                "Hide": true
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -60,7 +73,7 @@ catch {
 }
 
 Set-CasMailbox -OwaMailboxPolicy $OwaPolicyName -Identity $UserName -ErrorAction Stop | Out-Null
-"## OWA Mailbox Policy for '$Username' set to '$OwaPolicyName'."
+"## OWA Mailbox Policy for '$UserName' set to '$OwaPolicyName'."
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 

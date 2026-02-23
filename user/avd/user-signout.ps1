@@ -1,22 +1,22 @@
 <#
-  .SYNOPSIS
-  Removes (Signs Out) a specific User from their AVD Session.
+    .SYNOPSIS
+    Removes (Signs Out) a specific User from their AVD Session.
 
-  .DESCRIPTION
-  This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
-  The SubscriptionIds value must be defined in the runbooks customization.
+    .DESCRIPTION
+    This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
+    The SubscriptionIds value must be defined in the runbooks customization.
 
-  .PARAMETER UserName
-  The username (UPN) of the user to sign out from their AVD session. Hidden in UI.
+    .PARAMETER UserName
+    The username (UPN) of the user to sign out from their AVD session. Hidden in UI.
 
-  .PARAMETER SubscriptionIds
-  Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
+    .PARAMETER SubscriptionIds
+    Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
 
-  .PARAMETER CallerName
-  The name of the user executing the runbook. Used for auditing purposes. Hidden in UI.
+    .PARAMETER CallerName
+    Caller name for auditing purposes
 
-  .INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
@@ -26,7 +26,7 @@
             },
             "CallerName": {
                 "Hide": true
-            },
+            }
         }
     }
 #>

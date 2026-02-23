@@ -1,12 +1,33 @@
 <#
-  .SYNOPSIS
-  Create an equipment mailbox.
+    .SYNOPSIS
+    Create an equipment mailbox
 
-  .DESCRIPTION
-  Create an equipment mailbox.
+    .DESCRIPTION
+    Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER MailboxName
+    Alias (mail nickname) for the equipment mailbox.
+
+    .PARAMETER DisplayName
+    Optional display name for the equipment mailbox.
+
+    .PARAMETER DelegateTo
+    Optional user who receives delegated access to the mailbox.
+
+    .PARAMETER AutoAccept
+    If set to true, meeting requests are automatically accepted.
+
+    .PARAMETER AutoMapping
+    If set to true, the mailbox is automatically mapped in Outlook for the delegate.
+
+    .PARAMETER DisableUser
+    If set to true, the associated Entra ID user account is disabled.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
@@ -19,7 +40,7 @@
             },
             "DisableUser": {
                 "DisplayName": "Disable AAD User"
-            },
+            }
         }
     }
 

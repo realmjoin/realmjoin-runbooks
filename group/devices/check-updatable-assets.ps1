@@ -1,18 +1,29 @@
 <#
-  .SYNOPSIS
-  Check if devices in a group are onboarded to Windows Update for Business.
+    .SYNOPSIS
+    Check if devices in a group are onboarded to Windows Update for Business.
 
-  .DESCRIPTION
-  This script checks if single or multiple devices (by Group Object ID) are onboarded to Windows Update for Business.
+    .DESCRIPTION
+    This runbook checks the Windows Update for Business onboarding status for all device members of a Microsoft Entra ID group.
+    It queries each device and reports the enrollment state per update category and any returned error details.
+    Use this to validate whether group members are correctly registered as updatable assets.
 
-  .PARAMETER GroupId
-  Object ID of the group to check onboarding status for its members.
+    .PARAMETER GroupId
+    Object ID of the group whose device members will be checked.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .INPUTS
-  GroupId, and CallerName
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "GroupId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

@@ -1,11 +1,41 @@
 <#
-  .SYNOPSIS
-  Set room resource policies.
+    .SYNOPSIS
+    Set room mailbox resource policies
 
-  .DESCRIPTION
-  Set room resource policies.
+    .DESCRIPTION
+    Updates room mailbox settings such as booking policy, calendar processing, and capacity. The runbook can optionally restrict BookInPolicy to members of a specific mail-enabled security group.
 
-  .INPUTS
+    .PARAMETER UserName
+    User principal name of the room mailbox.
+
+    .PARAMETER AllBookInPolicy
+    "Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn.
+
+    .PARAMETER BookInPolicyGroup
+    Group whose members are allowed to book when AllBookInPolicy is false.
+
+    .PARAMETER AllowRecurringMeetings
+    If set to true, allows recurring meetings.
+
+    .PARAMETER AutomateProcessing
+    Calendar processing mode for the room mailbox.
+
+    .PARAMETER BookingWindowInDays
+    How many days into the future bookings are allowed.
+
+    .PARAMETER MaximumDurationInMinutes
+    Maximum meeting duration in minutes.
+
+    .PARAMETER AllowConflicts
+    If set to true, allows scheduling conflicts.
+
+    .PARAMETER Capacity
+    Capacity to set for the room when greater than 0.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {
@@ -21,17 +51,17 @@
                     "None": "None"
                 }
             },
-			"AllBookInPolicy": {
-				"Select": {
+            "AllBookInPolicy": {
+                "Select": {
                     "Options": [
                         {
                             "Display": "Allow BookIn for everyone",
                             "Customization": {
-								"Hide": [
+                                "Hide": [
                                     "BookInPolicyGroup"
                                 ]
                             },
-							"Value": true
+                            "Value": true
                         },
                         {
                             "Display": "Custom BookIn Policy",
@@ -40,7 +70,7 @@
                     ],
                     "Default": true
                 }
-			}
+            }
         }
     }
 

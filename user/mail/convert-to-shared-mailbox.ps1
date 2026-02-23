@@ -1,17 +1,44 @@
 <#
-  .SYNOPSIS
-  Turn this users mailbox into a shared mailbox.
+    .SYNOPSIS
+    Convert a user mailbox to a shared mailbox and back
 
-  .DESCRIPTION
-  Turn this users mailbox into a shared mailbox.
+    .DESCRIPTION
+    Converts a mailbox to a shared mailbox or reverts it back to a regular user mailbox. Optionally delegates access and adjusts group memberships and license groups.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER delegateTo
+    User principal name of the delegate who should receive access.
+
+    .PARAMETER Remove
+    If set to true, converts a shared mailbox back to a regular mailbox.
+
+    .PARAMETER AutoMapping
+    If set to true, enables automatic Outlook mapping for delegated FullAccess.
+
+    .PARAMETER RemoveGroups
+    If set to true, removes existing group memberships when converting to a shared mailbox.
+
+    .PARAMETER ArchivalLicenseGroup
+    Display name of a license group to assign when an archive or larger mailbox requires it.
+
+    .PARAMETER RegularLicenseGroup
+    Display name of a license group to assign when converting back to a regular mailbox.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
             },
             "Remove": {
+                "Hide": true
+            },
+            "CallerName": {
                 "Hide": true
             }
         },
@@ -31,7 +58,8 @@
                                     "RegularLicenseGroup"
                                 ]
                             }
-                        }, {
+                        },
+                        {
                             "Display": "Turn shared mailbox back into regular mailbox",
                             "Customization": {
                                 "Default": {

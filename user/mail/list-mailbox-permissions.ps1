@@ -1,12 +1,18 @@
 <#
-  .SYNOPSIS
-  List permissions on a (shared) mailbox.
+    .SYNOPSIS
+    List mailbox permissions for a mailbox
 
-  .DESCRIPTION
-  List permissions on a (shared) mailbox.
+    .DESCRIPTION
+    Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
@@ -19,7 +25,8 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }, @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.2.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param
 (

@@ -1,13 +1,22 @@
 <#
-  .SYNOPSIS
-  Hard delete a shared mailbox, room or bookings calendar.
+    .SYNOPSIS
+    Hard delete a shared mailbox, room or bookings calendar
 
-  .DESCRIPTION
-  Hard delete a shared mailbox, room or bookings calendar.
+    .DESCRIPTION
+    Forces a deletion of a shared mailbox, room mailbox, or bookings calendar. The mailbox type is validated before deletion.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -15,7 +24,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }, Az.Storage, ExchangeOnlineManagement
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param (
     [Parameter(Mandatory = $true)]

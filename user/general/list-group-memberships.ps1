@@ -1,10 +1,12 @@
 <#
     .SYNOPSIS
-    List group memberships for this user.
+    List group memberships for this user
 
     .DESCRIPTION
-    List group memberships for this user with filtering options for group type, membership type, role assignable status, Teams enabled status, and source.
-    The output is in CSV format with all group details including DisplayName, ID, Type, MembershipType, RoleAssignable, TeamsEnabled, and Source.
+    Lists group memberships for this user and supports filtering by group type, membership type, role-assignable status, Teams enablement, source, and writeback status. Outputs the results as CSV-formatted text.
+
+    .PARAMETER UserName
+    User principal name of the target user.
 
     .PARAMETER GroupType
     Filter by group type: Security (security permissions only), M365 (Microsoft 365 groups with mailbox), or All (default).
@@ -22,12 +24,15 @@
     Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default).
 
     .PARAMETER WritebackEnabled
-    Filter groups with writeback to on-premises AD enabled: Yes (writeback enabled), No (writeback disabled), or All (default).
+    Filter groups by writeback enablement.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
-            "UserName":{
+            "UserName": {
                 "Hide": true
             },
             "CallerName": {

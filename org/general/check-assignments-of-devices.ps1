@@ -1,21 +1,34 @@
 <#
-  .SYNOPSIS
-  Check Intune assignments for a given (or multiple) Device Names.
+    .SYNOPSIS
+    Check Intune assignments for one or more device names
 
-  .DESCRIPTION
-  This script checks the Intune assignments for a single or multiple specified Device Names.
+    .DESCRIPTION
+    This runbook queries Intune policies and optionally app assignments relevant to the specified device(s).
+    It resolves device group memberships and reports matching assignments.
 
-  .PARAMETER DeviceNames
-  Device Names of the devices to check assignments for, separated by commas.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER DeviceNames
+    Comma-separated list of device names to check.
 
-  .PARAMETER IncludeApps
-  Boolean to specify whether to include application assignments in the search.
+    .PARAMETER IncludeApps
+    If set to true, also evaluates application assignments.
 
-  .INPUTS
-  DeviceNames, CallerName, and IncludeApps
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "DeviceNames": {
+                "DisplayName": "Device names (comma-separated)"
+            },
+            "IncludeApps": {
+                "DisplayName": "Include app assignments"
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

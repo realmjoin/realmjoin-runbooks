@@ -5,6 +5,14 @@
 - Add two new Endpoint Privilege Management (EPM) runbooks for org/security:
   - **Monitor Pending EPM Requests (Scheduled)**: Monitoring for pending elevation requests requiring admin review. Sends email notifications only when pending requests exist, includes optional detailed CSV export.
   - **Report EPM Elevation Requests (Scheduled)**: Reporting for EPM elevation requests with flexible filtering by status (Pending, Approved, Denied, Expired, Revoked, Completed) and time range.
+- Update **Export All Intune Devices** Runbook
+  - Fix issue, regarding some properties if the device primary user data is missing or incomplete
+  - Add filtering option to only include devices that are members of a specific group to avoid exporting all devices in large tenants and to focus on relevant devices.
+- Complete overhaul of the comment-based help in all runbooks to improve clarity, consistency and detail of the documentation, including:
+  - More detailed descriptions of the runbooks' functionality and parameters
+  - Clearer instructions for required permissions and setup steps
+  - Improved formatting for better readability
+- Removed "Report Last Device Contact by Range" Runbook, as the functionality is now covered by the updated "Report Stale Devices (Scheduled)" Runbook with enhanced filtering options.
 
 ## 2026-02-04
 

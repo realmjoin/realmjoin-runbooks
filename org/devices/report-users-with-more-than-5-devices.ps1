@@ -1,12 +1,10 @@
 ﻿<#
-.SYNOPSIS
-    Reports users with more than five registered devices in Entra ID.
+    .SYNOPSIS
+    Report users with more than five registered devices
 
-.DESCRIPTION
-    This script queries all devices and their registered users, and reports users who have more than five devices registered.
-    The output includes the user's Object ID, UPN, display name, and the number of devices.
-
-    Optionally, the report can be sent via email with a CSV attachment containing detailed device information for each user.
+    .DESCRIPTION
+    This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
+    It outputs a summary table and can optionally send an email with CSV attachments.
 
 .PARAMETER EmailTo
     If specified, an email with the report will be sent to the provided address(es).
@@ -17,7 +15,7 @@
     The sender email address. This needs to be configured in the runbook customization.
 
 .PARAMETER CallerName
-    Internal parameter for tracking purposes
+    Caller name for auditing purposes.
 
 .INPUTS
     RunbookCustomization: {
@@ -36,7 +34,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]

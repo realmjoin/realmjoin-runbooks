@@ -1,37 +1,47 @@
 <#
-  .SYNOPSIS
-  List or add or Management Partner Links (PAL)
+	.SYNOPSIS
+	List or add Management Partner Links (PAL)
 
-  .DESCRIPTION
-  List or add or Management Partner Links (PAL)
+	.DESCRIPTION
+	This runbook lists existing Partner Admin Links (PAL) for the tenant or adds a new PAL.
+	It uses the Azure Management Partner API and supports an interactive action selection.
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "Action": {
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "List current PALs",
-                            "ParameterValue": 0,
-                            "Customization": {
-                            "Hide": [
-                                "PartnerId"
-                            ]
-                        }
-                        },
-                        {
-                            "Display": "Add a PAL",
-                            "ParameterValue": 1
-                        }
-                    ]
-                }
-            }
-        }
-    }
+	.PARAMETER Action
+	Choice of action to perform: list existing PALs or add a new PAL.
+
+	.PARAMETER PartnerId
+	Partner ID to set when adding a PAL.
+
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"Action": {
+				"Select": {
+					"Options": [
+						{
+							"Display": "List current PALs",
+							"ParameterValue": 0,
+							"Customization": {
+								"Hide": [
+									"PartnerId"
+								]
+							}
+						},
+						{
+							"Display": "Add a PAL",
+							"ParameterValue": 1
+						}
+					]
+				}
+			}
+		}
+	}
 
 #>
 

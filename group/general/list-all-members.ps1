@@ -1,30 +1,34 @@
 <#
-.SYNOPSIS
-Retrieves the members of a specified EntraID group, including members from nested groups.
+	.SYNOPSIS
+	List all members of a group, including members that are part of nested groups
 
-.DESCRIPTION
-This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
-The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
-The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
+    .DESCRIPTION
+    This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
+    The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
+    The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
 
-.PARAMETER GroupId
-The ObjectId of the EntraID group whose membership is to be retrieved.
+	.PARAMETER GroupId
+	The Object ID of the Microsoft Entra ID group whose membership will be retrieved.
 
-.PARAMETER CallerName
-The name of the caller, used for auditing purposes.
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
 
-.INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "GroupId": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
-        }
-    }
-}
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"GroupId": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
@@ -33,9 +37,6 @@ param(
     # CallerName is tracked purely for auditing purposes
     [string] $CallerName
 )
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
 
 ########################################################
 #region     function declaration
@@ -93,7 +94,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output

@@ -1,21 +1,34 @@
 <#
-  .SYNOPSIS
-  Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
+    .SYNOPSIS
+    Check Intune assignments for one or more user principal names
 
-  .DESCRIPTION
-  This script checks the Intune assignments for a single or multiple specified UPNs.
+    .DESCRIPTION
+    This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
+    It resolves transitive group membership and reports matching assignments.
 
-  .PARAMETER UPN
-  User Principal Names of the users to check assignments for, separated by commas.
+    .PARAMETER UPN
+    User Principal Names of the users to check assignments for, separated by commas.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .PARAMETER IncludeApps
-  Boolean to specify whether to include application assignments in the search.
+    .PARAMETER IncludeApps
+    If set to true, also evaluates application assignments.
 
-  .INPUTS
-  UPN, CallerName, and IncludeApps
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "UPN": {
+                "DisplayName": "User Principal Names of the users to check assignments for, separated by commas."
+            },
+            "IncludeApps": {
+                "DisplayName": "Include app assignments"
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

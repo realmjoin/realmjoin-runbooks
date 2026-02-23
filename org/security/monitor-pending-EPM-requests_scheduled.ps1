@@ -1,62 +1,62 @@
 <#
-.SYNOPSIS
-    Monitor and report pending Endpoint Privilege Management (EPM) elevation requests.
+    .SYNOPSIS
+    Monitor and report pending Endpoint Privilege Management (EPM) elevation requests
 
-.DESCRIPTION
+    .DESCRIPTION
     Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
     Email is only sent when there are pending requests.
     Optionally includes detailed information about each request in a table and CSV attachment.
 
-.NOTES
+    .NOTES
     Runbook Type: Scheduled (recommended: hourly or every 1 hours)
-    
+
     Endpoint Privilege Management (EPM) Context:
     - EPM allows users to request temporary admin rights for specific applications
     - Pending requests require manual review and approval by security admins
     - Requests expire automatically if not reviewed within the configured timeframe
     - Timely review is critical for user productivity and security posture
-    
+
     Email Behavior:
     - Emails are sent individually to each recipient
     - No email is sent when there are zero pending requests
     - CSV attachment is only included when DetailedReport is enabled
-    
 
-.PARAMETER EmailTo
+
+    .PARAMETER EmailTo
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
-.PARAMETER EmailFrom
+    .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization.
 
-.PARAMETER DetailedReport
+    .PARAMETER DetailedReport
     When enabled, includes detailed request information in a table and as CSV attachment.
     When disabled, only provides a summary count of pending requests.
 
-.PARAMETER CallerName
+    .PARAMETER CallerName
     Internal parameter for tracking purposes
 
-.INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "DetailedReport": {
-                "DisplayName": "Include detailed request information",
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient Email Address(es)"
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"DetailedReport": {
+				"DisplayName": "Include detailed request information"
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -199,11 +199,11 @@ $currentDate = Get-Date
 try {
     $filter = [System.Uri]::EscapeDataString("status eq 'Pending'")
     $Uri = "https://graph.microsoft.com/beta/deviceManagement/elevationRequests?`$filter=$filter"
-    
+
     $pendingRequests = Get-AllGraphPage -Uri $Uri -ErrorAction Stop
-    
+
     Write-Output "Found $($pendingRequests.Count) pending elevation request(s)."
-    
+
     # If no pending requests, exit without sending email
     if ($pendingRequests.Count -eq 0) {
         Write-Output ""
@@ -211,7 +211,7 @@ try {
         Write-Output "No email will be sent as there are no pending requests."
         exit 0
     }
-    
+
 }
 catch {
     Write-Error "Failed to retrieve EPM elevation requests: $($_.Exception.Message)" -ErrorAction Continue
@@ -228,36 +228,36 @@ catch {
 $processedRequests = @()
 
 foreach ($request in $pendingRequests) {
-    $requestCreated = if ($request.requestCreatedDateTime) { 
-        [datetime]$request.requestCreatedDateTime 
-    } else { 
-        $null 
+    $requestCreated = if ($request.requestCreatedDateTime) {
+        [datetime]$request.requestCreatedDateTime
+    } else {
+        $null
     }
-    
-    $requestExpiry = if ($request.requestExpiryDateTime) { 
-        [datetime]$request.requestExpiryDateTime 
-    } else { 
-        $null 
+
+    $requestExpiry = if ($request.requestExpiryDateTime) {
+        [datetime]$request.requestExpiryDateTime
+    } else {
+        $null
     }
-    
+
     $daysUntilExpiry = if ($requestExpiry) {
         [math]::Floor(($requestExpiry - $currentDate).TotalDays)
     } else {
         $null
     }
-    
+
     $fileName = if ($request.applicationDetail.fileName) {
         $request.applicationDetail.fileName
     } else {
         "Unknown"
     }
-    
+
     $productName = if ($request.applicationDetail.productName) {
         $request.applicationDetail.productName
     } else {
         "Unknown"
     }
-    
+
     $processedRequests += [PSCustomObject]@{
         RequestId               = $request.id
         RequestedBy             = $request.requestedByUserPrincipalName
@@ -303,25 +303,25 @@ $detailedTable = if ($DetailedReport -and $processedRequests.Count -gt 0) {
     } else {
         $sortedRequests
     }
-    
+
     $rows = foreach ($req in $displayRequests) {
         $createdText = if ($req.RequestCreated) { $req.RequestCreated.ToString("yyyy-MM-dd HH:mm") } else { "Unknown" }
-        $expiryText = if ($req.RequestExpiry) { 
-            "$($req.RequestExpiry.ToString('yyyy-MM-dd HH:mm')) ($($req.DaysUntilExpiry) days)" 
-        } else { 
-            "Unknown" 
+        $expiryText = if ($req.RequestExpiry) {
+            "$($req.RequestExpiry.ToString('yyyy-MM-dd HH:mm')) ($($req.DaysUntilExpiry) days)"
+        } else {
+            "Unknown"
         }
         $justificationText = $req.Justification -replace '\|', '&#124;' -replace '\n', ' ' -replace '\r', ''
-        
+
         "| $createdText | $($req.RequestedBy) | $($req.FileName) | $($req.DeviceId) | $expiryText | $justificationText |"
     }
-    
+
     $additionalRowsNote = if ($sortedRequests.Count -gt $maxRowsInEmail) {
         "`n`nShowing first $maxRowsInEmail of $($sortedRequests.Count) pending requests. See attached CSV file for complete list."
     } else {
         ""
     }
-    
+
     @"
 
 ## Detailed Request Information
@@ -363,7 +363,7 @@ $detailedTable
 
 **1. Access Intune Admin Center:**
 
-- Go to [Intune Admin Center](https://intune.microsoft.com)  
+- Go to [Intune Admin Center](https://intune.microsoft.com)
 - Navigate to: Endpoint Security > Endpoint Privilege Management > Elevation requests
 
 **2. Review Each Request:**

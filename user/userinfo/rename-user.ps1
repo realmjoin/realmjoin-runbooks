@@ -1,12 +1,27 @@
 <#
-  .SYNOPSIS
-  Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+    .SYNOPSIS
+    Rename a user or mailbox
 
-  .DESCRIPTION
-  Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+    .DESCRIPTION
+    Renames a user by changing the user principal name in Microsoft Entra ID and optionally updates mailbox properties in Exchange Online. This does not update user metadata such as display name, given name, or surname.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the user or mailbox to rename.
+
+    .PARAMETER NewUpn
+    New user principal name to set.
+
+    .PARAMETER ChangeMailnickname
+    If set to true, updates the mailbox alias and name based on the new UPN.
+
+    .PARAMETER UpdatePrimaryAddress
+    If set to true, updates the primary SMTP address and rewrites email addresses accordingly.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
@@ -30,6 +45,7 @@
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
     [string] $NewUpn,
@@ -94,6 +110,6 @@ try {
     "## User '$UserName' successfully renamed to '$NewUpn'"
 }
 finally {
-    Disconnect-ExchangeOnline -ErrorAction SilentlyContinue -Confirm:$true | Out-Null
+    Disconnect-ExchangeOnline -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
 }
 
