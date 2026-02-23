@@ -105,7 +105,8 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  |  | Notify Changed CA Policies | Send notification email if Conditional Access policies have been created or modified in the last 24 hours. | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  |  | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  |
-| User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br> |  |
+| User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br> |  |
 |  |  | Assign Or Unassign License | Assign or remove a license for a user via group membership | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  |
 |  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  |
 |  |  | List Group Memberships | List group memberships for this user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  |

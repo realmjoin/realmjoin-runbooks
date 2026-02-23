@@ -154,6 +154,9 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
 - [User](docs/user/README.md)
+  - [AVD](docs/user/README.md#user-avd)
+
+    - [User Signout](docs/user/avd/user-signout.md)
   - [General](docs/user/README.md#user-general)
 
     - [Assign Groups By Template](docs/user/general/assign-groups-by-template.md)

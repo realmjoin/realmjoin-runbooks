@@ -12537,6 +12537,80 @@
     }
   },
   {
+    "RunbookDisplayName": "User Signout",
+    "RunbookDisplayPath": "User \\ AVD \\ User Signout",
+    "RelativeRunbookPath": "user/AVD/user-signout.ps1",
+    "RelativeRunbookPath_PathOnly": "user/AVD",
+    "PrimaryFolder": "User",
+    "SubFolder": "AVD",
+    "Synopsis": "Removes (Signs Out) a specific User from their AVD Session.",
+    "Description": "This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.\nThe SubscriptionIds value must be defined in the runbooks customization.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI."
+          }
+        ],
+        "globbing": "false",
+        "name": "SubscriptionIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String[]"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The username (UPN) of the user to sign out from their AVD session. Hidden in UI."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [],\n    \"Roles\": [],\n    \"ManualPermissions\": [ \"Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool\" ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool"
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Assign Groups By Template",
     "RunbookDisplayPath": "User \\ General \\ Assign Groups By Template",
     "RelativeRunbookPath": "user/general/assign-groups-by-template.ps1",

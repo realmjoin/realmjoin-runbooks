@@ -130,6 +130,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
     - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
 - [User](#user)
+  - [AVD](#user-avd)
+    - [User Signout](#user-avd-user-signout)
   - [General](#user-general)
     - [Assign Groups By Template](#user-general-assign-groups-by-template)
     - [Assign Or Unassign License](#user-general-assign-or-unassign-license)
@@ -1618,6 +1620,22 @@ Generate report for Endpoint Privilege Management (EPM) elevation requests
 
 <a name='user'></a>
 # User
+<a name='user-avd'></a>
+## AVD
+
+<a name='user-avd-user-signout'></a>
+
+### User Signout
+Removes (Signs Out) a specific User from their AVD Session.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
+| SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
+| CallerName | ✓ | String | Caller name for auditing purposes |
+
+[Back to the RealmJoin runbook parameter overview](#table-of-contents)
+
 <a name='user-general'></a>
 ## General
 

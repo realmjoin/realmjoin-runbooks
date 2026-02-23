@@ -130,6 +130,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Notify Changed CA Policies
     - Report EPM Elevation Requests (Scheduled)
 - [User](#user)
+  - [AVD](#user-avd)
+    - User Signout
   - [General](#user-general)
     - Assign Groups By Template
     - Assign Or Unassign License
@@ -375,6 +377,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='user'></a>
 # User
+<a name='user-avd'></a>
+## AVD
+| Runbook Name | Synopsis |
+|--------------|----------|
+| User Signout | Removes (Signs Out) a specific User from their AVD Session. |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='user-general'></a>
 ## General
 | Runbook Name | Synopsis |
