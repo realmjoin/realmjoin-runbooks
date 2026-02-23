@@ -1,9 +1,9 @@
 # List Inactive Devices
 
-List/export inactive devices, which had no recent user logons.
+List or export inactive devices with no recent logon or Intune sync
 
 ## Detailed description
-Collect devices based on the date of last user logon or last Intune sync.
+Collects devices based on either last interactive sign-in or last Intune sync date and lists them in the console. Optionally exports the results to a CSV file in Azure Storage.
 
 ## Where to find
 Org \ Security \ List Inactive Devices
@@ -18,6 +18,7 @@ Org \ Security \ List Inactive Devices
 
 ## Parameters
 ### Days
+Number of days without sync or sign-in used to consider a device inactive.
 
 | Property | Value |
 |----------|-------|
@@ -26,6 +27,7 @@ Org \ Security \ List Inactive Devices
 | Type | Int32 |
 
 ### Sync
+If set to true, inactivity is based on last Intune sync; otherwise it is based on last interactive sign-in.
 
 | Property | Value |
 |----------|-------|
@@ -34,6 +36,7 @@ Org \ Security \ List Inactive Devices
 | Type | Boolean |
 
 ### ExportToFile
+If set to true, exports the results to a CSV file in Azure Storage.
 
 | Property | Value |
 |----------|-------|
@@ -42,6 +45,7 @@ Org \ Security \ List Inactive Devices
 | Type | Boolean |
 
 ### ContainerName
+Name of the Azure Storage container to upload the CSV report to.
 
 | Property | Value |
 |----------|-------|
@@ -50,6 +54,7 @@ Org \ Security \ List Inactive Devices
 | Type | String |
 
 ### ResourceGroupName
+Name of the Azure Resource Group containing the Storage Account.
 
 | Property | Value |
 |----------|-------|
@@ -58,6 +63,7 @@ Org \ Security \ List Inactive Devices
 | Type | String |
 
 ### StorageAccountName
+Name of the Azure Storage Account used for upload.
 
 | Property | Value |
 |----------|-------|
@@ -66,6 +72,7 @@ Org \ Security \ List Inactive Devices
 | Type | String |
 
 ### StorageAccountLocation
+Azure region for the Storage Account if it needs to be created.
 
 | Property | Value |
 |----------|-------|
@@ -74,6 +81,7 @@ Org \ Security \ List Inactive Devices
 | Type | String |
 
 ### StorageAccountSku
+SKU name for the Storage Account if it needs to be created.
 
 | Property | Value |
 |----------|-------|

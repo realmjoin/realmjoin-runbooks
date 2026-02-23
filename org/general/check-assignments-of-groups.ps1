@@ -1,21 +1,34 @@
 <#
-  .SYNOPSIS
-  Check Intune assignments for a given (or multiple) Group Names.
+    .SYNOPSIS
+    Check Intune assignments for one or more group names
 
-  .DESCRIPTION
-  This script checks the Intune assignments for a single or multiple specified Group Names.
+    .DESCRIPTION
+    This runbook queries Intune policies and optionally app assignments that target the specified group(s).
+    It resolves group IDs and reports matching assignments.
 
-  .PARAMETER GroupNames
-  Group Names of the groups to check assignments for, separated by commas.
+    .PARAMETER GroupNames
+    Group Names of the groups to check assignments for, separated by commas.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .PARAMETER IncludeApps
-  Boolean to specify whether to include application assignments in the search.
+    .PARAMETER IncludeApps
+    If set to true, also evaluates application assignments.
 
-  .INPUTS
-  GroupNames, CallerName, and IncludeApps
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "GroupNames": {
+                "DisplayName": "Group names (comma-separated)"
+            },
+            "IncludeApps": {
+                "DisplayName": "Include app assignments"
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

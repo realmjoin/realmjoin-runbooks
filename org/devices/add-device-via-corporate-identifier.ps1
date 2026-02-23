@@ -1,9 +1,25 @@
 <#
     .SYNOPSIS
-    Import a device into Intune via corporate identifier.
+    Import a device into Intune via corporate identifier
 
     .DESCRIPTION
-    This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
+    This runbook imports a device into Intune using a corporate identifier such as serial number or IMEI.
+    It can overwrite existing entries and optionally stores a description for the imported identity.
+
+    .PARAMETER CorpIdentifierType
+    Identifier type to use for import.
+
+    .PARAMETER CorpIdentifier
+    Identifier value to import.
+
+    .PARAMETER DeviceDescripton
+    Optional description stored for the imported identity.
+
+    .PARAMETER OverwriteExistingEntry
+    If set to true, an existing entry for the same identifier will be overwritten.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
     .INPUTS
     RunbookCustomization: {

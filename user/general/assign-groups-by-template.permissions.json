@@ -4,8 +4,7 @@
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "Mail.Send"
+                "Group.ReadWrite.All"
             ]
         }
     ],

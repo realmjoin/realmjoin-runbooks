@@ -3,7 +3,7 @@
 Wipe a Windows or MacOS device
 
 ## Detailed description
-Wipe a Windows or MacOS device.
+Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
 
 ## Where to find
 Device \ General \ Wipe Device
@@ -22,6 +22,7 @@ Device \ General \ Wipe Device
 
 ## Parameters
 ### DeviceId
+The device ID of the target device.
 
 | Property | Value |
 |----------|-------|
@@ -30,6 +31,7 @@ Device \ General \ Wipe Device
 | Type | String |
 
 ### wipeDevice
+"Wipe this device?" (final value: true) or "Do not wipe device" (final value: false) can be selected as action to perform. If set to true, the runbook will trigger a wipe action for the device in Intune. If set to false, no wipe action will be triggered for the device in Intune.
 
 | Property | Value |
 |----------|-------|
@@ -38,6 +40,7 @@ Device \ General \ Wipe Device
 | Type | Boolean |
 
 ### useProtectedWipe
+Windows-only. If set to true, uses protected wipe.
 
 | Property | Value |
 |----------|-------|
@@ -46,6 +49,7 @@ Device \ General \ Wipe Device
 | Type | Boolean |
 
 ### removeIntuneDevice
+If set to true, deletes the Intune device object.
 
 | Property | Value |
 |----------|-------|
@@ -54,6 +58,7 @@ Device \ General \ Wipe Device
 | Type | Boolean |
 
 ### removeAutopilotDevice
+Windows-only. "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant.
 
 | Property | Value |
 |----------|-------|
@@ -62,6 +67,7 @@ Device \ General \ Wipe Device
 | Type | Boolean |
 
 ### removeAADDevice
+"Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD).
 
 | Property | Value |
 |----------|-------|
@@ -70,6 +76,7 @@ Device \ General \ Wipe Device
 | Type | Boolean |
 
 ### disableAADDevice
+"Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD).
 
 | Property | Value |
 |----------|-------|
@@ -77,8 +84,8 @@ Device \ General \ Wipe Device
 | Required | false |
 | Type | Boolean |
 
-### macOsRecevoryCode
-Only for old MacOS devices. Newer devices can be wiped without a recovery code.
+### macOsRecoveryCode
+MacOS-only. Recovery code for older devices; newer devices may not require this.
 
 | Property | Value |
 |----------|-------|
@@ -87,7 +94,7 @@ Only for old MacOS devices. Newer devices can be wiped without a recovery code.
 | Type | String |
 
 ### macOsObliterationBehavior
-"default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
+MacOS-only. Controls the OS obliteration behavior during wipe.
 
 | Property | Value |
 |----------|-------|

@@ -1,18 +1,15 @@
 # Add Or Remove Trusted Site
 
-Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+Add or remove a URL entry in the Intune Trusted Sites policy
 
 ## Detailed description
-Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom configuration policy. The runbook can also list all existing Trusted Sites policies and their mappings.
 
 ## Where to find
 Org \ General \ Add Or Remove Trusted Site
 
 ## Notes
-This runbook uses calls as described in
-https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
-to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this.
-Please switch to "v1.0" as soon, as this funtionality is available.
+This runbook uses calls as described in https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/ to decrypt omaSettings. It currently needs to use the Microsoft Graph beta endpoint for this.
 
 ## Permissions
 ### Application permissions
@@ -22,6 +19,7 @@ Please switch to "v1.0" as soon, as this funtionality is available.
 
 ## Parameters
 ### Action
+Action to execute: add, remove, or list policies.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +28,7 @@ Please switch to "v1.0" as soon, as this funtionality is available.
 | Type | Int32 |
 
 ### Url
-Needs to be prefixed with "http://" or "https://"
+URL to add or remove; it must be prefixed with "http://" or "https://".
 
 | Property | Value |
 |----------|-------|
@@ -39,6 +37,7 @@ Needs to be prefixed with "http://" or "https://"
 | Type | String |
 
 ### Zone
+Internet Explorer zone id to assign the URL to.
 
 | Property | Value |
 |----------|-------|
@@ -47,6 +46,7 @@ Needs to be prefixed with "http://" or "https://"
 | Type | Int32 |
 
 ### DefaultPolicyName
+Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Needs to be prefixed with "http://" or "https://"
 | Type | String |
 
 ### IntunePolicyName
-Will use an existing policy or default policy name if left empty.
+Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one.
 
 | Property | Value |
 |----------|-------|

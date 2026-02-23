@@ -1,12 +1,19 @@
 <#
-  .SYNOPSIS
-  Reset a mobile device's password/PIN code.
+    .SYNOPSIS
+    Reset a mobile device's password/PIN code.
 
-  .DESCRIPTION
-  Reset a mobile device's password/PIN code. Warning: Not possible for all types of devices.
+    .DESCRIPTION
+    This runbook triggers an Intune reset passcode action for a managed mobile device.
+    The action is only supported for certain, corporate-owned device types and will be rejected for personal or unsupported devices.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER DeviceId
+    The device ID of the target device.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "DeviceId": {
                 "Hide": true
@@ -41,7 +48,7 @@ if ($null -eq $targetDevice) {
     throw "## Device not found. "
 }
 
-## Checking the device's Owner Type. Reset Passcode works only with corporate-owned deivces.
+## Checking the device's Owner Type. Reset Passcode works only with corporate-owned devices.
 if ($targetDevice.managedDeviceOwnerType -eq "personal" -or $targetDevice.managedDeviceOwnerType -eq "unknown" ) {
     throw "## Device '$($targetDevice.deviceName)' is not corporate-owned. Cannot reset Passcode. `n## Aborting..."
 }

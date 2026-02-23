@@ -1,21 +1,32 @@
 <#
-  .SYNOPSIS
-  Unenroll devices from Windows Update for Business.
+    .SYNOPSIS
+    Unenroll devices from Windows Update for Business.
 
-  .DESCRIPTION
-  This script unenrolls devices from Windows Update for Business.
+    .DESCRIPTION
+    This runbook unenrolls all device members of a Microsoft Entra ID group from Windows Update for Business updatable assets.
+    You can remove a specific update category enrollment or delete the updatable asset registration entirely.
+    Use this to offboard devices from WUfB reporting or to reset their enrollment state.
 
-  .PARAMETER GroupId
-  Object ID of the group to unenroll its members.
+    .PARAMETER GroupId
+    Object ID of the group whose device members will be unenrolled.
 
-  .PARAMETER UpdateCategory
-  Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete).
+    .PARAMETER UpdateCategory
+    The update category to unenroll from. Supported values are driver, feature, quality, or all.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .INPUTS
-  GroupId, UpdateCategory, and CallerName
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "GroupId": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

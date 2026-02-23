@@ -1,9 +1,34 @@
 <#
   .SYNOPSIS
-    Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
+  Add unenrolled Autopilot devices to an exclusion group
 
   .DESCRIPTION
-    Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
+  This runbook identifies Windows Autopilot devices that are not yet enrolled in Intune and ensures they are members of a configured exclusion group.
+  It also removes devices from the group once they are no longer in scope.
+
+  .PARAMETER exclusionGroupName
+  Display name of the exclusion group to manage.
+
+  .PARAMETER maxAgeInDays
+  Maximum age in days for recently enrolled devices to be considered in grace scope.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
+
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+      "CallerName": {
+        "Hide": true
+      },
+      "exclusionGroupName": {
+        "DisplayName": "Exclusion group name"
+      },
+      "maxAgeInDays": {
+        "DisplayName": "Max age in days"
+      }
+    }
+  }
 
 #>
 

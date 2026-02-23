@@ -1,9 +1,9 @@
 # List Room Mailbox Configuration
 
-List Room configuration.
+List room mailbox configuration
 
 ## Detailed description
-List Room configuration.
+Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
 
 ## Where to find
 User \ Mail \ List Room Mailbox Configuration
@@ -16,6 +16,7 @@ User \ Mail \ List Room Mailbox Configuration
 
 ## Parameters
 ### UserName
+User principal name of the room mailbox.
 
 | Property | Value |
 |----------|-------|

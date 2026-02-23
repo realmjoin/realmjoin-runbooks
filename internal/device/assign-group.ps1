@@ -1,36 +1,47 @@
 <#
-  .SYNOPSIS
-  Add a device to a group.
+    .SYNOPSIS
+    Add a device to a group
 
-  .DESCRIPTION
-  Add a device to a group. Primarily intended for Windows 11 Self Service upgrades.
+    .DESCRIPTION
+    This runbook adds a device to a specified Microsoft Entra ID group.
+    Optionally, it can also add the device's primary user (from Intune) to a second group.
+    It is primarily intended for Windows 11 self-service upgrade scenarios.
 
-  .NOTES
-  Permissions:
-  MS Graph (API)
-  - Group.ReadWrite.All
-  - Directory.ReadWrite.All
+    .PARAMETER DeviceId
+    The device ID of the target device.
 
-  if "UserGroupId"/"AddUserToGroup" is used:
-  - DeviceManagementManagedDevices.Read.All
+    .PARAMETER AddDeviceToGroup
+    If set to true, the device is added to the group specified by GroupID.
 
-  .EXAMPLE
-          "rjgit-internal_device_assign-group": {
-            "Parameters": {
-                "AddDeviceToGroup": {
-                    "Default": true
-                },
-                "GroupId": {
-                    "Default": "9d7b59ac-89dd-4b6b-a37a-22a94f886904"
-                },
-                "AddUserToGroup": {
-                    "Default": true
-                },
-                "UserGroupId": {
-                    "Default": "9d7b59ac-89dd-4b6b-a37a-22a94f886905"
-                }
+    .PARAMETER GroupID
+    Object ID of the group to add the device to.
+
+    .PARAMETER AddUserToGroup
+    If set to true, the device's primary user is added to the group specified by UserGroupID.
+
+    .PARAMETER UserGroupID
+    Object ID of the group to add the device's primary user to.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .EXAMPLE
+    "rjgit-internal_device_assign-group": {
+        "Parameters": {
+            "AddDeviceToGroup": {
+                "Default": true
+            },
+            "GroupId": {
+                "Default": "9d7b59ac-89dd-4b6b-a37a-22a94f886904"
+            },
+            "AddUserToGroup": {
+                "Default": true
+            },
+            "UserGroupId": {
+                "Default": "9d7b59ac-89dd-4b6b-a37a-22a94f886905"
             }
         }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

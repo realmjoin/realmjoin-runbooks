@@ -85,7 +85,6 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
-    - [Report Last Device Contact By Range](docs/org/devices/report-last-device-contact-by-range.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)

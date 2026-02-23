@@ -1,14 +1,20 @@
 <#
-  .SYNOPSIS
-  List manager information for this user.
+    .SYNOPSIS
+    List manager information for this user
 
-  .DESCRIPTION
-  List manager information for the specified user.
+    .DESCRIPTION
+    Retrieves the manager object for a specified user. Outputs common manager attributes such as display name, email, and phone numbers.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
-            "UserName":{
+            "UserName": {
                 "Hide": true
             },
             "CallerName": {

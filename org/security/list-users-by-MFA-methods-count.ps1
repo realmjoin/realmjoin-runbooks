@@ -1,14 +1,17 @@
 ﻿<#
-.SYNOPSIS
-    Reports users by the count of their registered MFA methods.
+    .SYNOPSIS
+    Report users by the count of their registered MFA methods
 
-.DESCRIPTION
+    .DESCRIPTION
     This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
     As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
     The output includes the user display name, user principal name, and the count of registered MFA methods.
 
-.PARAMETER mfaMethodsRange
+    .PARAMETER mfaMethodsRange
     Range for filtering users based on the count of their registered MFA methods.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
 .INPUTS
 RunbookCustomization: {
@@ -32,7 +35,7 @@ RunbookCustomization: {
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param (
     [Parameter(Mandatory = $true)]

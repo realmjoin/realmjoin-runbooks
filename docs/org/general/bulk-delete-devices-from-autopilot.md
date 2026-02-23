@@ -1,9 +1,10 @@
 # Bulk Delete Devices From Autopilot
 
-Mass-Delete Autopilot objects based on Serial Number.
+Bulk delete Autopilot objects by serial number
 
 ## Detailed description
-This runbook deletes Autopilot objects in bulk based on a list of serial numbers.
+This runbook deletes Windows Autopilot device identities based on a comma-separated list of serial numbers.
+It searches for each serial number and deletes the matching Autopilot object if found.
 
 ## Where to find
 Org \ General \ Bulk Delete Devices From Autopilot
@@ -16,6 +17,7 @@ Org \ General \ Bulk Delete Devices From Autopilot
 
 ## Parameters
 ### SerialNumbers
+Comma-separated list of serial numbers to delete from Autopilot.
 
 | Property | Value |
 |----------|-------|

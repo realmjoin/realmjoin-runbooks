@@ -1,16 +1,25 @@
 # Add Viva Engange Community
 
-Creates a Viva Engage (Yammer) community via the Yammer API
+Create a Viva Engage (Yammer) community
 
 ## Detailed description
-Creates a Viva Engage (Yammer) community using a Yammer dev token. The API-calls used are subject to change, so this script might break in the future.
+This runbook creates a Viva Engage community via the Yammer REST API using a stored developer token.
+It can optionally assign owners and remove the initial API user from the resulting Microsoft 365 group.
 
 ## Where to find
 Org \ General \ Add Viva Engange Community
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - Group.ReadWrite.All
+  - GroupMember.ReadWrite.All
+
+
 ## Parameters
 ### CommunityName
-The name of the community to create. max 264 chars.
+Name of the community to create. Maximum length is 264 characters.
 
 | Property | Value |
 |----------|-------|
@@ -19,6 +28,7 @@ The name of the community to create. max 264 chars.
 | Type | String |
 
 ### CommunityPrivate
+If set to true, the community is created as private.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +37,7 @@ The name of the community to create. max 264 chars.
 | Type | Boolean |
 
 ### CommunityShowInDirectory
+If set to true, the community is visible in the directory.
 
 | Property | Value |
 |----------|-------|
@@ -35,7 +46,7 @@ The name of the community to create. max 264 chars.
 | Type | Boolean |
 
 ### CommunityOwners
-The owners of the community. Comma separated list of UPNs.
+Comma-separated list of owner UPNs to add to the community.
 
 | Property | Value |
 |----------|-------|
@@ -44,6 +55,7 @@ The owners of the community. Comma separated list of UPNs.
 | Type | String |
 
 ### removeCreatorFromGroup
+If set to true, removes the initial API user from the group when at least one other owner exists.
 
 | Property | Value |
 |----------|-------|

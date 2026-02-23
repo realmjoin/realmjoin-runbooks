@@ -1,9 +1,10 @@
 # Add Device Via Corporate Identifier
 
-Import a device into Intune via corporate identifier.
+Import a device into Intune via corporate identifier
 
 ## Detailed description
-This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
+This runbook imports a device into Intune using a corporate identifier such as serial number or IMEI.
+It can overwrite existing entries and optionally stores a description for the imported identity.
 
 ## Where to find
 Org \ Devices \ Add Device Via Corporate Identifier
@@ -16,6 +17,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 
 ## Parameters
 ### CorpIdentifierType
+Identifier type to use for import.
 
 | Property | Value |
 |----------|-------|
@@ -24,6 +26,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 | Type | String |
 
 ### CorpIdentifier
+Identifier value to import.
 
 | Property | Value |
 |----------|-------|
@@ -32,6 +35,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 | Type | String |
 
 ### DeviceDescripton
+Optional description stored for the imported identity.
 
 | Property | Value |
 |----------|-------|
@@ -40,6 +44,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 | Type | String |
 
 ### OverwriteExistingEntry
+If set to true, an existing entry for the same identifier will be overwritten.
 
 | Property | Value |
 |----------|-------|

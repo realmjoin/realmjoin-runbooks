@@ -4,9 +4,8 @@
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "GroupMember.Read.All",
-                "Group.Read.All"
+                "User.Read.All",
+                "Group.ReadWrite.All"
             ]
         }
     ],

@@ -1,11 +1,28 @@
-# https://gitlab.c4a8.net/modern-workplace-code/RJRunbookBacklog/-/issues/54
-
 <#
-  .SYNOPSIS
-  Check for last Azure AD Connect Sync Cycle.
+	.SYNOPSIS
+	Check last Azure AD Connect sync status
 
-  .DESCRIPTION
-  This runbook checks the Azure AD Connect sync status and the last sync date and time.
+	.DESCRIPTION
+	This runbook checks whether on-premises directory synchronization is enabled and when the last sync happened.
+	It can send an email alert if synchronization is not enabled.
+
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+	.PARAMETER sendAlertTo
+	Email address to send the report to.
+
+	.PARAMETER sendAlertFrom
+	Sender mailbox used for sending the report.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 
 #>
 

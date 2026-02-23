@@ -1,9 +1,9 @@
 # Hide Or Unhide In Addressbook
 
-(Un)Hide this mailbox in address book.
+Hide or unhide a mailbox in the address book
 
 ## Detailed description
-(Un)Hide this mailbox in address book.
+Hides or unhides a mailbox from the global address lists. Important: This change can take up to 72 hours until it is reflected in the global address list.
 
 ## Where to find
 User \ Mail \ Hide Or Unhide In Addressbook
@@ -19,6 +19,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
 
 ## Parameters
 ### UserName
+User principal name of the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +28,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
 | Type | String |
 
 ### HideMailbox
+If set to true, hides the mailbox from address lists.
 
 | Property | Value |
 |----------|-------|

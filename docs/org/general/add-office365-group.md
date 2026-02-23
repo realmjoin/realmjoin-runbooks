@@ -3,16 +3,11 @@
 Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
 ## Detailed description
-Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
+This runbook creates a Microsoft 365 group and provisions the related SharePoint site.
+It can optionally promote the group to a Microsoft Teams team after creation.
 
 ## Where to find
 Org \ General \ Add Office365 Group
-
-## Notes
-Permissions (according to https://docs.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0 )
-MS Graph (API):
-- Group.Create
-- Team.Create
 
 ## Permissions
 ### Application permissions
@@ -23,6 +18,7 @@ MS Graph (API):
 
 ## Parameters
 ### MailNickname
+Mail nickname used for group creation.
 
 | Property | Value |
 |----------|-------|
@@ -31,6 +27,7 @@ MS Graph (API):
 | Type | String |
 
 ### DisplayName
+Optional display name. If empty, MailNickname is used.
 
 | Property | Value |
 |----------|-------|
@@ -39,6 +36,7 @@ MS Graph (API):
 | Type | String |
 
 ### CreateTeam
+Choose to "Only create a SharePoint Site" (final value: $false) or "Create a Team (and SharePoint Site)" (final value: $true). A team needs an owner, so if CreateTeam is set to true and no owner is specified, the runbook will set the caller as the owner.
 
 | Property | Value |
 |----------|-------|
@@ -47,6 +45,7 @@ MS Graph (API):
 | Type | Boolean |
 
 ### Private
+Choose the group visibility: "Public" (final value: $false) or "Private" (final value: $true).
 
 | Property | Value |
 |----------|-------|
@@ -55,6 +54,7 @@ MS Graph (API):
 | Type | Boolean |
 
 ### MailEnabled
+If set to true, the group is mail-enabled.
 
 | Property | Value |
 |----------|-------|
@@ -63,6 +63,7 @@ MS Graph (API):
 | Type | Boolean |
 
 ### SecurityEnabled
+If set to true, the group is security-enabled.
 
 | Property | Value |
 |----------|-------|
@@ -71,6 +72,7 @@ MS Graph (API):
 | Type | Boolean |
 
 ### Owner
+Optional owner of the group.
 
 | Property | Value |
 |----------|-------|
@@ -79,6 +81,7 @@ MS Graph (API):
 | Type | String |
 
 ### Owner2
+Optional second owner of the group.
 
 | Property | Value |
 |----------|-------|

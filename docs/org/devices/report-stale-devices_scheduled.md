@@ -3,8 +3,8 @@
 Scheduled report of stale devices based on last activity date and platform.
 
 ## Detailed description
-Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+This runbook identifies Intune managed devices that have not been active for a defined number of days.
+It creates a report grouped by platform and automatically sends it via email.
 
 ## Where to find
 Org \ Devices \ Report Stale Devices_Scheduled

@@ -1,18 +1,22 @@
 <#
-  .SYNOPSIS
-  Update logos of Microsoft Store Apps (new) in Intune.
+	.SYNOPSIS
+	Update logos of Microsoft Store Apps (new) in Intune
 
-  .DESCRIPTION
-  This script updates the logos for Microsoft Store Apps (new) in Intune by fetching them from the Microsoft Store.
+	.DESCRIPTION
+	This runbook updates missing logos for Microsoft Store Apps (new) in Intune by fetching the icon from the Microsoft Store.
+	It skips apps that already have a logo and reports how many apps were updated.
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

@@ -3,8 +3,8 @@
     Scheduled report of stale devices based on last activity date and platform.
 
     .DESCRIPTION
-    Identifies and lists devices that haven't been active for a specified number of days.
-    Automatically sends a report via email.
+    This runbook identifies Intune managed devices that have not been active for a defined number of days.
+    It creates a report grouped by platform and automatically sends it via email.
 
     .PARAMETER Days
     Number of days without activity to be considered stale.
@@ -35,7 +35,7 @@
     RunbookCustomization: {
         "Parameters": {
             "Days": {
-                "DisplayName": "Days Without Activity",
+                "DisplayName": "Days Without Activity"
             },
             "Windows": {
                 "DisplayName": "Include Windows Devices"
@@ -63,7 +63,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [int] $Days = 30,

@@ -1,26 +1,32 @@
 <#
-  .SYNOPSIS
-  Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+    .SYNOPSIS
+    Get Microsoft Teams voice status for a user
 
-  .DESCRIPTION
-  Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+    .DESCRIPTION
+    Retrieves voice-related status information for a Teams user such as phone number assignment, call forwarding settings, voicemail configuration, and policy assignments. The output is intended for troubleshooting and validation.
 
-  .PARAMETER UserName
-  The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
+    .PARAMETER UserName
+    User principal name of the target user.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "CallerName": {
-            "Hide": true
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "UserName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -28,6 +34,7 @@ param(
     [String] $UserName,
 
     # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
@@ -161,8 +168,8 @@ $CurrentTeamsMeetingBroadcastPolicy = ($StatusQuo_UserPolicyAssignment | Where-O
 $CurrentTeamsMeetingBroadcastPolicy = if ($CurrentTeamsMeetingBroadcastPolicy -like "") { "Global" } else { $CurrentTeamsMeetingBroadcastPolicy }
 
 #TeamsVoiceApplicaitonsPolicy
-$CurrentTeamsVoiceApplicaitonsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicaitonsPolicy").PolicyName
-$CurrentTeamsVoiceApplicaitonsPolicy = if ($CurrentTeamsVoiceApplicaitonsPolicy -like "") { "Global" } else { $CurrentTeamsVoiceApplicaitonsPolicy }
+$CurrentTeamsVoiceApplicationsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicaitonsPolicy").PolicyName
+$CurrentTeamsVoiceApplicationsPolicy = if ($CurrentTeamsVoiceApplicationsPolicy -like "") { "Global" } else { $CurrentTeamsVoiceApplicationsPolicy }
 
 #TeamsSharedCallingRoutingPolicy
 $CurrentTeamsSharedCallingRoutingPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsSharedCallingRoutingPolicy").PolicyName

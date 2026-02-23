@@ -1,45 +1,44 @@
 <#
-    .SYNOPSIS
-    This runbook creates a Microsoft Entra ID security group with membership type "Assigned".
-    .DESCRIPTION
-    This runbook creates a Microsoft Entra ID security group with membership type "Assigned".
-    .NOTES
-    AssignableToRoles is currently deactivated, as extended rights are required.
-    “RoleManagement.ReadWrite.Directory” permission is required to set the ‘isAssignableToRole’ property or update the membership of such groups.
-    Reference is made to this in a comment in the course of the code.
-    (according to https://learn.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0&tabs=http#example-3-create-a-microsoft-365-group-that-can-be-assigned-to-a-microsoft-entra-role)
-    Also to reactivate this feature, the following extra is in the .INPUTS are required:
-    "AssignableToRoles": {
-        "DisplayName":  "Microsoft Entra roles can be assigned to the group"
-    },
+	.SYNOPSIS
+	Create a Microsoft Entra ID security group
 
-    .PARAMETER GroupName
-    The name of the security group.
-    .PARAMETER GroupDescription
-    The description of the security group.
-    .PARAMETER AssignableToRoles
-    Currently deactivated, as extended rights are required. See info in “.Notes”
-    Indicates whether Microsoft Entra roles can be assigned to the group.
-    .PARAMETER Owner
-    The owner of the security group.
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "GroupName": {
-                "DisplayName":  "Name of the security group",
-            },
-            "GroupDescription": {
-                "DisplayName":  "Description of this security group",
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.DESCRIPTION
+	This runbook creates a Microsoft Entra ID security group with membership type Assigned.
+	It validates the group name and optionally sets an owner during creation.
+
+	.PARAMETER GroupName
+	Display name of the security group to create.
+
+	.PARAMETER GroupDescription
+	Optional description for the security group.
+
+	.PARAMETER Owner
+	Optional owner to assign to the group.
+
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"GroupName": {
+				"DisplayName": "Name of the security group"
+			},
+			"GroupDescription": {
+				"DisplayName": "Description of this security group"
+			},
+			"Owner": {
+				"DisplayName": "Owner (optional)"
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
 
 param (
     [Parameter(Mandatory = $true)]

@@ -1,17 +1,26 @@
 <#
-  .SYNOPSIS
-  Create an AAD temporary access pass for a user.
+    .SYNOPSIS
+    Create a temporary access pass for a user
 
-  .DESCRIPTION
-  Create an AAD temporary access pass for a user.
+    .DESCRIPTION
+    Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one.
 
-  .PARAMETER LifetimeInMinutes
-  Time the pass will stay valid in minutes
+    .PARAMETER UserName
+    User principal name of the target user.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER LifetimeInMinutes
+    Lifetime of the temporary access pass in minutes.
+
+    .PARAMETER OneTimeUseOnly
+    If set to true, the pass can be used only once.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
-             "UserName": {
+            "UserName": {
                 "Hide": true
             },
             "CallerName": {

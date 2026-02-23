@@ -1,12 +1,28 @@
-# https://gitlab.c4a8.net/modern-workplace-code/RJRunbookBacklog/-/issues/74
-
 <#
-  .SYNOPSIS
-  Scheduled Report on PIM Activations.
+    .SYNOPSIS
+    Scheduled report on PIM activations
 
-  .DESCRIPTION
-  This runbook collects and reports PIM activation details, including date, requestor, UPN, role, primary target, PIM group, reason, and status, and sends it via email.
+    .DESCRIPTION
+    This runbook queries Microsoft Entra ID audit logs for recent PIM activations.
+    It builds an report and sends it via email.
 
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .PARAMETER sendAlertTo
+    Recipient email address for the report.
+
+    .PARAMETER sendAlertFrom
+    Sender mailbox UPN used to send the report email.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

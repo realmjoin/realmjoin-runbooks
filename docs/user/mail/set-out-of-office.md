@@ -1,9 +1,9 @@
 # Set Out Of Office
 
-En-/Disable Out-of-office-notifications for a user/mailbox.
+Enable or disable out-of-office notifications for a mailbox
 
 ## Detailed description
-En-/Disable Out-of-office-notifications for a user/mailbox.
+Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
 
 ## Where to find
 User \ Mail \ Set Out Of Office
@@ -19,6 +19,7 @@ User \ Mail \ Set Out Of Office
 
 ## Parameters
 ### UserName
+User principal name of the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +28,7 @@ User \ Mail \ Set Out Of Office
 | Type | String |
 
 ### Disable
+"Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ User \ Mail \ Set Out Of Office
 | Type | Boolean |
 
 ### Start
+Start time for scheduled out-of-office replies.
 
 | Property | Value |
 |----------|-------|
@@ -43,7 +46,7 @@ User \ Mail \ Set Out Of Office
 | Type | DateTime |
 
 ### End
-10 years into the future ("forever") if left empty
+End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date.
 
 | Property | Value |
 |----------|-------|
@@ -52,6 +55,7 @@ User \ Mail \ Set Out Of Office
 | Type | DateTime |
 
 ### MessageInternal
+Internal automatic reply message.
 
 | Property | Value |
 |----------|-------|
@@ -60,6 +64,7 @@ User \ Mail \ Set Out Of Office
 | Type | String |
 
 ### MessageExternal
+External automatic reply message.
 
 | Property | Value |
 |----------|-------|
@@ -68,6 +73,7 @@ User \ Mail \ Set Out Of Office
 | Type | String |
 
 ### CreateEvent
+If set to true, creates an out-of-office calendar event.
 
 | Property | Value |
 |----------|-------|
@@ -76,6 +82,7 @@ User \ Mail \ Set Out Of Office
 | Type | Boolean |
 
 ### EventSubject
+Subject for the optional out-of-office calendar event.
 
 | Property | Value |
 |----------|-------|
