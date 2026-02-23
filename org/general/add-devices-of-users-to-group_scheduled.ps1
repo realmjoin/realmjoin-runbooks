@@ -7,28 +7,28 @@
     It can filter devices by operating system and keeps the target group in sync.
 
     .PARAMETER UserGroup
-    Name or object ID of the users group.
+    Name or object ID of the users group, to which the target users belong.
 
     .PARAMETER DeviceGroup
-    Name or object ID of the device group.
+    Name or object ID of the device group, to which the devices should be added.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
     .PARAMETER IncludeWindowsDevice
-    If set to true, includes Windows devices.
+    If set to true, includes Windows devices in the target device group.
 
     .PARAMETER IncludeMacOSDevice
-    If set to true, includes macOS devices.
+    If set to true, includes macOS devices in the target device group.
 
     .PARAMETER IncludeLinuxDevice
-    If set to true, includes Linux devices.
+    If set to true, includes Linux devices in the target device group.
 
     .PARAMETER IncludeAndroidDevice
-    If set to true, includes Android devices.
+    If set to true, includes Android devices in the target device group.
 
     .PARAMETER IncludeIOSDevice
-    If set to true, includes iOS devices.
+    If set to true, includes iOS devices in the target device group.
 
     .PARAMETER IncludeIPadOSDevice
     If set to true, includes iPadOS devices.

@@ -15,7 +15,7 @@
     Optional display name for the contact in the address book.
 
     .PARAMETER Remove
-    If set to true, the desired relay address is removed.
+    "Relay the desired address to the real address" (final value: $false) or "Stop the relay and remove desired address" (final value: $true) can be selected as action to perform.
 
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.

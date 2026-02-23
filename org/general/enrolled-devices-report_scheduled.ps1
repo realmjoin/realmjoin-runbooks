@@ -86,7 +86,7 @@
               }
             },
             {
-              "Display": "AzureAD User properties",
+              "Display": "EntraID User properties",
               "ParameterValue": 1,
               "Customization": {
                 "Default": {
@@ -95,7 +95,7 @@
               }
             },
             {
-              "Display": "AzureAD Device properties",
+              "Display": "EntraID Device properties",
               "ParameterValue": 2,
               "Customization": {
                 "Default": {
@@ -171,8 +171,8 @@ param(
   [int] $dataSource = 0,
   ## How to group results?
   # 0 - no grouping
-  # 1 - AzureAD User properties
-  # 2 - AzureAD Device properties
+  # 1 - EntraID User properties
+  # 2 - EntraID Device properties
   # 3 - Intune device properties
   # 4 - AutoPilot properties
   [int] $groupingSource = 1,
@@ -183,7 +183,7 @@ param(
   # - "systemFamily"
   # - "skuNumber"
   #
-  # AzureAD User:
+  # EntraID User:
   # - "city"
   # - "companyName"
   # - "department"
@@ -193,7 +193,7 @@ param(
   # - "usageLocation"
   # - "manager"?
   #
-  # AzureAD Device:
+  # EntraID Device:
   # - "manufacturer"
   # - "model"
   #
@@ -292,7 +292,7 @@ try {
   }
 
   if ($groupingSource -eq 1) {
-    "## - AzureAD User: $groupingAttribute"
+    "## - EntraID User: $groupingAttribute"
     ""
     $data | ForEach-Object {
       if ($_.intuneDevice -and $_.intuneDevice.userId ) {
@@ -308,7 +308,7 @@ try {
   }
 
   if ($groupingSource -eq 2) {
-    "## - AzureAD Device: $groupingAttribute"
+    "## - EntraID Device: $groupingAttribute"
     ""
     $data | ForEach-Object {
       $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.apDevice.azureAdDeviceId)'" -ErrorAction SilentlyContinue

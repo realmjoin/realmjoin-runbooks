@@ -7,8 +7,8 @@
     It can optionally filter by application IDs and can limit output to credentials that are about to expire.
 
     .PARAMETER listOnlyExpiring
-    If set to true, only credentials that are about to expire within the specified number of days will be listed.
-    If set to false, all credentials will be listed regardless of their expiry date.
+    If only credentials that are about to expire within the specified number of days should be listed, select "List only credentials about to expire" (final value: true).
+    If you want to list all credentials regardless of their expiry date, select "List all credentials" (final value: false).
 
     .PARAMETER Days
     The number of days before a credential expires to consider it "about to expire".

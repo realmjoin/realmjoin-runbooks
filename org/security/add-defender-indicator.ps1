@@ -76,13 +76,6 @@
                     "Medium": "Medium",
                     "High": "High"
                 }
-            },
-            "GenerateAlert": {
-                "DisplayName": "GenerateAlert",
-                "SelectSimple": {
-                    "false": false,
-                    "true": true
-                }
             }
         }
     }

@@ -7,7 +7,7 @@
     It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
 
     .PARAMETER entAppsOnly
-    If set to true, only enterprise applications are included; otherwise all service principals are included.
+    Determines whether to export only enterprise applications (final value: true) or all service principals/applications (final value: false).
 
     .PARAMETER ContainerName
     Storage container name used for the upload.

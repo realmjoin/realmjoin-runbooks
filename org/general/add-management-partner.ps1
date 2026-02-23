@@ -7,7 +7,7 @@
 	It uses the Azure Management Partner API and supports an interactive action selection.
 
 	.PARAMETER Action
-	Action to perform.
+	Choice of action to perform: list existing PALs or add a new PAL.
 
 	.PARAMETER PartnerId
 	Partner ID to set when adding a PAL.

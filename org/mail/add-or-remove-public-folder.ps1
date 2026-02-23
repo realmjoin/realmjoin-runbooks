@@ -14,6 +14,9 @@
     .PARAMETER AddPublicFolder
     If set to true, the public folder is created; if set to false, it is removed.
 
+    .PARAMETER Action
+    "Add a Public Folder" or "Remove a Public Folder" can be selected as action.
+
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
 
@@ -34,7 +37,7 @@
                             }
                         },
                         {
-                            "Display": "Remove a Public folder",
+                            "Display": "Remove a Public Folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": false

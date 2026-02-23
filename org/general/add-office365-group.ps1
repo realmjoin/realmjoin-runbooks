@@ -13,10 +13,10 @@
 	Optional display name. If empty, MailNickname is used.
 
 	.PARAMETER CreateTeam
-	If set to true, a team is created for the new group.
+	Choose to "Only create a SharePoint Site" (final value: $false) or "Create a Team (and SharePoint Site)" (final value: $true). A team needs an owner, so if CreateTeam is set to true and no owner is specified, the runbook will set the caller as the owner.
 
 	.PARAMETER Private
-	If set to true, the group visibility is private.
+	Choose the group visibility: "Public" (final value: $false) or "Private" (final value: $true).
 
 	.PARAMETER MailEnabled
 	If set to true, the group is mail-enabled.

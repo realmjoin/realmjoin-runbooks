@@ -25,7 +25,7 @@
     Internal flag derived from intuneAction.
 
     .PARAMETER removeAutopilotDevice
-    If set to true, the device is deleted from the Autopilot device database.
+    "Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database.
 
     .PARAMETER removeAADDevice
     Internal flag derived from aadAction.

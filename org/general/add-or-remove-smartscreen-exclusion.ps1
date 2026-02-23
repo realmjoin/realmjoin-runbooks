@@ -10,7 +10,7 @@
     Domain name to manage, for example "exclusiondemo.com".
 
     .PARAMETER action
-    Action to perform.
+    "List all URL indicators", "Add an URL indicator" or "Remove all indicator for this URL" could be selected as action to perform.
 
     .PARAMETER mode
     Indicator mode to apply.

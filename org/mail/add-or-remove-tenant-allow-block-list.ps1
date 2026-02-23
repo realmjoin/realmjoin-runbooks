@@ -12,10 +12,10 @@
     Type of entry to manage.
 
     .PARAMETER Block
-    If set to true, the entry is added to the block list; otherwise it is added to the allow list.
+    "Block List (block entry)" (final value: $true) or "Allow List (permit entry)" (final value: $false) can be selected as list type.
 
     .PARAMETER Remove
-    If set to true, the entry is removed instead of added.
+    "Add entry to the list" (final value: $false) or "Remove entry from the list" (final value: $true) can be selected as action to perform.
 
     .PARAMETER DaysToExpire
     Number of days until a newly added entry expires.

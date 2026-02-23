@@ -6,7 +6,7 @@
     Lists Azure AD app registrations that may be affected by CVE-2021-42306 by inspecting stored key credentials. Optionally exports the findings to a CSV file in Azure Storage.
 
     .PARAMETER ExportToFile
-    If set to true, exports the results to a CSV file in Azure Storage.
+    "List in Console" (final value: $false) or "Export to a CSV file" (final value: $true) can be selected as action to perform. The export saves the findings to a CSV file in Azure Storage.
 
     .PARAMETER ContainerName
     Name of the Azure Storage container to upload the CSV report to.

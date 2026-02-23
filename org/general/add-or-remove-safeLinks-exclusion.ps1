@@ -6,7 +6,7 @@
     Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
 
     .PARAMETER Action
-    Add or Remove URL Pattern to/from Policy
+    "Add URL Pattern to Policy", "Remove URL Pattern from Policy" or "List all existing policies and settings" could be selected as action to perform.
 
     .PARAMETER LinkPattern
     URL pattern to allow; it can contain '*' as a wildcard for host and paths.

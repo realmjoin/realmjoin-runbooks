@@ -6,7 +6,7 @@
     Lists all Windows Autopilot devices and optionally exports them to a CSV file in Azure Storage. If exporting is enabled, the runbook uploads the report and returns a time-limited SAS (download) link.
 
     .PARAMETER ExportToFile
-    If set to true, the runbook exports the results to a CSV file and uploads it to Azure Storage.
+    "List in Console" (final value: $false) or "Export to a CSV file" (final value: $true) can be selected as action to perform.
 
     .PARAMETER ContainerName
     Name of the Azure Storage container to upload the CSV report to.

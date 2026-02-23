@@ -27,7 +27,7 @@
     SKU name for the Storage Account if it needs to be created.
 
     .PARAMETER QueryMfaState
-    If set to true, queries admins for registered authentication methods.
+    "Check and report every admin's MFA state" (final value: $true) or "Do not check admin MFA states" (final value: $false) can be selected as action to perform.
 
     .PARAMETER TrustEmailMfa
     If set to true, regards email as a valid MFA method.
