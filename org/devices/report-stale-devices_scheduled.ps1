@@ -9,10 +9,10 @@
     .NOTES
     This runbook generates a comprehensive report of stale devices and delivers it via email.
     The report includes device details, platform breakdowns, and exports a CSV file for further analysis.
-    
+
     Prerequisites:
     - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-    
+
     Common Use Cases:
     - Regular device inventory audits and compliance reporting
     - Identifying devices for retirement or decommissioning
@@ -20,7 +20,7 @@
     - Monitoring device health across the organization
     - Using MaxDays parameter for staged reporting (e.g., 30-60 days, 60-90 days)
     - User scope filtering to focus on specific departments or exclude service accounts
-    
+
     The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
 
     .PARAMETER Days
@@ -343,7 +343,7 @@ $excludeUserIds = @()
 if ($UseUserScope) {
     Write-Output ""
     Write-Output "## Processing user scope filtering..."
-    
+
     # Get users from include group
     if ($IncludeUserGroup) {
         Write-Output "Getting members from include group..."
@@ -357,7 +357,7 @@ if ($UseUserScope) {
             Write-Warning "Failed to retrieve include group members: $_"
         }
     }
-    
+
     # Get users from exclude group
     if ($ExcludeUserGroup) {
         Write-Output "Getting members from exclude group..."
@@ -407,17 +407,17 @@ foreach ($device in $devices) {
                 if ($userInfo) {
                     $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
                     $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
-                    
+
                     # Apply user scope filtering if enabled
                     if ($UseUserScope) {
                         $userId = $userInfo.id
-                        
+
                         # Apply include filter
                         if ($IncludeUserGroup -and ($includeUserIds.Count -gt 0) -and ($userId -notin $includeUserIds)) {
                             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' not in include group" -Verbose
                             continue
                         }
-                        
+
                         # Apply exclude filter
                         if ($ExcludeUserGroup -and ($excludeUserIds.Count -gt 0) -and ($userId -in $excludeUserIds)) {
                             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
@@ -579,7 +579,7 @@ $(if ($filteredDevices_moreThan10) {
 
 $(if ($filteredDevices.Count -gt 0) {
     $sortedDevices = $filteredDevices | Sort-Object -Property lastSyncDateTime
-    
+
     # If more than 10 devices, only show top 10 in email (oldest first)
     $devicesToShow = if ($filteredDevices.Count -gt 10) {
         $sortedDevices | Select-Object -First 10
@@ -666,7 +666,7 @@ try {
     else {
         Write-Output "Days threshold: $Days days (minimum)"
     }
-    
+
     if ($UseUserScope) {
         Write-Output ""
         Write-Output "User Scope Filtering:"
