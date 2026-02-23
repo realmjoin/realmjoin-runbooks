@@ -1,9 +1,9 @@
 # Add Room Mailbox
 
-Create a room resource.
+Create a room mailbox resource
 
 ## Detailed description
-Create a room resource.
+Creates an Exchange Online room mailbox and optionally configures delegation and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
 ## Where to find
 Org \ Mail \ Add Room Mailbox
@@ -19,6 +19,7 @@ Org \ Mail \ Add Room Mailbox
 
 ## Parameters
 ### MailboxName
+Alias (mail nickname) for the room mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +28,7 @@ Org \ Mail \ Add Room Mailbox
 | Type | String |
 
 ### DisplayName
+Optional display name for the room mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ Org \ Mail \ Add Room Mailbox
 | Type | String |
 
 ### DelegateTo
+Optional user who receives delegated access to the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +46,7 @@ Org \ Mail \ Add Room Mailbox
 | Type | String |
 
 ### Capacity
+Optional room capacity in number of people.
 
 | Property | Value |
 |----------|-------|
@@ -51,6 +55,7 @@ Org \ Mail \ Add Room Mailbox
 | Type | Int32 |
 
 ### AutoAccept
+If set to true, meeting requests are automatically accepted.
 
 | Property | Value |
 |----------|-------|
@@ -59,6 +64,7 @@ Org \ Mail \ Add Room Mailbox
 | Type | Boolean |
 
 ### AutoMapping
+If set to true, the mailbox is automatically mapped in Outlook for the delegate.
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +73,7 @@ Org \ Mail \ Add Room Mailbox
 | Type | Boolean |
 
 ### DisableUser
-CallerName is tracked purely for auditing purposes
+If set to true, the associated Entra ID user account is disabled.
 
 | Property | Value |
 |----------|-------|

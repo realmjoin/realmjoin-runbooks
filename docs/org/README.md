@@ -17,7 +17,6 @@
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Outphase Devices](devices/outphase-devices.md)
   - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
-  - [Report Last Device Contact By Range](devices/report-last-device-contact-by-range.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
   - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
   - [Sync Device Serialnumbers To Entraid (Scheduled)](devices/sync-device-serialnumbers-to-entraid_scheduled.md)

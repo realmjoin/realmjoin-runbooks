@@ -1,9 +1,10 @@
 # Add Or Remove Smartscreen Exclusion
 
-Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
+Add or remove a SmartScreen URL indicator in Microsoft Defender
 
 ## Detailed description
-List/Add/Remove URL indicators entries in MS Security Center.
+This runbook lists, adds, or removes URL indicators in Microsoft Defender.
+It can allow, audit, warn, or block a given domain by creating an indicator entry.
 
 ## Where to find
 Org \ General \ Add Or Remove Smartscreen Exclusion
@@ -16,7 +17,7 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 
 ## Parameters
 ### action
-0 - list, 1 - add, 2 - remove
+"List all URL indicators", "Add an URL indicator" or "Remove all indicator for this URL" could be selected as action to perform.
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +26,7 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 | Type | Int32 |
 
 ### Url
-please give just the name of the domain, like "exclusiondemo.com"
+Domain name to manage, for example "exclusiondemo.com".
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +35,7 @@ please give just the name of the domain, like "exclusiondemo.com"
 | Type | String |
 
 ### mode
-0 - allow, 1 - audit, 2 - warn, 3 - block
+Indicator mode to apply.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +44,7 @@ please give just the name of the domain, like "exclusiondemo.com"
 | Type | Int32 |
 
 ### explanationTitle
+Title used when creating an indicator.
 
 | Property | Value |
 |----------|-------|
@@ -51,6 +53,7 @@ please give just the name of the domain, like "exclusiondemo.com"
 | Type | String |
 
 ### explanationDescription
+Description used when creating an indicator.
 
 | Property | Value |
 |----------|-------|

@@ -1,9 +1,10 @@
 # Delegate Send As
 
-Grant another user sendAs permissions on this mailbox.
+Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation
 
 ## Detailed description
-Grant another user sendAs permissions on this mailbox.
+Grants or removes SendAs permissions for a delegate on a mailbox in Exchange Online. The current permissions are shown before and after applying the change.
+This allows the delegate to send emails as if they were the mailbox owner.
 
 ## Where to find
 User \ Mail \ Delegate Send As
@@ -27,6 +28,7 @@ User \ Mail \ Delegate Send As
 | Type | String |
 
 ### delegateTo
+User principal name of the delegate.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ User \ Mail \ Delegate Send As
 | Type | String |
 
 ### Remove
+If set to true, removes the delegation instead of granting it.
 
 | Property | Value |
 |----------|-------|

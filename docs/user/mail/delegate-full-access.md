@@ -1,9 +1,11 @@
 # Delegate Full Access
 
-Grant another user full access to this mailbox.
+Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
 
 ## Detailed description
-Grant another user full access to this mailbox.
+Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.
+Also shows the current and new permissions for the mailbox.
+Automapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.
 
 ## Where to find
 User \ Mail \ Delegate Full Access
@@ -19,6 +21,7 @@ User \ Mail \ Delegate Full Access
 
 ## Parameters
 ### UserName
+User principal name of the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +30,7 @@ User \ Mail \ Delegate Full Access
 | Type | String |
 
 ### delegateTo
+User principal name of the delegate.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +39,7 @@ User \ Mail \ Delegate Full Access
 | Type | String |
 
 ### Remove
+If set to true, removes the delegation instead of granting it.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +48,7 @@ User \ Mail \ Delegate Full Access
 | Type | Boolean |
 
 ### AutoMapping
+If set to true, enables Outlook automapping when granting FullAccess.
 
 | Property | Value |
 |----------|-------|

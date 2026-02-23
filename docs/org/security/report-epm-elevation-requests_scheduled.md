@@ -1,6 +1,6 @@
 # Report EPM Elevation Requests (Scheduled)
 
-Generate report for Endpoint Privilege Management (EPM) elevation requests.
+Generate report for Endpoint Privilege Management (EPM) elevation requests
 
 ## Detailed description
 Queries Microsoft Intune for EPM elevation requests with flexible filtering options.

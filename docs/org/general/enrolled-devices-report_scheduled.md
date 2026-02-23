@@ -1,9 +1,10 @@
 # Enrolled Devices Report (Scheduled)
 
-Show recent first-time device enrollments.
+Show recent first-time device enrollments
 
 ## Detailed description
-Show recent first-time device enrollments, grouped by a category/attribute.
+This runbook reports recent device enrollments based on a configurable time range.
+It can group results by a selected attribute and can optionally export the report as a CSV file.
 
 ## Where to find
 Org \ General \ Enrolled Devices Report_Scheduled
@@ -22,6 +23,7 @@ Azure: Contributor on Storage Account
 
 ## Parameters
 ### Weeks
+Time range in weeks to include in the report.
 
 | Property | Value |
 |----------|-------|
@@ -30,9 +32,7 @@ Azure: Contributor on Storage Account
 | Type | Int32 |
 
 ### dataSource
-Where to look for a devices "birthday"?
-0 - AutoPilot profile assignment date
-1 - Intune object creation date
+Data source used to determine the first enrollment date.
 
 | Property | Value |
 |----------|-------|
@@ -41,12 +41,7 @@ Where to look for a devices "birthday"?
 | Type | Int32 |
 
 ### groupingSource
-How to group results?
-0 - no grouping
-1 - AzureAD User properties
-2 - AzureAD Device properties
-3 - Intune device properties
-4 - AutoPilot properties
+Data source used to resolve the grouping attribute.
 
 | Property | Value |
 |----------|-------|
@@ -55,29 +50,7 @@ How to group results?
 | Type | Int32 |
 
 ### groupingAttribute
-Examples:
-
-Autopilot:
-- "groupTag"
-- "systemFamily"
-- "skuNumber"
-
-AzureAD User:
-- "city"
-- "companyName"
-- "department"
-- "officeLocation"
-- "preferredLanguage"
-- "state"
-- "usageLocation"
-- "manager"?
-
-AzureAD Device:
-- "manufacturer"
-- "model"
-
-Intune Device:
-- "isEncrypted"
+Attribute name used for grouping.
 
 | Property | Value |
 |----------|-------|
@@ -95,6 +68,7 @@ Please configure an Azure Storage Account to use this feature.
 | Type | Boolean |
 
 ### ContainerName
+Storage container name used for upload.
 
 | Property | Value |
 |----------|-------|
@@ -103,6 +77,7 @@ Please configure an Azure Storage Account to use this feature.
 | Type | String |
 
 ### ResourceGroupName
+Resource group that contains the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -111,6 +86,7 @@ Please configure an Azure Storage Account to use this feature.
 | Type | String |
 
 ### StorageAccountName
+Storage account name used for upload.
 
 | Property | Value |
 |----------|-------|
@@ -119,6 +95,7 @@ Please configure an Azure Storage Account to use this feature.
 | Type | String |
 
 ### StorageAccountLocation
+Azure region for the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -127,6 +104,7 @@ Please configure an Azure Storage Account to use this feature.
 | Type | String |
 
 ### StorageAccountSku
+Storage account SKU.
 
 | Property | Value |
 |----------|-------|

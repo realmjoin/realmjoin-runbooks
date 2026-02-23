@@ -1,10 +1,9 @@
 # List Inactive Users
 
-List users, that have no recent interactive signins.
+List users with no recent interactive sign-ins
 
 ## Detailed description
-This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.
-It can also include users/guests that have never logged in.
+Lists users and guests that have not signed in interactively for a specified number of days. Optionally includes accounts that never signed in and accounts that are blocked.
 
 ## Where to find
 Org \ Security \ List Inactive Users
@@ -19,7 +18,7 @@ Org \ Security \ List Inactive Users
 
 ## Parameters
 ### Days
-Number of days without interactive signin.
+Number of days without interactive sign-in.
 
 | Property | Value |
 |----------|-------|
@@ -27,8 +26,8 @@ Number of days without interactive signin.
 | Required | false |
 | Type | Int32 |
 
-### showBlockedUsers
-Include users/guests that can not sign in (accountEnabled = false).
+### ShowBlockedUsers
+If set to true, includes users and guests that cannot sign in.
 
 | Property | Value |
 |----------|-------|
@@ -36,8 +35,8 @@ Include users/guests that can not sign in (accountEnabled = false).
 | Required | false |
 | Type | Boolean |
 
-### showUsersThatNeverLoggedIn
-Beware: This has to enumerate all users / Can take a long time.
+### ShowUsersThatNeverLoggedIn
+If set to true, includes users and guests that never signed in.
 
 | Property | Value |
 |----------|-------|

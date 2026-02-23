@@ -1,9 +1,9 @@
 # Assign Or Unassign License
 
-(Un-)Assign a license to a user via group membership.
+Assign or remove a license for a user via group membership
 
 ## Detailed description
-(Un-)Assign a license to a user via group membership.
+Adds or removes a user to a dedicated license assignment group to control license allocation. The license group must match the configured naming convention.
 
 ## Where to find
 User \ General \ Assign Or Unassign License
@@ -18,6 +18,7 @@ User \ General \ Assign Or Unassign License
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +27,7 @@ User \ General \ Assign Or Unassign License
 | Type | String |
 
 ### GroupID_License
-production does not supprt "ref:LicenseGroup" yet
+Object ID of the license assignment group.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +36,7 @@ production does not supprt "ref:LicenseGroup" yet
 | Type | String |
 
 ### Remove
+"Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform.
 
 | Property | Value |
 |----------|-------|
