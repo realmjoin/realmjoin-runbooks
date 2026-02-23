@@ -11,7 +11,7 @@
     Object ID of the Microsoft 365 group.
 
     .PARAMETER Action
-    Action to perform. Use 0 to enable external mail, 1 to disable it, or 2 to query the current state.
+    "Enable External Mail" (final value: 0), "Disable External Mail" (final value: 1) or "Query current state only" (final value: 2) can be selected as action to perform. If set to 0, the runbook will allow external senders to email the group. If set to 1, it will block external senders from emailing the group. If set to 2, it will return whether external mailing is currently enabled or disabled for the group without making any changes.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.

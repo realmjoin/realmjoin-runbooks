@@ -14,7 +14,7 @@
     Object ID of the user to add or remove.
 
     .PARAMETER Remove
-    Set to true to remove the owner
+    "Add User as Owner" (final value: $false) or "Remove User as Owner" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the user from the group owners. If set to false, it will add the user as an owner of the group.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.

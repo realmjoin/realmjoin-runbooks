@@ -11,7 +11,7 @@
     Object ID of the target group.
 
     .PARAMETER Public
-    Set to true to make the group public, or false to make it private.
+    "Make group private" (final value: $false) or "Make group public" (final value: $true) can be selected as action to perform.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.

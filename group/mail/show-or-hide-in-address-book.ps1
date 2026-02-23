@@ -10,7 +10,7 @@
     The identity of the target group (name, alias, or other Exchange identity value).
 
     .PARAMETER Action
-    Show or Hide Group in Address Book
+    "Show Group in Address Book" (final value: 0), "Hide Group from Address Book" (final value: 1) or "Query current state only" (final value: 2) can be selected as action to perform. If set to 0, the runbook will make the group visible in address lists. If set to 1, it will hide the group from address lists. If set to 2, it will return whether the group is currently hidden from address lists without making any changes.
 
     .PARAMETER CallerName
     Caller name for auditing purposes
@@ -19,11 +19,11 @@
     RunbookCustomization: {
         "Parameters": {
             "Action": {
-                "DisplayName": "Show or Hide Group in Address Book",
+                "DisplayName": "Action",
                 "SelectSimple": {
                     "Show Group in Address Book": 0,
                     "Hide Group from Address Book": 1,
-                    "Query current state": 2
+                    "Query current state only": 2
                 }
             },
             "GroupName": {
