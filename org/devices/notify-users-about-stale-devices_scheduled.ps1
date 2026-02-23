@@ -8,7 +8,7 @@
     .NOTES
     This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.
     The email is sent directly to the primary user's email address and includes detailed information about each inactive device.
-    
+
     Prerequisites:
     - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
     - Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone)
@@ -19,12 +19,12 @@
     - Security and compliance by ensuring users are aware of all devices registered to them
     - Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)
     - User scope filtering to target specific departments or exclude service accounts
-    
+
     Pilot and Testing Options:
     - Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users
     - Perfect for validating email content and testing filters before rolling out to production
     - Send notifications to ticket systems or shared mailboxes for centralized handling
-    
+
     .PARAMETER Days
     Number of days without activity to be considered stale (minimum threshold).
 
@@ -241,22 +241,22 @@ function Get-AllGraphPages {
         [Parameter(Mandatory = $true)]
         [string]$Uri
     )
-    
+
     $results = @()
     $nextLink = $Uri
-    
+
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        
+
         if ($response.value) {
             $results += $response.value
         } else {
             $results += $response
         }
-        
+
         $nextLink = $response.'@odata.nextLink'
     } while ($null -ne $nextLink)
-    
+
     return $results
 }
 
@@ -400,7 +400,7 @@ $excludeUserIds = @()
 if ($UseUserScope) {
     Write-Output ""
     Write-Output "Processing user scope filtering..."
-    
+
     # Get users from include group
     if ($IncludeUserGroup) {
         Write-Output "Getting members from include group..."
@@ -414,7 +414,7 @@ if ($UseUserScope) {
             Write-Warning "Failed to retrieve include group members: $_"
         }
     }
-    
+
     # Get users from exclude group
     if ($ExcludeUserGroup) {
         Write-Output "Getting members from exclude group..."
@@ -435,23 +435,23 @@ $devicesByUser = @{}
 
 foreach ($device in $filteredDevices) {
     $userPrincipalName = $device.userPrincipalName
-    
+
     # Get user ID for scope filtering
     if ($UseUserScope) {
         try {
             $encodedUserPrincipalName = [System.Uri]::EscapeDataString($userPrincipalName)
             $userUri = "https://graph.microsoft.com/v1.0/users/{0}?`$select=id,displayName,mail" -f $encodedUserPrincipalName
             $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction SilentlyContinue
-            
+
             if ($userInfo) {
                 $userId = $userInfo.id
-                
+
                 # Apply include filter
                 if ($IncludeUserGroup -and ($includeUserIds.Count -gt 0) -and ($userId -notin $includeUserIds)) {
                     Write-RjRbLog -Message "Skipping user '$($userPrincipalName)' - not in include group" -Verbose
                     continue
                 }
-                
+
                 # Apply exclude filter
                 if ($ExcludeUserGroup -and ($excludeUserIds.Count -gt 0) -and ($userId -in $excludeUserIds)) {
                     Write-RjRbLog -Message "Skipping user '$($userPrincipalName)' - in exclude group" -Verbose
@@ -464,11 +464,11 @@ foreach ($device in $filteredDevices) {
             continue
         }
     }
-    
+
     if (-not $devicesByUser.ContainsKey($userPrincipalName)) {
         $devicesByUser[$userPrincipalName] = @()
     }
-    
+
     $devicesByUser[$userPrincipalName] += $device
 }
 
@@ -490,47 +490,47 @@ $emailsFailed = 0
 
 foreach ($userEmail in $devicesByUser.Keys) {
     $userDevices = $devicesByUser[$userEmail]
-    
+
     # Determine actual recipient - if OverrideEmailRecipient is filled, use it; otherwise use the actual user email
     $actualRecipient = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
         $OverrideEmailRecipient
     } else {
         $userEmail
     }
-    
+
     Write-Output "Processing user: $($userEmail) ($($userDevices.Count) device(s)) - Sending to: $($actualRecipient)"
-    
+
     # Build Service Desk contact information section
     $serviceDeskSection = ""
     if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
         $serviceDeskSection = "`n`n### Service Desk Contact Information`n"
-        if ($ServiceDeskDisplayName) { 
-            $serviceDeskSection += "`n $ServiceDeskDisplayName" 
+        if ($ServiceDeskDisplayName) {
+            $serviceDeskSection += "`n $ServiceDeskDisplayName"
         }
-        if ($ServiceDeskEmail) { 
-            $serviceDeskSection += "`n **Email:** [$ServiceDeskEmail](mailto:$ServiceDeskEmail)" 
+        if ($ServiceDeskEmail) {
+            $serviceDeskSection += "`n **Email:** [$ServiceDeskEmail](mailto:$ServiceDeskEmail)"
         }
-        if ($ServiceDeskPhone) { 
-            $serviceDeskSection += "`n **Phone:** [$ServiceDeskPhone](tel:$ServiceDeskPhone)" 
+        if ($ServiceDeskPhone) {
+            $serviceDeskSection += "`n **Phone:** [$ServiceDeskPhone](tel:$ServiceDeskPhone)"
         }
     }
-    
+
     # Build device list for email
     $deviceListMarkdown = ""
     foreach ($device in $userDevices) {
-        $lastSync = if ($device.lastSyncDateTime) { 
-            (Get-Date $device.lastSyncDateTime).ToString("yyyy-MM-dd") 
-        } else { 
-            "Unknown" 
+        $lastSync = if ($device.lastSyncDateTime) {
+            (Get-Date $device.lastSyncDateTime).ToString("yyyy-MM-dd")
+        } else {
+            "Unknown"
         }
-        
+
         # Calculate actual inactive days
         $inactiveDays = if ($device.lastSyncDateTime) {
             [math]::Round(((Get-Date) - (Get-Date $device.lastSyncDateTime)).TotalDays)
         } else {
             "Unknown"
         }
-        
+
         $deviceListMarkdown += @"
 ### $($device.deviceName)
 
@@ -543,22 +543,22 @@ foreach ($userEmail in $devicesByUser.Keys) {
 
 "@
     }
-    
+
     # Build email content in English
     $emailSubject = "Action Required: Inactive Devices"
-    
+
     # Add user information to subject if sending to override recipient
     if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
         $emailSubject = "Action Required: Inactive Devices - User: $userEmail"
     }
-    
+
     # Determine inactivity period text
     $inactivityPeriodText = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
         "between **$Days and $MaxDays days**"
     } else {
         "at least **$Days days**"
     }
-    
+
     $markdownContent = @"
 # Inactive Devices - Action Required
 
@@ -610,11 +610,11 @@ If you have any questions or problems, please contact your Service Desk.$($servi
 **Tenant:** $($tenantDisplayName)
 **Report Date:** $(Get-Date -Format "yyyy-MM-dd HH:mm")
 "@
-    
+
     # Send email to user
     try {
         Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $actualRecipient -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
-        
+
         Write-Output "Email sent successfully to $($actualRecipient)"
         Write-RjRbLog -Message "Email sent to $($actualRecipient) for user $($userEmail) with $($userDevices.Count) device(s)" -Verbose
         $emailsSent++
