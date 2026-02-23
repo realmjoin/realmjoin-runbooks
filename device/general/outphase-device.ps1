@@ -21,13 +21,13 @@
     If set to true, deletes the Intune device object.
 
     .PARAMETER removeAutopilotDevice
-    If set to true, deletes the AutoPilot device identity.
+    "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant.
 
     .PARAMETER removeAADDevice
-    If set to true, deletes the device object from Entra ID (Azure AD).
+    "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD).
 
     .PARAMETER disableAADDevice
-    If set to true, disables the device object in Entra ID (Azure AD).
+    "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD).
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
@@ -71,19 +71,19 @@
             }
         },
         "aadAction": {
-            "DisplayName": "Delete device from AzureAD?",
+            "DisplayName": "Delete device from EntraID?",
             "Select": {
                 "Options": [
                     {
-                        "Display": "Delete device in AzureAD",
+                        "Display": "Delete device in EntraID",
                         "Value": 2
                     },
                     {
-                        "Display": "Disable device in AzureAD",
+                        "Display": "Disable device in EntraID",
                         "Value": 1
                     },
                     {
-                        "Display": "Do not delete AzureAD device / do not care",
+                        "Display": "Do not delete EntraID device / do not care",
                         "Value": 0
                     }
                 ],
@@ -152,7 +152,7 @@ Connect-RjRbGraph
 # "Searching DeviceId $DeviceID."
 $targetDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
 if (-not $targetDevice) {
-    throw ("DeviceId $DeviceId not found in AzureAD.")
+    throw ("DeviceId $DeviceId not found in EntraID.")
 }
 $owner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)/registeredOwners" -ErrorAction SilentlyContinue
 
@@ -164,7 +164,7 @@ if ($owner) {
 if ($disableAADDevice) {
     # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
     if ($targetDevice.operatingSystem -eq "Windows") {
-        "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in AzureAD"
+        "## Disabling $($targetDevice.displayName) (Object ID $($targetDevice.id)) in EntraID"
         try {
             $body = @{
                 "accountEnabled" = $false
@@ -175,16 +175,16 @@ if ($disableAADDevice) {
             "## Error Message: $($_.Exception.Message)"
             "## Please see 'All logs' for more details."
             "## Execution stopped."
-            throw "Disabling Object ID $($targetDevice.id) in AzureAD failed!"
+            throw "Disabling Object ID $($targetDevice.id) in EntraID failed!"
         }
     }
     else {
-        "## Disabling non-windows devices in AzureAD is currently not supported. Skipping."
+        "## Disabling non-windows devices in EntraID is currently not supported. Skipping."
     }
 }
 
 if ($removeAADDevice) {
-    "## Deleting $($targetDevice.displayName) (Object ID $($targetDevice.id)) from AzureAD"
+    "## Deleting $($targetDevice.displayName) (Object ID $($targetDevice.id)) from EntraID"
     try {
         Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method Delete | Out-Null
     }
@@ -192,13 +192,13 @@ if ($removeAADDevice) {
         "## Error Message: $($_.Exception.Message)"
         "## Please see 'All logs' for more details."
         "## Execution stopped."
-        throw "Deleting Object ID $($targetDevice.id) from AzureAD failed!"
+        throw "Deleting Object ID $($targetDevice.id) from EntraID failed!"
 
     }
 }
 
 if ((-not $disableAADDevice) -and (-not $removeAADDevice)) {
-    "## Skipping AzureAD object operations."
+    "## Skipping EntraID object operations."
 }
 
 $mgdDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue

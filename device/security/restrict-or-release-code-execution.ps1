@@ -11,7 +11,7 @@
   The device ID of the target device.
 
   .PARAMETER Release
-  Set to true to remove an existing restriction, or false to apply the restriction.
+  "Restrict Code Execution" (final value: false) or "Remove Code Restriction" (final value: true) can be selected as action to perform. If set to false, the runbook will restrict code execution on the device in Defender for Endpoint. If set to true, it will remove an existing code execution restriction on the device in Defender for Endpoint.
 
   .PARAMETER Comment
   A short reason for the (un)restriction action.

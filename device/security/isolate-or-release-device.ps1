@@ -11,7 +11,7 @@
   The device ID of the target device.
 
   .PARAMETER Release
-  Set to true to release a device from isolation, or false to isolate the device.
+  "Isolate Device" (final value: false) or "Release Device from Isolation" (final value: true) can be selected as action to perform. If set to false, the runbook will isolate the device in Defender for Endpoint. If set to true, it will release a previously isolated device from isolation in Defender for Endpoint.
 
   .PARAMETER IsolationType
   The isolation type to use when isolating the device.

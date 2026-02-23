@@ -10,7 +10,7 @@
     The device ID of the target device.
 
     .PARAMETER Enable
-    Set to true to enable the device, or false to disable the device.
+    "Disable Device?" (final value: false) or "Enable Device again?" (final value: true) can be selected as action to perform. If set to false, the runbook will disable the device in Entra ID (Azure AD). If set to true, the runbook will enable the device in Entra ID (Azure AD) again.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
