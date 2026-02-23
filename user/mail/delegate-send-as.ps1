@@ -1,17 +1,35 @@
 <#
-  .SYNOPSIS
-  Grant another user sendAs permissions on this mailbox.
+    .SYNOPSIS
+    Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation
 
-  .DESCRIPTION
-  Grant another user sendAs permissions on this mailbox.
+    .DESCRIPTION
+    Grants or removes SendAs permissions for a delegate on a mailbox in Exchange Online. The current permissions are shown before and after applying the change.
+    This allows the delegate to send emails as if they were the mailbox owner.
 
-  .INPUTS
-  RunbookCustomization: {
+     .PARAMETER UserName
+
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER delegateTo
+    User principal name of the delegate.
+
+    .PARAMETER Remove
+    If set to true, removes the delegation instead of granting it.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
             },
             "Remove": {
+                "Hide": true
+            },
+            "CallerName": {
                 "Hide": true
             }
         },
@@ -27,7 +45,8 @@
                                     "Remove": false
                                 }
                             }
-                        }, {
+                        },
+                        {
                             "Display": "Remove this delegation",
                             "Customization": {
                                 "Default": {

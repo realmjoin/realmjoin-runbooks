@@ -1,59 +1,73 @@
 <#
-  .SYNOPSIS
-  Add/remove eMail address to/from mailbox.
+    .SYNOPSIS
+    Add or remove an email address for a mailbox
 
-  .DESCRIPTION
-  Add/remove eMail address to/from mailbox, update primary eMail address.
+    .DESCRIPTION
+    Adds or removes an alias email address on a mailbox and can optionally set it as the primary address.
 
-  .INPUTS
-  RunbookCustomization: {
-    "ParameterList": [
-        {
-                    "DisplayBefore": "asPrimary",
-                    "Select": {
-                        "Options": [
-                            {
-                                "Display": "Add/Update eMail address",
-                                "Customization": {
-                                    "Default": {
-                                        "Remove": false
-                                    }
-                                }
-                            },
-                            {
-                                "Display": "Remove this address",
-                                "Customization": {
-                                    "Default": {
-                                        "Remove": true
-                                    },
-                                    "Hide": [
-                                        "asPrimary"
-                                    ]
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER eMailAddress
+    Email address to add or remove.
+
+    .PARAMETER Remove
+    If set to true, removes the address instead of adding it.
+
+    .PARAMETER asPrimary
+    If set to true, sets the specified address as the primary SMTP address.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "ParameterList": [
+            {
+                "DisplayBefore": "asPrimary",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Add/Update eMail address",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": false
                                 }
                             }
-                        ]
-
-                    },
-                    "Default": "Add/Update eMail address"
-                }
-    ],
-    "Parameters": {
-        "UserName": {
-            "Hide": true
-        },
-        "Remove": {
-            "DisplayName": "Remove this address",
-            "Default": false,
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
-        },
-        "asPrimary": {
-            "DisplayName": "Set as primary address",
+                        },
+                        {
+                            "Display": "Remove this address",
+                            "Customization": {
+                                "Default": {
+                                    "Remove": true
+                                },
+                                "Hide": [
+                                    "asPrimary"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Default": "Add/Update eMail address"
+            }
+        ],
+        "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
+            "Remove": {
+                "DisplayName": "Remove this address",
+                "Default": false,
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "asPrimary": {
+                "DisplayName": "Set as primary address"
+            }
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
