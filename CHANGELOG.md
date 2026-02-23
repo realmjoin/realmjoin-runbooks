@@ -12,7 +12,9 @@
   - More detailed descriptions of the runbooks' functionality and parameters
   - Clearer instructions for required permissions and setup steps
   - Improved formatting for better readability
-- Removed "Report Last Device Contact by Range" Runbook, as the functionality is now covered by the updated "Report Stale Devices (Scheduled)" Runbook with enhanced filtering options.
+- Removed **Report Last Device Contact by Range** Runbook, as the functionality is now covered by the updated **Report Stale Devices (Scheduled)** Runbook with enhanced filtering options.
+- Add **Notify Users About Stale Devices (Scheduled)** Runbook, which sends email notifications to users with stale devices based on last activity date and platform. This runbook complements the reporting functionality by proactively notifying users about their stale devices and providing guidance for remediation.
+- Update **Report Stale Devices (Scheduled)** Runbook, Include/Exclude User Groups
 
 ## 2026-02-04
 
