@@ -12,7 +12,7 @@
     Object ID of the license assignment group.
 
     .PARAMETER Remove
-    If set to true, removes the user from the license group instead of adding them.
+    "Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform.
 
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.

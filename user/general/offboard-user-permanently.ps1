@@ -9,7 +9,7 @@
 	User principal name of the target user.
 
 	.PARAMETER DeleteUser
-	If set to true, deletes the user object instead of keeping it.
+	"Delete user object" (final value: $true) or "Keep the user object" (final value: $false) can be selected as action to perform. If set to true, the user object will be deleted. If set to false, the user object will be kept but access will be revoked and sign-in will be blocked.
 
 	.PARAMETER DisableUser
 	If set to true, disables the user account for sign-in.
@@ -48,7 +48,7 @@
 	Prefix used to remove groups matching a naming convention.
 
 	.PARAMETER RevokeGroupOwnership
-	If set to true, removes or replaces the user's group ownerships.
+	"Remove/Replace this user's group ownerships" (final value: $true) or "User will remain owner / Do not change" (final value: $false) can be selected as action to perform. If set to true, the runbook will attempt to remove the user from group ownerships. If the user is the last owner of a group, it will attempt to assign a replacement owner; if that fails, it will skip ownership change for that group and log it for manual follow-up.
 
 	.PARAMETER ManagerAsReplacementOwner
 	If set to true, uses the user's manager as replacement owner where applicable.

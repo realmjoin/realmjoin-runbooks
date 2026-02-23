@@ -9,7 +9,7 @@
     User principal name of the room mailbox.
 
     .PARAMETER AllBookInPolicy
-    If set to true, allows booking for everyone.
+    "Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn.
 
     .PARAMETER BookInPolicyGroup
     Group whose members are allowed to book when AllBookInPolicy is false.

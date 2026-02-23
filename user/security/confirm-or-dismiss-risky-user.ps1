@@ -9,7 +9,7 @@
     User principal name of the target user.
 
     .PARAMETER Dismiss
-    If set to true, dismisses the risk. If set to false, confirms the compromise.
+    "Confirm compromise" (final value: $false) or "Dismiss risk" (final value: $true) can be selected as action to perform. If set to true, the runbook will attempt to dismiss the risky user entry for the target user. If set to false, it will attempt to confirm a compromise for the target user.
 
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.

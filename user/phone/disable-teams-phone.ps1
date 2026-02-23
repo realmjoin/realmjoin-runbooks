@@ -16,6 +16,9 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "UserName": {
+                "Hide": true
             }
         }
     }

@@ -12,7 +12,7 @@
     Mobile phone number in international E.164 format (e.g., +491701234567).
 
     .PARAMETER Remove
-    If set to true, removes the mobile phone MFA method instead of adding or updating it.
+    "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number.
 
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
@@ -24,7 +24,7 @@
                 "Hide": true
             },
             "Remove": {
-                "DisplayName": "Add or Remove Member",
+                "DisplayName": "Add or Remove Mobile Phone MFA Method",
                 "SelectSimple": {
                     "Add this number as Mobile Phone MFA factor": false,
                     "Remove this number / mobile phone MFA factor": true

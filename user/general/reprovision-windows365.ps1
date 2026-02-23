@@ -12,7 +12,7 @@
     Display name of the Windows 365 license group used to identify the Cloud PC.
 
     .PARAMETER sendMailWhenReprovisioning
-    If set to true, sends an email to the user when reprovisioning is triggered.
+    "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun.
 
     .PARAMETER fromMailAddress
     Mailbox used to send the notification email.

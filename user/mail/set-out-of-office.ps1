@@ -9,7 +9,7 @@
     User principal name of the mailbox.
 
     .PARAMETER Disable
-    If set to true, disables out-of-office settings.
+    "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform.
 
     .PARAMETER Start
     Start time for scheduled out-of-office replies.

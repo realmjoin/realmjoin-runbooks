@@ -8,7 +8,7 @@
     .PARAMETER UserName
     User principal name of the mailbox.
 
-    .PARAMETER eMailAddress
+    .PARAMETER EmailAddress
     Email address to add or remove.
 
     .PARAMETER Remove
@@ -25,10 +25,11 @@
         "ParameterList": [
             {
                 "DisplayBefore": "asPrimary",
+                "DisplayName": "Add or Remove this Email address",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Add/Update eMail address",
+                            "Display": "Add/Update Email address",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -48,7 +49,7 @@
                         }
                     ]
                 },
-                "Default": "Add/Update eMail address"
+                "Default": "Add/Update Email address"
             }
         ],
         "Parameters": {
@@ -78,7 +79,7 @@ param
     [Parameter(Mandatory = $true)]
     [string] $UserName,
     [Parameter(Mandatory = $true)]
-    [string] $eMailAddress,
+    [string] $EmailAddress,
     [bool] $Remove = $false,
     [bool] $asPrimary = $false,
     # CallerName is tracked purely for auditing purposes
@@ -95,10 +96,10 @@ $VerbosePreference = "SilentlyContinue"
 
 $outputString = "Trying to "
 if ($Remove) {
-    $outputString += "remove alias '$eMailAddress' from"
+    $outputString += "remove alias '$EmailAddress' from"
 }
 else {
-    $outputString += "add alias '$eMailAddress' to"
+    $outputString += "add alias '$EmailAddress' to"
 }
 $outputString += " user '$UserName'"
 if ((-not $Remove) -and $asPrimary) {
@@ -114,33 +115,33 @@ try {
     # Get User / Mailbox
     $mailbox = Get-EXOMailbox -UserPrincipalName $UserName
 
-    "## Current eMail Addresses"
+    "## Current Email Addresses"
     $mailbox.EmailAddresses
 
     ""
-    if ($mailbox.EmailAddresses -icontains "smtp:$eMailAddress") {
+    if ($mailbox.EmailAddresses -icontains "smtp:$EmailAddress") {
         # eMail-Address is already present
         if ($Remove) {
-            if ($eMailAddress -eq $mailbox.UserPrincipalName) {
+            if ($EmailAddress -eq $mailbox.UserPrincipalName) {
                 throw "Cannot remove the UserPrincipalName from the list of eMail-Addresses. Please rename the user for that."
             }
-            $eMailAddressList = [array]($mailbox.EmailAddresses | Where-Object { $_ -ne "smtp:$eMailAddress" })
+            $eMailAddressList = [array]($mailbox.EmailAddresses | Where-Object { $_ -ne "smtp:$EmailAddress" })
             # Remove email address
             Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
-            "## Alias $eMailAddress is removed from user $UserName"
+            "## Alias $EmailAddress is removed from user $UserName"
             "## Waiting for Exchange to update the mailbox..."
             Start-Sleep -Seconds 30
         }
         else {
             if (-not $asPrimary) {
-                "## $eMailAddress is already assigned to user $UserName"
+                "## $EmailAddress is already assigned to user $UserName"
             }
             else {
                 "## Update primary address"
-                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$eMailAddress" }) + [array]("SMTP:$eMailAddress")
-                #$eMailAddressList += "SMTP:$eMailAddress"
+                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower() | Where-Object { $_ -ne "smtp:$EmailAddress" }) + [array]("SMTP:$EmailAddress")
+                #$eMailAddressList += "SMTP:$EmailAddress"
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
-                "## Successfully updated primary eMail address"
+                "## Successfully updated primary Email address"
                 ""
                 "## Waiting for Exchange to update the mailbox..."
                 Start-Sleep -Seconds 30
@@ -152,19 +153,19 @@ try {
         if (-not $Remove) {
             # Add email address
             if ($asPrimary) {
-                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower()) + [array]("SMTP:$eMailAddress")
+                [array]$eMailAddressList = [array]($mailbox.EmailAddresses.toLower()) + [array]("SMTP:$EmailAddress")
                 Set-Mailbox -Identity $UserName -EmailAddresses $eMailAddressList
             }
             else {
-                Set-Mailbox -Identity $UserName -EmailAddresses @{add = "$eMailAddress" }
+                Set-Mailbox -Identity $UserName -EmailAddresses @{add = "$EmailAddress" }
             }
-            "## $eMailAddress successfully added to user $UserName"
+            "## $EmailAddress successfully added to user $UserName"
             ""
             "## Waiting for Exchange to update the mailbox..."
             Start-Sleep -Seconds 30
         }
         else {
-            "## $eMailAddress is not assigned to user $UserName"
+            "## $EmailAddress is not assigned to user $UserName"
         }
     }
 

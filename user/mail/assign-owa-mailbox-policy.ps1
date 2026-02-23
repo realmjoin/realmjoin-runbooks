@@ -25,6 +25,9 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "UserName": {
+                "Hide": true
             }
         }
     }
@@ -70,7 +73,7 @@ catch {
 }
 
 Set-CasMailbox -OwaMailboxPolicy $OwaPolicyName -Identity $UserName -ErrorAction Stop | Out-Null
-"## OWA Mailbox Policy for '$Username' set to '$OwaPolicyName'."
+"## OWA Mailbox Policy for '$UserName' set to '$OwaPolicyName'."
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
 

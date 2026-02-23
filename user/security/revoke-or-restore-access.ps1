@@ -9,7 +9,7 @@
     User principal name of the target user.
 
     .PARAMETER Revoke
-    If set to true, blocks sign-in and revokes sessions. If set to false, re-enables sign-in.
+    "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account.
 
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
