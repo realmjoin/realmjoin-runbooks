@@ -12,6 +12,7 @@
   - More detailed descriptions of the runbooks' functionality and parameters
   - Clearer instructions for required permissions and setup steps
   - Improved formatting for better readability
+- Removed "Report Last Device Contact by Range" Runbook, as the functionality is now covered by the updated "Report Stale Devices (Scheduled)" Runbook with enhanced filtering options.
 
 ## 2026-02-04
 
