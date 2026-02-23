@@ -13,7 +13,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Runbooks - Table of contents
 
 - [Device](#device)
-  - [Avd](#device-avd)
+  - [AVD](#device-avd)
       - [Restart Host](#restart-host)
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
@@ -182,7 +182,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Device
 <a name='device-avd'></a>
 
-## Avd
+## AVD
 <a name='device-avd-restart-host'></a>
 
 ### Restart Host

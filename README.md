@@ -23,7 +23,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 ## Table of contents
 
 - [Device](docs/device/README.md)
-  - [Avd](docs/device/README.md#device-avd)
+  - [AVD](docs/device/README.md#device-avd)
 
     - [Restart Host](docs/device/avd/restart-host.md)
     - [Toggle Drain Mode](docs/device/avd/toggle-drain-mode.md)
