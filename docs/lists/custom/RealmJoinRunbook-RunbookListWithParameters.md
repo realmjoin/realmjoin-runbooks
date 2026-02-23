@@ -558,10 +558,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | MaxAgeInDays |  | Int32 | Filter requests created within the last X days (default: 30).<br>Note: Request details are retained in Intune for 30 days after creation. |
 |  |  |  |  |  |  | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
-| User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
-|  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
-|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes |
-|  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br> |  | UserId | ✓ | String | ID of the target user in Microsoft Graph. |
+| User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br> |  | UserId | ✓ | String | ID of the target user in Microsoft Graph. |
 |  |  |  |  |  |  | GroupsTemplate |  | String | Template selector used by portal customization to populate the group list. |
 |  |  |  |  |  |  | GroupsString | ✓ | String | Comma-separated list of group object IDs or group display names. |
 |  |  |  |  |  |  | UseDisplaynames |  | Boolean | If set to true, treats values in GroupsString as group display names instead of IDs. |

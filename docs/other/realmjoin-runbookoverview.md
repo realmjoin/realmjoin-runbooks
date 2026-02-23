@@ -131,8 +131,6 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
       - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
 - [User](#user)
-  - [Avd](#user-avd)
-      - [User Signout](#user-signout)
   - [General](#user-general)
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
@@ -2290,30 +2288,6 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='user'></a>
-
-# User
-<a name='user-avd'></a>
-
-## Avd
-<a name='user-avd-user-signout'></a>
-
-### User Signout
-#### Removes (Signs Out) a specific User from their AVD Session.
-
-#### Description
-This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
-The SubscriptionIds value must be defined in the runbooks customization.
-
-#### Where to find
-User \ AVD \ User Signout
 
 
 [Back to Table of Content](#table-of-contents)

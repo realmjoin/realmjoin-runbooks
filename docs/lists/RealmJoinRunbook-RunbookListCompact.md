@@ -105,8 +105,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests |
 |  |  | Notify Changed CA Policies | Send notification email if Conditional Access policies have been created or modified in the last 24 hours. |
 |  |  | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests |
-| User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
-|  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
+| User | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
 |  |  | Assign Or Unassign License | Assign or remove a license for a user via group membership |
 |  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user |
 |  |  | List Group Memberships | List group memberships for this user |
