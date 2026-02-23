@@ -7,7 +7,7 @@
     It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
 
     .PARAMETER ExtensionAttributeNumber
-    Extension attribute number to update.
+    Extension attribute number to update
 
     .PARAMETER ProcessAllDevices
     If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed.
