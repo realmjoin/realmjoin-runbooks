@@ -188,6 +188,21 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | bitlockeryRecoveryKeyId | ✓ | String | Recovery key ID of the desired key. |
+|  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale (minimum threshold). |
+|  |  |  |  |  |  | MaxDays |  | Int32 | Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included. |
+|  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results. |
+|  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results. |
+|  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results. |
+|  |  |  |  |  |  | Android |  | Boolean | Include Android devices in the results. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+|  |  |  |  |  |  | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
+|  |  |  |  |  |  | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
+|  |  |  |  |  |  | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
+|  |  |  |  |  |  | OverrideEmailRecipient |  | String | Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Outphase Devices | Remove or outphase multiple devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceListChoice | ✓ | Int32 | Determines whether the list contains device IDs or serial numbers. |
 |  |  |  |  |  |  | DeviceList | ✓ | String | Comma-separated list of device IDs or serial numbers. |
 |  |  |  |  |  |  | intuneAction |  | Int32 | Determines whether to wipe the device, delete it from Intune, or skip Intune actions. |
@@ -202,12 +217,16 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale. |
+|  |  |  |  |  |  | MaxDays |  | Int32 | Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included. |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results. |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results. |
 |  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results. |
 |  |  |  |  |  |  | Android |  | Boolean | Include Android devices in the results. |
-|  |  |  |  |  |  | EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+|  |  |  |  |  |  | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
+|  |  |  |  |  |  | IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+|  |  |  |  |  |  | ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+|  |  |  |  |  |  | EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |

@@ -83,6 +83,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
+    - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)

@@ -4361,6 +4361,294 @@
     }
   },
   {
+    "RunbookDisplayName": "Notify Users About Stale Devices_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Notify Users About Stale Devices_Scheduled",
+    "RelativeRunbookPath": "org/devices/notify-users-about-stale-devices_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Notify primary users about their stale devices via email",
+    "Description": "Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.",
+    "Notes": "This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.\nThe email is sent directly to the primary user's email address and includes detailed information about each inactive device.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone)\n\nCommon Use Cases:\n- Automated user reminders about inactive devices to encourage regular device check-ins\n- Proactive device lifecycle management by alerting users before devices are retired\n- Security and compliance by ensuring users are aware of all devices registered to them\n- Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)\n- User scope filtering to target specific departments or exclude service accounts\n\nPilot and Testing Options:\n- Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users\n- Perfect for validating email content and testing filters before rolling out to production\n- Send notifications to ticket systems or shared mailboxes for centralized handling",
+    "Parameters": [
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Android devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "Android",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "30",
+        "description": [
+          {
+            "Text": "Number of days without activity to be considered stale (minimum threshold)."
+          }
+        ],
+        "globbing": "false",
+        "name": "Days",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Do not send emails to users who are members of this group. Requires UseUserScope to be enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeUserGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only send emails to users who are members of this group. Requires UseUserScope to be enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeUserGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include iOS devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "iOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include macOS devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "MacOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users."
+          }
+        ],
+        "globbing": "false",
+        "name": "OverrideEmailRecipient",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk display name for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable user scope filtering to include or exclude users based on group membership."
+          }
+        ],
+        "globbing": "false",
+        "name": "UseUserScope",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Windows devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "Windows",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCg==",
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Group.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.Read.All",
+            "Directory.Read.All",
+            "Device.Read.All",
+            "Group.Read.All",
+            "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Outphase Devices",
     "RunbookDisplayPath": "Org \\ Devices \\ Outphase Devices",
     "RelativeRunbookPath": "org/devices/outphase-devices.ps1",
@@ -4653,8 +4941,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Scheduled report of stale devices based on last activity date and platform.",
-    "Description": "This runbook identifies Intune managed devices that have not been active for a defined number of days.\nIt creates a report grouped by platform and automatically sends it via email.",
-    "Notes": null,
+    "Description": "Identifies and lists devices that haven't been active for a specified number of days.\nAutomatically sends a report via email.",
+    "Notes": "This runbook generates a comprehensive report of stale devices and delivers it via email.\nThe report includes device details, platform breakdowns, and exports a CSV file for further analysis.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n\nCommon Use Cases:\n- Regular device inventory audits and compliance reporting\n- Identifying devices for retirement or decommissioning\n- Security reviews to find potentially lost devices\n- Monitoring device health across the organization\n- Using MaxDays parameter for staged reporting (e.g., 30-60 days, 60-90 days)\n- User scope filtering to focus on specific departments or exclude service accounts\n\nThe runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.",
     "Parameters": [
       {
         "defaultValue": "True",
@@ -4667,7 +4955,7 @@
         "name": "Android",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -4684,7 +4972,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "12",
         "required": "true",
         "type": {
           "name": "String"
@@ -4735,8 +5023,42 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "11",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeUserGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeUserGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -4752,7 +5074,7 @@
         "name": "iOS",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -4769,7 +5091,41 @@
         "name": "MacOS",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable user scope filtering to include or exclude devices based on primary user group membership."
+          }
+        ],
+        "globbing": "false",
+        "name": "UseUserScope",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -4786,7 +5142,7 @@
         "name": "Windows",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"

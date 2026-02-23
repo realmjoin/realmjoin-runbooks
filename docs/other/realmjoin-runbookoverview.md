@@ -64,6 +64,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
+      - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
@@ -974,6 +975,31 @@ Org \ Devices \ Get Bitlocker Recovery Key
  
  
 
+<a name='org-devices-notify-users-about-stale-devices-(scheduled)'></a>
+
+### Notify Users About Stale Devices (Scheduled)
+#### Notify primary users about their stale devices via email
+
+#### Description
+Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
+
+#### Where to find
+Org \ Devices \ Notify Users About Stale Devices_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-outphase-devices'></a>
 
 ### Outphase Devices
@@ -1025,8 +1051,8 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Scheduled report of stale devices based on last activity date and platform.
 
 #### Description
-This runbook identifies Intune managed devices that have not been active for a defined number of days.
-It creates a report grouped by platform and automatically sends it via email.
+Identifies and lists devices that haven't been active for a specified number of days.
+Automatically sends a report via email.
 
 #### Where to find
 Org \ Devices \ Report Stale Devices_Scheduled

@@ -63,6 +63,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
+    - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
     - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
@@ -729,6 +730,29 @@ Get the BitLocker recovery key
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | bitlockeryRecoveryKeyId | ✓ | String | Recovery key ID of the desired key. |
 
+<a name='organization-devices-notify-users-about-stale-devices-scheduled'></a>
+
+### Notify Users About Stale Devices (Scheduled)
+Notify primary users about their stale devices via email
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Days |  | Int32 | Number of days without activity to be considered stale (minimum threshold). |
+| MaxDays |  | Int32 | Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included. |
+| Windows |  | Boolean | Include Windows devices in the results. |
+| MacOS |  | Boolean | Include macOS devices in the results. |
+| iOS |  | Boolean | Include iOS devices in the results. |
+| Android |  | Boolean | Include Android devices in the results. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+| UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
+| IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
+| ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
+| OverrideEmailRecipient |  | String | Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
 <a name='organization-devices-outphase-devices'></a>
 
 ### Outphase Devices
@@ -766,12 +790,16 @@ Scheduled report of stale devices based on last activity date and platform.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Number of days without activity to be considered stale. |
+| MaxDays |  | Int32 | Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included. |
 | Windows |  | Boolean | Include Windows devices in the results. |
 | MacOS |  | Boolean | Include macOS devices in the results. |
 | iOS |  | Boolean | Include iOS devices in the results. |
 | Android |  | Boolean | Include Android devices in the results. |
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
+| IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-users-with-more-than-5-devices'></a>

@@ -63,6 +63,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Device Via Corporate Identifier
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
+    - Notify Users About Stale Devices (Scheduled)
     - Outphase Devices
     - Report Devices Without Primary User
     - Report Stale Devices (Scheduled)
@@ -281,6 +282,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
+| Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 | Outphase Devices | Remove or outphase multiple devices |
 | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
 | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
