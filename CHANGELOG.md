@@ -2,6 +2,7 @@
 
 ## 2026-02-24
 - Update **Unenroll Updatable Assets** to **Unenroll Updatable Assets (Scheduled)** (in group/general)
+  - Add option to include user owned devices in the unenrollment process, which allows for a more comprehensive management of updatable assets by optionally targeting devices that are owned by users which are in membership of the specified group.
 
 ## 2026-02-20
 
