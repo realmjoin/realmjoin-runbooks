@@ -1,5 +1,8 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-02-24
+- Update **Unenroll Updatable Assets** to **Unenroll Updatable Assets (Scheduled)** (in group/general)
+
 ## 2026-02-20
 
 - Add two new Endpoint Privilege Management (EPM) runbooks for org/security:
