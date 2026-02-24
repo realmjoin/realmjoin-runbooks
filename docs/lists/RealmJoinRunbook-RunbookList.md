@@ -33,7 +33,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Group](#group)
   - [Devices](#group-devices)
     - Check Updatable Assets
-    - Unenroll Updatable Assets
+    - Unenroll Updatable Assets (Scheduled)
   - [General](#group-general)
     - Add Or Remove Nested Group
     - Add Or Remove Owner
@@ -221,7 +221,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
-| Unenroll Updatable Assets | Unenroll devices from Windows Update for Business. |
+| Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 

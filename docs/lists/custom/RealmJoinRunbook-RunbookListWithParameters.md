@@ -63,7 +63,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group whose device members will be checked. |
-|  |  | Unenroll Updatable Assets | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group whose device members will be unenrolled. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | The update category to unenroll from. Supported values are driver, feature, quality, or all. |
 |  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | GroupID | ✓ | String | Object ID of the target group. |

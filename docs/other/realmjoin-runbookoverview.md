@@ -34,7 +34,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Group](#group)
   - [Devices](#group-devices)
       - [Check Updatable Assets](#check-updatable-assets)
-      - [Unenroll Updatable Assets](#unenroll-updatable-assets)
+      - [Unenroll Updatable Assets (Scheduled)](#unenroll-updatable-assets-(scheduled))
   - [General](#group-general)
       - [Add Or Remove Nested Group](#add-or-remove-nested-group)
       - [Add Or Remove Owner](#add-or-remove-owner)
@@ -485,9 +485,9 @@ Group \ Devices \ Check Updatable Assets
  
  
 
-<a name='group-devices-unenroll-updatable-assets'></a>
+<a name='group-devices-unenroll-updatable-assets-(scheduled)'></a>
 
-### Unenroll Updatable Assets
+### Unenroll Updatable Assets (Scheduled)
 #### Unenroll devices from Windows Update for Business.
 
 #### Description
@@ -496,7 +496,7 @@ You can remove a specific update category enrollment or delete the updatable ass
 Use this to offboard devices from WUfB reporting or to reset their enrollment state.
 
 #### Where to find
-Group \ Devices \ Unenroll Updatable Assets
+Group \ Devices \ Unenroll Updatable Assets_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)

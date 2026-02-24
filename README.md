@@ -48,7 +48,7 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [Devices](docs/group/README.md#group-devices)
 
     - [Check Updatable Assets](docs/group/devices/check-updatable-assets.md)
-    - [Unenroll Updatable Assets](docs/group/devices/unenroll-updatable-assets.md)
+    - [Unenroll Updatable Assets (Scheduled)](docs/group/devices/unenroll-updatable-assets_scheduled.md)
   - [General](docs/group/README.md#group-general)
 
     - [Add Or Remove Nested Group](docs/group/general/add-or-remove-nested-group.md)

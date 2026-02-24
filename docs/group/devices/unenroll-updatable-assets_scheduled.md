@@ -1,4 +1,4 @@
-# Unenroll Updatable Assets
+# Unenroll Updatable Assets (Scheduled)
 
 Unenroll devices from Windows Update for Business.
 
@@ -8,7 +8,7 @@ You can remove a specific update category enrollment or delete the updatable ass
 Use this to offboard devices from WUfB reporting or to reset their enrollment state.
 
 ## Where to find
-Group \ Devices \ Unenroll Updatable Assets
+Group \ Devices \ Unenroll Updatable Assets_Scheduled
 
 ## Permissions
 ### Application permissions

@@ -19,7 +19,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
 |  |  | Show LAPS Password | Show a local admin password for a device. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
-|  |  | Unenroll Updatable Assets | Unenroll devices from Windows Update for Business. |
+|  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. |
 |  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group |
 |  |  | Add Or Remove Owner | Add or remove a Office 365 group owner |
 |  |  | Add Or Remove User | Add or remove a group member |

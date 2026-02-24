@@ -1495,9 +1495,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Unenroll Updatable Assets",
-    "RunbookDisplayPath": "Group \\ Devices \\ Unenroll Updatable Assets",
-    "RelativeRunbookPath": "group/devices/unenroll-updatable-assets.ps1",
+    "RunbookDisplayName": "Unenroll Updatable Assets_Scheduled",
+    "RunbookDisplayPath": "Group \\ Devices \\ Unenroll Updatable Assets_Scheduled",
+    "RelativeRunbookPath": "group/devices/unenroll-updatable-assets_scheduled.ps1",
     "RelativeRunbookPath_PathOnly": "group/devices",
     "PrimaryFolder": "Group",
     "SubFolder": "Devices",

@@ -33,7 +33,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Group](#group)
   - [Devices](#group-devices)
     - [Check Updatable Assets](#group-devices-check-updatable-assets)
-    - [Unenroll Updatable Assets](#group-devices-unenroll-updatable-assets)
+    - [Unenroll Updatable Assets (Scheduled)](#group-devices-unenroll-updatable-assets-scheduled)
   - [General](#group-general)
     - [Add Or Remove Nested Group](#group-general-add-or-remove-nested-group)
     - [Add Or Remove Owner](#group-general-add-or-remove-owner)
@@ -386,9 +386,9 @@ Check if devices in a group are onboarded to Windows Update for Business.
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | GroupId | ✓ | String | Object ID of the group whose device members will be checked. |
 
-<a name='group-devices-unenroll-updatable-assets'></a>
+<a name='group-devices-unenroll-updatable-assets-scheduled'></a>
 
-### Unenroll Updatable Assets
+### Unenroll Updatable Assets (Scheduled)
 Unenroll devices from Windows Update for Business.
 
 | Parameter | Required | Type | Description |
