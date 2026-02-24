@@ -3,7 +3,7 @@
 <a name='group-devices'></a>
 ## Devices
   - [Check Updatable Assets](devices/check-updatable-assets.md)
-  - [Unenroll Updatable Assets](devices/unenroll-updatable-assets.md)
+  - [Unenroll Updatable Assets (Scheduled)](devices/unenroll-updatable-assets_scheduled.md)
 <a name='group-general'></a>
 ## General
   - [Add Or Remove Nested Group](general/add-or-remove-nested-group.md)

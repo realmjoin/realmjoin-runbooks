@@ -1,6 +1,6 @@
 # Monitor Pending EPM Requests (Scheduled)
 
-Monitor and report pending Endpoint Privilege Management (EPM) elevation requests.
+Monitor and report pending Endpoint Privilege Management (EPM) elevation requests
 
 ## Detailed description
 Queries Microsoft Intune for pending EPM elevation requests and sends an email report.

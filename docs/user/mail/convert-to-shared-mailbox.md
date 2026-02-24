@@ -1,9 +1,9 @@
 # Convert To Shared Mailbox
 
-Turn this users mailbox into a shared mailbox.
+Convert a user mailbox to a shared mailbox and back
 
 ## Detailed description
-Turn this users mailbox into a shared mailbox.
+Converts a mailbox to a shared mailbox or reverts it back to a regular user mailbox. Optionally delegates access and adjusts group memberships and license groups.
 
 ## Where to find
 User \ Mail \ Convert To Shared Mailbox
@@ -19,6 +19,7 @@ User \ Mail \ Convert To Shared Mailbox
 
 ## Parameters
 ### UserName
+User principal name of the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +28,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Type | String |
 
 ### delegateTo
+User principal name of the delegate who should receive access.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Type | String |
 
 ### Remove
+If set to true, converts a shared mailbox back to a regular mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +46,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Type | Boolean |
 
 ### AutoMapping
+If set to true, enables automatic Outlook mapping for delegated FullAccess.
 
 | Property | Value |
 |----------|-------|
@@ -51,6 +55,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Type | Boolean |
 
 ### RemoveGroups
+If set to true, removes existing group memberships when converting to a shared mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -59,6 +64,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Type | Boolean |
 
 ### ArchivalLicenseGroup
+Display name of a license group to assign when an archive or larger mailbox requires it.
 
 | Property | Value |
 |----------|-------|
@@ -67,6 +73,7 @@ User \ Mail \ Convert To Shared Mailbox
 | Type | String |
 
 ### RegularLicenseGroup
+Display name of a license group to assign when converting back to a regular mailbox.
 
 | Property | Value |
 |----------|-------|

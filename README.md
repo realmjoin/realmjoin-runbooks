@@ -23,7 +23,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 ## Table of contents
 
 - [Device](docs/device/README.md)
-  - [Avd](docs/device/README.md#device-avd)
+  - [AVD](docs/device/README.md#device-avd)
 
     - [Restart Host](docs/device/avd/restart-host.md)
     - [Toggle Drain Mode](docs/device/avd/toggle-drain-mode.md)
@@ -48,7 +48,7 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [Devices](docs/group/README.md#group-devices)
 
     - [Check Updatable Assets](docs/group/devices/check-updatable-assets.md)
-    - [Unenroll Updatable Assets](docs/group/devices/unenroll-updatable-assets.md)
+    - [Unenroll Updatable Assets (Scheduled)](docs/group/devices/unenroll-updatable-assets_scheduled.md)
   - [General](docs/group/README.md#group-general)
 
     - [Add Or Remove Nested Group](docs/group/general/add-or-remove-nested-group.md)
@@ -83,9 +83,9 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
+    - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
-    - [Report Last Device Contact By Range](docs/org/devices/report-last-device-contact-by-range.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
@@ -154,7 +154,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
 - [User](docs/user/README.md)
-  - [Avd](docs/user/README.md#user-avd)
+  - [AVD](docs/user/README.md#user-avd)
 
     - [User Signout](docs/user/avd/user-signout.md)
   - [General](docs/user/README.md#user-general)

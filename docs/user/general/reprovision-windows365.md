@@ -3,7 +3,7 @@
 Reprovision a Windows 365 Cloud PC
 
 ## Detailed description
-Reprovision an already existing Windows 365 Cloud PC without reassigning a new instance for this user.
+Triggers a reprovision action for an existing Windows 365 Cloud PC without assigning a new instance. Optionally notifies the user when reprovisioning starts.
 
 ## Where to find
 User \ General \ Reprovision Windows365
@@ -21,6 +21,7 @@ User \ General \ Reprovision Windows365
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -29,6 +30,7 @@ User \ General \ Reprovision Windows365
 | Type | String |
 
 ### licWin365GroupName
+Display name of the Windows 365 license group used to identify the Cloud PC.
 
 | Property | Value |
 |----------|-------|
@@ -37,6 +39,7 @@ User \ General \ Reprovision Windows365
 | Type | String |
 
 ### sendMailWhenReprovisioning
+"Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun.
 
 | Property | Value |
 |----------|-------|
@@ -45,6 +48,7 @@ User \ General \ Reprovision Windows365
 | Type | Boolean |
 
 ### fromMailAddress
+Mailbox used to send the notification email.
 
 | Property | Value |
 |----------|-------|
@@ -53,6 +57,7 @@ User \ General \ Reprovision Windows365
 | Type | String |
 
 ### customizeMail
+If set to true, uses a custom email body.
 
 | Property | Value |
 |----------|-------|
@@ -61,6 +66,7 @@ User \ General \ Reprovision Windows365
 | Type | Boolean |
 
 ### customMailMessage
+Custom message body used for the notification email.
 
 | Property | Value |
 |----------|-------|

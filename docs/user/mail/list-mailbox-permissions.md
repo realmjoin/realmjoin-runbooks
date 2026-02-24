@@ -1,9 +1,9 @@
 # List Mailbox Permissions
 
-List permissions on a (shared) mailbox.
+List mailbox permissions for a mailbox
 
 ## Detailed description
-List permissions on a (shared) mailbox.
+Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
 
 ## Where to find
 User \ Mail \ List Mailbox Permissions
@@ -19,6 +19,7 @@ User \ Mail \ List Mailbox Permissions
 
 ## Parameters
 ### UserName
+User principal name of the mailbox.
 
 | Property | Value |
 |----------|-------|

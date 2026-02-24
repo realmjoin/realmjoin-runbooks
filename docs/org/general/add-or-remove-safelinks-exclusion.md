@@ -1,10 +1,9 @@
 # Add Or Remove Safelinks Exclusion
 
-Add or remove a SafeLinks URL exclusion to/from a given policy.
+Add or remove a SafeLinks URL exclusion from a policy
 
 ## Detailed description
-Add or remove a SafeLinks URL exclusion to/from a given policy.
-It can also be used to initially create a new policy if required.
+Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
 
 ## Where to find
 Org \ General \ Add Or Remove Safelinks Exclusion
@@ -20,6 +19,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 
 ## Parameters
 ### Action
+"Add URL Pattern to Policy", "Remove URL Pattern from Policy" or "List all existing policies and settings" could be selected as action to perform.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 | Type | Int32 |
 
 ### LinkPattern
-URL to allow, can contain '*' as wildcard for host and paths
+URL pattern to allow; it can contain '*' as a wildcard for host and paths.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ URL to allow, can contain '*' as wildcard for host and paths
 | Type | String |
 
 ### DefaultPolicyName
-If only one policy exists, no need to specify. Will use "DefaultPolicyName" as default otherwise.
+Default SafeLinks policy name used when no explicit policy name is provided.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ If only one policy exists, no need to specify. Will use "DefaultPolicyName" as d
 | Type | String |
 
 ### PolicyName
-Optional, will overwrite default values
+Optional SafeLinks policy name; if provided, it overrides the default selection.
 
 | Property | Value |
 |----------|-------|
@@ -55,6 +55,7 @@ Optional, will overwrite default values
 | Type | String |
 
 ### CreateNewPolicyIfNeeded
+If set to true, the runbook creates a new SafeLinks policy and assignment group when the requested policy does not exist.
 
 | Property | Value |
 |----------|-------|

@@ -1,7 +1,7 @@
 # Device Overview
 
 <a name='device-avd'></a>
-## Avd
+## AVD
   - [Restart Host](avd/restart-host.md)
   - [Toggle Drain Mode](avd/toggle-drain-mode.md)
 <a name='device-general'></a>

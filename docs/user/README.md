@@ -1,7 +1,7 @@
 # User Overview
 
 <a name='user-avd'></a>
-## Avd
+## AVD
   - [User Signout](avd/user-signout.md)
 <a name='user-general'></a>
 ## General

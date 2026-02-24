@@ -1,9 +1,10 @@
 # Add Autopilot Device
 
-Import a windows device into Windows Autopilot.
+Import a Windows device into Windows Autopilot
 
 ## Detailed description
-This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
+This runbook imports a Windows device into Windows Autopilot using the device serial number and hardware hash.
+It can optionally wait for the import job to finish and supports tagging during import.
 
 ## Where to find
 Org \ Devices \ Add Autopilot Device
@@ -16,6 +17,7 @@ Org \ Devices \ Add Autopilot Device
 
 ## Parameters
 ### SerialNumber
+Device serial number as returned by Get-WindowsAutopilotInfo.
 
 | Property | Value |
 |----------|-------|
@@ -24,6 +26,7 @@ Org \ Devices \ Add Autopilot Device
 | Type | String |
 
 ### HardwareIdentifier
+Device hardware hash as returned by Get-WindowsAutopilotInfo.
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +35,7 @@ Org \ Devices \ Add Autopilot Device
 | Type | String |
 
 ### AssignedUser
-MS removed the ability to assign users directly via Autopilot
+Optional user to assign to the Autopilot device.
 
 | Property | Value |
 |----------|-------|
@@ -41,6 +44,7 @@ MS removed the ability to assign users directly via Autopilot
 | Type | String |
 
 ### Wait
+If set to true, the runbook waits until the import job completes.
 
 | Property | Value |
 |----------|-------|
@@ -49,6 +53,7 @@ MS removed the ability to assign users directly via Autopilot
 | Type | Boolean |
 
 ### GroupTag
+Optional group tag to apply to the imported device.
 
 | Property | Value |
 |----------|-------|

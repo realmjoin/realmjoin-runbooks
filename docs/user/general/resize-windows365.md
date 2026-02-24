@@ -1,9 +1,10 @@
 # Resize Windows365
 
-Resize a Windows 365 Cloud PC
+Resize an existing Windows 365 Cloud PC for a user
 
 ## Detailed description
-Resize an already existing Windows 365 Cloud PC by derpovisioning and assigning a new differently sized license to the user. Warning: All local data will be lost. Proceed with caution.
+Resizes a Windows 365 Cloud PC by removing the current assignment and provisioning a new size using a different license group.
+WARNING: This operation deprovisions and reprovisions the Cloud PC and local data may be lost.
 
 ## Where to find
 User \ General \ Resize Windows365
@@ -21,6 +22,7 @@ User \ General \ Resize Windows365
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -29,6 +31,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### currentLicWin365GroupName
+Current Windows 365 license group name used by the Cloud PC.
 
 | Property | Value |
 |----------|-------|
@@ -37,6 +40,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### newLicWin365GroupName
+New Windows 365 license group name to assign for the resized Cloud PC.
 
 | Property | Value |
 |----------|-------|
@@ -45,6 +49,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### sendMailWhenDoneResizing
+"Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC resizing has finished.
 
 | Property | Value |
 |----------|-------|
@@ -53,6 +58,7 @@ User \ General \ Resize Windows365
 | Type | Boolean |
 
 ### fromMailAddress
+Mailbox used to send the notification email.
 
 | Property | Value |
 |----------|-------|
@@ -61,6 +67,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### customizeMail
+If set to true, uses a custom email body.
 
 | Property | Value |
 |----------|-------|
@@ -69,6 +76,7 @@ User \ General \ Resize Windows365
 | Type | Boolean |
 
 ### customMailMessage
+Custom message body used for the notification email.
 
 | Property | Value |
 |----------|-------|
@@ -77,6 +85,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### cfgProvisioningGroupPrefix
+Prefix used to detect provisioning-related configuration groups.
 
 | Property | Value |
 |----------|-------|
@@ -85,6 +94,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### cfgUserSettingsGroupPrefix
+Prefix used to detect user-settings-related configuration groups.
 
 | Property | Value |
 |----------|-------|
@@ -93,6 +103,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### unassignRunbook
+Name of the runbook used to remove the current Windows 365 assignment.
 
 | Property | Value |
 |----------|-------|
@@ -101,6 +112,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### assignRunbook
+Name of the runbook used to assign the new Windows 365 configuration.
 
 | Property | Value |
 |----------|-------|
@@ -109,6 +121,7 @@ User \ General \ Resize Windows365
 | Type | String |
 
 ### skipGracePeriod
+If set to true, ends the old Cloud PC grace period immediately.
 
 | Property | Value |
 |----------|-------|
