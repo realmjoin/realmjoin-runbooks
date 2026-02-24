@@ -379,7 +379,7 @@ $getPimEligibilityInfo = {
         $expiration = $schedule.scheduleInfo.expiration
         $expirationType = $expiration.type
 
-        if ($expirationType -eq 'endDateTime' -and $expiration.endDateTime) {
+        if (($expirationType -eq 'afterDateTime') -and $expiration.endDateTime) {
             try {
                 $endDates += [datetime]$expiration.endDateTime
             }
@@ -806,4 +806,3 @@ if ($QueryMfaState) {
 }
 
 #endregion Main Part
-
