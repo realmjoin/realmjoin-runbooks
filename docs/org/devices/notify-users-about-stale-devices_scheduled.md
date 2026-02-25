@@ -14,6 +14,47 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
+## Mail Template Language Selection
+
+This runbook supports three email template options:
+
+1. **EN (English - Default)**: Uses the built-in English template
+2. **DE (German)**: Uses the built-in German template
+3. **Custom**: Uses a custom template from Runbook Customizations
+
+### Using Custom Mail Templates
+
+To use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.
+
+#### Example: Custom Template
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_devices_notify-users-about-stale-devices_scheduled": {
+            "Parameters": {
+                "CustomMailTemplateSubject": {
+                    "Default": "This is a custom subject - Action Required: Inactive Devices"
+                },
+                "CustomMailTemplateBeforeDeviceDetails": {
+                    "Default": "**This is above the Device Details.** \n\nDear user ..."
+                },
+                "CustomMailTemplateAfterDeviceDetails": {
+                    "Default": "**This is below the Device Details.** \n\n## What you should do..."
+                }
+            }
+        }
+    }
+}
+```
+
+**Important Notes:**
+- Use `\n` for line breaks in the JSON configuration
+- Markdown formatting (##, ###, **, -) is supported in the template text
+- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
+- If any parameter is missing, the runbook automatically falls back to the English (EN) template
+- When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+
 
 
 ## Notes
@@ -166,6 +207,42 @@ Do not send emails to users who are members of this group. Requires UseUserScope
 
 ### OverrideEmailRecipient
 Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### MailTemplateLanguage
+Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
+
+| Property | Value |
+|----------|-------|
+| Default Value | EN |
+| Required | false |
+| Type | String |
+
+### CustomMailTemplateSubject
+Custom email subject line (only used when MailTemplateLanguage is set to 'Custom').
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### CustomMailTemplateBeforeDeviceDetails
+Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### CustomMailTemplateAfterDeviceDetails
+Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
 
 | Property | Value |
 |----------|-------|
