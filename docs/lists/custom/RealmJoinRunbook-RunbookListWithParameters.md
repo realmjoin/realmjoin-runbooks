@@ -685,7 +685,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String |  |
+|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

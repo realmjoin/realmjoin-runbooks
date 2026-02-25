@@ -15278,6 +15278,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the mailbox."
+          }
+        ],
         "globbing": "false",
         "name": "UserName",
         "parameterValue": "String",

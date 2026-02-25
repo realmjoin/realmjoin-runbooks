@@ -1904,7 +1904,7 @@ Delegate SendAs permissions for other user on his/her mailbox or remove existing
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String |  |
+| UserName | ✓ | String | User principal name of the mailbox. |
 | delegateTo | ✓ | String | User principal name of the delegate. |
 | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
