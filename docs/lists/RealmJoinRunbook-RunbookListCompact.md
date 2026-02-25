@@ -17,6 +17,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Isolate Or Release Device | Isolate this device. |
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
+|  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
 |  |  | Show LAPS Password | Show a local admin password for a device. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. |

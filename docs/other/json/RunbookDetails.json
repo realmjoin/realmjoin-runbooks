@@ -1365,6 +1365,69 @@
     }
   },
   {
+    "RunbookDisplayName": "Show Bitlocker Recovery Key",
+    "RunbookDisplayPath": "Device \\ Security \\ Show Bitlocker Recovery Key",
+    "RelativeRunbookPath": "device/security/show-bitlocker-recovery-key.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Show all BitLocker recovery keys for a device",
+    "Description": "This runbook retrieves and displays all BitLocker recovery keys that are backed up for the specified device.\nKeys are sorted by creation date (newest first). Use it for disk recovery scenarios.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The device ID of the target device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"BitLockerKey.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "BitLockerKey.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Show Laps Password",
     "RunbookDisplayPath": "Device \\ Security \\ Show Laps Password",
     "RelativeRunbookPath": "device/security/show-laps-password.ps1",
@@ -4399,8 +4462,59 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "19",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting."
+          }
+        ],
+        "globbing": "false",
+        "name": "CustomMailTemplateAfterDeviceDetails",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting."
+          }
+        ],
+        "globbing": "false",
+        "name": "CustomMailTemplateBeforeDeviceDetails",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Custom email subject line (only used when MailTemplateLanguage is set to 'Custom')."
+          }
+        ],
+        "globbing": "false",
+        "name": "CustomMailTemplateSubject",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -4505,6 +4619,23 @@
         "required": "false",
         "type": {
           "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "EN",
+        "description": [
+          {
+            "Text": "Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations)."
+          }
+        ],
+        "globbing": "false",
+        "name": "MailTemplateLanguage",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
         }
       },
       {
@@ -4627,8 +4758,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCg==",
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n## Mail Template Language Selection\n\nThis runbook supports three email template options:\n\n1. **EN (English - Default)**: Uses the built-in English template\n2. **DE (German)**: Uses the built-in German template\n3. **Custom**: Uses a custom template from Runbook Customizations\n\n### Using Custom Mail Templates\n\nTo use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.\n\n#### Example: Custom Template\n\n```json\n{\n    \"Runbooks\": {\n        \"rjgit-org_devices_notify-users-about-stale-devices_scheduled\": {\n            \"Parameters\": {\n                \"CustomMailTemplateSubject\": {\n                    \"Default\": \"This is a custom subject - Action Required: Inactive Devices\"\n                },\n                \"CustomMailTemplateBeforeDeviceDetails\": {\n                    \"Default\": \"**This is above the Device Details.** \\n\\nDear user ...\"\n                },\n                \"CustomMailTemplateAfterDeviceDetails\": {\n                    \"Default\": \"**This is below the Device Details.** \\n\\n## What you should do...\"\n                }\n            }\n        }\n    }\n}\n```\n\n**Important Notes:**\n- Use `\\n` for line breaks in the JSON configuration\n- Markdown formatting (##, ###, **, -) is supported in the template text\n- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured\n- If any parameter is missing, the runbook automatically falls back to the English (EN) template\n- When using the custom template, select \"Custom - Use Template from Runbook Customizations\" in the Mail Template dropdown\n\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCiMjIE1haWwgVGVtcGxhdGUgTGFuZ3VhZ2UgU2VsZWN0aW9uCgpUaGlzIHJ1bmJvb2sgc3VwcG9ydHMgdGhyZWUgZW1haWwgdGVtcGxhdGUgb3B0aW9uczoKCjEuICoqRU4gKEVuZ2xpc2ggLSBEZWZhdWx0KSoqOiBVc2VzIHRoZSBidWlsdC1pbiBFbmdsaXNoIHRlbXBsYXRlCjIuICoqREUgKEdlcm1hbikqKjogVXNlcyB0aGUgYnVpbHQtaW4gR2VybWFuIHRlbXBsYXRlCjMuICoqQ3VzdG9tKio6IFVzZXMgYSBjdXN0b20gdGVtcGxhdGUgZnJvbSBSdW5ib29rIEN1c3RvbWl6YXRpb25zCgojIyMgVXNpbmcgQ3VzdG9tIE1haWwgVGVtcGxhdGVzCgpUbyB1c2UgYSBjdXN0b20gbWFpbCB0ZW1wbGF0ZSAoZS5nLiwgaW4gRHV0Y2gsIFNwYW5pc2gsIG9yIGFueSBvdGhlciBsYW5ndWFnZSksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSB0aGUgdGVtcGxhdGUgdGV4dCBpbiB0aGUgUnVuYm9vayBDdXN0b21pemF0aW9ucy4gSWYgYW55IGN1c3RvbSB0ZW1wbGF0ZSBwYXJhbWV0ZXIgaXMgbWlzc2luZywgdGhlIHJ1bmJvb2sgd2lsbCBhdXRvbWF0aWNhbGx5IGZhbGwgYmFjayB0byB0aGUgRW5nbGlzaCB0ZW1wbGF0ZS4KCiMjIyMgRXhhbXBsZTogQ3VzdG9tIFRlbXBsYXRlCgpgYGBqc29uCnsKICAgICJSdW5ib29rcyI6IHsKICAgICAgICAicmpnaXQtb3JnX2RldmljZXNfbm90aWZ5LXVzZXJzLWFib3V0LXN0YWxlLWRldmljZXNfc2NoZWR1bGVkIjogewogICAgICAgICAgICAiUGFyYW1ldGVycyI6IHsKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVTdWJqZWN0IjogewogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0IjogIlRoaXMgaXMgYSBjdXN0b20gc3ViamVjdCAtIEFjdGlvbiBSZXF1aXJlZDogSW5hY3RpdmUgRGV2aWNlcyIKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAiQ3VzdG9tTWFpbFRlbXBsYXRlQmVmb3JlRGV2aWNlRGV0YWlscyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGVmYXVsdCI6ICIqKlRoaXMgaXMgYWJvdmUgdGhlIERldmljZSBEZXRhaWxzLioqIFxuXG5EZWFyIHVzZXIgLi4uIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVBZnRlckRldmljZURldGFpbHMiOiB7CiAgICAgICAgICAgICAgICAgICAgIkRlZmF1bHQiOiAiKipUaGlzIGlzIGJlbG93IHRoZSBEZXZpY2UgRGV0YWlscy4qKiBcblxuIyMgV2hhdCB5b3Ugc2hvdWxkIGRvLi4uIgogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9CmBgYAoKKipJbXBvcnRhbnQgTm90ZXM6KioKLSBVc2UgYFxuYCBmb3IgbGluZSBicmVha3MgaW4gdGhlIEpTT04gY29uZmlndXJhdGlvbgotIE1hcmtkb3duIGZvcm1hdHRpbmcgKCMjLCAjIyMsICoqLCAtKSBpcyBzdXBwb3J0ZWQgaW4gdGhlIHRlbXBsYXRlIHRleHQKLSBBbGwgdGhyZWUgY3VzdG9tIHRlbXBsYXRlIHBhcmFtZXRlcnMgKFN1YmplY3QsIEJlZm9yZURldmljZURldGFpbHMsIEFmdGVyRGV2aWNlRGV0YWlscykgc2hvdWxkIGJlIGNvbmZpZ3VyZWQKLSBJZiBhbnkgcGFyYW1ldGVyIGlzIG1pc3NpbmcsIHRoZSBydW5ib29rIGF1dG9tYXRpY2FsbHkgZmFsbHMgYmFjayB0byB0aGUgRW5nbGlzaCAoRU4pIHRlbXBsYXRlCi0gV2hlbiB1c2luZyB0aGUgY3VzdG9tIHRlbXBsYXRlLCBzZWxlY3QgIkN1c3RvbSAtIFVzZSBUZW1wbGF0ZSBmcm9tIFJ1bmJvb2sgQ3VzdG9taXphdGlvbnMiIGluIHRoZSBNYWlsIFRlbXBsYXRlIGRyb3Bkb3duCgo=",
     "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Group.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [

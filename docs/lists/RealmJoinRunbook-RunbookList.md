@@ -29,6 +29,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Isolate Or Release Device
     - Reset Mobile Device Pin
     - Restrict Or Release Code Execution
+    - Show Bitlocker Recovery Key
     - Show LAPS Password
 - [Group](#group)
   - [Devices](#group-devices)
@@ -210,6 +211,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Isolate Or Release Device | Isolate this device. |
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
+| Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
 | Show LAPS Password | Show a local admin password for a device. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
