@@ -67,6 +67,18 @@
     .PARAMETER OverrideEmailRecipient
     Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users.
 
+    .PARAMETER MailTemplateLanguage
+    Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
+
+    .PARAMETER CustomMailTemplateSubject
+    Custom email subject line (only used when MailTemplateLanguage is set to 'Custom').
+
+    .PARAMETER CustomMailTemplateBeforeDeviceDetails
+    Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+
+    .PARAMETER CustomMailTemplateAfterDeviceDetails
+    Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
@@ -118,6 +130,22 @@
             "OverrideEmailRecipient": {
                 "DisplayName": "(Optional) Override Email Recipient(s)"
             },
+            "MailTemplateLanguage": {
+                "DisplayName": "Mail Template",
+                "Hide": true
+            },
+            "CustomMailTemplateSubject": {
+                "DisplayName": "Custom: Email Subject",
+                "Hide": true
+            },
+            "CustomMailTemplateBeforeDeviceDetails": {
+                "DisplayName": "Custom: Text Before Device List",
+                "Hide": true
+            },
+            "CustomMailTemplateAfterDeviceDetails": {
+                "DisplayName": "Custom: Text After Device List",
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -126,6 +154,7 @@
             {
                 "DisplayName": "(Optional) Enable user scope filtering to include or exclude users based on group membership.",
                 "DisplayAfter": "EmailFrom",
+                "Default": false,
                 "Select": {
                     "Options": [
                         {
@@ -147,6 +176,42 @@
                                 }
                             },
                             "ParameterValue": false
+                        }
+                    ]
+                }
+            },
+            {
+                "DisplayName": "Select which email template to use",
+                "DisplayAfter": "Android",
+                "Default": "EN",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "EN (English - Default)",
+                            "Customization": {
+                                "Default": {
+                                    "MailTemplateLanguage": "EN"
+                                }
+                            },
+                            "ParameterValue": "EN"
+                        },
+                        {
+                            "Display": "DE (German)",
+                            "Customization": {
+                                "Default": {
+                                    "MailTemplateLanguage": "DE"
+                                }
+                            },
+                            "ParameterValue": "DE"
+                        },
+                        {
+                            "Display": "Custom - Use Template from Runbook Customizations (Fallback is English)",
+                            "Customization": {
+                                "Default": {
+                                    "MailTemplateLanguage": "Custom"
+                                }
+                            },
+                            "ParameterValue": "Custom"
                         }
                     ]
                 }
@@ -179,6 +244,11 @@ param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
     [string]$ExcludeUserGroup,
     [string]$OverrideEmailRecipient,
+    [ValidateSet("EN", "DE", "Custom")]
+    [string]$MailTemplateLanguage = "EN",
+    [string]$CustomMailTemplateSubject,
+    [string]$CustomMailTemplateBeforeDeviceDetails,
+    [string]$CustomMailTemplateAfterDeviceDetails,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -193,7 +263,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.0"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -212,6 +282,10 @@ Write-RjRbLog -Message "UseUserScope: $UseUserScope" -Verbose
 Write-RjRbLog -Message "IncludeUserGroup: $IncludeUserGroup" -Verbose
 Write-RjRbLog -Message "ExcludeUserGroup: $ExcludeUserGroup" -Verbose
 Write-RjRbLog -Message "OverrideEmailRecipient: $OverrideEmailRecipient" -Verbose
+Write-RjRbLog -Message "MailTemplateLanguage: $MailTemplateLanguage" -Verbose
+Write-RjRbLog -Message "CustomMailTemplateSubject: $CustomMailTemplateSubject" -Verbose
+Write-RjRbLog -Message "CustomMailTemplateBeforeDeviceDetails: $CustomMailTemplateBeforeDeviceDetails" -Verbose
+Write-RjRbLog -Message "CustomMailTemplateAfterDeviceDetails: $CustomMailTemplateAfterDeviceDetails" -Verbose
 
 #endregion
 
@@ -224,6 +298,30 @@ if (-not $EmailFrom) {
     Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
     throw "The sender email address is required. This needs to be configured in the runbook customization."
     exit
+}
+
+# Validate Custom Mail Template parameters - fallback to EN if any parameter is missing
+if ($MailTemplateLanguage -eq "Custom") {
+    $customTemplateIncomplete = $false
+
+    if ([string]::IsNullOrWhiteSpace($CustomMailTemplateSubject)) {
+        Write-Warning -Message "CustomMailTemplateSubject is missing. Falling back to English (EN) template." -Verbose
+        $customTemplateIncomplete = $true
+    }
+    if ([string]::IsNullOrWhiteSpace($CustomMailTemplateBeforeDeviceDetails)) {
+        Write-Warning -Message "CustomMailTemplateBeforeDeviceDetails is missing. Falling back to English (EN) template." -Verbose
+        $customTemplateIncomplete = $true
+    }
+    if ([string]::IsNullOrWhiteSpace($CustomMailTemplateAfterDeviceDetails)) {
+        Write-Warning -Message "CustomMailTemplateAfterDeviceDetails is missing. Falling back to English (EN) template." -Verbose
+        $customTemplateIncomplete = $true
+    }
+
+    if ($customTemplateIncomplete) {
+        Write-Warning -Message "One or more custom mail template parameters are missing. Using English (EN) template as fallback." -Verbose
+        $MailTemplateLanguage = "EN"
+        Write-RjRbLog -Message "Mail template language changed to EN (fallback)" -Verbose
+    }
 }
 
 #endregion
@@ -250,7 +348,8 @@ function Get-AllGraphPages {
 
         if ($response.value) {
             $results += $response.value
-        } else {
+        }
+        else {
             $results += $response
         }
 
@@ -258,6 +357,107 @@ function Get-AllGraphPages {
     } while ($null -ne $nextLink)
 
     return $results
+}
+
+function Get-MailTemplate {
+    <#
+        .SYNOPSIS
+        Returns the mail template based on the selected language or custom template.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("EN", "DE", "Custom")]
+        [string]$Language,
+        [string]$CustomSubject,
+        [string]$CustomBeforeDeviceDetails,
+        [string]$CustomAfterDeviceDetails
+    )
+
+    $template = @{
+        Subject             = ""
+        BeforeDeviceDetails = ""
+        AfterDeviceDetails  = ""
+    }
+
+    switch ($Language) {
+        "EN" {
+            $template.Subject = "Action Required: Inactive Devices"
+            $template.BeforeDeviceDetails = "Dear user,`n`nWe have identified the following devices associated with your account that have been inactive for"
+            $template.AfterDeviceDetails = @"
+## What You Should Do Now
+
+Please review each listed device and choose the appropriate action:
+
+### Option 1: You Still Have the Device
+
+If the device is still in your possession:
+
+1. **Turn on the device**
+2. **Sign in with your account**
+3. **Verify that it is connected to the Internet**
+4. **Check for and install any pending system updates**
+5. The device will automatically sync with our management system
+
+### Option 2: You No Longer Have the Device
+
+If you no longer own or use the device:
+
+1. **Contact your Service Desk**
+2. Inform them which device (name/serial number) you no longer use
+
+## Why Is This Important?
+
+- **Security:** Inactive devices can pose a security risk
+- **Compliance:** We need to ensure all registered devices are actively used
+
+## Questions?
+
+If you have any questions or problems, please contact your Service Desk.
+"@
+        }
+        "DE" {
+            $template.Subject = "Handlungsbedarf: Inaktive Geräte"
+            $template.BeforeDeviceDetails = "Liebe Nutzerin, lieber Nutzer,`n`nwir haben die folgenden Geräte identifiziert, die Ihrem Konto zugeordnet sind und seit"
+            $template.AfterDeviceDetails = @"
+## Was Sie jetzt tun sollten
+
+Bitte prüfen Sie jedes aufgeführte Gerät und wählen Sie die entsprechende Aktion:
+
+### Option 1: Sie besitzen das Gerät noch
+
+Wenn sich das Gerät noch in Ihrem Besitz befindet:
+
+1. **Schalten Sie das Gerät ein**
+2. **Melden Sie sich mit Ihrem Konto an**
+3. **Stellen Sie sicher, dass es mit dem Internet verbunden ist**
+4. **Prüfen Sie, ob System Updates verfügbar sind und installieren Sie diese**
+5. Das Gerät wird sich automatisch mit unserem System synchronisieren
+
+### Option 2: Sie besitzen das Gerät nicht mehr
+
+Wenn Sie das Gerät nicht mehr besitzen oder verwenden:
+
+1. **Kontaktieren Sie Ihren Service Desk**
+2. Teilen Sie mit, welches Gerät (Name/Seriennummer) Sie nicht mehr verwenden
+
+## Warum ist das wichtig?
+
+- **Sicherheit:** Inaktive Geräte können ein Sicherheitsrisiko darstellen
+- **Compliance:** Wir müssen sicherstellen, dass alle registrierten Geräte aktiv verwendet werden
+
+## Fragen?
+
+Wenn Sie Fragen oder Probleme haben, wenden Sie sich bitte an Ihren Service Desk.
+"@
+        }
+        "Custom" {
+            $template.Subject = $CustomSubject
+            $template.BeforeDeviceDetails = $CustomBeforeDeviceDetails
+            $template.AfterDeviceDetails = $CustomAfterDeviceDetails
+        }
+    }
+
+    return $template
 }
 
 #endregion
@@ -271,7 +471,7 @@ try {
     Connect-MgGraph -Identity -NoWelcome
 }
 catch {
-    Write-Error "Failed to connect to Microsoft Graph: $_"
+    Write-Error "Failed to connect to Microsoft Graph: $($_)"
     throw
 }
 
@@ -295,11 +495,11 @@ try {
 
     if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
         $tenantDisplayName = $organizationResponse.value[0].displayName
-        Write-Output "Tenant: $tenantDisplayName"
+        Write-Output "Tenant: $($tenantDisplayName)"
     }
     elseif ($organizationResponse.displayName) {
         $tenantDisplayName = $organizationResponse.displayName
-        Write-Output "Tenant: $tenantDisplayName"
+        Write-Output "Tenant: $($tenantDisplayName)"
     }
 }
 catch {
@@ -411,7 +611,7 @@ if ($UseUserScope) {
             Write-Output "Include group contains $($includeUserIds.Count) users"
         }
         catch {
-            Write-Warning "Failed to retrieve include group members: $_"
+            Write-Warning "Failed to retrieve include group members: $($_)"
         }
     }
 
@@ -425,7 +625,7 @@ if ($UseUserScope) {
             Write-Output "Exclude group contains $($excludeUserIds.Count) users"
         }
         catch {
-            Write-Warning "Failed to retrieve exclude group members: $_"
+            Write-Warning "Failed to retrieve exclude group members: $($_)"
         }
     }
 }
@@ -482,7 +682,7 @@ Write-Output "Will notify $($devicesByUser.Count) users about their stale device
 ########################################################
 
 Write-Output ""
-Write-Output "Sending email notifications to users..."
+Write-Output "## Sending email notifications to users..."
 Write-Output ""
 
 $emailsSent = 0
@@ -494,24 +694,28 @@ foreach ($userEmail in $devicesByUser.Keys) {
     # Determine actual recipient - if OverrideEmailRecipient is filled, use it; otherwise use the actual user email
     $actualRecipient = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
         $OverrideEmailRecipient
-    } else {
+    }
+    else {
         $userEmail
     }
 
     Write-Output "Processing user: $($userEmail) ($($userDevices.Count) device(s)) - Sending to: $($actualRecipient)"
+
+    # Get mail template based on language selection
+    $mailTemplate = Get-MailTemplate -Language $MailTemplateLanguage -CustomSubject $CustomMailTemplateSubject -CustomBeforeDeviceDetails $CustomMailTemplateBeforeDeviceDetails -CustomAfterDeviceDetails $CustomMailTemplateAfterDeviceDetails
 
     # Build Service Desk contact information section
     $serviceDeskSection = ""
     if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
         $serviceDeskSection = "`n`n### Service Desk Contact Information`n"
         if ($ServiceDeskDisplayName) {
-            $serviceDeskSection += "`n $ServiceDeskDisplayName"
+            $serviceDeskSection += "`n $($ServiceDeskDisplayName)"
         }
         if ($ServiceDeskEmail) {
-            $serviceDeskSection += "`n **Email:** [$ServiceDeskEmail](mailto:$ServiceDeskEmail)"
+            $serviceDeskSection += "`n **Email:** [$($ServiceDeskEmail)](mailto:$($ServiceDeskEmail))"
         }
         if ($ServiceDeskPhone) {
-            $serviceDeskSection += "`n **Phone:** [$ServiceDeskPhone](tel:$ServiceDeskPhone)"
+            $serviceDeskSection += "`n **Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
         }
     }
 
@@ -520,95 +724,105 @@ foreach ($userEmail in $devicesByUser.Keys) {
     foreach ($device in $userDevices) {
         $lastSync = if ($device.lastSyncDateTime) {
             (Get-Date $device.lastSyncDateTime).ToString("yyyy-MM-dd")
-        } else {
+        }
+        else {
             "Unknown"
         }
 
         # Calculate actual inactive days
         $inactiveDays = if ($device.lastSyncDateTime) {
             [math]::Round(((Get-Date) - (Get-Date $device.lastSyncDateTime)).TotalDays)
-        } else {
+        }
+        else {
             "Unknown"
         }
 
-        $deviceListMarkdown += @"
-### $($device.deviceName)
+        # Device name header - localized based on mail template language
+        $deviceNameHeader = if ($MailTemplateLanguage -eq "DE") { "### $($device.deviceName)" } else { "### $($device.deviceName)" }
+        $osLabel = if ($MailTemplateLanguage -eq "DE") { "Betriebssystem" } else { "Operating System" }
+        $modelLabel = if ($MailTemplateLanguage -eq "DE") { "Modell" } else { "Model" }
+        $serialLabel = if ($MailTemplateLanguage -eq "DE") { "Seriennummer" } else { "Serial Number" }
+        $userLabel = if ($MailTemplateLanguage -eq "DE") { "Primärer Benutzer" } else { "Primary User" }
+        $lastSyncLabel = if ($MailTemplateLanguage -eq "DE") { "Letzte Synchronisation" } else { "Last Sync" }
+        $inactiveLabel = if ($MailTemplateLanguage -eq "DE") { "Inaktiv seit" } else { "Inactive Since" }
+        $daysLabel = if ($MailTemplateLanguage -eq "DE") { "Tagen" } else { "days" }
 
-- **Operating System:** $($device.operatingSystem)
-- **Model:** $($device.manufacturer) $($device.model)
-- **Serial Number:** $($device.serialNumber)
-- **Primary User:** $($device.userPrincipalName)
-- **Last Sync:** $lastSync
-- **Inactive Since:** $inactiveDays days
+        $deviceListMarkdown += @"
+$deviceNameHeader
+
+- **$($osLabel):** $($device.operatingSystem)
+- **$($modelLabel):** $($device.manufacturer) $($device.model)
+- **$($serialLabel):** $($device.serialNumber)
+- **$($userLabel):** $($device.userPrincipalName)
+- **$($lastSyncLabel):** $lastSync
+- **$($inactiveLabel):** $inactiveDays $daysLabel
 
 "@
     }
 
-    # Build email content in English
-    $emailSubject = "Action Required: Inactive Devices"
+    # Build email subject
+    $emailSubject = $mailTemplate.Subject
 
     # Add user information to subject if sending to override recipient
     if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
-        $emailSubject = "Action Required: Inactive Devices - User: $userEmail"
+        $emailSubject = "$($mailTemplate.Subject) - User: $userEmail"
     }
 
     # Determine inactivity period text
-    $inactivityPeriodText = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
-        "between **$Days and $MaxDays days**"
-    } else {
-        "at least **$Days days**"
+    $inactivityPeriodText = switch ($MailTemplateLanguage) {
+        "DE" { "mindestens **$($Days) Tage** inaktiv sind" }
+        "EN" { "at least **$($Days) days**" }
+        "Custom" { "" }
     }
 
+    # Build override recipient note
+    $overrideNoteEN = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
+        "**Note:** This email was sent to you instead of the end user.`n`n**Affected User:** $($userEmail)`n"
+    }
+    else { "" }
+
+    $overrideNoteDE = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
+        "**Hinweis:** Diese E-Mail wurde an Sie statt an den Endbenutzer gesendet.`n`n**Betroffener Benutzer:** $($userEmail)`n"
+    }
+    else { "" }
+
+    $overrideNote = if ($MailTemplateLanguage -eq "DE") { $overrideNoteDE } else { $overrideNoteEN }
+
+    # Build email header based on language
+    $emailHeader = if ($MailTemplateLanguage -eq "DE") {
+        "# Inaktive Geräte - Handlungsbedarf"
+    }
+    else {
+        "# Inactive Devices - Action Required"
+    }
+
+    # Build email footer
+    $autoGeneratedNote = if ($MailTemplateLanguage -eq "DE") {
+        "*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt auf diese E-Mail.*"
+    }
+    else {
+        "*This email was automatically generated. Please do not reply directly to this email.*"
+    }
+
+    $tenantLabel = if ($MailTemplateLanguage -eq "DE") { "Mandant" } else { "Tenant" }
+    $reportDateLabel = if ($MailTemplateLanguage -eq "DE") { "Berichtsdatum" } else { "Report Date" }
+
     $markdownContent = @"
-# Inactive Devices - Action Required
+$emailHeader
 
-$(if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
-    "**Note:** This email was sent to you instead of the end user for testing/review purposes."
-    ""
-    "**Affected User:** $userEmail"
-    ""
-})
-Dear user,
-
-We have identified the following devices associated with your account that have been inactive for $($inactivityPeriodText):
+$overrideNote
+$($mailTemplate.BeforeDeviceDetails) $($inactivityPeriodText):
 
 $($deviceListMarkdown)
 
-## What You Should Do Now
-
-Please review each listed device and choose the appropriate action:
-
-### Option 1: You Still Have the Device
-
-If the device is still in your possession:
-
-1. **Turn on the device**
-2. **Connect it to the Internet**
-3. **Sign in with your credentials**
-4. The device will automatically sync with our system
-
-### Option 2: You No Longer Have the Device
-
-If you no longer own or use the device:
-
-1. **Contact your Service Desk**
-2. Inform them which device (name/serial number) you no longer use
-
-## Why Is This Important?
-
-- **Security:** Inactive devices can pose a security risk
-- **Compliance:** We need to ensure all registered devices are actively used
-
-## Questions?
-
-If you have any questions or problems, please contact your Service Desk.$($serviceDeskSection)
+$($mailTemplate.AfterDeviceDetails)$($serviceDeskSection)
 
 ---
 
-*This email was automatically generated. Please do not reply directly to this email.*
+$autoGeneratedNote
 
-**Tenant:** $($tenantDisplayName)
-**Report Date:** $(Get-Date -Format "yyyy-MM-dd HH:mm")
+**$($tenantLabel):** $($tenantDisplayName)
+**$($reportDateLabel):** $(Get-Date -Format "yyyy-MM-dd HH:mm")
 "@
 
     # Send email to user
@@ -636,14 +850,14 @@ Write-Output ""
 Write-Output "===================="
 Write-Output "Notification Summary"
 Write-Output "===================="
-Write-Output "Total users notified: $emailsSent"
-Write-Output "Failed notifications: $emailsFailed"
+Write-Output "Total users notified: $($emailsSent)"
+Write-Output "Failed notifications: $($emailsFailed)"
 Write-Output "Total devices: $($filteredDevices.Count)"
 if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
-    Write-Output "Inactivity range: $Days to $MaxDays days"
+    Write-Output "Inactivity range: $($Days) to $($MaxDays) days"
 }
 else {
-    Write-Output "Days threshold: $Days days (minimum)"
+    Write-Output "Days threshold: $($Days) days (minimum)"
 }
 
 if ($UseUserScope) {
@@ -660,7 +874,7 @@ if ($UseUserScope) {
 if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
     Write-Output ""
     Write-Output "Override Recipient Mode: Enabled"
-    Write-Output "  - All emails sent to: $OverrideEmailRecipient"
+    Write-Output "  - All emails sent to: $($OverrideEmailRecipient)"
 }
 
 Write-Output ""
