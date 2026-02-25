@@ -4,6 +4,8 @@
 - Update documentation for Notify Users About Stale Devices (Scheduled) Runbook
   - Added detailed instructions for email configuration and custom mail template usage in the runbook documentation to enhance clarity and usability for users setting up email notifications.
   - Added Mail Template Language Selection section (EN, DE, Custom)
+  - Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
+   - This runbook retrieves and displays the BitLocker recovery key for a specified device.
 
 ## 2026-02-24
 - Update **Unenroll Updatable Assets** to **Unenroll Updatable Assets (Scheduled)** (in group/general)
