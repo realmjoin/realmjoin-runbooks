@@ -17,6 +17,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Isolate Or Release Device | Isolate this device. | - **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br>&emsp;- Machine.Isolate<br> |  |
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br> |  |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. | - **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br>&emsp;- Machine.RestrictExecution<br> |  |
+|  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device | - **Type**: Microsoft Graph<br>&emsp;- BitLockerKey.Read.All<br> |  |
 |  |  | Show LAPS Password | Show a local admin password for a device. | - **Type**: Microsoft Graph<br>&emsp;- DeviceLocalCredential.Read.All<br> |  |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  |
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |

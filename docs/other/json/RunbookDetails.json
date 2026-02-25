@@ -1365,6 +1365,69 @@
     }
   },
   {
+    "RunbookDisplayName": "Show Bitlocker Recovery Key",
+    "RunbookDisplayPath": "Device \\ Security \\ Show Bitlocker Recovery Key",
+    "RelativeRunbookPath": "device/security/show-bitlocker-recovery-key.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Show all BitLocker recovery keys for a device",
+    "Description": "This runbook retrieves and displays all BitLocker recovery keys that are backed up for the specified device.\nKeys are sorted by creation date (newest first). Use it for disk recovery scenarios.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The device ID of the target device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"BitLockerKey.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "BitLockerKey.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Show Laps Password",
     "RunbookDisplayPath": "Device \\ Security \\ Show Laps Password",
     "RelativeRunbookPath": "device/security/show-laps-password.ps1",

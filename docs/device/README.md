@@ -20,6 +20,7 @@
   - [Isolate Or Release Device](security/isolate-or-release-device.md)
   - [Reset Mobile Device Pin](security/reset-mobile-device-pin.md)
   - [Restrict Or Release Code Execution](security/restrict-or-release-code-execution.md)
+  - [Show Bitlocker Recovery Key](security/show-bitlocker-recovery-key.md)
   - [Show Laps Password](security/show-laps-password.md)
 
 [Back to Table of Content](../../README.md)

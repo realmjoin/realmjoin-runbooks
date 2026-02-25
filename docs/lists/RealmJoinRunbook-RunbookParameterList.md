@@ -29,6 +29,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Isolate Or Release Device](#device-security-isolate-or-release-device)
     - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
     - [Restrict Or Release Code Execution](#device-security-restrict-or-release-code-execution)
+    - [Show Bitlocker Recovery Key](#device-security-show-bitlocker-recovery-key)
     - [Show LAPS Password](#device-security-show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -357,6 +358,16 @@ Only allow Microsoft-signed code to run on a device, or remove an existing restr
 | DeviceId | ✓ | String | The device ID of the target device. |
 | Release | ✓ | Boolean | "Restrict Code Execution" (final value: false) or "Remove Code Restriction" (final value: true) can be selected as action to perform. If set to false, the runbook will restrict code execution on the device in Defender for Endpoint. If set to true, it will remove an existing code execution restriction on the device in Defender for Endpoint. |
 | Comment | ✓ | String | A short reason for the (un)restriction action. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-security-show-bitlocker-recovery-key'></a>
+
+### Show Bitlocker Recovery Key
+Show all BitLocker recovery keys for a device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The device ID of the target device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-security-show-laps-password'></a>

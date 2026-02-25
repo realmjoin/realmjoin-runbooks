@@ -1,21 +1,12 @@
 [
   {
-    "Name": "Office 365 Exchange Online",
-    "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
-  },
-  {
-    "Name": "MS Graph",
-    "Id": "00000003-0000-0000-c000-000000000000",
-    "AppRoleAssignments": "Place.Read.All"
-  },
-  {
     "Name": "Microsoft Graph",
     "Id": "00000003-0000-0000-c000-000000000000",
     "AppRoleAssignments": [
       "Application.Read.All",
       "Application.ReadWrite.OwnedBy",
       "AuditLog.Read.All",
+      "BitLockerKey.Read.All",
       "BitlockerKey.Read.All",
       "CloudPC.Read.All",
       "CloudPC.ReadWrite.All",
@@ -57,6 +48,21 @@
     ]
   },
   {
+    "Name": "Office 365 Exchange Online",
+    "Id": "00000002-0000-0ff1-ce00-000000000000",
+    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
+  },
+  {
+    "Name": "Office 365 Exchange Online API",
+    "Id": "00000002-0000-0ff1-ce00-000000000000",
+    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
+  },
+  {
+    "Name": "MS Graph",
+    "Id": "00000003-0000-0000-c000-000000000000",
+    "AppRoleAssignments": "Place.Read.All"
+  },
+  {
     "Name": "WindowsDefenderATP",
     "Id": "fc780465-2017-40d4-a0c5-307022471b92",
     "AppRoleAssignments": [
@@ -65,10 +71,5 @@
       "Machine.RestrictExecution",
       "Ti.ReadWrite.All"
     ]
-  },
-  {
-    "Name": "Office 365 Exchange Online API",
-    "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
   }
 ]

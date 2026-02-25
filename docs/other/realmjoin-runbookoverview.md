@@ -30,6 +30,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Isolate Or Release Device](#isolate-or-release-device)
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
       - [Restrict Or Release Code Execution](#restrict-or-release-code-execution)
+      - [Show Bitlocker Recovery Key](#show-bitlocker-recovery-key)
       - [Show Laps Password](#show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -435,6 +436,24 @@ Provide a short reason so the action is documented in the service.
 
 #### Where to find
 Device \ Security \ Restrict Or Release Code Execution
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-security-show-bitlocker-recovery-key'></a>
+
+### Show Bitlocker Recovery Key
+#### Show all BitLocker recovery keys for a device
+
+#### Description
+This runbook retrieves and displays all BitLocker recovery keys that are backed up for the specified device.
+Keys are sorted by creation date (newest first). Use it for disk recovery scenarios.
+
+#### Where to find
+Device \ Security \ Show Bitlocker Recovery Key
 
 
 [Back to Table of Content](#table-of-contents)
