@@ -68,6 +68,66 @@ function Get-RunbookBasics {
     }
 }
 
+function Normalize-PermissionsJsonObject {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$PermissionsJson
+    )
+
+    if ($null -eq $PermissionsJson) {
+        return $null
+    }
+
+    $normalizedPermissions = @(
+        @($PermissionsJson.Permissions) | ForEach-Object {
+            $permission = $_
+            if ($null -eq $permission) {
+                return
+            }
+
+            $assignments = @($permission.AppRoleAssignments) | ForEach-Object {
+                if ($null -ne $_) { ([string]$_).Trim() }
+            } | Where-Object { $_ }
+
+            $sortedAssignments = @($assignments | Sort-Object -Unique)
+
+            [PSCustomObject][ordered]@{
+                Name               = ([string]$permission.Name).Trim()
+                Id                 = ([string]$permission.Id).Trim()
+                AppRoleAssignments = @($sortedAssignments)
+            }
+        }
+    )
+
+    $sortedPermissions = @(
+        $normalizedPermissions | Sort-Object -Property @(
+            @{ Expression = { $_.Name }; Ascending = $true },
+            @{ Expression = { $_.Id }; Ascending = $true }
+        )
+    )
+
+    $sortedRoles = @(
+        @($PermissionsJson.Roles) |
+            ForEach-Object { if ($null -ne $_) { ([string]$_).Trim() } } |
+            Where-Object { $_ } |
+            Sort-Object -Unique
+    )
+
+    $sortedManualPermissions = @(
+        @($PermissionsJson.ManualPermissions) |
+            ForEach-Object { if ($null -ne $_) { ([string]$_).Trim() } } |
+            Where-Object { $_ } |
+            Sort-Object -Unique
+    )
+
+    return [PSCustomObject][ordered]@{
+        Permissions       = @($sortedPermissions)
+        Roles             = @($sortedRoles)
+        ManualPermissions = @($sortedManualPermissions)
+    }
+}
+
 function Convert-PermissionJsonToMarkdown {
     param (
         [string]$JsonContent
@@ -145,6 +205,7 @@ Get-ChildItem -Path $rootFolder -Recurse -Include "*.ps1" -Exclude $MyInvocation
 
     $permissionsContent = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw }
     $permissionsJSON = if ($null -ne $permissionsPath) { Get-Content -Path $permissionsPath -Raw | ConvertFrom-Json }
+    $permissionsJSON = Normalize-PermissionsJsonObject -PermissionsJson $permissionsJSON
 
     # Sort parameters by name and ensure consistent property order within each parameter
     $sortedParameters = if ($CurrentRunbookBasics.Parameters.parameter) {
@@ -266,10 +327,10 @@ if (Test-Path -Path (Join-Path -Path $outputFolder -ChildPath "DocsGeneral.json"
 $sortedRunbookDescriptions = $runbookDescriptions | Sort-Object -Property RelativeRunbookPath
 
 # Create the JSON file with the runbook details
-$sortedRunbookDescriptions | ConvertTo-Json -Depth 15 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.json")
+$sortedRunbookDescriptions | ConvertTo-Json -Depth 15 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "RunbookDetails.json") -Encoding utf8NoBOM
 
 # Sort the general docs and create the JSON file
 if ($generalDocs.Count -gt 0) {
     $sortedGeneralDocs = $generalDocs | Sort-Object -Property RelativePath
-    $sortedGeneralDocs | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "DocsGeneral.json")
+    $sortedGeneralDocs | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath "DocsGeneral.json") -Encoding utf8NoBOM
 }
