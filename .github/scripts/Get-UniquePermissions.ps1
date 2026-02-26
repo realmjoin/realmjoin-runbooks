@@ -132,7 +132,45 @@ function Get-SortedUniqueStringList {
         [void]$set.Add($text)
     }
 
-    return ,([string[]]@($set))
+    return [string[]]@($set)
+}
+
+function Remove-RedundantReadAllAssignments {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Assignments
+    )
+
+    # If both "X.Read.All" and "X.ReadWrite.All" exist, keep only "X.ReadWrite.All".
+    $readWritePrefixes = @(
+        $Assignments |
+            Where-Object { $_ -match '\.ReadWrite\.All$' } |
+            ForEach-Object { $_ -replace '\.ReadWrite\.All$', '' }
+    )
+
+    if ($readWritePrefixes.Count -eq 0) {
+        return $Assignments
+    }
+
+    $prefixSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($prefix in $readWritePrefixes) {
+        if ($prefix) {
+            [void]$prefixSet.Add($prefix)
+        }
+    }
+
+    return @(
+        $Assignments | Where-Object {
+            $item = $_
+            if ($item -match '\.Read\.All$') {
+                $prefix = $item -replace '\.Read\.All$', ''
+                return -not $prefixSet.Contains($prefix)
+            }
+
+            return $true
+        }
+    )
 }
 
 function ConvertTo-CanonicalRoleName {
@@ -218,19 +256,22 @@ foreach ($Permission in $RawPermissions) {
 
     $currentAssignments = ConvertTo-StringArray -Value $Permission.AppRoleAssignments
     $normalizedAssignments = Get-SortedUniqueStringList -Values $currentAssignments
+    $normalizedAssignments = Remove-RedundantReadAllAssignments -Assignments @($normalizedAssignments)
 
     # If the key does not exist in the hashtable, add it
     if (-not $UniquePermissions.ContainsKey($Key)) {
         $UniquePermissions[$Key] = [pscustomobject][ordered]@{
             Name               = $permissionName
             Id                 = $permissionId
-            AppRoleAssignments = $normalizedAssignments
+            AppRoleAssignments = @($normalizedAssignments)
         }
     }
     else {
         # If the key exists, merge the AppRoleAssignments
         $mergedAssignments = @($UniquePermissions[$Key].AppRoleAssignments) + $currentAssignments
-        $UniquePermissions[$Key].AppRoleAssignments = Get-SortedUniqueStringList -Values $mergedAssignments
+        $mergedNormalized = Get-SortedUniqueStringList -Values $mergedAssignments
+        $mergedNormalized = Remove-RedundantReadAllAssignments -Assignments @($mergedNormalized)
+        $UniquePermissions[$Key].AppRoleAssignments = @($mergedNormalized)
     }
 }
 
@@ -254,7 +295,7 @@ $canonicalRoles = @(
         Where-Object { $_ }
 )
 $sortedRoles = Get-SortedUniqueStringList -Values $canonicalRoles -CaseInsensitive
-$RoleExport = $sortedRoles | ConvertTo-Json -Depth 10
+$RoleExport = @($sortedRoles) | ConvertTo-Json -Depth 10
 $PermissionFileName = "$($OutputFileNamePrefix)permissions.json"
 $RoleFileName = "$($OutputFileNamePrefix)rbacroles.json"
 

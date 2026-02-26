@@ -79,6 +79,44 @@ function Normalize-PermissionsJsonObject {
         return $null
     }
 
+    function Remove-RedundantReadAllAssignments {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string[]]$Assignments
+        )
+
+        # If both "X.Read.All" and "X.ReadWrite.All" exist, keep only "X.ReadWrite.All".
+        $readWritePrefixes = @(
+            $Assignments |
+                Where-Object { $_ -match '\.ReadWrite\.All$' } |
+                ForEach-Object { $_ -replace '\.ReadWrite\.All$', '' }
+        )
+
+        if ($readWritePrefixes.Count -eq 0) {
+            return $Assignments
+        }
+
+        $prefixSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        foreach ($prefix in $readWritePrefixes) {
+            if ($prefix) {
+                [void]$prefixSet.Add($prefix)
+            }
+        }
+
+        return @(
+            $Assignments | Where-Object {
+                $item = $_
+                if ($item -match '\.Read\.All$') {
+                    $prefix = $item -replace '\.Read\.All$', ''
+                    return -not $prefixSet.Contains($prefix)
+                }
+
+                return $true
+            }
+        )
+    }
+
     $normalizedPermissions = @(
         @($PermissionsJson.Permissions) | ForEach-Object {
             $permission = $_
@@ -91,6 +129,8 @@ function Normalize-PermissionsJsonObject {
             } | Where-Object { $_ }
 
             $sortedAssignments = @($assignments | Sort-Object -Unique)
+            $sortedAssignments = Remove-RedundantReadAllAssignments -Assignments @($sortedAssignments)
+            $sortedAssignments = @([string[]]$sortedAssignments)
 
             [PSCustomObject][ordered]@{
                 Name               = ([string]$permission.Name).Trim()
