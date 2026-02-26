@@ -1,0 +1,119 @@
+name: Runbook validation
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '**/*.ps1'
+      - '**/*.permissions.json'
+      - '**/*.permission.json'
+
+jobs:
+  validate-runbooks:
+    name: Validate runbooks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout validator (master)
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 1
+          path: validator
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/scripts/Validate-Runbooks.ps1
+            .github/scripts/Validate-PermissionsJson.ps1
+
+      - name: 📥 Checkout PR (head)
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: repo
+
+      - name: 🔒 Validate permissions JSON
+        id: permissions
+        shell: pwsh
+        working-directory: repo
+        run: |
+          . ../validator/.github/scripts/Validate-PermissionsJson.ps1 `
+              -IncludedScope @("device", "group", "org", "user")
+          "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
+          exit 0
+
+      - name: 🔍 Validate changed runbooks
+        id: runbooks
+        if: always()
+        shell: pwsh
+        working-directory: repo
+        run: |
+          . ../validator/.github/scripts/Validate-Runbooks.ps1 `
+              -BaseRef "${{ github.event.pull_request.base.sha }}" `
+              -HeadRef "${{ github.event.pull_request.head.sha }}"
+          "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
+          exit 0
+
+      - name: ❌ Fail if validation failed
+        if: always()
+        shell: pwsh
+        run: |
+          $permRaw = '${{ steps.permissions.outputs.exitCode }}'
+          $rbRaw = '${{ steps.runbooks.outputs.exitCode }}'
+
+          $perm = 1
+          $rb = 1
+          [void][int]::TryParse($permRaw, [ref]$perm)
+          [void][int]::TryParse($rbRaw, [ref]$rb)
+
+          if ($perm -ne 0) {
+            Write-Output "FAILED: Missing/invalid permissions JSON files (exit code: $perm)"
+          }
+
+          if ($rb -ne 0) {
+            Write-Output "FAILED: Runbook validation errors (exit code: $rb)"
+          }
+
+          if ($perm -ne 0 -or $rb -ne 0) {
+            $parts = @()
+            if ($perm -ne 0) {
+              $parts += "permissions JSON validation failed (exit code: $perm)"
+            }
+            if ($rb -ne 0) {
+              $parts += "runbook validation failed (exit code: $rb)"
+            }
+
+            $msg = "Runbook validation workflow failed: " + ($parts -join "; ")
+
+            # Job summary (visible in the workflow run UI)
+            if ($env:GITHUB_STEP_SUMMARY) {
+              $lines = @(
+                "## Runbook validation summary",
+                "",
+                "| Area | Result |",
+                "|------|--------|",
+                ("| Permissions JSON | {0} |" -f ($(if ($perm -eq 0) { '✅ Pass' } else { '❌ Fail' }))),
+                ("| Runbook validation | {0} |" -f ($(if ($rb -eq 0) { '✅ Pass' } else { '❌ Fail' }))),
+                "",
+                ("**Details:** {0}" -f $msg)
+              )
+              $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            }
+
+            # Single top-level annotation
+            Write-Output "::error title=Runbook validation failed::$msg"
+            Write-Error -Message $msg -ErrorAction Stop
+          }
+
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              "## Runbook validation summary",
+              "",
+              "| Area | Result |",
+              "|------|--------|",
+              "| Permissions JSON | ✅ Pass |",
+              "| Runbook validation | ✅ Pass |"
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+
+          Write-Output "All validations passed."
