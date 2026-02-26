@@ -4340,15 +4340,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"DeviceManagementManagedDevices.DeleteAll\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.ReadWrite.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "DeviceManagementManagedDevices.Read.All",
-            "DeviceManagementManagedDevices.DeleteAll",
+            "DeviceManagementManagedDevices.ReadWrite.All",
             "Directory.Read.All",
             "Device.Read.All",
             "Mail.Send"

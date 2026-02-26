@@ -178,7 +178,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DeviceDescripton |  | String | Optional description stored for the imported identity. |
 |  |  |  |  |  |  | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementManagedDevices.DeleteAll<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
 |  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results |
