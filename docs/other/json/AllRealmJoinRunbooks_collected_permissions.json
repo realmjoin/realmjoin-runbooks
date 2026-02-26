@@ -39,11 +39,15 @@
       "TeamSettings.ReadWrite.All",
       "User.Read.All",
       "User.ReadWrite.All",
-      "User.SendMail",
       "UserAuthenticationMethod.Read.All",
       "UserAuthenticationMethod.ReadWrite.All",
       "WindowsUpdates.ReadWrite.All"
     ]
+  },
+  {
+    "Name": "Office 365 Exchange Online",
+    "Id": "00000002-0000-0ff1-ce00-000000000000",
+    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
   },
   {
     "Name": "Office 365 Exchange Online API",
@@ -64,10 +68,5 @@
       "Machine.RestrictExecution",
       "Ti.ReadWrite.All"
     ]
-  },
-  {
-    "Name": "Office 365 Exchange Online",
-    "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
   }
 ]

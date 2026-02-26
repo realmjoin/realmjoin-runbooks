@@ -576,7 +576,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | GroupID_License | ✓ | String | Object ID of the license assignment group. |
 |  |  |  |  |  |  | Remove |  | Boolean | "Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | cfgProvisioningGroupName |  | String | Display name of the provisioning policy group or Frontline assignment to use. |
 |  |  |  |  |  |  | cfgUserSettingsGroupName |  | String | Display name of the user settings policy group to use. |
 |  |  |  |  |  |  | licWin365GroupName |  | String | Display name of the Windows 365 license group to assign when using dedicated Cloud PCs. |
@@ -636,14 +636,14 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | RevokeGroupOwnership |  | Boolean | If set to true, removes or replaces the user's group ownerships. |
 |  |  |  |  |  |  | ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Reprovision Windows365 | Reprovision a Windows 365 Cloud PC | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Reprovision Windows365 | Reprovision a Windows 365 Cloud PC | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | licWin365GroupName | ✓ | String | Display name of the Windows 365 license group used to identify the Cloud PC. |
 |  |  |  |  |  |  | sendMailWhenReprovisioning |  | Boolean | "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun. |
 |  |  |  |  |  |  | fromMailAddress |  | String | Mailbox used to send the notification email. |
 |  |  |  |  |  |  | customizeMail |  | Boolean | If set to true, uses a custom email body. |
 |  |  |  |  |  |  | customMailMessage |  | String | Custom message body used for the notification email. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Resize Windows365 | Resize an existing Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Resize Windows365 | Resize an existing Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | currentLicWin365GroupName | ✓ | String | Current Windows 365 license group name used by the Cloud PC. |
 |  |  |  |  |  |  | newLicWin365GroupName | ✓ | String | New Windows 365 license group name to assign for the resized Cloud PC. |
 |  |  |  |  |  |  | sendMailWhenDoneResizing |  | Boolean | "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC resizing has finished. |
