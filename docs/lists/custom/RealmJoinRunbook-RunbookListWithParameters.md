@@ -664,7 +664,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | skipGracePeriod |  | Boolean | If set to true, ends the Cloud PC grace period immediately. |
 |  |  |  |  |  |  | KeepUserSettingsAndProvisioningGroups |  | Boolean | If set to true, does not remove related provisioning and user settings groups. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | EmailAddress | ✓ | String | Email address to add or remove. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the address instead of adding it. |
 |  |  |  |  |  |  | asPrimary |  | Boolean | If set to true, sets the specified address as the primary SMTP address. |
@@ -672,7 +672,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Assign OWA Mailbox Policy | Assign an OWA mailbox policy to a user |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the target mailbox. |
 |  |  |  |  |  |  | OwaPolicyName | ✓ | String | Name of the OWA mailbox policy to assign. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo |  | String | User principal name of the delegate who should receive access. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, converts a shared mailbox back to a regular mailbox. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables automatic Outlook mapping for delegated FullAccess. |
@@ -680,29 +680,29 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ArchivalLicenseGroup |  | String | Display name of a license group to assign when an archive or larger mailbox requires it. |
 |  |  |  |  |  |  | RegularLicenseGroup |  | String | Display name of a license group to assign when converting back to a regular mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | HideMailbox |  | Boolean | If set to true, hides the mailbox from address lists. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MS Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
 |  |  |  |  |  |  | Start |  | DateTime | Start time for scheduled out-of-office replies. |
 |  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
@@ -711,7 +711,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 |  |  |  |  |  |  | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | AllBookInPolicy |  | Boolean | "Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn. |
 |  |  |  |  |  |  | BookInPolicyGroup |  | String | Group whose members are allowed to book when AllBookInPolicy is false. |
 |  |  |  |  |  |  | AllowRecurringMeetings |  | Boolean | If set to true, allows recurring meetings. |
