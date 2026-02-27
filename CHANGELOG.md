@@ -30,6 +30,7 @@
 - Update **Export All Intune Devices** Runbook
   - Fix issue, regarding some properties if the device primary user data is missing or incomplete
   - Add filtering option to only include devices that are members of a specific group to avoid exporting all devices in large tenants and to focus on relevant devices.
+    - With group picker for easier selection of the group
 - Complete overhaul of the comment-based help in **all runbooks** to improve clarity, consistency and detail of the documentation, including:
   - More detailed descriptions of the runbooks' functionality and parameters
   - Clearer instructions for required permissions and setup steps

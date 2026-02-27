@@ -34,6 +34,9 @@
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "FilterGroupID": {
+                "DisplayName": "Optional - when specified, only devices whose primary owner is a member of this group are exported"
             }
         }
     }
@@ -55,7 +58,7 @@ param (
     [string] $StorageAccountSku,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.SubscriptionId" } )]
     [string] $SubscriptionId,
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group })]
     [string] $FilterGroupID = $null,
     [Parameter(Mandatory = $true)]
     [string] $CallerName
