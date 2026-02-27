@@ -1,9 +1,10 @@
 # Export Non Compliant Devices
 
-Report on non-compliant devices and policies
+Export non-compliant Intune devices and settings
 
 ## Detailed description
-Report on non-compliant devices and policies
+This runbook queries Intune for non-compliant and in-grace-period devices and retrieves detailed policy and setting compliance data.
+It can export the results to CSV with SAS (download) links.
 
 ## Where to find
 Org \ General \ Export Non Compliant Devices
@@ -19,6 +20,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 
 ## Parameters
 ### produceLinks
+If set to true, uploads artifacts and produces SAS (download) links when storage settings are available.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +29,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Type | Boolean |
 
 ### ContainerName
+Storage container name used for uploads.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +38,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Type | String |
 
 ### ResourceGroupName
+Resource group that contains the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +47,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Type | String |
 
 ### StorageAccountName
+Storage account name used for uploads.
 
 | Property | Value |
 |----------|-------|
@@ -51,6 +56,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Type | String |
 
 ### StorageAccountLocation
+Azure region for the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -59,6 +65,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Type | String |
 
 ### StorageAccountSku
+Storage account SKU.
 
 | Property | Value |
 |----------|-------|
@@ -67,6 +74,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 | Type | String |
 
 ### SubscriptionId
+Azure subscription ID used for storage operations.
 
 | Property | Value |
 |----------|-------|

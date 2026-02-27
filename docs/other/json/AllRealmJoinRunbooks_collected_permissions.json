@@ -1,48 +1,30 @@
 [
   {
-    "Name": "MS Graph",
+    "Name": "MG Graph",
     "Id": "00000003-0000-0000-c000-000000000000",
-    "AppRoleAssignments": "Place.Read.All"
-  },
-  {
-    "Name": "Office 365 Exchange Online",
-    "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
-  },
-  {
-    "Name": "Office 365 Exchange Online API",
-    "Id": "00000002-0000-0ff1-ce00-000000000000",
-    "AppRoleAssignments": "Exchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsAppExchange.ManageAsApp"
+    "AppRoleAssignments": [
+      "Place.Read.All"
+    ]
   },
   {
     "Name": "Microsoft Graph",
     "Id": "00000003-0000-0000-c000-000000000000",
     "AppRoleAssignments": [
       "Application.Read.All",
-      "Application.ReadWrite.All",
+      "Application.ReadWrite.OwnedBy",
       "AuditLog.Read.All",
       "BitlockerKey.Read.All",
-      "CloudPC.Read.All",
       "CloudPC.ReadWrite.All",
-      "Device.Read.All",
       "Device.ReadWrite.All",
       "DeviceLocalCredential.Read.All",
-      "DeviceManagementApps.Read.All",
       "DeviceManagementApps.ReadWrite.All",
-      "DeviceManagementConfiguration.Read.All",
       "DeviceManagementConfiguration.ReadWrite.All",
-      "DeviceManagementManagedDevices.DeleteAll",
       "DeviceManagementManagedDevices.PrivilegedOperations.All",
-      "DeviceManagementManagedDevices.Read.All",
       "DeviceManagementManagedDevices.ReadWrite.All",
-      "DeviceManagementServiceConfig.Read.All",
       "DeviceManagementServiceConfig.ReadWrite.All",
       "Directory.Read.All",
-      "Directory.ReadWrite.All",
       "Group.Create",
-      "Group.Read.All",
       "Group.ReadWrite.All",
-      "GroupMember.Read.All",
       "GroupMember.ReadWrite.All",
       "IdentityRiskyUser.ReadWrite.All",
       "InformationProtectionPolicy.Read.All",
@@ -50,16 +32,21 @@
       "Organization.Read.All",
       "Policy.Read.All",
       "Reports.Read.All",
+      "RoleAssignmentSchedule.Read.Directory",
       "RoleManagement.Read.All",
       "RoleManagement.Read.Directory",
       "Team.Create",
       "TeamSettings.ReadWrite.All",
-      "User.Read.All",
       "User.ReadWrite.All",
-      "User.SendMail",
-      "UserAuthenticationMethod.Read.All",
       "UserAuthenticationMethod.ReadWrite.All",
       "WindowsUpdates.ReadWrite.All"
+    ]
+  },
+  {
+    "Name": "Office 365 Exchange Online",
+    "Id": "00000002-0000-0ff1-ce00-000000000000",
+    "AppRoleAssignments": [
+      "Exchange.ManageAsApp"
     ]
   },
   {

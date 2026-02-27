@@ -1,12 +1,15 @@
 <#
-  .SYNOPSIS
-  Prints a list of all available InformationProtectionPolicy labels.
+    .SYNOPSIS
+    List Microsoft Information Protection labels
 
-  .DESCRIPTION
-  Prints a list of all available InformationProtectionPolicy labels.
+    .DESCRIPTION
+    Retrieves all available Microsoft Information Protection labels in the tenant. This can be used to get the label IDs for use in other runbooks, e.g. for auto-labeling based on sensitivity.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true

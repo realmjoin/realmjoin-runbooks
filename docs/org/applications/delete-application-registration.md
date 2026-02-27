@@ -3,10 +3,8 @@
 Delete an application registration from Azure AD
 
 ## Detailed description
-This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
-
-This script is the counterpart to the add-application-registration script and ensures
-proper cleanup of all resources created during application registration.
+This runbook deletes an application registration and its associated service principal from Microsoft Entra ID.
+It verifies that the application exists before deletion and performs a best-effort cleanup of groups assigned during provisioning.
 
 ## Where to find
 Org \ Applications \ Delete Application Registration
@@ -14,12 +12,16 @@ Org \ Applications \ Delete Application Registration
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Application.ReadWrite.All
+  - Application.ReadWrite.OwnedBy
   - Group.ReadWrite.All
+
+### RBAC roles
+- Application Developer
 
 
 ## Parameters
 ### ClientId
+The application client ID (appId) of the application registration to delete.
 
 | Property | Value |
 |----------|-------|

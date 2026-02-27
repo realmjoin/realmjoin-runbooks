@@ -15,9 +15,9 @@
   - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
+  - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
   - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
-  - [Report Last Device Contact By Range](devices/report-last-device-contact-by-range.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
   - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
   - [Sync Device Serialnumbers To Entraid (Scheduled)](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
@@ -82,7 +82,9 @@
   - [List Pim Rolegroups Without Owners (Scheduled)](security/list-pim-rolegroups-without-owners_scheduled.md)
   - [List Users By MFA Methods Count](security/list-users-by-mfa-methods-count.md)
   - [List Vulnerable App Regs](security/list-vulnerable-app-regs.md)
+  - [Monitor Pending EPM Requests (Scheduled)](security/monitor-pending-epm-requests_scheduled.md)
   - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
+  - [Report EPM Elevation Requests (Scheduled)](security/report-epm-elevation-requests_scheduled.md)
 
 [Back to Table of Content](../../README.md)
 

@@ -1,12 +1,18 @@
 <#
-  .SYNOPSIS
-  Removes a group, incl. SharePoint site and Teams team.
+    .SYNOPSIS
+    Remove a group. For Microsoft 365 groups, also the associated resources (Teams, SharePoint site) will be removed.
 
-  .DESCRIPTION
-  Removes a group, incl. SharePoint site and Teams team.
+    .DESCRIPTION
+    This runbook deletes the specified group, which for Microsoft 365 groups means, that it also deletes the associated resources such as the Teams Team and the SharePoint Site.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER GroupId
+    Object ID of the group to delete.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "GroupId": {
                 "Hide": true
@@ -16,7 +22,6 @@
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

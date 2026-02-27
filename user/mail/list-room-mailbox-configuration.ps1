@@ -1,13 +1,19 @@
 <#
-  .SYNOPSIS
-  List Room configuration.
+    .SYNOPSIS
+    List room mailbox configuration
 
-  .DESCRIPTION
-  List Room configuration.
+    .DESCRIPTION
+    Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
+    .PARAMETER UserName
+    User principal name of the room mailbox.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
             "UserName": {
                 "Hide": true
             },
@@ -19,6 +25,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param (
     [Parameter(Mandatory = $true)]

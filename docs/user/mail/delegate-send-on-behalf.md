@@ -1,16 +1,17 @@
 # Delegate Send On Behalf
 
-Grant another user sendOnBehalf permissions on this mailbox.
+Delegate SendOnBehalf permissions for the user's mailbox
 
 ## Detailed description
-Grant another user sendOnBehalf permissions on this mailbox.
+Grants or removes SendOnBehalf permissions for a delegate on the user's mailbox. Outputs the resulting SendOnBehalf trustees after applying the change.
+This allows the delegate to send emails on behalf of the mailbox owner.
 
 ## Where to find
 User \ Mail \ Delegate Send On Behalf
 
 ## Permissions
 ### Application permissions
-- **Type**: Office 365 Exchange Online API
+- **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
 
 ### RBAC roles
@@ -19,6 +20,7 @@ User \ Mail \ Delegate Send On Behalf
 
 ## Parameters
 ### UserName
+User principal name of the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +29,7 @@ User \ Mail \ Delegate Send On Behalf
 | Type | String |
 
 ### delegateTo
+User principal name of the delegate.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +38,7 @@ User \ Mail \ Delegate Send On Behalf
 | Type | String |
 
 ### Remove
+If set to true, removes the delegation instead of granting it.
 
 | Property | Value |
 |----------|-------|

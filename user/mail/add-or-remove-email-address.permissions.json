@@ -1,7 +1,7 @@
 {
     "Permissions": [
         {
-            "Name": "Office 365 Exchange Online API",
+            "Name": "Office 365 Exchange Online",
             "Id": "00000002-0000-0ff1-ce00-000000000000",
             "AppRoleAssignments": [
                 "Exchange.ManageAsApp"

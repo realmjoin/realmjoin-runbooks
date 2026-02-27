@@ -3,3 +3,5 @@ private
 *.code-workspace
 /.vs
 deploy-all.ps1
+.vscode/settings.json
+.claude/rules

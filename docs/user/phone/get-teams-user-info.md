@@ -1,9 +1,9 @@
 # Get Teams User Info
 
-Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+Get Microsoft Teams voice status for a user
 
 ## Detailed description
-Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+Retrieves voice-related status information for a Teams user such as phone number assignment, call forwarding settings, voicemail configuration, and policy assignments. The output is intended for troubleshooting and validation.
 
 ## Where to find
 User \ Phone \ Get Teams User Info
@@ -19,7 +19,7 @@ User \ Phone \ Get Teams User Info
 
 ## Parameters
 ### UserName
-The user for whom the status quo should be retrieved. This can be filled in with the user picker in the UI.
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|

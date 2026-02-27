@@ -1,27 +1,40 @@
 <#
-.SYNOPSIS
-    Creates a Viva Engage (Yammer) community via the Yammer API
+	.SYNOPSIS
+	Create a Viva Engage (Yammer) community
 
-.DESCRIPTION
-    Creates a Viva Engage (Yammer) community using a Yammer dev token. The API-calls used are subject to change, so this script might break in the future.
+	.DESCRIPTION
+	This runbook creates a Viva Engage community via the Yammer REST API using a stored developer token.
+	It can optionally assign owners and remove the initial API user from the resulting Microsoft 365 group.
 
-.PARAMETER CommunityName
-    The name of the community to create. max 264 chars.
+	.PARAMETER CommunityName
+	Name of the community to create. Maximum length is 264 characters.
 
-.PARAMETER CommunityOwners
-    The owners of the community. Comma separated list of UPNs.
+	.PARAMETER CommunityPrivate
+	If set to true, the community is created as private.
 
-.INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "removeCreatorFromGroup": {
-                "DisplayName": "Remove initial API user/owner from group."
-            }
-        }
-    }
+	.PARAMETER CommunityShowInDirectory
+	If set to true, the community is visible in the directory.
+
+	.PARAMETER CommunityOwners
+	Comma-separated list of owner UPNs to add to the community.
+
+	.PARAMETER removeCreatorFromGroup
+	If set to true, removes the initial API user from the group when at least one other owner exists.
+
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"removeCreatorFromGroup": {
+				"DisplayName": "Remove initial API user/owner from group"
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
@@ -34,7 +47,7 @@ param(
     [string]$CommunityOwners = "",
     [bool]$removeCreatorFromGroup = $true,
     [Parameter(Mandatory = $true)]
-    [string] $CallerName
+    [string]$CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

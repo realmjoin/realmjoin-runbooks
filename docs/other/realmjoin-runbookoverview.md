@@ -13,7 +13,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Runbooks - Table of contents
 
 - [Device](#device)
-  - [Avd](#device-avd)
+  - [AVD](#device-avd)
       - [Restart Host](#restart-host)
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
@@ -30,11 +30,12 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Isolate Or Release Device](#isolate-or-release-device)
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
       - [Restrict Or Release Code Execution](#restrict-or-release-code-execution)
+      - [Show Bitlocker Recovery Key](#show-bitlocker-recovery-key)
       - [Show Laps Password](#show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
       - [Check Updatable Assets](#check-updatable-assets)
-      - [Unenroll Updatable Assets](#unenroll-updatable-assets)
+      - [Unenroll Updatable Assets (Scheduled)](#unenroll-updatable-assets-(scheduled))
   - [General](#group-general)
       - [Add Or Remove Nested Group](#add-or-remove-nested-group)
       - [Add Or Remove Owner](#add-or-remove-owner)
@@ -64,9 +65,9 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
+      - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
-      - [Report Last Device Contact By Range](#report-last-device-contact-by-range)
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
       - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
@@ -127,9 +128,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Pim Rolegroups Without Owners (Scheduled)](#list-pim-rolegroups-without-owners-(scheduled))
       - [List Users By MFA Methods Count](#list-users-by-mfa-methods-count)
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
+      - [Monitor Pending EPM Requests (Scheduled)](#monitor-pending-epm-requests-(scheduled))
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
+      - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
 - [User](#user)
-  - [Avd](#user-avd)
+  - [AVD](#user-avd)
       - [User Signout](#user-signout)
   - [General](#user-general)
       - [Assign Groups By Template](#assign-groups-by-template)
@@ -180,7 +183,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 # Device
 <a name='device-avd'></a>
 
-## Avd
+## AVD
 <a name='device-avd-restart-host'></a>
 
 ### Restart Host
@@ -229,7 +232,7 @@ Device \ AVD \ Toggle Drain Mode
 #### Assign a new AutoPilot GroupTag to this device.
 
 #### Description
-Assign a new AutoPilot GroupTag to this device.
+This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to trigger a new deployment with different policies and applications for the device.
 
 #### Where to find
 Device \ General \ Change Grouptag
@@ -243,10 +246,10 @@ Device \ General \ Change Grouptag
 <a name='device-general-check-updatable-assets'></a>
 
 ### Check Updatable Assets
-#### Check if a device is onboarded to Windows Update for Business.
+#### Check if a device is onboarded to Windows Update for Business
 
 #### Description
-This script checks if single device is onboarded to Windows Update for Business.
+This script checks if single device is onboarded to Windows Update for Business
 
 #### Where to find
 Device \ General \ Check Updatable Assets
@@ -349,7 +352,7 @@ Device \ General \ Unenroll Updatable Assets
 #### Wipe a Windows or MacOS device
 
 #### Description
-Wipe a Windows or MacOS device.
+Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
 
 #### Where to find
 Device \ General \ Wipe Device
@@ -369,10 +372,11 @@ Device \ General \ Wipe Device
 <a name='device-security-enable-or-disable-device'></a>
 
 ### Enable Or Disable Device
-#### Disable a device in AzureAD.
+#### Enable or disable a device in Entra ID
 
 #### Description
-Disable a device in AzureAD.
+This runbook enables or disables a Windows device object in Entra ID (Azure AD) based on the provided device ID.
+Use it to temporarily block sign-ins from a compromised or lost device, or to re-enable the device after remediation.
 
 #### Where to find
 Device \ Security \ Enable Or Disable Device
@@ -389,7 +393,9 @@ Device \ Security \ Enable Or Disable Device
 #### Isolate this device.
 
 #### Description
-Isolate this device using Defender for Endpoint.
+This runbook isolates a device in Microsoft Defender for Endpoint to reduce the risk of lateral movement and data exfiltration.
+Optionally, it can release a previously isolated device.
+Provide a short reason so the action is documented in the service.
 
 #### Where to find
 Device \ Security \ Isolate Or Release Device
@@ -406,7 +412,8 @@ Device \ Security \ Isolate Or Release Device
 #### Reset a mobile device's password/PIN code.
 
 #### Description
-Reset a mobile device's password/PIN code. Warning: Not possible for all types of devices.
+This runbook triggers an Intune reset passcode action for a managed mobile device.
+The action is only supported for certain, corporate-owned device types and will be rejected for personal or unsupported devices.
 
 #### Where to find
 Device \ Security \ Reset Mobile Device Pin
@@ -420,13 +427,33 @@ Device \ Security \ Reset Mobile Device Pin
 <a name='device-security-restrict-or-release-code-execution'></a>
 
 ### Restrict Or Release Code Execution
-#### Restrict code execution.
+#### Only allow Microsoft-signed code to run on a device, or remove an existing restriction.
 
 #### Description
-Only allow Microsoft signed code to be executed.
+This runbook restricts code execution on a device via Microsoft Defender for Endpoint so that only Microsoft-signed code can run.
+Optionally, it can remove an existing restriction.
+Provide a short reason so the action is documented in the service.
 
 #### Where to find
 Device \ Security \ Restrict Or Release Code Execution
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-security-show-bitlocker-recovery-key'></a>
+
+### Show Bitlocker Recovery Key
+#### Show all BitLocker recovery keys for a device
+
+#### Description
+This runbook retrieves and displays all BitLocker recovery keys that are backed up for the specified device.
+Keys are sorted by creation date (newest first). Use it for disk recovery scenarios.
+
+#### Where to find
+Device \ Security \ Show Bitlocker Recovery Key
 
 
 [Back to Table of Content](#table-of-contents)
@@ -440,7 +467,8 @@ Device \ Security \ Restrict Or Release Code Execution
 #### Show a local admin password for a device.
 
 #### Description
-Show a local admin password for a device.
+This runbook retrieves and displays the most recent Windows LAPS local administrator password that is backed up for the specified device.
+Use it for break-glass troubleshooting and rotate the password after use.
 
 #### Where to find
 Device \ Security \ Show Laps Password
@@ -463,7 +491,9 @@ Device \ Security \ Show Laps Password
 #### Check if devices in a group are onboarded to Windows Update for Business.
 
 #### Description
-This script checks if single or multiple devices (by Group Object ID) are onboarded to Windows Update for Business.
+This runbook checks the Windows Update for Business onboarding status for all device members of a Microsoft Entra ID group.
+It queries each device and reports the enrollment state per update category and any returned error details.
+Use this to validate whether group members are correctly registered as updatable assets.
 
 #### Where to find
 Group \ Devices \ Check Updatable Assets
@@ -474,16 +504,18 @@ Group \ Devices \ Check Updatable Assets
  
  
 
-<a name='group-devices-unenroll-updatable-assets'></a>
+<a name='group-devices-unenroll-updatable-assets-(scheduled)'></a>
 
-### Unenroll Updatable Assets
+### Unenroll Updatable Assets (Scheduled)
 #### Unenroll devices from Windows Update for Business.
 
 #### Description
-This script unenrolls devices from Windows Update for Business.
+This runbook unenrolls all device members of a Microsoft Entra ID group from Windows Update for Business updatable assets.
+You can remove a specific update category enrollment or delete the updatable asset registration entirely.
+Use this to offboard devices from WUfB reporting or to reset their enrollment state.
 
 #### Where to find
-Group \ Devices \ Unenroll Updatable Assets
+Group \ Devices \ Unenroll Updatable Assets_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -500,10 +532,12 @@ Group \ Devices \ Unenroll Updatable Assets
 <a name='group-general-add-or-remove-nested-group'></a>
 
 ### Add Or Remove Nested Group
-#### Add/remove a nested group to/from a group.
+#### Add/remove a nested group to/from a group
 
 #### Description
-Add/remove a nested group to/from an AzureAD or Exchange Online group.
+This runbook adds a nested group to a target group or removes an existing nesting.
+It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
+Use the Remove switch to remove the nested group instead of adding it.
 
 #### Where to find
 Group \ General \ Add Or Remove Nested Group
@@ -517,10 +551,12 @@ Group \ General \ Add Or Remove Nested Group
 <a name='group-general-add-or-remove-owner'></a>
 
 ### Add Or Remove Owner
-#### Add/remove owners to/from an Office 365 group.
+#### Add or remove a Office 365 group owner
 
 #### Description
-Add/remove owners to/from an Office 365 group.
+This runbook adds a user as an owner of a group or removes an existing owner.
+For Microsoft 365 groups, it also ensures that newly added owners are members of the group.
+Use the Remove switch to remove ownership instead of adding it.
 
 #### Where to find
 Group \ General \ Add Or Remove Owner
@@ -534,10 +570,12 @@ Group \ General \ Add Or Remove Owner
 <a name='group-general-add-or-remove-user'></a>
 
 ### Add Or Remove User
-#### Add/remove users to/from a group.
+#### Add or remove a group member
 
 #### Description
-Add/remove users to/from an AzureAD or Exchange Online group.
+This runbook adds a user to a group or removes a user from a group.
+It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
+Use the Remove switch to remove the user instead of adding the user.
 
 #### Where to find
 Group \ General \ Add Or Remove User
@@ -554,7 +592,9 @@ Group \ General \ Add Or Remove User
 #### Change a group's visibility
 
 #### Description
-Change a group's visibility
+This runbook changes the visibility of a Microsoft 365 group between Private and Public.
+Set the Public switch to make the group public; otherwise it will be set to private.
+This does not change group membership, owners, or email addresses.
 
 #### Where to find
 Group \ General \ Change Visibility
@@ -568,7 +608,7 @@ Group \ General \ Change Visibility
 <a name='group-general-list-all-members'></a>
 
 ### List All Members
-#### Retrieves the members of a specified EntraID group, including members from nested groups.
+#### List all members of a group, including members that are part of nested groups
 
 #### Description
 This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
@@ -590,7 +630,9 @@ Group \ General \ List All Members
 #### List all owners of an Office 365 group.
 
 #### Description
-List all owners of an Office 365 group.
+This runbook retrieves and lists the owners of the specified group.
+It uses Microsoft Graph to query the group and its owners and outputs the results as a table.
+Use this to quickly review ownership assignments.
 
 #### Where to find
 Group \ General \ List Owners
@@ -604,10 +646,12 @@ Group \ General \ List Owners
 <a name='group-general-list-user-devices'></a>
 
 ### List User Devices
-#### List all devices owned by group members.
+#### List devices owned by group members.
 
 #### Description
-List all devices owned by group members.
+This runbook enumerates the users in a group and lists their registered devices.
+Optionally, it can add the discovered devices to a specified device group.
+Use this to create or maintain a device group based on group member ownership.
 
 #### Where to find
 Group \ General \ List User Devices
@@ -621,10 +665,10 @@ Group \ General \ List User Devices
 <a name='group-general-remove-group'></a>
 
 ### Remove Group
-#### Removes a group, incl. SharePoint site and Teams team.
+#### Remove a group. For Microsoft 365 groups, also the associated resources (Teams, SharePoint site) will be removed.
 
 #### Description
-Removes a group, incl. SharePoint site and Teams team.
+This runbook deletes the specified group, which for Microsoft 365 groups means, that it also deletes the associated resources such as the Teams Team and the SharePoint Site.
 
 #### Where to find
 Group \ General \ Remove Group
@@ -641,7 +685,9 @@ Group \ General \ Remove Group
 #### Rename a group.
 
 #### Description
-Rename a group MailNickname, DisplayName and Description. Will NOT change eMail addresses!
+This runbook updates a group's DisplayName, MailNickname, and Description.
+It does not change the group's email addresses.
+Provide only the fields you want to update; empty values are ignored.
 
 #### Where to find
 Group \ General \ Rename Group
@@ -661,10 +707,12 @@ Group \ General \ Rename Group
 <a name='group-mail-enable-or-disable-external-mail'></a>
 
 ### Enable Or Disable External Mail
-#### Enable/disable external parties to send eMails to O365 groups.
+#### Enable or disable external parties to send emails to a Microsoft 365 group
 
 #### Description
-Enable/disable external parties to send eMails to O365 groups.
+This runbook configures whether external senders are allowed to email a Microsoft 365 group.
+It uses Exchange Online to enable or disable the RequireSenderAuthenticationEnabled setting.
+You can also query the current state without making changes.
 
 #### Where to find
 Group \ Mail \ Enable Or Disable External Mail
@@ -678,10 +726,11 @@ Group \ Mail \ Enable Or Disable External Mail
 <a name='group-mail-show-or-hide-in-address-book'></a>
 
 ### Show Or Hide In Address Book
-#### (Un)hide an O365- or static Distribution-group in Address Book.
+#### Show or hide a group in the address book
 
 #### Description
-(Un)hide an O365- or static Distribution-group in Address Book. Can also show the current state.
+This runbook shows or hides a Microsoft 365 group or a distribution group from address lists.
+You can also query the current visibility state without making changes.
 
 #### Where to find
 Group \ Mail \ Show Or Hide In Address Book
@@ -701,10 +750,12 @@ Group \ Mail \ Show Or Hide In Address Book
 <a name='group-teams-archive-team'></a>
 
 ### Archive Team
-#### Archive a team.
+#### Archive a team
 
 #### Description
-Decomission an inactive team while preserving its contents for review.
+This runbook archives a Microsoft Teams team backed by the specified Microsoft 365 group.
+It verifies that the group is provisioned as a team and then triggers the archive action via Microsoft Graph.
+Use this to decommission inactive teams while preserving their contents for review.
 
 #### Where to find
 Group \ Teams \ Archive Team
@@ -727,11 +778,9 @@ Group \ Teams \ Archive Team
 #### Add an application registration to Azure AD
 
 #### Description
-This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
-
-The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
-throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
-and certificate expiry notifications.
+This runbook creates a new application registration in Microsoft Entra ID and optionally configures redirect URIs and SAML settings.
+It validates the submitted parameters, prevents duplicate app creation, and writes verbose logs for troubleshooting.
+Use it to standardize application registration setup, including visibility and assignment-related options.
 
 #### Where to find
 Org \ Applications \ Add Application Registration
@@ -748,10 +797,8 @@ Org \ Applications \ Add Application Registration
 #### Delete an application registration from Azure AD
 
 #### Description
-This script safely removes an application registration and its associated service principal from Azure Active Directory (Entra ID).
-
-This script is the counterpart to the add-application-registration script and ensures
-proper cleanup of all resources created during application registration.
+This runbook deletes an application registration and its associated service principal from Microsoft Entra ID.
+It verifies that the application exists before deletion and performs a best-effort cleanup of groups assigned during provisioning.
 
 #### Where to find
 Org \ Applications \ Delete Application Registration
@@ -768,9 +815,8 @@ Org \ Applications \ Delete Application Registration
 #### Export a CSV of all (enterprise) application owners and users
 
 #### Description
-This runbook exports a comprehensive list of all enterprise applications (or all service principals)
-in your Azure AD tenant along with their owners and assigned users/groups. Afterwards the CSV file is uploaded
-to an Azure Storage Account, from where it can be downloaded.
+This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
+It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
 
 #### Where to find
 Org \ Applications \ Export Enterprise Application Users
@@ -784,11 +830,12 @@ Org \ Applications \ Export Enterprise Application Users
 <a name='org-applications-list-inactive-enterprise-applications'></a>
 
 ### List Inactive Enterprise Applications
-#### List application registrations, which had no recent user logons.
+#### List enterprise applications with no recent sign-ins
 
 #### Description
-Identifies enterprise applications with no recent sign-in activity based on Entra ID audit logs.
-The report includes Entra ID applications with last sign-in older than specified days (default: 90 days) or applications with no sign-in records in the audit log.
+This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.
+It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
+Use it to find candidates for review, cleanup, or decommissioning.
 
 #### Where to find
 Org \ Applications \ List Inactive Enterprise Applications
@@ -805,8 +852,9 @@ Org \ Applications \ List Inactive Enterprise Applications
 #### Generate and email a comprehensive Application Registration report
 
 #### Description
-This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
-exports them to CSV files, and sends them via email.
+This runbook generates a report of all application registrations in Microsoft Entra ID and can optionally include deleted registrations.
+It exports the results to CSV files and sends them via email.
+Use it for periodic inventory, review, and audit purposes.
 
 #### Where to find
 Org \ Applications \ Report Application Registration
@@ -830,8 +878,8 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### List expiry date of all Application Registration credentials
 
 #### Description
-List the expiry date of all Application Registration credentials, including Client Secrets and Certificates.
-Optionally, filter by Application IDs and list only those credentials that are about to expire.
+This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
+It can optionally filter by application IDs and can limit output to credentials that are about to expire.
 
 #### Where to find
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
@@ -855,11 +903,9 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Update an application registration in Azure AD
 
 #### Description
-This script modifies an existing application registration in Azure Active Directory (Entra ID) with comprehensive configuration updates.
-
-The script intelligently determines what changes need to be applied by comparing current settings
-with requested parameters, ensuring only necessary updates are performed. It maintains backward
-compatibility while supporting modern authentication patterns and security requirements.
+This runbook updates an existing application registration and its related configuration in Microsoft Entra ID.
+It compares the current settings with the requested parameters and applies only the necessary updates.
+Use it to manage redirect URIs, SAML settings, visibility, assignment requirements, and token issuance behavior.
 
 #### Where to find
 Org \ Applications \ Update Application Registration
@@ -879,10 +925,11 @@ Org \ Applications \ Update Application Registration
 <a name='org-devices-add-autopilot-device'></a>
 
 ### Add Autopilot Device
-#### Import a windows device into Windows Autopilot.
+#### Import a Windows device into Windows Autopilot
 
 #### Description
-This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
+This runbook imports a Windows device into Windows Autopilot using the device serial number and hardware hash.
+It can optionally wait for the import job to finish and supports tagging during import.
 
 #### Where to find
 Org \ Devices \ Add Autopilot Device
@@ -896,10 +943,11 @@ Org \ Devices \ Add Autopilot Device
 <a name='org-devices-add-device-via-corporate-identifier'></a>
 
 ### Add Device Via Corporate Identifier
-#### Import a device into Intune via corporate identifier.
+#### Import a device into Intune via corporate identifier
 
 #### Description
-This runbook imports a device into Intune via corporate identifier (serial number or IMEI). It supports overwriting existing entries and adding a description to the device.
+This runbook imports a device into Intune using a corporate identifier such as serial number or IMEI.
+It can overwrite existing entries and optionally stores a description for the imported identity.
 
 #### Where to find
 Org \ Devices \ Add Device Via Corporate Identifier
@@ -913,11 +961,11 @@ Org \ Devices \ Add Device Via Corporate Identifier
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
-#### Scheduled deletion of stale devices based on last activity date and platform.
+#### Scheduled deletion of stale devices based on last activity
 
 #### Description
-Identifies, lists, and deletes devices that haven't been active for a specified number of days.
-Can be scheduled to run automatically and send a report via email.
+This runbook identifies Intune managed devices that have not been active for a defined number of days.
+It can optionally delete the matching devices and can send an email report.
 
 #### Where to find
 Org \ Devices \ Delete Stale Devices_Scheduled
@@ -931,10 +979,11 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 <a name='org-devices-get-bitlocker-recovery-key'></a>
 
 ### Get Bitlocker Recovery Key
-#### Get BitLocker recovery key
+#### Get the BitLocker recovery key
 
 #### Description
-Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
+This runbook retrieves a BitLocker recovery key using the recovery key ID from the BitLocker recovery screen.
+It returns key details and related device information.
 
 #### Where to find
 Org \ Devices \ Get Bitlocker Recovery Key
@@ -945,13 +994,80 @@ Org \ Devices \ Get Bitlocker Recovery Key
  
  
 
+<a name='org-devices-notify-users-about-stale-devices-(scheduled)'></a>
+
+### Notify Users About Stale Devices (Scheduled)
+#### Notify primary users about their stale devices via email
+
+#### Description
+Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
+
+#### Where to find
+Org \ Devices \ Notify Users About Stale Devices_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+## Mail Template Language Selection
+
+This runbook supports three email template options:
+
+1. **EN (English - Default)**: Uses the built-in English template
+2. **DE (German)**: Uses the built-in German template
+3. **Custom**: Uses a custom template from Runbook Customizations
+
+### Using Custom Mail Templates
+
+To use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.
+
+#### Example: Custom Template
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_devices_notify-users-about-stale-devices_scheduled": {
+            "Parameters": {
+                "CustomMailTemplateSubject": {
+                    "Default": "This is a custom subject - Action Required: Inactive Devices"
+                },
+                "CustomMailTemplateBeforeDeviceDetails": {
+                    "Default": "**This is above the Device Details.** \n\nDear user ..."
+                },
+                "CustomMailTemplateAfterDeviceDetails": {
+                    "Default": "**This is below the Device Details.** \n\n## What you should do..."
+                }
+            }
+        }
+    }
+}
+```
+
+**Important Notes:**
+- Use `\n` for line breaks in the JSON configuration
+- Markdown formatting (##, ###, **, -) is supported in the template text
+- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
+- If any parameter is missing, the runbook automatically falls back to the English (EN) template
+- When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-outphase-devices'></a>
 
 ### Outphase Devices
-#### Remove/Outphase multiple devices
+#### Remove or outphase multiple devices
 
 #### Description
-Remove/Outphase multiple devices. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
+It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
 
 #### Where to find
 Org \ Devices \ Outphase Devices
@@ -975,35 +1091,6 @@ Optionally, the report can be sent via email with a CSV attachment containing de
 
 #### Where to find
 Org \ Devices \ Report Devices Without Primary User
-
-## Setup regarding email sending
-
-This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
-
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
-
-
-
-[Back to Table of Content](#table-of-contents)
-
- 
- 
-
-<a name='org-devices-report-last-device-contact-by-range'></a>
-
-### Report Last Device Contact By Range
-#### Reports devices with last contact within a specified date range.
-
-#### Description
-This Runbook retrieves a list of devices from Intune, filtered by their last device contact time (lastSyncDateTime).
-As a dropdown for the date range, you can select from 0-30 days, 30-90 days, 90-180 days, 180-365 days, or 365+ days.
-
-The output includes the device name, last sync date, Intune device ID, and user principal name.
-
-Optionally, the report can be sent via email with a CSV attachment containing additional details (Entra ID Device ID, User ID).
-
-#### Where to find
-Org \ Devices \ Report Last Device Contact By Range
 
 ## Setup regarding email sending
 
@@ -1046,13 +1133,11 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 <a name='org-devices-report-users-with-more-than-5-devices'></a>
 
 ### Report Users With More Than 5-Devices
-#### Reports users with more than five registered devices in Entra ID.
+#### Report users with more than five registered devices
 
 #### Description
-This script queries all devices and their registered users, and reports users who have more than five devices registered.
-The output includes the user's Object ID, UPN, display name, and the number of devices.
-
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information for each user.
+This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
+It outputs a summary table and can optionally send an email with CSV attachments.
 
 #### Where to find
 Org \ Devices \ Report Users With More Than 5-Devices
@@ -1073,12 +1158,11 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 <a name='org-devices-sync-device-serialnumbers-to-entraid-(scheduled)'></a>
 
 ### Sync Device Serialnumbers To Entraid (Scheduled)
-#### Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+#### Sync Intune serial numbers to Entra ID extension attributes
 
 #### Description
-This runbook retrieves all managed devices from Intune, extracts their serial numbers,
-and updates the corresponding Azure AD device objects' extension attributes.
-This helps maintain consistency between Intune and Azure AD device records.
+This runbook retrieves Intune managed devices and syncs their serial numbers into an Entra ID device extension attribute.
+It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
 
 #### Where to find
 Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
@@ -1098,10 +1182,11 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 <a name='org-general-add-devices-of-users-to-group-(scheduled)'></a>
 
 ### Add Devices Of Users To Group (Scheduled)
-#### Sync devices of users in a specific group to another device group.
+#### Sync devices of users in a specific group to another device group
 
 #### Description
-This runbook reads accounts from a specified Users group and adds their devices to a specified Devices group. It ensures new devices are also added.
+This runbook reads accounts from a specified users group and adds their devices to a specified device group.
+It can filter devices by operating system and keeps the target group in sync.
 
 #### Where to find
 Org \ General \ Add Devices Of Users To Group_Scheduled
@@ -1115,10 +1200,11 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 <a name='org-general-add-management-partner'></a>
 
 ### Add Management Partner
-#### List or add or Management Partner Links (PAL)
+#### List or add Management Partner Links (PAL)
 
 #### Description
-List or add or Management Partner Links (PAL)
+This runbook lists existing Partner Admin Links (PAL) for the tenant or adds a new PAL.
+It uses the Azure Management Partner API and supports an interactive action selection.
 
 #### Where to find
 Org \ General \ Add Management Partner
@@ -1132,10 +1218,11 @@ Org \ General \ Add Management Partner
 <a name='org-general-add-microsoft-store-app-logos'></a>
 
 ### Add Microsoft Store App Logos
-#### Update logos of Microsoft Store Apps (new) in Intune.
+#### Update logos of Microsoft Store Apps (new) in Intune
 
 #### Description
-This script updates the logos for Microsoft Store Apps (new) in Intune by fetching them from the Microsoft Store.
+This runbook updates missing logos for Microsoft Store Apps (new) in Intune by fetching the icon from the Microsoft Store.
+It skips apps that already have a logo and reports how many apps were updated.
 
 #### Where to find
 Org \ General \ Add Microsoft Store App Logos
@@ -1152,7 +1239,8 @@ Org \ General \ Add Microsoft Store App Logos
 #### Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
 #### Description
-Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
+This runbook creates a Microsoft 365 group and provisions the related SharePoint site.
+It can optionally promote the group to a Microsoft Teams team after creation.
 
 #### Where to find
 Org \ General \ Add Office365 Group
@@ -1166,11 +1254,10 @@ Org \ General \ Add Office365 Group
 <a name='org-general-add-or-remove-safelinks-exclusion'></a>
 
 ### Add Or Remove Safelinks Exclusion
-#### Add or remove a SafeLinks URL exclusion to/from a given policy.
+#### Add or remove a SafeLinks URL exclusion from a policy
 
 #### Description
-Add or remove a SafeLinks URL exclusion to/from a given policy.
-It can also be used to initially create a new policy if required.
+Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
 
 #### Where to find
 Org \ General \ Add Or Remove Safelinks Exclusion
@@ -1184,10 +1271,11 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 <a name='org-general-add-or-remove-smartscreen-exclusion'></a>
 
 ### Add Or Remove Smartscreen Exclusion
-#### Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
+#### Add or remove a SmartScreen URL indicator in Microsoft Defender
 
 #### Description
-List/Add/Remove URL indicators entries in MS Security Center.
+This runbook lists, adds, or removes URL indicators in Microsoft Defender.
+It can allow, audit, warn, or block a given domain by creating an indicator entry.
 
 #### Where to find
 Org \ General \ Add Or Remove Smartscreen Exclusion
@@ -1201,10 +1289,10 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 <a name='org-general-add-or-remove-trusted-site'></a>
 
 ### Add Or Remove Trusted Site
-#### Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+#### Add or remove a URL entry in the Intune Trusted Sites policy
 
 #### Description
-Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom configuration policy. The runbook can also list all existing Trusted Sites policies and their mappings.
 
 #### Where to find
 Org \ General \ Add Or Remove Trusted Site
@@ -1218,10 +1306,11 @@ Org \ General \ Add Or Remove Trusted Site
 <a name='org-general-add-security-group'></a>
 
 ### Add Security Group
-#### This runbook creates a Microsoft Entra ID security group with membership type "Assigned".
+#### Create a Microsoft Entra ID security group
 
 #### Description
-This runbook creates a Microsoft Entra ID security group with membership type "Assigned".
+This runbook creates a Microsoft Entra ID security group with membership type Assigned.
+It validates the group name and optionally sets an owner during creation.
 
 #### Where to find
 Org \ General \ Add Security Group
@@ -1235,10 +1324,11 @@ Org \ General \ Add Security Group
 <a name='org-general-add-user'></a>
 
 ### Add User
-#### Create a new user account.
+#### Create a new user account
 
 #### Description
-Create a new user account.
+This runbook creates a new cloud user in Microsoft Entra ID and applies standard user properties.
+It can optionally assign a license group, add the user to additional groups, and create an Exchange Online archive mailbox.
 
 #### Where to find
 Org \ General \ Add User
@@ -1252,10 +1342,11 @@ Org \ General \ Add User
 <a name='org-general-add-viva-engange-community'></a>
 
 ### Add Viva Engange Community
-#### Creates a Viva Engage (Yammer) community via the Yammer API
+#### Create a Viva Engage (Yammer) community
 
 #### Description
-Creates a Viva Engage (Yammer) community using a Yammer dev token. The API-calls used are subject to change, so this script might break in the future.
+This runbook creates a Viva Engage community via the Yammer REST API using a stored developer token.
+It can optionally assign owners and remove the initial API user from the resulting Microsoft 365 group.
 
 #### Where to find
 Org \ General \ Add Viva Engange Community
@@ -1269,10 +1360,11 @@ Org \ General \ Add Viva Engange Community
 <a name='org-general-assign-groups-by-template-(scheduled)'></a>
 
 ### Assign Groups By Template (Scheduled)
-#### Assign cloud-only groups to many users based on a predefined template.
+#### Assign cloud-only groups to many users based on a predefined template
 
 #### Description
-Assign cloud-only groups to many users based on a predefined template.
+This runbook adds users from a source group to one or more target groups.
+Target groups are provided via a template-driven string and can be resolved by group ID or display name.
 
 #### Where to find
 Org \ General \ Assign Groups By Template_Scheduled
@@ -1286,10 +1378,11 @@ Org \ General \ Assign Groups By Template_Scheduled
 <a name='org-general-bulk-delete-devices-from-autopilot'></a>
 
 ### Bulk Delete Devices From Autopilot
-#### Mass-Delete Autopilot objects based on Serial Number.
+#### Bulk delete Autopilot objects by serial number
 
 #### Description
-This runbook deletes Autopilot objects in bulk based on a list of serial numbers.
+This runbook deletes Windows Autopilot device identities based on a comma-separated list of serial numbers.
+It searches for each serial number and deletes the matching Autopilot object if found.
 
 #### Where to find
 Org \ General \ Bulk Delete Devices From Autopilot
@@ -1306,7 +1399,7 @@ Org \ General \ Bulk Delete Devices From Autopilot
 #### Bulk retire devices from Intune using serial numbers
 
 #### Description
-This runbook retires multiple devices from Intune based on a list of serial numbers.
+Retires multiple Intune devices based on a comma-separated list of serial numbers. Each serial number is looked up in Intune and the device is retired if found.
 
 #### Where to find
 Org \ General \ Bulk Retire Devices From Intune
@@ -1320,10 +1413,11 @@ Org \ General \ Bulk Retire Devices From Intune
 <a name='org-general-check-aad-sync-status-(scheduled)'></a>
 
 ### Check Aad Sync Status (Scheduled)
-#### Check for last Azure AD Connect Sync Cycle.
+#### Check last Azure AD Connect sync status
 
 #### Description
-This runbook checks the Azure AD Connect sync status and the last sync date and time.
+This runbook checks whether on-premises directory synchronization is enabled and when the last sync happened.
+It can send an email alert if synchronization is not enabled.
 
 #### Where to find
 Org \ General \ Check Aad Sync Status_Scheduled
@@ -1337,10 +1431,11 @@ Org \ General \ Check Aad Sync Status_Scheduled
 <a name='org-general-check-assignments-of-devices'></a>
 
 ### Check Assignments Of Devices
-#### Check Intune assignments for a given (or multiple) Device Names.
+#### Check Intune assignments for one or more device names
 
 #### Description
-This script checks the Intune assignments for a single or multiple specified Device Names.
+This runbook queries Intune policies and optionally app assignments relevant to the specified device(s).
+It resolves device group memberships and reports matching assignments.
 
 #### Where to find
 Org \ General \ Check Assignments Of Devices
@@ -1354,10 +1449,11 @@ Org \ General \ Check Assignments Of Devices
 <a name='org-general-check-assignments-of-groups'></a>
 
 ### Check Assignments Of Groups
-#### Check Intune assignments for a given (or multiple) Group Names.
+#### Check Intune assignments for one or more group names
 
 #### Description
-This script checks the Intune assignments for a single or multiple specified Group Names.
+This runbook queries Intune policies and optionally app assignments that target the specified group(s).
+It resolves group IDs and reports matching assignments.
 
 #### Where to find
 Org \ General \ Check Assignments Of Groups
@@ -1371,10 +1467,11 @@ Org \ General \ Check Assignments Of Groups
 <a name='org-general-check-assignments-of-users'></a>
 
 ### Check Assignments Of Users
-#### Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
+#### Check Intune assignments for one or more user principal names
 
 #### Description
-This script checks the Intune assignments for a single or multiple specified UPNs.
+This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
+It resolves transitive group membership and reports matching assignments.
 
 #### Where to find
 Org \ General \ Check Assignments Of Users
@@ -1388,10 +1485,11 @@ Org \ General \ Check Assignments Of Users
 <a name='org-general-check-autopilot-serialnumbers'></a>
 
 ### Check Autopilot Serialnumbers
-#### Check if given serial numbers are present in AutoPilot.
+#### Check if given serial numbers are present in Autopilot
 
 #### Description
-Check if given serial numbers are present in AutoPilot.
+This runbook checks whether Windows Autopilot device identities exist for the provided serial numbers.
+It returns the serial numbers found and lists any missing serial numbers.
 
 #### Where to find
 Org \ General \ Check Autopilot Serialnumbers
@@ -1405,10 +1503,11 @@ Org \ General \ Check Autopilot Serialnumbers
 <a name='org-general-check-device-onboarding-exclusion-(scheduled)'></a>
 
 ### Check Device Onboarding Exclusion (Scheduled)
-#### Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
+#### Add unenrolled Autopilot devices to an exclusion group
 
 #### Description
-Check for Autopilot devices not yet onboarded to Intune. Add these to an exclusion group.
+This runbook identifies Windows Autopilot devices that are not yet enrolled in Intune and ensures they are members of a configured exclusion group.
+It also removes devices from the group once they are no longer in scope.
 
 #### Where to find
 Org \ General \ Check Device Onboarding Exclusion_Scheduled
@@ -1422,10 +1521,11 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 <a name='org-general-enrolled-devices-report-(scheduled)'></a>
 
 ### Enrolled Devices Report (Scheduled)
-#### Show recent first-time device enrollments.
+#### Show recent first-time device enrollments
 
 #### Description
-Show recent first-time device enrollments, grouped by a category/attribute.
+This runbook reports recent device enrollments based on a configurable time range.
+It can group results by a selected attribute and can optionally export the report as a CSV file.
 
 #### Where to find
 Org \ General \ Enrolled Devices Report_Scheduled
@@ -1439,10 +1539,10 @@ Org \ General \ Enrolled Devices Report_Scheduled
 <a name='org-general-export-all-autopilot-devices'></a>
 
 ### Export All Autopilot Devices
-#### List/export all AutoPilot devices.
+#### List or export all Windows Autopilot devices
 
 #### Description
-List/export all AutoPilot devices.
+Lists all Windows Autopilot devices and optionally exports them to a CSV file in Azure Storage. If exporting is enabled, the runbook uploads the report and returns a time-limited SAS (download) link.
 
 #### Where to find
 Org \ General \ Export All Autopilot Devices
@@ -1456,10 +1556,10 @@ Org \ General \ Export All Autopilot Devices
 <a name='org-general-export-all-intune-devices'></a>
 
 ### Export All Intune Devices
-#### Export a list of all Intune devices and where they are registered.
+#### Export a list of all Intune devices and where they are registered
 
 #### Description
-Export all Intune devices and metadata based on their owner, like usageLocation.
+Exports all Intune managed devices and enriches them with selected owner metadata such as usage location. The report is uploaded as a CSV file to an Azure Storage container.
 
 #### Where to find
 Org \ General \ Export All Intune Devices
@@ -1473,10 +1573,10 @@ Org \ General \ Export All Intune Devices
 <a name='org-general-export-cloudpc-usage-(scheduled)'></a>
 
 ### Export Cloudpc Usage (Scheduled)
-#### Write daily Windows 365 Utilization Data to Azure Tables
+#### Write daily Windows 365 utilization data to Azure Table Storage
 
 #### Description
-Write daily Windows 365 Utilization Data to Azure Tables. Will write data about the last full day.
+Collects Windows 365 Cloud PC remote connection usage for the last full day and writes it to an Azure Table. The runbook creates the table if needed and merges records per tenant and timestamp.
 
 #### Where to find
 Org \ General \ Export Cloudpc Usage_Scheduled
@@ -1490,10 +1590,11 @@ Org \ General \ Export Cloudpc Usage_Scheduled
 <a name='org-general-export-non-compliant-devices'></a>
 
 ### Export Non Compliant Devices
-#### Report on non-compliant devices and policies
+#### Export non-compliant Intune devices and settings
 
 #### Description
-Report on non-compliant devices and policies
+This runbook queries Intune for non-compliant and in-grace-period devices and retrieves detailed policy and setting compliance data.
+It can export the results to CSV with SAS (download) links.
 
 #### Where to find
 Org \ General \ Export Non Compliant Devices
@@ -1507,7 +1608,11 @@ Org \ General \ Export Non Compliant Devices
 <a name='org-general-export-policy-report'></a>
 
 ### Export Policy Report
-#### Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
+#### Create a report of tenant policies from Intune and Entra ID.
+
+#### Description
+This runbook exports configuration policies from Intune and Entra ID and writes the results to a Markdown report.
+It can optionally export raw JSON and create downloadable links for exported artifacts.
 
 #### Where to find
 Org \ General \ Export Policy Report
@@ -1521,10 +1626,11 @@ Org \ General \ Export Policy Report
 <a name='org-general-invite-external-guest-users'></a>
 
 ### Invite External Guest Users
-#### Invites external guest users to the organization using Microsoft Graph.
+#### Invite external guest users to the organization
 
 #### Description
-This script automates the process of inviting external users as guests to the organization. Optionally, the invited user can be added to a specified group.
+This runbook invites an external user as a guest user in Microsoft Entra ID.
+It can optionally add the invited user to a specified group.
 
 #### Where to find
 Org \ General \ Invite External Guest Users
@@ -1538,10 +1644,11 @@ Org \ General \ Invite External Guest Users
 <a name='org-general-list-all-administrative-template-policies'></a>
 
 ### List All Administrative Template Policies
-#### List all Administrative Template policies and their assignments.
+#### List all Administrative Template policies and their assignments
 
 #### Description
-This script retrieves all Administrative Template policies from Intune and displays their assignments.
+This runbook retrieves all Administrative Template policies from Intune.
+It lists each policy and shows its current assignments.
 
 #### Where to find
 Org \ General \ List All Administrative Template Policies
@@ -1558,7 +1665,8 @@ Org \ General \ List All Administrative Template Policies
 #### Report groups that have license assignment errors
 
 #### Description
-Report groups that have license assignment errors
+This runbook searches for Entra ID groups that have members with license assignment errors.
+It prints the affected group names and object IDs.
 
 #### Where to find
 Org \ General \ List Group License Assignment Errors
@@ -1572,10 +1680,11 @@ Org \ General \ List Group License Assignment Errors
 <a name='org-general-office365-license-report'></a>
 
 ### Office365 License Report
-#### Generate an Office 365 licensing report.
+#### Generate an Office 365 licensing report
 
 #### Description
-Generate an Office 365 licensing report.
+This runbook creates a licensing report based on Microsoft 365 subscription SKUs and optionally includes Exchange Online related reports.
+It can export the results to Azure Storage and generate SAS links for downloads.
 
 #### Where to find
 Org \ General \ Office365 License Report
@@ -1589,7 +1698,7 @@ Org \ General \ Office365 License Report
 <a name='org-general-report-apple-mdm-cert-expiry-(scheduled)'></a>
 
 ### Report Apple MDM Cert Expiry (Scheduled)
-#### Monitor/Report expiry of Apple device management certificates.
+#### Monitor/Report expiry of Apple device management certificates
 
 #### Description
 Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
@@ -1614,7 +1723,7 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 <a name='org-general-report-license-assignment-(scheduled)'></a>
 
 ### Report License Assignment (Scheduled)
-#### Generate and email a license availability report based on configured thresholds
+#### Generate and email a license availability report based on thresholds
 
 #### Description
 This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
@@ -1774,10 +1883,11 @@ Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurati
 <a name='org-general-report-pim-activations-(scheduled)'></a>
 
 ### Report Pim Activations (Scheduled)
-#### Scheduled Report on PIM Activations.
+#### Scheduled report on PIM activations
 
 #### Description
-This runbook collects and reports PIM activation details, including date, requestor, UPN, role, primary target, PIM group, reason, and status, and sends it via email.
+This runbook queries Microsoft Entra ID audit logs for recent PIM activations.
+It builds an report and sends it via email.
 
 #### Where to find
 Org \ General \ Report Pim Activations_Scheduled
@@ -1791,12 +1901,11 @@ Org \ General \ Report Pim Activations_Scheduled
 <a name='org-general-sync-all-devices'></a>
 
 ### Sync All Devices
-#### Sync all Intune devices.
+#### Sync all Intune Windows devices
 
 #### Description
 This runbook triggers a sync operation for all Windows devices managed by Microsoft Intune.
-It retrieves all managed Windows devices and sends a sync command to each device.
-This is useful for forcing devices to check in with Intune and apply any pending policies or configurations.
+It forces devices to check in and apply pending policies and configurations.
 
 #### Where to find
 Org \ General \ Sync All Devices
@@ -1816,10 +1925,10 @@ Org \ General \ Sync All Devices
 <a name='org-mail-add-distribution-list'></a>
 
 ### Add Distribution List
-#### Create a classic distribution group.
+#### Create a classic distribution group
 
 #### Description
-Create a classic distribution group.
+Creates a classic Exchange Online distribution group with optional owner configuration. If no primary SMTP address is provided, the default verified domain is used.
 
 #### Where to find
 Org \ Mail \ Add Distribution List
@@ -1833,10 +1942,10 @@ Org \ Mail \ Add Distribution List
 <a name='org-mail-add-equipment-mailbox'></a>
 
 ### Add Equipment Mailbox
-#### Create an equipment mailbox.
+#### Create an equipment mailbox
 
 #### Description
-Create an equipment mailbox.
+Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
 #### Where to find
 Org \ Mail \ Add Equipment Mailbox
@@ -1850,10 +1959,10 @@ Org \ Mail \ Add Equipment Mailbox
 <a name='org-mail-add-or-remove-public-folder'></a>
 
 ### Add Or Remove Public Folder
-#### Add or remove a public folder.
+#### Add or remove a public folder
 
 #### Description
-Assumes you already have at least on Public Folder Mailbox. It will not provision P.F. Mailboxes.
+Creates or removes an Exchange Online public folder. The runbook assumes that at least one public folder mailbox already exists and does not provision public folder mailboxes.
 
 #### Where to find
 Org \ Mail \ Add Or Remove Public Folder
@@ -1870,7 +1979,7 @@ Org \ Mail \ Add Or Remove Public Folder
 #### Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
 #### Description
-Create/Remove a contact, to allow pretty email addresses for Teams channels.
+Creates or updates a mail contact so a desired email address relays to the real Teams channel email address. The runbook can also remove the desired relay address again.
 
 #### Where to find
 Org \ Mail \ Add Or Remove Teams Mailcontact
@@ -1884,11 +1993,10 @@ Org \ Mail \ Add Or Remove Teams Mailcontact
 <a name='org-mail-add-or-remove-tenant-allow-block-list'></a>
 
 ### Add Or Remove Tenant Allow Block List
-#### Add or remove entries from the Tenant Allow/Block List.
+#### Add or remove entries from the Tenant Allow/Block List
 
 #### Description
-Add or remove entries from the Tenant Allow/Block List in Microsoft Defender for Office 365.
-Allows blocking or allowing senders, URLs, or file hashes. A new entry is set to expire in 30 days by default.
+Adds or removes entries from the Tenant Allow/Block List in Microsoft Defender for Office 365. The runbook supports senders, URLs, and file hashes and sets new entries to expire after 30 days by default.
 
 #### Where to find
 Org \ Mail \ Add Or Remove Tenant Allow Block List
@@ -1902,10 +2010,10 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
 <a name='org-mail-add-room-mailbox'></a>
 
 ### Add Room Mailbox
-#### Create a room resource.
+#### Create a room mailbox resource
 
 #### Description
-Create a room resource.
+Creates an Exchange Online room mailbox and optionally configures delegation and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
 #### Where to find
 Org \ Mail \ Add Room Mailbox
@@ -1919,7 +2027,7 @@ Org \ Mail \ Add Room Mailbox
 <a name='org-mail-add-shared-mailbox'></a>
 
 ### Add Shared Mailbox
-#### Create a shared mailbox.
+#### Create a shared mailbox
 
 #### Description
 This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
@@ -1937,10 +2045,10 @@ Org \ Mail \ Add Shared Mailbox
 <a name='org-mail-hide-mailboxes-(scheduled)'></a>
 
 ### Hide Mailboxes (Scheduled)
-#### Hide / Unhide special mailboxes in Global Address Book
+#### Hide or unhide special mailboxes in the Global Address List
 
 #### Description
-Hide / Unhide special mailboxes in Global Address Book. Currently intended for Booking calendars.
+Hides or unhides special mailboxes in the Global Address List, currently intended for Bookings calendars. The runbook updates all scheduling mailboxes accordingly.
 
 #### Where to find
 Org \ Mail \ Hide Mailboxes_Scheduled
@@ -1954,12 +2062,10 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 <a name='org-mail-set-booking-config'></a>
 
 ### Set Booking Config
-#### Configure Microsoft Bookings settings for the organization.
+#### Configure Microsoft Bookings settings for the organization
 
 #### Description
-Configure Microsoft Bookings settings at the organization level, including booking policies,
-naming conventions, and access restrictions. Optionally creates an OWA mailbox policy for
-Bookings creators and disables Bookings in the default OWA policy.
+Configures Microsoft Bookings settings at the organization level using Exchange Online organization configuration. The runbook can optionally create an OWA mailbox policy for Bookings creators and disable Bookings in the default OWA policy.
 
 #### Where to find
 Org \ Mail \ Set Booking Config
@@ -1979,10 +2085,10 @@ Org \ Mail \ Set Booking Config
 <a name='org-phone-get-teams-phone-number-assignment'></a>
 
 ### Get Teams Phone Number Assignment
-#### Looks up, if the given phone number is assigned to a user in Microsoft Teams.
+#### Check whether a phone number is assigned in Microsoft Teams
 
 #### Description
-This runbook looks up, if the given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned to a user, information about the user will be returned.
+Looks up whether a given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned, information about the user and relevant voice policies is returned.
 
 #### Where to find
 Org \ Phone \ Get Teams Phone Number Assignment
@@ -2013,10 +2119,10 @@ If a Teams user is found for the phone number, the following details are display
 <a name='org-security-add-defender-indicator'></a>
 
 ### Add Defender Indicator
-#### Create new Indicator in Defender for Endpoint.
+#### Create a new Microsoft Defender for Endpoint indicator
 
 #### Description
-Create a new Indicator in Defender for Endpoint e.g. to allow a specific file using it's hash value or allow a specific url that by default is blocked by Defender for Endpoint
+Creates a new indicator in Microsoft Defender for Endpoint to allow or block a specific file hash, certificate thumbprint, IP, domain, or URL. The indicator action can generate alerts automatically for audit or alert-and-block actions.
 
 #### Where to find
 Org \ Security \ Add Defender Indicator
@@ -2030,10 +2136,10 @@ Org \ Security \ Add Defender Indicator
 <a name='org-security-backup-conditional-access-policies'></a>
 
 ### Backup Conditional Access Policies
-#### Exports the current set of Conditional Access policies to an Azure storage account.
+#### Export Conditional Access policies to an Azure Storage account
 
 #### Description
-Exports the current set of Conditional Access policies to an Azure storage account.
+Exports the current set of Conditional Access policies via Microsoft Graph and uploads them as a ZIP archive to Azure Storage. If no container name is provided, a date-based name is generated.
 
 #### Where to find
 Org \ Security \ Backup Conditional Access Policies
@@ -2047,11 +2153,10 @@ Org \ Security \ Backup Conditional Access Policies
 <a name='org-security-list-admin-users'></a>
 
 ### List Admin Users
-#### List AzureAD role holders and their MFA state.
+#### List Entra ID role holders and optionally evaluate their MFA methods
 
 #### Description
-Will list users and service principals that hold a builtin AzureAD role.
-Admins will be queried for valid MFA methods.
+Lists users and service principals holding built-in Entra ID roles and produces an admin-to-role report. Optionally queries each admin for registered authentication methods to assess MFA coverage.
 
 #### Where to find
 Org \ Security \ List Admin Users
@@ -2065,10 +2170,10 @@ Org \ Security \ List Admin Users
 <a name='org-security-list-expiring-role-assignments'></a>
 
 ### List Expiring Role Assignments
-#### List Azure AD role assignments that will expire before a given number of days.
+#### List Azure AD role assignments expiring within a given number of days
 
 #### Description
-List Azure AD role assignments that will expire before a given number of days.
+Lists active and PIM-eligible Azure AD role assignments that expire within a specified number of days. The output includes role name, principal, and expiration date.
 
 #### Where to find
 Org \ Security \ List Expiring Role Assignments
@@ -2082,10 +2187,10 @@ Org \ Security \ List Expiring Role Assignments
 <a name='org-security-list-inactive-devices'></a>
 
 ### List Inactive Devices
-#### List/export inactive devices, which had no recent user logons.
+#### List or export inactive devices with no recent logon or Intune sync
 
 #### Description
-Collect devices based on the date of last user logon or last Intune sync.
+Collects devices based on either last interactive sign-in or last Intune sync date and lists them in the console. Optionally exports the results to a CSV file in Azure Storage.
 
 #### Where to find
 Org \ Security \ List Inactive Devices
@@ -2099,11 +2204,10 @@ Org \ Security \ List Inactive Devices
 <a name='org-security-list-inactive-users'></a>
 
 ### List Inactive Users
-#### List users, that have no recent interactive signins.
+#### List users with no recent interactive sign-ins
 
 #### Description
-This runbook lists users and guests from Azure AD, that have not signed in interactively for a specified number of days.
-It can also include users/guests that have never logged in.
+Lists users and guests that have not signed in interactively for a specified number of days. Optionally includes accounts that never signed in and accounts that are blocked.
 
 #### Where to find
 Org \ Security \ List Inactive Users
@@ -2117,10 +2221,10 @@ Org \ Security \ List Inactive Users
 <a name='org-security-list-information-protection-labels'></a>
 
 ### List Information Protection Labels
-#### Prints a list of all available InformationProtectionPolicy labels.
+#### List Microsoft Information Protection labels
 
 #### Description
-Prints a list of all available InformationProtectionPolicy labels.
+Retrieves all available Microsoft Information Protection labels in the tenant. This can be used to get the label IDs for use in other runbooks, e.g. for auto-labeling based on sensitivity.
 
 #### Where to find
 Org \ Security \ List Information Protection Labels
@@ -2136,6 +2240,9 @@ Org \ Security \ List Information Protection Labels
 ### List Pim Rolegroups Without Owners (Scheduled)
 #### List role-assignable groups with eligible role assignments but without owners
 
+#### Description
+Finds role-assignable groups that have PIM eligible role assignments but no owners assigned. Optionally sends an email alert containing the group names.
+
 #### Where to find
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
@@ -2148,7 +2255,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 <a name='org-security-list-users-by-mfa-methods-count'></a>
 
 ### List Users By MFA Methods Count
-#### Reports users by the count of their registered MFA methods.
+#### Report users by the count of their registered MFA methods
 
 #### Description
 This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
@@ -2167,10 +2274,10 @@ Org \ Security \ List Users By MFA Methods Count
 <a name='org-security-list-vulnerable-app-regs'></a>
 
 ### List Vulnerable App Regs
-#### List all app registrations that suffer from the CVE-2021-42306 vulnerability.
+#### List app registrations potentially vulnerable to CVE-2021-42306
 
 #### Description
-List all app registrations that suffer from the CVE-2021-42306 vulnerability.
+Lists Azure AD app registrations that may be affected by CVE-2021-42306 by inspecting stored key credentials. Optionally exports the findings to a CSV file in Azure Storage.
 
 #### Where to find
 Org \ Security \ List Vulnerable App Regs
@@ -2181,16 +2288,68 @@ Org \ Security \ List Vulnerable App Regs
  
  
 
+<a name='org-security-monitor-pending-epm-requests-(scheduled)'></a>
+
+### Monitor Pending EPM Requests (Scheduled)
+#### Monitor and report pending Endpoint Privilege Management (EPM) elevation requests
+
+#### Description
+Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
+Email is only sent when there are pending requests.
+Optionally includes detailed information about each request in a table and CSV attachment.
+
+#### Where to find
+Org \ Security \ Monitor Pending EPM Requests_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-security-notify-changed-ca-policies'></a>
 
 ### Notify Changed CA Policies
-#### Exports the current set of Conditional Access policies to an Azure storage account.
+#### Send notification email if Conditional Access policies have been created or modified in the last 24 hours.
 
 #### Description
-Exports the current set of Conditional Access policies to an Azure storage account.
+Checks Conditional Access policies for changes in the last 24 hours and sends an email with a text attachment listing the changed policies. If no changes are detected, no email is sent.
 
 #### Where to find
 Org \ Security \ Notify Changed CA Policies
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-report-epm-elevation-requests-(scheduled)'></a>
+
+### Report EPM Elevation Requests (Scheduled)
+#### Generate report for Endpoint Privilege Management (EPM) elevation requests
+
+#### Description
+Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
+Supports filtering by multiple status types and time range.
+Sends an email report with summary statistics and detailed CSV attachment.
+
+#### Where to find
+Org \ Security \ Report EPM Elevation Requests_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2203,7 +2362,7 @@ Org \ Security \ Notify Changed CA Policies
 # User
 <a name='user-avd'></a>
 
-## Avd
+## AVD
 <a name='user-avd-user-signout'></a>
 
 ### User Signout
@@ -2231,10 +2390,10 @@ User \ AVD \ User Signout
 <a name='user-general-assign-groups-by-template'></a>
 
 ### Assign Groups By Template
-#### Assign cloud-only groups to a user based on a predefined template.
+#### Assign cloud-only groups to a user based on a template
 
 #### Description
-Assign cloud-only groups to a user based on a predefined template.
+Adds a user to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
 
 #### Where to find
 User \ General \ Assign Groups By Template
@@ -2248,10 +2407,10 @@ User \ General \ Assign Groups By Template
 <a name='user-general-assign-or-unassign-license'></a>
 
 ### Assign Or Unassign License
-#### (Un-)Assign a license to a user via group membership.
+#### Assign or remove a license for a user via group membership
 
 #### Description
-(Un-)Assign a license to a user via group membership.
+Adds or removes a user to a dedicated license assignment group to control license allocation. The license group must match the configured naming convention.
 
 #### Where to find
 User \ General \ Assign Or Unassign License
@@ -2265,10 +2424,10 @@ User \ General \ Assign Or Unassign License
 <a name='user-general-assign-windows365'></a>
 
 ### Assign Windows365
-#### Assign/Provision a Windows 365 instance
+#### Assign and provision a Windows 365 Cloud PC for a user
 
 #### Description
-Assign/Provision a Windows 365 instance for this user.
+Assigns the required groups and license or Frontline provisioning policy to initiate Windows 365 provisioning. Optionally notifies the user when provisioning completes and can create a support ticket when licenses are exhausted.
 
 #### Where to find
 User \ General \ Assign Windows365
@@ -2282,11 +2441,10 @@ User \ General \ Assign Windows365
 <a name='user-general-list-group-memberships'></a>
 
 ### List Group Memberships
-#### List group memberships for this user.
+#### List group memberships for this user
 
 #### Description
-List group memberships for this user with filtering options for group type, membership type, role assignable status, Teams enabled status, and source.
-The output is in CSV format with all group details including DisplayName, ID, Type, MembershipType, RoleAssignable, TeamsEnabled, and Source.
+Lists group memberships for this user and supports filtering by group type, membership type, role-assignable status, Teams enablement, source, and writeback status. Outputs the results as CSV-formatted text.
 
 #### Where to find
 User \ General \ List Group Memberships
@@ -2303,7 +2461,7 @@ User \ General \ List Group Memberships
 #### List group ownerships for this user.
 
 #### Description
-List group ownerships for this user.
+Lists Entra ID groups where the specified user is an owner. Outputs the group names and IDs.
 
 #### Where to find
 User \ General \ List Group Ownerships
@@ -2317,10 +2475,10 @@ User \ General \ List Group Ownerships
 <a name='user-general-list-manager'></a>
 
 ### List Manager
-#### List manager information for this user.
+#### List manager information for this user
 
 #### Description
-List manager information for the specified user.
+Retrieves the manager object for a specified user. Outputs common manager attributes such as display name, email, and phone numbers.
 
 #### Where to find
 User \ General \ List Manager
@@ -2334,10 +2492,10 @@ User \ General \ List Manager
 <a name='user-general-offboard-user-permanently'></a>
 
 ### Offboard User Permanently
-#### Permanently offboard a user.
+#### Permanently offboard a user
 
 #### Description
-Permanently offboard a user.
+Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
 
 #### Where to find
 User \ General \ Offboard User Permanently
@@ -2351,10 +2509,10 @@ User \ General \ Offboard User Permanently
 <a name='user-general-offboard-user-temporarily'></a>
 
 ### Offboard User Temporarily
-#### Temporarily offboard a user.
+#### Temporarily offboard a user
 
 #### Description
-Temporarily offboard a user in cases like parental leaves or sabaticals.
+Temporarily offboards a user for scenarios such as parental leave or sabbatical by disabling access, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
 
 #### Where to find
 User \ General \ Offboard User Temporarily
@@ -2371,7 +2529,7 @@ User \ General \ Offboard User Temporarily
 #### Reprovision a Windows 365 Cloud PC
 
 #### Description
-Reprovision an already existing Windows 365 Cloud PC without reassigning a new instance for this user.
+Triggers a reprovision action for an existing Windows 365 Cloud PC without assigning a new instance. Optionally notifies the user when reprovisioning starts.
 
 #### Where to find
 User \ General \ Reprovision Windows365
@@ -2385,10 +2543,11 @@ User \ General \ Reprovision Windows365
 <a name='user-general-resize-windows365'></a>
 
 ### Resize Windows365
-#### Resize a Windows 365 Cloud PC
+#### Resize an existing Windows 365 Cloud PC for a user
 
 #### Description
-Resize an already existing Windows 365 Cloud PC by derpovisioning and assigning a new differently sized license to the user. Warning: All local data will be lost. Proceed with caution.
+Resizes a Windows 365 Cloud PC by removing the current assignment and provisioning a new size using a different license group.
+WARNING: This operation deprovisions and reprovisions the Cloud PC and local data may be lost.
 
 #### Where to find
 User \ General \ Resize Windows365
@@ -2402,10 +2561,10 @@ User \ General \ Resize Windows365
 <a name='user-general-unassign-windows365'></a>
 
 ### Unassign Windows365
-#### Remove/Deprovision a Windows 365 instance
+#### Remove and deprovision a Windows 365 Cloud PC for a user
 
 #### Description
-Remove/Deprovision a Windows 365 instance
+Removes Windows 365 assignments for a user and deprovisions the associated Cloud PC. Optionally ends the grace period immediately to trigger faster removal.
 
 #### Where to find
 User \ General \ Unassign Windows365
@@ -2425,10 +2584,10 @@ User \ General \ Unassign Windows365
 <a name='user-mail-add-or-remove-email-address'></a>
 
 ### Add Or Remove Email Address
-#### Add/remove eMail address to/from mailbox.
+#### Add or remove an email address for a mailbox
 
 #### Description
-Add/remove eMail address to/from mailbox, update primary eMail address.
+Adds or removes an alias email address on a mailbox and can optionally set it as the primary address.
 
 #### Where to find
 User \ Mail \ Add Or Remove Email Address
@@ -2442,10 +2601,11 @@ User \ Mail \ Add Or Remove Email Address
 <a name='user-mail-assign-owa-mailbox-policy'></a>
 
 ### Assign Owa Mailbox Policy
-#### Assign a given OWA mailbox policy to a user.
+#### Assign an OWA mailbox policy to a user
 
 #### Description
-Assign a given OWA mailbox policy to a user. E.g. to allow MS Bookings.
+Assigns an OWA mailbox policy to a mailbox in Exchange Online.
+This can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.
 
 #### Where to find
 User \ Mail \ Assign Owa Mailbox Policy
@@ -2459,10 +2619,10 @@ User \ Mail \ Assign Owa Mailbox Policy
 <a name='user-mail-convert-to-shared-mailbox'></a>
 
 ### Convert To Shared Mailbox
-#### Turn this users mailbox into a shared mailbox.
+#### Convert a user mailbox to a shared mailbox and back
 
 #### Description
-Turn this users mailbox into a shared mailbox.
+Converts a mailbox to a shared mailbox or reverts it back to a regular user mailbox. Optionally delegates access and adjusts group memberships and license groups.
 
 #### Where to find
 User \ Mail \ Convert To Shared Mailbox
@@ -2476,10 +2636,12 @@ User \ Mail \ Convert To Shared Mailbox
 <a name='user-mail-delegate-full-access'></a>
 
 ### Delegate Full Access
-#### Grant another user full access to this mailbox.
+#### Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
 
 #### Description
-Grant another user full access to this mailbox.
+Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.
+Also shows the current and new permissions for the mailbox.
+Automapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.
 
 #### Where to find
 User \ Mail \ Delegate Full Access
@@ -2493,10 +2655,11 @@ User \ Mail \ Delegate Full Access
 <a name='user-mail-delegate-send-as'></a>
 
 ### Delegate Send As
-#### Grant another user sendAs permissions on this mailbox.
+#### Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation
 
 #### Description
-Grant another user sendAs permissions on this mailbox.
+Grants or removes SendAs permissions for a delegate on a mailbox in Exchange Online. The current permissions are shown before and after applying the change.
+This allows the delegate to send emails as if they were the mailbox owner.
 
 #### Where to find
 User \ Mail \ Delegate Send As
@@ -2510,10 +2673,11 @@ User \ Mail \ Delegate Send As
 <a name='user-mail-delegate-send-on-behalf'></a>
 
 ### Delegate Send On Behalf
-#### Grant another user sendOnBehalf permissions on this mailbox.
+#### Delegate SendOnBehalf permissions for the user's mailbox
 
 #### Description
-Grant another user sendOnBehalf permissions on this mailbox.
+Grants or removes SendOnBehalf permissions for a delegate on the user's mailbox. Outputs the resulting SendOnBehalf trustees after applying the change.
+This allows the delegate to send emails on behalf of the mailbox owner.
 
 #### Where to find
 User \ Mail \ Delegate Send On Behalf
@@ -2527,10 +2691,10 @@ User \ Mail \ Delegate Send On Behalf
 <a name='user-mail-hide-or-unhide-in-addressbook'></a>
 
 ### Hide Or Unhide In Addressbook
-#### (Un)Hide this mailbox in address book.
+#### Hide or unhide a mailbox in the address book
 
 #### Description
-(Un)Hide this mailbox in address book.
+Hides or unhides a mailbox from the global address lists. Important: This change can take up to 72 hours until it is reflected in the global address list.
 
 #### Where to find
 User \ Mail \ Hide Or Unhide In Addressbook
@@ -2544,10 +2708,10 @@ User \ Mail \ Hide Or Unhide In Addressbook
 <a name='user-mail-list-mailbox-permissions'></a>
 
 ### List Mailbox Permissions
-#### List permissions on a (shared) mailbox.
+#### List mailbox permissions for a mailbox
 
 #### Description
-List permissions on a (shared) mailbox.
+Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
 
 #### Where to find
 User \ Mail \ List Mailbox Permissions
@@ -2561,10 +2725,10 @@ User \ Mail \ List Mailbox Permissions
 <a name='user-mail-list-room-mailbox-configuration'></a>
 
 ### List Room Mailbox Configuration
-#### List Room configuration.
+#### List room mailbox configuration
 
 #### Description
-List Room configuration.
+Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
 
 #### Where to find
 User \ Mail \ List Room Mailbox Configuration
@@ -2578,10 +2742,10 @@ User \ Mail \ List Room Mailbox Configuration
 <a name='user-mail-remove-mailbox'></a>
 
 ### Remove Mailbox
-#### Hard delete a shared mailbox, room or bookings calendar.
+#### Hard delete a shared mailbox, room or bookings calendar
 
 #### Description
-Hard delete a shared mailbox, room or bookings calendar.
+Forces a deletion of a shared mailbox, room mailbox, or bookings calendar. The mailbox type is validated before deletion.
 
 #### Where to find
 User \ Mail \ Remove Mailbox
@@ -2595,10 +2759,10 @@ User \ Mail \ Remove Mailbox
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-#### En-/Disable Out-of-office-notifications for a user/mailbox.
+#### Enable or disable out-of-office notifications for a mailbox
 
 #### Description
-En-/Disable Out-of-office-notifications for a user/mailbox.
+Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
 
 #### Where to find
 User \ Mail \ Set Out Of Office
@@ -2612,10 +2776,10 @@ User \ Mail \ Set Out Of Office
 <a name='user-mail-set-room-mailbox-configuration'></a>
 
 ### Set Room Mailbox Configuration
-#### Set room resource policies.
+#### Set room mailbox resource policies
 
 #### Description
-Set room resource policies.
+Updates room mailbox settings such as booking policy, calendar processing, and capacity. The runbook can optionally restrict BookInPolicy to members of a specific mail-enabled security group.
 
 #### Where to find
 User \ Mail \ Set Room Mailbox Configuration
@@ -2638,7 +2802,7 @@ User \ Mail \ Set Room Mailbox Configuration
 #### Microsoft Teams telephony offboarding
 
 #### Description
-Remove the phone number and specific policies from a teams-enabled user.
+Removes the assigned phone number and clears selected Teams voice policies for a Teams-enabled user. This fullfills the telephony offboarding scenarios.
 
 #### Where to find
 User \ Phone \ Disable Teams Phone
@@ -2652,10 +2816,10 @@ User \ Phone \ Disable Teams Phone
 <a name='user-phone-get-teams-user-info'></a>
 
 ### Get Teams User Info
-#### Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+#### Get Microsoft Teams voice status for a user
 
 #### Description
-Get the status quo of a Microsoft Teams user in terms of phone number, if any, and certain Microsoft Teams policies.
+Retrieves voice-related status information for a Teams user such as phone number assignment, call forwarding settings, voicemail configuration, and policy assignments. The output is intended for troubleshooting and validation.
 
 #### Where to find
 User \ Phone \ Get Teams User Info
@@ -2669,11 +2833,11 @@ User \ Phone \ Get Teams User Info
 <a name='user-phone-grant-teams-user-policies'></a>
 
 ### Grant Teams User Policies
-#### Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
+#### Grant Microsoft Teams policies to a Microsoft Teams enabled user
 
 #### Description
-Grant specific Microsoft Teams policies to a Microsoft Teams enabled user.
-If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+Assigns selected Teams policies for a Teams-enabled user. Policies are only changed when a value is provided, and assignments can be cleared by using the value "Global (Org Wide Default)".
+It allows to assign the following policies: Online Voice Routing Policy, Tenant Dial Plan, Teams Calling Policy, Teams IP Phone Policy, Online Voicemail Policy, Teams Meeting Policy and Teams Meeting Broadcast Policy (Live Event Policy).
 
 #### Where to find
 User \ Phone \ Grant Teams User Policies
@@ -2687,10 +2851,10 @@ User \ Phone \ Grant Teams User Policies
 <a name='user-phone-set-teams-permanent-call-forwarding'></a>
 
 ### Set Teams Permanent Call Forwarding
-#### Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
+#### Set immediate call forwarding for a Teams user
 
 #### Description
-Set up instant call forwarding for a Microsoft Teams Enterprise Voice user. Forwarding to another Microsoft Teams Enterprise Voice user or to an external phone number.
+Configures immediate call forwarding for a Teams Enterprise Voice user to a Teams user, a phone number, voicemail, or the user's delegates. The runbook can also disable immediate forwarding.
 
 #### Where to find
 User \ Phone \ Set Teams Permanent Call Forwarding
@@ -2728,10 +2892,10 @@ User \ Phone \ Set Teams Phone
 <a name='user-security-confirm-or-dismiss-risky-user'></a>
 
 ### Confirm Or Dismiss Risky User
-#### Confirm compromise / Dismiss a "risky user"
+#### Confirm compromise or dismiss a risky user
 
 #### Description
-Confirm compromise / Dismiss a "risky user"
+Confirms a user compromise or dismisses a risky user entry using Microsoft Entra ID Identity Protection. This helps security teams remediate and track risky sign-in events.
 
 #### Where to find
 User \ Security \ Confirm Or Dismiss Risky User
@@ -2745,10 +2909,10 @@ User \ Security \ Confirm Or Dismiss Risky User
 <a name='user-security-create-temporary-access-pass'></a>
 
 ### Create Temporary Access Pass
-#### Create an AAD temporary access pass for a user.
+#### Create a temporary access pass for a user
 
 #### Description
-Create an AAD temporary access pass for a user.
+Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one.
 
 #### Where to find
 User \ Security \ Create Temporary Access Pass
@@ -2762,10 +2926,10 @@ User \ Security \ Create Temporary Access Pass
 <a name='user-security-enable-or-disable-password-expiration'></a>
 
 ### Enable Or Disable Password Expiration
-#### Set a users password policy to "(Do not) Expire"
+#### Enable or disable password expiration for a user
 
 #### Description
-Set a users password policy to "(Do not) Expire"
+Updates the password policy for a user in Microsoft Entra ID. This can be used to disable password expiration or re-enable the default expiration behavior.
 
 #### Where to find
 User \ Security \ Enable Or Disable Password Expiration
@@ -2779,10 +2943,10 @@ User \ Security \ Enable Or Disable Password Expiration
 <a name='user-security-reset-mfa'></a>
 
 ### Reset Mfa
-#### Remove all App- and Mobilephone auth methods for a user.
+#### Remove all App- and Mobilephone auth methods for a user
 
 #### Description
-Remove all App- and Mobilephone auth methods for a user. User can re-enroll MFA.
+Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.
 
 #### Where to find
 User \ Security \ Reset Mfa
@@ -2796,10 +2960,10 @@ User \ Security \ Reset Mfa
 <a name='user-security-reset-password'></a>
 
 ### Reset Password
-#### Reset a user's password.
+#### Reset a user's password
 
 #### Description
-Reset a user's password. The user will have to change it on signin. Does not work with PW writeback to onprem AD.
+Resets the password for a user in Microsoft Entra ID and optionally enables the account first. The user can be forced to change the password at the next sign-in. This runbook is useful for helpdesk scenarios where a technician needs to reset a user's password and ensure that the user updates it upon next login.
 
 #### Where to find
 User \ Security \ Reset Password
@@ -2813,10 +2977,10 @@ User \ Security \ Reset Password
 <a name='user-security-revoke-or-restore-access'></a>
 
 ### Revoke Or Restore Access
-#### Revoke user access and all active tokens or re-enable user.
+#### Revoke or restore user access
 
 #### Description
-Revoke user access and all active tokens or re-enable user.
+Blocks or re-enables a user account and optionally revokes active sign-in sessions. This can be used during incident response to immediately invalidate user tokens.
 
 #### Where to find
 User \ Security \ Revoke Or Restore Access
@@ -2830,10 +2994,10 @@ User \ Security \ Revoke Or Restore Access
 <a name='user-security-set-or-remove-mobile-phone-mfa'></a>
 
 ### Set Or Remove Mobile Phone Mfa
-#### Add, update or remove a user's mobile phone MFA information.
+#### Set or remove a user's mobile phone MFA method
 
 #### Description
-Add, update or remove a user's mobile phone MFA information. If you want to modify a number, remove it first and add a new number afterwards.
+Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number.
 
 #### Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa
@@ -2853,10 +3017,10 @@ User \ Security \ Set Or Remove Mobile Phone Mfa
 <a name='user-userinfo-rename-user'></a>
 
 ### Rename User
-#### Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+#### Rename a user or mailbox
 
 #### Description
-Rename a user or mailbox. Will not update metadata like DisplayName, GivenName, Surname.
+Renames a user by changing the user principal name in Microsoft Entra ID and optionally updates mailbox properties in Exchange Online. This does not update user metadata such as display name, given name, or surname.
 
 #### Where to find
 User \ Userinfo \ Rename User
@@ -2870,10 +3034,10 @@ User \ Userinfo \ Rename User
 <a name='user-userinfo-set-photo'></a>
 
 ### Set Photo
-#### Set / update the photo / avatar picture of a user.
+#### Set the profile photo for a user
 
 #### Description
-Set / update the photo / avatar picture of a user.
+Downloads a JPEG image from a URL and uploads it as the user's profile photo. This is useful to set or update user avatars in Microsoft 365.
 
 #### Where to find
 User \ Userinfo \ Set Photo
@@ -2887,10 +3051,10 @@ User \ Userinfo \ Set Photo
 <a name='user-userinfo-update-user'></a>
 
 ### Update User
-#### Update/Finalize an existing user object.
+#### Update user metadata and memberships
 
 #### Description
-Update the metadata, group memberships and Exchange settings of an existing user object.
+Updates user profile properties in Microsoft Entra ID and applies optional group memberships and Exchange Online settings. This runbook is typically used to finalize onboarding or to correct user metadata.
 
 #### Where to find
 User \ Userinfo \ Update User

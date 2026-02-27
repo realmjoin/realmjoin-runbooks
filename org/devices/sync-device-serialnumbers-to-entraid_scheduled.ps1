@@ -1,35 +1,37 @@
 <#
-  .SYNOPSIS
-  Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+    .SYNOPSIS
+    Sync Intune serial numbers to Entra ID extension attributes
 
-  .DESCRIPTION
-  This runbook retrieves all managed devices from Intune, extracts their serial numbers,
-  and updates the corresponding Azure AD device objects' extension attributes.
-  This helps maintain consistency between Intune and Azure AD device records.
+    .DESCRIPTION
+    This runbook retrieves Intune managed devices and syncs their serial numbers into an Entra ID device extension attribute.
+    It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
 
-  .NOTES
-  Permissions (Graph):
-  - DeviceManagementManagedDevices.Read.All
-  - Directory.ReadWrite.All
-  - Device.ReadWrite.All
+    .PARAMETER ExtensionAttributeNumber
+    Extension attribute number to update
 
-  .PARAMETER ExtensionAttributeName
-  The name of the extension attribute to update with the serial number.
+    .PARAMETER ProcessAllDevices
+    If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed.
 
-  .PARAMETER ProcessAllDevices
-  If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
+    .PARAMETER MaxDevicesToProcess
+    Maximum number of devices to process in a single run. Use 0 for unlimited.
 
-  .PARAMETER MaxDevicesToProcess
-  Maximum number of devices to process in a single run. Use 0 for unlimited.
+    .PARAMETER sendReportTo
+    Email address to send the report to. If empty, no email will be sent.
 
-  .PARAMETER sendReportTo
-  Email address to send the report to. If empty, no email will be sent.
+    .PARAMETER sendReportFrom
+    Email address to send the report from.
 
-  .PARAMETER sendReportFrom
-  Email address to send the report from.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

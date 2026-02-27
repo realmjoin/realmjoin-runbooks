@@ -1,14 +1,23 @@
 <#
   .SYNOPSIS
-  Restrict code execution.
+  Only allow Microsoft-signed code to run on a device, or remove an existing restriction.
 
   .DESCRIPTION
-  Only allow Microsoft signed code to be executed.
+  This runbook restricts code execution on a device via Microsoft Defender for Endpoint so that only Microsoft-signed code can run.
+  Optionally, it can remove an existing restriction.
+  Provide a short reason so the action is documented in the service.
 
-  .NOTES
-  Permissions (WindowsDefenderATP, Application):
-  - Machine.Read.All
-  - Machine.RestrictExecution
+  .PARAMETER DeviceId
+  The device ID of the target device.
+
+  .PARAMETER Release
+  "Restrict Code Execution" (final value: false) or "Remove Code Restriction" (final value: true) can be selected as action to perform. If set to false, the runbook will restrict code execution on the device in Defender for Endpoint. If set to true, it will remove an existing code execution restriction on the device in Defender for Endpoint.
+
+  .PARAMETER Comment
+  A short reason for the (un)restriction action.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
 
   .INPUTS
   RunbookCustomization: {
@@ -92,7 +101,7 @@ if ($Release) {
   }
 }
 else {
-  "## Resctricting code execution on device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
+  "## Restricting code execution on device $($atpDevice.computerDnsName) (DeviceId $DeviceId)"
   try {
     $response = Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/restrictCodeExecution" -Body $body
   }

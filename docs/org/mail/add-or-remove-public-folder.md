@@ -1,9 +1,9 @@
 # Add Or Remove Public Folder
 
-Add or remove a public folder.
+Add or remove a public folder
 
 ## Detailed description
-Assumes you already have at least on Public Folder Mailbox. It will not provision P.F. Mailboxes.
+Creates or removes an Exchange Online public folder. The runbook assumes that at least one public folder mailbox already exists and does not provision public folder mailboxes.
 
 ## Where to find
 Org \ Mail \ Add Or Remove Public Folder
@@ -19,6 +19,7 @@ Org \ Mail \ Add Or Remove Public Folder
 
 ## Parameters
 ### PublicFolderName
+Name of the public folder to create or remove.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +28,7 @@ Org \ Mail \ Add Or Remove Public Folder
 | Type | String |
 
 ### MailboxName
+Optional target public folder mailbox to create the folder in.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ Org \ Mail \ Add Or Remove Public Folder
 | Type | String |
 
 ### AddPublicFolder
+If set to true, the public folder is created; if set to false, it is removed.
 
 | Property | Value |
 |----------|-------|

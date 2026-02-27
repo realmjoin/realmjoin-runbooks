@@ -1,60 +1,70 @@
 <#
-  .SYNOPSIS
-  Add or remove a SafeLinks URL exclusion to/from a given policy.
+    .SYNOPSIS
+    Add or remove a SafeLinks URL exclusion from a policy
 
-  .DESCRIPTION
-  Add or remove a SafeLinks URL exclusion to/from a given policy.
-  It can also be used to initially create a new policy if required.
+    .DESCRIPTION
+    Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
 
-  .PARAMETER LinkPattern
-  URL to allow, can contain '*' as wildcard for host and paths
+    .PARAMETER Action
+    "Add URL Pattern to Policy", "Remove URL Pattern from Policy" or "List all existing policies and settings" could be selected as action to perform.
 
-  .PARAMETER PolicyName
-  Optional, will overwrite default values
+    .PARAMETER LinkPattern
+    URL pattern to allow; it can contain '*' as a wildcard for host and paths.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "Action": {
-            "DisplayName": "Add or Remove URL Pattern to/from Policy",
-            "Select": {
-                "Options":
-                [
-                    {
-                        "Display": "Add URL Pattern to Policy" ,
-                        "ParameterValue": 0
-                    },
-                    {
-                        "Display": "Remove URL Pattern from Policy",
-                        "ParameterValue": 1,
-                        "Customization": {
-                            "Hide": [
-                                "CreateNewPolicyIfNeeded"
-                            ]
+    .PARAMETER DefaultPolicyName
+    Default SafeLinks policy name used when no explicit policy name is provided.
+
+    .PARAMETER PolicyName
+    Optional SafeLinks policy name; if provided, it overrides the default selection.
+
+    .PARAMETER CreateNewPolicyIfNeeded
+    If set to true, the runbook creates a new SafeLinks policy and assignment group when the requested policy does not exist.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "Action": {
+                "DisplayName": "Add or Remove URL Pattern to/from Policy",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Add URL Pattern to Policy",
+                            "ParameterValue": 0
+                        },
+                        {
+                            "Display": "Remove URL Pattern from Policy",
+                            "ParameterValue": 1,
+                            "Customization": {
+                                "Hide": [
+                                    "CreateNewPolicyIfNeeded"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "List all existing policies and settings",
+                            "ParameterValue": 2,
+                            "Customization": {
+                                "Hide": [
+                                    "LinkPattern",
+                                    "CreateNewPolicyIfNeeded",
+                                    "PolicyName"
+                                ]
+                            }
                         }
-                    },
-                    {
-                        "Display": "List all existing policies and settings",
-                        "ParameterValue": 2,
-                        "Customization": {
-                            "Hide": [
-                                "LinkPattern",
-                                "CreateNewPolicyIfNeeded",
-                                "PolicyName"
-                            ]
-                        }
-                    }
-                ]
+                    ]
+                }
+            },
+            "DefaultPolicyName": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-        },
-        "DefaultPolicyName": {
-            "Hide": true
-        },
-        "CallerName": {
-            "Hide": true
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.7.2" }

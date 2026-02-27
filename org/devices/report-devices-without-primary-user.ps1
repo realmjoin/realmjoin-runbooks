@@ -1,24 +1,24 @@
 ﻿<#
-.SYNOPSIS
+    .SYNOPSIS
     Reports all managed devices in Intune that do not have a primary user assigned.
-.DESCRIPTION
+    .DESCRIPTION
     This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
     The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
 
     Optionally, the report can be sent via email with a CSV attachment containing detailed device information
 
-.PARAMETER EmailTo
+    .PARAMETER EmailTo
     If specified, an email with the report will be sent to the provided address(es).
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
-.PARAMETER EmailFrom
+    .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization.
 
-.PARAMETER CallerName
-    Internal parameter for tracking purposes
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-.INPUTS
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "EmailTo": {
@@ -35,7 +35,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]

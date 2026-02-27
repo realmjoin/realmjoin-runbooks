@@ -1,14 +1,20 @@
 <#
-  .SYNOPSIS
-  List group ownerships for this user.
+    .SYNOPSIS
+    List group ownerships for this user.
 
-  .DESCRIPTION
-  List group ownerships for this user.
+    .DESCRIPTION
+    Lists Entra ID groups where the specified user is an owner. Outputs the group names and IDs.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
-            "UserName":{
+            "UserName": {
                 "Hide": true
             },
             "CallerName": {

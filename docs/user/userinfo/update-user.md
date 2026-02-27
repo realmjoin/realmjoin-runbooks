@@ -1,9 +1,9 @@
 # Update User
 
-Update/Finalize an existing user object.
+Update user metadata and memberships
 
 ## Detailed description
-Update the metadata, group memberships and Exchange settings of an existing user object.
+Updates user profile properties in Microsoft Entra ID and applies optional group memberships and Exchange Online settings. This runbook is typically used to finalize onboarding or to correct user metadata.
 
 ## Where to find
 User \ Userinfo \ Update User
@@ -20,6 +20,7 @@ User \ Userinfo \ Update User
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -28,6 +29,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### GivenName
+Given name to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -36,6 +38,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### Surname
+Surname to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -44,6 +47,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### DisplayName
+Display name to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -52,6 +56,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### CompanyName
+Company name to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -60,6 +65,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### City
+City to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -68,6 +74,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### Country
+Country to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -76,6 +83,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### JobTitle
+Job title to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -84,6 +92,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### Department
+Department to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +101,7 @@ User \ Userinfo \ Update User
 | Type | String |
 
 ### OfficeLocation
-think "physicalDeliveryOfficeName" if you are coming from on-prem
+Office location to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -101,6 +110,7 @@ think "physicalDeliveryOfficeName" if you are coming from on-prem
 | Type | String |
 
 ### PostalCode
+Postal code to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -109,7 +119,7 @@ think "physicalDeliveryOfficeName" if you are coming from on-prem
 | Type | String |
 
 ### PreferredLanguage
-Examples: 'en-US' or 'de-DE'
+Preferred language to set for the user. Examples: "en-US" or "de-DE".
 
 | Property | Value |
 |----------|-------|
@@ -118,6 +128,7 @@ Examples: 'en-US' or 'de-DE'
 | Type | String |
 
 ### State
+State to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -126,6 +137,7 @@ Examples: 'en-US' or 'de-DE'
 | Type | String |
 
 ### StreetAddress
+Street address to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -134,7 +146,7 @@ Examples: 'en-US' or 'de-DE'
 | Type | String |
 
 ### UsageLocation
-Examples: "DE" or "US"
+Usage location to set for the user.
 
 | Property | Value |
 |----------|-------|
@@ -143,6 +155,7 @@ Examples: "DE" or "US"
 | Type | String |
 
 ### DefaultLicense
+Display name of a license group to assign.
 
 | Property | Value |
 |----------|-------|
@@ -151,6 +164,7 @@ Examples: "DE" or "US"
 | Type | String |
 
 ### DefaultGroups
+Comma-separated list of group display names to assign.
 
 | Property | Value |
 |----------|-------|
@@ -159,6 +173,7 @@ Examples: "DE" or "US"
 | Type | String |
 
 ### EnableEXOArchive
+If set to true, enables the Exchange Online archive mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -167,6 +182,7 @@ Examples: "DE" or "US"
 | Type | Boolean |
 
 ### ResetPassword
+If set to true, resets the user's password.
 
 | Property | Value |
 |----------|-------|

@@ -3,11 +3,9 @@
 Add an application registration to Azure AD
 
 ## Detailed description
-This script creates a new application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
-
-The script validates input parameters, prevents duplicate application creation, and provides comprehensive logging
-throughout the process. For SAML applications, it automatically configures reply URLs, sign-on URLs, logout URLs,
-and certificate expiry notifications.
+This runbook creates a new application registration in Microsoft Entra ID and optionally configures redirect URIs and SAML settings.
+It validates the submitted parameters, prevents duplicate app creation, and writes verbose logs for troubleshooting.
+Use it to standardize application registration setup, including visibility and assignment-related options.
 
 ## Where to find
 Org \ Applications \ Add Application Registration
@@ -15,9 +13,12 @@ Org \ Applications \ Add Application Registration
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Application.ReadWrite.All
+  - Application.ReadWrite.OwnedBy
   - Organization.Read.All
   - Group.ReadWrite.All
+
+### RBAC roles
+- Application Developer
 
 
 ## Parameters
@@ -31,7 +32,7 @@ The display name of the application registration to create.
 | Type | String |
 
 ### RedirectURI
-Used for UI selection only. Determines which redirect URI type to configure (None, Web, SAML, Public Client, or SPA).
+Used for UI selection only. Determines which redirect URI type to configure - None, Web, SPA, or Public Client
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +41,7 @@ Used for UI selection only. Determines which redirect URI type to configure (Non
 | Type | String |
 
 ### signInAudience
-Specifies who can use the application. Default is "AzureADMyOrg" (single tenant). Hidden in UI.
+Specifies who can use the application. Defaults to "AzureADMyOrg" (single tenant).
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +50,7 @@ Specifies who can use the application. Default is "AzureADMyOrg" (single tenant)
 | Type | String |
 
 ### webRedirectURI
-Redirect URI(s) for web applications. Supports multiple URIs separated by semicolons (e.g., "https://app1.com/auth;https://app2.com/auth").
+Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +59,7 @@ Redirect URI(s) for web applications. Supports multiple URIs separated by semico
 | Type | String |
 
 ### spaRedirectURI
-Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separated by semicolons.
+Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +68,7 @@ Redirect URI(s) for single-page applications (SPA). Supports multiple URIs separ
 | Type | String |
 
 ### publicClientRedirectURI
-Redirect URI(s) for public client/native applications (mobile & desktop). Supports multiple URIs separated by semicolons (e.g., "myapp://auth").
+Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -76,7 +77,7 @@ Redirect URI(s) for public client/native applications (mobile & desktop). Suppor
 | Type | String |
 
 ### EnableSAML
-Enable SAML-based authentication for the application. When enabled, SAML-specific parameters are required.
+If set to true, SAML-based authentication is configured for the application. If enabled, additional SAML-related parameters become required.
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +86,7 @@ Enable SAML-based authentication for the application. When enabled, SAML-specifi
 | Type | Boolean |
 
 ### SAMLReplyURL
-The reply URL for SAML authentication. Required when EnableSAML is true.
+The reply URL for SAML-based authentication
 
 | Property | Value |
 |----------|-------|

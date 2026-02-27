@@ -1,10 +1,10 @@
 # Delete Stale Devices (Scheduled)
 
-Scheduled deletion of stale devices based on last activity date and platform.
+Scheduled deletion of stale devices based on last activity
 
 ## Detailed description
-Identifies, lists, and deletes devices that haven't been active for a specified number of days.
-Can be scheduled to run automatically and send a report via email.
+This runbook identifies Intune managed devices that have not been active for a defined number of days.
+It can optionally delete the matching devices and can send an email report.
 
 ## Where to find
 Org \ Devices \ Delete Stale Devices_Scheduled
@@ -12,8 +12,7 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementManagedDevices.DeleteAll
+  - DeviceManagementManagedDevices.ReadWrite.All
   - Directory.Read.All
   - Device.Read.All
   - Mail.Send
@@ -21,7 +20,7 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 
 ## Parameters
 ### Days
-Number of days without activity to be considered stale.
+Number of days without activity to be considered stale
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +29,7 @@ Number of days without activity to be considered stale.
 | Type | Int32 |
 
 ### Windows
-Include Windows devices in the results.
+Include Windows devices in the results
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +38,7 @@ Include Windows devices in the results.
 | Type | Boolean |
 
 ### MacOS
-Include macOS devices in the results.
+Include macOS devices in the results
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +47,7 @@ Include macOS devices in the results.
 | Type | Boolean |
 
 ### iOS
-Include iOS devices in the results.
+Include iOS devices in the results
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +56,7 @@ Include iOS devices in the results.
 | Type | Boolean |
 
 ### Android
-Include Android devices in the results.
+Include Android devices in the results
 
 | Property | Value |
 |----------|-------|

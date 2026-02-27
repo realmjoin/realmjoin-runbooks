@@ -1,6 +1,6 @@
 # List All Members
 
-Retrieves the members of a specified EntraID group, including members from nested groups.
+List all members of a group, including members that are part of nested groups
 
 ## Detailed description
 This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
@@ -19,7 +19,7 @@ Group \ General \ List All Members
 
 ## Parameters
 ### GroupId
-The ObjectId of the EntraID group whose membership is to be retrieved.
+The Object ID of the Microsoft Entra ID group whose membership will be retrieved.
 
 | Property | Value |
 |----------|-------|

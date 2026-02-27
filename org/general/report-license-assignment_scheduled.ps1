@@ -1,66 +1,61 @@
 ﻿<#
-.SYNOPSIS
-    Generate and email a license availability report based on configured thresholds
+	.SYNOPSIS
+	Generate and email a license availability report based on thresholds
 
-.DESCRIPTION
+    .DESCRIPTION
     This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
     Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
     The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
     The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
 
-.PARAMETER InputJson
-    JSON array containing SKU configurations with thresholds. Each entry should include:
-    - SKUPartNumber: The Microsoft SKU identifier
-    - FriendlyName: Display name for the license
-    - MinThreshold: (Optional) Minimum number of licenses that should be available
-    - MaxThreshold: (Optional) Maximum number of licenses that should be available
+    .PARAMETER InputJson
+    JSON array containing SKU configurations with thresholds. Each entry should include a SKUPartNumber for the Microsoft SKU identifier, a FriendlyName as the display name for the license, an optional MinThreshold specifying the minimum number of licenses that should be available, and an optional MaxThreshold specifying the maximum number of licenses that should be available.
 
     This needs to be configured in the runbook customization
 
-.PARAMETER EmailTo
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+	.PARAMETER EmailTo
+	Recipient email address or comma-separated recipient list.
 
-.PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+	.PARAMETER EmailFrom
+	Sender email address resolved from settings.
 
-.PARAMETER CallerName
-    Internal parameter for tracking purposes
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
 
-.INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
-            },
-            "InputJson": {
-                "Hide": true,
-                "DefaultValue": [
-                    {
-                        "SKUPartNumber": "SPE_E5",
-                        "FriendlyName": "Microsoft 365 E5",
-                        "MinThreshold": 20,
-                        "MaxThreshold": 30
-                    },
-                    {
-                        "SKUPartNumber": "FLOW_FREE",
-                        "FriendlyName": "Microsoft Power Automate Free",
-                        "MinThreshold": 10
-                    }
-                ]
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"EmailTo": {
+				"DisplayName": "Recipient Email Address(es)"
+			},
+			"InputJson": {
+				"Hide": true,
+				"DefaultValue": [
+					{
+						"SKUPartNumber": "SPE_E5",
+						"FriendlyName": "Microsoft 365 E5",
+						"MinThreshold": 20,
+						"MaxThreshold": 30
+					},
+					{
+						"SKUPartNumber": "FLOW_FREE",
+						"FriendlyName": "Microsoft Power Automate Free",
+						"MinThreshold": 10
+					}
+				]
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param (
     [Parameter(Mandatory = $true)]

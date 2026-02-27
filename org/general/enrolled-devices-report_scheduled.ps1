@@ -1,12 +1,43 @@
 <#
   .SYNOPSIS
-  Show recent first-time device enrollments.
+  Show recent first-time device enrollments
 
   .DESCRIPTION
-  Show recent first-time device enrollments, grouped by a category/attribute.
+  This runbook reports recent device enrollments based on a configurable time range.
+  It can group results by a selected attribute and can optionally export the report as a CSV file.
+
+  .PARAMETER Weeks
+  Time range in weeks to include in the report.
+
+  .PARAMETER dataSource
+  Data source used to determine the first enrollment date.
+
+  .PARAMETER groupingSource
+  Data source used to resolve the grouping attribute.
+
+  .PARAMETER groupingAttribute
+  Attribute name used for grouping.
 
   .PARAMETER exportCsv
   Please configure an Azure Storage Account to use this feature.
+
+  .PARAMETER ContainerName
+  Storage container name used for upload.
+
+  .PARAMETER ResourceGroupName
+  Resource group that contains the storage account.
+
+  .PARAMETER StorageAccountName
+  Storage account name used for upload.
+
+  .PARAMETER StorageAccountLocation
+  Azure region for the storage account.
+
+  .PARAMETER StorageAccountSku
+  Storage account SKU.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
 
   .NOTES
 
@@ -14,120 +45,120 @@
   Example of Azure Storage Account configuration for RJ central datastore
   {
     "Settings": {
-        "EnrolledDevicesReport": {
-            "ResourceGroup": "rj-test-runbooks-01",
-            "StorageAccount": {
-                "Name": "rjrbexports01",
-                "Location": "West Europe",
-                "Sku": "Standard_LRS"
-            }
+      "EnrolledDevicesReport": {
+        "ResourceGroup": "rj-test-runbooks-01",
+        "StorageAccount": {
+          "Name": "rjrbexports01",
+          "Location": "West Europe",
+          "Sku": "Standard_LRS"
         }
+      }
     }
   }
 
   .INPUTS
   RunbookCustomization: {
     "ParameterList": [
-        {
-            "Name": "Weeks",
-            "DisplayName": "Time range (in weeks)"
-        },
-        {
-            "Name": "dataSource",
-            "DisplayName": "First enrollment criterion",
-            "SelectSimple": {
-                "Date of Autopilot profile assignment": 0,
-                "Date of Intune enrollment": 1
-            }
-        },
-        {
-            "Name": "groupingSource",
-            "DisplayName": "Data source for the grouping attribute",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "No grouping",
-                        "ParameterValue": 0,
-                        "Customization": {
-                            "Hide": [
-                                "groupingAttribute"
-                            ]
-                        }
-                    },
-                    {
-                        "Display": "AzureAD User properties",
-                        "ParameterValue": 1,
-                        "Customization": {
-                            "Default": {
-                                "groupingAttribute": "country"
-                            }
-                        }
-                    },
-                    {
-                        "Display": "AzureAD Device properties",
-                        "ParameterValue": 2,
-                        "Customization": {
-                            "Default": {
-                                "groupingAttribute": "accountEnabled"
-                            }
-                        }
-                    },
-                    {
-                        "Display": "Intune Device properties",
-                        "ParameterValue": 3,
-                        "Customization": {
-                            "Default": {
-                                "groupingAttribute": "manufacturer"
-                            }
-                        }
-                    },
-                    {
-                        "Display": "AutoPilot Device properties",
-                        "ParameterValue": 4,
-                        "Customization": {
-                            "Default": {
-                                "groupingAttribute": "groupTag"
-                            }
-                        }
-                    }
-                ],
-                "ShowValue": false
-            }
-        },
-        {
-            "Name": "exportCsv",
-            "DisplayName": "Export report as downloadable CSV?"
-        },
-        {
-            "Name": "groupingAttribute",
-            "DisplayName": "Attribute/Category to group by"
-        },
-        {
-            "Name": "ContainerName",
-            "Hide": true
-        },
-        {
-            "Name": "ResourceGroupName",
-            "Hide": true
-        },
-        {
-            "Name": "StorageAccountName",
-            "Hide": true
-        },
-        {
-            "Name": "StorageAccountLocation",
-            "Hide": true
-        },
-        {
-            "Name": "StorageAccountSku",
-            "Hide": true
-        },
-        {
-            "Name": "CallerName",
-            "Hide": true
+      {
+        "Name": "Weeks",
+        "DisplayName": "Time range (in weeks)"
+      },
+      {
+        "Name": "dataSource",
+        "DisplayName": "First enrollment criterion",
+        "SelectSimple": {
+          "Date of Autopilot profile assignment": 0,
+          "Date of Intune enrollment": 1
         }
+      },
+      {
+        "Name": "groupingSource",
+        "DisplayName": "Data source for the grouping attribute",
+        "Select": {
+          "Options": [
+            {
+              "Display": "No grouping",
+              "ParameterValue": 0,
+              "Customization": {
+                "Hide": [
+                  "groupingAttribute"
+                ]
+              }
+            },
+            {
+              "Display": "EntraID User properties",
+              "ParameterValue": 1,
+              "Customization": {
+                "Default": {
+                  "groupingAttribute": "country"
+                }
+              }
+            },
+            {
+              "Display": "EntraID Device properties",
+              "ParameterValue": 2,
+              "Customization": {
+                "Default": {
+                  "groupingAttribute": "accountEnabled"
+                }
+              }
+            },
+            {
+              "Display": "Intune Device properties",
+              "ParameterValue": 3,
+              "Customization": {
+                "Default": {
+                  "groupingAttribute": "manufacturer"
+                }
+              }
+            },
+            {
+              "Display": "AutoPilot Device properties",
+              "ParameterValue": 4,
+              "Customization": {
+                "Default": {
+                  "groupingAttribute": "groupTag"
+                }
+              }
+            }
+          ],
+          "ShowValue": false
+        }
+      },
+      {
+        "Name": "exportCsv",
+        "DisplayName": "Export report as downloadable CSV?"
+      },
+      {
+        "Name": "groupingAttribute",
+        "DisplayName": "Attribute/Category to group by"
+      },
+      {
+        "Name": "ContainerName",
+        "Hide": true
+      },
+      {
+        "Name": "ResourceGroupName",
+        "Hide": true
+      },
+      {
+        "Name": "StorageAccountName",
+        "Hide": true
+      },
+      {
+        "Name": "StorageAccountLocation",
+        "Hide": true
+      },
+      {
+        "Name": "StorageAccountSku",
+        "Hide": true
+      },
+      {
+        "Name": "CallerName",
+        "Hide": true
+      }
     ]
-}
+  }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
@@ -140,8 +171,8 @@ param(
   [int] $dataSource = 0,
   ## How to group results?
   # 0 - no grouping
-  # 1 - AzureAD User properties
-  # 2 - AzureAD Device properties
+  # 1 - EntraID User properties
+  # 2 - EntraID Device properties
   # 3 - Intune device properties
   # 4 - AutoPilot properties
   [int] $groupingSource = 1,
@@ -152,7 +183,7 @@ param(
   # - "systemFamily"
   # - "skuNumber"
   #
-  # AzureAD User:
+  # EntraID User:
   # - "city"
   # - "companyName"
   # - "department"
@@ -162,7 +193,7 @@ param(
   # - "usageLocation"
   # - "manager"?
   #
-  # AzureAD Device:
+  # EntraID Device:
   # - "manufacturer"
   # - "model"
   #
@@ -261,7 +292,7 @@ try {
   }
 
   if ($groupingSource -eq 1) {
-    "## - AzureAD User: $groupingAttribute"
+    "## - EntraID User: $groupingAttribute"
     ""
     $data | ForEach-Object {
       if ($_.intuneDevice -and $_.intuneDevice.userId ) {
@@ -277,7 +308,7 @@ try {
   }
 
   if ($groupingSource -eq 2) {
-    "## - AzureAD Device: $groupingAttribute"
+    "## - EntraID Device: $groupingAttribute"
     ""
     $data | ForEach-Object {
       $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.apDevice.azureAdDeviceId)'" -ErrorAction SilentlyContinue

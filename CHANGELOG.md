@@ -1,5 +1,50 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-02-25
+
+- Update documentation for **Notify Users About Stale Devices (Scheduled)** Runbook
+  - Added detailed instructions for email configuration and custom mail template usage in the runbook documentation to enhance clarity and usability for users setting up email notifications.
+  - Added Mail Template Language Selection section (EN, DE, Custom)
+- Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
+  - This runbook retrieves and displays the BitLocker recovery key for a specified device.
+- Update **Assign OWA Mailbox Policy** Runbook to User/Mail section
+  - Added new OWA mailbox policies to the selection options, including "OwaMailboxPolicy-NoSignatures" for users who should not have email signatures in OWA, "BookingsCreators" for users who create Bookings appointments and need the corresponding add-in enabled and "GetCurrent" to assign the currently active policy for the user.
+- Update **Check Assignments Of Users** Runbook to Org/General section
+  - Added support for processing multiple users in a single run by multi user picker.
+  - Add required permissions for app assignment checks to the documentation.
+- Update **Check Assignments Of Groups** Runbook to Org/General section
+  - Added support for processing multiple groups in a single run by multi group picker.
+
+## 2026-02-24
+
+- Update **Unenroll Updatable Assets** to **Unenroll Updatable Assets (Scheduled)** (in group/general)
+  - Add option to include user owned devices in the unenrollment process, which allows for a more comprehensive management of updatable assets by optionally targeting devices that are owned by users which are in membership of the specified group.
+- Update **List Admin Users** Runbook
+  - Add output of PIM role assignment status (permanent vs eligible) and expiration date to the runbook output and CSV export.
+
+## 2026-02-20
+
+- Add two new Endpoint Privilege Management (EPM) runbooks for org/security:
+  - **Monitor Pending EPM Requests (Scheduled)**: Monitoring for pending elevation requests requiring admin review. Sends email notifications only when pending requests exist, includes optional detailed CSV export.
+  - **Report EPM Elevation Requests (Scheduled)**: Reporting for EPM elevation requests with flexible filtering by status (Pending, Approved, Denied, Expired, Revoked, Completed) and time range.
+- Update **Export All Intune Devices** Runbook
+  - Fix issue, regarding some properties if the device primary user data is missing or incomplete
+  - Add filtering option to only include devices that are members of a specific group to avoid exporting all devices in large tenants and to focus on relevant devices.
+    - With group picker for easier selection of the group
+- Complete overhaul of the comment-based help in **all runbooks** to improve clarity, consistency and detail of the documentation, including:
+  - More detailed descriptions of the runbooks' functionality and parameters
+  - Clearer instructions for required permissions and setup steps
+  - Improved formatting for better readability
+- Removed **Report Last Device Contact by Range** Runbook, as the functionality is now covered by the updated **Report Stale Devices (Scheduled)** Runbook with enhanced filtering options.
+- Add **Notify Users About Stale Devices (Scheduled)** Runbook, which sends email notifications to users with stale devices based on last activity date and platform. This runbook complements the reporting functionality by proactively notifying users about their stale devices and providing guidance for remediation.
+- Update **Report Stale Devices (Scheduled)** Runbook, Include/Exclude User Groups
+
+## 2026-02-04
+
+- Update documentation for permissions used by the Application Registration runbooks
+  - Replaced the required app role assignment **Application.ReadWrite.All** with **Application.ReadWrite.OwnedBy** to improve security.
+  - Removed **Directory.ReadWrite.All**, as it is not required for the operations performed by these runbooks.
+
 ## 2026-01-30
 
 - Update org/devices/outphase-devices Runbook
@@ -56,7 +101,7 @@
   - user/mail/convert-to-shared-mailbox
 
 ## 2025-12-12
-  
+
 - Fix nested group handling in Add Devices of Users to Group (scheduled) Runbook
 
 ## 2025-11-20

@@ -1,9 +1,10 @@
 # Check Assignments Of Users
 
-Check Intune assignments for a given (or multiple) User Principal Names (UPNs).
+Check Intune assignments for one or more user principal names
 
 ## Detailed description
-This script checks the Intune assignments for a single or multiple specified UPNs.
+This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
+It resolves transitive group membership and reports matching assignments.
 
 ## Where to find
 Org \ General \ Check Assignments Of Users
@@ -15,21 +16,22 @@ Org \ General \ Check Assignments Of Users
   - Group.Read.All
   - DeviceManagementConfiguration.Read.All
   - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementApps.Read.All
   - Device.Read.All
 
 
 ## Parameters
-### UPN
-User Principal Names of the users to check assignments for, separated by commas.
+### UserPrincipalName
+User Principal Names of the users to check assignments for.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | true |
-| Type | String |
+| Type | String Array |
 
 ### IncludeApps
-Boolean to specify whether to include application assignments in the search.
+If set to true, also evaluates application assignments.
 
 | Property | Value |
 |----------|-------|

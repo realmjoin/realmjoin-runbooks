@@ -7,7 +7,7 @@
                 "User.Read.All",
                 "GroupMember.ReadWrite.All",
                 "Group.ReadWrite.All",
-                "User.SendMail"
+                "Mail.Send"
             ]
         }
     ],
