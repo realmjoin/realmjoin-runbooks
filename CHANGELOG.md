@@ -8,7 +8,7 @@
 - Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
   - This runbook retrieves and displays the BitLocker recovery key for a specified device.
 - Update **Assign OWA Mailbox Policy** Runbook to User/Mail section
-  - Added new OWA mailbox policies to the selection options, including "OwaMailboxPolicy-NoSignatures" for users who should not have email signatures in OWA and "BookingsCreators" for users who create Bookings appointments and need the corresponding add-in enabled.
+  - Added new OWA mailbox policies to the selection options, including "OwaMailboxPolicy-NoSignatures" for users who should not have email signatures in OWA, "BookingsCreators" for users who create Bookings appointments and need the corresponding add-in enabled and "GetCurrent" to assign the currently active policy for the user.
 - Update **Check Assignments Of Users** Runbook to Org/General section
   - Added support for processing multiple users in a single run by multi user picker.
   - Add required permissions for app assignment checks to the documentation.
