@@ -6,8 +6,8 @@
     This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
     It resolves transitive group membership and reports matching assignments.
 
-    .PARAMETER UPN
-    User Principal Names of the users to check assignments for, separated by commas.
+    .PARAMETER UserPrincipalName
+    User Principal Names of the users to check assignments for.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
@@ -21,8 +21,8 @@
             "CallerName": {
                 "Hide": true
             },
-            "UPN": {
-                "DisplayName": "User Principal Names of the users to check assignments for, separated by commas."
+            "UserPrincipalName": {
+                "DisplayName": "One or more users to check assignments for"
             },
             "IncludeApps": {
                 "DisplayName": "Include app assignments"
@@ -36,21 +36,19 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
-    [Parameter(Mandatory = $true)]
-    [string] $UPN,
+    [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity User -Attribute userPrincipalName })]
+    [string[]] $UserPrincipalName,
     [bool] $IncludeApps = $false
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
 
-$UPNs = $UPN.Split(',') | ForEach-Object { $_.Trim() }
-
-foreach ($userUPN in $UPNs) {
+foreach ($userUPN in $UserPrincipalName) {
     Write-RjRbLog -Message "Processing UPN: $userUPN" -Verbose
 
     # Get User ID from Microsoft Entra based on UPN
