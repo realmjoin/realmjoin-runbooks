@@ -11,6 +11,9 @@
   - Added new OWA mailbox policies to the selection options, including "OwaMailboxPolicy-NoSignatures" for users who should not have email signatures in OWA and "BookingsCreators" for users who create Bookings appointments and need the corresponding add-in enabled.
 - Update **Check Assignments Of Users** Runbook to Org/General section
   - Added support for processing multiple users in a single run by multi user picker.
+  - Add required permissions for app assignment checks to the documentation.
+- Update **Check Assignments Of Groups** Runbook to Org/General section
+  - Added support for processing multiple groups in a single run by multi group picker.
 
 ## 2026-02-24
 
