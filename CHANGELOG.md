@@ -1,11 +1,14 @@
 # RealmJoin Runbooks Changelog
 
 ## 2026-02-25
-- Update documentation for Notify Users About Stale Devices (Scheduled) Runbook
+
+- Update documentation for **Notify Users About Stale Devices (Scheduled)** Runbook
   - Added detailed instructions for email configuration and custom mail template usage in the runbook documentation to enhance clarity and usability for users setting up email notifications.
   - Added Mail Template Language Selection section (EN, DE, Custom)
-  - Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
-   - This runbook retrieves and displays the BitLocker recovery key for a specified device.
+- Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
+  - This runbook retrieves and displays the BitLocker recovery key for a specified device.
+- Update **Assign OWA Mailbox Policy** Runbook to User/Mail section
+  - Added new OWA mailbox policies to the selection options, including "OwaMailboxPolicy-NoSignatures" for users who should not have email signatures in OWA and "BookingsCreators" for users who create Bookings appointments and need the corresponding add-in enabled.
 
 ## 2026-02-24
 
