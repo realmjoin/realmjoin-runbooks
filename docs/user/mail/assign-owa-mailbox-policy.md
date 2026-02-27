@@ -3,7 +3,8 @@
 Assign an OWA mailbox policy to a user
 
 ## Detailed description
-Assigns an OWA mailbox policy to a mailbox in Exchange Online. This can be used to enable or restrict features such as Microsoft Bookings.
+Assigns an OWA mailbox policy to a mailbox in Exchange Online.
+This can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.
 
 ## Where to find
 User \ Mail \ Assign Owa Mailbox Policy

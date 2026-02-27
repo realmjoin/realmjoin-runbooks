@@ -16,18 +16,19 @@ Org \ General \ Check Assignments Of Users
   - Group.Read.All
   - DeviceManagementConfiguration.Read.All
   - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementApps.Read.All
   - Device.Read.All
 
 
 ## Parameters
-### UPN
-User Principal Names of the users to check assignments for, separated by commas.
+### UserPrincipalName
+User Principal Names of the users to check assignments for.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | true |
-| Type | String |
+| Type | String Array |
 
 ### IncludeApps
 If set to true, also evaluates application assignments.

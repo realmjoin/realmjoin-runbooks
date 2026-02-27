@@ -68,6 +68,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group whose device members will be unenrolled. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | The update category to unenroll from. Supported values are driver, feature, quality, or all. |
+|  |  |  |  |  |  | IncludeUserOwnedDevices |  | Boolean | When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of. |
 |  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | GroupID | ✓ | String | Object ID of the target group. |
 |  |  |  |  |  |  | NestedGroupID | ✓ | String | Object ID of the group to add as a nested member. |
 |  |  |  |  |  |  | Remove |  | Boolean | Set to true to remove the nested group membership, or false to add it. |
@@ -331,11 +332,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Check Assignments Of Devices | Check Intune assignments for one or more device names | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceNames | ✓ | String | Comma-separated list of device names to check. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
-|  |  | Check Assignments Of Groups | Check Intune assignments for one or more group names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | GroupNames | ✓ | String | Group Names of the groups to check assignments for, separated by commas. |
+|  |  | Check Assignments Of Groups | Check Intune assignments for one or more group names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  |  |  |  |  | GroupIDs | ✓ | String Array | Group IDs of the groups to check assignments for |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
-|  |  | Check Assignments Of Users | Check Intune assignments for one or more user principal names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | UPN | ✓ | String | User Principal Names of the users to check assignments for, separated by commas. |
+|  |  | Check Assignments Of Users | Check Intune assignments for one or more user principal names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  |  |  |  |  | UserPrincipalName | ✓ | String Array | User Principal Names of the users to check assignments for. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
 |  |  | Check Autopilot Serialnumbers | Check if given serial numbers are present in Autopilot | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br> |  | SerialNumbers | ✓ | String | Serial numbers of the devices, separated by commas. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -366,7 +367,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | SubscriptionId |  | String | Optional Azure Subscription Id to set the context for Storage Account operations. |
-|  |  |  |  |  |  | FilterGroupID |  | String | Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported. |
+|  |  |  |  |  |  | FilterGroupID |  | String | Group filter. When specified, only devices whose primary owner is a member of this group are exported. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Export Cloudpc Usage (Scheduled) | Write daily Windows 365 utilization data to Azure Table Storage | - **Type**: Microsoft Graph<br>&emsp;- CloudPC.Read.All<br>Azure IaaS: `Contributor` role on the Azure Storage Account used for storing CloudPC usage data<br> |  | Table |  | String | Name of the Azure Table Storage table to write to. |
 |  |  |  |  |  |  | ResourceGroupName | ✓ | String | Name of the Azure Resource Group containing the Storage Account. |
@@ -505,8 +506,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br> |  | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
-|  |  |  |  |  |  | PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible until information in the CSV report. |
+|  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br>&emsp;- RoleAssignmentSchedule.Read.Directory<br> |  | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
+|  |  |  |  |  |  | PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible/active until information in the CSV report. |
 |  |  |  |  |  |  | ContainerName |  | String | Name of the Azure Storage container to upload the CSV report to. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Name of the Azure Resource Group containing the Storage Account. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Name of the Azure Storage Account used for upload. |

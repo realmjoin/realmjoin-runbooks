@@ -407,6 +407,7 @@ Unenroll devices from Windows Update for Business.
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | GroupId | ✓ | String | Object ID of the group whose device members will be unenrolled. |
 | UpdateCategory | ✓ | String | The update category to unenroll from. Supported values are driver, feature, quality, or all. |
+| IncludeUserOwnedDevices |  | Boolean | When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -1063,7 +1064,7 @@ Check Intune assignments for one or more group names
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| GroupNames | ✓ | String | Group Names of the groups to check assignments for, separated by commas. |
+| GroupIDs | ✓ | String Array | Group IDs of the groups to check assignments for |
 | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
 
 <a name='organization-general-check-assignments-of-users'></a>
@@ -1074,7 +1075,7 @@ Check Intune assignments for one or more user principal names
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| UPN | ✓ | String | User Principal Names of the users to check assignments for, separated by commas. |
+| UserPrincipalName | ✓ | String Array | User Principal Names of the users to check assignments for. |
 | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
 
 <a name='organization-general-check-autopilot-serialnumbers'></a>
@@ -1145,7 +1146,7 @@ Export a list of all Intune devices and where they are registered
 | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 | SubscriptionId |  | String | Optional Azure Subscription Id to set the context for Storage Account operations. |
-| FilterGroupID |  | String | Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported. |
+| FilterGroupID |  | String | Group filter. When specified, only devices whose primary owner is a member of this group are exported. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='organization-general-export-cloudpc-usage-scheduled'></a>
@@ -1492,7 +1493,7 @@ List Entra ID role holders and optionally evaluate their MFA methods
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
-| PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible until information in the CSV report. |
+| PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible/active until information in the CSV report. |
 | ContainerName |  | String | Name of the Azure Storage container to upload the CSV report to. |
 | ResourceGroupName |  | String | Name of the Azure Resource Group containing the Storage Account. |
 | StorageAccountName |  | String | Name of the Azure Storage Account used for upload. |
