@@ -36,7 +36,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
-    [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity User })]
+    [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity User -Attribute userPrincipalName })]
     [string[]] $UserPrincipalName,
     [bool] $IncludeApps = $false
 )
