@@ -27,7 +27,7 @@
     Caller name is tracked purely for auditing purposes.
 
     .PARAMETER FilterGroupID
-    Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported.
+    Group filter. When specified, only devices whose primary owner is a member of this group are exported.
 
     .INPUTS
     RunbookCustomization: {
@@ -36,7 +36,7 @@
                 "Hide": true
             },
             "FilterGroupID": {
-                "DisplayName": "Optional - when specified, only devices whose primary owner is a member of this group are exported"
+                "DisplayName": "Optional - Group Filter",
             }
         }
     }
