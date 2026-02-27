@@ -59,7 +59,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Release | ✓ | Boolean | "Restrict Code Execution" (final value: false) or "Remove Code Restriction" (final value: true) can be selected as action to perform. If set to false, the runbook will restrict code execution on the device in Defender for Endpoint. If set to true, it will remove an existing code execution restriction on the device in Defender for Endpoint. |
 |  |  |  |  |  |  | Comment | ✓ | String | A short reason for the (un)restriction action. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device | - **Type**: Microsoft Graph<br>&emsp;- BitLockerKey.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
+|  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device | - **Type**: Microsoft Graph<br>&emsp;- BitlockerKey.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Show LAPS Password | Show a local admin password for a device. | - **Type**: Microsoft Graph<br>&emsp;- DeviceLocalCredential.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -178,7 +178,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DeviceDescripton |  | String | Optional description stored for the imported identity. |
 |  |  |  |  |  |  | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementManagedDevices.DeleteAll<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
 |  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results |
@@ -576,7 +576,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | GroupID_License | ✓ | String | Object ID of the license assignment group. |
 |  |  |  |  |  |  | Remove |  | Boolean | "Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | cfgProvisioningGroupName |  | String | Display name of the provisioning policy group or Frontline assignment to use. |
 |  |  |  |  |  |  | cfgUserSettingsGroupName |  | String | Display name of the user settings policy group to use. |
 |  |  |  |  |  |  | licWin365GroupName |  | String | Display name of the Windows 365 license group to assign when using dedicated Cloud PCs. |
@@ -636,14 +636,14 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | RevokeGroupOwnership |  | Boolean | If set to true, removes or replaces the user's group ownerships. |
 |  |  |  |  |  |  | ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Reprovision Windows365 | Reprovision a Windows 365 Cloud PC | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Reprovision Windows365 | Reprovision a Windows 365 Cloud PC | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | licWin365GroupName | ✓ | String | Display name of the Windows 365 license group used to identify the Cloud PC. |
 |  |  |  |  |  |  | sendMailWhenReprovisioning |  | Boolean | "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun. |
 |  |  |  |  |  |  | fromMailAddress |  | String | Mailbox used to send the notification email. |
 |  |  |  |  |  |  | customizeMail |  | Boolean | If set to true, uses a custom email body. |
 |  |  |  |  |  |  | customMailMessage |  | String | Custom message body used for the notification email. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Resize Windows365 | Resize an existing Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Resize Windows365 | Resize an existing Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | currentLicWin365GroupName | ✓ | String | Current Windows 365 license group name used by the Cloud PC. |
 |  |  |  |  |  |  | newLicWin365GroupName | ✓ | String | New Windows 365 license group name to assign for the resized Cloud PC. |
 |  |  |  |  |  |  | sendMailWhenDoneResizing |  | Boolean | "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC resizing has finished. |
@@ -664,7 +664,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | skipGracePeriod |  | Boolean | If set to true, ends the Cloud PC grace period immediately. |
 |  |  |  |  |  |  | KeepUserSettingsAndProvisioningGroups |  | Boolean | If set to true, does not remove related provisioning and user settings groups. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | EmailAddress | ✓ | String | Email address to add or remove. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the address instead of adding it. |
 |  |  |  |  |  |  | asPrimary |  | Boolean | If set to true, sets the specified address as the primary SMTP address. |
@@ -672,7 +672,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Assign OWA Mailbox Policy | Assign an OWA mailbox policy to a user |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the target mailbox. |
 |  |  |  |  |  |  | OwaPolicyName | ✓ | String | Name of the OWA mailbox policy to assign. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo |  | String | User principal name of the delegate who should receive access. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, converts a shared mailbox back to a regular mailbox. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables automatic Outlook mapping for delegated FullAccess. |
@@ -680,29 +680,29 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ArchivalLicenseGroup |  | String | Display name of a license group to assign when an archive or larger mailbox requires it. |
 |  |  |  |  |  |  | RegularLicenseGroup |  | String | Display name of a license group to assign when converting back to a regular mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String |  |
+|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | HideMailbox |  | Boolean | If set to true, hides the mailbox from address lists. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MS Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
 |  |  |  |  |  |  | Start |  | DateTime | Start time for scheduled out-of-office replies. |
 |  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
@@ -711,7 +711,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 |  |  |  |  |  |  | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | AllBookInPolicy |  | Boolean | "Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn. |
 |  |  |  |  |  |  | BookInPolicyGroup |  | String | Group whose members are allowed to book when AllBookInPolicy is false. |
 |  |  |  |  |  |  | AllowRecurringMeetings |  | Boolean | If set to true, allows recurring meetings. |

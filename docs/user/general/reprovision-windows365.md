@@ -16,7 +16,7 @@ User \ General \ Reprovision Windows365
   - Directory.Read.All
   - CloudPC.ReadWrite.All
   - User.Read.All
-  - User.SendMail
+  - Mail.Send
 
 
 ## Parameters

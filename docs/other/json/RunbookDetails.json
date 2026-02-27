@@ -562,10 +562,10 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
-            "DeviceManagementServiceConfig.ReadWrite.All",
-            "Device.Read.All"
+            "DeviceManagementServiceConfig.ReadWrite.All"
           ]
         }
       ],
@@ -711,9 +711,9 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Device.Read.All",
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.Read.All",
-            "DeviceManagementServiceConfig.ReadWrite.All",
-            "DeviceManagementManagedDevices.PrivilegedOperations.All"
+            "DeviceManagementServiceConfig.ReadWrite.All"
           ]
         }
       ],
@@ -992,10 +992,10 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
-            "DeviceManagementServiceConfig.ReadWrite.All",
-            "Device.Read.All"
+            "DeviceManagementServiceConfig.ReadWrite.All"
           ]
         }
       ],
@@ -1193,8 +1193,8 @@
           "Name": "WindowsDefenderATP",
           "Id": "fc780465-2017-40d4-a0c5-307022471b92",
           "AppRoleAssignments": [
-            "Machine.Read.All",
-            "Machine.Isolate"
+            "Machine.Isolate",
+            "Machine.Read.All"
           ]
         }
       ],
@@ -1257,8 +1257,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "DeviceManagementManagedDevices.Read.All",
-            "DeviceManagementManagedDevices.PrivilegedOperations.All"
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.Read.All"
           ]
         }
       ],
@@ -1412,14 +1412,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"BitLockerKey.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"BitlockerKey.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "BitLockerKey.Read.All"
+            "BitlockerKey.Read.All"
           ]
         }
       ],
@@ -1727,9 +1727,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
             "Group.ReadWrite.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -1826,9 +1826,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
             "Group.ReadWrite.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         },
         {
@@ -1934,9 +1934,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
             "Group.ReadWrite.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -3014,8 +3014,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Application.ReadWrite.OwnedBy",
-            "Organization.Read.All",
-            "Group.ReadWrite.All"
+            "Group.ReadWrite.All",
+            "Organization.Read.All"
           ]
         }
       ],
@@ -3231,8 +3231,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Directory.Read.All",
-            "Application.Read.All"
+            "Application.Read.All",
+            "Directory.Read.All"
           ]
         }
       ],
@@ -3297,8 +3297,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Directory.Read.All",
-            "Device.Read.All"
+            "Device.Read.All",
+            "Directory.Read.All"
           ]
         }
       ],
@@ -3900,8 +3900,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Application.ReadWrite.OwnedBy",
-            "Organization.Read.All",
-            "Group.ReadWrite.All"
+            "Group.ReadWrite.All",
+            "Organization.Read.All"
           ]
         }
       ],
@@ -4340,17 +4340,16 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"DeviceManagementManagedDevices.DeleteAll\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.ReadWrite.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "DeviceManagementManagedDevices.Read.All",
-            "DeviceManagementManagedDevices.DeleteAll",
-            "Directory.Read.All",
             "Device.Read.All",
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "Directory.Read.All",
             "Mail.Send"
           ]
         }
@@ -4414,8 +4413,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Device.Read.All",
-            "BitlockerKey.Read.All"
+            "BitlockerKey.Read.All",
+            "Device.Read.All"
           ]
         }
       ],
@@ -4767,9 +4766,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.Read.All",
             "Directory.Read.All",
-            "Device.Read.All",
             "Group.Read.All",
             "Mail.Send"
           ]
@@ -4970,10 +4969,10 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
-            "DeviceManagementServiceConfig.ReadWrite.All",
-            "Device.Read.All"
+            "DeviceManagementServiceConfig.ReadWrite.All"
           ]
         }
       ],
@@ -5289,9 +5288,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.Read.All",
             "Directory.Read.All",
-            "Device.Read.All",
             "Mail.Send"
           ]
         }
@@ -5504,10 +5503,10 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Organization.Read.All",
             "Device.ReadWrite.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Mail.Send"
+            "Mail.Send",
+            "Organization.Read.All"
           ]
         }
       ],
@@ -5690,8 +5689,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Group.ReadWrite.All",
-            "User.Read.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -6887,8 +6886,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "DeviceManagementManagedDevices.Read.All",
-            "DeviceManagementManagedDevices.PrivilegedOperations.All"
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.Read.All"
           ]
         }
       ],
@@ -7021,9 +7020,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
             "Group.ReadWrite.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -7154,8 +7153,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "Group.ReadWrite.All"
+            "Group.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -7281,8 +7280,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "DeviceManagementManagedDevices.ReadWrite.All",
-            "Device.Read.All"
+            "Device.Read.All",
+            "DeviceManagementManagedDevices.ReadWrite.All"
           ]
         }
       ],
@@ -7443,10 +7442,10 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Device.Read.All",
-            "Group.Read.All",
+            "DeviceManagementApps.Read.All",
             "DeviceManagementConfiguration.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "DeviceManagementApps.Read.All"
+            "Group.Read.All"
           ]
         }
       ],
@@ -7526,11 +7525,11 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "Group.Read.All",
+            "Device.Read.All",
             "DeviceManagementConfiguration.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Device.Read.All"
+            "Group.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -7610,11 +7609,11 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "Group.Read.All",
+            "Device.Read.All",
             "DeviceManagementConfiguration.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Device.Read.All"
+            "Group.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -7757,9 +7756,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Group.ReadWrite.All",
             "Device.Read.All",
-            "DeviceManagementManagedDevices.Read.All"
+            "DeviceManagementManagedDevices.Read.All",
+            "Group.ReadWrite.All"
           ]
         }
       ],
@@ -7975,10 +7974,10 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "DeviceManagementServiceConfig.Read.All",
+            "Device.ReadWrite.All",
             "DeviceManagementManagedDevices.Read.All",
-            "User.Read.All",
-            "Device.ReadWrite.All"
+            "DeviceManagementServiceConfig.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -8128,9 +8127,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Directory.Read.All",
-            "Device.Read.All"
+            "Directory.Read.All"
           ]
         }
       ],
@@ -8296,8 +8295,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "DeviceManagementManagedDevices.Read.All",
-            "GroupMember.Read.All",
-            "Group.Read.All"
+            "Group.Read.All",
+            "GroupMember.Read.All"
           ]
         }
       ],
@@ -8862,8 +8861,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.ReadWrite.All",
-            "Group.ReadWrite.All"
+            "Group.ReadWrite.All",
+            "User.ReadWrite.All"
           ]
         }
       ],
@@ -8952,8 +8951,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "GroupMember.Read.All",
-            "Group.Read.All"
+            "Group.Read.All",
+            "GroupMember.Read.All"
           ]
         }
       ],
@@ -9186,8 +9185,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Reports.Read.All",
             "Directory.Read.All",
+            "Reports.Read.All",
             "User.Read.All"
           ]
         }
@@ -9285,9 +9284,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "DeviceManagementConfiguration.Read.All",
             "DeviceManagementManagedDevices.Read.All",
             "DeviceManagementServiceConfig.Read.All",
-            "DeviceManagementConfiguration.Read.All",
             "Mail.Send"
           ]
         }
@@ -9385,9 +9384,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Mail.Send",
             "Organization.Read.All",
-            "User.Read.All",
-            "Mail.Send"
+            "User.Read.All"
           ]
         }
       ],
@@ -11576,9 +11575,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
             "Directory.Read.All",
-            "RoleManagement.Read.All"
+            "RoleManagement.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -11824,9 +11823,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Device.Read.All",
             "DeviceManagementManagedDevices.Read.All",
-            "Directory.Read.All",
-            "Device.Read.All"
+            "Directory.Read.All"
           ]
         }
       ],
@@ -11923,9 +11922,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
             "AuditLog.Read.All",
-            "Organization.Read.All"
+            "Organization.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -12067,8 +12066,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Group.Read.All",
-            "RoleManagement.Read.Directory",
-            "Mail.Send"
+            "Mail.Send",
+            "RoleManagement.Read.Directory"
           ]
         }
       ],
@@ -12458,8 +12457,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "Policy.Read.All",
-            "Mail.Send"
+            "Mail.Send",
+            "Policy.Read.All"
           ]
         }
       ],
@@ -12944,9 +12943,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
+            "Group.ReadWrite.All",
             "GroupMember.ReadWrite.All",
-            "Group.ReadWrite.All"
+            "User.Read.All"
           ]
         }
       ],
@@ -13206,17 +13205,17 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"User.SendMail\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "GroupMember.ReadWrite.All",
             "Group.ReadWrite.All",
-            "User.SendMail"
+            "GroupMember.ReadWrite.All",
+            "Mail.Send",
+            "User.Read.All"
           ]
         }
       ],
@@ -13381,8 +13380,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "Group.Read.All"
+            "Group.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -13445,8 +13444,8 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "Group.Read.All"
+            "Group.Read.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -13844,9 +13843,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.ReadWrite.All",
             "Group.ReadWrite.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.ReadWrite.All"
           ]
         }
       ],
@@ -14151,9 +14150,9 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.ReadWrite.All",
             "Group.ReadWrite.All",
-            "GroupMember.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.ReadWrite.All"
           ]
         }
       ],
@@ -14298,19 +14297,19 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"GroupMember.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.Read.All\",\n                \"CloudPC.ReadWrite.All\",\n                \"User.Read.All\",\n                \"User.SendMail\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"GroupMember.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.Read.All\",\n                \"CloudPC.ReadWrite.All\",\n                \"User.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "GroupMember.ReadWrite.All",
-            "Group.ReadWrite.All",
-            "Directory.Read.All",
             "CloudPC.ReadWrite.All",
-            "User.Read.All",
-            "User.SendMail"
+            "Directory.Read.All",
+            "Group.ReadWrite.All",
+            "GroupMember.ReadWrite.All",
+            "Mail.Send",
+            "User.Read.All"
           ]
         }
       ],
@@ -14553,19 +14552,19 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"GroupMember.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.Read.All\",\n                \"CloudPC.ReadWrite.All\",\n                \"User.Read.All\",\n                \"User.SendMail\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"GroupMember.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"Directory.Read.All\",\n                \"CloudPC.ReadWrite.All\",\n                \"User.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "GroupMember.ReadWrite.All",
-            "Group.ReadWrite.All",
-            "Directory.Read.All",
             "CloudPC.ReadWrite.All",
-            "User.Read.All",
-            "User.SendMail"
+            "Directory.Read.All",
+            "Group.ReadWrite.All",
+            "GroupMember.ReadWrite.All",
+            "Mail.Send",
+            "User.Read.All"
           ]
         }
       ],
@@ -14730,10 +14729,10 @@
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
-            "User.Read.All",
-            "GroupMember.ReadWrite.All",
+            "CloudPC.ReadWrite.All",
             "Group.ReadWrite.All",
-            "CloudPC.ReadWrite.All"
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -14840,11 +14839,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15081,11 +15080,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15197,11 +15196,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15278,6 +15277,11 @@
       },
       {
         "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the mailbox."
+          }
+        ],
         "globbing": "false",
         "name": "UserName",
         "parameterValue": "String",
@@ -15291,11 +15295,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15390,11 +15394,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15472,11 +15476,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15537,11 +15541,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -15602,11 +15606,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"MS Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Place.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"MG Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Place.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "MS Graph",
+          "Name": "MG Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Place.Read.All"
@@ -15841,11 +15845,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -16042,11 +16046,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online API\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "Office 365 Exchange Online API",
+          "Name": "Office 365 Exchange Online",
           "Id": "00000002-0000-0ff1-ce00-000000000000",
           "AppRoleAssignments": [
             "Exchange.ManageAsApp"
@@ -17833,8 +17837,8 @@
         }
       ],
       "Roles": [
-        "User administrator",
-        "Exchange Administrator"
+        "Exchange Administrator",
+        "User administrator"
       ],
       "ManualPermissions": []
     }

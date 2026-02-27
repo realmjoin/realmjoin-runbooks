@@ -12,8 +12,7 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementManagedDevices.DeleteAll
+  - DeviceManagementManagedDevices.ReadWrite.All
   - Directory.Read.All
   - Device.Read.All
   - Mail.Send
