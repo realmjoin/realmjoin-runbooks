@@ -467,9 +467,17 @@ elseif ($outputMode -eq "SeparateFileSeparateFolder") {
 
     # General information regarding the RealmJoin runbook repository
     Add-Content -Path $ResultFile -Value "# RealmJoin runbook repository"
+    Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "This repository contains all runbooks for the RealmJoin portal. The runbooks are organized into different folders based on their area of application."
     Add-Content -Path $ResultFile -Value "The following categories are currently available:"
+    Add-Content -Path $ResultFile -Value ""
     foreach ($scope in $includedScope) {
+        # Replace the first letter with uppercase for display purposes, but replace "org" with "Organization"
+        if ($scope -eq "org") {
+            $scope = "Organization"
+        } else {
+            $scope = $scope.Substring(0,1).ToUpper() + $scope.Substring(1)
+        }
         Add-Content -Path $ResultFile -Value "- $scope"
     }
     Add-Content -Path $ResultFile -Value ""
@@ -478,6 +486,7 @@ elseif ($outputMode -eq "SeparateFileSeparateFolder") {
     # Runbook overview part
     Add-Content -Path $ResultFile -Value "<a name='runbook-overview'></a>"
     Add-Content -Path $ResultFile -Value "# RealmJoin runbook overview"
+    Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "In the following, each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality."
     Add-Content -Path $ResultFile -Value "Also the document for each runbook contains information about permissions, where to find, notes, and parameters and further information in general."
     Add-Content -Path $ResultFile -Value ""
@@ -485,7 +494,9 @@ elseif ($outputMode -eq "SeparateFileSeparateFolder") {
     if ($includeAdditionalLinks) {
         Add-Content -Path $ResultFile -Value ""
         Add-Content -Path $ResultFile -Value "## Additional information"
+        Add-Content -Path $ResultFile -Value ""
         Add-Content -Path $ResultFile -Value "Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:"
+        Add-Content -Path $ResultFile -Value ""
         Add-Content -Path $ResultFile -Value "- [General runbook information and setup guides]($($relativeOutputPath)general)"
         Add-Content -Path $ResultFile -Value "- [List based content]($($relativeOutputPath)lists)"
         Add-Content -Path $ResultFile -Value "- [JSON based content]($($relativeOutputPath)other/json)"
