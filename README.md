@@ -1,20 +1,25 @@
 # RealmJoin runbook repository
+
 This repository contains all runbooks for the RealmJoin portal. The runbooks are organized into different folders based on their area of application.
 The following categories are currently available:
-- device
-- group
-- org
-- user
+
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory.
 <a name='runbook-overview'></a>
 # RealmJoin runbook overview
+
 In the following, each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality.
 Also the document for each runbook contains information about permissions, where to find, notes, and parameters and further information in general.
 
 
 ## Additional information
+
 Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:
+
 - [General runbook information and setup guides](docs/general)
 - [List based content](docs/lists)
 - [JSON based content](docs/other/json)
