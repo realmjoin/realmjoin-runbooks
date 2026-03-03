@@ -23,7 +23,6 @@ env:
   OUTPUT_PATH_OTHER: ${{ github.workspace }}/docs/other
   OUTPUT_PATH_JSON: ${{ github.workspace }}/docs/other/json
   PERMISSIONS_PATH: ${{ github.workspace }}/.permissions
-  MISSING_PERMISSIONS_PATH: ${{ github.workspace }}/docs/other/missing-permissions-list.md
 
 jobs:
   update-docs:
@@ -116,15 +115,6 @@ jobs:
               -bothPathCombinations `
               -outputFolder $env:OUTPUT_PATH_JSON `
               -OutputFileNamePrefix "AllRealmJoinRunbooks_collected_"
-
-      - name: ❗ Update missing permissions report
-        shell: pwsh
-        run: |
-          Write-Host "⚠️ Generating missing permissions report..."
-          . .github/scripts/Get-MissingPermissionReport.ps1 `
-              -includedScope @("device", "group", "org", "user") `
-              -rootFolder $env:ROOT_PATH `
-              -outputPath $env:MISSING_PERMISSIONS_PATH
 
       - name: 💾 Commit and push changes
         run: |

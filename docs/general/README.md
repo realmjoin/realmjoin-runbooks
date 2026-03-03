@@ -5,6 +5,7 @@ This folder contains general information and setup guides for RealmJoin runbooks
 ## Available Guides
 
 - [**Setup Email Reporting**](setup-email-reporting.md) - Instructions for configuring email reporting capabilities in runbooks
+- [**Update Documentation Workflow**](update-documentation-workflow.md) - How the GitHub Actions workflow regenerates and publishes `docs/`
 
 ## Additional Resources
 
