@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-03-06
+
+- Add **Check Device Compliance** Runbook to Org/Devices
+  - This runbook checks the compliance status of devices in Intune and can be used to identify the reason for this status.
+
 ## 2026-02-25
 
 - Update documentation for **Notify Users About Stale Devices (Scheduled)** Runbook
