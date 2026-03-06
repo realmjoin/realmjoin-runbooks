@@ -149,30 +149,95 @@ Write-RjRbLog -Message "Compliance State: $($managedDevice.complianceState)" -Ve
 #region     Main Part
 ########################################################
 
+# Format raw API values for display
+$complianceStateDisplay = switch ($managedDevice.complianceState) {
+    "compliant"    { "Compliant" }
+    "noncompliant" { "Non-Compliant" }
+    "unknown"      { "Unknown" }
+    "error"        { "Error" }
+    "inGracePeriod" { "In Grace Period" }
+    "configManager" { "Config Manager" }
+    default        { $managedDevice.complianceState }
+}
+$managementAgentDisplay = ($managedDevice.managementAgent).ToUpper()
+
 Write-Output ""
 Write-Output "## Compliance Check: '$($managedDevice.deviceName)'"
 Write-Output "-------------------------------------------------------------"
 Write-Output "Device Name:       $($managedDevice.deviceName)"
 Write-Output "Operating System:  $($managedDevice.operatingSystem) $($managedDevice.osVersion)"
-Write-Output "Compliance State:  $($managedDevice.complianceState)"
-Write-Output "Managed By:        $($managedDevice.managementAgent)"
+Write-Output "Compliance State:  $complianceStateDisplay"
+Write-Output "Managed By:        $managementAgentDisplay"
 Write-Output "Last Sync:         $($managedDevice.lastSyncDateTime)"
 Write-Output ""
+
+# In simple mode, print a heading for the non-compliant policy list
+if (-not $DetailedOutput -and $managedDevice.complianceState -ne "compliant") {
+    Write-Output "Non-compliant policies:"
+}
 
 # Retrieve compliance policy states for this device
 $policyStatesResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices/$intuneDeviceId/deviceCompliancePolicyStates" -Method GET
 
 $complianceDetails = @()
 
-# Fetch per-setting details only when detailed output mode is active
-$fetchSettingDetails = $DetailedOutput
+# Setting name to human-readable description mapping
+$settingDescriptions = @{
+    'osMinimumVersion'                            = 'OS version below minimum requirement'
+    'osMaximumVersion'                            = 'OS version above maximum requirement'
+    'mobileOsMinimumVersion'                      = 'Mobile OS version below minimum requirement'
+    'validOperatingSystemBuildRanges'             = 'OS build not in allowed range'
+    'bitLockerEnabled'                            = 'BitLocker not enabled'
+    'storageRequireDeviceEncryption'              = 'Device encryption not enabled'
+    'passwordRequired'                            = 'Password policy not met'
+    'passwordMinimumLength'                       = 'Password too short'
+    'passwordRequiredType'                        = 'Password type requirement not met'
+    'passwordExpirationDays'                      = 'Password expiration not compliant'
+    'defenderEnabled'                             = 'Microsoft Defender not enabled'
+    'antivirusRequired'                           = 'Antivirus not compliant'
+    'antiSpywareRequired'                         = 'Anti-spyware not compliant'
+    'firewallEnabled'                             = 'Firewall not enabled'
+    'activeFirewallRequired'                      = 'Firewall not enabled'
+    'secureBootEnabled'                           = 'Secure Boot not enabled'
+    'codeIntegrityEnabled'                        = 'Code Integrity not enabled'
+    'tpmRequired'                                 = 'TPM not present or not compliant'
+    'deviceThreatProtectionEnabled'              = 'Device threat protection not enabled'
+    'deviceThreatProtectionRequiredSecurityLevel' = 'Device threat protection level not met'
+    'rtpEnabled'                                  = 'Real-time protection not enabled'
+    'signatureOutOfDate'                          = 'Antivirus signatures out of date'
+    'configurationManagerComplianceRequired'      = 'Configuration Manager compliance not met'
+    'requireRemainContact'                        = 'Device has not checked in with Intune within the required timeframe'
+}
+
+# Map device OS to the Intune compliance policy platformType values it can match
+$devicePlatformTypes = switch ($managedDevice.operatingSystem) {
+    "Windows" { @("windows10AndLater", "windows81AndLater", "windowsPhone81", "all") }
+    "macOS"   { @("macOS", "all") }
+    "iOS"     { @("iOS", "all") }
+    "Android" { @("android", "androidForWork", "androidWorkProfile", "androidAOSP", "all") }
+    default   { @() }  # empty = no platform filtering for unknown OS
+}
+Write-RjRbLog -Message "Device platform types: $($devicePlatformTypes -join ', ')" -Verbose
 
 if ($policyStatesResponse.value -and ($policyStatesResponse.value | Measure-Object).Count -gt 0) {
     foreach ($policy in $policyStatesResponse.value) {
+        # Skip policies that do not apply to this device (e.g. macOS policies on a Windows device)
+        if ($policy.state -in @('notApplicable', 'notAssigned')) {
+            Write-RjRbLog -Message "Skipping policy '$($policy.displayName)' - State: $($policy.state) (not applicable to this device)" -Verbose
+            continue
+        }
+
+        # Skip policies targeting a different OS platform
+        if ($devicePlatformTypes.Count -gt 0 -and $policy.platformType -and $policy.platformType -notin $devicePlatformTypes) {
+            Write-RjRbLog -Message "Skipping policy '$($policy.displayName)' - Platform: '$($policy.platformType)' does not match device OS: '$($managedDevice.operatingSystem)'" -Verbose
+            continue
+        }
+
         Write-RjRbLog -Message "Policy: '$($policy.displayName)' - State: $($policy.state)" -Verbose
 
         $nonCompliantSettings = @()
-        if ($fetchSettingDetails) {
+        # Always fetch setting states for non-compliant policies to derive readable reasons in both modes
+        if ($policy.state -ne "compliant") {
             # Retrieve per-setting states for this policy
             $settingStatesResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices/$intuneDeviceId/deviceCompliancePolicyStates/$($policy.id)/settingStates" -Method GET
 
@@ -192,10 +257,10 @@ if ($policyStatesResponse.value -and ($policyStatesResponse.value | Measure-Obje
         $complianceDetails += $policyResult
 
         if ($policy.state -ne "compliant") {
-            Write-Output "Policy: '$($policy.displayName)'"
-            Write-Output "  State: $($policy.state)"
-
             if ($DetailedOutput) {
+                Write-Output "Policy: '$($policy.displayName)'"
+                Write-Output "  State: $($policy.state)"
+
                 if ($nonCompliantSettings.Count -gt 0) {
                     Write-Output "  Non-compliant settings:"
                     foreach ($setting in $nonCompliantSettings) {
@@ -211,14 +276,39 @@ if ($policyStatesResponse.value -and ($policyStatesResponse.value | Measure-Obje
                 else {
                     Write-Output "  No detailed setting information available."
                 }
+                Write-Output ""
             }
-            Write-Output ""
+            else {
+                # Simple mode: show policy name and readable setting reasons
+                Write-Output "  - '$($policy.displayName)'"
+                if ($nonCompliantSettings.Count -gt 0) {
+                    $readableReasons = $nonCompliantSettings | ForEach-Object {
+                        $shortName = ($_.setting -split '\.')[-1]
+                        if ($settingDescriptions.ContainsKey($shortName)) { $settingDescriptions[$shortName] } else { $shortName }
+                    }
+                    Write-Output "    Reason: $(($readableReasons | Select-Object -Unique) -join '; ')"
+                }
+                else {
+                    $fallbackReason = switch ($policy.state) {
+                        "unknown"  { "Policy could not be evaluated - device may not have synced recently" }
+                        "error"    { "Policy evaluation error" }
+                        "conflict" { "Policy conflict with another policy" }
+                        default    { "Policy state: $($policy.state)" }
+                    }
+                    Write-Output "    Reason: $fallbackReason"
+                }
+                Write-Output ""
+            }
         }
     }
 }
 else {
     Write-Output "No compliance policies are assigned to this device."
 }
+
+# Shared variables used by console output and email report
+$nonCompliantPolicies = @($complianceDetails | Where-Object { $_.State -ne "compliant" })
+$compliantPolicies = @($complianceDetails | Where-Object { $_.State -eq "compliant" })
 
 Write-Output ""
 if ($managedDevice.complianceState -eq "compliant") {
@@ -248,8 +338,6 @@ if ($EmailTo) {
     }
 
     $dateStr = Get-Date -Format 'yyyy-MM-dd HH:mm'
-    $nonCompliantPolicies = @($complianceDetails | Where-Object { $_.State -ne "compliant" })
-    $compliantPolicies = @($complianceDetails | Where-Object { $_.State -eq "compliant" })
     $totalPolicies = ($complianceDetails | Measure-Object).Count
     $complianceEmoji = if ($managedDevice.complianceState -eq "compliant") { "OK" } else { "NOT COMPLIANT" }
 
@@ -267,8 +355,8 @@ if ($EmailTo) {
 |----------|-------|
 | **Device Name** | $($managedDevice.deviceName) |
 | **Operating System** | $($managedDevice.operatingSystem) $($managedDevice.osVersion) |
-| **Compliance State** | $($managedDevice.complianceState) |
-| **Managed By** | $($managedDevice.managementAgent) |
+| **Compliance State** | $complianceStateDisplay |
+| **Managed By** | $managementAgentDisplay |
 | **Last Sync** | $($managedDevice.lastSyncDateTime) |
 | **Azure AD Device ID** | $DeviceId |
 | **Intune Device ID** | $intuneDeviceId |
@@ -281,6 +369,7 @@ if ($EmailTo) {
 
 $(if ($nonCompliantPolicies.Count -gt 0) {
     $sb = "## Non-Compliant Policies`n`n"
+
     foreach ($policy in $nonCompliantPolicies) {
         $sb += "### $($policy.PolicyName)`n`n"
         $sb += "**State:** $($policy.State)`n`n"
@@ -296,6 +385,25 @@ $(if ($nonCompliantPolicies.Count -gt 0) {
             }
             else {
                 $sb += "No detailed setting information available for this policy.`n`n"
+            }
+        }
+        else {
+            if ($policy.NonCompliantSettings -and $policy.NonCompliantSettings.Count -gt 0) {
+                $readableReasons = $policy.NonCompliantSettings | ForEach-Object {
+                    $shortName = ($_.setting -split '\.')[-1]
+                    if ($settingDescriptions.ContainsKey($shortName)) { $settingDescriptions[$shortName] } else { $shortName }
+                }
+                $uniqueReasons = ($readableReasons | Select-Object -Unique) -join '; '
+                $sb += "**Reason:** $uniqueReasons`n`n"
+            }
+            else {
+                $fallbackReason = switch ($policy.State) {
+                    "unknown"  { "Policy could not be evaluated - device may not have synced recently" }
+                    "error"    { "Policy evaluation error" }
+                    "conflict" { "Policy conflict with another policy" }
+                    default    { "Policy state: $($policy.State)" }
+                }
+                $sb += "**Reason:** $fallbackReason`n`n"
             }
         }
     }
