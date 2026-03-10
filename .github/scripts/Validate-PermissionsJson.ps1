@@ -7,11 +7,17 @@
 
 	.PARAMETER IncludedScope
 	One or more root folders that contain runbooks, for example @('device','group','org','user'). Each scope is scanned recursively.
+
+	.PARAMETER ChangedFiles
+	Optional list of runbook files to validate directly. If provided, only these files are checked.
 #>
 
 param (
 	[Parameter(Mandatory = $true)]
-	[string[]]$IncludedScope
+	[string[]]$IncludedScope,
+
+	[Parameter(Mandatory = $false)]
+	[string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -74,6 +80,43 @@ function Get-RunbookFiles {
 	)
 }
 
+function Get-RunbookFilesFromChangedFiles {
+	<#
+		.SYNOPSIS
+		Builds runbook file objects from explicit changed file paths
+	#>
+	param(
+		[Parameter(Mandatory = $true)]
+		[string[]]$Files
+	)
+
+	$resolved = @()
+	foreach ($file in $Files) {
+		$rel = ($file ?? '').Trim()
+		if (-not $rel) {
+			continue
+		}
+
+		$normalized = ($rel -replace '\\', '/')
+		if (-not $normalized.EndsWith('.ps1', [System.StringComparison]::OrdinalIgnoreCase)) {
+			continue
+		}
+
+		if ($normalized.ToLowerInvariant().StartsWith('.github/')) {
+			continue
+		}
+
+		$full = Join-Path (Get-Location).Path $normalized
+		if (-not (Test-Path -LiteralPath $full)) {
+			continue
+		}
+
+		$resolved += Get-Item -LiteralPath $full -ErrorAction Stop
+	}
+
+	return @($resolved | Sort-Object FullName -Unique)
+}
+
 function Get-CompanionPermissionsCandidates {
 	<#
 		.SYNOPSIS
@@ -116,7 +159,14 @@ function Get-RelativePath {
 ############################################################
 
 try {
-	$runbooks = @(Get-RunbookFiles -Scopes $IncludedScope)
+	$runbooks = @()
+	if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
+		$runbooks = @(Get-RunbookFilesFromChangedFiles -Files $ChangedFiles)
+	}
+	else {
+		$runbooks = @(Get-RunbookFiles -Scopes $IncludedScope)
+	}
+
 	if ($runbooks.Count -eq 0) {
 		Write-Output "No runbooks (*.ps1) found in included scopes. Skipping permissions JSON validation."
 		exit 0
