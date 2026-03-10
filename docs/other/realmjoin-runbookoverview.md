@@ -18,11 +18,13 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
       - [Change Grouptag](#change-grouptag)
+      - [Check Device Compliance](#check-device-compliance)
       - [Check Updatable Assets](#check-updatable-assets)
       - [Enroll Updatable Assets](#enroll-updatable-assets)
       - [Outphase Device](#outphase-device)
       - [Remove Primary User](#remove-primary-user)
       - [Rename Device](#rename-device)
+      - [Set Primary User](#set-primary-user)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
   - [Security](#device-security)
@@ -79,6 +81,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Or Remove Safelinks Exclusion](#add-or-remove-safelinks-exclusion)
       - [Add Or Remove Smartscreen Exclusion](#add-or-remove-smartscreen-exclusion)
       - [Add Or Remove Trusted Site](#add-or-remove-trusted-site)
+      - [Add Primary Users Of Devices To Group (Scheduled)](#add-primary-users-of-devices-to-group-(scheduled))
       - [Add Security Group](#add-security-group)
       - [Add User](#add-user)
       - [Add Viva Engange Community](#add-viva-engange-community)
@@ -243,6 +246,25 @@ Device \ General \ Change Grouptag
  
  
 
+<a name='device-general-check-device-compliance'></a>
+
+### Check Device Compliance
+#### Check the compliance status of a device
+
+#### Description
+This runbook retrieves the compliance status of a managed device from Microsoft Intune.
+In simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.
+Optionally, a report with the full compliance details can be sent via email.
+
+#### Where to find
+Device \ General \ Check Device Compliance
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-general-check-updatable-assets'></a>
 
 ### Check Updatable Assets
@@ -322,6 +344,23 @@ Rename a device (in Intune and Autopilot).
 
 #### Where to find
 Device \ General \ Rename Device
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-set-primary-user'></a>
+
+### Set Primary User
+#### Set a new primary user on a managed Intune device
+
+#### Description
+This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.
+
+#### Where to find
+Device \ General \ Set Primary User
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1296,6 +1335,23 @@ Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom co
 
 #### Where to find
 Org \ General \ Add Or Remove Trusted Site
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-add-primary-users-of-devices-to-group-(scheduled)'></a>
+
+### Add Primary Users Of Devices To Group (Scheduled)
+#### Sync primary users of Intune managed devices by platform into an Entra ID group
+
+#### Description
+This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.
+
+#### Where to find
+Org \ General \ Add Primary Users Of Devices To Group_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2604,7 +2660,8 @@ User \ Mail \ Add Or Remove Email Address
 #### Assign an OWA mailbox policy to a user
 
 #### Description
-Assigns an OWA mailbox policy to a mailbox in Exchange Online. This can be used to enable or restrict features such as Microsoft Bookings.
+Assigns an OWA mailbox policy to a mailbox in Exchange Online.
+This can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.
 
 #### Where to find
 User \ Mail \ Assign Owa Mailbox Policy

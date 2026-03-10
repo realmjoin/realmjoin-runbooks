@@ -10,14 +10,20 @@
 
 	.PARAMETER HeadRef
 	The git reference that contains the changes to validate, for example the pull request head SHA.
+
+	.PARAMETER ChangedFiles
+	Optional list of changed file paths to validate directly. If provided, BaseRef and HeadRef are ignored.
 #>
 
 param (
-	[Parameter(Mandatory = $true)]
+	[Parameter(Mandatory = $false)]
 	[string]$BaseRef,
 
-	[Parameter(Mandatory = $true)]
-	[string]$HeadRef
+	[Parameter(Mandatory = $false)]
+	[string]$HeadRef,
+
+	[Parameter(Mandatory = $false)]
+	[string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -183,6 +189,41 @@ function Get-ChangedPs1Files {
 	)
 }
 
+function Get-TargetPs1Files {
+	<#
+		.SYNOPSIS
+		Returns target .ps1 files from explicit input or from git diff
+	#>
+	param(
+		[Parameter(Mandatory = $false)]
+		[string[]]$InputFiles,
+
+		[Parameter(Mandatory = $false)]
+		[string]$Base,
+
+		[Parameter(Mandatory = $false)]
+		[string]$Head
+	)
+
+	if ($InputFiles -and $InputFiles.Count -gt 0) {
+		return @(
+			$InputFiles
+			| ForEach-Object { ($_ ?? '').Trim() }
+			| Where-Object { $_ }
+			| ForEach-Object { $_ -replace '\\', '/' }
+			| Where-Object { $_ -like '*.ps1' }
+			| Where-Object { -not $_.ToLowerInvariant().StartsWith('.github/') }
+			| Sort-Object -Unique
+		)
+	}
+
+	if (-not $Base -or -not $Head) {
+		throw "Either provide ChangedFiles or provide both BaseRef and HeadRef."
+	}
+
+	return @(Get-ChangedPs1Files -Base $Base -Head $Head)
+}
+
 function Assert-PSScriptAnalyzerSeverityError {
 	<#
 		.SYNOPSIS
@@ -295,7 +336,7 @@ function Assert-HelpIsComplete {
 ############################################################
 
 try {
-	$changedPs1 = @(Get-ChangedPs1Files -Base $BaseRef -Head $HeadRef)
+	$changedPs1 = @(Get-TargetPs1Files -InputFiles $ChangedFiles -Base $BaseRef -Head $HeadRef)
 	if ($changedPs1.Count -eq 0) {
 		Write-Output "No changed runbooks (*.ps1) detected. Skipping validation."
 		exit 0

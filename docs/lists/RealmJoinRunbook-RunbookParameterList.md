@@ -17,11 +17,13 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Toggle Drain Mode](#device-avd-toggle-drain-mode)
   - [General](#device-general)
     - [Change Grouptag](#device-general-change-grouptag)
+    - [Check Device Compliance](#device-general-check-device-compliance)
     - [Check Updatable Assets](#device-general-check-updatable-assets)
     - [Enroll Updatable Assets](#device-general-enroll-updatable-assets)
     - [Outphase Device](#device-general-outphase-device)
     - [Remove Primary User](#device-general-remove-primary-user)
     - [Rename Device](#device-general-rename-device)
+    - [Set Primary User](#device-general-set-primary-user)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
   - [Security](#device-security)
@@ -78,6 +80,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Or Remove Safelinks Exclusion](#organization-general-add-or-remove-safelinks-exclusion)
     - [Add Or Remove Smartscreen Exclusion](#organization-general-add-or-remove-smartscreen-exclusion)
     - [Add Or Remove Trusted Site](#organization-general-add-or-remove-trusted-site)
+    - [Add Primary Users Of Devices To Group (Scheduled)](#organization-general-add-primary-users-of-devices-to-group-scheduled)
     - [Add Security Group](#organization-general-add-security-group)
     - [Add User](#organization-general-add-user)
     - [Add Viva Engange Community](#organization-general-add-viva-engange-community)
@@ -221,6 +224,19 @@ Assign a new AutoPilot GroupTag to this device.
 | newGroupTag |  | String | The new AutoPilot GroupTag to assign to the device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='device-general-check-device-compliance'></a>
+
+### Check Device Compliance
+Check the compliance status of a device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform. |
+| DetailedOutput |  | Boolean | Select "Simple" (final value: $false) to show only the overall compliance state and non-compliant policy names.<br>Select "Detailed" (final value: $true) to additionally show which specific settings are failing and the reason for each failure. |
+| EmailTo |  | String | Optional - if specified, a compliance report will be sent to the provided email address(es).<br>Can be a single address or multiple comma-separated addresses. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
 <a name='device-general-check-updatable-assets'></a>
 
 ### Check Updatable Assets
@@ -278,6 +294,17 @@ Rename a device.
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | The device ID of the target device. |
 | NewDeviceName | ✓ | String | The new device name to set. This runbook validates the name against common Windows hostname constraints. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-general-set-primary-user'></a>
+
+### Set Primary User
+Set a new primary user on a managed Intune device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI. |
+| NewPrimaryUserId | ✓ | String | The user to assign as the new primary user of the device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-general-unenroll-updatable-assets'></a>
@@ -407,6 +434,7 @@ Unenroll devices from Windows Update for Business.
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | GroupId | ✓ | String | Object ID of the group whose device members will be unenrolled. |
 | UpdateCategory | ✓ | String | The update category to unenroll from. Supported values are driver, feature, quality, or all. |
+| IncludeUserOwnedDevices |  | Boolean | When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -613,8 +641,7 @@ Export a CSV of all (enterprise) application owners and users
 | ContainerName |  | String | Storage container name used for the upload. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
 | StorageAccountName |  | String | Storage account name used for the upload. |
-| StorageAccountLocation |  | String | Azure region for the storage account, used when the account needs to be created. |
-| StorageAccountSku |  | String | Storage account SKU, used when the account needs to be created. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-list-inactive-enterprise-applications'></a>
@@ -943,6 +970,24 @@ Add or remove a URL entry in the Intune Trusted Sites policy
 | IntunePolicyName |  | String | Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
+<a name='organization-general-add-primary-users-of-devices-to-group-scheduled'></a>
+
+### Add Primary Users Of Devices To Group (Scheduled)
+Sync primary users of Intune managed devices by platform into an Entra ID group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TargetGroupId | ✓ | String | The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook. |
+| Windows |  | Boolean | Include primary users of Windows devices. (OData Filter used "operatingSystem eq 'Windows'") |
+| MacOS |  | Boolean | Include primary users of macOS devices. (OData Filter used "operatingSystem eq 'macOS'") |
+| iOS |  | Boolean | Include primary users of iOS and iPadOS devices. (OData Filter used "operatingSystem eq 'iOS'") |
+| Android |  | Boolean | Include primary users of Android devices. (OData Filter used "operatingSystem eq 'Android'") |
+| AdvancedFilter |  | String | Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' . |
+| RemoveUsersWhenNoDeviceMatch |  | Boolean | When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed. |
+| IncludeGroupId |  | String | Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users. |
+| ExcludeGroupId |  | String | Optional. Users who are members of this group will not be added and will be removed from the target group if already present. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
 <a name='organization-general-add-security-group'></a>
 
 ### Add Security Group
@@ -1063,7 +1108,7 @@ Check Intune assignments for one or more group names
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| GroupNames | ✓ | String | Group Names of the groups to check assignments for, separated by commas. |
+| GroupIDs | ✓ | String Array | Group IDs of the groups to check assignments for |
 | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
 
 <a name='organization-general-check-assignments-of-users'></a>
@@ -1074,7 +1119,7 @@ Check Intune assignments for one or more user principal names
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| UPN | ✓ | String | User Principal Names of the users to check assignments for, separated by commas. |
+| UserPrincipalName | ✓ | String Array | User Principal Names of the users to check assignments for. |
 | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
 
 <a name='organization-general-check-autopilot-serialnumbers'></a>
@@ -1145,7 +1190,7 @@ Export a list of all Intune devices and where they are registered
 | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 | SubscriptionId |  | String | Optional Azure Subscription Id to set the context for Storage Account operations. |
-| FilterGroupID |  | String | Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported. |
+| FilterGroupID |  | String | Group filter. When specified, only devices whose primary owner is a member of this group are exported. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='organization-general-export-cloudpc-usage-scheduled'></a>
@@ -1492,7 +1537,7 @@ List Entra ID role holders and optionally evaluate their MFA methods
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
-| PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible until information in the CSV report. |
+| PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible/active until information in the CSV report. |
 | ContainerName |  | String | Name of the Azure Storage container to upload the CSV report to. |
 | ResourceGroupName |  | String | Name of the Azure Resource Group containing the Storage Account. |
 | StorageAccountName |  | String | Name of the Azure Storage Account used for upload. |

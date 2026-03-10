@@ -246,6 +246,122 @@
     }
   },
   {
+    "RunbookDisplayName": "Check Device Compliance",
+    "RunbookDisplayPath": "Device \\ General \\ Check Device Compliance",
+    "RelativeRunbookPath": "device/general/check-device-compliance.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Check the compliance status of a device",
+    "Description": "This runbook retrieves the compliance status of a managed device from Microsoft Intune.\nIn simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.\nOptionally, a report with the full compliance details can be sent via email.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Select \"Simple\" (final value: $false) to show only the overall compliance state and non-compliant policy names.\nSelect \"Detailed\" (final value: $true) to additionally show which specific settings are failing and the reason for each failure."
+          }
+        ],
+        "globbing": "false",
+        "name": "DetailedOutput",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional - if specified, a compliance report will be sent to the provided email address(es).\nCan be a single address or multiple comma-separated addresses."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "DeviceManagementManagedDevices.Read.All",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Check Updatable Assets",
     "RunbookDisplayPath": "Device \\ General \\ Check Updatable Assets",
     "RelativeRunbookPath": "device/general/check-updatable-assets.ps1",
@@ -714,6 +830,87 @@
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.Read.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Set Primary User",
+    "RunbookDisplayPath": "Device \\ General \\ Set Primary User",
+    "RelativeRunbookPath": "device/general/set-primary-user.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Set a new primary user on a managed Intune device",
+    "Description": "This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The user to assign as the new primary user of the device."
+          }
+        ],
+        "globbing": "false",
+        "name": "NewPrimaryUserId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],
@@ -1600,6 +1797,23 @@
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeUserOwnedDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -3113,7 +3327,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "6",
         "required": "true",
         "type": {
           "name": "String"
@@ -3154,6 +3368,23 @@
         }
       },
       {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
         "defaultValue": "",
         "description": [
           {
@@ -3174,23 +3405,6 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Azure region for the storage account, used when the account needs to be created."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountLocation",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "5",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
             "Text": "Storage account name used for the upload."
           }
         ],
@@ -3199,23 +3413,6 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "4",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Storage account SKU, used when the account needs to be created."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountSku",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -6395,6 +6592,208 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Primary Users Of Devices To Group_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Add Primary Users Of Devices To Group_Scheduled",
+    "RelativeRunbookPath": "org/general/add-primary-users-of-devices-to-group_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Sync primary users of Intune managed devices by platform into an Entra ID group",
+    "Description": "This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' ."
+          }
+        ],
+        "globbing": "false",
+        "name": "AdvancedFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of Android devices. (OData Filter used \"operatingSystem eq 'Android'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "Android",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional. Users who are members of this group will not be added and will be removed from the target group if already present."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of iOS and iPadOS devices. (OData Filter used \"operatingSystem eq 'iOS'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "iOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of macOS devices. (OData Filter used \"operatingSystem eq 'macOS'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "MacOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveUsersWhenNoDeviceMatch",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of Windows devices. (OData Filter used \"operatingSystem eq 'Windows'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "Windows",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Group.Read.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.Read.All",
+            "Group.Read.All",
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Add Security Group",
     "RunbookDisplayPath": "Org \\ General \\ Add Security Group",
     "RelativeRunbookPath": "org/general/add-security-group.ps1",
@@ -7485,17 +7884,17 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Group Names of the groups to check assignments for, separated by commas."
+            "Text": "Group IDs of the groups to check assignments for"
           }
         ],
         "globbing": "false",
-        "name": "GroupNames",
-        "parameterValue": "String",
+        "name": "GroupIDs",
+        "parameterValue": "String[]",
         "pipelineInput": "false",
         "position": "2",
         "required": "true",
         "type": {
-          "name": "String"
+          "name": "String[]"
         }
       },
       {
@@ -7518,7 +7917,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.Read.All\",\n                \"DeviceManagementConfiguration.Read.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.Read.All\",\n                \"DeviceManagementConfiguration.Read.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"DeviceManagementApps.Read.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -7526,6 +7925,7 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Device.Read.All",
+            "DeviceManagementApps.Read.All",
             "DeviceManagementConfiguration.Read.All",
             "DeviceManagementManagedDevices.Read.All",
             "Group.Read.All",
@@ -7586,23 +7986,23 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User Principal Names of the users to check assignments for, separated by commas."
+            "Text": "User Principal Names of the users to check assignments for."
           }
         ],
         "globbing": "false",
-        "name": "UPN",
-        "parameterValue": "String",
+        "name": "UserPrincipalName",
+        "parameterValue": "String[]",
         "pipelineInput": "false",
         "position": "2",
         "required": "true",
         "type": {
-          "name": "String"
+          "name": "String[]"
         }
       }
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.Read.All\",\n                \"DeviceManagementConfiguration.Read.All\",\n                \"DeviceManagementManagedDevices.Read.All\", \n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.Read.All\",\n                \"DeviceManagementConfiguration.Read.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"DeviceManagementApps.Read.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -7610,6 +8010,7 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Device.Read.All",
+            "DeviceManagementApps.Read.All",
             "DeviceManagementConfiguration.Read.All",
             "DeviceManagementManagedDevices.Read.All",
             "Group.Read.All",
@@ -8186,7 +8587,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported."
+            "Text": "Group filter. When specified, only devices whose primary owner is a member of this group are exported."
           }
         ],
         "globbing": "false",
@@ -11399,7 +11800,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, includes PIM eligible until information in the CSV report."
+            "Text": "If set to true, includes PIM eligible/active until information in the CSV report."
           }
         ],
         "globbing": "false",
@@ -11568,7 +11969,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Directory.Read.All\",\n                \"RoleManagement.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Directory.Read.All\",\n                \"RoleManagement.Read.All\",\n                \"RoleAssignmentSchedule.Read.Directory\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -11576,6 +11977,7 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Directory.Read.All",
+            "RoleAssignmentSchedule.Read.Directory",
             "RoleManagement.Read.All",
             "User.Read.All"
           ]
@@ -14864,7 +15266,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Mail",
     "Synopsis": "Assign an OWA mailbox policy to a user",
-    "Description": "Assigns an OWA mailbox policy to a mailbox in Exchange Online. This can be used to enable or restrict features such as Microsoft Bookings.",
+    "Description": "Assigns an OWA mailbox policy to a mailbox in Exchange Online.\nThis can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.",
     "Notes": null,
     "Parameters": [
       {

@@ -17,11 +17,13 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Toggle Drain Mode
   - [General](#device-general)
     - Change Grouptag
+    - Check Device Compliance
     - Check Updatable Assets
     - Enroll Updatable Assets
     - Outphase Device
     - Remove Primary User
     - Rename Device
+    - Set Primary User
     - Unenroll Updatable Assets
     - Wipe Device
   - [Security](#device-security)
@@ -78,6 +80,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Or Remove Safelinks Exclusion
     - Add Or Remove Smartscreen Exclusion
     - Add Or Remove Trusted Site
+    - Add Primary Users Of Devices To Group (Scheduled)
     - Add Security Group
     - Add User
     - Add Viva Engange Community
@@ -193,11 +196,13 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+| Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
 | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 | Outphase Device | Remove/Outphase a windows device |
 | Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
+| Set Primary User | Set a new primary user on a managed Intune device |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
 
@@ -304,6 +309,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Safelinks Exclusion | Add or remove a SafeLinks URL exclusion from a policy |
 | Add Or Remove Smartscreen Exclusion | Add or remove a SmartScreen URL indicator in Microsoft Defender |
 | Add Or Remove Trusted Site | Add or remove a URL entry in the Intune Trusted Sites policy |
+| Add Primary Users Of Devices To Group (Scheduled) | Sync primary users of Intune managed devices by platform into an Entra ID group |
 | Add Security Group | Create a Microsoft Entra ID security group |
 | Add User | Create a new user account |
 | Add Viva Engange Community | Create a Viva Engage (Yammer) community |

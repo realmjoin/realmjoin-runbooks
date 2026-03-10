@@ -36,6 +36,15 @@ The update category to unenroll from. Supported values are driver, feature, qual
 | Required | true |
 | Type | String |
 
+### IncludeUserOwnedDevices
+When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
 
 [Back to Table of Content](../../../README.md)
 

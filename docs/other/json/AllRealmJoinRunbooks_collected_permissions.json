@@ -32,6 +32,7 @@
       "Organization.Read.All",
       "Policy.Read.All",
       "Reports.Read.All",
+      "RoleAssignmentSchedule.Read.Directory",
       "RoleManagement.Read.All",
       "RoleManagement.Read.Directory",
       "Team.Create",
