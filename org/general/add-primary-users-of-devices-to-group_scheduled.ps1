@@ -21,7 +21,7 @@
     Include primary users of Android devices. (OData Filter used "operatingSystem eq 'Android'")
 
     .PARAMETER AdvancedFilter
-    Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: "startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows'".
+    Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' .
 
     .PARAMETER IncludeGroupId
     Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users.
