@@ -1,10 +1,16 @@
 # RealmJoin Runbooks Changelog
 
 ## 2026-03-10
+
 - Add **Set Primary User** Runbook to device/general section
   - This runbook allows you to set or change the primary user of a device in Intune, which can be useful for ensuring accurate device management and reporting.
 - Add **Add Primary Users Of Devices to Group (Scheduled)** Runbook to group/general section
   - This runbook automatically adds the primary users of devices that meet specified criteria (e.g., platform, last activity date) to a designated group on a scheduled basis, helping to keep user groups up to date with device ownership.
+
+## 2026-03-06
+
+- Add **Check Device Compliance** Runbook to Org/Devices
+  - This runbook checks the compliance status of devices in Intune and can be used to identify the reason for this status.
 
 ## 2026-02-25
 
