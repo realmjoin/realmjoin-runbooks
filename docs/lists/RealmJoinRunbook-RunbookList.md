@@ -17,6 +17,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Toggle Drain Mode
   - [General](#device-general)
     - Change Grouptag
+    - Check Device Compliance
     - Check Updatable Assets
     - Enroll Updatable Assets
     - Outphase Device
@@ -195,6 +196,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+| Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
 | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 | Outphase Device | Remove/Outphase a windows device |

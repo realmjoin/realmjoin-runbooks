@@ -13,6 +13,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | newGroupTag |  | String | The new AutoPilot GroupTag to assign to the device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Check Device Compliance | Check the compliance status of a device | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Organization.Read.All<br> |  | DeviceId | ✓ | String | The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform. |
+|  |  |  |  |  |  | DetailedOutput |  | Boolean | Select "Simple" (final value: $false) to show only the overall compliance state and non-compliant policy names.<br>Select "Detailed" (final value: $true) to additionally show which specific settings are failing and the reason for each failure. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional - if specified, a compliance report will be sent to the provided email address(es).<br>Can be a single address or multiple comma-separated addresses. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to check. |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -136,8 +141,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. |
-|  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the storage account, used when the account needs to be created. |
-|  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU, used when the account needs to be created. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br> |  | Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |

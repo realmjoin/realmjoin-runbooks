@@ -7,6 +7,7 @@
 <a name='device-general'></a>
 ## General
   - [Change Grouptag](general/change-grouptag.md)
+  - [Check Device Compliance](general/check-device-compliance.md)
   - [Check Updatable Assets](general/check-updatable-assets.md)
   - [Enroll Updatable Assets](general/enroll-updatable-assets.md)
   - [Outphase Device](general/outphase-device.md)

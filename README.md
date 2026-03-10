@@ -35,6 +35,7 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [General](docs/device/README.md#device-general)
 
     - [Change Grouptag](docs/device/general/change-grouptag.md)
+    - [Check Device Compliance](docs/device/general/check-device-compliance.md)
     - [Check Updatable Assets](docs/device/general/check-updatable-assets.md)
     - [Enroll Updatable Assets](docs/device/general/enroll-updatable-assets.md)
     - [Outphase Device](docs/device/general/outphase-device.md)

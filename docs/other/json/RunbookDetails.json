@@ -246,6 +246,122 @@
     }
   },
   {
+    "RunbookDisplayName": "Check Device Compliance",
+    "RunbookDisplayPath": "Device \\ General \\ Check Device Compliance",
+    "RelativeRunbookPath": "device/general/check-device-compliance.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Check the compliance status of a device",
+    "Description": "This runbook retrieves the compliance status of a managed device from Microsoft Intune.\nIn simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.\nOptionally, a report with the full compliance details can be sent via email.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Select \"Simple\" (final value: $false) to show only the overall compliance state and non-compliant policy names.\nSelect \"Detailed\" (final value: $true) to additionally show which specific settings are failing and the reason for each failure."
+          }
+        ],
+        "globbing": "false",
+        "name": "DetailedOutput",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional - if specified, a compliance report will be sent to the provided email address(es).\nCan be a single address or multiple comma-separated addresses."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "DeviceManagementManagedDevices.Read.All",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Check Updatable Assets",
     "RunbookDisplayPath": "Device \\ General \\ Check Updatable Assets",
     "RelativeRunbookPath": "device/general/check-updatable-assets.ps1",
@@ -3211,7 +3327,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "6",
         "required": "true",
         "type": {
           "name": "String"
@@ -3252,6 +3368,23 @@
         }
       },
       {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
         "defaultValue": "",
         "description": [
           {
@@ -3272,23 +3405,6 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Azure region for the storage account, used when the account needs to be created."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountLocation",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "5",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
             "Text": "Storage account name used for the upload."
           }
         ],
@@ -3297,23 +3413,6 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "4",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Storage account SKU, used when the account needs to be created."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountSku",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "6",
         "required": "false",
         "type": {
           "name": "String"

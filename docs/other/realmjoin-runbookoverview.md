@@ -18,6 +18,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
       - [Change Grouptag](#change-grouptag)
+      - [Check Device Compliance](#check-device-compliance)
       - [Check Updatable Assets](#check-updatable-assets)
       - [Enroll Updatable Assets](#enroll-updatable-assets)
       - [Outphase Device](#outphase-device)
@@ -238,6 +239,25 @@ This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to
 
 #### Where to find
 Device \ General \ Change Grouptag
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-check-device-compliance'></a>
+
+### Check Device Compliance
+#### Check the compliance status of a device
+
+#### Description
+This runbook retrieves the compliance status of a managed device from Microsoft Intune.
+In simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.
+Optionally, a report with the full compliance details can be sent via email.
+
+#### Where to find
+Device \ General \ Check Device Compliance
 
 
 [Back to Table of Content](#table-of-contents)
