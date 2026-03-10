@@ -4,4 +4,5 @@ private
 /.vs
 deploy-all.ps1
 .vscode/settings.json
-.claude/rules
+.claude/*
+tools/
