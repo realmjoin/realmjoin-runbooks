@@ -22,6 +22,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Outphase Device](#device-general-outphase-device)
     - [Remove Primary User](#device-general-remove-primary-user)
     - [Rename Device](#device-general-rename-device)
+    - [Set Primary User](#device-general-set-primary-user)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
   - [Security](#device-security)
@@ -78,6 +79,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Or Remove Safelinks Exclusion](#organization-general-add-or-remove-safelinks-exclusion)
     - [Add Or Remove Smartscreen Exclusion](#organization-general-add-or-remove-smartscreen-exclusion)
     - [Add Or Remove Trusted Site](#organization-general-add-or-remove-trusted-site)
+    - [Add Primary Users Of Devices To Group (Scheduled)](#organization-general-add-primary-users-of-devices-to-group-scheduled)
     - [Add Security Group](#organization-general-add-security-group)
     - [Add User](#organization-general-add-user)
     - [Add Viva Engange Community](#organization-general-add-viva-engange-community)
@@ -278,6 +280,17 @@ Rename a device.
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | The device ID of the target device. |
 | NewDeviceName | ✓ | String | The new device name to set. This runbook validates the name against common Windows hostname constraints. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-general-set-primary-user'></a>
+
+### Set Primary User
+Set a new primary user on a managed Intune device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI. |
+| NewPrimaryUserId | ✓ | String | The user to assign as the new primary user of the device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-general-unenroll-updatable-assets'></a>
@@ -943,6 +956,24 @@ Add or remove a URL entry in the Intune Trusted Sites policy
 | DefaultPolicyName |  | String | Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided. |
 | IntunePolicyName |  | String | Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
+<a name='organization-general-add-primary-users-of-devices-to-group-scheduled'></a>
+
+### Add Primary Users Of Devices To Group (Scheduled)
+Sync primary users of Intune managed devices by platform into an Entra ID group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TargetGroupId | ✓ | String | The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook. |
+| Windows |  | Boolean | Include primary users of Windows devices. (OData Filter used "operatingSystem eq 'Windows'") |
+| MacOS |  | Boolean | Include primary users of macOS devices. (OData Filter used "operatingSystem eq 'macOS'") |
+| iOS |  | Boolean | Include primary users of iOS and iPadOS devices. (OData Filter used "operatingSystem eq 'iOS'") |
+| Android |  | Boolean | Include primary users of Android devices. (OData Filter used "operatingSystem eq 'Android'") |
+| AdvancedFilter |  | String | Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' . |
+| RemoveUsersWhenNoDeviceMatch |  | Boolean | When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed. |
+| IncludeGroupId |  | String | Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users. |
+| ExcludeGroupId |  | String | Optional. Users who are members of this group will not be added and will be removed from the target group if already present. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-general-add-security-group'></a>
 

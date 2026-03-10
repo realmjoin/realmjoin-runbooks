@@ -23,6 +23,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Outphase Device](#outphase-device)
       - [Remove Primary User](#remove-primary-user)
       - [Rename Device](#rename-device)
+      - [Set Primary User](#set-primary-user)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
   - [Security](#device-security)
@@ -79,6 +80,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Or Remove Safelinks Exclusion](#add-or-remove-safelinks-exclusion)
       - [Add Or Remove Smartscreen Exclusion](#add-or-remove-smartscreen-exclusion)
       - [Add Or Remove Trusted Site](#add-or-remove-trusted-site)
+      - [Add Primary Users Of Devices To Group (Scheduled)](#add-primary-users-of-devices-to-group-(scheduled))
       - [Add Security Group](#add-security-group)
       - [Add User](#add-user)
       - [Add Viva Engange Community](#add-viva-engange-community)
@@ -322,6 +324,23 @@ Rename a device (in Intune and Autopilot).
 
 #### Where to find
 Device \ General \ Rename Device
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-set-primary-user'></a>
+
+### Set Primary User
+#### Set a new primary user on a managed Intune device
+
+#### Description
+This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.
+
+#### Where to find
+Device \ General \ Set Primary User
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1296,6 +1315,23 @@ Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom co
 
 #### Where to find
 Org \ General \ Add Or Remove Trusted Site
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-add-primary-users-of-devices-to-group-(scheduled)'></a>
+
+### Add Primary Users Of Devices To Group (Scheduled)
+#### Sync primary users of Intune managed devices by platform into an Entra ID group
+
+#### Description
+This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.
+
+#### Where to find
+Org \ General \ Add Primary Users Of Devices To Group_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)

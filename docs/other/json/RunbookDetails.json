@@ -722,6 +722,87 @@
     }
   },
   {
+    "RunbookDisplayName": "Set Primary User",
+    "RunbookDisplayPath": "Device \\ General \\ Set Primary User",
+    "RelativeRunbookPath": "device/general/set-primary-user.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Set a new primary user on a managed Intune device",
+    "Description": "This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The user to assign as the new primary user of the device."
+          }
+        ],
+        "globbing": "false",
+        "name": "NewPrimaryUserId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Unenroll Updatable Assets",
     "RunbookDisplayPath": "Device \\ General \\ Unenroll Updatable Assets",
     "RelativeRunbookPath": "device/general/unenroll-updatable-assets.ps1",
@@ -6404,6 +6485,208 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "DeviceManagementConfiguration.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Add Primary Users Of Devices To Group_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Add Primary Users Of Devices To Group_Scheduled",
+    "RelativeRunbookPath": "org/general/add-primary-users-of-devices-to-group_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Sync primary users of Intune managed devices by platform into an Entra ID group",
+    "Description": "This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' ."
+          }
+        ],
+        "globbing": "false",
+        "name": "AdvancedFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of Android devices. (OData Filter used \"operatingSystem eq 'Android'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "Android",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional. Users who are members of this group will not be added and will be removed from the target group if already present."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of iOS and iPadOS devices. (OData Filter used \"operatingSystem eq 'iOS'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "iOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of macOS devices. (OData Filter used \"operatingSystem eq 'macOS'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "MacOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveUsersWhenNoDeviceMatch",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include primary users of Windows devices. (OData Filter used \"operatingSystem eq 'Windows'\")"
+          }
+        ],
+        "globbing": "false",
+        "name": "Windows",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Group.Read.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.Read.All",
+            "Group.Read.All",
+            "GroupMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],

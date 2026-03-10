@@ -32,6 +32,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Rename Device | Rename a device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | NewDeviceName | ✓ | String | The new device name to set. This runbook validates the name against common Windows hostname constraints. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Set Primary User | Set a new primary user on a managed Intune device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | DeviceId | ✓ | String | The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI. |
+|  |  |  |  |  |  | NewPrimaryUserId | ✓ | String | The user to assign as the new primary user of the device. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to unenroll. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to unenroll from. Possible values are: driver, feature, quality or all (delete). |
@@ -284,6 +287,16 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DefaultPolicyName |  | String | Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided. |
 |  |  |  |  |  |  | IntunePolicyName |  | String | Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Add Primary Users Of Devices To Group (Scheduled) | Sync primary users of Intune managed devices by platform into an Entra ID group | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | TargetGroupId | ✓ | String | The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook. |
+|  |  |  |  |  |  | Windows |  | Boolean | Include primary users of Windows devices. (OData Filter used "operatingSystem eq 'Windows'") |
+|  |  |  |  |  |  | MacOS |  | Boolean | Include primary users of macOS devices. (OData Filter used "operatingSystem eq 'macOS'") |
+|  |  |  |  |  |  | iOS |  | Boolean | Include primary users of iOS and iPadOS devices. (OData Filter used "operatingSystem eq 'iOS'") |
+|  |  |  |  |  |  | Android |  | Boolean | Include primary users of Android devices. (OData Filter used "operatingSystem eq 'Android'") |
+|  |  |  |  |  |  | AdvancedFilter |  | String | Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' . |
+|  |  |  |  |  |  | RemoveUsersWhenNoDeviceMatch |  | Boolean | When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed. |
+|  |  |  |  |  |  | IncludeGroupId |  | String | Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users. |
+|  |  |  |  |  |  | ExcludeGroupId |  | String | Optional. Users who are members of this group will not be added and will be removed from the target group if already present. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Add Security Group | Create a Microsoft Entra ID security group | - **Type**: Microsoft Graph<br>&emsp;- Group.Create<br> |  | GroupName | ✓ | String | Display name of the security group to create. |
 |  |  |  |  |  |  | GroupDescription |  | String | Optional description for the security group. |
 |  |  |  |  |  |  | Owner |  | String | Optional owner to assign to the group. |

@@ -12,6 +12,7 @@
   - [Outphase Device](general/outphase-device.md)
   - [Remove Primary User](general/remove-primary-user.md)
   - [Rename Device](general/rename-device.md)
+  - [Set Primary User](general/set-primary-user.md)
   - [Unenroll Updatable Assets](general/unenroll-updatable-assets.md)
   - [Wipe Device](general/wipe-device.md)
 <a name='device-security'></a>
