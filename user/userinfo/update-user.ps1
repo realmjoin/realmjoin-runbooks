@@ -1,19 +1,73 @@
 <#
-  .SYNOPSIS
-  Update/Finalize an existing user object.
+	.SYNOPSIS
+	Update user metadata and memberships
 
-  .DESCRIPTION
-  Update the metadata, group memberships and Exchange settings of an existing user object.
+	.DESCRIPTION
+	Updates user profile properties in Microsoft Entra ID and applies optional group memberships and Exchange Online settings. This runbook is typically used to finalize onboarding or to correct user metadata.
 
-  .PARAMETER PreferredLanguage
-  Examples: 'en-US' or 'de-DE'
+	.PARAMETER UserName
+	User principal name of the target user.
 
-  .PARAMETER UsageLocation
-  Examples: "DE" or "US"
+	.PARAMETER GivenName
+	Given name to set for the user.
 
-  .EXAMPLE
-  // Full Runbook Customizing Example
-      "Templates": {
+	.PARAMETER Surname
+	Surname to set for the user.
+
+	.PARAMETER DisplayName
+	Display name to set for the user.
+
+	.PARAMETER CompanyName
+	Company name to set for the user.
+
+	.PARAMETER City
+	City to set for the user.
+
+	.PARAMETER Country
+	Country to set for the user.
+
+	.PARAMETER JobTitle
+	Job title to set for the user.
+
+	.PARAMETER Department
+	Department to set for the user.
+
+	.PARAMETER OfficeLocation
+	Office location to set for the user.
+
+	.PARAMETER PostalCode
+	Postal code to set for the user.
+
+	.PARAMETER PreferredLanguage
+	Preferred language to set for the user. Examples: "en-US" or "de-DE".
+
+	.PARAMETER State
+	State to set for the user.
+
+	.PARAMETER StreetAddress
+	Street address to set for the user.
+
+	.PARAMETER UsageLocation
+	Usage location to set for the user.
+
+	.PARAMETER DefaultLicense
+	Display name of a license group to assign.
+
+	.PARAMETER DefaultGroups
+	Comma-separated list of group display names to assign.
+
+	.PARAMETER EnableEXOArchive
+	If set to true, enables the Exchange Online archive mailbox.
+
+	.PARAMETER ResetPassword
+	If set to true, resets the user's password.
+
+	.PARAMETER CallerName
+	Caller name is tracked purely for auditing purposes.
+
+    .EXAMPLE
+    // Full Runbook Customizing Example
+    "Templates": {
         "Options": [
             {
                 "$id": "LocationOptions",
@@ -162,27 +216,28 @@
         }
     }
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-             "UserName": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "DisplayName": {
-                "DisplayName": "DisplayName"
-            },
-            "DefaultLicense": {
-                "DisplayName": "License group to assign"
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"UserName": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"DisplayName": {
+				"DisplayName": "DisplayName"
+			},
+			"DefaultLicense": {
+				"DisplayName": "License group to assign"
+			}
+		}
+	}
 
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -214,7 +269,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 "## Updating metadata of user '$UserName'."
@@ -249,8 +304,8 @@ try {
     addToUserArgs 'usageLocation'
 
     if (-not $targetUser.DisplayName -and -not $DisplayName) {
-        $resultingGivenName = ($GivenName, $targetUser.GivenName -ne "" -ne $null)[0]
-        $resultingSurname = ($Surname, $targetUser.Surname -ne "" -ne $null)[0]
+        $resultingGivenName = if ($GivenName) { $GivenName } else { $targetUser.GivenName }
+        $resultingSurname = if ($Surname) { $Surname } else { $targetUser.Surname }
         if ($resultingGivenName -and $resultingSurname) {
             $userArgs['displayName'] = "$resultingGivenName $resultingSurname"
         }

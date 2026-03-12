@@ -1,12 +1,21 @@
 <#
-  .SYNOPSIS
-  Set a users password policy to "(Do not) Expire"
+    .SYNOPSIS
+    Enable or disable password expiration for a user
 
-  .DESCRIPTION
-  Set a users password policy to "(Do not) Expire"
+    .DESCRIPTION
+    Updates the password policy for a user in Microsoft Entra ID. This can be used to disable password expiration or re-enable the default expiration behavior.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER DisablePasswordExpiration
+    If set to true, disables password expiration for the user.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
@@ -15,7 +24,7 @@
                 "Hide": true
             },
             "DisablePasswordExpiration": {
-                "DisplayName": "Disable Password Expiration?",
+                "DisplayName": "Disable Password Expiration?"
             }
         }
     }

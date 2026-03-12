@@ -1,12 +1,24 @@
 <#
-  .SYNOPSIS
-  (Un-)Assign a license to a user via group membership.
+    .SYNOPSIS
+    Assign or remove a license for a user via group membership
 
-  .DESCRIPTION
-  (Un-)Assign a license to a user via group membership.
+    .DESCRIPTION
+    Adds or removes a user to a dedicated license assignment group to control license allocation. The license group must match the configured naming convention.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER GroupID_License
+    Object ID of the license assignment group.
+
+    .PARAMETER Remove
+    "Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true

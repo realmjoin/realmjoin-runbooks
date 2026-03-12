@@ -1,61 +1,80 @@
 <#
-  .SYNOPSIS
-  Add/Remove a SmartScreen URL Exception/Rule in MS Security Center Indicators
+    .SYNOPSIS
+    Add or remove a SmartScreen URL indicator in Microsoft Defender
 
-  .DESCRIPTION
-  List/Add/Remove URL indicators entries in MS Security Center.
+    .DESCRIPTION
+    This runbook lists, adds, or removes URL indicators in Microsoft Defender.
+    It can allow, audit, warn, or block a given domain by creating an indicator entry.
 
-  .PARAMETER Url
-  please give just the name of the domain, like "exclusiondemo.com"
+    .PARAMETER Url
+    Domain name to manage, for example "exclusiondemo.com".
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "action": {
-            "DisplayName": "Action",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "List all URL indicators",
-                        "Value": 0,
-                        "Customization": {
-                            "Hide": [
-                                "mode",
-                                "explanationTitle",
-                                "explanationDescription",
-                                "Url"
-                            ]
+    .PARAMETER action
+    "List all URL indicators", "Add an URL indicator" or "Remove all indicator for this URL" could be selected as action to perform.
+
+    .PARAMETER mode
+    Indicator mode to apply.
+
+    .PARAMETER explanationTitle
+    Title used when creating an indicator.
+
+    .PARAMETER explanationDescription
+    Description used when creating an indicator.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "action": {
+                "DisplayName": "Action",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "List all URL indicators",
+                            "Value": 0,
+                            "Customization": {
+                                "Hide": [
+                                    "mode",
+                                    "explanationTitle",
+                                    "explanationDescription",
+                                    "Url"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Add an URL indicator",
+                            "Value": 1
+                        },
+                        {
+                            "Display": "Remove all indicator for this URL",
+                            "Value": 2,
+                            "Customization": {
+                                "Hide": [
+                                    "mode",
+                                    "explanationTitle",
+                                    "explanationDescription"
+                                ]
+                            }
                         }
-                    },
-                    {
-                        "Display": "Add an URL indicator",
-                        "Value": 1
-                    },
-                    {
-                        "Display": "Remove all indicator for this URL",
-                        "Value": 2,
-                        "Customization": {
-                            "Hide": [
-                                "mode",
-                                "explanationTitle",
-                                "explanationDescription"
-                            ]
-                        }
-                    }
-                ]
-            }
-        },
-        "mode": {
-            "DisplayName": "Allow, Audit, Warn or Block this URL?",
-            "SelectSimple": {
-                "Allow": 0,
-                "Audit": 1,
-                "Warn": 2,
-                "Block": 3
+                    ]
+                }
+            },
+            "mode": {
+                "DisplayName": "Allow, Audit, Warn or Block this URL?",
+                "SelectSimple": {
+                    "Allow": 0,
+                    "Audit": 1,
+                    "Warn": 2,
+                    "Block": 3
+                }
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }
-}
 
 #>
 

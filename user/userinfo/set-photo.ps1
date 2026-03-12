@@ -1,33 +1,41 @@
 <#
-  .SYNOPSIS
-  Set / update the photo / avatar picture of a user.
+	.SYNOPSIS
+	Set the profile photo for a user
 
-  .DESCRIPTION
-  Set / update the photo / avatar picture of a user.
+	.DESCRIPTION
+	Downloads a JPEG image from a URL and uploads it as the user's profile photo. This is useful to set or update user avatars in Microsoft 365.
 
-  .PARAMETER PhotoURI
-  Needs to be a JPEG
+	.PARAMETER UserName
+	User principal name of the target user.
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "UserName": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "PhotoURI": {
-                "DisplayName": "Photo Source URL:"
-            }
-        }
-    }
+	.PARAMETER PhotoURI
+	URL to a JPEG image that will be used as the profile photo.
+
+	.PARAMETER CallerName
+	Caller name is tracked purely for auditing purposes.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"UserName": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"PhotoURI": {
+				"DisplayName": "Photo Source URL:"
+			}
+		}
+	}
 #>
+
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    # If you need a demo-picture: https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50 (taken from https://en.gravatar.com/site/implement/images/)
     [Parameter(Mandatory = $true)]
     [string]$PhotoURI = "",
     # CallerName is tracked purely for auditing purposes
@@ -37,10 +45,8 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
-
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 "## Trying to update user photo of '$UserName' from URL:"
 "## $PhotoURI"

@@ -1,9 +1,28 @@
 <#
-  .SYNOPSIS
-  Mass-Delete Autopilot objects based on Serial Number.
+	.SYNOPSIS
+	Bulk delete Autopilot objects by serial number
 
-  .DESCRIPTION
-  This runbook deletes Autopilot objects in bulk based on a list of serial numbers.
+	.DESCRIPTION
+	This runbook deletes Windows Autopilot device identities based on a comma-separated list of serial numbers.
+	It searches for each serial number and deletes the matching Autopilot object if found.
+
+	.PARAMETER SerialNumbers
+	Comma-separated list of serial numbers to delete from Autopilot.
+
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"SerialNumbers": {
+				"DisplayName": "Comma separated serial numbers"
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 
 #>
 

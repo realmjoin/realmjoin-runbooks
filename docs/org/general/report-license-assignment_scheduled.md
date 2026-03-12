@@ -1,6 +1,6 @@
 # Report License Assignment (Scheduled)
 
-Generate and email a license availability report based on configured thresholds
+Generate and email a license availability report based on thresholds
 
 ## Detailed description
 This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
@@ -161,11 +161,7 @@ Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurati
 
 ## Parameters
 ### InputJson
-JSON array containing SKU configurations with thresholds. Each entry should include:
-- SKUPartNumber: The Microsoft SKU identifier
-- FriendlyName: Display name for the license
-- MinThreshold: (Optional) Minimum number of licenses that should be available
-- MaxThreshold: (Optional) Maximum number of licenses that should be available
+JSON array containing SKU configurations with thresholds. Each entry should include a SKUPartNumber for the Microsoft SKU identifier, a FriendlyName as the display name for the license, an optional MinThreshold specifying the minimum number of licenses that should be available, and an optional MaxThreshold specifying the maximum number of licenses that should be available.
 
 This needs to be configured in the runbook customization
 
@@ -176,8 +172,7 @@ This needs to be configured in the runbook customization
 | Type | Object |
 
 ### EmailTo
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Recipient email address or comma-separated recipient list.
 
 | Property | Value |
 |----------|-------|
@@ -186,7 +181,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Type | String |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization
+Sender email address resolved from settings.
 
 | Property | Value |
 |----------|-------|

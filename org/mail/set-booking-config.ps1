@@ -1,20 +1,78 @@
 <#
-  .SYNOPSIS
-  Configure Microsoft Bookings settings for the organization.
+        .SYNOPSIS
+        Configure Microsoft Bookings settings for the organization
 
-  .DESCRIPTION
-  Configure Microsoft Bookings settings at the organization level, including booking policies,
-  naming conventions, and access restrictions. Optionally creates an OWA mailbox policy for
-  Bookings creators and disables Bookings in the default OWA policy.
+        .DESCRIPTION
+        Configures Microsoft Bookings settings at the organization level using Exchange Online organization configuration. The runbook can optionally create an OWA mailbox policy for Bookings creators and disable Bookings in the default OWA policy.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-      "CallerName": {
-          "Hide": true
-      }
-    }
-  }
+        .PARAMETER BookingsEnabled
+        If set to true, Microsoft Bookings is enabled for the organization.
+
+        .PARAMETER BookingsAuthEnabled
+        If set to true, Bookings uses authentication.
+
+        .PARAMETER BookingsSocialSharingRestricted
+        If set to true, social sharing is restricted.
+
+        .PARAMETER BookingsExposureOfStaffDetailsRestricted
+        If set to true, exposure of staff details is restricted.
+
+        .PARAMETER BookingsMembershipApprovalRequired
+        If set to true, membership approval is required.
+
+        .PARAMETER BookingsSmsMicrosoftEnabled
+        If set to true, Microsoft SMS notifications are enabled.
+
+        .PARAMETER BookingsSearchEngineIndexDisabled
+        If set to true, search engine indexing is disabled.
+
+        .PARAMETER BookingsAddressEntryRestricted
+        If set to true, address entry is restricted.
+
+        .PARAMETER BookingsCreationOfCustomQuestionsRestricted
+        If set to true, creation of custom questions is restricted.
+
+        .PARAMETER BookingsNotesEntryRestricted
+        If set to true, notes entry is restricted.
+
+        .PARAMETER BookingsPhoneNumberEntryRestricted
+        If set to true, phone number entry is restricted.
+
+        .PARAMETER BookingsNamingPolicyEnabled
+        If set to true, naming policies are enabled.
+
+        .PARAMETER BookingsBlockedWordsEnabled
+        If set to true, blocked words are enabled for naming policies.
+
+        .PARAMETER BookingsNamingPolicyPrefixEnabled
+        If set to true, the naming policy prefix is enabled.
+
+        .PARAMETER BookingsNamingPolicyPrefix
+        Prefix applied by the naming policy.
+
+        .PARAMETER BookingsNamingPolicySuffixEnabled
+        If set to true, the naming policy suffix is enabled.
+
+        .PARAMETER BookingsNamingPolicySuffix
+        Suffix applied by the naming policy.
+
+        .PARAMETER CreateOwaPolicy
+        If set to true, an OWA mailbox policy for Bookings creators is created if missing.
+
+        .PARAMETER OwaPolicyName
+        Name of the OWA mailbox policy to create or use for Bookings creators.
+
+        .PARAMETER CallerName
+        Caller name is tracked purely for auditing purposes.
+
+        .INPUTS
+        RunbookCustomization: {
+                "Parameters": {
+                        "CallerName": {
+                                "Hide": true
+                        }
+                }
+        }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

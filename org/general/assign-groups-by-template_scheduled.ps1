@@ -1,60 +1,79 @@
 <#
-  .SYNOPSIS
-  Assign cloud-only groups to many users based on a predefined template.
+    .SYNOPSIS
+    Assign cloud-only groups to many users based on a predefined template
 
-  .DESCRIPTION
-  Assign cloud-only groups to many users based on a predefined template.
+    .DESCRIPTION
+    This runbook adds users from a source group to one or more target groups.
+    Target groups are provided via a template-driven string and can be resolved by group ID or display name.
 
-  .EXAMPLE
-  Full Runbook Customizations Example
-  {
-    "Templates": {
-        "Options": [
-            {
-                "$id": "GroupsTemplates",
-                "$values": [
+    .PARAMETER SourceGroupId
+    Object ID of the source group containing users to process.
+
+    .PARAMETER ExclusionGroupId
+    Optional object ID of a group whose users are excluded from processing.
+
+    .PARAMETER GroupsTemplate
+    Template selector used by the portal to populate the GroupsString parameter.
+
+    .PARAMETER GroupsString
+    Comma-separated list of target groups (IDs or display names depending on UseDisplaynames).
+
+    .PARAMETER UseDisplaynames
+    If set to true, GroupsString contains display names; otherwise it contains object IDs.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .EXAMPLE
+    Full Runbook Customizations Example
+    {
+        "Templates": {
+            "Options": [
+                {
+                    "$id": "GroupsTemplates",
+                    "$values": [
+                        {
+                            "Display": "Template 1 (UseDisplaynames=false)",
+                            "Customization": {
+                                "Default": {
+                                    "GroupsString": "c1f8e69f-e6c0-4e7e-b49d-241046958aa3,98c19df0-0bc1-4236-92b9-12559e1127d3"
+                                }
+                            }
+                        },
+                        {
+                            "Display": "Template 2 (UseDisplaynames=true)",
+                            "Customization": {
+                                "Default": {
+                                    "GroupsString": "app - Microsoft VC Redistributable 2013,app - VLC Player"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Runbooks": {
+            "rjgit-user_general_assign-groups-by-template": {
+                "ParameterList": [
                     {
-                        "Display": "Template 1 (UseDisplaynames=false)",
-                        "Customization": {
-                            "Default": {
-                                "GroupsString": "c1f8e69f-e6c0-4e7e-b49d-241046958aa3,98c19df0-0bc1-4236-92b9-12559e1127d3"
+                        "Name": "GroupsTemplate",
+                        "Select": {
+                            "Options": {
+                                "$ref": "GroupsTemplates"
                             }
                         }
                     },
                     {
-                        "Display": "Template 2 (UseDisplaynames=true)",
-                        "Customization": {
-                            "Default": {
-                                "GroupsString": "app - Microsoft VC Redistributable 2013,app - VLC Player"
-                            }
-                        }
+                        "Name": "UseDisplaynames",
+                        "Default": false
                     }
                 ]
             }
-        ]
-    },
-    "Runbooks": {
-        "rjgit-user_general_assign-groups-by-template": {
-            "ParameterList": [
-                {
-                    "Name": "GroupsTemplate",
-                    "Select": {
-                        "Options": {
-                            "$ref": "GroupsTemplates"
-                        }
-                    }
-                },
-                {
-                    "Name": "UseDisplaynames",
-                    "Default": false
-                }
-            ]
         }
     }
-  }
 
-  .INPUTS
-  RunbookCustomization: {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true

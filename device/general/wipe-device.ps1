@@ -1,87 +1,117 @@
 <#
-  .SYNOPSIS
-  Wipe a Windows or MacOS device
+    .SYNOPSIS
+    Wipe a Windows or MacOS device
 
-  .DESCRIPTION
-  Wipe a Windows or MacOS device.
+    .DESCRIPTION
+    Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "DeviceId": {
-            "Hide": true
-        },
-        "removeAADDevice": {
-            "Hide": true
-        },
-        "disableAADDevice": {
-            "DisplayName": "Disable AzureAD device object?",
-            "SelectSimple": {
-                "Disable device in AzureAD": true,
-                "Do not modify AzureAD device / do not care": false
-            }
-        },
-        "wipeDevice": {
-            "DisplayName": "Wipe this device?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Completely wipe device (Windows: not keeping user or enrollment data)",
-                        "Value": true,
-                        "Customization": {
-                            "Hide": [
-                                "removeIntuneDevice"
-                            ]
+    .PARAMETER DeviceId
+    The device ID of the target device.
+
+    .PARAMETER wipeDevice
+    "Wipe this device?" (final value: true) or "Do not wipe device" (final value: false) can be selected as action to perform. If set to true, the runbook will trigger a wipe action for the device in Intune. If set to false, no wipe action will be triggered for the device in Intune.
+
+    .PARAMETER useProtectedWipe
+    Windows-only. If set to true, uses protected wipe.
+
+    .PARAMETER removeIntuneDevice
+    If set to true, deletes the Intune device object.
+
+    .PARAMETER removeAutopilotDevice
+    Windows-only. "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant.
+
+    .PARAMETER removeAADDevice
+    "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD).
+
+    .PARAMETER disableAADDevice
+    "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD).
+
+    .PARAMETER macOsRecoveryCode
+    MacOS-only. Recovery code for older devices; newer devices may not require this.
+
+    .PARAMETER macOsObliterationBehavior
+    MacOS-only. Controls the OS obliteration behavior during wipe.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "DeviceId": {
+                "Hide": true
+            },
+            "removeAADDevice": {
+                "Hide": true
+            },
+            "disableAADDevice": {
+                "DisplayName": "Disable AzureAD device object?",
+                "SelectSimple": {
+                    "Disable device in AzureAD": true,
+                    "Do not modify AzureAD device / do not care": false
+                }
+            },
+            "wipeDevice": {
+                "DisplayName": "Wipe this device?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Completely wipe device (Windows: not keeping user or enrollment data)",
+                            "Value": true,
+                            "Customization": {
+                                "Hide": [
+                                    "removeIntuneDevice"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Do not wipe device",
+                            "Value": false,
+                            "Customization": {
+                                "Hide": [
+                                    "useProtectedWipe"
+                                ]
+                            }
                         }
-                    },
-                    {
-                        "Display": "Do not wipe device",
-                        "Value": false,
-                        "Customization": {
-                            "Hide": [
-                                "useProtectedWipe"
-                            ]
-                        }
-                    }
-                ],
-                "ShowValue": false
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "useProtectedWipe": {
+                "DisplayName": "Windows: Use protected wipe?"
+            },
+            "removeIntuneDevice": {
+                "DisplayName": "Delete device from Intune?",
+                "SelectSimple": {
+                    "Delete device from Intune (only if device is already wiped or destroyed)": true,
+                    "Do not modify the Intune object / do not care": false
+                }
+            },
+            "removeAutopilotDevice": {
+                "DisplayName": "Windows: Delete device from AutoPilot database?",
+                "SelectSimple": {
+                    "Remove the device from AutoPilot (the device can leave the tenant)": true,
+                    "Keep device / do not care": false
+                }
+            },
+            "macOsRecoveryCode": {
+                "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
+                "Hide": true
+            },
+            "macOsObliterationBehavior": {
+                "DisplayName": "MacOS: OS Obliteration Behavior",
+                "SelectSimple": {
+                    "Default: Try to erase user date (EACS), obliterate OS if this fails": "default",
+                    "Try to erase user data (EACS), do not obliterate the OS": "doNotObliterate",
+                    "Try to erase user data (EACS), else warn and obliterate the OS": "obliterateWithWarning",
+                    "Always obliterate OS": "always"
+                }
+            },
+            "CallerName": {
+                "Hide": true
             }
-        },
-        "useProtectedWipe": {
-            "DisplayName": "Windows: Use protected wipe?"
-        },
-        "removeIntuneDevice": {
-            "DisplayName": "Delete device from Intune?",
-            "SelectSimple": {
-                "Delete device from Intune (only if device is already wiped or destroyed)": true,
-                "Do not modify the Intune object / do not care": false
-            }
-        },
-        "removeAutopilotDevice": {
-            "DisplayName": "Windows: Delete device from AutoPilot database?",
-            "SelectSimple": {
-                "Remove the device from AutoPilot (the device can leave the tenant)": true,
-                "Keep device / do not care": false
-            }
-        },
-        "macOsRecevoryCode": {
-            "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
-            "Hide": true
-        },
-        "macOsObliterationBehavior": {
-            "DisplayName": "MacOS: OS Obliteration Behavior",
-            "SelectSimple": {
-                "Default: Try to erase user date (EACS), obliterate OS if this fails": "default",
-                "Try to erase user data (EACS), do not obliterate the OS": "doNotObliterate",
-                "Try to erase user data (EACS), else warn and obliterate the OS": "obliterateWithWarning",
-                "Always obliterate OS": "always"
-            }
-        },
-        "CallerName": {
-            "Hide": true
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
@@ -96,7 +126,7 @@ param (
     [bool] $removeAADDevice = $false,
     [bool] $disableAADDevice = $false,
     # Only for old MacOS devices. Newer devices can be wiped without a recovery code.
-    [string] $macOsRecevoryCode = "123456",
+    [string] $macOsRecoveryCode = "123456",
     # "default": Use EACS to wipe user data, reatining the OS. Will wipe the OS, if EACS fails.
     [string] $macOsObliterationBehavior = "default",
     # CallerName is tracked purely for auditing purposes
@@ -174,7 +204,7 @@ if ($mgdDevice) {
         }
         if ($mgdDevice.operatingSystem -eq "macOS") {
             "## MacOS device detected."
-            $body["macOsUnlockCode"] = $macOsRecevoryCode
+            $body["macOsUnlockCode"] = $macOsRecoveryCode
             $body["obliterationBehavior"] = $macOsObliterationBehavior
         }
         if ($mgdDevice.operatingSystem -eq "Windows") {

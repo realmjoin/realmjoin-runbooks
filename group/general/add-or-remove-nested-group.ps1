@@ -1,12 +1,26 @@
 <#
-  .SYNOPSIS
-  Add/remove a nested group to/from a group.
+    .SYNOPSIS
+    Add/remove a nested group to/from a group
 
-  .DESCRIPTION
-  Add/remove a nested group to/from an AzureAD or Exchange Online group.
+    .DESCRIPTION
+    This runbook adds a nested group to a target group or removes an existing nesting.
+    It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
+    Use the Remove switch to remove the nested group instead of adding it.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER GroupID
+    Object ID of the target group.
+
+    .PARAMETER NestedGroupID
+    Object ID of the group to add as a nested member.
+
+    .PARAMETER Remove
+    Set to true to remove the nested group membership, or false to add it.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "GroupId": {
                 "Hide": true

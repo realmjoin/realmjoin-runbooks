@@ -1,12 +1,20 @@
 <#
-  .SYNOPSIS
-  Archive a team.
+    .SYNOPSIS
+    Archive a team
 
-  .DESCRIPTION
-  Decomission an inactive team while preserving its contents for review.
+    .DESCRIPTION
+    This runbook archives a Microsoft Teams team backed by the specified Microsoft 365 group.
+    It verifies that the group is provisioned as a team and then triggers the archive action via Microsoft Graph.
+    Use this to decommission inactive teams while preserving their contents for review.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER GroupID
+    Object ID of the Microsoft 365 group that backs the team.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "GroupId": {
                 "Hide": true

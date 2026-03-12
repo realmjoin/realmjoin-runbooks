@@ -6,8 +6,28 @@
     Identifies and lists devices that haven't been active for a specified number of days.
     Automatically sends a report via email.
 
+    .NOTES
+    This runbook generates a comprehensive report of stale devices and delivers it via email.
+    The report includes device details, platform breakdowns, and exports a CSV file for further analysis.
+
+    Prerequisites:
+    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
+
+    Common Use Cases:
+    - Regular device inventory audits and compliance reporting
+    - Identifying devices for retirement or decommissioning
+    - Security reviews to find potentially lost devices
+    - Monitoring device health across the organization
+    - Using MaxDays parameter for staged reporting (e.g., 30-60 days, 60-90 days)
+    - User scope filtering to focus on specific departments or exclude service accounts
+
+    The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
+
     .PARAMETER Days
     Number of days without activity to be considered stale.
+
+    .PARAMETER MaxDays
+    Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included.
 
     .PARAMETER Windows
     Include Windows devices in the results.
@@ -28,6 +48,15 @@
     .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization
 
+    .PARAMETER UseUserScope
+    Enable user scope filtering to include or exclude devices based on primary user group membership.
+
+    .PARAMETER IncludeUserGroup
+    Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled.
+
+    .PARAMETER ExcludeUserGroup
+    Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled.
+
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
@@ -35,7 +64,10 @@
     RunbookCustomization: {
         "Parameters": {
             "Days": {
-                "DisplayName": "Days Without Activity",
+                "DisplayName": "Minimum Days Without Activity"
+            },
+            "MaxDays": {
+                "DisplayName": "(Optional) Maximum Days Without Activity"
             },
             "Windows": {
                 "DisplayName": "Include Windows Devices"
@@ -57,24 +89,72 @@
             },
             "EmailFrom": {
                 "Hide": true
+            },
+            "UseUserScope": {
+                "DisplayName": "Use User Scope Filtering",
+                "Hide": true
+            },
+            "IncludeUserGroup": {
+                "DisplayName": "Users to include (Group)",
+                "Hide": true
+            },
+            "ExcludeUserGroup": {
+                "DisplayName": "Users to exclude (Group)",
+                "Hide": true
             }
-        }
+        },
+        "ParameterList": [
+            {
+                "DisplayName": "(Optional) Enable user scope filtering to include or exclude devices based on primary user group membership.",
+                "DisplayAfter": "EmailFrom",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Yes - filter by group membership",
+                            "Customization": {
+                                "Hide": [],
+                                "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
+                                "Default": {
+                                    "UseUserScope": true
+                                }
+                            }
+                        },
+                        {
+                            "Display": "No - include all devices",
+                            "Customization": {
+                                "Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
+                                "Default": {
+                                    "UseUserScope": false
+                                }
+                            },
+                            "ParameterValue": false
+                        }
+                    ]
+                }
+            }
+        ]
     }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [int] $Days = 30,
+    [int] $MaxDays = $null,
     [bool] $Windows = $true,
     [bool] $MacOS = $true,
     [bool] $iOS = $true,
     [bool] $Android = $true,
-    [Parameter(Mandatory = $true)]
-    [string] $EmailTo,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
+    [bool] $UseUserScope = $false,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Users from Group" } )]
+    [string]$IncludeUserGroup,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
+    [string]$ExcludeUserGroup,
+    [Parameter(Mandatory = $true)]
+    [string] $EmailTo,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -89,7 +169,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.1"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -97,10 +177,14 @@ Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
 Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
 Write-RjRbLog -Message "Days: $Days" -Verbose
+Write-RjRbLog -Message "MaxDays: $MaxDays" -Verbose
 Write-RjRbLog -Message "Windows: $Windows" -Verbose
 Write-RjRbLog -Message "MacOS: $MacOS" -Verbose
 Write-RjRbLog -Message "iOS: $iOS" -Verbose
 Write-RjRbLog -Message "Android: $Android" -Verbose
+Write-RjRbLog -Message "UseUserScope: $UseUserScope" -Verbose
+Write-RjRbLog -Message "IncludeUserGroup: $IncludeUserGroup" -Verbose
+Write-RjRbLog -Message "ExcludeUserGroup: $ExcludeUserGroup" -Verbose
 
 #endregion
 
@@ -207,7 +291,17 @@ Write-Output ""
 $beforeDate = (Get-Date).AddDays(-$Days) | Get-Date -Format "yyyy-MM-dd"
 
 # Prepare filter for the Graph API query
-$filter = "lastSyncDateTime le $($beforeDate)T00:00:00Z"
+if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+    # Filter for devices inactive between Days and MaxDays
+    $afterDate = (Get-Date).AddDays(-$MaxDays) | Get-Date -Format "yyyy-MM-dd"
+    $filter = "lastSyncDateTime le $($beforeDate)T00:00:00Z and lastSyncDateTime ge $($afterDate)T00:00:00Z"
+    Write-RjRbLog -Message "Filtering devices inactive between $Days and $MaxDays days" -Verbose
+}
+else {
+    # Filter for devices inactive for at least Days
+    $filter = "lastSyncDateTime le $($beforeDate)T00:00:00Z"
+    Write-RjRbLog -Message "Filtering devices inactive for at least $Days days" -Verbose
+}
 
 # Define the properties to select
 $selectProperties = @(
@@ -226,12 +320,61 @@ $selectProperties = @(
 $selectString = ($selectProperties -join ',')
 
 # Get all stale devices
-Write-Output "## Listing devices not active for at least $($Days) days"
+if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+    Write-Output "## Listing devices inactive between $($Days) and $($MaxDays) days"
+}
+else {
+    Write-Output "## Listing devices not active for at least $($Days) days"
+}
 Write-Output ""
 
 $encodedFilter = [System.Uri]::EscapeDataString($filter)
 $devicesUri = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$selectString&`$filter=$encodedFilter"
 $devices = Get-AllGraphPage -Uri $devicesUri
+
+########################################################
+#region     User Scope Filtering
+########################################################
+
+# Get group membership for filtering if UseUserScope is enabled
+$includeUserIds = @()
+$excludeUserIds = @()
+
+if ($UseUserScope) {
+    Write-Output ""
+    Write-Output "## Processing user scope filtering..."
+
+    # Get users from include group
+    if ($IncludeUserGroup) {
+        Write-Output "Getting members from include group..."
+        try {
+            $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/members?`$select=id,userPrincipalName"
+            $includeMembers = Get-AllGraphPage -Uri $includeGroupUri
+            $includeUserIds = $includeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
+            Write-Output "Include group contains $($includeUserIds.Count) users"
+        }
+        catch {
+            Write-Warning "Failed to retrieve include group members: $_"
+        }
+    }
+
+    # Get users from exclude group
+    if ($ExcludeUserGroup) {
+        Write-Output "Getting members from exclude group..."
+        try {
+            $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/members?`$select=id,userPrincipalName"
+            $excludeMembers = Get-AllGraphPage -Uri $excludeGroupUri
+            $excludeUserIds = $excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
+            Write-Output "Exclude group contains $($excludeUserIds.Count) users"
+        }
+        catch {
+            Write-Warning "Failed to retrieve exclude group members: $_"
+        }
+    }
+    Write-Output ""
+}
+
+#endregion
 
 # Filter devices by platform based on user selection
 $filteredDevices = @()
@@ -258,12 +401,29 @@ foreach ($device in $devices) {
         if ($device.userPrincipalName) {
             try {
                 $encodedUserPrincipalName = [System.Uri]::EscapeDataString($device.userPrincipalName)
-                $userUri = "https://graph.microsoft.com/v1.0/users/{0}?`$select=displayName,city,usageLocation" -f $encodedUserPrincipalName
+                $userUri = "https://graph.microsoft.com/v1.0/users/{0}?`$select=id,displayName,city,usageLocation" -f $encodedUserPrincipalName
                 $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction SilentlyContinue
 
                 if ($userInfo) {
                     $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
                     $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
+
+                    # Apply user scope filtering if enabled
+                    if ($UseUserScope) {
+                        $userId = $userInfo.id
+
+                        # Apply include filter
+                        if ($IncludeUserGroup -and ($includeUserIds.Count -gt 0) -and ($userId -notin $includeUserIds)) {
+                            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' not in include group" -Verbose
+                            continue
+                        }
+
+                        # Apply exclude filter
+                        if ($ExcludeUserGroup -and ($excludeUserIds.Count -gt 0) -and ($userId -in $excludeUserIds)) {
+                            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
+                            continue
+                        }
+                    }
                 }
             }
             catch {
@@ -335,17 +495,29 @@ if ($filteredDevices.Count -gt 10) {
     $filteredDevices_moreThan10 = $true
 }
 # Build Markdown content
+$inactivityPeriodText = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+    "between **$Days and $MaxDays days**"
+} else {
+    "at least **$Days days**"
+}
+
 $markdownContent = if ($filteredDevices.Count -eq 0) {
     @"
 # Stale Devices Report
 
-Great news — no managed devices matched the stale device criteria (last sync on or before **$($beforeDate)**) for the selected platforms.
+Great news — no managed devices matched the stale device criteria (inactive for $($inactivityPeriodText)) for the selected platforms.
 
 ## What We Checked
 
-- Inactivity threshold: **$($Days) days**
+- Inactivity threshold: $($inactivityPeriodText)
 - Platforms evaluated: $($platformSummary)
 - Devices evaluated: $($totalDevicesEvaluated)
+$(if ($UseUserScope) {
+    $filterInfo = @()
+    if ($IncludeUserGroup) { $filterInfo += "Include group: $($includeUserIds.Count) users" }
+    if ($ExcludeUserGroup) { $filterInfo += "Exclude group: $($excludeUserIds.Count) users" }
+    "- User scope filtering: $($filterInfo -join ', ')"
+})
 
 ## Recommendations
 
@@ -358,39 +530,49 @@ else {
     @"
 # Stale Devices Report
 
-This report shows devices that have not been active for at least **$($Days) days**.
+This report shows devices that have been inactive for $($inactivityPeriodText).
+$(if ($UseUserScope) {
+    $filterInfo = @()
+    if ($IncludeUserGroup) { $filterInfo += "Include group with $($includeUserIds.Count) users" }
+    if ($ExcludeUserGroup) { $filterInfo += "Exclude group with $($excludeUserIds.Count) users" }
+    "`n**User Scope Filtering Applied:** $($filterInfo -join ', ')"
+})
 
 ## Summary Statistics
 
 | Metric | Count |
 |--------|-------|
 | **Total Stale Devices** | $($filteredDevices.Count) |
-$(if ($Windows) {
-    $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" } | Measure-Object).Count
-    "| **Windows Devices** | $($windowsCount) |"
-})
-$(if ($MacOS) {
-    $macOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "macOS" } | Measure-Object).Count
-    "| **macOS Devices** | $($macOSCount) |"
-})
-$(if ($iOS) {
-    $iOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "iOS" } | Measure-Object).Count
-    "| **iOS Devices** | $($iOSCount) |"
-})
-$(if ($Android) {
-    $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" } | Measure-Object).Count
-    "| **Android Devices** | $($androidCount) |"
-})
+$(
+    $summaryLines = @()
+    if ($Windows) {
+        $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" } | Measure-Object).Count
+        $summaryLines += "| **Windows Devices** | $windowsCount |"
+    }
+    if ($MacOS) {
+        $macOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "macOS" } | Measure-Object).Count
+        $summaryLines += "| **macOS Devices** | $macOSCount |"
+    }
+    if ($iOS) {
+        $iOSCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "iOS" } | Measure-Object).Count
+        $summaryLines += "| **iOS Devices** | $iOSCount |"
+    }
+    if ($Android) {
+        $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" } | Measure-Object).Count
+        $summaryLines += "| **Android Devices** | $androidCount |"
+    }
+    $summaryLines -join "`n"
+)
 
 $(if ($filteredDevices_moreThan10) {
     "## Top 10 Stale Devices (by Last Sync Date)"
     ""
-    "This table lists the top 10 devices that have been inactive the longest, based on the current defined days ($($Days) days) threshold."
+    "This table lists the top 10 devices that have been inactive the longest, based on the current defined threshold ($($inactivityPeriodText))."
     ""
 } else {
     "## Stale Devices"
     ""
-    "This table lists all devices that have been inactive for at least $($Days) days, based on the current defined days threshold."
+    "This table lists all devices matching the inactivity criteria ($($inactivityPeriodText))."
     ""
 })
 
@@ -398,13 +580,20 @@ $(if ($filteredDevices_moreThan10) {
 $(if ($filteredDevices.Count -gt 0) {
     $sortedDevices = $filteredDevices | Sort-Object -Property lastSyncDateTime
 
+    # If more than 10 devices, only show top 10 in email (oldest first)
+    $devicesToShow = if ($filteredDevices.Count -gt 10) {
+        $sortedDevices | Select-Object -First 10
+    } else {
+        $sortedDevices
+    }
+
     # Create markdown table
     $table = @"
 | Last Sync | Device Name | Operating System | Serial Number | Primary User |
 |-----------|-------------|------------------|---------------|--------------|
 "@
 
-    foreach ($device in $sortedDevices) {
+    foreach ($device in $devicesToShow) {
         $lastSync = Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd
         $deviceName = $device.deviceName
         $os = $device.operatingSystem
@@ -445,23 +634,49 @@ The .csv-file attached to this email contains the full list of stale devices for
 }
 
 # Create CSV file in current location
-$csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "StaleDevicesReport_$($tenantDisplayName)_$($Days)Days.csv"
+$csvFileNameSuffix = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+    "$($Days)-$($MaxDays)Days"
+} else {
+    "$($Days)Days"
+}
+$csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "StaleDevicesReport_$($tenantDisplayName)_$($csvFileNameSuffix).csv"
 $filteredDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
 $attachments = @($csvFilePath)
 Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
 
 # Send email report
-$emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($Days) days"
+$emailSubjectSuffix = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+    "$($Days)-$($MaxDays) days"
+} else {
+    "$($Days)+ days"
+}
+$emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($emailSubjectSuffix)"
 
 Write-Output "Sending report to '$($EmailTo)'..."
 try {
     Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $attachments
 
     Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
-    Write-Output "✅ Stale devices report generated and sent successfully"
-    Write-Output "📧 Recipient: $($EmailTo)"
-    Write-Output "📊 Total Stale Devices: $($filteredDevices.Count)"
-    Write-Output "⏱️ Inactive for: $Days days"
+    Write-Output "Stale devices report generated and sent successfully"
+    Write-Output "Recipient: $($EmailTo)"
+    Write-Output "Total Stale Devices: $($filteredDevices.Count)"
+    if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+        Write-Output "Inactivity range: $Days to $MaxDays days"
+    }
+    else {
+        Write-Output "Days threshold: $Days days (minimum)"
+    }
+
+    if ($UseUserScope) {
+        Write-Output ""
+        Write-Output "User Scope Filtering:"
+        if ($IncludeUserGroup) {
+            Write-Output "  - Include group: $($includeUserIds.Count) users"
+        }
+        if ($ExcludeUserGroup) {
+            Write-Output "  - Exclude group: $($excludeUserIds.Count) users"
+        }
+    }
 }
 catch {
     Write-Output "Error sending email: $_"

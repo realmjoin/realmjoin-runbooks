@@ -1,8 +1,23 @@
 <#
-.SYNOPSIS
+    .SYNOPSIS
     List role-assignable groups with eligible role assignments but without owners
 
-.INPUTS
+    .DESCRIPTION
+    Finds role-assignable groups that have PIM eligible role assignments but no owners assigned. Optionally sends an email alert containing the group names.
+
+    .PARAMETER SendEmailIfFound
+    If set to true, sends an email when matching groups are found.
+
+    .PARAMETER From
+    Sender email address used to send the alert.
+
+    .PARAMETER To
+    Recipient email address for the alert.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {
@@ -21,7 +36,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param(
-    [bool] $sendEmailIfFound = $true,
+    [bool] $SendEmailIfFound = $true,
     [string] $From = "reports@contoso.com",
     [string] $To = "support@glueckkanja-gab.com",
     # CallerName is tracked purely for auditing purposes
@@ -50,7 +65,7 @@ $groups | ForEach-Object {
 }
 ""
 
-if ($sendEmailIfFound -and ($result.Count -gt 0)) {
+if ($SendEmailIfFound -and ($result.Count -gt 0)) {
     $tenant = Invoke-RjRbRestMethodGraph -Resource "/organization"
     $tenantName = ($tenant.verifiedDomains | Where-Object { $_.isInitial }).name
 

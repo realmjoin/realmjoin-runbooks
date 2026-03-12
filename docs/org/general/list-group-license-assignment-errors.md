@@ -3,7 +3,8 @@
 Report groups that have license assignment errors
 
 ## Detailed description
-Report groups that have license assignment errors
+This runbook searches for Entra ID groups that have members with license assignment errors.
+It prints the affected group names and object IDs.
 
 ## Where to find
 Org \ General \ List Group License Assignment Errors

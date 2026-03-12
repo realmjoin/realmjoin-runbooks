@@ -1,16 +1,70 @@
 <#
-
-.SYNOPSIS
+    .SYNOPSIS
     Update an application registration in Azure AD
 
-.DESCRIPTION
-    This script modifies an existing application registration in Azure Active Directory (Entra ID) with comprehensive configuration updates.
+    .DESCRIPTION
+    This runbook updates an existing application registration and its related configuration in Microsoft Entra ID.
+    It compares the current settings with the requested parameters and applies only the necessary updates.
+    Use it to manage redirect URIs, SAML settings, visibility, assignment requirements, and token issuance behavior.
 
-    The script intelligently determines what changes need to be applied by comparing current settings
-    with requested parameters, ensuring only necessary updates are performed. It maintains backward
-    compatibility while supporting modern authentication patterns and security requirements.
+    .PARAMETER ClientId
+    The application client ID (appId) of the application registration to update.
 
-.INPUTS
+    .PARAMETER RedirectURI
+    Used for UI selection only. Determines which redirect URI type to configure.
+
+    .PARAMETER webRedirectURI
+    Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
+
+    .PARAMETER publicClientRedirectURI
+    Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
+
+    .PARAMETER spaRedirectURI
+    Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
+
+    .PARAMETER EnableSAML
+    If set to true, SAML-based authentication is configured on the service principal.
+
+    .PARAMETER SAMLReplyURL
+    The SAML reply URL.
+
+    .PARAMETER SAMLSignOnURL
+    The SAML sign-on URL.
+
+    .PARAMETER SAMLLogoutURL
+    The SAML logout URL.
+
+    .PARAMETER SAMLIdentifier
+    The SAML identifier (Entity ID).
+
+    .PARAMETER SAMLRelayState
+    The SAML relay state parameter.
+
+    .PARAMETER SAMLExpiryNotificationEmail
+    Email address for SAML certificate expiry notifications.
+
+    .PARAMETER isApplicationVisible
+    Determines whether the application is visible in the My Apps portal.
+
+    .PARAMETER UserAssignmentRequired
+    Determines whether user assignment is required for the application.
+
+    .PARAMETER groupAssignmentPrefix
+    Prefix for the automatically created assignment group.
+
+    .PARAMETER implicitGrantAccessTokens
+    Enable implicit grant flow for access tokens.
+
+    .PARAMETER implicitGrantIDTokens
+    Enable implicit grant flow for ID tokens.
+
+    .PARAMETER disableImplicitGrant
+    If set to true, disables implicit grant issuance regardless of other settings.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
     RunbookCustomization: {
     "Parameters": {
         "signInAudience": {

@@ -1,6 +1,6 @@
 # Add Shared Mailbox
 
-Create a shared mailbox.
+Create a shared mailbox
 
 ## Detailed description
 This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
@@ -29,7 +29,7 @@ The alias (mailbox name) for the shared mailbox.
 | Type | String |
 
 ### DisplayName
-The display name for the shared mailbox.
+Display name for the shared mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +38,7 @@ The display name for the shared mailbox.
 | Type | String |
 
 ### DomainName
-The domain name to be used for the primary SMTP address of the shared mailbox. If not specified, the default domain will be used.
+Optional domain used for the primary SMTP address; if not provided, the default domain is used.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +56,7 @@ The language/locale for the shared mailbox. This setting affects folder names li
 | Type | String |
 
 ### DelegateTo
-The user to delegate access to the shared mailbox.
+Optional user who receives delegated access to the mailbox.
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +65,7 @@ The user to delegate access to the shared mailbox.
 | Type | String |
 
 ### AutoMapping
-If set to true, the shared mailbox will be automatically mapped in Outlook for the delegate user.
+If set to true, the mailbox is automatically mapped in Outlook for the delegate.
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +74,7 @@ If set to true, the shared mailbox will be automatically mapped in Outlook for t
 | Type | Boolean |
 
 ### MessageCopyForSentAsEnabled
-If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent as the shared mailbox.
+If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items.
 
 | Property | Value |
 |----------|-------|
@@ -83,7 +83,7 @@ If set to true, a copy of sent emails will be saved in the shared mailbox's Sent
 | Type | Boolean |
 
 ### MessageCopyForSendOnBehalfEnabled
-If set to true, a copy of sent emails will be saved in the shared mailbox's Sent Items folder when sent on behalf of the shared mailbox.
+If set to true, copies of messages sent on behalf of the mailbox are stored in the mailbox sent items.
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +92,7 @@ If set to true, a copy of sent emails will be saved in the shared mailbox's Sent
 | Type | Boolean |
 
 ### DisableUser
-If set to true, the associated EntraID user account will be disabled.
+If set to true, the associated Entra ID user account is disabled.
 
 | Property | Value |
 |----------|-------|

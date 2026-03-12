@@ -1,9 +1,9 @@
 # Reset Password
 
-Reset a user's password.
+Reset a user's password
 
 ## Detailed description
-Reset a user's password. The user will have to change it on signin. Does not work with PW writeback to onprem AD.
+Resets the password for a user in Microsoft Entra ID and optionally enables the account first. The user can be forced to change the password at the next sign-in. This runbook is useful for helpdesk scenarios where a technician needs to reset a user's password and ensure that the user updates it upon next login.
 
 ## Where to find
 User \ Security \ Reset Password
@@ -15,6 +15,7 @@ User \ Security \ Reset Password
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -23,6 +24,7 @@ User \ Security \ Reset Password
 | Type | String |
 
 ### EnableUserIfNeeded
+If set to true, enables the user account before resetting the password.
 
 | Property | Value |
 |----------|-------|
@@ -31,6 +33,7 @@ User \ Security \ Reset Password
 | Type | Boolean |
 
 ### ForceChangePasswordNextSignIn
+If set to true, forces the user to change the password at the next sign-in.
 
 | Property | Value |
 |----------|-------|

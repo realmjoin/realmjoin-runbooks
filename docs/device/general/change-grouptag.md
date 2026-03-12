@@ -3,7 +3,7 @@
 Assign a new AutoPilot GroupTag to this device.
 
 ## Detailed description
-Assign a new AutoPilot GroupTag to this device.
+This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to trigger a new deployment with different policies and applications for the device.
 
 ## Where to find
 Device \ General \ Change Grouptag
@@ -17,6 +17,7 @@ Device \ General \ Change Grouptag
 
 ## Parameters
 ### DeviceId
+The device ID of the target device.
 
 | Property | Value |
 |----------|-------|
@@ -25,6 +26,7 @@ Device \ General \ Change Grouptag
 | Type | String |
 
 ### newGroupTag
+The new AutoPilot GroupTag to assign to the device.
 
 | Property | Value |
 |----------|-------|

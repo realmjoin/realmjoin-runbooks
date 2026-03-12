@@ -1,12 +1,33 @@
 <#
-  .SYNOPSIS
-  Create a classic distribution group.
+    .SYNOPSIS
+    Create a classic distribution group
 
-  .DESCRIPTION
-  Create a classic distribution group.
+    .DESCRIPTION
+    Creates a classic Exchange Online distribution group with optional owner configuration. If no primary SMTP address is provided, the default verified domain is used.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER Alias
+    Mail alias (mail nickname) for the distribution group.
+
+    .PARAMETER PrimarySMTPAddress
+    Optional primary SMTP address for the distribution group.
+
+    .PARAMETER GroupName
+    Optional display name for the distribution group; defaults to the alias.
+
+    .PARAMETER Owner
+    Optional owner who can manage the group.
+
+    .PARAMETER Roomlist
+    If set to true, the distribution group is created as a room list.
+
+    .PARAMETER AllowExternalSenders
+    If set to true, the group can receive email from external senders.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true

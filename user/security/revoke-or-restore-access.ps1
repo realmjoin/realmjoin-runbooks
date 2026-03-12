@@ -1,14 +1,23 @@
 <#
-  .SYNOPSIS
-  Revoke user access and all active tokens or re-enable user.
+    .SYNOPSIS
+    Revoke or restore user access
 
-  .DESCRIPTION
-  Revoke user access and all active tokens or re-enable user.
+    .DESCRIPTION
+    Blocks or re-enables a user account and optionally revokes active sign-in sessions. This can be used during incident response to immediately invalidate user tokens.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER Revoke
+    "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
-             "UserName": {
+            "UserName": {
                 "Hide": true
             },
             "Revoke": {

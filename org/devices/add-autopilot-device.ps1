@@ -1,9 +1,28 @@
 <#
     .SYNOPSIS
-    Import a windows device into Windows Autopilot.
+    Import a Windows device into Windows Autopilot
 
     .DESCRIPTION
-    This runbook imports a windows device into Windows Autopilot using the device's serial number and hardware hash.
+    This runbook imports a Windows device into Windows Autopilot using the device serial number and hardware hash.
+    It can optionally wait for the import job to finish and supports tagging during import.
+
+    .PARAMETER SerialNumber
+    Device serial number as returned by Get-WindowsAutopilotInfo.
+
+    .PARAMETER HardwareIdentifier
+    Device hardware hash as returned by Get-WindowsAutopilotInfo.
+
+    .PARAMETER AssignedUser
+    Optional user to assign to the Autopilot device.
+
+    .PARAMETER Wait
+    If set to true, the runbook waits until the import job completes.
+
+    .PARAMETER GroupTag
+    Optional group tag to apply to the imported device.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
     .INPUTS
     RunbookCustomization: {
@@ -20,6 +39,9 @@
             },
             "Wait": {
                 "DisplayName": "Wait for job to finish"
+            },
+            "GroupTag": {
+                "DisplayName": "Group tag (optional)"
             },
             "CallerName": {
                 "Hide": true

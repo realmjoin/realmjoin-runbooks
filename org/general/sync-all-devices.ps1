@@ -1,11 +1,22 @@
 <#
   .SYNOPSIS
-  Sync all Intune devices.
+  Sync all Intune Windows devices
 
   .DESCRIPTION
   This runbook triggers a sync operation for all Windows devices managed by Microsoft Intune.
-  It retrieves all managed Windows devices and sends a sync command to each device.
-  This is useful for forcing devices to check in with Intune and apply any pending policies or configurations.
+  It forces devices to check in and apply pending policies and configurations.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
+
+  .INPUTS
+  RunbookCustomization: {
+    "Parameters": {
+      "CallerName": {
+        "Hide": true
+      }
+    }
+  }
 
 #>
 

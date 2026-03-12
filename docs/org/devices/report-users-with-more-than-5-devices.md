@@ -1,12 +1,10 @@
 # Report Users With More Than 5-Devices
 
-Reports users with more than five registered devices in Entra ID.
+Report users with more than five registered devices
 
 ## Detailed description
-This script queries all devices and their registered users, and reports users who have more than five devices registered.
-The output includes the user's Object ID, UPN, display name, and the number of devices.
-
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information for each user.
+This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
+It outputs a summary table and can optionally send an email with CSV attachments.
 
 ## Where to find
 Org \ Devices \ Report Users With More Than 5-Devices

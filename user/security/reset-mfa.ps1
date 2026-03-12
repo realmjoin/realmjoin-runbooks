@@ -1,18 +1,20 @@
 <#
-  .SYNOPSIS
-  Remove all App- and Mobilephone auth methods for a user.
+    .SYNOPSIS
+    Remove all App- and Mobilephone auth methods for a user
 
-  .DESCRIPTION
-  Remove all App- and Mobilephone auth methods for a user. User can re-enroll MFA.
+    .DESCRIPTION
+    Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.
 
-  .NOTES
-  Permissions needed:
-  - UserAuthenticationMethod.ReadWrite.All
+    .PARAMETER UserName
+    User principal name of the target user.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
-             "UserName": {
+            "UserName": {
                 "Hide": true
             },
             "CallerName": {

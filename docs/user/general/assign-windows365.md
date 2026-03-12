@@ -1,9 +1,9 @@
 # Assign Windows365
 
-Assign/Provision a Windows 365 instance
+Assign and provision a Windows 365 Cloud PC for a user
 
 ## Detailed description
-Assign/Provision a Windows 365 instance for this user.
+Assigns the required groups and license or Frontline provisioning policy to initiate Windows 365 provisioning. Optionally notifies the user when provisioning completes and can create a support ticket when licenses are exhausted.
 
 ## Where to find
 User \ General \ Assign Windows365
@@ -14,11 +14,12 @@ User \ General \ Assign Windows365
   - User.Read.All
   - GroupMember.ReadWrite.All
   - Group.ReadWrite.All
-  - User.SendMail
+  - Mail.Send
 
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +28,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### cfgProvisioningGroupName
+Display name of the provisioning policy group or Frontline assignment to use.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### cfgUserSettingsGroupName
+Display name of the user settings policy group to use.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +46,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### licWin365GroupName
+Display name of the Windows 365 license group to assign when using dedicated Cloud PCs.
 
 | Property | Value |
 |----------|-------|
@@ -51,6 +55,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### cfgProvisioningGroupPrefix
+Prefix used to detect provisioning-related configuration groups.
 
 | Property | Value |
 |----------|-------|
@@ -59,6 +64,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### cfgUserSettingsGroupPrefix
+Prefix used to detect user-settings-related configuration groups.
 
 | Property | Value |
 |----------|-------|
@@ -67,6 +73,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### sendMailWhenProvisioned
+If set to true, sends an email to the user after provisioning completes.
 
 | Property | Value |
 |----------|-------|
@@ -75,6 +82,7 @@ User \ General \ Assign Windows365
 | Type | Boolean |
 
 ### customizeMail
+If set to true, uses a custom email body.
 
 | Property | Value |
 |----------|-------|
@@ -83,6 +91,7 @@ User \ General \ Assign Windows365
 | Type | Boolean |
 
 ### customMailMessage
+Custom message body used for the notification email.
 
 | Property | Value |
 |----------|-------|
@@ -91,6 +100,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### createTicketOutOfLicenses
+If set to true, creates a service ticket email when no licenses or Frontline seats are available.
 
 | Property | Value |
 |----------|-------|
@@ -99,6 +109,7 @@ User \ General \ Assign Windows365
 | Type | Boolean |
 
 ### ticketQueueAddress
+Email address used as ticket queue recipient.
 
 | Property | Value |
 |----------|-------|
@@ -107,6 +118,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### fromMailAddress
+Mailbox used to send the ticket and user notification emails.
 
 | Property | Value |
 |----------|-------|
@@ -115,6 +127,7 @@ User \ General \ Assign Windows365
 | Type | String |
 
 ### ticketCustomerId
+Customer identifier used in ticket subject lines.
 
 | Property | Value |
 |----------|-------|

@@ -1,18 +1,28 @@
 <#
-  .SYNOPSIS
-  Get BitLocker recovery key
+    .SYNOPSIS
+    Get the BitLocker recovery key
 
-  .DESCRIPTION
-  Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
+    .DESCRIPTION
+    This runbook retrieves a BitLocker recovery key using the recovery key ID from the BitLocker recovery screen.
+    It returns key details and related device information.
 
-  .PARAMETER bitlockeryRecoveryKeyId
-  bitlockeryRecoveryKeyId of the desired recovery key. Displayed in the BitLocker recovery screen (format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX).
+    .PARAMETER bitlockeryRecoveryKeyId
+    Recovery key ID of the desired key.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .INPUTS
-  bitlockeryRecoveryKeyId, and CallerName
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "bitlockeryRecoveryKeyId": {
+                "DisplayName": "BitLocker recovery key ID"
+            },
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

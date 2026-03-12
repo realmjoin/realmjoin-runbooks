@@ -1,6 +1,6 @@
 # List Users By MFA Methods Count
 
-Reports users by the count of their registered MFA methods.
+Report users by the count of their registered MFA methods
 
 ## Detailed description
 This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.

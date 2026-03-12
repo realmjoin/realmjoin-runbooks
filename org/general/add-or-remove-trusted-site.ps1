@@ -1,24 +1,33 @@
 <#
-  .SYNOPSIS
-  Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+    .SYNOPSIS
+    Add or remove a URL entry in the Intune Trusted Sites policy
 
-  .DESCRIPTION
-  Add/Remove an entry to/from the Intune Windows 10 Trusted Sites Policy
+    .DESCRIPTION
+    Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom configuration policy. The runbook can also list all existing Trusted Sites policies and their mappings.
 
-  .PARAMETER Url
-  Needs to be prefixed with "http://" or "https://"
+    .PARAMETER Action
+    Action to execute: add, remove, or list policies.
 
-  .PARAMETER IntunePolicyName
-  Will use an existing policy or default policy name if left empty.
+    .PARAMETER Url
+    URL to add or remove; it must be prefixed with "http://" or "https://".
 
-  .NOTES
-  This runbook uses calls as described in
-  https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/
-  to decrypt omaSettings. It currently needs to use the MS Graph Beta Endpoint for this.
-  Please switch to "v1.0" as soon, as this funtionality is available.
+    .PARAMETER Zone
+    Internet Explorer zone id to assign the URL to.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER DefaultPolicyName
+    Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided.
+
+    .PARAMETER IntunePolicyName
+    Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .NOTES
+    This runbook uses calls as described in https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/ to decrypt omaSettings. It currently needs to use the Microsoft Graph beta endpoint for this.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Action": {
                 "Select": {
@@ -38,7 +47,7 @@
                                 "Hide": [
                                     "Url",
                                     "Zone",
-                                    "DefaulPolicyName",
+                                    "DefaultPolicyName",
                                     "IntunePolicyName"
                                 ]
                             }

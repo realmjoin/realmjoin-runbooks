@@ -1,27 +1,29 @@
 ﻿<#
-  .SYNOPSIS
-  Add or remove entries from the Tenant Allow/Block List.
+    .SYNOPSIS
+    Add or remove entries from the Tenant Allow/Block List
 
-  .DESCRIPTION
-  Add or remove entries from the Tenant Allow/Block List in Microsoft Defender for Office 365.
-  Allows blocking or allowing senders, URLs, or file hashes. A new entry is set to expire in 30 days by default.
+    .DESCRIPTION
+    Adds or removes entries from the Tenant Allow/Block List in Microsoft Defender for Office 365. The runbook supports senders, URLs, and file hashes and sets new entries to expire after 30 days by default.
 
-  .PARAMETER Entry
-  The entry to add or remove (e.g., domain, email address, URL, or file hash).
+    .PARAMETER Entry
+    The entry to add or remove (for example: domain, email address, URL, or file hash).
 
-  .PARAMETER ListType
-  The type of entry: Sender, Url, or FileHash.
+    .PARAMETER ListType
+    Type of entry to manage.
 
-  .PARAMETER Block
-  Decides whether to block or allow the entry.
+    .PARAMETER Block
+    "Block List (block entry)" (final value: $true) or "Allow List (permit entry)" (final value: $false) can be selected as list type.
 
-  .PARAMETER Remove
-  Decides whether to remove or add the entry.
+    .PARAMETER Remove
+    "Add entry to the list" (final value: $false) or "Remove entry from the list" (final value: $true) can be selected as action to perform.
 
-  .PARAMETER DaysToExpire
-  Number of days until the entry expires. Default is 30 days.
+    .PARAMETER DaysToExpire
+    Number of days until a newly added entry expires.
 
-  .INPUTS
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
     RunbookCustomization: {
         "ParameterList": [
             {

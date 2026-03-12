@@ -1,9 +1,9 @@
 # Remove Group
 
-Removes a group, incl. SharePoint site and Teams team.
+Remove a group. For Microsoft 365 groups, also the associated resources (Teams, SharePoint site) will be removed.
 
 ## Detailed description
-Removes a group, incl. SharePoint site and Teams team.
+This runbook deletes the specified group, which for Microsoft 365 groups means, that it also deletes the associated resources such as the Teams Team and the SharePoint Site.
 
 ## Where to find
 Group \ General \ Remove Group
@@ -16,6 +16,7 @@ Group \ General \ Remove Group
 
 ## Parameters
 ### GroupId
+Object ID of the group to delete.
 
 | Property | Value |
 |----------|-------|

@@ -1,25 +1,31 @@
 <#
-  .SYNOPSIS
-  Microsoft Teams telephony offboarding
+    .SYNOPSIS
+    Microsoft Teams telephony offboarding
 
-  .DESCRIPTION
-  Remove the phone number and specific policies from a teams-enabled user.
+    .DESCRIPTION
+    Removes the assigned phone number and clears selected Teams voice policies for a Teams-enabled user. This fullfills the telephony offboarding scenarios.
 
-  .PARAMETER UserName
-  User which should be cleared. Could be filled with the user picker in the UI.
+    .PARAMETER UserName
+    User which should be cleared. Could be filled with the user picker in the UI.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "CallerName": {
-            "Hide": true
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "UserName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]

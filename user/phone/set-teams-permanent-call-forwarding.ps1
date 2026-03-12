@@ -1,32 +1,35 @@
 <#
-  .SYNOPSIS
-  Set up immediate call forwarding for a Microsoft Teams Enterprise Voice user.
+    .SYNOPSIS
+    Set immediate call forwarding for a Teams user
 
-  .DESCRIPTION
-  Set up instant call forwarding for a Microsoft Teams Enterprise Voice user. Forwarding to another Microsoft Teams Enterprise Voice user or to an external phone number.
+    .DESCRIPTION
+    Configures immediate call forwarding for a Teams Enterprise Voice user to a Teams user, a phone number, voicemail, or the user's delegates. The runbook can also disable immediate forwarding.
 
-  .PARAMETER UserName
-  User which should be set up. Could be filled with the user picker in the UI.
+    .PARAMETER UserName
+    User principal name of the target user.
 
-  .PARAMETER ForwardTargetPhoneNumber
-  Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789).
+    .PARAMETER ForwardTargetPhoneNumber
+    Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789)
 
-  .PARAMETER ForwardTargetTeamsUser
-  Teams user to which calls should be forwarded. Could be filled with the user picker in the UI.
+    .PARAMETER ForwardTargetTeamsUser
+    User principal name of the Teams user to forward calls to.
 
-  .PARAMETER ForwardToVoicemail
-  Forward calls to voicemail.
+    .PARAMETER ForwardToVoicemail
+    If set to true, forwards calls to voicemail.
 
-  .PARAMETER ForwardToDelegates
-  Forward calls to delegates which are defined by the user.
+    .PARAMETER ForwardToDelegates
+    If set to true, forwards calls to the delegates defined by the user.
 
-  .PARAMETER TurnOffForward
-  Turn off immediate call forwarding.
+    .PARAMETER TurnOffForward
+    If set to true, disables immediate call forwarding.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
 	"ParameterList": [
-      {
+        {
 			"Name": "UserName",
 			"DisplayName": "UPN of the current user"
 		},
@@ -125,7 +128,6 @@
 						}
 					}
 				]
-
 			},
 			"Default": "Teams user"
 		},
@@ -150,7 +152,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]

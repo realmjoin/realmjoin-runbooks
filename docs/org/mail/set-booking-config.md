@@ -1,11 +1,9 @@
 # Set Booking Config
 
-Configure Microsoft Bookings settings for the organization.
+Configure Microsoft Bookings settings for the organization
 
 ## Detailed description
-Configure Microsoft Bookings settings at the organization level, including booking policies,
-naming conventions, and access restrictions. Optionally creates an OWA mailbox policy for
-Bookings creators and disables Bookings in the default OWA policy.
+Configures Microsoft Bookings settings at the organization level using Exchange Online organization configuration. The runbook can optionally create an OWA mailbox policy for Bookings creators and disable Bookings in the default OWA policy.
 
 ## Where to find
 Org \ Mail \ Set Booking Config
@@ -21,6 +19,7 @@ Org \ Mail \ Set Booking Config
 
 ## Parameters
 ### BookingsEnabled
+If set to true, Microsoft Bookings is enabled for the organization.
 
 | Property | Value |
 |----------|-------|
@@ -29,6 +28,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsAuthEnabled
+If set to true, Bookings uses authentication.
 
 | Property | Value |
 |----------|-------|
@@ -37,6 +37,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsSocialSharingRestricted
+If set to true, social sharing is restricted.
 
 | Property | Value |
 |----------|-------|
@@ -45,6 +46,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsExposureOfStaffDetailsRestricted
+If set to true, exposure of staff details is restricted.
 
 | Property | Value |
 |----------|-------|
@@ -53,6 +55,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsMembershipApprovalRequired
+If set to true, membership approval is required.
 
 | Property | Value |
 |----------|-------|
@@ -61,6 +64,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsSmsMicrosoftEnabled
+If set to true, Microsoft SMS notifications are enabled.
 
 | Property | Value |
 |----------|-------|
@@ -69,6 +73,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsSearchEngineIndexDisabled
+If set to true, search engine indexing is disabled.
 
 | Property | Value |
 |----------|-------|
@@ -77,6 +82,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsAddressEntryRestricted
+If set to true, address entry is restricted.
 
 | Property | Value |
 |----------|-------|
@@ -85,6 +91,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsCreationOfCustomQuestionsRestricted
+If set to true, creation of custom questions is restricted.
 
 | Property | Value |
 |----------|-------|
@@ -93,6 +100,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsNotesEntryRestricted
+If set to true, notes entry is restricted.
 
 | Property | Value |
 |----------|-------|
@@ -101,6 +109,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsPhoneNumberEntryRestricted
+If set to true, phone number entry is restricted.
 
 | Property | Value |
 |----------|-------|
@@ -109,6 +118,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsNamingPolicyEnabled
+If set to true, naming policies are enabled.
 
 | Property | Value |
 |----------|-------|
@@ -117,6 +127,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsBlockedWordsEnabled
+If set to true, blocked words are enabled for naming policies.
 
 | Property | Value |
 |----------|-------|
@@ -125,6 +136,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsNamingPolicyPrefixEnabled
+If set to true, the naming policy prefix is enabled.
 
 | Property | Value |
 |----------|-------|
@@ -133,6 +145,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsNamingPolicyPrefix
+Prefix applied by the naming policy.
 
 | Property | Value |
 |----------|-------|
@@ -141,6 +154,7 @@ Org \ Mail \ Set Booking Config
 | Type | String |
 
 ### BookingsNamingPolicySuffixEnabled
+If set to true, the naming policy suffix is enabled.
 
 | Property | Value |
 |----------|-------|
@@ -149,6 +163,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### BookingsNamingPolicySuffix
+Suffix applied by the naming policy.
 
 | Property | Value |
 |----------|-------|
@@ -157,6 +172,7 @@ Org \ Mail \ Set Booking Config
 | Type | String |
 
 ### CreateOwaPolicy
+If set to true, an OWA mailbox policy for Bookings creators is created if missing.
 
 | Property | Value |
 |----------|-------|
@@ -165,6 +181,7 @@ Org \ Mail \ Set Booking Config
 | Type | Boolean |
 
 ### OwaPolicyName
+Name of the OWA mailbox policy to create or use for Bookings creators.
 
 | Property | Value |
 |----------|-------|

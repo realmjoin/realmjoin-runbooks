@@ -1,29 +1,29 @@
 <#
-  .SYNOPSIS
-  Looks up, if the given phone number is assigned to a user in Microsoft Teams.
+    .SYNOPSIS
+    Check whether a phone number is assigned in Microsoft Teams
 
-  .DESCRIPTION
-  This runbook looks up, if the given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned to a user, information about the user will be returned.
+    .DESCRIPTION
+    Looks up whether a given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned, information about the user and relevant voice policies is returned.
 
-  .PARAMETER PhoneNumber
-  The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
+    .PARAMETER PhoneNumber
+    The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "PhoneNumber": {
-            "DisplayName": "Phone number to check",
-        },
-        "CallerName": {
-            "Hide": true
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "PhoneNumber": {
+                "DisplayName": "Phone number to check"
+            },
+            "CallerName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.6.0" }
 
 param(
     [parameter(Mandatory = $true)]

@@ -1,9 +1,10 @@
 # Get Bitlocker Recovery Key
 
-Get BitLocker recovery key
+Get the BitLocker recovery key
 
 ## Detailed description
-Get BitLocker recovery key via supplying bitlockeryRecoveryKeyId.
+This runbook retrieves a BitLocker recovery key using the recovery key ID from the BitLocker recovery screen.
+It returns key details and related device information.
 
 ## Where to find
 Org \ Devices \ Get Bitlocker Recovery Key
@@ -17,7 +18,7 @@ Org \ Devices \ Get Bitlocker Recovery Key
 
 ## Parameters
 ### bitlockeryRecoveryKeyId
-bitlockeryRecoveryKeyId of the desired recovery key. Displayed in the BitLocker recovery screen (format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX).
+Recovery key ID of the desired key.
 
 | Property | Value |
 |----------|-------|

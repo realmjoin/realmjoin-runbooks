@@ -1,12 +1,27 @@
 <#
-  .SYNOPSIS
-  Write daily Windows 365 Utilization Data to Azure Tables
+    .SYNOPSIS
+    Write daily Windows 365 utilization data to Azure Table Storage
 
-  .DESCRIPTION
-  Write daily Windows 365 Utilization Data to Azure Tables. Will write data about the last full day.
+    .DESCRIPTION
+    Collects Windows 365 Cloud PC remote connection usage for the last full day and writes it to an Azure Table. The runbook creates the table if needed and merges records per tenant and timestamp.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER Table
+    Name of the Azure Table Storage table to write to.
+
+    .PARAMETER ResourceGroupName
+    Name of the Azure Resource Group containing the Storage Account.
+
+    .PARAMETER StorageAccountName
+    Name of the Azure Storage Account hosting the table.
+
+    .PARAMETER Days
+    Number of days to look back when collecting usage data.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
@@ -15,16 +30,18 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" },"Az.Storage","Az.Resources"
+#Requires -Modules @{ ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
+#Requires -Modules @{ ModuleName = "Az.Resources"; ModuleVersion = "9.0.1" }
 
 param(
-    # CallerName is tracked purely for auditing purposes
     [string] $Table = 'CloudPCUsageV2',
     [Parameter(Mandatory = $true)]
     [string] $ResourceGroupName,
     [Parameter(Mandatory = $true)]
     [string] $StorageAccountName,
-    [int] $days = 2,
+    [int] $Days = 2,
+    # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
@@ -169,7 +186,7 @@ function Get-SanitizedRowKey {
 Connect-RjRbGraph
 Connect-RjRbAzAccount
 
-$ReportDateLower = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format 'yyyy-MM-dd'
+$ReportDateLower = (get-date) - (New-TimeSpan -Days $Days) | Get-Date -Format 'yyyy-MM-dd'
 $TenantId = (invoke-RjRbRestMethodGraph -Resource "/organization").id
 
 $StorageTables = Get-StorageTable -tables $Table

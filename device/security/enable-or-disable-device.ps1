@@ -1,12 +1,22 @@
 <#
-  .SYNOPSIS
-  Disable a device in AzureAD.
+    .SYNOPSIS
+    Enable or disable a device in Entra ID
 
-  .DESCRIPTION
-  Disable a device in AzureAD.
+    .DESCRIPTION
+    This runbook enables or disables a Windows device object in Entra ID (Azure AD) based on the provided device ID.
+    Use it to temporarily block sign-ins from a compromised or lost device, or to re-enable the device after remediation.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER DeviceId
+    The device ID of the target device.
+
+    .PARAMETER Enable
+    "Disable Device?" (final value: false) or "Enable Device again?" (final value: true) can be selected as action to perform. If set to false, the runbook will disable the device in Entra ID (Azure AD). If set to true, the runbook will enable the device in Entra ID (Azure AD) again.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Enable": {
                 "DisplayName": "Disable or Enable Device",
@@ -20,9 +30,6 @@
             },
             "CallerName": {
                 "Hide": true
-            },
-            "Enable": {
-                "DisplayName": "Disable or Enable Device"
             }
         }
     }

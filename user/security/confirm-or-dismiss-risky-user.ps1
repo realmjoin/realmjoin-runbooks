@@ -1,12 +1,21 @@
 <#
-  .SYNOPSIS
-  Confirm compromise / Dismiss a "risky user"
+    .SYNOPSIS
+    Confirm compromise or dismiss a risky user
 
-  .DESCRIPTION
-  Confirm compromise / Dismiss a "risky user"
+    .DESCRIPTION
+    Confirms a user compromise or dismisses a risky user entry using Microsoft Entra ID Identity Protection. This helps security teams remediate and track risky sign-in events.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER Dismiss
+    "Confirm compromise" (final value: $false) or "Dismiss risk" (final value: $true) can be selected as action to perform. If set to true, the runbook will attempt to dismiss the risky user entry for the target user. If set to false, it will attempt to confirm a compromise for the target user.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Dismiss": {
                 "DisplayName": "Action",

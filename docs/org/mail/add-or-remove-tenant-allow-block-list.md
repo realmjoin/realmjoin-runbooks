@@ -1,10 +1,9 @@
 # Add Or Remove Tenant Allow Block List
 
-Add or remove entries from the Tenant Allow/Block List.
+Add or remove entries from the Tenant Allow/Block List
 
 ## Detailed description
-Add or remove entries from the Tenant Allow/Block List in Microsoft Defender for Office 365.
-Allows blocking or allowing senders, URLs, or file hashes. A new entry is set to expire in 30 days by default.
+Adds or removes entries from the Tenant Allow/Block List in Microsoft Defender for Office 365. The runbook supports senders, URLs, and file hashes and sets new entries to expire after 30 days by default.
 
 ## Where to find
 Org \ Mail \ Add Or Remove Tenant Allow Block List
@@ -20,7 +19,7 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
 
 ## Parameters
 ### Entry
-The entry to add or remove (e.g., domain, email address, URL, or file hash).
+The entry to add or remove (for example: domain, email address, URL, or file hash).
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ The entry to add or remove (e.g., domain, email address, URL, or file hash).
 | Type | String |
 
 ### ListType
-The type of entry: Sender, Url, or FileHash.
+Type of entry to manage.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +37,7 @@ The type of entry: Sender, Url, or FileHash.
 | Type | String |
 
 ### Block
-Decides whether to block or allow the entry.
+"Block List (block entry)" (final value: $true) or "Allow List (permit entry)" (final value: $false) can be selected as list type.
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +46,7 @@ Decides whether to block or allow the entry.
 | Type | Boolean |
 
 ### Remove
-Decides whether to remove or add the entry.
+"Add entry to the list" (final value: $false) or "Remove entry from the list" (final value: $true) can be selected as action to perform.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +55,7 @@ Decides whether to remove or add the entry.
 | Type | Boolean |
 
 ### DaysToExpire
-Number of days until the entry expires. Default is 30 days.
+Number of days until a newly added entry expires.
 
 | Property | Value |
 |----------|-------|

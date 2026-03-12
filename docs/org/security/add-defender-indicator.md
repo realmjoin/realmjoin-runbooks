@@ -1,9 +1,9 @@
 # Add Defender Indicator
 
-Create new Indicator in Defender for Endpoint.
+Create a new Microsoft Defender for Endpoint indicator
 
 ## Detailed description
-Create a new Indicator in Defender for Endpoint e.g. to allow a specific file using it's hash value or allow a specific url that by default is blocked by Defender for Endpoint
+Creates a new indicator in Microsoft Defender for Endpoint to allow or block a specific file hash, certificate thumbprint, IP, domain, or URL. The indicator action can generate alerts automatically for audit or alert-and-block actions.
 
 ## Where to find
 Org \ Security \ Add Defender Indicator
@@ -16,6 +16,7 @@ Org \ Security \ Add Defender Indicator
 
 ## Parameters
 ### IndicatorValue
+Value of the indicator, such as a hash, thumbprint, IP address, domain name, or URL.
 
 | Property | Value |
 |----------|-------|
@@ -24,6 +25,7 @@ Org \ Security \ Add Defender Indicator
 | Type | String |
 
 ### IndicatorType
+Type of the indicator value.
 
 | Property | Value |
 |----------|-------|
@@ -32,6 +34,7 @@ Org \ Security \ Add Defender Indicator
 | Type | String |
 
 ### Title
+Title of the indicator entry.
 
 | Property | Value |
 |----------|-------|
@@ -40,6 +43,7 @@ Org \ Security \ Add Defender Indicator
 | Type | String |
 
 ### Description
+Description of the indicator entry.
 
 | Property | Value |
 |----------|-------|
@@ -48,6 +52,7 @@ Org \ Security \ Add Defender Indicator
 | Type | String |
 
 ### Action
+Action applied to the indicator.
 
 | Property | Value |
 |----------|-------|
@@ -56,6 +61,7 @@ Org \ Security \ Add Defender Indicator
 | Type | String |
 
 ### Severity
+Severity used for the indicator.
 
 | Property | Value |
 |----------|-------|
@@ -64,6 +70,7 @@ Org \ Security \ Add Defender Indicator
 | Type | String |
 
 ### GenerateAlert
+If set to true, an alert is generated when the indicator matches.
 
 | Property | Value |
 |----------|-------|

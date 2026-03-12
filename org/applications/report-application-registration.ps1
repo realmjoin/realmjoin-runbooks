@@ -1,25 +1,26 @@
 ﻿<#
-.SYNOPSIS
+    .SYNOPSIS
     Generate and email a comprehensive Application Registration report
 
-.DESCRIPTION
-    This runbook generates a report of all Entra ID Application Registrations and deleted Application Registrations,
-    exports them to CSV files, and sends them via email.
+    .DESCRIPTION
+    This runbook generates a report of all application registrations in Microsoft Entra ID and can optionally include deleted registrations.
+    It exports the results to CSV files and sends them via email.
+    Use it for periodic inventory, review, and audit purposes.
 
-.PARAMETER EmailTo
+    .PARAMETER EmailTo
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
-.PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    .PARAMETER EmailFrom
+    The sender email address. This needs to be configured in the runbook customization.
 
-.PARAMETER IncludeDeletedApps
+    .PARAMETER IncludeDeletedApps
     Whether to include deleted application registrations in the report (default: true)
 
-.PARAMETER CallerName
-    Internal parameter for tracking purposes
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-.INPUTS
+    .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {
@@ -39,7 +40,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [Parameter(Mandatory = $true)]

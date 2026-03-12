@@ -1,9 +1,10 @@
 # Check Autopilot Serialnumbers
 
-Check if given serial numbers are present in AutoPilot.
+Check if given serial numbers are present in Autopilot
 
 ## Detailed description
-Check if given serial numbers are present in AutoPilot.
+This runbook checks whether Windows Autopilot device identities exist for the provided serial numbers.
+It returns the serial numbers found and lists any missing serial numbers.
 
 ## Where to find
 Org \ General \ Check Autopilot Serialnumbers
@@ -16,6 +17,7 @@ Org \ General \ Check Autopilot Serialnumbers
 
 ## Parameters
 ### SerialNumbers
+Serial numbers of the devices, separated by commas.
 
 | Property | Value |
 |----------|-------|

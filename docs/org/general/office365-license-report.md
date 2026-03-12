@@ -1,9 +1,10 @@
 # Office365 License Report
 
-Generate an Office 365 licensing report.
+Generate an Office 365 licensing report
 
 ## Detailed description
-Generate an Office 365 licensing report.
+This runbook creates a licensing report based on Microsoft 365 subscription SKUs and optionally includes Exchange Online related reports.
+It can export the results to Azure Storage and generate SAS links for downloads.
 
 ## Where to find
 Org \ General \ Office365 License Report
@@ -18,6 +19,7 @@ Org \ General \ Office365 License Report
 
 ## Parameters
 ### printOverview
+If set to true, prints a short license usage overview.
 
 | Property | Value |
 |----------|-------|
@@ -26,6 +28,7 @@ Org \ General \ Office365 License Report
 | Type | Boolean |
 
 ### includeExhange
+If set to true, includes Exchange Online related reports.
 
 | Property | Value |
 |----------|-------|
@@ -34,6 +37,7 @@ Org \ General \ Office365 License Report
 | Type | Boolean |
 
 ### exportToFile
+If set to true, exports reports to Azure Storage when configured.
 
 | Property | Value |
 |----------|-------|
@@ -42,6 +46,7 @@ Org \ General \ Office365 License Report
 | Type | Boolean |
 
 ### exportAsZip
+If set to true, exports reports as a single ZIP file.
 
 | Property | Value |
 |----------|-------|
@@ -50,6 +55,7 @@ Org \ General \ Office365 License Report
 | Type | Boolean |
 
 ### produceLinks
+If set to true, creates SAS tokens/links for exported artifacts.
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +64,7 @@ Org \ General \ Office365 License Report
 | Type | Boolean |
 
 ### ContainerName
-Make a persistent container the default, so you can simply update PowerBI's report from the same source
+Storage container name used for uploads.
 
 | Property | Value |
 |----------|-------|
@@ -67,6 +73,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Type | String |
 
 ### ResourceGroupName
+Resource group that contains the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -75,6 +82,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Type | String |
 
 ### StorageAccountName
+Storage account name used for uploads.
 
 | Property | Value |
 |----------|-------|
@@ -83,6 +91,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Type | String |
 
 ### StorageAccountLocation
+Azure region for the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -91,6 +100,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Type | String |
 
 ### StorageAccountSku
+Storage account SKU.
 
 | Property | Value |
 |----------|-------|
@@ -99,6 +109,7 @@ Make a persistent container the default, so you can simply update PowerBI's repo
 | Type | String |
 
 ### SubscriptionId
+Azure subscription ID used for storage operations.
 
 | Property | Value |
 |----------|-------|

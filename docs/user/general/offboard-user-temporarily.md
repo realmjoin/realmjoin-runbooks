@@ -1,9 +1,9 @@
 # Offboard User Temporarily
 
-Temporarily offboard a user.
+Temporarily offboard a user
 
 ## Detailed description
-Temporarily offboard a user in cases like parental leaves or sabaticals.
+Temporarily offboards a user for scenarios such as parental leave or sabbatical by disabling access, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
 
 ## Where to find
 User \ General \ Offboard User Temporarily
@@ -24,6 +24,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|
@@ -32,6 +33,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### RevokeAccess
+If set to true, revokes the user's refresh tokens and active sessions.
 
 | Property | Value |
 |----------|-------|
@@ -40,6 +42,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | Boolean |
 
 ### DisableUser
+If set to true, disables the user account for sign-in.
 
 | Property | Value |
 |----------|-------|
@@ -48,6 +51,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | Boolean |
 
 ### exportResourceGroupName
+Azure Resource Group name for exporting data to storage.
 
 | Property | Value |
 |----------|-------|
@@ -56,6 +60,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### exportStorAccountName
+Azure Storage Account name for exporting data to storage.
 
 | Property | Value |
 |----------|-------|
@@ -64,6 +69,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### exportStorAccountLocation
+Azure region used when creating the Storage Account.
 
 | Property | Value |
 |----------|-------|
@@ -72,6 +78,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### exportStorAccountSKU
+SKU name used when creating the Storage Account.
 
 | Property | Value |
 |----------|-------|
@@ -80,6 +87,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### exportStorContainerGroupMembershipExports
+Container name used for group membership exports.
 
 | Property | Value |
 |----------|-------|
@@ -88,6 +96,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### exportGroupMemberships
+If set to true, exports the user's current group memberships to Azure Storage.
 
 | Property | Value |
 |----------|-------|
@@ -96,6 +105,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | Boolean |
 
 ### ChangeLicensesSelector
+Controls how directly assigned licenses should be handled.
 
 | Property | Value |
 |----------|-------|
@@ -104,7 +114,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | Int32 |
 
 ### ChangeGroupsSelector
-"Change" and "Remove all" will both honour "groupToAdd"
+Controls how assigned groups should be handled. "Change" and "Remove all" will both honour "groupToAdd".
 
 | Property | Value |
 |----------|-------|
@@ -113,6 +123,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | Int32 |
 
 ### GroupToAdd
+Group that should be added or kept when group changes are enabled.
 
 | Property | Value |
 |----------|-------|
@@ -121,6 +132,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### GroupsToRemovePrefix
+Prefix used to remove groups matching a naming convention.
 
 | Property | Value |
 |----------|-------|
@@ -129,6 +141,7 @@ Azure IaaS: Contributor access on subscription or resource group used for the ex
 | Type | String |
 
 ### RevokeGroupOwnership
+If set to true, removes or replaces the user's group ownerships.
 
 | Property | Value |
 |----------|-------|

@@ -1,21 +1,34 @@
 <#
-  .SYNOPSIS
-  Check Intune assignments for a given (or multiple) Group Names.
+    .SYNOPSIS
+    Check Intune assignments for one or more group names
 
-  .DESCRIPTION
-  This script checks the Intune assignments for a single or multiple specified Group Names.
+    .DESCRIPTION
+    This runbook queries Intune policies and optionally app assignments that target the specified group(s).
+    It resolves group IDs and reports matching assignments.
 
-  .PARAMETER GroupNames
-  Group Names of the groups to check assignments for, separated by commas.
+    .PARAMETER GroupIDs
+    Group IDs of the groups to check assignments for
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
-  .PARAMETER IncludeApps
-  Boolean to specify whether to include application assignments in the search.
+    .PARAMETER IncludeApps
+    If set to true, also evaluates application assignments.
 
-  .INPUTS
-  GroupNames, CallerName, and IncludeApps
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "GroupIDs": {
+                "DisplayName": "One or more groups to check assignments for"
+            },
+            "IncludeApps": {
+                "DisplayName": "Include app assignments"
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
@@ -23,8 +36,8 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $CallerName,
-    [Parameter(Mandatory = $true)]
-    [string] $GroupNames,
+    [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group })]
+    [string[]] $GroupIDs,
     [bool] $IncludeApps = $false
 )
 
@@ -35,22 +48,19 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
 
-$GroupNamesArray = $GroupNames.Split(',') | ForEach-Object { $_.Trim() }
+foreach ($groupId in $GroupIDs) {
+    Write-RjRbLog -Message "Processing Group ID: $groupId" -Verbose
 
-foreach ($groupName in $GroupNamesArray) {
-    Write-RjRbLog -Message "Processing Group: $groupName" -Verbose
-
-    # Get Group ID from Microsoft Entra based on Group Name
-    Write-RjRbLog -Message "Fetching Group Details for $groupName" -Verbose
-    "## Fetching Group Details for $groupName"
-    $groupDetailsUri = "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$groupName'"
-    $groupResponse = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$groupName'"
-    $groupId = $groupResponse.id
+    # Get Group ID from Microsoft Entra based on Group ID
+    Write-RjRbLog -Message "Fetching Group Details for $groupId" -Verbose
+    "## Fetching Group Details for $groupId"
+    $groupResponse = Invoke-RjRbRestMethodGraph -Resource "/groups('$groupId')"
+    $groupName = $groupResponse.displayName
     if ($groupId) {
-        Write-RjRbLog -Message "Group Found! -> Group ID: $groupId" -Verbose
+        Write-RjRbLog -Message "Group Found! -> Group ID: $groupId, Group Name: $groupName" -Verbose
     }
     else {
-        Write-RjRbLog -Message "Group Not Found: $groupName" -ErrorAction Stop
+        Write-RjRbLog -Message "Group Not Found: $groupId" -ErrorAction Stop
     }
 
     # Initialize collections to hold relevant policies and applications
@@ -71,7 +81,6 @@ foreach ($groupName in $GroupNamesArray) {
         $policyId = $policy.id
 
         Write-RjRbLog -Message "Processing Policy: $policyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies('$policyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -104,7 +113,6 @@ foreach ($groupName in $GroupNamesArray) {
         $groupPolicyId = $grouppolicy.id
 
         Write-RjRbLog -Message "Processing Group Policy: $groupPolicyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -136,7 +144,6 @@ foreach ($groupName in $GroupNamesArray) {
         $configId = $config.id
 
         Write-RjRbLog -Message "Processing Device Configuration: $configName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations('$configId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -169,7 +176,6 @@ foreach ($groupName in $GroupNamesArray) {
         $compliancepolicyId = $compliancepolicy.id
 
         Write-RjRbLog -Message "Processing Compliance Policy: $compliancepolicyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -191,9 +197,6 @@ foreach ($groupName in $GroupNamesArray) {
             $appId = $app.id
 
             Write-RjRbLog -Message "Processing Application: $appName" -Verbose
-
-            # Construct the URI to get assignments for the current app
-            $assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
 
             # Fetch the assignments for the app
             $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps('$appId')/assignments" -Beta

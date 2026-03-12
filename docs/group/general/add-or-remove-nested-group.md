@@ -1,9 +1,11 @@
 # Add Or Remove Nested Group
 
-Add/remove a nested group to/from a group.
+Add/remove a nested group to/from a group
 
 ## Detailed description
-Add/remove a nested group to/from an AzureAD or Exchange Online group.
+This runbook adds a nested group to a target group or removes an existing nesting.
+It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
+Use the Remove switch to remove the nested group instead of adding it.
 
 ## Where to find
 Group \ General \ Add Or Remove Nested Group
@@ -18,6 +20,7 @@ Group \ General \ Add Or Remove Nested Group
 
 ## Parameters
 ### GroupID
+Object ID of the target group.
 
 | Property | Value |
 |----------|-------|
@@ -26,6 +29,7 @@ Group \ General \ Add Or Remove Nested Group
 | Type | String |
 
 ### NestedGroupID
+Object ID of the group to add as a nested member.
 
 | Property | Value |
 |----------|-------|
@@ -34,6 +38,7 @@ Group \ General \ Add Or Remove Nested Group
 | Type | String |
 
 ### Remove
+Set to true to remove the nested group membership, or false to add it.
 
 | Property | Value |
 |----------|-------|

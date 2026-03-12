@@ -3,9 +3,8 @@
 Export a CSV of all (enterprise) application owners and users
 
 ## Detailed description
-This runbook exports a comprehensive list of all enterprise applications (or all service principals)
-in your Azure AD tenant along with their owners and assigned users/groups. Afterwards the CSV file is uploaded
-to an Azure Storage Account, from where it can be downloaded.
+This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
+It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
 
 ## Where to find
 Org \ Applications \ Export Enterprise Application Users
@@ -22,6 +21,7 @@ Azure IaaS: - Contributor - access on subscription or resource group used for th
 
 ## Parameters
 ### entAppsOnly
+Determines whether to export only enterprise applications (final value: true) or all service principals/applications (final value: false).
 
 | Property | Value |
 |----------|-------|
@@ -30,6 +30,7 @@ Azure IaaS: - Contributor - access on subscription or resource group used for th
 | Type | Boolean |
 
 ### ContainerName
+Storage container name used for the upload.
 
 | Property | Value |
 |----------|-------|
@@ -38,6 +39,7 @@ Azure IaaS: - Contributor - access on subscription or resource group used for th
 | Type | String |
 
 ### ResourceGroupName
+Resource group that contains the storage account.
 
 | Property | Value |
 |----------|-------|
@@ -46,6 +48,7 @@ Azure IaaS: - Contributor - access on subscription or resource group used for th
 | Type | String |
 
 ### StorageAccountName
+Storage account name used for the upload.
 
 | Property | Value |
 |----------|-------|
@@ -53,21 +56,14 @@ Azure IaaS: - Contributor - access on subscription or resource group used for th
 | Required | false |
 | Type | String |
 
-### StorageAccountLocation
+### LinkExpiryDays
+Number of days until the generated download link expires.
 
 | Property | Value |
 |----------|-------|
-| Default Value |  |
+| Default Value | 6 |
 | Required | false |
-| Type | String |
-
-### StorageAccountSku
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

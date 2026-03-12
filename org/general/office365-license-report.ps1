@@ -1,63 +1,101 @@
 <#
-  .SYNOPSIS
-  Generate an Office 365 licensing report.
+    .SYNOPSIS
+    Generate an Office 365 licensing report
 
-  .DESCRIPTION
-  Generate an Office 365 licensing report.
+    .DESCRIPTION
+    This runbook creates a licensing report based on Microsoft 365 subscription SKUs and optionally includes Exchange Online related reports.
+    It can export the results to Azure Storage and generate SAS links for downloads.
 
-  .EXAMPLE
-  Example of Azure Storage Account configuration for RJ central datastore
-  {
-    "Settings": {
-        "OfficeLicensingReport": {
-            "ResourceGroup": "rj-test-runbooks-01",
-            "SubscriptionId": "00000000-0000-0000-0000-000000000000",
-            "StorageAccount": {
-                "Name": "rbexports01",
-                "Location": "West Europe",
-                "Sku": "Standard_LRS"
-            }
-        }
-    }
-  }
+    .PARAMETER printOverview
+    If set to true, prints a short license usage overview.
 
-  .INPUTS
-  RunbookCustomization: {
-    "ParameterList": [
-        {
-            "Name": "ContainerName",
-            "Hide": true
-        },
-        {
-            "Name": "ResourceGroupName",
-            "Hide": true
-        },
-        {
-            "Name": "StorageAccountName",
-            "Hide": true
-        },
-        {
-            "Name": "StorageAccountLocation",
-            "Hide": true
-        },
-        {
-            "Name": "StorageAccountSku",
-            "Hide": true
-        },
-        {
-            "Name": "SubscriptionId",
-            "Hide": true
-        },
-        {
-            "Name": "CallerName",
-            "Hide": true
-        }
-    ]
-  }
+    .PARAMETER includeExhange
+    If set to true, includes Exchange Online related reports.
+
+    .PARAMETER exportToFile
+    If set to true, exports reports to Azure Storage when configured.
+
+    .PARAMETER exportAsZip
+    If set to true, exports reports as a single ZIP file.
+
+    .PARAMETER produceLinks
+    If set to true, creates SAS tokens/links for exported artifacts.
+
+    .PARAMETER ContainerName
+    Storage container name used for uploads.
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for uploads.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the storage account.
+
+    .PARAMETER StorageAccountSku
+    Storage account SKU.
+
+    .PARAMETER SubscriptionId
+    Azure subscription ID used for storage operations.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+	.EXAMPLE
+	Example of Azure Storage Account configuration for RJ central datastore
+	{
+		"Settings": {
+			"OfficeLicensingReport": {
+				"ResourceGroup": "rj-test-runbooks-01",
+				"SubscriptionId": "00000000-0000-0000-0000-000000000000",
+				"StorageAccount": {
+					"Name": "rbexports01",
+					"Location": "West Europe",
+					"Sku": "Standard_LRS"
+				}
+			}
+		}
+	}
+
+	.INPUTS
+	RunbookCustomization: {
+		"ParameterList": [
+			{
+				"Name": "ContainerName",
+				"Hide": true
+			},
+			{
+				"Name": "ResourceGroupName",
+				"Hide": true
+			},
+			{
+				"Name": "StorageAccountName",
+				"Hide": true
+			},
+			{
+				"Name": "StorageAccountLocation",
+				"Hide": true
+			},
+			{
+				"Name": "StorageAccountSku",
+				"Hide": true
+			},
+			{
+				"Name": "SubscriptionId",
+				"Hide": true
+			},
+			{
+				"Name": "CallerName",
+				"Hide": true
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.2" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]

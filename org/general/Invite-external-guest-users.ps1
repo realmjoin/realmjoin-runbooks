@@ -1,21 +1,25 @@
 ﻿<#
-.SYNOPSIS
-    Invites external guest users to the organization using Microsoft Graph.
+	.SYNOPSIS
+	Invite external guest users to the organization
 
-.DESCRIPTION
-    This script automates the process of inviting external users as guests to the organization. Optionally, the invited user can be added to a specified group.
+	.DESCRIPTION
+	This runbook invites an external user as a guest user in Microsoft Entra ID.
+	It can optionally add the invited user to a specified group.
 
-.PARAMETER InvitedUserEmail
-    The email address of the guest user to invite.
+	.PARAMETER InvitedUserEmail
+	Email address of the guest user to invite.
 
-.PARAMETER InvitedUserDisplayName
-    The display name for the guest user.
+	.PARAMETER InvitedUserDisplayName
+	Display name of the guest user.
 
-.PARAMETER GroupId
+    .PARAMETER GroupId
     The object ID of the group to add the guest user to.
     If not specified, the user will not be added to any group.
 
-.NOTES
+	.PARAMETER CallerName
+	Caller name for auditing purposes.
+
+    .NOTES
     You need to setup proper RunbookCustomization in the RealmJoin Portal to use this script.
     An example would be looking like this:
     "rjgit-org_general_invite-external-guest-users": {
@@ -39,39 +43,44 @@
     }
 
 
-.INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "InvitedUserEmail": {
-            "DisplayName": "Invitee's email address",
-            "Mandatory": true
-        },
-        "InvitedUserDisplayName": {
-            "DisplayName": "Invitee's display name",
-            "Mandatory": true
-        },
-        "CallerName": {
-            "Hide": true
-        },
-        "GroupId": {
-            "Hide": true
-        }
-    }
-}
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"InvitedUserEmail": {
+				"DisplayName": "Invitee email address",
+				"Mandatory": true
+			},
+			"InvitedUserDisplayName": {
+				"DisplayName": "Invitee display name",
+				"Mandatory": true
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"GroupId": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$InvitedUserEmail,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$InvitedUserDisplayName,
 
-    [Parameter(Mandatory=$false)]
-    [string]$GroupId = ""
+    [Parameter(Mandatory = $false)]
+    [string]$GroupId = "",
+
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string]$CallerName
 
 )
 

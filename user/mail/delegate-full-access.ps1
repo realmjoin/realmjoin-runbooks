@@ -1,17 +1,37 @@
 <#
-  .SYNOPSIS
-  Grant another user full access to this mailbox.
+    .SYNOPSIS
+    Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
 
-  .DESCRIPTION
-  Grant another user full access to this mailbox.
+    .DESCRIPTION
+    Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.
+    Also shows the current and new permissions for the mailbox.
+    Automapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER delegateTo
+    User principal name of the delegate.
+
+    .PARAMETER Remove
+    If set to true, removes the delegation instead of granting it.
+
+    .PARAMETER AutoMapping
+    If set to true, enables Outlook automapping when granting FullAccess.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
             },
             "Remove": {
+                "Hide": true
+            },
+            "CallerName": {
                 "Hide": true
             }
         },
@@ -28,7 +48,8 @@
                                     "Remove": false
                                 }
                             }
-                        }, {
+                        },
+                        {
                             "Display": "Remove this delegation",
                             "Customization": {
                                 "Default": {

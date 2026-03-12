@@ -1,15 +1,24 @@
 # Assign Groups By Template (Scheduled)
 
-Assign cloud-only groups to many users based on a predefined template.
+Assign cloud-only groups to many users based on a predefined template
 
 ## Detailed description
-Assign cloud-only groups to many users based on a predefined template.
+This runbook adds users from a source group to one or more target groups.
+Target groups are provided via a template-driven string and can be resolved by group ID or display name.
 
 ## Where to find
 Org \ General \ Assign Groups By Template_Scheduled
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - User.Read.All
+  - Group.ReadWrite.All
+
+
 ## Parameters
 ### SourceGroupId
+Object ID of the source group containing users to process.
 
 | Property | Value |
 |----------|-------|
@@ -18,6 +27,7 @@ Org \ General \ Assign Groups By Template_Scheduled
 | Type | String |
 
 ### ExclusionGroupId
+Optional object ID of a group whose users are excluded from processing.
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +36,7 @@ Org \ General \ Assign Groups By Template_Scheduled
 | Type | String |
 
 ### GroupsTemplate
-GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
+Template selector used by the portal to populate the GroupsString parameter.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +45,7 @@ GroupsTemplate is not used directly, but is used to populate the GroupsString pa
 | Type | String |
 
 ### GroupsString
+Comma-separated list of target groups (IDs or display names depending on UseDisplaynames).
 
 | Property | Value |
 |----------|-------|
@@ -43,7 +54,7 @@ GroupsTemplate is not used directly, but is used to populate the GroupsString pa
 | Type | String |
 
 ### UseDisplaynames
-$UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames
+If set to true, GroupsString contains display names; otherwise it contains object IDs.
 
 | Property | Value |
 |----------|-------|

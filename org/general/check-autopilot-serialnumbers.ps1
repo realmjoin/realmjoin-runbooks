@@ -1,18 +1,25 @@
 <#
-  .SYNOPSIS
-  Check if given serial numbers are present in AutoPilot.
+    .SYNOPSIS
+    Check if given serial numbers are present in Autopilot
 
-  .DESCRIPTION
-  Check if given serial numbers are present in AutoPilot.
+    .DESCRIPTION
+    This runbook checks whether Windows Autopilot device identities exist for the provided serial numbers.
+    It returns the serial numbers found and lists any missing serial numbers.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER SerialNumbers
+    Serial numbers of the devices, separated by commas.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
             },
             "SerialNumbers": {
-                "DisplayName": "Serial Numbers of the Devices, separated by ','"
+                "DisplayName": "Serial numbers of the devices (comma-separated)"
             }
         }
     }

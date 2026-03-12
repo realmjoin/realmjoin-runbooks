@@ -1,16 +1,12 @@
 # Reset Mfa
 
-Remove all App- and Mobilephone auth methods for a user.
+Remove all App- and Mobilephone auth methods for a user
 
 ## Detailed description
-Remove all App- and Mobilephone auth methods for a user. User can re-enroll MFA.
+Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.
 
 ## Where to find
 User \ Security \ Reset Mfa
-
-## Notes
-Permissions needed:
-- UserAuthenticationMethod.ReadWrite.All
 
 ## Permissions
 ### Application permissions
@@ -20,6 +16,7 @@ Permissions needed:
 
 ## Parameters
 ### UserName
+User principal name of the target user.
 
 | Property | Value |
 |----------|-------|

@@ -5,6 +5,15 @@
   .DESCRIPTION
   Rename a device (in Intune and Autopilot).
 
+  .PARAMETER DeviceId
+  The device ID of the target device.
+
+  .PARAMETER NewDeviceName
+  The new device name to set. This runbook validates the name against common Windows hostname constraints.
+
+  .PARAMETER CallerName
+  Caller name for auditing purposes.
+
   .INPUTS
   RunbookCustomization: {
     "Parameters": {

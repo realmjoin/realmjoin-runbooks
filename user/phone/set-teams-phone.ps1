@@ -1,56 +1,62 @@
 <#
-  .SYNOPSIS
-  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+    .SYNOPSIS
+    Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 
-  .DESCRIPTION
-  Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
-  If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    .DESCRIPTION
+    Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+    If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
-  .PARAMETER UserName
-  User which should be assigned. Could be filled with the user picker in the UI.
+    .PARAMETER UserName
+    User principal name of the target user.
 
-  .PARAMETER PhoneNumber
-  Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
+    .PARAMETER PhoneNumber
+    Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
 
-  .PARAMETER OnlineVoiceRoutingPolicy
-  Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    .PARAMETER OnlineVoiceRoutingPolicy
+    Name of the Online Voice Routing Policy to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
-  .PARAMETER TenantDialPlan
-  Microsoft Teams DialPlan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    .PARAMETER TenantDialPlan
+    Name of the Tenant Dial Plan to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
-  .PARAMETER TeamsCallingPolicy
-  Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    .PARAMETER TeamsCallingPolicy
+    Name of the Teams Calling Policy to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
-  .PARAMETER TeamsIPPhonePolicy
-  Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users). If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    .PARAMETER TeamsIPPhonePolicy
+    Name of the Teams IP Phone Policy to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "PhoneNumber": {
-            "DisplayName": "Phone number to assign (E.164 Format - Example:+49123987654"
-        },
-        "OnlineVoiceRoutingPolicy": {
-            "DisplayName": "Microsoft Teams Online Voice Routing Policy Name"
-        },
-        "TenantDialPlan": {
-            "DisplayName": "Microsoft Teams DialPlan Name"
-        },
-        "TeamsCallingPolicy": {
-            "DisplayName": "Microsoft Teams Calling Policy Name"
-        },
-        "TeamsIPPhonePolicy": {
-            "DisplayName": "Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users)"
-        },
-        "CallerName": {
-            "Hide": true
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "PhoneNumber": {
+                "DisplayName": "Phone number to assign (E.164 Format - Example:+49123987654"
+            },
+            "OnlineVoiceRoutingPolicy": {
+                "DisplayName": "Microsoft Teams Online Voice Routing Policy Name"
+            },
+            "TenantDialPlan": {
+                "DisplayName": "Microsoft Teams DialPlan Name"
+            },
+            "TeamsCallingPolicy": {
+                "DisplayName": "Microsoft Teams Calling Policy Name"
+            },
+            "TeamsIPPhonePolicy": {
+                "DisplayName": "Microsoft Teams IP Phone Policy Name (a.o. for Common Area Phone Users)"
+            },
+            "CallerName": {
+                "Hide": true
+            },
+            "UserName": {
+                "Hide": true
+            }
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.6.0" }
 
 param(
     [Parameter(Mandatory = $true)]

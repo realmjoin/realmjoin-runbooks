@@ -3,12 +3,12 @@
     List expiry date of all Application Registration credentials
 
     .DESCRIPTION
-    List the expiry date of all Application Registration credentials, including Client Secrets and Certificates.
-    Optionally, filter by Application IDs and list only those credentials that are about to expire.
+    This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
+    It can optionally filter by application IDs and can limit output to credentials that are about to expire.
 
     .PARAMETER listOnlyExpiring
-    If set to true, only credentials that are about to expire within the specified number of days will be listed.
-    If set to false, all credentials will be listed regardless of their expiry date.
+    If only credentials that are about to expire within the specified number of days should be listed, select "List only credentials about to expire" (final value: true).
+    If you want to list all credentials regardless of their expiry date, select "List all credentials" (final value: false).
 
     .PARAMETER Days
     The number of days before a credential expires to consider it "about to expire".
@@ -26,6 +26,9 @@
 
     .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
 
     .INPUTS
     RunbookCustomization: {
@@ -88,7 +91,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
 param(
     [bool] $listOnlyExpiring = $true,

@@ -1,12 +1,36 @@
 <#
-  .SYNOPSIS
-  Remove/Deprovision a Windows 365 instance
+    .SYNOPSIS
+    Remove and deprovision a Windows 365 Cloud PC for a user
 
-  .DESCRIPTION
-  Remove/Deprovision a Windows 365 instance
+    .DESCRIPTION
+    Removes Windows 365 assignments for a user and deprovisions the associated Cloud PC. Optionally ends the grace period immediately to trigger faster removal.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the target user.
+
+    .PARAMETER licWin365GroupName
+    Display name of the Windows 365 license group or Frontline provisioning policy to remove.
+
+    .PARAMETER cfgProvisioningGroupPrefix
+    Prefix used to detect provisioning-related configuration groups.
+
+    .PARAMETER cfgUserSettingsGroupPrefix
+    Prefix used to detect user-settings-related configuration groups.
+
+    .PARAMETER licWin365GroupPrefix
+    Prefix used to detect Windows 365 license groups.
+
+    .PARAMETER skipGracePeriod
+    If set to true, ends the Cloud PC grace period immediately.
+
+    .PARAMETER KeepUserSettingsAndProvisioningGroups
+    If set to true, does not remove related provisioning and user settings groups.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
@@ -32,8 +56,8 @@
         }
     }
 
-   .EXAMPLE
-   "rjgit-user_general_unassign-windows365": {
+    .EXAMPLE
+    "rjgit-user_general_unassign-windows365": {
             "Parameters": {
                 "licWin365GroupName": {
                     "SelectSimple": {

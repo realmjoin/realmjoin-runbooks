@@ -1,15 +1,22 @@
 # Assign Groups By Template
 
-Assign cloud-only groups to a user based on a predefined template.
+Assign cloud-only groups to a user based on a template
 
 ## Detailed description
-Assign cloud-only groups to a user based on a predefined template.
+Adds a user to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
 
 ## Where to find
 User \ General \ Assign Groups By Template
 
+## Permissions
+### Application permissions
+- **Type**: Microsoft Graph
+  - Group.ReadWrite.All
+
+
 ## Parameters
 ### UserId
+ID of the target user in Microsoft Graph.
 
 | Property | Value |
 |----------|-------|
@@ -18,7 +25,7 @@ User \ General \ Assign Groups By Template
 | Type | String |
 
 ### GroupsTemplate
-GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
+Template selector used by portal customization to populate the group list.
 
 | Property | Value |
 |----------|-------|
@@ -27,6 +34,7 @@ GroupsTemplate is not used directly, but is used to populate the GroupsString pa
 | Type | String |
 
 ### GroupsString
+Comma-separated list of group object IDs or group display names.
 
 | Property | Value |
 |----------|-------|
@@ -35,7 +43,7 @@ GroupsTemplate is not used directly, but is used to populate the GroupsString pa
 | Type | String |
 
 ### UseDisplaynames
-$UseDisplayname = $false: GroupsString contains Group object ids, $true: GroupsString contains Group displayNames
+If set to true, treats values in GroupsString as group display names instead of IDs.
 
 | Property | Value |
 |----------|-------|

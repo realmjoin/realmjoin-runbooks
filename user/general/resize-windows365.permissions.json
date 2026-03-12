@@ -9,7 +9,7 @@
                 "Directory.Read.All",
                 "CloudPC.ReadWrite.All",
                 "User.Read.All",
-                "User.SendMail"
+                "Mail.Send"
             ]
         }
     ],

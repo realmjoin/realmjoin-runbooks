@@ -1,9 +1,40 @@
 <#
-.SYNOPSIS
-    Create a report of a tenant's polcies from Intune and AAD and write them to a markdown file.
+    .SYNOPSIS
+    Create a report of tenant policies from Intune and Entra ID.
 
-.INPUTS
-  RunbookCustomization: {
+    .DESCRIPTION
+    This runbook exports configuration policies from Intune and Entra ID and writes the results to a Markdown report.
+    It can optionally export raw JSON and create downloadable links for exported artifacts.
+
+    .PARAMETER produceLinks
+    If set to true, creates links for exported artifacts based on settings.
+
+    .PARAMETER exportJson
+    If set to true, also exports raw JSON policy payloads.
+
+    .PARAMETER renderLatexPagebreaks
+    If set to true, adds LaTeX page breaks to the generated Markdown.
+
+    .PARAMETER ContainerName
+    Storage container name used for uploads.
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for uploads.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the storage account.
+
+    .PARAMETER StorageAccountSku
+    Storage account SKU.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
@@ -12,7 +43,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.34.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
 param(

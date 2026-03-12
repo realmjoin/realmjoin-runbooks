@@ -1,41 +1,50 @@
 <#
-  .SYNOPSIS
-  Scheduled deletion of stale devices based on last activity date and platform.
+    .SYNOPSIS
+    Scheduled deletion of stale devices based on last activity
 
-  .DESCRIPTION
-  Identifies, lists, and deletes devices that haven't been active for a specified number of days.
-  Can be scheduled to run automatically and send a report via email.
+    .DESCRIPTION
+    This runbook identifies Intune managed devices that have not been active for a defined number of days.
+    It can optionally delete the matching devices and can send an email report.
 
-  .PARAMETER Days
-  Number of days without activity to be considered stale.
+    .PARAMETER Days
+    Number of days without activity to be considered stale
 
-  .PARAMETER Windows
-  Include Windows devices in the results.
+    .PARAMETER Windows
+    Include Windows devices in the results
 
-  .PARAMETER MacOS
-  Include macOS devices in the results.
+    .PARAMETER MacOS
+    Include macOS devices in the results
 
-  .PARAMETER iOS
-  Include iOS devices in the results.
+    .PARAMETER iOS
+    Include iOS devices in the results
 
-  .PARAMETER Android
-  Include Android devices in the results.
+    .PARAMETER Android
+    Include Android devices in the results
 
-  .PARAMETER DeleteDevices
-  If set to true, the script will delete the stale devices. If false, it will only report them.
+    .PARAMETER DeleteDevices
+    If set to true, the script will delete the stale devices. If false, it will only report them.
 
-  .PARAMETER ConfirmDeletion
-  If set to true, the script will prompt for confirmation before deleting devices.
-  Should be set to false for scheduled runs.
+    .PARAMETER ConfirmDeletion
+    If set to true, the script will prompt for confirmation before deleting devices.
+    Should be set to false for scheduled runs.
 
-  .PARAMETER sendAlertTo
-  Email address to send the report to.
+    .PARAMETER sendAlertTo
+    Email address to send the report to.
 
-  .PARAMETER sendAlertFrom
-  Email address to send the report from.
+    .PARAMETER sendAlertFrom
+    Email address to send the report from.
 
-  .PARAMETER CallerName
-  Caller name for auditing purposes.
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            }
+        }
+    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

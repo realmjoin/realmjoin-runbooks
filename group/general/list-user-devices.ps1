@@ -1,12 +1,26 @@
 <#
-  .SYNOPSIS
-  List all devices owned by group members.
+    .SYNOPSIS
+    List devices owned by group members.
 
-  .DESCRIPTION
-  List all devices owned by group members.
+    .DESCRIPTION
+    This runbook enumerates the users in a group and lists their registered devices.
+    Optionally, it can add the discovered devices to a specified device group.
+    Use this to create or maintain a device group based on group member ownership.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER GroupID
+    Object ID of the group whose members will be evaluated.
+
+    .PARAMETER moveGroup
+    If set to true, the discovered devices are added to the target device group.
+
+    .PARAMETER targetgroup
+    Object ID of the target device group that receives the devices when moveGroup is enabled.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "ParameterList": [
             {
                 "DisplayName": "Action",
@@ -20,7 +34,8 @@
                                     "moveGroup": true
                                 }
                             }
-                        }, {
+                        },
+                        {
                             "Display": "list devices owned by group members",
                             "Customization": {
                                 "Default": {
@@ -47,7 +62,7 @@
             {
                 "Name": "GroupID",
                 "Hide": true
-            },
+            }
         ]
     }
 #>

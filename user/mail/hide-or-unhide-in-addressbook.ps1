@@ -1,18 +1,30 @@
 <#
-  .SYNOPSIS
-  (Un)Hide this mailbox in address book.
+    .SYNOPSIS
+    Hide or unhide a mailbox in the address book
 
-  .DESCRIPTION
-  (Un)Hide this mailbox in address book.
+    .DESCRIPTION
+    Hides or unhides a mailbox from the global address lists. Important: This change can take up to 72 hours until it is reflected in the global address list.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER UserName
+    User principal name of the mailbox.
+
+    .PARAMETER HideMailbox
+    If set to true, hides the mailbox from address lists.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
             },
             "HideMailbox": {
                 "DisplayName": "Hide the Mailbox",
+                "Hide": true
+            },
+            "CallerName": {
                 "Hide": true
             }
         },

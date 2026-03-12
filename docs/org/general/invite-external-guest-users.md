@@ -1,9 +1,10 @@
 # Invite External Guest Users
 
-Invites external guest users to the organization using Microsoft Graph.
+Invite external guest users to the organization
 
 ## Detailed description
-This script automates the process of inviting external users as guests to the organization. Optionally, the invited user can be added to a specified group.
+This runbook invites an external user as a guest user in Microsoft Entra ID.
+It can optionally add the invited user to a specified group.
 
 ## Where to find
 Org \ General \ Invite External Guest Users
@@ -40,7 +41,7 @@ An example would be looking like this:
 
 ## Parameters
 ### InvitedUserEmail
-The email address of the guest user to invite.
+Email address of the guest user to invite.
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +50,7 @@ The email address of the guest user to invite.
 | Type | String |
 
 ### InvitedUserDisplayName
-The display name for the guest user.
+Display name of the guest user.
 
 | Property | Value |
 |----------|-------|

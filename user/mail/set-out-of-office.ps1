@@ -1,15 +1,39 @@
 <#
-  .SYNOPSIS
-  En-/Disable Out-of-office-notifications for a user/mailbox.
+    .SYNOPSIS
+    Enable or disable out-of-office notifications for a mailbox
 
-  .DESCRIPTION
-  En-/Disable Out-of-office-notifications for a user/mailbox.
+    .DESCRIPTION
+    Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
 
-  .PARAMETER End
-  10 years into the future ("forever") if left empty
+    .PARAMETER UserName
+    User principal name of the mailbox.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER Disable
+    "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform.
+
+    .PARAMETER Start
+    Start time for scheduled out-of-office replies.
+
+    .PARAMETER End
+    End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date.
+
+    .PARAMETER MessageInternal
+    Internal automatic reply message.
+
+    .PARAMETER MessageExternal
+    External automatic reply message.
+
+    .PARAMETER CreateEvent
+    If set to true, creates an out-of-office calendar event.
+
+    .PARAMETER EventSubject
+    Subject for the optional out-of-office calendar event.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "Disable": {
                 "DisplayName": "Enable or Disable Out-of-Office",
@@ -50,16 +74,12 @@
             "UserName": {
                 "Hide": true
             },
-            "CallerName": {
-                "Hide": true
-            },
             "Start": {
                 "DisplayName": "Start Date"
             },
             "End": {
                 "DisplayName": "End Date"
-            },
-
+            }
         }
     }
 #>

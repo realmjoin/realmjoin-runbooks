@@ -1,10 +1,9 @@
 # List Admin Users
 
-List AzureAD role holders and their MFA state.
+List Entra ID role holders and optionally evaluate their MFA methods
 
 ## Detailed description
-Will list users and service principals that hold a builtin AzureAD role.
-Admins will be queried for valid MFA methods.
+Lists users and service principals holding built-in Entra ID roles and produces an admin-to-role report. Optionally queries each admin for registered authentication methods to assess MFA coverage.
 
 ## Where to find
 Org \ Security \ List Admin Users
@@ -15,10 +14,12 @@ Org \ Security \ List Admin Users
   - User.Read.All
   - Directory.Read.All
   - RoleManagement.Read.All
+  - RoleAssignmentSchedule.Read.Directory
 
 
 ## Parameters
-### exportToFile
+### ExportToFile
+If set to true, exports the report to an Azure Storage Account.
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +27,8 @@ Org \ Security \ List Admin Users
 | Required | false |
 | Type | Boolean |
 
-### pimEligibleUntilInCSV
+### PimEligibleUntilInCSV
+If set to true, includes PIM eligible/active until information in the CSV report.
 
 | Property | Value |
 |----------|-------|
@@ -35,6 +37,7 @@ Org \ Security \ List Admin Users
 | Type | Boolean |
 
 ### ContainerName
+Name of the Azure Storage container to upload the CSV report to.
 
 | Property | Value |
 |----------|-------|
@@ -43,6 +46,7 @@ Org \ Security \ List Admin Users
 | Type | String |
 
 ### ResourceGroupName
+Name of the Azure Resource Group containing the Storage Account.
 
 | Property | Value |
 |----------|-------|
@@ -51,6 +55,7 @@ Org \ Security \ List Admin Users
 | Type | String |
 
 ### StorageAccountName
+Name of the Azure Storage Account used for upload.
 
 | Property | Value |
 |----------|-------|
@@ -59,6 +64,7 @@ Org \ Security \ List Admin Users
 | Type | String |
 
 ### StorageAccountLocation
+Azure region for the Storage Account if it needs to be created.
 
 | Property | Value |
 |----------|-------|
@@ -67,6 +73,7 @@ Org \ Security \ List Admin Users
 | Type | String |
 
 ### StorageAccountSku
+SKU name for the Storage Account if it needs to be created.
 
 | Property | Value |
 |----------|-------|
@@ -75,6 +82,7 @@ Org \ Security \ List Admin Users
 | Type | String |
 
 ### QueryMfaState
+"Check and report every admin's MFA state" (final value: $true) or "Do not check admin MFA states" (final value: $false) can be selected as action to perform.
 
 | Property | Value |
 |----------|-------|
@@ -83,6 +91,7 @@ Org \ Security \ List Admin Users
 | Type | Boolean |
 
 ### TrustEmailMfa
+If set to true, regards email as a valid MFA method.
 
 | Property | Value |
 |----------|-------|
@@ -91,6 +100,7 @@ Org \ Security \ List Admin Users
 | Type | Boolean |
 
 ### TrustPhoneMfa
+If set to true, regards phone/SMS as a valid MFA method.
 
 | Property | Value |
 |----------|-------|
@@ -99,6 +109,7 @@ Org \ Security \ List Admin Users
 | Type | Boolean |
 
 ### TrustSoftwareOathMfa
+If set to true, regards software OATH token as a valid MFA method.
 
 | Property | Value |
 |----------|-------|
@@ -107,6 +118,7 @@ Org \ Security \ List Admin Users
 | Type | Boolean |
 
 ### TrustWinHelloMFA
+If set to true, regards Windows Hello for Business as a valid MFA method.
 
 | Property | Value |
 |----------|-------|

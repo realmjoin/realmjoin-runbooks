@@ -1,21 +1,27 @@
 <#
   .SYNOPSIS
-  List Azure AD role assignments that will expire before a given number of days.
+  List Azure AD role assignments expiring within a given number of days
 
   .DESCRIPTION
-  List Azure AD role assignments that will expire before a given number of days.
+  Lists active and PIM-eligible Azure AD role assignments that expire within a specified number of days. The output includes role name, principal, and expiration date.
+
+  .PARAMETER Days
+  Maximum number of days until expiry.
+
+  .PARAMETER CallerName
+  Caller name is tracked purely for auditing purposes.
 
   .INPUTS
   RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "Days": {
-                "DisplayName": "Maximum days before expiry"
-            }
-        }
+    "Parameters": {
+      "CallerName": {
+        "Hide": true
+      },
+      "Days": {
+        "DisplayName": "Maximum days before expiry"
+      }
     }
+  }
 
 #>
 

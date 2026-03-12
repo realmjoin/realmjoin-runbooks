@@ -1,12 +1,54 @@
 <#
-  .SYNOPSIS
-  Assign/Provision a Windows 365 instance
+	.SYNOPSIS
+	Assign and provision a Windows 365 Cloud PC for a user
 
-  .DESCRIPTION
-  Assign/Provision a Windows 365 instance for this user.
+	.DESCRIPTION
+	Assigns the required groups and license or Frontline provisioning policy to initiate Windows 365 provisioning. Optionally notifies the user when provisioning completes and can create a support ticket when licenses are exhausted.
 
-  .INPUTS
-  RunbookCustomization: {
+	.PARAMETER UserName
+	User principal name of the target user.
+
+	.PARAMETER cfgProvisioningGroupName
+	Display name of the provisioning policy group or Frontline assignment to use.
+
+	.PARAMETER cfgUserSettingsGroupName
+	Display name of the user settings policy group to use.
+
+	.PARAMETER licWin365GroupName
+	Display name of the Windows 365 license group to assign when using dedicated Cloud PCs.
+
+	.PARAMETER cfgProvisioningGroupPrefix
+	Prefix used to detect provisioning-related configuration groups.
+
+	.PARAMETER cfgUserSettingsGroupPrefix
+	Prefix used to detect user-settings-related configuration groups.
+
+	.PARAMETER sendMailWhenProvisioned
+	If set to true, sends an email to the user after provisioning completes.
+
+	.PARAMETER customizeMail
+	If set to true, uses a custom email body.
+
+	.PARAMETER customMailMessage
+	Custom message body used for the notification email.
+
+	.PARAMETER createTicketOutOfLicenses
+	If set to true, creates a service ticket email when no licenses or Frontline seats are available.
+
+	.PARAMETER ticketQueueAddress
+	Email address used as ticket queue recipient.
+
+	.PARAMETER fromMailAddress
+	Mailbox used to send the ticket and user notification emails.
+
+	.PARAMETER ticketCustomerId
+	Customer identifier used in ticket subject lines.
+
+	.PARAMETER CallerName
+	Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
             "UserName": {
                 "Hide": true
@@ -76,8 +118,8 @@
         }
     }
 
-   .EXAMPLE
-   "rjgit-user_general_assign-windows365": {
+    .EXAMPLE
+    "rjgit-user_general_assign-windows365": {
         "Parameters": {
             "cfgProvisioningGroupName": {
                 "SelectSimple": {

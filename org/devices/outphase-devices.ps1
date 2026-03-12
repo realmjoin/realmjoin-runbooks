@@ -1,96 +1,126 @@
 <#
-  .SYNOPSIS
-  Remove/Outphase multiple devices
+    .SYNOPSIS
+    Remove or outphase multiple devices
 
-  .DESCRIPTION
-  Remove/Outphase multiple devices. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+    .DESCRIPTION
+    This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
+    It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
 
-  .INPUTS
-  RunbookCustomization: {
+    .PARAMETER DeviceListChoice
+    Determines whether the list contains device IDs or serial numbers.
 
-    "Parameters": {
-        "DeviceListChoice": {
-            "DisplayName": "Select List Type",
-            "Select": {
-                "Options": [
-                {
-                    "Display": "Comma separated list by Device IDs",
-                    "Value": 0
-                },
-                {
-                    "Display": "Comma separated list by Serialnumber",
-                    "Value": 1
+    .PARAMETER DeviceList
+    Comma-separated list of device IDs or serial numbers.
+
+    .PARAMETER intuneAction
+    Determines whether to wipe the device, delete it from Intune, or skip Intune actions.
+
+    .PARAMETER aadAction
+    Determines whether to delete the Entra ID device, disable it, or skip Entra ID actions.
+
+    .PARAMETER wipeDevice
+    Internal flag derived from intuneAction.
+
+    .PARAMETER removeIntuneDevice
+    Internal flag derived from intuneAction.
+
+    .PARAMETER removeAutopilotDevice
+    "Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database.
+
+    .PARAMETER removeAADDevice
+    Internal flag derived from aadAction.
+
+    .PARAMETER disableAADDevice
+    Internal flag derived from aadAction.
+
+    .PARAMETER CallerName
+    Caller name for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "DeviceListChoice": {
+                "DisplayName": "Select list type",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Comma separated list by Device IDs",
+                            "Value": 0
+                        },
+                        {
+                            "Display": "Comma separated list by Serial Numbers",
+                            "Value": 1
+                        }
+                    ]
                 }
-                ]
+            },
+            "DeviceList": {
+                "DisplayName": "Comma separated list"
+            },
+            "intuneAction": {
+                "DisplayName": "Wipe this device?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Completely wipe device (not keeping user or enrollment data)",
+                            "Value": 2
+                        },
+                        {
+                            "Display": "Delete device from Intune",
+                            "Value": 1
+                        },
+                        {
+                            "Display": "Do not wipe or remove device from Intune",
+                            "Value": 0
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "wipeDevice": {
+                "Hide": true
+            },
+            "removeIntuneDevice": {
+                "Hide": true
+            },
+            "removeAutopilotDevice": {
+                "DisplayName": "Delete device from Autopilot database",
+                "SelectSimple": {
+                    "Remove the device from Autopilot": true,
+                    "Keep device": false
+                }
+            },
+            "aadAction": {
+                "DisplayName": "Delete device from Entra ID?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Delete device in Entra ID",
+                            "Value": 2
+                        },
+                        {
+                            "Display": "Disable device in Entra ID",
+                            "Value": 1
+                        },
+                        {
+                            "Display": "Do not delete or disable Entra ID device",
+                            "Value": 0
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "removeAADDevice": {
+                "Hide": true
+            },
+            "disableAADDevice": {
+                "Hide": true
+            },
+            "CallerName": {
+                "Hide": true
             }
-        },
-        "DeviceList": {
-            "DisplayName": "Comma separated list",
-        },
-        "intuneAction": {
-            "DisplayName": "Wipe this device?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Completely wipe device (not keeping user or enrollment data)",
-                        "Value": 2
-                    },
-                    {
-                        "Display": "Delete device from Intune (only if device is already wiped or destroyed)",
-                        "Value": 1
-                    },
-                    {
-                        "Display": "Do not wipe or remove device from Intune",
-                        "Value": 0
-                    }
-                ],
-                "ShowValue": false
-            }
-        },
-        "wipeDevice": {
-            "Hide":true
-        },
-        "removeIntuneDevice": {
-            "Hide":true
-        },
-        "removeAutopilotDevice": {
-            "DisplayName": "Delete device from AutoPilot database?",
-            "SelectSimple": {
-                "Remove the device from AutoPilot (the device can leave the tenant)": true,
-                "Keep device / do not care": false
-            }
-        },
-        "aadAction": {
-            "DisplayName": "Delete device from AzureAD?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Delete device in AzureAD",
-                        "Value": 2
-                    },
-                    {
-                        "Display": "Disable device in AzureAD",
-                        "Value": 1
-                    },
-                    {
-                        "Display": "Do not delete AzureAD device / do not care",
-                        "Value": 0
-                    }
-                ],
-                "ShowValue": false
-            }
-        },
-        "removeAADDevice": {
-            "Hide":true
-        },
-        "disableAADDevice": {
-            "Hide":true
-        },
-        "CallerName": {
-            "Hide": true
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }

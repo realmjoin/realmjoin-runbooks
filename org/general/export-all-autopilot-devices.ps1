@@ -1,42 +1,63 @@
 <#
-  .SYNOPSIS
-  List/export all AutoPilot devices.
+    .SYNOPSIS
+    List or export all Windows Autopilot devices
 
-  .DESCRIPTION
-  List/export all AutoPilot devices.
+    .DESCRIPTION
+    Lists all Windows Autopilot devices and optionally exports them to a CSV file in Azure Storage. If exporting is enabled, the runbook uploads the report and returns a time-limited SAS (download) link.
 
-  .INPUTS
-  RunbookCustomization: {
-    "Parameters": {
-        "CallerName": {
-            "Hide": true
-        },
-        "ExportToFile": {
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Export to a CSV file",
-                        "ParameterValue": true
-                    },
-                    {
-                        "Display": "List in Console",
-                        "ParameterValue": false,
-                        "Customization": {
-                            "Hide": [
-                                "ContainerName",
-                                "ResourceGroupName",
-                                "StorageAccountName",
-                                "StorageAccountLocation",
-                                "StorageAccountSku"
-                            ]
+    .PARAMETER ExportToFile
+    "List in Console" (final value: $false) or "Export to a CSV file" (final value: $true) can be selected as action to perform.
+
+    .PARAMETER ContainerName
+    Name of the Azure Storage container to upload the CSV report to.
+
+    .PARAMETER ResourceGroupName
+    Name of the Azure Resource Group containing the Storage Account.
+
+    .PARAMETER StorageAccountName
+    Name of the Azure Storage Account used for upload.
+
+    .PARAMETER StorageAccountLocation
+    Azure region for the Storage Account if it needs to be created.
+
+    .PARAMETER StorageAccountSku
+    SKU name for the Storage Account if it needs to be created.
+
+    .PARAMETER CallerName
+    Caller name is tracked purely for auditing purposes.
+
+    .INPUTS
+    RunbookCustomization: {
+        "Parameters": {
+            "CallerName": {
+                "Hide": true
+            },
+            "ExportToFile": {
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Export to a CSV file",
+                            "ParameterValue": true
+                        },
+                        {
+                            "Display": "List in Console",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ContainerName",
+                                    "ResourceGroupName",
+                                    "StorageAccountName",
+                                    "StorageAccountLocation",
+                                    "StorageAccountSku"
+                                ]
+                            }
                         }
-                    }
-                ],
-                "ShowValue": false
+                    ],
+                    "ShowValue": false
+                }
             }
         }
     }
-}
 
 #>
 

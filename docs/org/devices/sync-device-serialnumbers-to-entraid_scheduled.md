@@ -1,11 +1,10 @@
 # Sync Device Serialnumbers To Entraid (Scheduled)
 
-Syncs serial numbers from Intune devices to Azure AD device extension attributes.
+Sync Intune serial numbers to Entra ID extension attributes
 
 ## Detailed description
-This runbook retrieves all managed devices from Intune, extracts their serial numbers,
-and updates the corresponding Azure AD device objects' extension attributes.
-This helps maintain consistency between Intune and Azure AD device records.
+This runbook retrieves Intune managed devices and syncs their serial numbers into an Entra ID device extension attribute.
+It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
 
 ## Where to find
 Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
@@ -14,13 +13,14 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 ### Application permissions
 - **Type**: Microsoft Graph
   - Organization.Read.All
-  - DeviceManagementManagedDevices.Read.All
   - Device.ReadWrite.All
+  - DeviceManagementManagedDevices.Read.All
   - Mail.Send
 
 
 ## Parameters
 ### ExtensionAttributeNumber
+Extension attribute number to update
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 | Type | Int32 |
 
 ### ProcessAllDevices
-If true, processes all devices. If false, only processes devices with missing or mismatched serial numbers in AAD.
+If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed.
 
 | Property | Value |
 |----------|-------|

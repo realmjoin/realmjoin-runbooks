@@ -2,6 +2,9 @@
 
 List role-assignable groups with eligible role assignments but without owners
 
+## Detailed description
+Finds role-assignable groups that have PIM eligible role assignments but no owners assigned. Optionally sends an email alert containing the group names.
+
 ## Where to find
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
@@ -14,7 +17,8 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
 
 ## Parameters
-### sendEmailIfFound
+### SendEmailIfFound
+If set to true, sends an email when matching groups are found.
 
 | Property | Value |
 |----------|-------|
@@ -23,6 +27,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 | Type | Boolean |
 
 ### From
+Sender email address used to send the alert.
 
 | Property | Value |
 |----------|-------|
@@ -31,6 +36,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 | Type | String |
 
 ### To
+Recipient email address for the alert.
 
 | Property | Value |
 |----------|-------|

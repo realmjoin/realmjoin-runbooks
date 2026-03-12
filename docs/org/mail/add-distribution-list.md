@@ -1,9 +1,9 @@
 # Add Distribution List
 
-Create a classic distribution group.
+Create a classic distribution group
 
 ## Detailed description
-Create a classic distribution group.
+Creates a classic Exchange Online distribution group with optional owner configuration. If no primary SMTP address is provided, the default verified domain is used.
 
 ## Where to find
 Org \ Mail \ Add Distribution List
@@ -21,6 +21,7 @@ Org \ Mail \ Add Distribution List
 
 ## Parameters
 ### Alias
+Mail alias (mail nickname) for the distribution group.
 
 | Property | Value |
 |----------|-------|
@@ -29,6 +30,7 @@ Org \ Mail \ Add Distribution List
 | Type | String |
 
 ### PrimarySMTPAddress
+Optional primary SMTP address for the distribution group.
 
 | Property | Value |
 |----------|-------|
@@ -37,6 +39,7 @@ Org \ Mail \ Add Distribution List
 | Type | String |
 
 ### GroupName
+Optional display name for the distribution group; defaults to the alias.
 
 | Property | Value |
 |----------|-------|
@@ -45,6 +48,7 @@ Org \ Mail \ Add Distribution List
 | Type | String |
 
 ### Owner
+Optional owner who can manage the group.
 
 | Property | Value |
 |----------|-------|
@@ -53,6 +57,7 @@ Org \ Mail \ Add Distribution List
 | Type | String |
 
 ### Roomlist
+If set to true, the distribution group is created as a room list.
 
 | Property | Value |
 |----------|-------|
@@ -61,6 +66,7 @@ Org \ Mail \ Add Distribution List
 | Type | Boolean |
 
 ### AllowExternalSenders
+If set to true, the group can receive email from external senders.
 
 | Property | Value |
 |----------|-------|

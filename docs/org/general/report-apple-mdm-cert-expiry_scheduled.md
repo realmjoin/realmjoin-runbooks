@@ -1,6 +1,6 @@
 # Report Apple MDM Cert Expiry (Scheduled)
 
-Monitor/Report expiry of Apple device management certificates.
+Monitor/Report expiry of Apple device management certificates
 
 ## Detailed description
 Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
