@@ -27,13 +27,16 @@
     Caller name is tracked purely for auditing purposes.
 
     .PARAMETER FilterGroupID
-    Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported.
+    Group filter. When specified, only devices whose primary owner is a member of this group are exported.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "CallerName": {
                 "Hide": true
+            },
+            "FilterGroupID": {
+                "DisplayName": "Optional - Group Filter",
             }
         }
     }
@@ -55,7 +58,7 @@ param (
     [string] $StorageAccountSku,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.SubscriptionId" } )]
     [string] $SubscriptionId,
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group })]
     [string] $FilterGroupID = $null,
     [Parameter(Mandatory = $true)]
     [string] $CallerName

@@ -56,6 +56,13 @@ param(
     [string[]]$includedScope = @("device", "group", "org", "user")
 )
 
+############################################################
+#region Variables
+#
+############################################################
+
+$ErrorActionPreference = 'Stop'
+
 # Initialize the collections
 $RawPermissions = @()
 $CollectedRoles = @()
@@ -63,17 +70,145 @@ $CollectedRoles = @()
 # Initialize the $JsonFiles array
 $JsonFiles = @()
 
+# Resolve permissions folder path (supports absolute or rootFolder-relative)
+$PermissionsPath = $null
+if ($permissionsFolderName -and $permissionsFolderName.Trim()) {
+    if ([System.IO.Path]::IsPathRooted($permissionsFolderName)) {
+        $PermissionsPath = $permissionsFolderName
+    }
+    else {
+        $PermissionsPath = Join-Path -Path $rootFolder -ChildPath $permissionsFolderName
+    }
+}
+
+#endregion Variables
+
+############################################################
+#region Functions
+#
+############################################################
+
+function ConvertTo-StringArray {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return @()
+    }
+
+    if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string])) {
+        return @($Value | ForEach-Object { if ($null -ne $_) { [string]$_ } })
+    }
+
+    return @([string]$Value)
+}
+
+function Get-SortedUniqueStringList {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Values,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$CaseInsensitive
+    )
+
+    $comparer = if ($CaseInsensitive) { [System.StringComparer]::OrdinalIgnoreCase } else { [System.StringComparer]::Ordinal }
+    $set = [System.Collections.Generic.SortedSet[string]]::new($comparer)
+
+    foreach ($valueItem in $Values) {
+        if ($null -eq $valueItem) {
+            continue
+        }
+
+        $text = ([string]$valueItem).Trim()
+        if (-not $text) {
+            continue
+        }
+
+        [void]$set.Add($text)
+    }
+
+    return [string[]]@($set)
+}
+
+function Remove-RedundantReadAllAssignments {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Assignments
+    )
+
+    # If both "X.Read.All" and "X.ReadWrite.All" exist, keep only "X.ReadWrite.All".
+    $readWritePrefixes = @(
+        $Assignments |
+            Where-Object { $_ -match '\.ReadWrite\.All$' } |
+            ForEach-Object { $_ -replace '\.ReadWrite\.All$', '' }
+    )
+
+    if ($readWritePrefixes.Count -eq 0) {
+        return $Assignments
+    }
+
+    $prefixSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($prefix in $readWritePrefixes) {
+        if ($prefix) {
+            [void]$prefixSet.Add($prefix)
+        }
+    }
+
+    return @(
+        $Assignments | Where-Object {
+            $item = $_
+            if ($item -match '\.Read\.All$') {
+                $prefix = $item -replace '\.Read\.All$', ''
+                return -not $prefixSet.Contains($prefix)
+            }
+
+            return $true
+        }
+    )
+}
+
+function ConvertTo-CanonicalRoleName {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RoleName
+    )
+
+    $role = ($RoleName -replace '\s+', ' ').Trim()
+    if (-not $role) {
+        return $null
+    }
+
+    $lower = $role.ToLowerInvariant()
+    return [System.Globalization.CultureInfo]::InvariantCulture.TextInfo.ToTitleCase($lower)
+}
+
+#endregion Functions
+
+############################################################
+#region Main Logic
+#
+############################################################
+
 # Get all .json files in the permissions path recursively
 if($bothPathCombinations) {
     $JsonFiles = @($JsonFiles + (Get-ChildItem -Path $rootFolder -Filter *.permissions.json -Recurse | Where-Object { $includedScope -contains $_.Directory.Parent.Name }))
-    $JsonFiles = @($JsonFiles + (Get-ChildItem -Path $permissionsPath -Filter *.json -Recurse | Where-Object { $includedScope -contains $_.Directory.Parent.Name }))
+    $JsonFiles = @($JsonFiles + (Get-ChildItem -Path $PermissionsPath -Filter *.json -Recurse | Where-Object { $includedScope -contains $_.Directory.Parent.Name }))
 } else {
     if($permissionsFolderName -eq $null -or $permissionsFolderName -like "") {
         $JsonFiles = Get-ChildItem -Path $rootFolder -Filter *.permissions.json -Recurse | Where-Object { $includedScope -contains $_.Directory.Parent.Name }
     } else {
-        $JsonFiles = Get-ChildItem -Path $permissionsPath -Filter *.json -Recurse | Where-Object { $includedScope -contains $_.Directory.Parent.Name }
+        $JsonFiles = Get-ChildItem -Path $PermissionsPath -Filter *.json -Recurse | Where-Object { $includedScope -contains $_.Directory.Parent.Name }
     }
 }
+
+$JsonFiles = @($JsonFiles | Sort-Object -Property FullName)
 
 if($includedRunbooks -eq $null -or $includedRunbooks -like "") {
     Write-Output "No runbooks specified. All JSON files in the permissions folder will be processed."
@@ -87,7 +222,7 @@ if($includedRunbooks -eq $null -or $includedRunbooks -like "") {
 
 
 foreach ($JsonFile in $JsonFiles) {
-    $PermissionsContent = Get-Content -Path $JsonFile.FullName | ConvertFrom-Json
+    $PermissionsContent = Get-Content -Path $JsonFile.FullName -Raw | ConvertFrom-Json
 
     # Normalize the path of the JSON file
     $NormalizedJsonFilePath = $JsonFile.FullName -replace '\\', '/' -replace [regex]::Escape($rootFolder), ''
@@ -95,9 +230,12 @@ foreach ($JsonFile in $JsonFiles) {
     # Check if the file belongs to the specified relative paths
     if ($null -eq $RelativePathArray -or $RelativePathArray -contains $NormalizedJsonFilePath.TrimStart('/')) {
         # Add the permissions to the collections
-        $RawPermissions += $PermissionsContent.Permissions
-        if ($null -ne $PermissionsContent.Roles -or $PermissionsContent.Roles -ne "") {
-            $CollectedRoles += $PermissionsContent.Roles
+        if ($null -ne $PermissionsContent.Permissions) {
+            $RawPermissions += @($PermissionsContent.Permissions)
+        }
+
+        if ($null -ne $PermissionsContent.Roles) {
+            $CollectedRoles += ConvertTo-StringArray -Value $PermissionsContent.Roles
         }
     }
 }
@@ -107,16 +245,33 @@ $UniquePermissions = @{}
 
 # Iterate over the RawPermissions array
 foreach ($Permission in $RawPermissions) {
+    if ($null -eq $Permission) {
+        continue
+    }
+
     # Use the Name and Id as the key
-    $Key = "$($Permission.name)-$($Permission.Id)"
+    $permissionName = ([string]$Permission.Name).Trim()
+    $permissionId = ([string]$Permission.Id).Trim()
+    $Key = "$permissionId-$permissionName"
+
+    $currentAssignments = ConvertTo-StringArray -Value $Permission.AppRoleAssignments
+    $normalizedAssignments = Get-SortedUniqueStringList -Values $currentAssignments
+    $normalizedAssignments = Remove-RedundantReadAllAssignments -Assignments @($normalizedAssignments)
 
     # If the key does not exist in the hashtable, add it
     if (-not $UniquePermissions.ContainsKey($Key)) {
-        $UniquePermissions[$Key] = $Permission
+        $UniquePermissions[$Key] = [pscustomobject][ordered]@{
+            Name               = $permissionName
+            Id                 = $permissionId
+            AppRoleAssignments = @($normalizedAssignments)
+        }
     }
     else {
         # If the key exists, merge the AppRoleAssignments
-        $UniquePermissions[$Key].AppRoleAssignments = $UniquePermissions[$Key].AppRoleAssignments + $Permission.AppRoleAssignments | Sort-Object | Get-Unique
+        $mergedAssignments = @($UniquePermissions[$Key].AppRoleAssignments) + $currentAssignments
+        $mergedNormalized = Get-SortedUniqueStringList -Values $mergedAssignments
+        $mergedNormalized = Remove-RedundantReadAllAssignments -Assignments @($mergedNormalized)
+        $UniquePermissions[$Key].AppRoleAssignments = @($mergedNormalized)
     }
 }
 
@@ -124,8 +279,23 @@ foreach ($Permission in $RawPermissions) {
 $DeduplicatedPermissions = $UniquePermissions.Values
 
 # Export permission/roles files
-$PermissionExport = $DeduplicatedPermissions | ConvertTo-Json -Depth 10
-$RoleExport = $CollectedRoles | Get-Unique | ConvertTo-Json -Depth 10
+$SortedPermissions = @(
+    $DeduplicatedPermissions |
+        Sort-Object -Property @(
+            @{ Expression = { $_.Name }; Ascending = $true },
+            @{ Expression = { $_.Id }; Ascending = $true }
+        )
+)
+
+$PermissionExport = $SortedPermissions | ConvertTo-Json -Depth 10
+
+$canonicalRoles = @(
+    $CollectedRoles |
+        ForEach-Object { ConvertTo-CanonicalRoleName -RoleName ([string]$_) } |
+        Where-Object { $_ }
+)
+$sortedRoles = Get-SortedUniqueStringList -Values $canonicalRoles -CaseInsensitive
+$RoleExport = @($sortedRoles) | ConvertTo-Json -Depth 10
 $PermissionFileName = "$($OutputFileNamePrefix)permissions.json"
 $RoleFileName = "$($OutputFileNamePrefix)rbacroles.json"
 
@@ -141,5 +311,7 @@ if (-not (Test-Path -Path $outputFolder)) {
 }
 
 Write-Output "Exporting permissions to: $outputFolder"
-$PermissionExport | Out-File -FilePath $(Join-Path -Path $outputFolder -ChildPath $PermissionFileName)
-$RoleExport | Out-File -FilePath $(Join-Path -Path $outputFolder -ChildPath $RoleFileName)
+$PermissionExport | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath $PermissionFileName) -Encoding utf8NoBOM
+$RoleExport | Set-Content -Path (Join-Path -Path $outputFolder -ChildPath $RoleFileName) -Encoding utf8NoBOM
+
+#endregion Main Logic

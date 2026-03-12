@@ -10,7 +10,7 @@ User \ Mail \ List Room Mailbox Configuration
 
 ## Permissions
 ### Application permissions
-- **Type**: MS Graph
+- **Type**: MG Graph
   - Place.Read.All
 
 
