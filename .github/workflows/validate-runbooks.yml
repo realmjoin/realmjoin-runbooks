@@ -34,8 +34,8 @@ jobs:
           added_diff_mode="merge-base-two-dot"
           range_start=""
 
-          # Fetch the full target branch history so we can diff from the real merge base.
-          git fetch --no-tags --prune --depth=0 origin "$base_ref"
+          # Refresh the target branch ref so we can diff from the real merge base.
+          git fetch --no-tags --prune origin "$base_ref:refs/remotes/origin/$base_ref"
 
           if ! range_start=$(git merge-base "origin/$base_ref" "$head_sha" 2>/dev/null); then
             echo "No merge base found between 'origin/$base_ref' and '$head_sha'. Falling back to base SHA diff."
@@ -76,9 +76,6 @@ jobs:
           {
             echo "changed<<EOF"
             printf '%s\n' "$changed_files"
-            echo "EOF"
-            echo "added<<EOF"
-            printf '%s\n' "$added_files"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -138,9 +135,17 @@ jobs:
         if: always()
         shell: pwsh
         run: |
+          $changedRaw = @'
+          ${{ steps.changes.outputs.changed }}
+          '@
+          $changedFiles = @(
+            $changedRaw -split "`r?`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ }
+          )
+
           . ./.github/scripts/Validate-Runbooks.ps1 `
-              -BaseRef "${{ github.event.pull_request.base.sha }}" `
-              -HeadRef "${{ github.event.pull_request.head.sha }}"
+              -ChangedFiles $changedFiles
           "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
           exit 0
 

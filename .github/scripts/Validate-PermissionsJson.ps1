@@ -9,7 +9,7 @@
 	One or more root folders that contain runbooks, for example @('device','group','org','user'). Each scope is scanned recursively.
 
 	.PARAMETER ChangedFiles
-	Optional list of runbook files to validate directly. If provided, only these files are checked.
+	Optional list of changed file paths to validate directly. In the GitHub workflow this is the preferred mode, because the list already represents the final PR delta. If provided, only affected runbook/permissions pairs are checked.
 #>
 
 param (
@@ -78,43 +78,6 @@ function Get-RunbookFiles {
 		| Where-Object { $_.FullName -notmatch '[\\/](\.github|docs)[\\/]' }
 		| Sort-Object FullName
 	)
-}
-
-function Get-RunbookFilesFromChangedFiles {
-	<#
-		.SYNOPSIS
-		Builds runbook file objects from explicit changed file paths
-	#>
-	param(
-		[Parameter(Mandatory = $true)]
-		[string[]]$Files
-	)
-
-	$resolved = @()
-	foreach ($file in $Files) {
-		$rel = ($file ?? '').Trim()
-		if (-not $rel) {
-			continue
-		}
-
-		$normalized = ($rel -replace '\\', '/')
-		if (-not $normalized.EndsWith('.ps1', [System.StringComparison]::OrdinalIgnoreCase)) {
-			continue
-		}
-
-		if ($normalized.ToLowerInvariant().StartsWith('.github/')) {
-			continue
-		}
-
-		$full = Join-Path (Get-Location).Path $normalized
-		if (-not (Test-Path -LiteralPath $full)) {
-			continue
-		}
-
-		$resolved += Get-Item -LiteralPath $full -ErrorAction Stop
-	}
-
-	return @($resolved | Sort-Object FullName -Unique)
 }
 
 function Test-IsInIncludedScope {
@@ -195,24 +158,6 @@ function Get-RunbookBaseKeysFromChangedFiles {
 		$keys
 		| Where-Object { $_ }
 		| Sort-Object -Unique
-	)
-}
-
-function Get-CompanionPermissionsCandidates {
-	<#
-		.SYNOPSIS
-		Builds the expected permissions JSON file paths for a runbook
-	#>
-	param(
-		[Parameter(Mandatory = $true)]
-		[string]$RunbookPath
-	)
-
-	$dir = Split-Path -Parent $RunbookPath
-	$base = [System.IO.Path]::GetFileNameWithoutExtension($RunbookPath)
-	return @(
-		(Join-Path $dir "$base.permissions.json"),
-		(Join-Path $dir "$base.permission.json")
 	)
 }
 
