@@ -11,6 +11,8 @@
 
 - Add **Check Device Compliance** Runbook to Org/Devices
   - This runbook checks the compliance status of devices in Intune and can be used to identify the reason for this status.
+- Update **Export Enterprise Application Users** Runbook to Org/Applications
+  - Add generalized function for the export to Azure Storage Account.
 
 ## 2026-02-25
 

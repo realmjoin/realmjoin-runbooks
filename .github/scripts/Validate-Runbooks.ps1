@@ -3,16 +3,16 @@
 	Validates changed PowerShell runbooks in a pull request
 
 	.DESCRIPTION
-	This script identifies PowerShell runbooks (*.ps1) that were added or modified in a pull request compared to a base reference and validates them. It runs PSScriptAnalyzer for severity Error and then validates the comment-based help using Get-Help. The help validation requires a synopsis, a description, and a non-empty description for every declared parameter.
+	This script validates changed PowerShell runbooks (*.ps1) by running PSScriptAnalyzer for severity Error and then checking comment-based help with Get-Help. In the GitHub workflow, the preferred input is ChangedFiles because that list already represents the final pull request delta. BaseRef and HeadRef remain available for direct invocation when an explicit changed-file list is not provided. The help validation requires a synopsis, a description, and a non-empty description for every declared parameter. When ChangedFiles is provided directly, deleted runbooks are ignored because only files that still exist in the working tree can be validated.
 
 	.PARAMETER BaseRef
-	The git reference to diff against, for example the pull request base SHA.
+	The git reference to diff against when ChangedFiles is not provided, for example the pull request base SHA.
 
 	.PARAMETER HeadRef
-	The git reference that contains the changes to validate, for example the pull request head SHA.
+	The git reference that contains the changes to validate when ChangedFiles is not provided, for example the pull request head SHA.
 
 	.PARAMETER ChangedFiles
-	Optional list of changed file paths to validate directly. If provided, BaseRef and HeadRef are ignored.
+	Optional list of changed file paths to validate directly. This is the preferred mode for the GitHub workflow because it can use the already computed final PR change set. If provided, BaseRef and HeadRef are ignored. Deleted runbooks in this list are skipped automatically.
 #>
 
 param (
@@ -155,6 +155,9 @@ function Get-ChangedPs1Files {
 	<#
 		.SYNOPSIS
 		Gets added/modified/renamed .ps1 files between two git refs
+
+		.DESCRIPTION
+		This is a fallback path for direct script usage. In the GitHub workflow, the changed-file list should usually be passed in via ChangedFiles instead of recomputing the diff here.
 	#>
 	param(
 		[Parameter(Mandatory = $true)]
@@ -193,6 +196,9 @@ function Get-TargetPs1Files {
 	<#
 		.SYNOPSIS
 		Returns target .ps1 files from explicit input or from git diff
+
+		.DESCRIPTION
+		Prefers an explicit changed-file list because the workflow already resolves the authoritative PR delta. Only if no explicit list is provided does it compute changed files from BaseRef and HeadRef.
 	#>
 	param(
 		[Parameter(Mandatory = $false)]
@@ -213,6 +219,10 @@ function Get-TargetPs1Files {
 			| ForEach-Object { $_ -replace '\\', '/' }
 			| Where-Object { $_ -like '*.ps1' }
 			| Where-Object { -not $_.ToLowerInvariant().StartsWith('.github/') }
+			| Where-Object {
+				$fullPath = Join-Path (Get-Location).Path $_
+				Test-Path -LiteralPath $fullPath
+			}
 			| Sort-Object -Unique
 		)
 	}
