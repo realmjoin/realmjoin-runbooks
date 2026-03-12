@@ -25,13 +25,58 @@ jobs:
         id: changes
         shell: bash
         run: |
-          git fetch --no-tags --prune --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          set -euo pipefail
+
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.event.pull_request.head.sha }}"
+          changed_diff_mode="three-dot"
+          added_diff_mode="three-dot"
+
+          git fetch --no-tags --prune --depth=1 origin "$base_sha"
+
+          # Prefer three-dot diff (PR semantic). If no merge base exists, fall back to two-dot.
+          if ! changed_files=$(git diff --name-only --diff-filter=AMDR "$base_sha...$head_sha" 2>/dev/null); then
+            echo "No merge base found for '$base_sha...$head_sha'. Falling back to two-dot diff."
+            changed_diff_mode="two-dot-fallback"
+            changed_files=$(git diff --name-only --diff-filter=AMDR "$base_sha" "$head_sha")
+          fi
+
+          if ! added_files=$(git diff --name-only --diff-filter=A "$base_sha...$head_sha" 2>/dev/null); then
+            echo "No merge base found for added-files diff. Falling back to two-dot diff."
+            added_diff_mode="two-dot-fallback"
+            added_files=$(git diff --name-only --diff-filter=A "$base_sha" "$head_sha")
+          fi
+
+          changed_count=$(printf '%s\n' "$changed_files" | sed '/^$/d' | wc -l | tr -d ' ')
+          added_count=$(printf '%s\n' "$added_files" | sed '/^$/d' | wc -l | tr -d ' ')
+
+          echo "::group::Diff collection debug"
+          echo "Base SHA: $base_sha"
+          echo "Head SHA: $head_sha"
+          echo "Changed diff mode: $changed_diff_mode"
+          echo "Added diff mode: $added_diff_mode"
+          echo "Changed files count: $changed_count"
+          echo "Added files count: $added_count"
+          echo "Changed files:"
+          if [ -n "$changed_files" ]; then
+            printf '%s\n' "$changed_files"
+          else
+            echo "(none)"
+          fi
+          echo "Added files:"
+          if [ -n "$added_files" ]; then
+            printf '%s\n' "$added_files"
+          else
+            echo "(none)"
+          fi
+          echo "::endgroup::"
+
           {
             echo "changed<<EOF"
-            git diff --name-only --diff-filter=AMDR "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+            printf '%s\n' "$changed_files"
             echo "EOF"
             echo "added<<EOF"
-            git diff --name-only --diff-filter=A "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+            printf '%s\n' "$added_files"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
