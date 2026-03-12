@@ -261,7 +261,7 @@ function Publish-RjRbFileToStorageContainer {
 }
 
 if (-not $ContainerName) {
-    $ContainerName = "enterprise-apps-" + (get-date -Format "yyyy-MM-dd")
+    $ContainerName = "enterprise-apps-users"
 }
 
 Connect-RjRbGraph
