@@ -29,23 +29,23 @@ jobs:
 
           base_sha="${{ github.event.pull_request.base.sha }}"
           head_sha="${{ github.event.pull_request.head.sha }}"
-          changed_diff_mode="three-dot"
-          added_diff_mode="three-dot"
+          base_ref="${{ github.event.pull_request.base.ref }}"
+          changed_diff_mode="merge-base-two-dot"
+          added_diff_mode="merge-base-two-dot"
+          range_start=""
 
-          git fetch --no-tags --prune --depth=1 origin "$base_sha"
+          # Fetch the full target branch history so we can diff from the real merge base.
+          git fetch --no-tags --prune --depth=0 origin "$base_ref"
 
-          # Prefer three-dot diff (PR semantic). If no merge base exists, fall back to two-dot.
-          if ! changed_files=$(git diff --name-only --diff-filter=AMDR "$base_sha...$head_sha" 2>/dev/null); then
-            echo "No merge base found for '$base_sha...$head_sha'. Falling back to two-dot diff."
-            changed_diff_mode="two-dot-fallback"
-            changed_files=$(git diff --name-only --diff-filter=AMDR "$base_sha" "$head_sha")
+          if ! range_start=$(git merge-base "origin/$base_ref" "$head_sha" 2>/dev/null); then
+            echo "No merge base found between 'origin/$base_ref' and '$head_sha'. Falling back to base SHA diff."
+            changed_diff_mode="base-sha-two-dot-fallback"
+            added_diff_mode="base-sha-two-dot-fallback"
+            range_start="$base_sha"
           fi
 
-          if ! added_files=$(git diff --name-only --diff-filter=A "$base_sha...$head_sha" 2>/dev/null); then
-            echo "No merge base found for added-files diff. Falling back to two-dot diff."
-            added_diff_mode="two-dot-fallback"
-            added_files=$(git diff --name-only --diff-filter=A "$base_sha" "$head_sha")
-          fi
+          changed_files=$(git diff --name-only --diff-filter=AMDR "$range_start" "$head_sha")
+          added_files=$(git diff --name-only --diff-filter=A "$range_start" "$head_sha")
 
           changed_count=$(printf '%s\n' "$changed_files" | sed '/^$/d' | wc -l | tr -d ' ')
           added_count=$(printf '%s\n' "$added_files" | sed '/^$/d' | wc -l | tr -d ' ')
@@ -53,6 +53,8 @@ jobs:
           echo "::group::Diff collection debug"
           echo "Base SHA: $base_sha"
           echo "Head SHA: $head_sha"
+          echo "Base ref: $base_ref"
+          echo "Range start: $range_start"
           echo "Changed diff mode: $changed_diff_mode"
           echo "Added diff mode: $added_diff_mode"
           echo "Changed files count: $changed_count"
