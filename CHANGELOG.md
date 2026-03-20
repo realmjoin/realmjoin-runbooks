@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-03-20
+
+- Add **Find SMS Auth Phone Number** Runbook to Org/Security
+  - This runbook searches for which user has a specific phone number registered for SMS Sign-In or as a phone MFA method in Microsoft Entra ID. It helps administrators identify phone number ownership for troubleshooting "phoneNumberNotUnique" errors.
+- Update **Set or Remove Mobile Phone MFA** Runbook in User/Security
+  - Add detection and reporting for "phoneNumberNotUnique" errors when a phone number is already reserved for SMS Sign-In by another user
+  - Adapt to native GraphAPI Calls
+
 ## 2026-03-10
 
 - Add **Set Primary User** Runbook to device/general section
