@@ -122,6 +122,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#organization-security)
     - [Add Defender Indicator](#organization-security-add-defender-indicator)
     - [Backup Conditional Access Policies](#organization-security-backup-conditional-access-policies)
+    - [Find SMS Auth Phone Number](#organization-security-find-sms-auth-phone-number)
     - [List Admin Users](#organization-security-list-admin-users)
     - [List Expiring Role Assignments](#organization-security-list-expiring-role-assignments)
     - [List Inactive Devices](#organization-security-list-inactive-devices)
@@ -1527,6 +1528,16 @@ Export Conditional Access policies to an Azure Storage account
 | StorageAccountName |  | String | Name of the Azure Storage Account used for upload. |
 | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
+| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
+<a name='organization-security-find-sms-auth-phone-number'></a>
+
+### Find SMS Auth Phone Number
+Find the user associated with a specific SMS-based authentication phone number
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| PhoneNumber | ✓ | String | Phone number to search for in E.164 format (e.g., +492349876543). The number must start with a "+" followed by the country code and subscriber number. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='organization-security-list-admin-users'></a>

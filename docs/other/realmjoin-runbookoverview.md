@@ -123,6 +123,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#org-security)
       - [Add Defender Indicator](#add-defender-indicator)
       - [Backup Conditional Access Policies](#backup-conditional-access-policies)
+      - [Find SMS Auth Phone Number](#find-sms-auth-phone-number)
       - [List Admin Users](#list-admin-users)
       - [List Expiring Role Assignments](#list-expiring-role-assignments)
       - [List Inactive Devices](#list-inactive-devices)
@@ -2206,6 +2207,23 @@ Org \ Security \ Backup Conditional Access Policies
  
  
 
+<a name='org-security-find-sms-auth-phone-number'></a>
+
+### Find SMS Auth Phone Number
+#### Find the user associated with a specific SMS-based authentication phone number
+
+#### Description
+This runbook searches for which user has a specific phone number registered with SMS Sign-In enabled in Microsoft Entra ID. Unlike regular phone MFA methods, SMS Sign-In numbers must be unique across the tenant. If a number is reserved for SMS Sign-In by one user, assigning it to another user will fail with a "phoneNumberNotUnique" error. Regular phone MFA methods do not enforce uniqueness. This runbook helps administrators identify which user holds a specific SMS Sign-In number for troubleshooting and remediation.
+
+#### Where to find
+Org \ Security \ Find SMS Auth Phone Number
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-security-list-admin-users'></a>
 
 ### List Admin Users
@@ -3053,7 +3071,7 @@ User \ Security \ Revoke Or Restore Access
 #### Set or remove a user's mobile phone MFA method
 
 #### Description
-Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number.
+Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the "phoneNumberNotUnique" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.
 
 #### Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa

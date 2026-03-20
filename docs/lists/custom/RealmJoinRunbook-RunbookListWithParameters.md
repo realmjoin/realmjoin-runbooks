@@ -523,6 +523,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  | PhoneNumber | ✓ | String | Phone number to search for in E.164 format (e.g., +492349876543). The number must start with a "+" followed by the country code and subscriber number. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br>&emsp;- RoleAssignmentSchedule.Read.Directory<br> |  | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
 |  |  |  |  |  |  | PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible/active until information in the CSV report. |
 |  |  |  |  |  |  | ContainerName |  | String | Name of the Azure Storage container to upload the CSV report to. |
@@ -785,7 +787,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 |  |  |  |  |  |  | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
