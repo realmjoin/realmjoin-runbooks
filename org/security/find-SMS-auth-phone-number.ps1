@@ -99,7 +99,7 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}$") {
                 $allResults += $response
             }
 
-            if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+            if ($response.PSObject.Properties.Value -contains '@odata.nextLink') {
                 $nextLink = $response.'@odata.nextLink'
             }
             else {
