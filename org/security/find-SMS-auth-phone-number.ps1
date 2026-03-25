@@ -44,7 +44,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "PhoneNumber: $PhoneNumber" -Verbose
@@ -68,15 +68,14 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}$") {
 #
 ############################################################
 
-    function Get-AllGraphPage {
+    function Get-GraphPagedResult {
         <#
             .SYNOPSIS
             Retrieves all items from a paginated Microsoft Graph API endpoint.
 
             .DESCRIPTION
-            Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
-            multiple pages by following the @odata.nextLink property in the response. It aggregates
-            all items into a single array and returns it.
+            Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+            by following the @odata.nextLink property in the response.
 
             .PARAMETER Uri
             The initial Microsoft Graph API endpoint URI to query.
@@ -90,21 +89,10 @@ if ($PhoneNumber -notmatch "^\+\d{8,15}$") {
 
         do {
             $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
             if ($response.value) {
                 $allResults += $response.value
             }
-            elseif ($response.'@odata.context') {
-                # Single item response
-                $allResults += $response
-            }
-
-            if ($response.PSObject.Properties.Value -contains '@odata.nextLink') {
-                $nextLink = $response.'@odata.nextLink'
-            }
-            else {
-                $nextLink = $null
-            }
+            $nextLink = $response.'@odata.nextLink'
         } while ($nextLink)
 
         return $allResults
@@ -145,7 +133,7 @@ Write-Output "Note: Pre-filters to users with phone methods, then checks SMS Sig
 
 try {
     $registrationDetailsURI = "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails?`$filter=methodsRegistered/any(t: t eq 'mobilePhone')&`$select=id,userPrincipalName,userDisplayName"
-    $phoneRegisteredUsers = Get-AllGraphPage -Uri $registrationDetailsURI
+    $phoneRegisteredUsers = Get-GraphPagedResult -Uri $registrationDetailsURI
 
     Write-Output "Found $($phoneRegisteredUsers.Count) user(s) with phone authentication methods registered."
 }

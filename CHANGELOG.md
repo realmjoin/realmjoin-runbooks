@@ -2,7 +2,21 @@
 
 ## 2026-03-24
 
-- Fix Pagination in Get-AllGraphPage Function in multiple runbooks
+- Fix pagination function and replace with simplified Get-GraphPagedResult function in multiple runbooks:
+  - **Report Application Registration** - Org/Applications
+  - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+  - **Notify Users About Stale Devices (Scheduled)** - Org/Devices
+  - **Report Devices Without Primary User** - Org/Devices
+  - **Report Stale Devices (Scheduled)** - Org/Devices
+  - **Report Users With More Than 5 Devices** - Org/Devices
+  - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+  - **Report Apple MDM Cert Expiry (Scheduled)** - Org/General
+  - **Report License Assignment (Scheduled)** - Org/General
+  - **Find SMS Auth Phone Number** - Org/Security
+  - **List Admin Users** - Org/Security
+  - **Monitor Pending EPM Requests (Scheduled)** - Org/Security
+  - **Report EPM Elevation Requests (Scheduled)** - Org/Security
+  - **Set Or Remove Mobile Phone MFA** - User/Security
 
 ## 2026-03-20
 
