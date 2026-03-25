@@ -9628,7 +9628,7 @@
         "defaultValue": "30",
         "description": [
           {
-            "Text": "The warning threshold in days. Certificates and tokens expiring within this many days will be\nflagged as alerts in the report. Default is 300 days (approximately 10 months)."
+            "Text": "The warning threshold in days. Certificates and tokens expiring within this many days will be\nflagged as alerts in the report. Default is 30 days."
           }
         ],
         "globbing": "false",

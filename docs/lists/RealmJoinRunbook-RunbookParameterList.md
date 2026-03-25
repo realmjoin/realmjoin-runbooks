@@ -1298,7 +1298,7 @@ Monitor/Report expiry of Apple device management certificates
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 300 days (approximately 10 months). |
+| Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 30 days. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 
