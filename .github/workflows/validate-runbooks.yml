@@ -21,17 +21,61 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: 📄 Collect added PR files
+      - name: 📄 Collect changed PR files
         id: changes
         shell: bash
         run: |
-          git fetch --no-tags --prune --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          set -euo pipefail
+
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.event.pull_request.head.sha }}"
+          base_ref="${{ github.event.pull_request.base.ref }}"
+          changed_diff_mode="merge-base-two-dot"
+          added_diff_mode="merge-base-two-dot"
+          range_start=""
+
+          # Refresh the target branch ref so we can diff from the real merge base.
+          git fetch --no-tags --prune origin "$base_ref:refs/remotes/origin/$base_ref"
+
+          if ! range_start=$(git merge-base "origin/$base_ref" "$head_sha" 2>/dev/null); then
+            echo "No merge base found between 'origin/$base_ref' and '$head_sha'. Falling back to base SHA diff."
+            changed_diff_mode="base-sha-two-dot-fallback"
+            added_diff_mode="base-sha-two-dot-fallback"
+            range_start="$base_sha"
+          fi
+
+          changed_files=$(git diff --name-only --diff-filter=AMDR "$range_start" "$head_sha")
+          added_files=$(git diff --name-only --diff-filter=A "$range_start" "$head_sha")
+
+          changed_count=$(printf '%s\n' "$changed_files" | sed '/^$/d' | wc -l | tr -d ' ')
+          added_count=$(printf '%s\n' "$added_files" | sed '/^$/d' | wc -l | tr -d ' ')
+
+          echo "::group::Diff collection debug"
+          echo "Base SHA: $base_sha"
+          echo "Head SHA: $head_sha"
+          echo "Base ref: $base_ref"
+          echo "Range start: $range_start"
+          echo "Changed diff mode: $changed_diff_mode"
+          echo "Added diff mode: $added_diff_mode"
+          echo "Changed files count: $changed_count"
+          echo "Added files count: $added_count"
+          echo "Changed files:"
+          if [ -n "$changed_files" ]; then
+            printf '%s\n' "$changed_files"
+          else
+            echo "(none)"
+          fi
+          echo "Added files:"
+          if [ -n "$added_files" ]; then
+            printf '%s\n' "$added_files"
+          else
+            echo "(none)"
+          fi
+          echo "::endgroup::"
+
           {
             echo "changed<<EOF"
-            git diff --name-only --diff-filter=AMDR "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
-            echo "EOF"
-            echo "added<<EOF"
-            git diff --name-only --diff-filter=A "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+            printf '%s\n' "$changed_files"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -71,18 +115,18 @@ jobs:
         id: permissions
         shell: pwsh
         run: |
-          $addedRaw = @'
-          ${{ steps.changes.outputs.added }}
+          $changedRaw = @'
+          ${{ steps.changes.outputs.changed }}
           '@
-          $addedFiles = @(
-            $addedRaw -split "`r?`n" |
+          $changedFiles = @(
+            $changedRaw -split "`r?`n" |
             ForEach-Object { $_.Trim() } |
             Where-Object { $_ }
           )
 
           . ./.github/scripts/Validate-PermissionsJson.ps1 `
               -IncludedScope @("device", "group", "org", "user") `
-              -ChangedFiles $addedFiles
+              -ChangedFiles $changedFiles
           "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
           exit 0
 
@@ -91,17 +135,17 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $addedRaw = @'
-          ${{ steps.changes.outputs.added }}
+          $changedRaw = @'
+          ${{ steps.changes.outputs.changed }}
           '@
-          $addedFiles = @(
-            $addedRaw -split "`r?`n" |
+          $changedFiles = @(
+            $changedRaw -split "`r?`n" |
             ForEach-Object { $_.Trim() } |
             Where-Object { $_ }
           )
 
           . ./.github/scripts/Validate-Runbooks.ps1 `
-              -ChangedFiles $addedFiles
+              -ChangedFiles $changedFiles
           "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
           exit 0
 

@@ -151,6 +151,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Defender Indicator](docs/org/security/add-defender-indicator.md)
     - [Backup Conditional Access Policies](docs/org/security/backup-conditional-access-policies.md)
+    - [Find SMS Auth Phone Number](docs/org/security/find-sms-auth-phone-number.md)
     - [List Admin Users](docs/org/security/list-admin-users.md)
     - [List Expiring Role Assignments](docs/org/security/list-expiring-role-assignments.md)
     - [List Inactive Devices](docs/org/security/list-inactive-devices.md)

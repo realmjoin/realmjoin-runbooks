@@ -127,7 +127,7 @@ function Get-AllGraphPage {
             $allResults += $response
         }
 
-        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+        if ($response.PSObject.Properties.Value -contains '@odata.nextLink') {
             $nextLink = $response.'@odata.nextLink'
         }
         else {
