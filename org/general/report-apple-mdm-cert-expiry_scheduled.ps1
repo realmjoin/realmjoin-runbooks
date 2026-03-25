@@ -60,7 +60,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.1"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -92,23 +92,22 @@ if (-not $EmailTo) {
 #region     Function Definitions
 ########################################################
 
-function Get-AllGraphPage {
+function Get-GraphPagedResult {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
 
         .DESCRIPTION
-        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
-        multiple pages by following the @odata.nextLink property in the response. It aggregates
-        all items into a single array and returns it.
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
         e.g., "https://graph.microsoft.com/v1.0/applications".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
-#>
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
     param(
         [string]$Uri
     )
@@ -118,21 +117,10 @@ function Get-AllGraphPage {
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
         if ($response.value) {
             $allResults += $response.value
         }
-        elseif ($response.'@odata.context') {
-            # Single item response
-            $allResults += $response
-        }
-
-        if ($response.PSObject.Properties.Value -contains '@odata.nextLink') {
-            $nextLink = $response.'@odata.nextLink'
-        }
-        else {
-            $nextLink = $null
-        }
+        $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
     return $allResults
@@ -206,45 +194,41 @@ Write-Output "Evaluating Apple device management integrations..."
 
 try {
     $Uri = "https://graph.microsoft.com/v1.0/deviceManagement/applePushNotificationCertificate"
-    $applePushResponse = Get-AllGraphPage -Uri $Uri -ErrorAction Stop
+    $applePushResponse = Invoke-MgGraphRequest -Uri $Uri -Method GET -ErrorAction Stop
 
 
     if ($applePushResponse) {
-        $applePushCerts = @($applePushResponse)
+        $expiration = if ($applePushResponse.expirationDateTime) { [datetime]$applePushResponse.expirationDateTime } else { $null }
+        $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
+        $status = "Healthy"
+        $notes = ""
+        $isAlert = $false
 
-        foreach ($applePushCert in $applePushCerts) {
-            $expiration = if ($applePushCert.expirationDateTime) { [datetime]$applePushCert.expirationDateTime } else { $null }
-            $daysRemaining = if ($expiration) { [math]::Floor(($expiration - $currentDate).TotalDays) } else { $null }
-            $status = "Healthy"
-            $notes = ""
-            $isAlert = $false
+        if ($expiration -and $expiration -le $thresholdDate) {
+            $status = "Alert"
+            $notes = "Expires within $($Days) days"
+            $isAlert = $true
+        }
 
-            if ($expiration -and $expiration -le $thresholdDate) {
-                $status = "Alert"
-                $notes = "Expires within $($Days) days"
-                $isAlert = $true
-            }
+        if (-not $expiration) {
+            $status = "Alert"
+            $notes = "Expiration date unavailable"
+            $isAlert = $true
+        }
 
-            if (-not $expiration) {
-                $status = "Alert"
-                $notes = "Expiration date unavailable"
-                $isAlert = $true
-            }
+        $applePushResults += [PSCustomObject]@{
+            Category          = "Apple Push Certificate"
+            Identifier        = $applePushResponse.appleIdentifier
+            ExpirationDate    = $expiration
+            DaysRemaining     = $daysRemaining
+            DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
+            Status            = $status
+            Notes             = $notes
+            Alert             = $isAlert
+        }
 
-            $applePushResults += [PSCustomObject]@{
-                Category          = "Apple Push Certificate"
-                Identifier        = $applePushCert.appleIdentifier
-                ExpirationDate    = $expiration
-                DaysRemaining     = $daysRemaining
-                DaysRemainingText = Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate
-                Status            = $status
-                Notes             = $notes
-                Alert             = $isAlert
-            }
-
-            if ($isAlert) {
-                $alertDetails += "- **Apple Push Certificate** '$($applePushCert.appleIdentifier)': $($notes) ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
-            }
+        if ($isAlert) {
+            $alertDetails += "- **Apple Push Certificate** '$($applePushResponse.appleIdentifier)': $($notes) ($([string](Get-DaysRemainingText -ExpirationDate $expiration -ReferenceDate $currentDate)))"
         }
     }
 }
@@ -259,7 +243,7 @@ catch {
 
 try {
     $Uri = "https://graph.microsoft.com/beta/deviceAppManagement/vppTokens"
-    $vppTokens = Get-AllGraphPage -Uri $Uri -ErrorAction Stop
+    $vppTokens = Get-GraphPagedResult -Uri $Uri -ErrorAction Stop
     if ($vppTokens.ContainsKey("value")) {
         $vppTokens = @()
         $vppTokenResults = @()
@@ -318,7 +302,7 @@ catch {
 #region DEP
 try {
     $Uri = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
-    $depSettings = Get-AllGraphPage -Uri $Uri -ErrorAction Stop
+    $depSettings = Get-GraphPagedResult -Uri $Uri -ErrorAction Stop
 
     if ($depSettings.'@odata.count' -eq 0) {
         $depSettings = @()
