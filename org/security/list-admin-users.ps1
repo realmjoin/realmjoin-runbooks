@@ -131,7 +131,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -249,23 +249,22 @@ function Get-UntilDisplayText {
     return "$untilText ($remaining)"
 }
 
-function Get-AllGraphPage {
+function Get-GraphPagedResult {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
 
         .DESCRIPTION
-        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
-        multiple pages by following the @odata.nextLink property in the response. It aggregates
-        all items into a single array and returns it.
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
         e.g., "https://graph.microsoft.com/v1.0/applications".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
-#>
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
     param(
         [string]$Uri
     )
@@ -275,21 +274,10 @@ function Get-AllGraphPage {
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
         if ($response.value) {
             $allResults += $response.value
         }
-        elseif ($response.'@odata.context') {
-            # Single item response
-            $allResults += $response
-        }
-
-        if ($response.PSObject.Properties.Value -contains '@odata.nextLink') {
-            $nextLink = $response.'@odata.nextLink'
-        }
-        else {
-            $nextLink = $null
-        }
+        $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
     return $allResults
@@ -323,7 +311,7 @@ catch {
 ############################################################
 
 ## Get builtin AzureAD Roles
-$roles = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleDefinitions?`$filter=isBuiltIn eq true"
+$roles = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleDefinitions?`$filter=isBuiltIn eq true"
 
 if ([array]$roles.count -eq 0) {
     "## Error - No AzureAD roles found. Missing permissions?"
@@ -332,14 +320,14 @@ if ([array]$roles.count -eq 0) {
 
 ## Performance issue - Get all role assignments at once
 try {
-    $allRoleHolders = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments"
+    $allRoleHolders = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments"
 }
 catch {
     $allRoleHolders = @()
 }
 
 try {
-    $allPimHolders = Get-AllGraphPage -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules"
+    $allPimHolders = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules"
 }
 catch {
     $allPimHolders = @()
@@ -347,7 +335,7 @@ catch {
 
 try {
     # Includes permanent assignments and time-bound PIM activations.
-    $allPimActiveInstances = Get-AllGraphPage -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?`$select=principalId,roleDefinitionId,startDateTime,endDateTime"
+    $allPimActiveInstances = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?`$select=principalId,roleDefinitionId,startDateTime,endDateTime"
 }
 catch {
     $allPimActiveInstances = @()
@@ -754,7 +742,7 @@ if ($QueryMfaState) {
         $AdminId = $_.Key
         $AdminUPN = $_.Value
         $AuthenticationMethods = @()
-        [array]$MFAData = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/users/$AdminId/authentication/methods"
+        [array]$MFAData = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$AdminId/authentication/methods"
         foreach ($MFA in $MFAData) {
             switch ($MFA."@odata.type") {
                 "#microsoft.graph.microsoftAuthenticatorAuthenticationMethod" {
