@@ -189,7 +189,7 @@ $vppTokenResults = @()
 $depTokenResults = @()
 $alertDetails = @()
 
-#region Apple MDM Certs
+#region Apple MDM Cert
 Write-Output "Evaluating Apple device management integrations..."
 
 try {
@@ -358,7 +358,7 @@ $alertCount = ($allResults | Where-Object { $_.Alert }).Count
 
 Write-Output ""
 Write-Output "## Summary"
-Write-Output "Apple Push certificates: $($applePushResults.Count)"
+Write-Output "Apple Push certificate: $(if ($applePushResults.Count -gt 0) { 'Found' } else { 'Not found' })"
 Write-Output "VPP tokens: $($vppTokenResults.Count)"
 Write-Output "DEP tokens: $($depTokenResults.Count)"
 Write-Output "Alerts detected: $alertCount"
@@ -444,7 +444,7 @@ No Apple device management infrastructure was detected in this tenant.
 ## Details
 
 This tenant currently has:
-- **0** Apple Push Notification certificates
+- **No** Apple Push Notification certificate
 - **0** Volume Purchase Program (VPP) tokens
 - **0** Device Enrollment Program (DEP) tokens
 
