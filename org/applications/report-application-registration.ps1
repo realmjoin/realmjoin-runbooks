@@ -64,7 +64,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -99,23 +99,22 @@ if ($IncludeDeletedApps -notin $true, $false) {
 ########################################################
 #region     Email Function Definitions
 ########################################################
-function Get-AllGraphPage {
+function Get-GraphPagedResult {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
 
         .DESCRIPTION
-        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
-        multiple pages by following the @odata.nextLink property in the response. It aggregates
-        all items into a single array and returns it.
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
         e.g., "https://graph.microsoft.com/v1.0/applications".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
-#>
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
     param(
         [string]$Uri
     )
@@ -125,21 +124,10 @@ function Get-AllGraphPage {
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
         if ($response.value) {
             $allResults += $response.value
         }
-        elseif ($response.'@odata.context') {
-            # Single item response
-            $allResults += $response
-        }
-
-        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
-            $nextLink = $response.'@odata.nextLink'
-        }
-        else {
-            $nextLink = $null
-        }
+        $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
     return $allResults
@@ -192,7 +180,7 @@ Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
 Write-Output "Retrieving all App Registrations..."
 
-$allAppRegs = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
+$allAppRegs = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
 Write-Output "Found $((($(($allAppRegs) | Measure-Object).Count))) App Registrations..."
 
 $appRegResults = @()
@@ -255,7 +243,7 @@ if ($IncludeDeletedApps) {
     Write-Output "Retrieving deleted App Registrations..."
 
     try {
-        $deletedAppRegs = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/directory/deletedItems/microsoft.graph.application"
+        $deletedAppRegs = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/directory/deletedItems/microsoft.graph.application"
         Write-Output "Found $((($(($deletedAppRegs) | Measure-Object).Count))) deleted App Registrations"
 
         foreach ($appReg in $deletedAppRegs) {

@@ -9628,7 +9628,7 @@
         "defaultValue": "30",
         "description": [
           {
-            "Text": "The warning threshold in days. Certificates and tokens expiring within this many days will be\nflagged as alerts in the report. Default is 300 days (approximately 10 months)."
+            "Text": "The warning threshold in days. Certificates and tokens expiring within this many days will be\nflagged as alerts in the report. Default is 30 days."
           }
         ],
         "globbing": "false",
@@ -11732,6 +11732,71 @@
       "ManualPermissions": [
         "Azure IaaS: Access to the given Azure Storage Account / Resource Group"
       ]
+    }
+  },
+  {
+    "RunbookDisplayName": "Find SMS Auth Phone Number",
+    "RunbookDisplayPath": "Org \\ Security \\ Find SMS Auth Phone Number",
+    "RelativeRunbookPath": "org/security/find-SMS-auth-phone-number.ps1",
+    "RelativeRunbookPath_PathOnly": "org/security",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Security",
+    "Synopsis": "Find the user associated with a specific SMS-based authentication phone number",
+    "Description": "This runbook searches for which user has a specific phone number registered with SMS Sign-In enabled in Microsoft Entra ID. Unlike regular phone MFA methods, SMS Sign-In numbers must be unique across the tenant. If a number is reserved for SMS Sign-In by one user, assigning it to another user will fail with a \"phoneNumberNotUnique\" error. Regular phone MFA methods do not enforce uniqueness. This runbook helps administrators identify which user holds a specific SMS Sign-In number for troubleshooting and remediation.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name is tracked purely for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Phone number to search for in E.164 format (e.g., +492349876543). The number must start with a \"+\" followed by the country code and subscriber number."
+          }
+        ],
+        "globbing": "false",
+        "name": "PhoneNumber",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AuditLog.Read.All",
+            "User.Read.All",
+            "UserAuthenticationMethod.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
     }
   },
   {
@@ -17580,7 +17645,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Set or remove a user's mobile phone MFA method",
-    "Description": "Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number.",
+    "Description": "Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the \"phoneNumberNotUnique\" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.",
     "Notes": null,
     "Parameters": [
       {
@@ -17654,13 +17719,15 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "AuditLog.Read.All",
+            "User.Read.All",
             "UserAuthenticationMethod.ReadWrite.All"
           ]
         }

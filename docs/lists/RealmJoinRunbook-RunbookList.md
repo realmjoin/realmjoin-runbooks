@@ -122,6 +122,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#organization-security)
     - Add Defender Indicator
     - Backup Conditional Access Policies
+    - Find SMS Auth Phone Number
     - List Admin Users
     - List Expiring Role Assignments
     - List Inactive Devices
@@ -369,6 +370,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Defender Indicator | Create a new Microsoft Defender for Endpoint indicator |
 | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account |
+| Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number |
 | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods |
 | List Expiring Role Assignments | List Azure AD role assignments expiring within a given number of days |
 | List Inactive Devices | List or export inactive devices with no recent logon or Intune sync |

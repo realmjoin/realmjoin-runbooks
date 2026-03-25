@@ -98,6 +98,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Phone | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
 |  | Security | Add Defender Indicator | Create a new Microsoft Defender for Endpoint indicator |
 |  |  | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account |
+|  |  | Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number |
 |  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods |
 |  |  | List Expiring Role Assignments | List Azure AD role assignments expiring within a given number of days |
 |  |  | List Inactive Devices | List or export inactive devices with no recent logon or Intune sync |

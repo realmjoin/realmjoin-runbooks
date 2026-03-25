@@ -1,5 +1,31 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-03-24
+
+- Fix pagination function and replace with simplified Get-GraphPagedResult function in multiple runbooks:
+  - **Report Application Registration** - Org/Applications
+  - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+  - **Notify Users About Stale Devices (Scheduled)** - Org/Devices
+  - **Report Devices Without Primary User** - Org/Devices
+  - **Report Stale Devices (Scheduled)** - Org/Devices
+  - **Report Users With More Than 5 Devices** - Org/Devices
+  - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+  - **Report Apple MDM Cert Expiry (Scheduled)** - Org/General
+  - **Report License Assignment (Scheduled)** - Org/General
+  - **Find SMS Auth Phone Number** - Org/Security
+  - **List Admin Users** - Org/Security
+  - **Monitor Pending EPM Requests (Scheduled)** - Org/Security
+  - **Report EPM Elevation Requests (Scheduled)** - Org/Security
+  - **Set Or Remove Mobile Phone MFA** - User/Security
+
+## 2026-03-20
+
+- Add **Find SMS Auth Phone Number** Runbook to Org/Security
+  - This runbook searches for which user has a specific phone number registered for SMS Sign-In or as a phone MFA method in Microsoft Entra ID. It helps administrators identify phone number ownership for troubleshooting "phoneNumberNotUnique" errors.
+- Update **Set or Remove Mobile Phone MFA** Runbook in User/Security
+  - Add detection and reporting for "phoneNumberNotUnique" errors when a phone number is already reserved for SMS Sign-In by another user
+  - Adapt to native GraphAPI Calls
+
 ## 2026-03-10
 
 - Add **Set Primary User** Runbook to device/general section

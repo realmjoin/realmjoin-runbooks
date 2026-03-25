@@ -98,6 +98,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Phone | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br> | - Teams Administrator<br> |
 |  | Security | Add Defender Indicator | Create a new Microsoft Defender for Endpoint indicator | - **Type**: WindowsDefenderATP<br>&emsp;- Ti.ReadWrite.All<br> |  |
 |  |  | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>Azure IaaS: Access to the given Azure Storage Account / Resource Group<br> |  |
+|  |  | Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  |
 |  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br>&emsp;- RoleAssignmentSchedule.Read.Directory<br> |  |
 |  |  | List Expiring Role Assignments | List Azure AD role assignments expiring within a given number of days | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- RoleManagement.Read.All<br> |  |
 |  |  | List Inactive Devices | List or export inactive devices with no recent logon or Intune sync | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br> |  |
@@ -144,7 +145,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> |
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
 |  | Userinfo | Rename User | Rename a user or mailbox | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- User.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Set Photo | Set the profile photo for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  |
 |  |  | Update User | Update user metadata and memberships | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.Read.All<br> | - User administrator<br>- Exchange Administrator<br> |

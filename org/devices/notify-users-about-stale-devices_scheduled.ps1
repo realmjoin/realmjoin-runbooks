@@ -263,7 +263,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.0"
+$Version = "1.3.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -330,33 +330,34 @@ if ($MailTemplateLanguage -eq "Custom") {
 #region     Function Definitions
 ########################################################
 
-function Get-AllGraphPages {
+function Get-GraphPagedResult {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query.
     #>
     param(
-        [Parameter(Mandatory = $true)]
         [string]$Uri
     )
 
-    $results = @()
+    $allResults = @()
     $nextLink = $Uri
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
         if ($response.value) {
-            $results += $response.value
+            $allResults += $response.value
         }
-        else {
-            $results += $response
-        }
-
         $nextLink = $response.'@odata.nextLink'
-    } while ($null -ne $nextLink)
+    } while ($nextLink)
 
-    return $results
+    return $allResults
 }
 
 function Get-MailTemplate {
@@ -550,7 +551,7 @@ Write-Output ""
 
 $encodedFilter = [System.Uri]::EscapeDataString($filter)
 $devicesUri = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$selectString&`$filter=$encodedFilter"
-$devices = Get-AllGraphPages -Uri $devicesUri
+$devices = Get-GraphPagedResult -Uri $devicesUri
 
 Write-Output "Found $($devices.Count) total stale devices before platform filtering"
 
@@ -606,7 +607,7 @@ if ($UseUserScope) {
         Write-Output "Getting members from include group..."
         try {
             $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/members?`$select=id,userPrincipalName"
-            $includeMembers = Get-AllGraphPages -Uri $includeGroupUri
+            $includeMembers = Get-GraphPagedResult -Uri $includeGroupUri
             $includeUserIds = $includeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
             Write-Output "Include group contains $($includeUserIds.Count) users"
         }
@@ -620,7 +621,7 @@ if ($UseUserScope) {
         Write-Output "Getting members from exclude group..."
         try {
             $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/members?`$select=id,userPrincipalName"
-            $excludeMembers = Get-AllGraphPages -Uri $excludeGroupUri
+            $excludeMembers = Get-GraphPagedResult -Uri $excludeGroupUri
             $excludeUserIds = $excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
             Write-Output "Exclude group contains $($excludeUserIds.Count) users"
         }
