@@ -87,6 +87,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
 |  |  | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 |  |  | Sync All Devices | Sync all Intune Windows devices |
+|  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
 |  | Mail | Add Distribution List | Create a classic distribution group |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder |

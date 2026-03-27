@@ -108,6 +108,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report License Assignment (Scheduled)](#organization-general-report-license-assignment-scheduled)
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
+    - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
     - [Add Equipment Mailbox](#organization-mail-add-equipment-mailbox)
@@ -1353,6 +1354,16 @@ Sync all Intune Windows devices
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-general-sync-apple-tokens'></a>
+
+### Sync Apple Tokens
+Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
+| CallerName | ✓ | String | Automated parameter for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 

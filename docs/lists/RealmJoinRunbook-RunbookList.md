@@ -108,6 +108,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report License Assignment (Scheduled)
     - Report PIM Activations (Scheduled)
     - Sync All Devices
+    - Sync Apple Tokens
   - [Mail](#organization-mail)
     - Add Distribution List
     - Add Equipment Mailbox
@@ -339,6 +340,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
+| Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
