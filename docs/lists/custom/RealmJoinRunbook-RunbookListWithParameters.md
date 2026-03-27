@@ -449,6 +449,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | sendAlertTo |  | String | Recipient email address for the report. |
 |  |  |  |  |  |  | sendAlertFrom |  | String | Sender mailbox UPN used to send the report email. |
 |  |  | Sync All Devices | Sync all Intune Windows devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Automated parameter for auditing purposes. |
 |  | Mail | Add Distribution List | Create a classic distribution group | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | Alias | ✓ | String | Mail alias (mail nickname) for the distribution group. |
 |  |  |  |  |  |  | PrimarySMTPAddress |  | String | Optional primary SMTP address for the distribution group. |
 |  |  |  |  |  |  | GroupName |  | String | Optional display name for the distribution group; defaults to the alias. |

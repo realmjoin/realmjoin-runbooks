@@ -10139,6 +10139,70 @@
     }
   },
   {
+    "RunbookDisplayName": "Sync Apple Tokens",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Apple Tokens",
+    "RelativeRunbookPath": "org/general/sync-apple-tokens.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Sync Apple Enrollment Program Tokens and VPP Tokens with Intune",
+    "Description": "This runbook triggers synchronization of Apple tokens in Microsoft Intune. It can sync Apple Enrollment Program (ADE) tokens, Volume Purchase Program (VPP) tokens, or both. The sync ensures that Intune has the latest information from Apple Business Manager regarding device enrollments and app licenses.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Automated parameter for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "Both",
+        "description": [
+          {
+            "Text": "Select which token type(s) to synchronize with Apple Business Manager."
+          }
+        ],
+        "globbing": "false",
+        "name": "SyncType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n\t\"Permissions\": [\n\t\t{\n\t\t\t\"Name\": \"Microsoft Graph\",\n\t\t\t\"Id\": \"00000003-0000-0000-c000-000000000000\",\n\t\t\t\"AppRoleAssignments\": [\n\t\t\t\t\"DeviceManagementApps.ReadWrite.All\",\n\t\t\t\t\"DeviceManagementServiceConfig.ReadWrite.All\"\n\t\t\t]\n\t\t}\n\t],\n\t\"Roles\": [],\n\t\"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementApps.ReadWrite.All",
+            "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Add Distribution List",
     "RunbookDisplayPath": "Org \\ Mail \\ Add Distribution List",
     "RelativeRunbookPath": "org/mail/add-distribution-list.ps1",

@@ -109,6 +109,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
+      - [Sync Apple Tokens](#sync-apple-tokens)
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
@@ -1991,6 +1992,23 @@ It forces devices to check in and apply pending policies and configurations.
 
 #### Where to find
 Org \ General \ Sync All Devices
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-sync-apple-tokens'></a>
+
+### Sync Apple Tokens
+#### Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
+
+#### Description
+This runbook triggers synchronization of Apple tokens in Microsoft Intune. It can sync Apple Enrollment Program (ADE) tokens, Volume Purchase Program (VPP) tokens, or both. The sync ensures that Intune has the latest information from Apple Business Manager regarding device enrollments and app licenses.
+
+#### Where to find
+Org \ General \ Sync Apple Tokens
 
 
 [Back to Table of Content](#table-of-contents)

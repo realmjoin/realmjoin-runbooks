@@ -87,6 +87,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  |  | Report PIM Activations (Scheduled) | Scheduled report on PIM activations | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  |  | Sync All Devices | Sync all Intune Windows devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  |
+|  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  | Mail | Add Distribution List | Create a classic distribution group | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
