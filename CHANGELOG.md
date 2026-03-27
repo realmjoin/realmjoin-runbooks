@@ -4,6 +4,8 @@
 
 - Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/devices section
   - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis.
+- Add **Sync Apple Tokens** Runbook to org/general section
+  - This runbook synchronizes Apple MDM push notification tokens between Intune and Apple Push Notification Service (APNS) to ensure that devices receive timely updates and notifications.
 
 ## 2026-03-24
 
