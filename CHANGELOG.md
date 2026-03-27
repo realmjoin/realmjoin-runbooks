@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-03-27
+
+- Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/devices section
+  - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis.
+
 ## 2026-03-24
 
 - Fix pagination function and replace with simplified Get-GraphPagedResult function in multiple runbooks:
