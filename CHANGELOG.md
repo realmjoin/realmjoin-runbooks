@@ -6,6 +6,13 @@
   - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis.
 - Add **Sync Apple Tokens** Runbook to org/general section
   - This runbook synchronizes Apple MDM push notification tokens between Intune and Apple Push Notification Service (APNS) to ensure that devices receive timely updates and notifications.
+- Update **Create Temporary Access Pass** Runbook in user/security section
+  - Add parameter validation for the duration of the temporary access pass to ensure it falls within acceptable limits
+  - Add support for user notification via email when a temporary access pass is created
+    - Could be enabled via Runbook Customization parameters
+    - Based on usage location of the user, the email will be sent in German if the usage location is Germany, otherwise in English
+- Update **Update Application Registration** Runbook in org/applications section
+  - Add output of the updated redirect URI list for better visibility of the changes made by the runbook
 
 ## 2026-03-24
 
