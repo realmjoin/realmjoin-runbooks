@@ -10,7 +10,7 @@ User \ Mail \ Set Out Of Office
 
 ## Permissions
 ### Application permissions
-- **Type**: Office 365 Exchange Online API
+- **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
 
 ### RBAC roles

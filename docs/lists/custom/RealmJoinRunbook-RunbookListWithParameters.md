@@ -13,6 +13,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | newGroupTag |  | String | The new AutoPilot GroupTag to assign to the device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Check Device Compliance | Check the compliance status of a device | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Organization.Read.All<br> |  | DeviceId | ✓ | String | The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform. |
+|  |  |  |  |  |  | DetailedOutput |  | Boolean | Select "Simple" (final value: $false) to show only the overall compliance state and non-compliant policy names.<br>Select "Detailed" (final value: $true) to additionally show which specific settings are failing and the reason for each failure. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional - if specified, a compliance report will be sent to the provided email address(es).<br>Can be a single address or multiple comma-separated addresses. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to check. |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -31,6 +36,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Rename Device | Rename a device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | NewDeviceName | ✓ | String | The new device name to set. This runbook validates the name against common Windows hostname constraints. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Set Primary User | Set a new primary user on a managed Intune device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | DeviceId | ✓ | String | The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI. |
+|  |  |  |  |  |  | NewPrimaryUserId | ✓ | String | The user to assign as the new primary user of the device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to unenroll. |
@@ -59,6 +67,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Release | ✓ | Boolean | "Restrict Code Execution" (final value: false) or "Remove Code Restriction" (final value: true) can be selected as action to perform. If set to false, the runbook will restrict code execution on the device in Defender for Endpoint. If set to true, it will remove an existing code execution restriction on the device in Defender for Endpoint. |
 |  |  |  |  |  |  | Comment | ✓ | String | A short reason for the (un)restriction action. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device | - **Type**: Microsoft Graph<br>&emsp;- BitlockerKey.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Show LAPS Password | Show a local admin password for a device. | - **Type**: Microsoft Graph<br>&emsp;- DeviceLocalCredential.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -66,6 +76,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group whose device members will be unenrolled. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | The update category to unenroll from. Supported values are driver, feature, quality, or all. |
+|  |  |  |  |  |  | IncludeUserOwnedDevices |  | Boolean | When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of. |
 |  | General | Add Or Remove Nested Group | Add/remove a nested group to/from a group | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | GroupID | ✓ | String | Object ID of the target group. |
 |  |  |  |  |  |  | NestedGroupID | ✓ | String | Object ID of the group to add as a nested member. |
 |  |  |  |  |  |  | Remove |  | Boolean | Set to true to remove the nested group membership, or false to add it. |
@@ -130,8 +141,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. |
-|  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the storage account, used when the account needs to be created. |
-|  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU, used when the account needs to be created. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br> |  | Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -176,7 +186,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DeviceDescripton |  | String | Optional description stored for the imported identity. |
 |  |  |  |  |  |  | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementManagedDevices.DeleteAll<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
 |  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results |
@@ -202,6 +212,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 |  |  |  |  |  |  | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 |  |  |  |  |  |  | OverrideEmailRecipient |  | String | Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users. |
+|  |  |  |  |  |  | MailTemplateLanguage |  | String | Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations). |
+|  |  |  |  |  |  | CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). |
+|  |  |  |  |  |  | CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
+|  |  |  |  |  |  | CustomMailTemplateAfterDeviceDetails |  | String | Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Outphase Devices | Remove or outphase multiple devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceListChoice | ✓ | Int32 | Determines whether the list contains device IDs or serial numbers. |
 |  |  |  |  |  |  | DeviceList | ✓ | String | Comma-separated list of device IDs or serial numbers. |
@@ -277,6 +291,16 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DefaultPolicyName |  | String | Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided. |
 |  |  |  |  |  |  | IntunePolicyName |  | String | Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Add Primary Users Of Devices To Group (Scheduled) | Sync primary users of Intune managed devices by platform into an Entra ID group | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | TargetGroupId | ✓ | String | The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook. |
+|  |  |  |  |  |  | Windows |  | Boolean | Include primary users of Windows devices. (OData Filter used "operatingSystem eq 'Windows'") |
+|  |  |  |  |  |  | MacOS |  | Boolean | Include primary users of macOS devices. (OData Filter used "operatingSystem eq 'macOS'") |
+|  |  |  |  |  |  | iOS |  | Boolean | Include primary users of iOS and iPadOS devices. (OData Filter used "operatingSystem eq 'iOS'") |
+|  |  |  |  |  |  | Android |  | Boolean | Include primary users of Android devices. (OData Filter used "operatingSystem eq 'Android'") |
+|  |  |  |  |  |  | AdvancedFilter |  | String | Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' . |
+|  |  |  |  |  |  | RemoveUsersWhenNoDeviceMatch |  | Boolean | When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed. |
+|  |  |  |  |  |  | IncludeGroupId |  | String | Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users. |
+|  |  |  |  |  |  | ExcludeGroupId |  | String | Optional. Users who are members of this group will not be added and will be removed from the target group if already present. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Add Security Group | Create a Microsoft Entra ID security group | - **Type**: Microsoft Graph<br>&emsp;- Group.Create<br> |  | GroupName | ✓ | String | Display name of the security group to create. |
 |  |  |  |  |  |  | GroupDescription |  | String | Optional description for the security group. |
 |  |  |  |  |  |  | Owner |  | String | Optional owner to assign to the group. |
@@ -325,11 +349,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Check Assignments Of Devices | Check Intune assignments for one or more device names | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceNames | ✓ | String | Comma-separated list of device names to check. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
-|  |  | Check Assignments Of Groups | Check Intune assignments for one or more group names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | GroupNames | ✓ | String | Group Names of the groups to check assignments for, separated by commas. |
+|  |  | Check Assignments Of Groups | Check Intune assignments for one or more group names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  |  |  |  |  | GroupIDs | ✓ | String Array | Group IDs of the groups to check assignments for |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
-|  |  | Check Assignments Of Users | Check Intune assignments for one or more user principal names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | UPN | ✓ | String | User Principal Names of the users to check assignments for, separated by commas. |
+|  |  | Check Assignments Of Users | Check Intune assignments for one or more user principal names | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  |  |  |  |  | UserPrincipalName | ✓ | String Array | User Principal Names of the users to check assignments for. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | If set to true, also evaluates application assignments. |
 |  |  | Check Autopilot Serialnumbers | Check if given serial numbers are present in Autopilot | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br> |  | SerialNumbers | ✓ | String | Serial numbers of the devices, separated by commas. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -360,7 +384,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | SubscriptionId |  | String | Optional Azure Subscription Id to set the context for Storage Account operations. |
-|  |  |  |  |  |  | FilterGroupID |  | String | Optional group filter (ObjectId). When specified, only devices whose primary owner is a member of this group are exported. |
+|  |  |  |  |  |  | FilterGroupID |  | String | Group filter. When specified, only devices whose primary owner is a member of this group are exported. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Export Cloudpc Usage (Scheduled) | Write daily Windows 365 utilization data to Azure Table Storage | - **Type**: Microsoft Graph<br>&emsp;- CloudPC.Read.All<br>Azure IaaS: `Contributor` role on the Azure Storage Account used for storing CloudPC usage data<br> |  | Table |  | String | Name of the Azure Table Storage table to write to. |
 |  |  |  |  |  |  | ResourceGroupName | ✓ | String | Name of the Azure Resource Group containing the Storage Account. |
@@ -403,7 +427,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 300 days (approximately 10 months). |
+|  |  |  |  |  |  | Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 30 days. |
 |  |  |  |  |  |  | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 |  |  | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | InputJson | ✓ | Object | JSON array containing SKU configurations with thresholds. Each entry should include a SKUPartNumber for the Microsoft SKU identifier, a FriendlyName as the display name for the license, an optional MinThreshold specifying the minimum number of licenses that should be available, and an optional MaxThreshold specifying the maximum number of licenses that should be available.<br><br>This needs to be configured in the runbook customization |
@@ -499,8 +523,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | SKU name for the Storage Account if it needs to be created. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br> |  | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
-|  |  |  |  |  |  | PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible until information in the CSV report. |
+|  |  | Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  | PhoneNumber | ✓ | String | Phone number to search for in E.164 format (e.g., +492349876543). The number must start with a "+" followed by the country code and subscriber number. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- RoleManagement.Read.All<br>&emsp;- RoleAssignmentSchedule.Read.Directory<br> |  | ExportToFile |  | Boolean | If set to true, exports the report to an Azure Storage Account. |
+|  |  |  |  |  |  | PimEligibleUntilInCSV |  | Boolean | If set to true, includes PIM eligible/active until information in the CSV report. |
 |  |  |  |  |  |  | ContainerName |  | String | Name of the Azure Storage container to upload the CSV report to. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Name of the Azure Resource Group containing the Storage Account. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Name of the Azure Storage Account used for upload. |
@@ -570,7 +596,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | GroupID_License | ✓ | String | Object ID of the license assignment group. |
 |  |  |  |  |  |  | Remove |  | Boolean | "Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | cfgProvisioningGroupName |  | String | Display name of the provisioning policy group or Frontline assignment to use. |
 |  |  |  |  |  |  | cfgUserSettingsGroupName |  | String | Display name of the user settings policy group to use. |
 |  |  |  |  |  |  | licWin365GroupName |  | String | Display name of the Windows 365 license group to assign when using dedicated Cloud PCs. |
@@ -630,14 +656,14 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | RevokeGroupOwnership |  | Boolean | If set to true, removes or replaces the user's group ownerships. |
 |  |  |  |  |  |  | ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Reprovision Windows365 | Reprovision a Windows 365 Cloud PC | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Reprovision Windows365 | Reprovision a Windows 365 Cloud PC | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | licWin365GroupName | ✓ | String | Display name of the Windows 365 license group used to identify the Cloud PC. |
 |  |  |  |  |  |  | sendMailWhenReprovisioning |  | Boolean | "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun. |
 |  |  |  |  |  |  | fromMailAddress |  | String | Mailbox used to send the notification email. |
 |  |  |  |  |  |  | customizeMail |  | Boolean | If set to true, uses a custom email body. |
 |  |  |  |  |  |  | customMailMessage |  | String | Custom message body used for the notification email. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Resize Windows365 | Resize an existing Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- User.SendMail<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Resize Windows365 | Resize an existing Windows 365 Cloud PC for a user | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- CloudPC.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | currentLicWin365GroupName | ✓ | String | Current Windows 365 license group name used by the Cloud PC. |
 |  |  |  |  |  |  | newLicWin365GroupName | ✓ | String | New Windows 365 license group name to assign for the resized Cloud PC. |
 |  |  |  |  |  |  | sendMailWhenDoneResizing |  | Boolean | "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC resizing has finished. |
@@ -658,7 +684,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | skipGracePeriod |  | Boolean | If set to true, ends the Cloud PC grace period immediately. |
 |  |  |  |  |  |  | KeepUserSettingsAndProvisioningGroups |  | Boolean | If set to true, does not remove related provisioning and user settings groups. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | EmailAddress | ✓ | String | Email address to add or remove. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the address instead of adding it. |
 |  |  |  |  |  |  | asPrimary |  | Boolean | If set to true, sets the specified address as the primary SMTP address. |
@@ -666,7 +692,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Assign OWA Mailbox Policy | Assign an OWA mailbox policy to a user |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the target mailbox. |
 |  |  |  |  |  |  | OwaPolicyName | ✓ | String | Name of the OWA mailbox policy to assign. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo |  | String | User principal name of the delegate who should receive access. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, converts a shared mailbox back to a regular mailbox. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables automatic Outlook mapping for delegated FullAccess. |
@@ -674,29 +700,29 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ArchivalLicenseGroup |  | String | Display name of a license group to assign when an archive or larger mailbox requires it. |
 |  |  |  |  |  |  | RegularLicenseGroup |  | String | Display name of a license group to assign when converting back to a regular mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String |  |
+|  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | HideMailbox |  | Boolean | If set to true, hides the mailbox from address lists. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MS Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
+|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
 |  |  |  |  |  |  | Start |  | DateTime | Start time for scheduled out-of-office replies. |
 |  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
@@ -705,7 +731,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 |  |  |  |  |  |  | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online API<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | AllBookInPolicy |  | Boolean | "Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn. |
 |  |  |  |  |  |  | BookInPolicyGroup |  | String | Group whose members are allowed to book when AllBookInPolicy is false. |
 |  |  |  |  |  |  | AllowRecurringMeetings |  | Boolean | If set to true, allows recurring meetings. |
@@ -761,7 +787,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 |  |  |  |  |  |  | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

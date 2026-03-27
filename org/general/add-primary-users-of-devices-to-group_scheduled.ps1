@@ -135,7 +135,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "TargetGroupId: $TargetGroupId" -Verbose
@@ -165,24 +165,34 @@ if (-not $Windows -and -not $MacOS -and -not $iOS -and -not $Android -and [strin
 #region     Function Definitions
 ########################################################
 
-function Get-AllGraphPages {
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query.
+    #>
     param(
-        [Parameter(Mandatory = $true)]
         [string]$Uri
     )
 
-    $results = [System.Collections.Generic.List[object]]::new()
+    $allResults = @()
     $nextLink = $Uri
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
         if ($response.value) {
-            $results.AddRange([object[]]$response.value)
+            $allResults += $response.value
         }
         $nextLink = $response.'@odata.nextLink'
-    } while ($null -ne $nextLink)
+    } while ($nextLink)
 
-    return $results
+    return $allResults
 }
 
 function Invoke-GraphBatch {
@@ -295,7 +305,7 @@ $graphFilter = if (-not [string]::IsNullOrWhiteSpace($AdvancedFilter)) {
 }
 
 # Retrieve all managed devices
-$allDevices = @(Get-AllGraphPages -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=$graphFilter&`$select=id,deviceName,operatingSystem,userId")
+$allDevices = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=$graphFilter&`$select=id,deviceName,operatingSystem,userId")
 
 Write-Output "Devices found:   $($allDevices.Count) (across selected platform(s))"
 
@@ -310,7 +320,7 @@ Write-Output "Unique primary users: $($desiredUserIds.Count)"
 if ($IncludeGroupId) {
     Write-Output ""
     Write-Output "Applying include scope from '$($includeGroup.displayName)'..."
-    $includeMembers = @(Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/groups/$IncludeGroupId/members?`$select=id")
+    $includeMembers = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$IncludeGroupId/members?`$select=id")
     $includeSet = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]@($includeMembers | Where-Object { $_.id } | Select-Object -ExpandProperty id),
         [System.StringComparer]::OrdinalIgnoreCase
@@ -323,7 +333,7 @@ if ($IncludeGroupId) {
 if ($ExcludeGroupId) {
     Write-Output ""
     Write-Output "Applying exclude scope from '$($excludeGroup.displayName)'..."
-    $excludeMembers = @(Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/groups/$ExcludeGroupId/members?`$select=id")
+    $excludeMembers = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$ExcludeGroupId/members?`$select=id")
     $excludeSet = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]@($excludeMembers | Where-Object { $_.id } | Select-Object -ExpandProperty id),
         [System.StringComparer]::OrdinalIgnoreCase
@@ -335,7 +345,7 @@ if ($ExcludeGroupId) {
 # Get current members of target group (users only)
 Write-Output ""
 Write-Output "Getting current members of '$($targetGroup.displayName)'..."
-$currentMembers = @(Get-AllGraphPages -Uri "https://graph.microsoft.com/v1.0/groups/$TargetGroupId/members?`$select=id,userPrincipalName")
+$currentMembers = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$TargetGroupId/members?`$select=id,userPrincipalName")
 
 # Filter to user objects only (groups can contain non-user members)
 $currentUserMembers = @($currentMembers | Where-Object { $_.userPrincipalName })

@@ -169,7 +169,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -210,23 +210,22 @@ if (-not $EmailTo) {
 #region     Email Function Definitions
 ########################################################
 
-function Get-AllGraphPage {
+function Get-GraphPagedResult {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
 
         .DESCRIPTION
-        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
-        multiple pages by following the @odata.nextLink property in the response. It aggregates
-        all items into a single array and returns it.
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
         e.g., "https://graph.microsoft.com/v1.0/applications".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
-#>
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
     param(
         [string]$Uri
     )
@@ -236,21 +235,10 @@ function Get-AllGraphPage {
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
         if ($response.value) {
             $allResults += $response.value
         }
-        elseif ($response.'@odata.context') {
-            # Single item response
-            $allResults += $response
-        }
-
-        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
-            $nextLink = $response.'@odata.nextLink'
-        }
-        else {
-            $nextLink = $null
-        }
+        $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
     return $allResults
@@ -330,7 +318,7 @@ Write-Output ""
 
 $encodedFilter = [System.Uri]::EscapeDataString($filter)
 $devicesUri = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$selectString&`$filter=$encodedFilter"
-$devices = Get-AllGraphPage -Uri $devicesUri
+$devices = Get-GraphPagedResult -Uri $devicesUri
 
 ########################################################
 #region     User Scope Filtering
@@ -349,7 +337,7 @@ if ($UseUserScope) {
         Write-Output "Getting members from include group..."
         try {
             $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/members?`$select=id,userPrincipalName"
-            $includeMembers = Get-AllGraphPage -Uri $includeGroupUri
+            $includeMembers = Get-GraphPagedResult -Uri $includeGroupUri
             $includeUserIds = $includeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
             Write-Output "Include group contains $($includeUserIds.Count) users"
         }
@@ -363,7 +351,7 @@ if ($UseUserScope) {
         Write-Output "Getting members from exclude group..."
         try {
             $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/members?`$select=id,userPrincipalName"
-            $excludeMembers = Get-AllGraphPage -Uri $excludeGroupUri
+            $excludeMembers = Get-GraphPagedResult -Uri $excludeGroupUri
             $excludeUserIds = $excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
             Write-Output "Exclude group contains $($excludeUserIds.Count) users"
         }

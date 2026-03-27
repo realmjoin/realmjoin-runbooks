@@ -6,8 +6,6 @@
     Grants or removes SendAs permissions for a delegate on a mailbox in Exchange Online. The current permissions are shown before and after applying the change.
     This allows the delegate to send emails as if they were the mailbox owner.
 
-     .PARAMETER UserName
-
     .PARAMETER UserName
     User principal name of the mailbox.
 

@@ -17,11 +17,13 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Toggle Drain Mode
   - [General](#device-general)
     - Change Grouptag
+    - Check Device Compliance
     - Check Updatable Assets
     - Enroll Updatable Assets
     - Outphase Device
     - Remove Primary User
     - Rename Device
+    - Set Primary User
     - Unenroll Updatable Assets
     - Wipe Device
   - [Security](#device-security)
@@ -29,6 +31,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Isolate Or Release Device
     - Reset Mobile Device Pin
     - Restrict Or Release Code Execution
+    - Show Bitlocker Recovery Key
     - Show LAPS Password
 - [Group](#group)
   - [Devices](#group-devices)
@@ -77,6 +80,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Or Remove Safelinks Exclusion
     - Add Or Remove Smartscreen Exclusion
     - Add Or Remove Trusted Site
+    - Add Primary Users Of Devices To Group (Scheduled)
     - Add Security Group
     - Add User
     - Add Viva Engange Community
@@ -118,6 +122,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#organization-security)
     - Add Defender Indicator
     - Backup Conditional Access Policies
+    - Find SMS Auth Phone Number
     - List Admin Users
     - List Expiring Role Assignments
     - List Inactive Devices
@@ -192,11 +197,13 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+| Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
 | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 | Outphase Device | Remove/Outphase a windows device |
 | Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
+| Set Primary User | Set a new primary user on a managed Intune device |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
 
@@ -210,6 +217,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Isolate Or Release Device | Isolate this device. |
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
+| Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
 | Show LAPS Password | Show a local admin password for a device. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
@@ -302,6 +310,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Safelinks Exclusion | Add or remove a SafeLinks URL exclusion from a policy |
 | Add Or Remove Smartscreen Exclusion | Add or remove a SmartScreen URL indicator in Microsoft Defender |
 | Add Or Remove Trusted Site | Add or remove a URL entry in the Intune Trusted Sites policy |
+| Add Primary Users Of Devices To Group (Scheduled) | Sync primary users of Intune managed devices by platform into an Entra ID group |
 | Add Security Group | Create a Microsoft Entra ID security group |
 | Add User | Create a new user account |
 | Add Viva Engange Community | Create a Viva Engage (Yammer) community |
@@ -361,6 +370,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Defender Indicator | Create a new Microsoft Defender for Endpoint indicator |
 | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account |
+| Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number |
 | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods |
 | List Expiring Role Assignments | List Azure AD role assignments expiring within a given number of days |
 | List Inactive Devices | List or export inactive devices with no recent logon or Intune sync |

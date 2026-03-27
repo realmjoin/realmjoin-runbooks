@@ -30,6 +30,7 @@
   - [Add Or Remove Safelinks Exclusion](general/add-or-remove-safelinks-exclusion.md)
   - [Add Or Remove Smartscreen Exclusion](general/add-or-remove-smartscreen-exclusion.md)
   - [Add Or Remove Trusted Site](general/add-or-remove-trusted-site.md)
+  - [Add Primary Users Of Devices To Group (Scheduled)](general/add-primary-users-of-devices-to-group_scheduled.md)
   - [Add Security Group](general/add-security-group.md)
   - [Add User](general/add-user.md)
   - [Add Viva Engange Community](general/add-viva-engange-community.md)
@@ -74,6 +75,7 @@
 ## Security
   - [Add Defender Indicator](security/add-defender-indicator.md)
   - [Backup Conditional Access Policies](security/backup-conditional-access-policies.md)
+  - [Find SMS Auth Phone Number](security/find-sms-auth-phone-number.md)
   - [List Admin Users](security/list-admin-users.md)
   - [List Expiring Role Assignments](security/list-expiring-role-assignments.md)
   - [List Inactive Devices](security/list-inactive-devices.md)

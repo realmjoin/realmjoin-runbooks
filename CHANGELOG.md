@@ -1,24 +1,71 @@
 # RealmJoin Runbooks Changelog
 
 ## 2026-03-27
+
 - Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/general section
-  - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis, helping to ensure that critical driver updates are approved in a timely manner for improved device performance and security.
+  - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis.
+
+## 2026-03-24
+
+- Fix pagination function and replace with simplified Get-GraphPagedResult function in multiple runbooks:
+  - **Report Application Registration** - Org/Applications
+  - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+  - **Notify Users About Stale Devices (Scheduled)** - Org/Devices
+  - **Report Devices Without Primary User** - Org/Devices
+  - **Report Stale Devices (Scheduled)** - Org/Devices
+  - **Report Users With More Than 5 Devices** - Org/Devices
+  - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+  - **Report Apple MDM Cert Expiry (Scheduled)** - Org/General
+  - **Report License Assignment (Scheduled)** - Org/General
+  - **Find SMS Auth Phone Number** - Org/Security
+  - **List Admin Users** - Org/Security
+  - **Monitor Pending EPM Requests (Scheduled)** - Org/Security
+  - **Report EPM Elevation Requests (Scheduled)** - Org/Security
+  - **Set Or Remove Mobile Phone MFA** - User/Security
+
+## 2026-03-20
+
+- Add **Find SMS Auth Phone Number** Runbook to Org/Security
+  - This runbook searches for which user has a specific phone number registered for SMS Sign-In or as a phone MFA method in Microsoft Entra ID. It helps administrators identify phone number ownership for troubleshooting "phoneNumberNotUnique" errors.
+- Update **Set or Remove Mobile Phone MFA** Runbook in User/Security
+  - Add detection and reporting for "phoneNumberNotUnique" errors when a phone number is already reserved for SMS Sign-In by another user
+  - Adapt to native GraphAPI Calls
 
 ## 2026-03-10
+
 - Add **Set Primary User** Runbook to device/general section
   - This runbook allows you to set or change the primary user of a device in Intune, which can be useful for ensuring accurate device management and reporting.
 - Add **Add Primary Users Of Devices to Group (Scheduled)** Runbook to group/general section
   - This runbook automatically adds the primary users of devices that meet specified criteria (e.g., platform, last activity date) to a designated group on a scheduled basis, helping to keep user groups up to date with device ownership.
 
+## 2026-03-06
+
+- Add **Check Device Compliance** Runbook to Org/Devices
+  - This runbook checks the compliance status of devices in Intune and can be used to identify the reason for this status.
+- Update **Export Enterprise Application Users** Runbook to Org/Applications
+  - Add generalized function for the export to Azure Storage Account.
+
 ## 2026-02-25
-- Update documentation for Notify Users About Stale Devices (Scheduled) Runbook
+
+- Update documentation for **Notify Users About Stale Devices (Scheduled)** Runbook
   - Added detailed instructions for email configuration and custom mail template usage in the runbook documentation to enhance clarity and usability for users setting up email notifications.
   - Added Mail Template Language Selection section (EN, DE, Custom)
-  - Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
-   - This runbook retrieves and displays the BitLocker recovery key for a specified device.
+- Add **Show Bitlocker Recovery Key** Runbook to Device/Security section
+  - This runbook retrieves and displays the BitLocker recovery key for a specified device.
+- Update **Assign OWA Mailbox Policy** Runbook to User/Mail section
+  - Added new OWA mailbox policies to the selection options, including "OwaMailboxPolicy-NoSignatures" for users who should not have email signatures in OWA, "BookingsCreators" for users who create Bookings appointments and need the corresponding add-in enabled and "GetCurrent" to assign the currently active policy for the user.
+- Update **Check Assignments Of Users** Runbook to Org/General section
+  - Added support for processing multiple users in a single run by multi user picker.
+  - Add required permissions for app assignment checks to the documentation.
+- Update **Check Assignments Of Groups** Runbook to Org/General section
+  - Added support for processing multiple groups in a single run by multi group picker.
 
 ## 2026-02-24
+
 - Update **Unenroll Updatable Assets** to **Unenroll Updatable Assets (Scheduled)** (in group/general)
+  - Add option to include user owned devices in the unenrollment process, which allows for a more comprehensive management of updatable assets by optionally targeting devices that are owned by users which are in membership of the specified group.
+- Update **List Admin Users** Runbook
+  - Add output of PIM role assignment status (permanent vs eligible) and expiration date to the runbook output and CSV export.
 
 ## 2026-02-20
 
@@ -28,7 +75,8 @@
 - Update **Export All Intune Devices** Runbook
   - Fix issue, regarding some properties if the device primary user data is missing or incomplete
   - Add filtering option to only include devices that are members of a specific group to avoid exporting all devices in large tenants and to focus on relevant devices.
-- Complete overhaul of the comment-based help in all runbooks to improve clarity, consistency and detail of the documentation, including:
+    - With group picker for easier selection of the group
+- Complete overhaul of the comment-based help in **all runbooks** to improve clarity, consistency and detail of the documentation, including:
   - More detailed descriptions of the runbooks' functionality and parameters
   - Clearer instructions for required permissions and setup steps
   - Improved formatting for better readability

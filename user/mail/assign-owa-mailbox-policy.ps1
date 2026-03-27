@@ -3,7 +3,8 @@
     Assign an OWA mailbox policy to a user
 
     .DESCRIPTION
-    Assigns an OWA mailbox policy to a mailbox in Exchange Online. This can be used to enable or restrict features such as Microsoft Bookings.
+    Assigns an OWA mailbox policy to a mailbox in Exchange Online.
+    This can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.
 
     .PARAMETER UserName
     User principal name of the target mailbox.
@@ -20,7 +21,9 @@
             "OwaPolicyName": {
                 "SelectSimple": {
                     "Default": "OwaMailboxPolicy-Default",
-                    "BookingsCreators": "BookingsCreators"
+                    "No signatures": "OwaMailboxPolicy-NoSignatures",
+                    "Bookings creators": "BookingsCreators",
+                    "Get current assignment": "GetCurrent"
                 }
             },
             "CallerName": {
@@ -39,35 +42,70 @@
 param (
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $true)][ValidateSet("OwaMailboxPolicy-Default", "OwaMailboxPolicy-NoSignatures", "BookingsCreators", "GetCurrent")]
     [string] $OwaPolicyName = "OwaMailboxPolicy-Default",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+############################################################
+#region Variables
+#
+############################################################
 
-$Version = "1.0.0"
+$Version = "1.1.0"
+
+#endregion Variables
+
+############################################################
+
+############################################################
+#region Main Logic
+#
+############################################################
+
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbExchangeOnline
 
 try {
-    $policy = Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop
+    $null = Get-Mailbox -Identity $UserName -ErrorAction Stop
 }
 catch {
-    "## Could not read OWA Policy '$OwaPolicyName'. Exiting."
+    "## Could not find/read '$UserName'. Exiting"
     ""
     throw $_
 }
 
+if ($OwaPolicyName -eq "GetCurrent") {
+    try {
+        $casMailbox = Get-CasMailbox -Identity $UserName -ErrorAction Stop
+    }
+    catch {
+        "## Could not read CAS mailbox settings for '$UserName'. Exiting"
+        ""
+        throw $_
+    }
+
+    $currentPolicy = $casMailbox.OwaMailboxPolicy
+    if ([string]::IsNullOrWhiteSpace($currentPolicy)) {
+        "## OWA Mailbox Policy for '$UserName' is not set."
+    }
+    else {
+        "## OWA Mailbox Policy for '$UserName' is '$currentPolicy'."
+    }
+
+    Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+    return
+}
 
 try {
-    $targetMBox = Get-Mailbox -Identity $UserName -ErrorAction Stop
+    $null = Get-OwaMailboxPolicy -Identity $OwaPolicyName -ErrorAction Stop
 }
 catch {
-    "## Could not find/read '$UserName'. Exiting"
+    "## Could not read OWA Policy '$OwaPolicyName'. Exiting."
     ""
     throw $_
 }
@@ -76,4 +114,8 @@ Set-CasMailbox -OwaMailboxPolicy $OwaPolicyName -Identity $UserName -ErrorAction
 "## OWA Mailbox Policy for '$UserName' set to '$OwaPolicyName'."
 
 Disconnect-ExchangeOnline -Confirm:$false | Out-Null
+
+#endregion Main Logic
+
+############################################################
 

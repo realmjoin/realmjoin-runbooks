@@ -6,7 +6,8 @@
             "AppRoleAssignments": [
                 "User.Read.All",
                 "Directory.Read.All",
-                "RoleManagement.Read.All"
+                "RoleManagement.Read.All",
+                "RoleAssignmentSchedule.Read.Directory"
             ]
         }
     ],
