@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-03-27
+- Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/general section
+  - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis, helping to ensure that critical driver updates are approved in a timely manner for improved device performance and security.
+
 ## 2026-03-10
 - Add **Set Primary User** Runbook to device/general section
   - This runbook allows you to set or change the primary user of a device in Intune, which can be useful for ensuring accurate device management and reporting.
