@@ -65,6 +65,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#org-devices)
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
+      - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
@@ -991,6 +992,30 @@ It can overwrite existing entries and optionally stores a description for the im
 
 #### Where to find
 Org \ Devices \ Add Device Via Corporate Identifier
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-auto-approve-driver-updates-(scheduled)'></a>
+
+### Auto Approve Driver Updates (Scheduled)
+#### Auto-approve new driver updates in Intune driver update policies
+
+#### Description
+This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+
+#### Where to find
+Org \ Devices \ Auto Approve Driver Updates_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
