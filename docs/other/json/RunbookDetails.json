@@ -4354,6 +4354,224 @@
     }
   },
   {
+    "RunbookDisplayName": "Auto Approve Driver Updates_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Auto Approve Driver Updates_Scheduled",
+    "RelativeRunbookPath": "org/devices/auto-approve-driver-updates_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Auto-approve new driver updates in Intune driver update policies",
+    "Description": "This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.",
+    "Notes": "Prerequisites:\n- Microsoft Graph BETA API access (driver update endpoints are in beta)\n- RJReport.EmailSender setting configured (if email notifications are used)\n\nCommon Use Cases:\n- Test filters first: Use WhatIf parameter to preview which drivers would be approved\n- Auto-approve all drivers: Run without any filter parameters\n- Approve specific manufacturers: Use DriverManufacturer to target vendors like \"Intel\" or \"AMD\"\n- Target specific policies: Use PolicyNames or PolicyIds to scope to test policies first\n- Monitor approvals: Configure EmailTo to receive detailed reports after each run\n\nParameter Interactions:\n- If no policy filter is specified, ALL driver update policies are processed\n- If no driver filter is specified, ALL pending drivers in selected policies are approved\n- PolicyNames and PolicyIds can be combined - both filters apply independently\n- Email notifications require RJReport.EmailSender setting and Connect-RjRbGraph\n- WhatIf mode simulates approvals without making changes - useful for testing filters",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system initiating the runbook. Used for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Filter by driver class IDs (comma-separated). Example: \"Bluetooth,Networking,Firmware\" for specific driver classes."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverClass",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverDisplayNamePattern",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverManufacturer",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for notifications. This parameter is backed by a setting and should not be modified directly."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Recipient email address for approval notifications. If not specified, no email is sent."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "0",
+        "description": [
+          {
+            "Text": "(Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaximumDriverAge",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), only drivers with status \"needsReview\" are approved. Drivers with status \"suspended\" or \"declined\" are skipped. Disable to also re-approve suspended or declined drivers."
+          }
+        ],
+        "globbing": "false",
+        "name": "OnlyNeedsReview",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., \"id1, id2, id3\"). If not specified, all policies are processed."
+          }
+        ],
+        "globbing": "false",
+        "name": "PolicyIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Comma-separated list of driver update policy names to scope the approval (e.g., \"Policy1, Policy2, Policy3\"). If not specified, all policies are processed."
+          }
+        ],
+        "globbing": "false",
+        "name": "PolicyNames",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "(Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIf",
+        "parameterValue": "SwitchParameter",
+        "pipelineInput": "false",
+        "position": "named",
+        "required": "false",
+        "type": {
+          "name": "SwitchParameter"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",
@@ -9628,7 +9846,7 @@
         "defaultValue": "30",
         "description": [
           {
-            "Text": "The warning threshold in days. Certificates and tokens expiring within this many days will be\nflagged as alerts in the report. Default is 300 days (approximately 10 months)."
+            "Text": "The warning threshold in days. Certificates and tokens expiring within this many days will be\nflagged as alerts in the report. Default is 30 days."
           }
         ],
         "globbing": "false",

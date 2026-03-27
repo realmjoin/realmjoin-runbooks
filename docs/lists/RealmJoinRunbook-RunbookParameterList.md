@@ -64,6 +64,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#organization-devices)
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
+    - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
@@ -741,6 +742,25 @@ Import a device into Intune via corporate identifier
 | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-devices-auto-approve-driver-updates-scheduled'></a>
+
+### Auto Approve Driver Updates (Scheduled)
+Auto-approve new driver updates in Intune driver update policies
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| PolicyNames |  | String | (Optional) Comma-separated list of driver update policy names to scope the approval (e.g., "Policy1, Policy2, Policy3"). If not specified, all policies are processed. |
+| PolicyIds |  | String | (Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., "id1, id2, id3"). If not specified, all policies are processed. |
+| DriverDisplayNamePattern |  | String | (Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved. |
+| DriverClass |  | String | (Optional) Filter by driver class IDs (comma-separated). Example: "Bluetooth,Networking,Firmware" for specific driver classes. |
+| DriverManufacturer |  | String | (Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved. |
+| MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
+| OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
+| WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+| EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
+| EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
+| CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
@@ -1298,7 +1318,7 @@ Monitor/Report expiry of Apple device management certificates
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 300 days (approximately 10 months). |
+| Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 30 days. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 

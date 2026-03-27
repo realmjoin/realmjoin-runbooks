@@ -186,6 +186,17 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DeviceDescripton |  | String | Optional description stored for the imported identity. |
 |  |  |  |  |  |  | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | PolicyNames |  | String | (Optional) Comma-separated list of driver update policy names to scope the approval (e.g., "Policy1, Policy2, Policy3"). If not specified, all policies are processed. |
+|  |  |  |  |  |  | PolicyIds |  | String | (Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., "id1, id2, id3"). If not specified, all policies are processed. |
+|  |  |  |  |  |  | DriverDisplayNamePattern |  | String | (Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved. |
+|  |  |  |  |  |  | DriverClass |  | String | (Optional) Filter by driver class IDs (comma-separated). Example: "Bluetooth,Networking,Firmware" for specific driver classes. |
+|  |  |  |  |  |  | DriverManufacturer |  | String | (Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved. |
+|  |  |  |  |  |  | MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
+|  |  |  |  |  |  | OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
+|  |  |  |  |  |  | WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
+|  |  |  |  |  |  | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
@@ -427,7 +438,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 300 days (approximately 10 months). |
+|  |  |  |  |  |  | Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 30 days. |
 |  |  |  |  |  |  | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
 |  |  | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send<br> |  | InputJson | ✓ | Object | JSON array containing SKU configurations with thresholds. Each entry should include a SKUPartNumber for the Microsoft SKU identifier, a FriendlyName as the display name for the license, an optional MinThreshold specifying the minimum number of licenses that should be available, and an optional MaxThreshold specifying the maximum number of licenses that should be available.<br><br>This needs to be configured in the runbook customization |
