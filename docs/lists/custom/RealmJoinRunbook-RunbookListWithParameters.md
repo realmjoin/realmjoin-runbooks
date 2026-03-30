@@ -785,8 +785,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Dismiss |  | Boolean | "Confirm compromise" (final value: $false) or "Dismiss risk" (final value: $true) can be selected as action to perform. If set to true, the runbook will attempt to dismiss the risky user entry for the target user. If set to false, it will attempt to confirm a compromise for the target user. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
-|  |  |  |  |  |  | LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. |
+|  |  |  |  |  |  | LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. Valid values are between 60 and 480 minutes (1-8 hours). |
 |  |  |  |  |  |  | OneTimeUseOnly |  | Boolean | If set to true, the pass can be used only once. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | If enabled, sends a notification email to the user's primary email address about the newly created TAP. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |
