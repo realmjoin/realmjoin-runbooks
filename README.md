@@ -1,20 +1,25 @@
 # RealmJoin runbook repository
+
 This repository contains all runbooks for the RealmJoin portal. The runbooks are organized into different folders based on their area of application.
 The following categories are currently available:
-- device
-- group
-- org
-- user
+
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory.
 <a name='runbook-overview'></a>
 # RealmJoin runbook overview
+
 In the following, each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality.
 Also the document for each runbook contains information about permissions, where to find, notes, and parameters and further information in general.
 
 
 ## Additional information
+
 Apart from the following runbook descriptions, further content such as runbook overview lists or permission summaries can be found here:
+
 - [General runbook information and setup guides](docs/general)
 - [List based content](docs/lists)
 - [JSON based content](docs/other/json)
@@ -30,11 +35,13 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [General](docs/device/README.md#device-general)
 
     - [Change Grouptag](docs/device/general/change-grouptag.md)
+    - [Check Device Compliance](docs/device/general/check-device-compliance.md)
     - [Check Updatable Assets](docs/device/general/check-updatable-assets.md)
     - [Enroll Updatable Assets](docs/device/general/enroll-updatable-assets.md)
     - [Outphase Device](docs/device/general/outphase-device.md)
     - [Remove Primary User](docs/device/general/remove-primary-user.md)
     - [Rename Device](docs/device/general/rename-device.md)
+    - [Set Primary User](docs/device/general/set-primary-user.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
   - [Security](docs/device/README.md#device-security)
@@ -82,6 +89,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
+    - [Auto Approve Driver Updates (Scheduled)](docs/org/devices/auto-approve-driver-updates_scheduled.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
@@ -99,6 +107,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Or Remove Safelinks Exclusion](docs/org/general/add-or-remove-safelinks-exclusion.md)
     - [Add Or Remove Smartscreen Exclusion](docs/org/general/add-or-remove-smartscreen-exclusion.md)
     - [Add Or Remove Trusted Site](docs/org/general/add-or-remove-trusted-site.md)
+    - [Add Primary Users Of Devices To Group (Scheduled)](docs/org/general/add-primary-users-of-devices-to-group_scheduled.md)
     - [Add Security Group](docs/org/general/add-security-group.md)
     - [Add User](docs/org/general/add-user.md)
     - [Add Viva Engange Community](docs/org/general/add-viva-engange-community.md)
@@ -125,6 +134,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report License Assignment (Scheduled)](docs/org/general/report-license-assignment_scheduled.md)
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
+    - [Sync Apple Tokens](docs/org/general/sync-apple-tokens.md)
   - [Mail](docs/org/README.md#org-mail)
 
     - [Add Distribution List](docs/org/mail/add-distribution-list.md)
@@ -143,6 +153,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Defender Indicator](docs/org/security/add-defender-indicator.md)
     - [Backup Conditional Access Policies](docs/org/security/backup-conditional-access-policies.md)
+    - [Find SMS Auth Phone Number](docs/org/security/find-sms-auth-phone-number.md)
     - [List Admin Users](docs/org/security/list-admin-users.md)
     - [List Expiring Role Assignments](docs/org/security/list-expiring-role-assignments.md)
     - [List Inactive Devices](docs/org/security/list-inactive-devices.md)

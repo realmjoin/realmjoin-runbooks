@@ -17,11 +17,13 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Toggle Drain Mode
   - [General](#device-general)
     - Change Grouptag
+    - Check Device Compliance
     - Check Updatable Assets
     - Enroll Updatable Assets
     - Outphase Device
     - Remove Primary User
     - Rename Device
+    - Set Primary User
     - Unenroll Updatable Assets
     - Wipe Device
   - [Security](#device-security)
@@ -62,6 +64,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#organization-devices)
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
+    - Auto Approve Driver Updates (Scheduled)
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
     - Notify Users About Stale Devices (Scheduled)
@@ -78,6 +81,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Or Remove Safelinks Exclusion
     - Add Or Remove Smartscreen Exclusion
     - Add Or Remove Trusted Site
+    - Add Primary Users Of Devices To Group (Scheduled)
     - Add Security Group
     - Add User
     - Add Viva Engange Community
@@ -104,6 +108,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report License Assignment (Scheduled)
     - Report PIM Activations (Scheduled)
     - Sync All Devices
+    - Sync Apple Tokens
   - [Mail](#organization-mail)
     - Add Distribution List
     - Add Equipment Mailbox
@@ -119,6 +124,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#organization-security)
     - Add Defender Indicator
     - Backup Conditional Access Policies
+    - Find SMS Auth Phone Number
     - List Admin Users
     - List Expiring Role Assignments
     - List Inactive Devices
@@ -193,11 +199,13 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+| Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
 | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
 | Outphase Device | Remove/Outphase a windows device |
 | Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
+| Set Primary User | Set a new primary user on a managed Intune device |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
 
@@ -282,6 +290,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
+| Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
@@ -304,6 +313,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Safelinks Exclusion | Add or remove a SafeLinks URL exclusion from a policy |
 | Add Or Remove Smartscreen Exclusion | Add or remove a SmartScreen URL indicator in Microsoft Defender |
 | Add Or Remove Trusted Site | Add or remove a URL entry in the Intune Trusted Sites policy |
+| Add Primary Users Of Devices To Group (Scheduled) | Sync primary users of Intune managed devices by platform into an Entra ID group |
 | Add Security Group | Create a Microsoft Entra ID security group |
 | Add User | Create a new user account |
 | Add Viva Engange Community | Create a Viva Engage (Yammer) community |
@@ -330,6 +340,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
+| Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
@@ -363,6 +374,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Defender Indicator | Create a new Microsoft Defender for Endpoint indicator |
 | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account |
+| Find SMS Auth Phone Number | Find the user associated with a specific SMS-based authentication phone number |
 | List Admin Users | List Entra ID role holders and optionally evaluate their MFA methods |
 | List Expiring Role Assignments | List Azure AD role assignments expiring within a given number of days |
 | List Inactive Devices | List or export inactive devices with no recent logon or Intune sync |

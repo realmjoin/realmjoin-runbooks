@@ -7,11 +7,17 @@
 
 	.PARAMETER IncludedScope
 	One or more root folders that contain runbooks, for example @('device','group','org','user'). Each scope is scanned recursively.
+
+	.PARAMETER ChangedFiles
+	Optional list of changed file paths to validate directly. In the GitHub workflow this is the preferred mode, because the list already represents the final PR delta. If provided, only affected runbook/permissions pairs are checked.
 #>
 
 param (
 	[Parameter(Mandatory = $true)]
-	[string[]]$IncludedScope
+	[string[]]$IncludedScope,
+
+	[Parameter(Mandatory = $false)]
+	[string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -74,21 +80,84 @@ function Get-RunbookFiles {
 	)
 }
 
-function Get-CompanionPermissionsCandidates {
+function Test-IsInIncludedScope {
 	<#
 		.SYNOPSIS
-		Builds the expected permissions JSON file paths for a runbook
+		Checks whether a relative path is within one of the included scopes
 	#>
 	param(
 		[Parameter(Mandatory = $true)]
-		[string]$RunbookPath
+		[string]$RelativePath,
+
+		[Parameter(Mandatory = $true)]
+		[string[]]$Scopes
 	)
 
-	$dir = Split-Path -Parent $RunbookPath
-	$base = [System.IO.Path]::GetFileNameWithoutExtension($RunbookPath)
+	$normalizedPath = ($RelativePath -replace '\\', '/').TrimStart('./')
+	foreach ($scope in $Scopes) {
+		$scopePrefix = (($scope ?? '').Trim() -replace '\\', '/').Trim('/')
+		if (-not $scopePrefix) {
+			continue
+		}
+
+		if ($normalizedPath.StartsWith("$scopePrefix/", [System.StringComparison]::OrdinalIgnoreCase)) {
+			return $true
+		}
+	}
+
+	return $false
+}
+
+function Get-RunbookBaseKeysFromChangedFiles {
+	<#
+		.SYNOPSIS
+		Builds unique runbook base keys from changed .ps1/.permissions.json paths
+	#>
+	param(
+		[Parameter(Mandatory = $true)]
+		[string[]]$Files,
+
+		[Parameter(Mandatory = $true)]
+		[string[]]$Scopes
+	)
+
+	$keys = @()
+	foreach ($file in $Files) {
+		$rel = ($file ?? '').Trim()
+		if (-not $rel) {
+			continue
+		}
+
+		$normalized = ($rel -replace '\\', '/').TrimStart('./')
+		if ($normalized.ToLowerInvariant().StartsWith('.github/') -or $normalized.ToLowerInvariant().StartsWith('docs/')) {
+			continue
+		}
+
+		if (-not (Test-IsInIncludedScope -RelativePath $normalized -Scopes $Scopes)) {
+			continue
+		}
+
+		$lower = $normalized.ToLowerInvariant()
+		if ($lower.EndsWith('.ps1')) {
+			$keys += $normalized.Substring(0, $normalized.Length - 4)
+			continue
+		}
+
+		if ($lower.EndsWith('.permissions.json')) {
+			$keys += $normalized.Substring(0, $normalized.Length - '.permissions.json'.Length)
+			continue
+		}
+
+		if ($lower.EndsWith('.permission.json')) {
+			$keys += $normalized.Substring(0, $normalized.Length - '.permission.json'.Length)
+			continue
+		}
+	}
+
 	return @(
-		(Join-Path $dir "$base.permissions.json"),
-		(Join-Path $dir "$base.permission.json")
+		$keys
+		| Where-Object { $_ }
+		| Sort-Object -Unique
 	)
 }
 
@@ -116,55 +185,118 @@ function Get-RelativePath {
 ############################################################
 
 try {
-	$runbooks = @(Get-RunbookFiles -Scopes $IncludedScope)
-	if ($runbooks.Count -eq 0) {
-		Write-Output "No runbooks (*.ps1) found in included scopes. Skipping permissions JSON validation."
-		exit 0
-	}
-
 	$missing = @()
 	$wrongName = @()
-	foreach ($rb in $runbooks) {
-		$rbRel = Get-RelativePath -Path $rb.FullName
+	$orphanPermissions = @()
+	$checkedCount = 0
 
-		$dirRel = (Split-Path -Parent $rbRel) -replace '\\', '/'
-		$base = [System.IO.Path]::GetFileNameWithoutExtension($rbRel)
-		$expectedPreferred = if ($dirRel) { "$dirRel/$base.permissions.json" } else { "$base.permissions.json" }
-		$expectedAlt = if ($dirRel) { "$dirRel/$base.permission.json" } else { "$base.permission.json" }
-
-		$preferredFull = Join-Path (Split-Path -Parent $rb.FullName) "$base.permissions.json"
-		$altFull = Join-Path (Split-Path -Parent $rb.FullName) "$base.permission.json"
-		$hasPreferred = Test-Path -LiteralPath $preferredFull
-		$hasAlt = Test-Path -LiteralPath $altFull
-
-		if ($hasPreferred) {
-			continue
+	if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
+		$baseKeys = @(Get-RunbookBaseKeysFromChangedFiles -Files $ChangedFiles -Scopes $IncludedScope)
+		if ($baseKeys.Count -eq 0) {
+			Write-Output "No changed runbook or permissions JSON files in included scopes. Skipping permissions JSON validation."
+			exit 0
 		}
 
-		if ($hasAlt) {
-			$msg = "Found '$expectedAlt' but expected '$expectedPreferred'. Rename the file to use the required '.permissions.json' suffix."
-			$wrongName += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg; File = $expectedAlt }
-			Write-Output "::group::Wrong permissions JSON filename: $rbRel"
+		foreach ($key in $baseKeys) {
+			$rbRel = "$key.ps1"
+			$expectedPreferred = "$key.permissions.json"
+			$expectedAlt = "$key.permission.json"
+
+			$rbFull = Join-Path (Get-Location).Path $rbRel
+			$preferredFull = Join-Path (Get-Location).Path $expectedPreferred
+			$altFull = Join-Path (Get-Location).Path $expectedAlt
+
+			$hasRunbook = Test-Path -LiteralPath $rbFull
+			$hasPreferred = Test-Path -LiteralPath $preferredFull
+			$hasAlt = Test-Path -LiteralPath $altFull
+			$checkedCount++
+
+			if ($hasRunbook -and $hasPreferred) {
+				continue
+			}
+
+			if ($hasRunbook -and $hasAlt -and -not $hasPreferred) {
+				$msg = "Found '$expectedAlt' but expected '$expectedPreferred'. Rename the file to use the required '.permissions.json' suffix."
+				$wrongName += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg; File = $expectedAlt }
+				Write-Output "::group::Wrong permissions JSON filename: $rbRel"
+				Write-Output "FAILED: $rbRel"
+				Write-GitHubError -Message $msg -FilePath $expectedAlt
+				Write-Output "::endgroup::"
+				continue
+			}
+
+			if ($hasRunbook -and -not $hasPreferred -and -not $hasAlt) {
+				$msg = "Missing companion permissions JSON. Expected '$expectedPreferred'."
+				$missing += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg }
+				Write-Output "::group::Missing permissions JSON: $rbRel"
+				Write-Output "FAILED: $rbRel"
+				Write-GitHubError -Message $msg -FilePath $rbRel
+				Write-Output "::endgroup::"
+				continue
+			}
+
+			if ((-not $hasRunbook) -and ($hasPreferred -or $hasAlt)) {
+				$existingJson = if ($hasPreferred) { $expectedPreferred } else { $expectedAlt }
+				$msg = "Permissions JSON '$existingJson' exists but companion runbook '$rbRel' is missing. Remove the JSON or restore the runbook."
+				$orphanPermissions += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg; File = $existingJson }
+				Write-Output "::group::Orphan permissions JSON: $existingJson"
+				Write-Output "FAILED: $existingJson"
+				Write-GitHubError -Message $msg -FilePath $existingJson
+				Write-Output "::endgroup::"
+			}
+		}
+	}
+	else {
+		$runbooks = @(Get-RunbookFiles -Scopes $IncludedScope)
+		if ($runbooks.Count -eq 0) {
+			Write-Output "No runbooks (*.ps1) found in included scopes. Skipping permissions JSON validation."
+			exit 0
+		}
+
+		$checkedCount = $runbooks.Count
+		foreach ($rb in $runbooks) {
+			$rbRel = Get-RelativePath -Path $rb.FullName
+
+			$dirRel = (Split-Path -Parent $rbRel) -replace '\\', '/'
+			$base = [System.IO.Path]::GetFileNameWithoutExtension($rbRel)
+			$expectedPreferred = if ($dirRel) { "$dirRel/$base.permissions.json" } else { "$base.permissions.json" }
+			$expectedAlt = if ($dirRel) { "$dirRel/$base.permission.json" } else { "$base.permission.json" }
+
+			$preferredFull = Join-Path (Split-Path -Parent $rb.FullName) "$base.permissions.json"
+			$altFull = Join-Path (Split-Path -Parent $rb.FullName) "$base.permission.json"
+			$hasPreferred = Test-Path -LiteralPath $preferredFull
+			$hasAlt = Test-Path -LiteralPath $altFull
+
+			if ($hasPreferred) {
+				continue
+			}
+
+			if ($hasAlt) {
+				$msg = "Found '$expectedAlt' but expected '$expectedPreferred'. Rename the file to use the required '.permissions.json' suffix."
+				$wrongName += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg; File = $expectedAlt }
+				Write-Output "::group::Wrong permissions JSON filename: $rbRel"
+				Write-Output "FAILED: $rbRel"
+				Write-GitHubError -Message $msg -FilePath $expectedAlt
+				Write-Output "::endgroup::"
+				continue
+			}
+
+			$msg = "Missing companion permissions JSON. Expected '$expectedPreferred'."
+			$missing += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg }
+			Write-Output "::group::Missing permissions JSON: $rbRel"
 			Write-Output "FAILED: $rbRel"
-			Write-GitHubError -Message $msg -FilePath $expectedAlt
+			Write-GitHubError -Message $msg -FilePath $rbRel
 			Write-Output "::endgroup::"
-			continue
 		}
-
-		$msg = "Missing companion permissions JSON. Expected '$expectedPreferred'."
-		$missing += [PSCustomObject]@{ Runbook = $rbRel; Message = $msg }
-		Write-Output "::group::Missing permissions JSON: $rbRel"
-		Write-Output "FAILED: $rbRel"
-		Write-GitHubError -Message $msg -FilePath $rbRel
-		Write-Output "::endgroup::"
 	}
 
 	Write-Output ""
 	Write-Output "Permissions JSON validation summary"
 	Write-Output "----------------------------------"
-	Write-Output ("Total runbooks scanned: {0}" -f $runbooks.Count)
+	Write-Output ("Total runbooks scanned: {0}" -f $checkedCount)
 	Write-Output ("Missing permissions JSON: {0}" -f $missing.Count)
 	Write-Output ("Wrong permissions JSON filename: {0}" -f $wrongName.Count)
+	Write-Output ("Permissions JSON without runbook: {0}" -f $orphanPermissions.Count)
 
 	if ($missing.Count -gt 0) {
 		Write-Output ""
@@ -190,9 +322,21 @@ try {
 		}
 	}
 
-	if (($missing.Count -gt 0) -or ($wrongName.Count -gt 0)) {
+	if ($orphanPermissions.Count -gt 0) {
 		Write-Output ""
-		Write-Output ("Permissions JSON validation failed for {0} runbook(s)." -f ($missing.Count + $wrongName.Count))
+		Write-Output "Permissions JSON without runbook (details)"
+		Write-Output "------------------------------------------"
+		foreach ($o in $orphanPermissions) {
+			Write-Output ""
+			Write-Output $o.File
+			Write-Output ("-" * [Math]::Min(120, [Math]::Max(3, $o.File.Length)))
+			Write-Output ("  " + $o.Message)
+		}
+	}
+
+	if (($missing.Count -gt 0) -or ($wrongName.Count -gt 0) -or ($orphanPermissions.Count -gt 0)) {
+		Write-Output ""
+		Write-Output ("Permissions JSON validation failed for {0} runbook(s)." -f ($missing.Count + $wrongName.Count + $orphanPermissions.Count))
 		exit 1
 	}
 

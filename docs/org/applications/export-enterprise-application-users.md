@@ -56,23 +56,14 @@ Storage account name used for the upload.
 | Required | false |
 | Type | String |
 
-### StorageAccountLocation
-Azure region for the storage account, used when the account needs to be created.
+### LinkExpiryDays
+Number of days until the generated download link expires.
 
 | Property | Value |
 |----------|-------|
-| Default Value |  |
+| Default Value | 6 |
 | Required | false |
-| Type | String |
-
-### StorageAccountSku
-Storage account SKU, used when the account needs to be created.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

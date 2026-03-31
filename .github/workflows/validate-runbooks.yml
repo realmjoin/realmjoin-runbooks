@@ -7,6 +7,7 @@ on:
       - '**/*.ps1'
       - '**/*.permissions.json'
       - '**/*.permission.json'
+      - 'CHANGELOG.md'
 
 jobs:
   validate-runbooks:
@@ -14,31 +15,118 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout validator (master)
-        uses: actions/checkout@v6
-        with:
-          ref: master
-          fetch-depth: 1
-          path: validator
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            .github/scripts/Validate-Runbooks.ps1
-            .github/scripts/Validate-PermissionsJson.ps1
-
       - name: 📥 Checkout PR (head)
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-          path: repo
+
+      - name: 📄 Collect changed PR files
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.event.pull_request.head.sha }}"
+          base_ref="${{ github.event.pull_request.base.ref }}"
+          changed_diff_mode="merge-base-two-dot"
+          added_diff_mode="merge-base-two-dot"
+          range_start=""
+
+          # Refresh the target branch ref so we can diff from the real merge base.
+          git fetch --no-tags --prune origin "$base_ref:refs/remotes/origin/$base_ref"
+
+          if ! range_start=$(git merge-base "origin/$base_ref" "$head_sha" 2>/dev/null); then
+            echo "No merge base found between 'origin/$base_ref' and '$head_sha'. Falling back to base SHA diff."
+            changed_diff_mode="base-sha-two-dot-fallback"
+            added_diff_mode="base-sha-two-dot-fallback"
+            range_start="$base_sha"
+          fi
+
+          changed_files=$(git diff --name-only --diff-filter=AMDR "$range_start" "$head_sha")
+          added_files=$(git diff --name-only --diff-filter=A "$range_start" "$head_sha")
+
+          changed_count=$(printf '%s\n' "$changed_files" | sed '/^$/d' | wc -l | tr -d ' ')
+          added_count=$(printf '%s\n' "$added_files" | sed '/^$/d' | wc -l | tr -d ' ')
+
+          echo "::group::Diff collection debug"
+          echo "Base SHA: $base_sha"
+          echo "Head SHA: $head_sha"
+          echo "Base ref: $base_ref"
+          echo "Range start: $range_start"
+          echo "Changed diff mode: $changed_diff_mode"
+          echo "Added diff mode: $added_diff_mode"
+          echo "Changed files count: $changed_count"
+          echo "Added files count: $added_count"
+          echo "Changed files:"
+          if [ -n "$changed_files" ]; then
+            printf '%s\n' "$changed_files"
+          else
+            echo "(none)"
+          fi
+          echo "Added files:"
+          if [ -n "$added_files" ]; then
+            printf '%s\n' "$added_files"
+          else
+            echo "(none)"
+          fi
+          echo "::endgroup::"
+
+          {
+            echo "changed<<EOF"
+            printf '%s\n' "$changed_files"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 📝 Enforce CHANGELOG for ps1 changes
+        id: changelog
+        shell: pwsh
+        run: |
+          $changedRaw = @'
+          ${{ steps.changes.outputs.changed }}
+          '@
+          $changedFiles = @(
+            $changedRaw -split "`r?`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ }
+          )
+
+          $ps1Changed = @(
+            $changedFiles |
+            Where-Object { $_ -match '\.ps1$' }
+          )
+
+          if ($ps1Changed.Count -eq 0) {
+            Write-Output "No .ps1 changes detected. CHANGELOG check skipped."
+            exit 0
+          }
+
+          $hasChangelog = $changedFiles -contains 'CHANGELOG.md'
+          if (-not $hasChangelog) {
+            $msg = "CHANGELOG.md must be updated whenever .ps1 files are added, modified, or removed."
+            Write-Output "::error file=CHANGELOG.md,title=Missing changelog update::$msg"
+            Write-Error -Message $msg -ErrorAction Stop
+          }
+
+          Write-Output "CHANGELOG.md update detected for .ps1 changes."
 
       - name: 🔒 Validate permissions JSON
         id: permissions
         shell: pwsh
-        working-directory: repo
         run: |
-          . ../validator/.github/scripts/Validate-PermissionsJson.ps1 `
-              -IncludedScope @("device", "group", "org", "user")
+          $changedRaw = @'
+          ${{ steps.changes.outputs.changed }}
+          '@
+          $changedFiles = @(
+            $changedRaw -split "`r?`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ }
+          )
+
+          . ./.github/scripts/Validate-PermissionsJson.ps1 `
+              -IncludedScope @("device", "group", "org", "user") `
+              -ChangedFiles $changedFiles
           "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
           exit 0
 
@@ -46,11 +134,18 @@ jobs:
         id: runbooks
         if: always()
         shell: pwsh
-        working-directory: repo
         run: |
-          . ../validator/.github/scripts/Validate-Runbooks.ps1 `
-              -BaseRef "${{ github.event.pull_request.base.sha }}" `
-              -HeadRef "${{ github.event.pull_request.head.sha }}"
+          $changedRaw = @'
+          ${{ steps.changes.outputs.changed }}
+          '@
+          $changedFiles = @(
+            $changedRaw -split "`r?`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ }
+          )
+
+          . ./.github/scripts/Validate-Runbooks.ps1 `
+              -ChangedFiles $changedFiles
           "exitCode=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
           exit 0
 

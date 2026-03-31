@@ -1,5 +1,59 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-03-27
+
+- Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/devices section
+  - This runbook automatically approves pending driver updates in Intune based on specified criteria (e.g., device category, driver update class) on a scheduled basis.
+- Add **Sync Apple Tokens** Runbook to org/general section
+  - This runbook synchronizes Apple MDM push notification tokens between Intune and Apple Push Notification Service (APNS) to ensure that devices receive timely updates and notifications.
+- Update **Create Temporary Access Pass** Runbook in user/security section
+  - Add parameter validation for the duration of the temporary access pass to ensure it falls within acceptable limits
+  - Add support for user notification via email when a temporary access pass is created
+    - Could be enabled via Runbook Customization parameters
+    - Based on usage location of the user, the email will be sent in German if the usage location is Germany, otherwise in English
+- Update **Update Application Registration** Runbook in org/applications section
+  - Add output of the updated redirect URI list for better visibility of the changes made by the runbook
+
+## 2026-03-24
+
+- Fix pagination function and replace with simplified Get-GraphPagedResult function in multiple runbooks:
+  - **Report Application Registration** - Org/Applications
+  - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+  - **Notify Users About Stale Devices (Scheduled)** - Org/Devices
+  - **Report Devices Without Primary User** - Org/Devices
+  - **Report Stale Devices (Scheduled)** - Org/Devices
+  - **Report Users With More Than 5 Devices** - Org/Devices
+  - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+  - **Report Apple MDM Cert Expiry (Scheduled)** - Org/General
+  - **Report License Assignment (Scheduled)** - Org/General
+  - **Find SMS Auth Phone Number** - Org/Security
+  - **List Admin Users** - Org/Security
+  - **Monitor Pending EPM Requests (Scheduled)** - Org/Security
+  - **Report EPM Elevation Requests (Scheduled)** - Org/Security
+  - **Set Or Remove Mobile Phone MFA** - User/Security
+
+## 2026-03-20
+
+- Add **Find SMS Auth Phone Number** Runbook to Org/Security
+  - This runbook searches for which user has a specific phone number registered for SMS Sign-In or as a phone MFA method in Microsoft Entra ID. It helps administrators identify phone number ownership for troubleshooting "phoneNumberNotUnique" errors.
+- Update **Set or Remove Mobile Phone MFA** Runbook in User/Security
+  - Add detection and reporting for "phoneNumberNotUnique" errors when a phone number is already reserved for SMS Sign-In by another user
+  - Adapt to native GraphAPI Calls
+
+## 2026-03-10
+
+- Add **Set Primary User** Runbook to device/general section
+  - This runbook allows you to set or change the primary user of a device in Intune, which can be useful for ensuring accurate device management and reporting.
+- Add **Add Primary Users Of Devices to Group (Scheduled)** Runbook to group/general section
+  - This runbook automatically adds the primary users of devices that meet specified criteria (e.g., platform, last activity date) to a designated group on a scheduled basis, helping to keep user groups up to date with device ownership.
+
+## 2026-03-06
+
+- Add **Check Device Compliance** Runbook to Org/Devices
+  - This runbook checks the compliance status of devices in Intune and can be used to identify the reason for this status.
+- Update **Export Enterprise Application Users** Runbook to Org/Applications
+  - Add generalized function for the export to Azure Storage Account.
+
 ## 2026-02-25
 
 - Update documentation for **Notify Users About Stale Devices (Scheduled)** Runbook

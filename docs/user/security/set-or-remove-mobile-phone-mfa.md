@@ -3,7 +3,7 @@
 Set or remove a user's mobile phone MFA method
 
 ## Detailed description
-Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number.
+Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the "phoneNumberNotUnique" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.
 
 ## Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa
@@ -11,6 +11,8 @@ User \ Security \ Set Or Remove Mobile Phone Mfa
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - AuditLog.Read.All
+  - User.Read.All
   - UserAuthenticationMethod.ReadWrite.All
 
 

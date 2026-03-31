@@ -258,26 +258,44 @@ param(
     [string] $CallerName
 )
 
+############################################################
+#region     RJ Log Part
+#
+############################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-Connect-RjRbGraph
+$Version = "1.1.0"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Check if the application exists
-$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "appId eq '$ClientId'" -ErrorAction SilentlyContinue
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "ClientId: $ClientId" -Verbose
+Write-RjRbLog -Message "RedirectURI: $RedirectURI" -Verbose
+Write-RjRbLog -Message "webRedirectURI: $webRedirectURI" -Verbose
+Write-RjRbLog -Message "publicClientRedirectURI: $publicClientRedirectURI" -Verbose
+Write-RjRbLog -Message "spaRedirectURI: $spaRedirectURI" -Verbose
+Write-RjRbLog -Message "EnableSAML: $EnableSAML" -Verbose
+Write-RjRbLog -Message "SAMLReplyURL: $SAMLReplyURL" -Verbose
+Write-RjRbLog -Message "SAMLSignOnURL: $SAMLSignOnURL" -Verbose
+Write-RjRbLog -Message "SAMLLogoutURL: $SAMLLogoutURL" -Verbose
+Write-RjRbLog -Message "SAMLIdentifier: $SAMLIdentifier" -Verbose
+Write-RjRbLog -Message "SAMLRelayState: $SAMLRelayState" -Verbose
+Write-RjRbLog -Message "SAMLExpiryNotificationEmail: $SAMLExpiryNotificationEmail" -Verbose
+Write-RjRbLog -Message "isApplicationVisible: $isApplicationVisible" -Verbose
+Write-RjRbLog -Message "UserAssignmentRequired: $UserAssignmentRequired" -Verbose
+Write-RjRbLog -Message "groupAssignmentPrefix: $groupAssignmentPrefix" -Verbose
+Write-RjRbLog -Message "implicitGrantAccessTokens: $implicitGrantAccessTokens" -Verbose
+Write-RjRbLog -Message "implicitGrantIDTokens: $implicitGrantIDTokens" -Verbose
+Write-RjRbLog -Message "disableImplicitGrant: $disableImplicitGrant" -Verbose
 
-if (-not $existingApp) {
-    "## Application with '$ClientId' does not exists."
-    throw "Application with '$ClientId' does not exists. Stopping."
-}
+#endregion RJ Log Part
 
-# Check if the service principal exists
-$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -ErrorAction SilentlyContinue
+############################################################
+#region     Parameter Validation
+#
+############################################################
 
-if (-not $existingSvcPrincipal) {
-    "## Service Principal for ClientId '$ClientId' does not exists."
-    throw "Service Principal for ClientId '$ClientId' does not exists. Stopping."
-}
-
+# Parse semicolon-separated redirect URIs into arrays
 $webRedirectURIs = @()
 if ($webRedirectURI) {
     $webRedirectURIs += $webRedirectURI.Split(";").Trim()
@@ -324,228 +342,305 @@ if ($SAMLIdentifier) {
     $SAMLIdentifier = $SAMLIdentifier.trim().trimend('/')
 }
 
-# Make sure early that SAML is enabled on the service principal, if required.
-if ($EnableSAML) {
-    if ($existingSvcPrincipal.preferredSingleSignOnMode -ne "saml") {
-        $body = @{}
+#endregion Parameter Validation
 
-        "## Updating preferredSingleSignOnMode to 'saml'"
-        $body["preferredSingleSignOnMode"] = "saml"
+############################################################
+#region     Connect Part
+#
+############################################################
 
-        Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
-        "## Waiting 20 seconds for changes to propagate to the application"
-    }
+Connect-RjRbGraph
+
+#endregion Connect Part
+
+############################################################
+#region     StatusQuo & Preflight-Check Part
+#
+############################################################
+
+# Check if the application exists
+$existingApp = Invoke-RjRbRestMethodGraph -Method GET -Resource "/applications" -OdFilter "appId eq '$ClientId'" -ErrorAction SilentlyContinue
+
+if (-not $existingApp) {
+    "## Application with '$ClientId' does not exist."
+    throw "Application with '$ClientId' does not exist. Stopping."
 }
 
-$body = @{}
-$web = @{}
+# Check if the service principal exists
+$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -ErrorAction SilentlyContinue
 
-# Set the redirect URIs if Web redirect URIs are specified
-$redirects = @()
-if ($webRedirectURIs.count -gt 0) {
-    $redirects = @($webRedirectURIs)
-    if ($EnableSAML -and $SAMLReplyURL -and ($redirects -notcontains $SAMLReplyURL)) {
-        $redirects += $SAMLReplyURL
-    }
-    $web["redirectUris"] = $redirects
+if (-not $existingSvcPrincipal) {
+    "## Service Principal for ClientId '$ClientId' does not exist."
+    throw "Service Principal for ClientId '$ClientId' does not exist. Stopping."
 }
 
-if ($disableImplicitGrant) {
-    $web["implicitGrantSettings"] = @{
-        "enableAccessTokenIssuance" = $false
-        "enableIdTokenIssuance"     = $false
-    }
-}
-else {
-    $web["implicitGrantSettings"] = @{
-        "enableAccessTokenIssuance" = $existingApp.web.implicitGrantSettings.enableAccessTokenIssuance -or $implicitGrantAccessTokens
-        "enableIdTokenIssuance"     = $existingApp.web.implicitGrantSettings.enableIdTokenIssuance -or $implicitGrantIDTokens
-    }
-}
+#endregion StatusQuo & Preflight-Check Part
 
-if ($spaRedirectURI) {
-    "## Updating spa redirect URIs"
-    $body["spa"] = @{
-        "redirectUris" = $spaRedirectURis
-    }
-}
+############################################################
+#region     Main Part
+#
+############################################################
 
-if ($publicClientRedirectURI) {
-    "## Updating Public Client redirect URIs"
-    $body["publicClient"] = @{
-        "redirectUris" = $publicClientRedirectURIs
-    }
-}
+    #region SAML Pre-Configuration
+    ##############################
 
-$body["tags"] = [array]($existingApp.tags)
+    # Make sure early that SAML is enabled on the service principal, if required.
+    if ($EnableSAML) {
+        if ($existingSvcPrincipal.preferredSingleSignOnMode -ne "saml") {
+            $body = @{}
 
-if ($EnableSAML) {
-    if ($existingApp.signInAudience -ne "AzureADMyOrg") {
-        "## Updating signInAudience to 'AzureADMyOrg'"
-        $body["signInAudience"] = "AzureADMyOrg"
-    }
-    if ($body["tags"] -notcontains "WindowsAzureActiveDirectoryCustomSingleSignOnApplication") {
-        "## Updating tags to include 'WindowsAzureActiveDirectoryCustomSingleSignOnApplication'"
-        $body["tags"] = [array]($body["tags"] + "WindowsAzureActiveDirectoryCustomSingleSignOnApplication")
-    }
-    if ($SAMLLogoutURL) {
-        $web["logoutUrl"] = $SAMLLogoutURL
-    }
-    if ($SAMLIdentifier) {
-        "## Updating identifierUris to '$SAMLIdentifier'"
-        $body["identifierUris"] = @($SAMLIdentifier)
-    }
-}
+            "## Updating preferredSingleSignOnMode to 'saml'"
+            $body["preferredSingleSignOnMode"] = "saml"
 
-# Check if the application is visible
-if ($isApplicationVisible -and ($body["tags"] -contains "HideApp")) {
-    "## Making the application visible"
-    $body["tags"] = [array]($body["tags"] -ne "HideApp")
-}
-if (-not $isApplicationVisible -and ($body["tags"] -notcontains "HideApp")) {
-    "## Hiding the application"
-    $body["tags"] = [array]($body["tags"] + @("HideApp"))
-}
-
-if ($web.count -gt 0) {
-    $body["web"] = $web
-}
-
-if ($body.count -gt 0) {
-
-    Invoke-RjRbRestMethodGraph -Resource "/applications/$($existingApp.id)" -Method PATCH -Body $body | Out-Null
-    "## Application updated."
-    "## Waiting 20 seconds for changes to propagate to the service principal"
-    Start-Sleep -Seconds 20
-}
-
-$body = @{}
-
-# Check if SAML Settings are correct for the service principal
-if ($EnableSAML) {
-    $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method GET
-    if ($SAMLReplyURL) {
-        if ($resultSvcPrincipal.replyUrls -notcontains $SAMLReplyURL) {
-            "## Updating SAML Reply URL to '$SAMLReplyURL'"
-            $body["replyUrls"] = @($SAMLReplyURL)
+            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+            "## Waiting 20 seconds for changes to propagate to the application"
         }
     }
-    if ($SAMLRelayState -and ($resultSvcPrincipal.samlSingleSignOnSettings.relayState -ne $SAMLRelayState)) {
-        "## Updating SAML Relay State to '$SAMLRelayState'"
-        $body["samlSingleSignOnSettings"] = @{
-            "relayState" = $SAMLRelayState
+
+    #endregion SAML Pre-Configuration
+
+    #region Application Update
+    ##############################
+
+    $body = @{}
+    $web = @{}
+
+    # Set the redirect URIs if Web redirect URIs are specified
+    $redirects = @()
+    if ($webRedirectURIs.count -gt 0) {
+        $redirects = @($webRedirectURIs)
+        if ($EnableSAML -and $SAMLReplyURL -and ($redirects -notcontains $SAMLReplyURL)) {
+            $redirects += $SAMLReplyURL
         }
-    }
-    if ($SAMLSignOnURL -and ($resultSvcPrincipal.loginUrl -ne $SAMLSignOnURL)) {
-        "## Updating SAML Sign On URL to '$SAMLSignOnURL'"
-        $body["loginUrl"] = $SAMLSignOnURL
-    }
-    if ($SAMLIdentifier -and ($resultSvcPrincipal.servicePrincipalNames -notcontains $SAMLIdentifier)) {
-        "## Updating ServicePrincipalNames to include SAML Identifier '$SAMLIdentifier'"
-        $body["servicePrincipalNames"] = @(
-            $SAMLIdentifier,
-            $ClientId
-        )
-    }
-    if ($SAMLExpiryNotificationEmail -and ($resultSvcPrincipal.notificationEmailAddresses -notcontains $SAMLExpiryNotificationEmail)) {
-        "## Updating Notification Email to '$SAMLExpiryNotificationEmail'"
-        $body["notificationEmailAddresses"] = @($SAMLExpiryNotificationEmail)
+        "## Updating Web redirect URIs"
+        foreach ($uri in $redirects) {
+            "  - $uri"
+        }
+        $web["redirectUris"] = $redirects
     }
 
-    Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
-    "## Service Principal updated."
-    "## Waiting 20 seconds for changes to propagate."
-    Start-Sleep -Seconds 20
-}
-
-if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
-    if ($UserAssignmentRequired) {
-        # Check if the user assignment is required
-        $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method GET
-        if ($resultSvcPrincipal.appRoleAssignmentRequired -ne $true) {
-            "## Updating appRoleAssignmentRequired to '$true'"
-            $body = @{
-                "appRoleAssignmentRequired" = $true
-            }
-
-            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
-
-            $appRoleAssignments = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method GET -ErrorAction SilentlyContinue
-            if (-not $appRoleAssignments) {
-                $ApplicationName = $existingApp.displayName
-                $ApplicationFullName = $ApplicationName
-
-                [string]$shortAppName = $ApplicationFullName -replace " \| ", "-" -replace "\|", "-" # -replace " ", "-" -replace "[()]", ""
-
-                [string]$mailnickname = $ApplicationName -replace " \| ", "-" -replace "\|", "-" -replace " ", "-" -replace "[()]", ""
-                if ($mailnickname.Length -gt 25) {
-                    $mailnickname = $mailnickname.Substring(0, 24)
-                }
-
-                # Create a valid mailNickname by removing invalid characters (spaces, special chars)
-                $groupMailNickname = ($groupAssignmentPrefix + $mailnickname) -replace "[^a-zA-Z0-9\-]", "" -replace "^-+", "" -replace "-+$", ""
-                # Ensure mailNickname doesn't exceed 64 characters and doesn't start/end with dash
-                if ($groupMailNickname.Length -gt 64) {
-                    $groupMailNickname = $groupMailNickname.Substring(0, 63)
-                }
-                # Remove trailing dashes if any
-                $groupMailNickname = $groupMailNickname -replace "-+$", ""
-
-                $groupBody = @{
-                    "displayName"     = "$groupAssignmentPrefix$shortAppName"
-                    "description"     = "Users of $ApplicationFullName"
-                    "mailEnabled"     = $false
-                    "mailNickname"    = $groupMailNickname
-                    "securityEnabled" = $true
-                }
-                $resultGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -Method POST -Body $groupBody
-                "## Group '$($resultGroup.displayName)' created, id: $($resultGroup.id)"
-
-                # Add the group to the application
-                $groupAppRoleBody = @{
-                    "appRoleId"   = "00000000-0000-0000-0000-000000000000"
-                    "principalId" = $resultGroup.id
-                    "resourceId"  = $resultSvcPrincipal.id
-                }
-                $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody
-                "## Group '$($resultGroup.displayName)' added to application '$ApplicationFullName'"
-            }
+    if ($disableImplicitGrant) {
+        $web["implicitGrantSettings"] = @{
+            "enableAccessTokenIssuance" = $false
+            "enableIdTokenIssuance"     = $false
         }
     }
     else {
-        # If $UserAssignmentRequired=false
-        $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method GET
-        if ($resultSvcPrincipal.appRoleAssignmentRequired -ne $false) {
-            "## Updating appRoleAssignmentRequired to '$false'"
-            $body = @{
-                "appRoleAssignmentRequired" = $false
-            }
-
-            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
-            "## Waiting 20 seconds for changes to propagate."
-            Start-Sleep -Seconds 20
+        $web["implicitGrantSettings"] = @{
+            "enableAccessTokenIssuance" = $existingApp.web.implicitGrantSettings.enableAccessTokenIssuance -or $implicitGrantAccessTokens
+            "enableIdTokenIssuance"     = $existingApp.web.implicitGrantSettings.enableIdTokenIssuance -or $implicitGrantIDTokens
         }
     }
-}
 
-# refresh the service principal
-$existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -ErrorAction Stop
+    if ($spaRedirectURI) {
+        "## Updating SPA redirect URIs"
+        foreach ($uri in $spaRedirectURIs) {
+            "  - $uri"
+        }
+        $body["spa"] = @{
+            "redirectUris" = $spaRedirectURIs
+        }
+    }
 
-# Check if the application is visible
-$body = @{}
-if ($isApplicationVisible -and ($existingSvcPrincipal.tags -contains "HideApp")) {
-    "## Making the application visible"
-    $body["tags"] = [array]($existingSvcPrincipal.tags -ne "HideApp")
-}
-if (-not $isApplicationVisible -and ($existingSvcPrincipal.tags -notcontains "HideApp")) {
-    "## Hiding the application"
-    $body["tags"] = [array]($existingSvcPrincipal.tags + @("HideApp"))
-}
-if ($body.count -gt 0) {
+    if ($publicClientRedirectURI) {
+        "## Updating Public Client redirect URIs"
+        foreach ($uri in $publicClientRedirectURIs) {
+            "  - $uri"
+        }
+        $body["publicClient"] = @{
+            "redirectUris" = $publicClientRedirectURIs
+        }
+    }
 
-    Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
-    "## Service Principal updated."
-    "## Waiting 20 seconds for changes to propagate."
-    Start-Sleep -Seconds 20
-}
+    $body["tags"] = [array]($existingApp.tags)
+
+    if ($EnableSAML) {
+        if ($existingApp.signInAudience -ne "AzureADMyOrg") {
+            "## Updating signInAudience to 'AzureADMyOrg'"
+            $body["signInAudience"] = "AzureADMyOrg"
+        }
+        if ($body["tags"] -notcontains "WindowsAzureActiveDirectoryCustomSingleSignOnApplication") {
+            "## Updating tags to include 'WindowsAzureActiveDirectoryCustomSingleSignOnApplication'"
+            $body["tags"] = [array]($body["tags"] + "WindowsAzureActiveDirectoryCustomSingleSignOnApplication")
+        }
+        if ($SAMLLogoutURL) {
+            $web["logoutUrl"] = $SAMLLogoutURL
+        }
+        if ($SAMLIdentifier) {
+            "## Updating identifierUris to '$SAMLIdentifier'"
+            $body["identifierUris"] = @($SAMLIdentifier)
+        }
+    }
+
+    # Check if the application is visible
+    if ($isApplicationVisible -and ($body["tags"] -contains "HideApp")) {
+        "## Making the application visible"
+        $body["tags"] = [array]($body["tags"] -ne "HideApp")
+    }
+    if (-not $isApplicationVisible -and ($body["tags"] -notcontains "HideApp")) {
+        "## Hiding the application"
+        $body["tags"] = [array]($body["tags"] + @("HideApp"))
+    }
+
+    if ($web.count -gt 0) {
+        $body["web"] = $web
+    }
+
+    if ($body.count -gt 0) {
+        Invoke-RjRbRestMethodGraph -Resource "/applications/$($existingApp.id)" -Method PATCH -Body $body | Out-Null
+        "## Application updated."
+        "## Waiting 20 seconds for changes to propagate to the service principal"
+        Start-Sleep -Seconds 20
+    }
+
+    #endregion Application Update
+
+    #region Service Principal SAML Settings
+    ##############################
+
+    $body = @{}
+
+    # Check if SAML Settings are correct for the service principal
+    if ($EnableSAML) {
+        $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method GET
+        if ($SAMLReplyURL) {
+            if ($resultSvcPrincipal.replyUrls -notcontains $SAMLReplyURL) {
+                "## Updating SAML Reply URL to '$SAMLReplyURL'"
+                $body["replyUrls"] = @($SAMLReplyURL)
+            }
+        }
+        if ($SAMLRelayState -and ($resultSvcPrincipal.samlSingleSignOnSettings.relayState -ne $SAMLRelayState)) {
+            "## Updating SAML Relay State to '$SAMLRelayState'"
+            $body["samlSingleSignOnSettings"] = @{
+                "relayState" = $SAMLRelayState
+            }
+        }
+        if ($SAMLSignOnURL -and ($resultSvcPrincipal.loginUrl -ne $SAMLSignOnURL)) {
+            "## Updating SAML Sign On URL to '$SAMLSignOnURL'"
+            $body["loginUrl"] = $SAMLSignOnURL
+        }
+        if ($SAMLIdentifier -and ($resultSvcPrincipal.servicePrincipalNames -notcontains $SAMLIdentifier)) {
+            "## Updating ServicePrincipalNames to include SAML Identifier '$SAMLIdentifier'"
+            $body["servicePrincipalNames"] = @(
+                $SAMLIdentifier,
+                $ClientId
+            )
+        }
+        if ($SAMLExpiryNotificationEmail -and ($resultSvcPrincipal.notificationEmailAddresses -notcontains $SAMLExpiryNotificationEmail)) {
+            "## Updating Notification Email to '$SAMLExpiryNotificationEmail'"
+            $body["notificationEmailAddresses"] = @($SAMLExpiryNotificationEmail)
+        }
+
+        Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+        "## Service Principal updated."
+        "## Waiting 20 seconds for changes to propagate."
+        Start-Sleep -Seconds 20
+    }
+
+    #endregion Service Principal SAML Settings
+
+    #region User Assignment
+    ##############################
+
+    if ($PSBoundParameters.Keys -contains "UserAssignmentRequired") {
+        if ($UserAssignmentRequired) {
+            # Check if the user assignment is required
+            $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method GET
+            if ($resultSvcPrincipal.appRoleAssignmentRequired -ne $true) {
+                "## Updating appRoleAssignmentRequired to '$true'"
+                $body = @{
+                    "appRoleAssignmentRequired" = $true
+                }
+
+                Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+
+                $appRoleAssignments = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method GET -ErrorAction SilentlyContinue
+                if (-not $appRoleAssignments) {
+                    $ApplicationName = $existingApp.displayName
+                    $ApplicationFullName = $ApplicationName
+
+                    [string]$shortAppName = $ApplicationFullName -replace " \| ", "-" -replace "\|", "-" # -replace " ", "-" -replace "[()]", ""
+
+                    [string]$mailnickname = $ApplicationName -replace " \| ", "-" -replace "\|", "-" -replace " ", "-" -replace "[()]", ""
+                    if ($mailnickname.Length -gt 25) {
+                        $mailnickname = $mailnickname.Substring(0, 24)
+                    }
+
+                    # Create a valid mailNickname by removing invalid characters (spaces, special chars)
+                    $groupMailNickname = ($groupAssignmentPrefix + $mailnickname) -replace "[^a-zA-Z0-9\-]", "" -replace "^-+", "" -replace "-+$", ""
+                    # Ensure mailNickname doesn't exceed 64 characters and doesn't start/end with dash
+                    if ($groupMailNickname.Length -gt 64) {
+                        $groupMailNickname = $groupMailNickname.Substring(0, 63)
+                    }
+                    # Remove trailing dashes if any
+                    $groupMailNickname = $groupMailNickname -replace "-+$", ""
+
+                    $groupBody = @{
+                        "displayName"     = "$groupAssignmentPrefix$shortAppName"
+                        "description"     = "Users of $ApplicationFullName"
+                        "mailEnabled"     = $false
+                        "mailNickname"    = $groupMailNickname
+                        "securityEnabled" = $true
+                    }
+                    $resultGroup = Invoke-RjRbRestMethodGraph -Resource "/groups" -Method POST -Body $groupBody
+                    "## Group '$($resultGroup.displayName)' created, id: $($resultGroup.id)"
+
+                    # Add the group to the application
+                    $groupAppRoleBody = @{
+                        "appRoleId"   = "00000000-0000-0000-0000-000000000000"
+                        "principalId" = $resultGroup.id
+                        "resourceId"  = $resultSvcPrincipal.id
+                    }
+                    $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody
+                    "## Group '$($resultGroup.displayName)' added to application '$ApplicationFullName'"
+                }
+            }
+        }
+        else {
+            # If $UserAssignmentRequired=false
+            $resultSvcPrincipal = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method GET
+            if ($resultSvcPrincipal.appRoleAssignmentRequired -ne $false) {
+                "## Updating appRoleAssignmentRequired to '$false'"
+                $body = @{
+                    "appRoleAssignmentRequired" = $false
+                }
+
+                Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+                "## Waiting 20 seconds for changes to propagate."
+                Start-Sleep -Seconds 20
+            }
+        }
+    }
+
+    #endregion User Assignment
+
+    #region Service Principal Visibility
+    ##############################
+
+    # Refresh the service principal
+    $existingSvcPrincipal = Invoke-RjRbRestMethodGraph -Method GET -Resource "/servicePrincipals" -OdFilter "appId eq '$ClientId'" -ErrorAction Stop
+
+    # Check if the application is visible on the service principal
+    $body = @{}
+    if ($isApplicationVisible -and ($existingSvcPrincipal.tags -contains "HideApp")) {
+        "## Making the application visible"
+        $body["tags"] = [array]($existingSvcPrincipal.tags -ne "HideApp")
+    }
+    if (-not $isApplicationVisible -and ($existingSvcPrincipal.tags -notcontains "HideApp")) {
+        "## Hiding the application"
+        $body["tags"] = [array]($existingSvcPrincipal.tags + @("HideApp"))
+    }
+    if ($body.count -gt 0) {
+        Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($existingSvcPrincipal.id)" -Method PATCH -Body $body | Out-Null
+        "## Service Principal updated."
+        "## Waiting 20 seconds for changes to propagate."
+        Start-Sleep -Seconds 20
+    }
+
+    #endregion Service Principal Visibility
+
+#endregion Main Part
+
+""
+"## Done!"
 

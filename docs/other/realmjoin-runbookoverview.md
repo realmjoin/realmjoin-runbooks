@@ -18,11 +18,13 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
       - [Change Grouptag](#change-grouptag)
+      - [Check Device Compliance](#check-device-compliance)
       - [Check Updatable Assets](#check-updatable-assets)
       - [Enroll Updatable Assets](#enroll-updatable-assets)
       - [Outphase Device](#outphase-device)
       - [Remove Primary User](#remove-primary-user)
       - [Rename Device](#rename-device)
+      - [Set Primary User](#set-primary-user)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
   - [Security](#device-security)
@@ -63,6 +65,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#org-devices)
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
+      - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
@@ -79,6 +82,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Or Remove Safelinks Exclusion](#add-or-remove-safelinks-exclusion)
       - [Add Or Remove Smartscreen Exclusion](#add-or-remove-smartscreen-exclusion)
       - [Add Or Remove Trusted Site](#add-or-remove-trusted-site)
+      - [Add Primary Users Of Devices To Group (Scheduled)](#add-primary-users-of-devices-to-group-(scheduled))
       - [Add Security Group](#add-security-group)
       - [Add User](#add-user)
       - [Add Viva Engange Community](#add-viva-engange-community)
@@ -105,6 +109,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
+      - [Sync Apple Tokens](#sync-apple-tokens)
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
@@ -120,6 +125,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#org-security)
       - [Add Defender Indicator](#add-defender-indicator)
       - [Backup Conditional Access Policies](#backup-conditional-access-policies)
+      - [Find SMS Auth Phone Number](#find-sms-auth-phone-number)
       - [List Admin Users](#list-admin-users)
       - [List Expiring Role Assignments](#list-expiring-role-assignments)
       - [List Inactive Devices](#list-inactive-devices)
@@ -243,6 +249,25 @@ Device \ General \ Change Grouptag
  
  
 
+<a name='device-general-check-device-compliance'></a>
+
+### Check Device Compliance
+#### Check the compliance status of a device
+
+#### Description
+This runbook retrieves the compliance status of a managed device from Microsoft Intune.
+In simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.
+Optionally, a report with the full compliance details can be sent via email.
+
+#### Where to find
+Device \ General \ Check Device Compliance
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-general-check-updatable-assets'></a>
 
 ### Check Updatable Assets
@@ -322,6 +347,23 @@ Rename a device (in Intune and Autopilot).
 
 #### Where to find
 Device \ General \ Rename Device
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-set-primary-user'></a>
+
+### Set Primary User
+#### Set a new primary user on a managed Intune device
+
+#### Description
+This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.
+
+#### Where to find
+Device \ General \ Set Primary User
 
 
 [Back to Table of Content](#table-of-contents)
@@ -958,6 +1000,30 @@ Org \ Devices \ Add Device Via Corporate Identifier
  
  
 
+<a name='org-devices-auto-approve-driver-updates-(scheduled)'></a>
+
+### Auto Approve Driver Updates (Scheduled)
+#### Auto-approve new driver updates in Intune driver update policies
+
+#### Description
+This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+
+#### Where to find
+Org \ Devices \ Auto Approve Driver Updates_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
@@ -1296,6 +1362,23 @@ Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom co
 
 #### Where to find
 Org \ General \ Add Or Remove Trusted Site
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-add-primary-users-of-devices-to-group-(scheduled)'></a>
+
+### Add Primary Users Of Devices To Group (Scheduled)
+#### Sync primary users of Intune managed devices by platform into an Entra ID group
+
+#### Description
+This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.
+
+#### Where to find
+Org \ General \ Add Primary Users Of Devices To Group_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1916,6 +1999,23 @@ Org \ General \ Sync All Devices
  
  
 
+<a name='org-general-sync-apple-tokens'></a>
+
+### Sync Apple Tokens
+#### Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
+
+#### Description
+This runbook triggers synchronization of Apple tokens in Microsoft Intune. It can sync Apple Enrollment Program (ADE) tokens, Volume Purchase Program (VPP) tokens, or both. The sync ensures that Intune has the latest information from Apple Business Manager regarding device enrollments and app licenses.
+
+#### Where to find
+Org \ General \ Sync Apple Tokens
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org'></a>
 
 # Org
@@ -2143,6 +2243,23 @@ Exports the current set of Conditional Access policies via Microsoft Graph and u
 
 #### Where to find
 Org \ Security \ Backup Conditional Access Policies
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-find-sms-auth-phone-number'></a>
+
+### Find SMS Auth Phone Number
+#### Find the user associated with a specific SMS-based authentication phone number
+
+#### Description
+This runbook searches for which user has a specific phone number registered with SMS Sign-In enabled in Microsoft Entra ID. Unlike regular phone MFA methods, SMS Sign-In numbers must be unique across the tenant. If a number is reserved for SMS Sign-In by one user, assigning it to another user will fail with a "phoneNumberNotUnique" error. Regular phone MFA methods do not enforce uniqueness. This runbook helps administrators identify which user holds a specific SMS Sign-In number for troubleshooting and remediation.
+
+#### Where to find
+Org \ Security \ Find SMS Auth Phone Number
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2912,10 +3029,54 @@ User \ Security \ Confirm Or Dismiss Risky User
 #### Create a temporary access pass for a user
 
 #### Description
-Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one.
+Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one. Optionally sends a notification email to the user's primary email address informing them about the newly created TAP. The email language is automatically determined by the user's usage location.
 
 #### Where to find
 User \ Security \ Create Temporary Access Pass
+
+## Activate user notification
+
+This runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_create-temporary-access-pass": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2997,7 +3158,7 @@ User \ Security \ Revoke Or Restore Access
 #### Set or remove a user's mobile phone MFA method
 
 #### Description
-Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number.
+Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the "phoneNumberNotUnique" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.
 
 #### Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa

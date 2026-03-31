@@ -7,11 +7,13 @@
 <a name='device-general'></a>
 ## General
   - [Change Grouptag](general/change-grouptag.md)
+  - [Check Device Compliance](general/check-device-compliance.md)
   - [Check Updatable Assets](general/check-updatable-assets.md)
   - [Enroll Updatable Assets](general/enroll-updatable-assets.md)
   - [Outphase Device](general/outphase-device.md)
   - [Remove Primary User](general/remove-primary-user.md)
   - [Rename Device](general/rename-device.md)
+  - [Set Primary User](general/set-primary-user.md)
   - [Unenroll Updatable Assets](general/unenroll-updatable-assets.md)
   - [Wipe Device](general/wipe-device.md)
 <a name='device-security'></a>

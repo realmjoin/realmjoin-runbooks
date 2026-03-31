@@ -13,6 +13,7 @@
 ## Devices
   - [Add Autopilot Device](devices/add-autopilot-device.md)
   - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
+  - [Auto Approve Driver Updates (Scheduled)](devices/auto-approve-driver-updates_scheduled.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
@@ -30,6 +31,7 @@
   - [Add Or Remove Safelinks Exclusion](general/add-or-remove-safelinks-exclusion.md)
   - [Add Or Remove Smartscreen Exclusion](general/add-or-remove-smartscreen-exclusion.md)
   - [Add Or Remove Trusted Site](general/add-or-remove-trusted-site.md)
+  - [Add Primary Users Of Devices To Group (Scheduled)](general/add-primary-users-of-devices-to-group_scheduled.md)
   - [Add Security Group](general/add-security-group.md)
   - [Add User](general/add-user.md)
   - [Add Viva Engange Community](general/add-viva-engange-community.md)
@@ -56,6 +58,7 @@
   - [Report License Assignment (Scheduled)](general/report-license-assignment_scheduled.md)
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
+  - [Sync Apple Tokens](general/sync-apple-tokens.md)
 <a name='org-mail'></a>
 ## Mail
   - [Add Distribution List](mail/add-distribution-list.md)
@@ -74,6 +77,7 @@
 ## Security
   - [Add Defender Indicator](security/add-defender-indicator.md)
   - [Backup Conditional Access Policies](security/backup-conditional-access-policies.md)
+  - [Find SMS Auth Phone Number](security/find-sms-auth-phone-number.md)
   - [List Admin Users](security/list-admin-users.md)
   - [List Expiring Role Assignments](security/list-expiring-role-assignments.md)
   - [List Inactive Devices](security/list-inactive-devices.md)

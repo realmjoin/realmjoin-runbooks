@@ -131,7 +131,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -185,23 +185,22 @@ if ($MaxAgeInDays -lt 1 -or $MaxAgeInDays -gt 30) {
 #region     Function Definitions
 ########################################################
 
-function Get-AllGraphPage {
+function Get-GraphPagedResult {
     <#
         .SYNOPSIS
         Retrieves all items from a paginated Microsoft Graph API endpoint.
 
         .DESCRIPTION
-        Get-AllGraphPage takes an initial Microsoft Graph API URI and retrieves all items across
-        multiple pages by following the @odata.nextLink property in the response. It aggregates
-        all items into a single array and returns it.
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
         e.g., "https://graph.microsoft.com/v1.0/applications".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-AllGraphPage -Uri "https://graph.microsoft.com/v1.0/applications"
-#>
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
     param(
         [string]$Uri
     )
@@ -211,21 +210,10 @@ function Get-AllGraphPage {
 
     do {
         $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-
         if ($response.value) {
             $allResults += $response.value
         }
-        elseif ($response.'@odata.context') {
-            # Single item response
-            $allResults += $response
-        }
-
-        if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
-            $nextLink = $response.'@odata.nextLink'
-        }
-        else {
-            $nextLink = $null
-        }
+        $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
     return $allResults
@@ -307,7 +295,7 @@ Write-RjRbLog -Message "Graph API filter: $combinedFilter" -Verbose
 $currentDate = Get-Date
 
 try {
-    $filteredRequests = Get-AllGraphPage -Uri $Uri -ErrorAction Stop
+    $filteredRequests = Get-GraphPagedResult -Uri $Uri -ErrorAction Stop
 
     Write-Output "Retrieved $($filteredRequests.Count) request(s) matching filter criteria."
 
