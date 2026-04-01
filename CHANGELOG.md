@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-01
+
+- Add **Create Endpoint Analytics Baseline (Scheduled)** Runbook to org/devices section
+  - This runbook creates a new Endpoint Analytics Baseline in Microsoft Intune
+  - Naming Schema can be adjusted in the runbook parameters, e.g. to include a timestamp for better tracking of baseline versions
+
 ## 2026-03-27
 
 - Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/devices section
