@@ -66,6 +66,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
+      - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
@@ -1017,6 +1018,23 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-create-endpoint-analytics-baseline'></a>
+
+### Create Endpoint Analytics Baseline
+#### Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
+
+#### Description
+This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.
+
+#### Where to find
+Org \ Devices \ Create Endpoint Analytics Baseline
 
 
 [Back to Table of Content](#table-of-contents)

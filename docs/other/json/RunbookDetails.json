@@ -4572,6 +4572,86 @@
     }
   },
   {
+    "RunbookDisplayName": "Create Endpoint Analytics Baseline",
+    "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
+    "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.",
+    "Description": "This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: \"EA-Baseline-{Year}-{Month}\" or \"Analytics-{Date}\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "BaselineNamingSchema",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveOldestBaseline",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",
