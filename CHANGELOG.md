@@ -1,5 +1,36 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-07
+
+- Suppress false positive PSScriptAnalyzer warnings across multiple runbooks
+  - `PSUseDeclaredVarsMoreThanAssignments` for variables used inside ForEach-Object blocks or for output suppression
+  - `PSReviewUnusedParameter` for parameters used indirectly via Get-Variable or RJ Portal Customization
+  - `PSAvoidUsingPlainTextForPassword` for non-password type selector parameter
+- Fix PSUseApprovedVerbs naming issues in internal functions by replacing non-approved verbs with approved ones
+- Fix PSUseSingularNouns naming issues in internal functions through rename plural function names to singular
+- Affected runbooks:
+  - **Show LAPS Password** - Device/Security
+  - **Enroll Updatable Assets** - Device/General
+  - **Unenroll Updatable Assets** - Device/General
+  - **Unenroll Updatable Assets (Scheduled)** - Group/Devices
+  - **Add Application Registration** - Org/Applications
+  - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+  - **Update Application Registration** - Org/Applications
+  - **Outphase Devices** - Org/Devices
+  - **Add Devices Of Users To Group (Scheduled)** - Org/General
+  - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+  - **Assign Groups By Template (Scheduled)** - Org/General
+  - **Export CloudPC Usage (Scheduled)** - Org/General
+  - **Export Policy Report** - Org/General
+  - **Office365 License Report** - Org/General
+  - **Get Teams Phone Number Assignment** - Org/Phone
+  - **Backup Conditional Access Policies** - Org/Security
+  - **Assign Groups By Template** - User/General
+  - **Disable Teams Phone** - User/Phone
+  - **Get Teams User Info** - User/Phone
+  - **Set Teams Permanent Call Forwarding** - User/Phone
+  - **Update User** - User/Userinfo
+ 
 ## 2026-04-01
 
 - Add **Create Endpoint Analytics Baseline (Scheduled)** Runbook to org/devices section
@@ -208,7 +239,6 @@
 - Update general mail setup documentation
   - Improve clarity and detail on email configuration steps
 - Upgrade to List Application Credentials Expiry to Report Expiring Application Credentials (Scheduled) Runbook
-
 
 ## 2025-10-06
 
@@ -665,11 +695,10 @@
 ## 2022-10-20
 
 - Convert to shared mailbox:
-
-* Assign EXO E2 License if needed when converting to shared mailbox
-* Assign M365 Lic when converting back to user mailbox
-* Nicer output (UPN vs ID)
-* Remove groups when converting to shared mailbox
+  - Assign EXO E2 License if needed when converting to shared mailbox
+  - Assign M365 Lic when converting back to user mailbox
+  - Nicer output (UPN vs ID)
+  - Remove groups when converting to shared mailbox
 
 ## 2022-10-04
 
@@ -764,9 +793,6 @@
 ## 2022-05-16
 
 - new runbook: Export all Intune devices (to a storage account)
-
-## 2022-05-16
-
 - Many runbooks: Improve output
 - device wipe and device outphase: Show owner/user UPN for the device
 

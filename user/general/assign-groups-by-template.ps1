@@ -87,6 +87,8 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - GroupsTemplate is used to populate GroupsString via RJ Portal Customization
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "GroupsTemplate")]
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]

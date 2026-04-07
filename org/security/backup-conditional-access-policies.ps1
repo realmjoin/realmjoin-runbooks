@@ -59,7 +59,7 @@ $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Write a JSON file from a Policy / group description object
-function Export-PolicyObjects {
+function Export-PolicyObject {
     param (
         [Parameter(Mandatory = $true)]
         [array]$policies
@@ -139,7 +139,7 @@ try {
     # Write policy export as files
     mkdir "CAPols" | Out-Null
     Set-Location -Path "CAPols" | Out-Null
-    Export-PolicyObjects -policies $pols
+    Export-PolicyObject -policies $pols
     Set-Location -Path ".."  | Out-Null
     Compress-Archive -Path "CAPols\*" -DestinationPath "$ContainerName.zip" | Out-Null
 
