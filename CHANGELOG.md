@@ -203,7 +203,6 @@
   - Improve clarity and detail on email configuration steps
 - Upgrade to List Application Credentials Expiry to Report Expiring Application Credentials (Scheduled) Runbook
 
-
 ## 2025-10-06
 
 - Update List Application Runbook
@@ -659,11 +658,10 @@
 ## 2022-10-20
 
 - Convert to shared mailbox:
-
-* Assign EXO E2 License if needed when converting to shared mailbox
-* Assign M365 Lic when converting back to user mailbox
-* Nicer output (UPN vs ID)
-* Remove groups when converting to shared mailbox
+  - Assign EXO E2 License if needed when converting to shared mailbox
+  - Assign M365 Lic when converting back to user mailbox
+  - Nicer output (UPN vs ID)
+  - Remove groups when converting to shared mailbox
 
 ## 2022-10-04
 
@@ -758,9 +756,6 @@
 ## 2022-05-16
 
 - new runbook: Export all Intune devices (to a storage account)
-
-## 2022-05-16
-
 - Many runbooks: Improve output
 - device wipe and device outphase: Show owner/user UPN for the device
 
