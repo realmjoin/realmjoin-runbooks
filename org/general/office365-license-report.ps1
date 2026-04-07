@@ -97,6 +97,8 @@
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.2" }
 
+# Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
     [bool] $printOverview = $true,
