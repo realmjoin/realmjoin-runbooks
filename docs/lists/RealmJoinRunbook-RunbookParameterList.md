@@ -65,6 +65,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
+    - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
@@ -761,6 +762,17 @@ Auto-approve new driver updates in Intune driver update policies
 | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
 | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+
+<a name='organization-devices-create-endpoint-analytics-baseline'></a>
+
+### Create Endpoint Analytics Baseline
+Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
+| RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
+| CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
 
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
@@ -2180,8 +2192,13 @@ Create a temporary access pass for a user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
-| LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. |
+| LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. Valid values are between 60 and 480 minutes (1-8 hours). |
 | OneTimeUseOnly |  | Boolean | If set to true, the pass can be used only once. |
+| NotifyUser |  | Boolean | If enabled, sends a notification email to the user's primary email address about the newly created TAP. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-security-enable-or-disable-password-expiration'></a>

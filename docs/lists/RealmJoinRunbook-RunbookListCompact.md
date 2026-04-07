@@ -45,6 +45,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Devices | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+|  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |

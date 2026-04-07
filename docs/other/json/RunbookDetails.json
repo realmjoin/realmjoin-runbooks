@@ -4572,6 +4572,86 @@
     }
   },
   {
+    "RunbookDisplayName": "Create Endpoint Analytics Baseline",
+    "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
+    "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.",
+    "Description": "This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: \"EA-Baseline-{Year}-{Month}\" or \"Analytics-{Date}\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "BaselineNamingSchema",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveOldestBaseline",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",
@@ -17514,7 +17594,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Create a temporary access pass for a user",
-    "Description": "Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one.",
+    "Description": "Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one. Optionally sends a notification email to the user's primary email address informing them about the newly created TAP. The email language is automatically determined by the user's usage location.",
     "Notes": null,
     "Parameters": [
       {
@@ -17528,8 +17608,25 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "9",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -17538,7 +17635,7 @@
         "defaultValue": "240",
         "description": [
           {
-            "Text": "Lifetime of the temporary access pass in minutes."
+            "Text": "Lifetime of the temporary access pass in minutes. Valid values are between 60 and 480 minutes (1-8 hours)."
           }
         ],
         "globbing": "false",
@@ -17549,6 +17646,23 @@
         "required": "false",
         "type": {
           "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, sends a notification email to the user's primary email address about the newly created TAP."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -17572,6 +17686,57 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk display name for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "User principal name of the target user."
           }
         ],
@@ -17586,8 +17751,8 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
+    "DocsContent": "## Activate user notification\n\nThis runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_create-temporary-access-pass\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBzZW5kcyBhbiBlbWFpbCB0byB0aGUgdXNlciB3aXRoIHRoZSB0ZW1wb3JhcnkgYWNjZXNzIHBhc3MuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9jcmVhdGUtdGVtcG9yYXJ5LWFjY2Vzcy1wYXNzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClRoaXMgcHJvY2VzcyBpcyBkZXNjcmliZWQgaW4gZGV0YWlsIGluIHRoZSBbU2V0dXAgRW1haWwgUmVwb3J0aW5nXShodHRwczovL2dpdGh1Yi5jb20vcmVhbG1qb2luL3JlYWxtam9pbi1ydW5ib29rcy90cmVlL21hc3Rlci9kb2NzL2dlbmVyYWwvc2V0dXAtZW1haWwtcmVwb3J0aW5nLm1kKSBkb2N1bWVudGF0aW9uLgo=",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [

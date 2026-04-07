@@ -66,6 +66,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
+      - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
@@ -1017,6 +1018,23 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
 
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-create-endpoint-analytics-baseline'></a>
+
+### Create Endpoint Analytics Baseline
+#### Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
+
+#### Description
+This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.
+
+#### Where to find
+Org \ Devices \ Create Endpoint Analytics Baseline
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3029,10 +3047,54 @@ User \ Security \ Confirm Or Dismiss Risky User
 #### Create a temporary access pass for a user
 
 #### Description
-Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one.
+Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one. Optionally sends a notification email to the user's primary email address informing them about the newly created TAP. The email language is automatically determined by the user's usage location.
 
 #### Where to find
 User \ Security \ Create Temporary Access Pass
+
+## Activate user notification
+
+This runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_create-temporary-access-pass": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
 
 
 [Back to Table of Content](#table-of-contents)
