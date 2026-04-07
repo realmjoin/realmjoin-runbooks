@@ -2,35 +2,46 @@
 
 ## 2026-04-07
 
-- Suppress false positive PSScriptAnalyzer warnings across multiple runbooks
-  - `PSUseDeclaredVarsMoreThanAssignments` for variables used inside ForEach-Object blocks or for output suppression
-  - `PSReviewUnusedParameter` for parameters used indirectly via Get-Variable or RJ Portal Customization
-  - `PSAvoidUsingPlainTextForPassword` for non-password type selector parameter
-- Fix PSUseApprovedVerbs naming issues in internal functions by replacing non-approved verbs with approved ones
-- Fix PSUseSingularNouns naming issues in internal functions through rename plural function names to singular
-- Affected runbooks:
-  - **Show LAPS Password** - Device/Security
-  - **Enroll Updatable Assets** - Device/General
-  - **Unenroll Updatable Assets** - Device/General
-  - **Unenroll Updatable Assets (Scheduled)** - Group/Devices
-  - **Add Application Registration** - Org/Applications
-  - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
-  - **Update Application Registration** - Org/Applications
-  - **Outphase Devices** - Org/Devices
-  - **Add Devices Of Users To Group (Scheduled)** - Org/General
-  - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
-  - **Assign Groups By Template (Scheduled)** - Org/General
-  - **Export CloudPC Usage (Scheduled)** - Org/General
-  - **Export Policy Report** - Org/General
-  - **Office365 License Report** - Org/General
-  - **Get Teams Phone Number Assignment** - Org/Phone
-  - **Backup Conditional Access Policies** - Org/Security
-  - **Assign Groups By Template** - User/General
-  - **Disable Teams Phone** - User/Phone
-  - **Get Teams User Info** - User/Phone
-  - **Set Teams Permanent Call Forwarding** - User/Phone
-  - **Update User** - User/Userinfo
- 
+- Optimize PSScriptAnalyzer checkability across several runbooks by:
+  - Suppress false positive PSScriptAnalyzer warnings across multiple runbooks
+    - `PSUseDeclaredVarsMoreThanAssignments` for variables used inside ForEach-Object blocks or for output suppression
+    - `PSReviewUnusedParameter` for parameters used indirectly via Get-Variable or RJ Portal Customization
+    - `PSAvoidUsingPlainTextForPassword` for non-password type selector parameter
+  - Fix PSUseApprovedVerbs naming issues in internal functions by replacing non-approved verbs with approved ones
+  - Fix PSUseSingularNouns naming issues in internal functions through rename plural function names to singular
+  - Affected runbooks:
+    - **Show LAPS Password** - Device/Security
+    - **Enroll Updatable Assets** - Device/General
+    - **Unenroll Updatable Assets** - Device/General
+    - **Unenroll Updatable Assets (Scheduled)** - Group/Devices
+    - **Add Application Registration** - Org/Applications
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+    - **Update Application Registration** - Org/Applications
+    - **Outphase Devices** - Org/Devices
+    - **Add Devices Of Users To Group (Scheduled)** - Org/General
+    - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+    - **Add Security Group** - Org/General
+    - **Add Viva Engage Community** - Org/General
+    - **Assign Groups By Template (Scheduled)** - Org/General
+    - **Check Assignments Of Devices** - Org/General
+    - **Check Assignments Of Users** - Org/General
+    - **Export CloudPC Usage (Scheduled)** - Org/General
+    - **Export Policy Report** - Org/General
+    - **Office365 License Report** - Org/General
+    - **Get Teams Phone Number Assignment** - Org/Phone
+    - **Backup Conditional Access Policies** - Org/Security
+    - **Assign Groups By Template** - User/General
+    - **Disable Teams Phone** - User/Phone
+    - **Get Teams User Info** - User/Phone
+    - **Set Teams Permanent Call Forwarding** - User/Phone
+    - **Update User** - User/Userinfo
+- Remove an unused parameter in an internal function in **Add Security Group** Runbook in Org/General
+- Simplify internal `Save-ToDataTable` function in **Export CloudPC Usage (Scheduled)** Runbook by consolidating parameter sets into a single optional switch
+- Fix typo in **Office 365 License Report** Runbook in Org/General
+- Fix severity parameter not being passed to the API in **Add Defender Indicator** Runbook in Org/Security
+- Output optimization in **Notify Changed CA Policies** Runbook in Org/Security
+- Fix fromMailAddress parameter not being passed to the API in **Resize Windows 365** Runbook in User/General
+
 ## 2026-04-01
 
 - Add **Create Endpoint Analytics Baseline (Scheduled)** Runbook to org/devices section

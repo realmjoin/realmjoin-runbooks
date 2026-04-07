@@ -43,7 +43,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -56,7 +56,10 @@ foreach ($deviceName in $DeviceNamesArray) {
     # Get Device ID from Microsoft Entra based on Device Name
     Write-RjRbLog -Message "Fetching Device Details for $deviceName" -Verbose
     "## Fetching Device Details for $deviceName"
-    $deviceDetailsUri = "https://graph.microsoft.com/v1.0/devices?`$filter=displayName eq '$deviceName'"
+
+    #Building the URI to get device details by display name
+    #$deviceDetailsUri = "https://graph.microsoft.com/v1.0/devices?`$filter=displayName eq '$deviceName'"
+
     $deviceResponse = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "displayName eq '$deviceName'"
     $deviceId = $deviceResponse.id
     if ($deviceId) {
@@ -93,7 +96,7 @@ foreach ($deviceName in $DeviceNamesArray) {
         $policyId = $policy.id
 
         Write-RjRbLog -Message "Processing Policy: $policyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies('$policyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -126,7 +129,7 @@ foreach ($deviceName in $DeviceNamesArray) {
         $groupPolicyId = $grouppolicy.id
 
         Write-RjRbLog -Message "Processing Group Policy: $groupPolicyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -158,7 +161,7 @@ foreach ($deviceName in $DeviceNamesArray) {
         $configId = $config.id
 
         Write-RjRbLog -Message "Processing Device Configuration: $configName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations('$configId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -191,7 +194,7 @@ foreach ($deviceName in $DeviceNamesArray) {
         $compliancepolicyId = $compliancepolicy.id
 
         Write-RjRbLog -Message "Processing Compliance Policy: $compliancepolicyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -215,7 +218,7 @@ foreach ($deviceName in $DeviceNamesArray) {
             Write-RjRbLog -Message "Processing Application: $appName" -Verbose
 
             # Construct the URI to get assignments for the current app
-            $assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
+            #$assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
 
             # Fetch the assignments for the app
             $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps('$appId')/assignments" -Beta

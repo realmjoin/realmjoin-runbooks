@@ -233,6 +233,8 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - $resultGroupAppRole captures API result for side effect only
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "resultGroupAppRole")]
 param(
     [Parameter(Mandatory = $true)]
     [string] $ClientId,
@@ -591,7 +593,7 @@ if (-not $existingSvcPrincipal) {
                         "principalId" = $resultGroup.id
                         "resourceId"  = $resultSvcPrincipal.id
                     }
-                    $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody
+                    $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody | Out-Null
                     "## Group '$($resultGroup.displayName)' added to application '$ApplicationFullName'"
                 }
             }

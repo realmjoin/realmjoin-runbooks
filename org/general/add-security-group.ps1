@@ -40,6 +40,8 @@
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - $newGroup captures API result for side effect only
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "newGroup")]
 param (
     [Parameter(Mandatory = $true)]
     [string]$GroupName,
@@ -109,7 +111,7 @@ function New-Group {
         [Parameter(Mandatory = $false)]
         [string]$GroupDescription,
         #[bool]$AssignableToRoles, # Currently deactivated, as extended rights are required. See info in “.Notes”
-        [string]$MembershipType,
+
         [Parameter(Mandatory = $false)]
         [string]$Owner
     )
@@ -182,7 +184,7 @@ try {
         Write-Error "Group '$GroupName' already exists."
     }
     else {
-        $newGroup = New-Group -GroupName $GroupName -GroupDescription $GroupDescription -MembershipType $MembershipType -Owner $Owner # -AssignableToRoles $AssignableToRoles # Currently deactivated, as extended rights are required. See info in “.Notes”
+        $newGroup = New-Group -GroupName $GroupName -GroupDescription $GroupDescription -Owner $Owner | Out-Null # -AssignableToRoles $AssignableToRoles # Currently deactivated, as extended rights are required. See info in ".Notes"
         Write-Output "Group '$GroupName' created successfully."
     }
 }
