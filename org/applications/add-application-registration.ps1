@@ -247,6 +247,10 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - $resultGroupAppRole captures API result for side effect only
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "resultGroupAppRole")]
+# Suppress false positive from PSScriptAnalyzer - $parsedUri is used for URI validation only, the constructor throws on invalid input
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "parsedUri")]
 param(
     [Parameter(Mandatory = $true)]
     [string] $ApplicationName,
@@ -336,6 +340,7 @@ if ($webRedirectURI) {
             throw ("Invalid Web Redirect URI")
         }
         try {
+            # Validate URI syntax - parsing will fail for malformed URIs
             $parsedUri = [System.Uri]::new($uri)
         }
         catch {
@@ -357,6 +362,7 @@ if ($spaRedirectURI) {
             throw ("Invalid SPA Redirect URI")
         }
         try {
+            # Validate URI syntax - parsing will fail for malformed URIs
             $parsedUri = [System.Uri]::new($uri)
         }
         catch {
@@ -378,6 +384,7 @@ if ($publicClientRedirectURI) {
             throw ("Invalid Public Client Redirect URI")
         }
         try {
+            # Validate URI syntax - parsing will fail for malformed URIs
             $parsedUri = [System.Uri]::new($uri)
         }
         catch {
@@ -761,7 +768,7 @@ if ($UserAssignmentRequired) {
             "principalId" = $resultGroup.id
             "resourceId"  = $resultSvcPrincipal.id
         }
-        $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody -ErrorAction Stop
+        $resultGroupAppRole = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($resultSvcPrincipal.id)/appRoleAssignedTo" -Method POST -Body $groupAppRoleBody -ErrorAction Stop | Out-Null
         "## Group '$($resultGroup.displayName)' added to application '$ApplicationFullName'"
     }
     catch {

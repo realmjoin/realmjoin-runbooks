@@ -64,6 +64,8 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#organization-devices)
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
+    - Auto Approve Driver Updates (Scheduled)
+    - Create Endpoint Analytics Baseline
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
     - Notify Users About Stale Devices (Scheduled)
@@ -107,6 +109,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report License Assignment (Scheduled)
     - Report PIM Activations (Scheduled)
     - Sync All Devices
+    - Sync Apple Tokens
   - [Mail](#organization-mail)
     - Add Distribution List
     - Add Equipment Mailbox
@@ -288,6 +291,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
+| Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+| Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
@@ -337,6 +342,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
+| Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 

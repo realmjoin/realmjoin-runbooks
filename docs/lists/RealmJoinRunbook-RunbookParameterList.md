@@ -64,6 +64,8 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Devices](#organization-devices)
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
+    - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
+    - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
@@ -107,6 +109,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report License Assignment (Scheduled)](#organization-general-report-license-assignment-scheduled)
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
+    - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
     - [Add Equipment Mailbox](#organization-mail-add-equipment-mailbox)
@@ -741,6 +744,36 @@ Import a device into Intune via corporate identifier
 | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-devices-auto-approve-driver-updates-scheduled'></a>
+
+### Auto Approve Driver Updates (Scheduled)
+Auto-approve new driver updates in Intune driver update policies
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| PolicyNames |  | String | (Optional) Comma-separated list of driver update policy names to scope the approval (e.g., "Policy1, Policy2, Policy3"). If not specified, all policies are processed. |
+| PolicyIds |  | String | (Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., "id1, id2, id3"). If not specified, all policies are processed. |
+| DriverDisplayNamePattern |  | String | (Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved. |
+| DriverClass |  | String | (Optional) Filter by driver class IDs (comma-separated). Example: "Bluetooth,Networking,Firmware" for specific driver classes. |
+| DriverManufacturer |  | String | (Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved. |
+| MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
+| OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
+| WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+| EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
+| EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
+| CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+
+<a name='organization-devices-create-endpoint-analytics-baseline'></a>
+
+### Create Endpoint Analytics Baseline
+Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
+| RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
+| CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
+
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
@@ -1278,7 +1311,7 @@ Generate an Office 365 licensing report
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-| includeExhange |  | Boolean | If set to true, includes Exchange Online related reports. |
+| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
 | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
@@ -1333,6 +1366,16 @@ Sync all Intune Windows devices
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-general-sync-apple-tokens'></a>
+
+### Sync Apple Tokens
+Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
+| CallerName | ✓ | String | Automated parameter for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -2149,8 +2192,13 @@ Create a temporary access pass for a user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
-| LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. |
+| LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. Valid values are between 60 and 480 minutes (1-8 hours). |
 | OneTimeUseOnly |  | Boolean | If set to true, the pass can be used only once. |
+| NotifyUser |  | Boolean | If enabled, sends a notification email to the user's primary email address about the newly created TAP. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-security-enable-or-disable-password-expiration'></a>

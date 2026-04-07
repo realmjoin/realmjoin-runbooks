@@ -89,6 +89,8 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
+    - [Auto Approve Driver Updates (Scheduled)](docs/org/devices/auto-approve-driver-updates_scheduled.md)
+    - [Create Endpoint Analytics Baseline](docs/org/devices/create-endpoint-analytics-baseline.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
@@ -133,6 +135,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report License Assignment (Scheduled)](docs/org/general/report-license-assignment_scheduled.md)
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
+    - [Sync Apple Tokens](docs/org/general/sync-apple-tokens.md)
   - [Mail](docs/org/README.md#org-mail)
 
     - [Add Distribution List](docs/org/mail/add-distribution-list.md)

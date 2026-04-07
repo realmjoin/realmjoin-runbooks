@@ -13,6 +13,8 @@
 ## Devices
   - [Add Autopilot Device](devices/add-autopilot-device.md)
   - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
+  - [Auto Approve Driver Updates (Scheduled)](devices/auto-approve-driver-updates_scheduled.md)
+  - [Create Endpoint Analytics Baseline](devices/create-endpoint-analytics-baseline.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
@@ -57,6 +59,7 @@
   - [Report License Assignment (Scheduled)](general/report-license-assignment_scheduled.md)
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
+  - [Sync Apple Tokens](general/sync-apple-tokens.md)
 <a name='org-mail'></a>
 ## Mail
   - [Add Distribution List](mail/add-distribution-list.md)

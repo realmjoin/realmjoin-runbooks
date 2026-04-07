@@ -46,7 +46,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph -Force
 
-function Unenroll-Device {
+function Unregister-Device {
     param (
         [string]$DeviceId,
         [string]$UpdateCategory
@@ -85,4 +85,4 @@ function Unenroll-Device {
     }
 }
 
-Unenroll-Device -DeviceId $DeviceId -UpdateCategory $UpdateCategory
+Unregister-Device -DeviceId $DeviceId -UpdateCategory $UpdateCategory

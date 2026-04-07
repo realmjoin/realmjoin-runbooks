@@ -126,6 +126,7 @@ $params = @{
     action         = $Action
     description    = $Description
     generateAlert  = $generateAlert
+    severity       = $Severity
 }
 
 try {

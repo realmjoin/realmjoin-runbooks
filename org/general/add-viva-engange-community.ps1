@@ -39,6 +39,8 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - $result is used to suppress unwanted output from Invoke-RestMethod
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "result")]
 param(
     [Parameter(Mandatory = $true)]
     [string]$CommunityName = "Sample Community",

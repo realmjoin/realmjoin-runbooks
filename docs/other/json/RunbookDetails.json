@@ -4354,6 +4354,304 @@
     }
   },
   {
+    "RunbookDisplayName": "Auto Approve Driver Updates_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Auto Approve Driver Updates_Scheduled",
+    "RelativeRunbookPath": "org/devices/auto-approve-driver-updates_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Auto-approve new driver updates in Intune driver update policies",
+    "Description": "This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.",
+    "Notes": "Prerequisites:\n- Microsoft Graph BETA API access (driver update endpoints are in beta)\n- RJReport.EmailSender setting configured (if email notifications are used)\n\nCommon Use Cases:\n- Test filters first: Use WhatIf parameter to preview which drivers would be approved\n- Auto-approve all drivers: Run without any filter parameters\n- Approve specific manufacturers: Use DriverManufacturer to target vendors like \"Intel\" or \"AMD\"\n- Target specific policies: Use PolicyNames or PolicyIds to scope to test policies first\n- Monitor approvals: Configure EmailTo to receive detailed reports after each run\n\nParameter Interactions:\n- If no policy filter is specified, ALL driver update policies are processed\n- If no driver filter is specified, ALL pending drivers in selected policies are approved\n- PolicyNames and PolicyIds can be combined - both filters apply independently\n- Email notifications require RJReport.EmailSender setting and Connect-RjRbGraph\n- WhatIf mode simulates approvals without making changes - useful for testing filters",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system initiating the runbook. Used for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Filter by driver class IDs (comma-separated). Example: \"Bluetooth,Networking,Firmware\" for specific driver classes."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverClass",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverDisplayNamePattern",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverManufacturer",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for notifications. This parameter is backed by a setting and should not be modified directly."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Recipient email address for approval notifications. If not specified, no email is sent."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "0",
+        "description": [
+          {
+            "Text": "(Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaximumDriverAge",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), only drivers with status \"needsReview\" are approved. Drivers with status \"suspended\" or \"declined\" are skipped. Disable to also re-approve suspended or declined drivers."
+          }
+        ],
+        "globbing": "false",
+        "name": "OnlyNeedsReview",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., \"id1, id2, id3\"). If not specified, all policies are processed."
+          }
+        ],
+        "globbing": "false",
+        "name": "PolicyIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "(Optional) Comma-separated list of driver update policy names to scope the approval (e.g., \"Policy1, Policy2, Policy3\"). If not specified, all policies are processed."
+          }
+        ],
+        "globbing": "false",
+        "name": "PolicyNames",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "(Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIf",
+        "parameterValue": "SwitchParameter",
+        "pipelineInput": "false",
+        "position": "named",
+        "required": "false",
+        "type": {
+          "name": "SwitchParameter"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Create Endpoint Analytics Baseline",
+    "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
+    "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.",
+    "Description": "This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: \"EA-Baseline-{Year}-{Month}\" or \"Analytics-{Date}\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "BaselineNamingSchema",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveOldestBaseline",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",
@@ -9448,7 +9746,7 @@
           }
         ],
         "globbing": "false",
-        "name": "includeExhange",
+        "name": "includeExchange",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "2",
@@ -9913,6 +10211,70 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "DeviceManagementManagedDevices.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Sync Apple Tokens",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Apple Tokens",
+    "RelativeRunbookPath": "org/general/sync-apple-tokens.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Sync Apple Enrollment Program Tokens and VPP Tokens with Intune",
+    "Description": "This runbook triggers synchronization of Apple tokens in Microsoft Intune. It can sync Apple Enrollment Program (ADE) tokens, Volume Purchase Program (VPP) tokens, or both. The sync ensures that Intune has the latest information from Apple Business Manager regarding device enrollments and app licenses.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Automated parameter for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "Both",
+        "description": [
+          {
+            "Text": "Select which token type(s) to synchronize with Apple Business Manager."
+          }
+        ],
+        "globbing": "false",
+        "name": "SyncType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n\t\"Permissions\": [\n\t\t{\n\t\t\t\"Name\": \"Microsoft Graph\",\n\t\t\t\"Id\": \"00000003-0000-0000-c000-000000000000\",\n\t\t\t\"AppRoleAssignments\": [\n\t\t\t\t\"DeviceManagementApps.ReadWrite.All\",\n\t\t\t\t\"DeviceManagementServiceConfig.ReadWrite.All\"\n\t\t\t]\n\t\t}\n\t],\n\t\"Roles\": [],\n\t\"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementApps.ReadWrite.All",
+            "DeviceManagementServiceConfig.ReadWrite.All"
           ]
         }
       ],
@@ -17232,7 +17594,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Create a temporary access pass for a user",
-    "Description": "Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one.",
+    "Description": "Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one. Optionally sends a notification email to the user's primary email address informing them about the newly created TAP. The email language is automatically determined by the user's usage location.",
     "Notes": null,
     "Parameters": [
       {
@@ -17246,8 +17608,25 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "9",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -17256,7 +17635,7 @@
         "defaultValue": "240",
         "description": [
           {
-            "Text": "Lifetime of the temporary access pass in minutes."
+            "Text": "Lifetime of the temporary access pass in minutes. Valid values are between 60 and 480 minutes (1-8 hours)."
           }
         ],
         "globbing": "false",
@@ -17267,6 +17646,23 @@
         "required": "false",
         "type": {
           "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, sends a notification email to the user's primary email address about the newly created TAP."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -17290,6 +17686,57 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk display name for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "User principal name of the target user."
           }
         ],
@@ -17304,8 +17751,8 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
+    "DocsContent": "## Activate user notification\n\nThis runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_create-temporary-access-pass\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBzZW5kcyBhbiBlbWFpbCB0byB0aGUgdXNlciB3aXRoIHRoZSB0ZW1wb3JhcnkgYWNjZXNzIHBhc3MuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9jcmVhdGUtdGVtcG9yYXJ5LWFjY2Vzcy1wYXNzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClRoaXMgcHJvY2VzcyBpcyBkZXNjcmliZWQgaW4gZGV0YWlsIGluIHRoZSBbU2V0dXAgRW1haWwgUmVwb3J0aW5nXShodHRwczovL2dpdGh1Yi5jb20vcmVhbG1qb2luL3JlYWxtam9pbi1ydW5ib29rcy90cmVlL21hc3Rlci9kb2NzL2dlbmVyYWwvc2V0dXAtZW1haWwtcmVwb3J0aW5nLm1kKSBkb2N1bWVudGF0aW9uLgo=",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [

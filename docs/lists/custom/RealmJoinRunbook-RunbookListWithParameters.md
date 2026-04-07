@@ -186,6 +186,20 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DeviceDescripton |  | String | Optional description stored for the imported identity. |
 |  |  |  |  |  |  | OverwriteExistingEntry |  | Boolean | If set to true, an existing entry for the same identifier will be overwritten. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | PolicyNames |  | String | (Optional) Comma-separated list of driver update policy names to scope the approval (e.g., "Policy1, Policy2, Policy3"). If not specified, all policies are processed. |
+|  |  |  |  |  |  | PolicyIds |  | String | (Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., "id1, id2, id3"). If not specified, all policies are processed. |
+|  |  |  |  |  |  | DriverDisplayNamePattern |  | String | (Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved. |
+|  |  |  |  |  |  | DriverClass |  | String | (Optional) Filter by driver class IDs (comma-separated). Example: "Bluetooth,Networking,Firmware" for specific driver classes. |
+|  |  |  |  |  |  | DriverManufacturer |  | String | (Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved. |
+|  |  |  |  |  |  | MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
+|  |  |  |  |  |  | OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
+|  |  |  |  |  |  | WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
+|  |  |  |  |  |  | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+|  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br> |  | BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
+|  |  |  |  |  |  | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
@@ -415,7 +429,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-|  |  |  |  |  |  | includeExhange |  | Boolean | If set to true, includes Exchange Online related reports. |
+|  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
 |  |  |  |  |  |  | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 |  |  |  |  |  |  | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 |  |  |  |  |  |  | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
@@ -438,6 +452,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | sendAlertTo |  | String | Recipient email address for the report. |
 |  |  |  |  |  |  | sendAlertFrom |  | String | Sender mailbox UPN used to send the report email. |
 |  |  | Sync All Devices | Sync all Intune Windows devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Automated parameter for auditing purposes. |
 |  | Mail | Add Distribution List | Create a classic distribution group | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | Alias | ✓ | String | Mail alias (mail nickname) for the distribution group. |
 |  |  |  |  |  |  | PrimarySMTPAddress |  | String | Optional primary SMTP address for the distribution group. |
 |  |  |  |  |  |  | GroupName |  | String | Optional display name for the distribution group; defaults to the alias. |
@@ -772,8 +788,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Dismiss |  | Boolean | "Confirm compromise" (final value: $false) or "Dismiss risk" (final value: $true) can be selected as action to perform. If set to true, the runbook will attempt to dismiss the risky user entry for the target user. If set to false, it will attempt to confirm a compromise for the target user. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
-|  |  |  |  |  |  | LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. |
+|  |  |  |  |  |  | LifetimeInMinutes |  | Int32 | Lifetime of the temporary access pass in minutes. Valid values are between 60 and 480 minutes (1-8 hours). |
 |  |  |  |  |  |  | OneTimeUseOnly |  | Boolean | If set to true, the pass can be used only once. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | If enabled, sends a notification email to the user's primary email address about the newly created TAP. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |

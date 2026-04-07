@@ -73,7 +73,7 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $Version = "1.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-function ConvertToMarkdown-PolicyAssignments {
+function ConvertTo-MarkdownPolicyAssignment {
     param(
         $assignments
     )
@@ -134,7 +134,7 @@ function ConvertToMarkdown-PolicyAssignments {
 
 }
 
-function ConvertToMarkdown-CompliancePolicy {
+function ConvertTo-MarkdownCompliancePolicy {
     # https://graph.microsoft.com/v1.0/deviceManagement/deviceCompliancePolicies
 
     # https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-windows10compliancepolicy?view=graph-rest-1.0
@@ -447,10 +447,10 @@ function ConvertToMarkdown-CompliancePolicy {
     # get the policy's assignments
     $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"
 
-    ConvertToMarkdown-PolicyAssignments -assignments $assignments
+    ConvertTo-MarkdownPolicyAssignment -assignments $assignments
 }
 
-function ConvertToMarkdown-ConditionalAccessPolicy {
+function ConvertTo-MarkdownConditionalAccessPolicy {
     param(
         $policy
     )
@@ -724,7 +724,7 @@ function ConvertToMarkdown-ConditionalAccessPolicy {
 
 }
 
-function ConvertToMarkdown-ConfigurationPolicy {
+function ConvertTo-MarkdownConfigurationPolicy {
 
     param(
         $policy
@@ -891,10 +891,10 @@ function ConvertToMarkdown-ConfigurationPolicy {
     # get the policy's assignments
     $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
 
-    ConvertToMarkdown-PolicyAssignments -assignments $assignments
+    ConvertTo-MarkdownPolicyAssignment -assignments $assignments
 }
 
-function ConvertToMarkdown-DeviceConfiguration {
+function ConvertTo-MarkdownDeviceConfiguration {
     param(
         [Parameter(Mandatory = $true)]
         $policy
@@ -999,10 +999,10 @@ function ConvertToMarkdown-DeviceConfiguration {
     # get the policy's assignments
     $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
 
-    ConvertToMarkdown-PolicyAssignments -assignments $assignments
+    ConvertTo-MarkdownPolicyAssignment -assignments $assignments
 }
 
-function ConvertToMarkdown-GroupPolicyConfiguration {
+function ConvertTo-MarkdownGroupPolicyConfiguration {
     param(
         $policy
     )
@@ -1092,7 +1092,7 @@ function ConvertToMarkdown-GroupPolicyConfiguration {
     # get the policy's assignments
     try {
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
-        ConvertToMarkdown-PolicyAssignments -assignments $assignments
+        ConvertTo-MarkdownPolicyAssignment -assignments $assignments
     }
     catch {}
 }
@@ -1179,7 +1179,7 @@ foreach ($policy in $policies.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    (ConvertToMarkdown-ConfigurationPolicy -policy $policy) >> $outputFileMarkdown
+    (ConvertTo-MarkdownConfigurationPolicy -policy $policy) >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
@@ -1201,7 +1201,7 @@ foreach ($policy in $deviceConfigurations.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    ConvertToMarkdown-DeviceConfiguration -policy $policy >> $outputFileMarkdown
+    ConvertTo-MarkdownDeviceConfiguration -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
@@ -1225,7 +1225,7 @@ foreach ($policy in $groupPolicyConfigurations.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    ConvertToMarkdown-GroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
+    ConvertTo-MarkdownGroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
@@ -1247,7 +1247,7 @@ foreach ($policy in $compliancePolicies.value) {
         $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
-    ConvertToMarkdown-CompliancePolicy -policy $policy >> $outputFileMarkdown
+    ConvertTo-MarkdownCompliancePolicy -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
@@ -1267,7 +1267,7 @@ foreach ($policy in $conditionalAccessPolicies.value) {
     if ($exportJson) {
         $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8
     }
-    ConvertToMarkdown-ConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
+    ConvertTo-MarkdownConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
         "" >> $outputFileMarkdown
         "\pagebreak" >> $outputFileMarkdown
