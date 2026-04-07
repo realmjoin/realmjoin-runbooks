@@ -65,6 +65,8 @@ if ((-not $result) -or (-not $result.credentials) -or ($result.credentials.Count
 "## Reporting LAPS credentials for Device $($result.deviceName) (DeviceId '$DeviceId')"
 "## Please ensure, the passwords are rotated after use."
 ""
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "accountName")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "password")]
 [string] $accountName = ""
 [string] $password = ""
 [datetime] $backupDateTime = [datetime]::MinValue
