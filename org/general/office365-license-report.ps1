@@ -9,7 +9,7 @@
     .PARAMETER printOverview
     If set to true, prints a short license usage overview.
 
-    .PARAMETER includeExhange
+    .PARAMETER includeExchange
     If set to true, includes Exchange Online related reports.
 
     .PARAMETER exportToFile
@@ -103,7 +103,7 @@ param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
     [bool] $printOverview = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include Exchange Reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
-    [bool] $includeExhange = $false,
+    [bool] $includeExchange = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports to Az Storage Account?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports as single ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
@@ -130,7 +130,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Sanity checks

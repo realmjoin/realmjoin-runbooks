@@ -54,7 +54,10 @@ foreach ($userUPN in $UserPrincipalName) {
     # Get User ID from Microsoft Entra based on UPN
     Write-RjRbLog -Message "Fetching User Details for $userUPN" -Verbose
     "## Fetching User Details for $userUPN"
-    $userDetailsUri = "https://graph.microsoft.com/v1.0/users?`$filter=userPrincipalName eq '$userUPN'"
+
+    #Building the URI to get user details by UPN
+    #$userDetailsUri = "https://graph.microsoft.com/v1.0/users?`$filter=userPrincipalName eq '$userUPN'"
+
     $userResponse = Invoke-RjRbRestMethodGraph -Resource "/users" -OdFilter "userPrincipalName eq '$userUPN'"
     $userId = $userResponse.id
     if ($userId) {
@@ -91,7 +94,10 @@ foreach ($userUPN in $UserPrincipalName) {
         $policyId = $policy.id
 
         Write-RjRbLog -Message "Processing Policy: $policyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
+
+        #Construct the URI to get assignments for the current policy
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$policyId')/assignments"
+
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/configurationPolicies('$policyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -124,7 +130,10 @@ foreach ($userUPN in $UserPrincipalName) {
         $groupPolicyId = $grouppolicy.id
 
         Write-RjRbLog -Message "Processing Group Policy: $groupPolicyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
+
+        #Construct the URI to get assignments for the current group policy
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments"
+
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/groupPolicyConfigurations('$groupPolicyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -156,7 +165,10 @@ foreach ($userUPN in $UserPrincipalName) {
         $configId = $config.id
 
         Write-RjRbLog -Message "Processing Device Configuration: $configName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
+
+        #Construct the URI to get assignments for the current device configuration
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('$configId')/assignments"
+
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceConfigurations('$configId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -189,7 +201,10 @@ foreach ($userUPN in $UserPrincipalName) {
         $compliancepolicyId = $compliancepolicy.id
 
         Write-RjRbLog -Message "Processing Compliance Policy: $compliancepolicyName" -Verbose
-        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
+
+        #Construct the URI to get assignments for the current compliance policy
+        #$assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments"
+
         $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/deviceCompliancePolicies('$compliancepolicyId')/assignments" -Beta
 
         foreach ($assignment in $assignmentResponse) {
@@ -213,7 +228,7 @@ foreach ($userUPN in $UserPrincipalName) {
             Write-RjRbLog -Message "Processing Application: $appName" -Verbose
 
             # Construct the URI to get assignments for the current app
-            $assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
+            #$assignmentsUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps('$appId')/assignments"
 
             # Fetch the assignments for the app
             $assignmentResponse = Invoke-RjRbRestMethodGraph -Resource "/deviceAppManagement/mobileApps('$appId')/assignments" -Beta

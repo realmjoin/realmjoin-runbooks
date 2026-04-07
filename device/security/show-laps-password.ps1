@@ -27,6 +27,9 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - variables are assigned inside ForEach-Object but used afterwards
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "accountName")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "password")]
 param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
@@ -65,9 +68,6 @@ if ((-not $result) -or (-not $result.credentials) -or ($result.credentials.Count
 "## Reporting LAPS credentials for Device $($result.deviceName) (DeviceId '$DeviceId')"
 "## Please ensure, the passwords are rotated after use."
 ""
-# Suppress false positive from PSScriptAnalyzer - variables are assigned inside ForEach-Object but used afterwards
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "accountName")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "password")]
 [string] $accountName = ""
 [string] $password = ""
 [datetime] $backupDateTime = [datetime]::MinValue

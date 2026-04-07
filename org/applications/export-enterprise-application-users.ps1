@@ -216,7 +216,7 @@ function Publish-RjRbFileToStorageContainer {
         # Make sure container exists
         $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
         if (-not $container) {
-            "## Creating Azure Storage Account Container $($ContainerName)"
+            Write-Verbose "## Creating Azure Storage Account Container $($ContainerName)"
             try {
                 $container = New-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction Stop
             }

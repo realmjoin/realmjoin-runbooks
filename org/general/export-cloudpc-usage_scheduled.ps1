@@ -125,10 +125,7 @@ function Save-ToDataTable {
         [Parameter(Mandatory = $true)]
         [hashtable]$Properties,
 
-        [Parameter(Mandatory = $false, ParameterSetName = 'Update')]
-        [switch]$Update,
-
-        [Parameter(Mandatory = $false, ParameterSetName = 'Merge')]
+        [Parameter(Mandatory = $false)]
         [switch]$Merge
     )
 
