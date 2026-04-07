@@ -271,7 +271,7 @@ function Get-UnusedLicenseReport {
     }
     catch {
         "## Error fetching unused licenses"
-        $_.Exception.Message
+        "$($_.Exception.Message)"
         "## Maybe missing MS Graph permission: Reports.Read.All"
     }
 }
@@ -321,8 +321,8 @@ function Get-GraphReports {
         }
     }
     catch {
-        Write-Host "## Error while fetching MS Graph Reports"
-        Write-Host $_.Exception.Message
+        "## Error while fetching MS Graph Reports"
+        "$($_.Exception.Message)"
     }
 }
 
