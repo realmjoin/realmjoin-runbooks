@@ -46,6 +46,8 @@
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 
+# Suppress false positive from PSScriptAnalyzer - $blob is used to suppress unwanted output from Set-AzStorageBlobContent
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "blob")]
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
@@ -1318,7 +1320,7 @@ if ($exportJson) {
 # Upload JSON archive
 if ($exportJson) {
     $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.zip"
-    $blob = Set-AzStorageBlobContent -File "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-policy-report.zip" -Container $ContainerName -Blob $blobname -Context $context -Force
+    $blob = Set-AzStorageBlobContent -File "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-policy-report.zip" -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
     if ($produceLinks) {
         #Create signed (SAS) link
         $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
@@ -1342,7 +1344,7 @@ $content | Set-Content -Path $outputFileMarkdown -Encoding UTF8
 
 # Upload markdown file
 $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
-$blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force
+$blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
 if ($produceLinks) {
     #Create signed (SAS) link
     $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
