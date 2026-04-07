@@ -46,7 +46,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph -Force
 
-function Enroll-Device {
+function Register-Device {
     param (
         [string]$DeviceId,
         [string]$UpdateCategory
@@ -79,4 +79,4 @@ function Enroll-Device {
     }
 }
 
-Enroll-Device -DeviceId $DeviceId -UpdateCategory $UpdateCategory
+Register-Device -DeviceId $DeviceId -UpdateCategory $UpdateCategory
