@@ -1311,7 +1311,7 @@ Generate an Office 365 licensing report
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-| includeExhange |  | Boolean | If set to true, includes Exchange Online related reports. |
+| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
 | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
