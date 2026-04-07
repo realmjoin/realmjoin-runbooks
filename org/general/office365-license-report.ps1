@@ -293,7 +293,7 @@ function Get-SharedMailboxLicensing {
     set-content -Path $CSVPath -Value $content -Encoding utf8
 }
 
-function Get-GraphReports {
+function Get-GraphReport {
     param(
         [parameter(Mandatory = $true)][string]$CSVPath,
         $graphUris = ("/reports/getOffice365ServicesUserCounts(period='D90')",
@@ -328,7 +328,7 @@ function Get-GraphReports {
     }
 }
 
-function Get-LoginLogs {
+function Get-LoginLog {
     param(
         [parameter(Mandatory = $true)][string]$CSVPath,
         $Applications = ("Power BI Premium",
@@ -360,7 +360,7 @@ function Get-LoginLogs {
     }
 }
 
-function Get-AssignedPlans {
+function Get-AssignedPlan {
     [cmdletbinding()]
     param(
         [parameter(Mandatory = $true)][string]$CSVPath
@@ -402,7 +402,7 @@ function Get-LicenseAssignmentPath {
     $content = Get-Content $Path
     set-content -Path $Path -value $content -Encoding utf8
 }
-function Get-LicensingGroups {
+function Get-LicensingGroup {
     [cmdletbinding()]
     param(
         [parameter(Mandatory = $true)][string]$CSVPath
@@ -488,10 +488,10 @@ if ($exportToFile) {
     }
 
     "## Collecting: MS Graph Reports"
-    Get-GraphReports -CSVPath $OutPutPath
+    Get-GraphReport -CSVPath $OutPutPath
 
     "## Collecting: Login Logs"
-    Get-LoginLogs -CSVPath $OutPutPath
+    Get-LoginLog -CSVPath $OutPutPath
 
     "## Collecting: All user objects"
     Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
@@ -499,10 +499,10 @@ if ($exportToFile) {
     set-content -Path $OutPutPath"\AllUser.csv" -value $content -Encoding utf8
 
     "## Collecting: Assigned License Plans"
-    Get-AssignedPlans -CSVPath $OutPutPath
+    Get-AssignedPlan -CSVPath $OutPutPath
 
     "## Collecting: Licensing Groups"
-    Get-LicensingGroups -CSVPath $OutPutPath
+    Get-LicensingGroup -CSVPath $OutPutPath
 
     "## Collecting: Directly vs. Group assigned Licenses"
     Get-LicenseAssignmentPath -CSVPath $OutPutPath
