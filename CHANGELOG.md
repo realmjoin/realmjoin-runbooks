@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-09
+
+- Update **Add Defender Indicator** Runbook in Org/Security
+  - Fix logic issue regarding the alert handling.
+  - Optimized output of the runbook to provide clearer information about the created indicator and its status in Microsoft Defender.
+
 ## 2026-04-07
 
 - Optimize PSScriptAnalyzer checkability across several runbooks by:
