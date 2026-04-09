@@ -7,6 +7,7 @@ The naming format is: `rjgit-<folder>_<subfolder>_<runbookname>` (all lowercase,
 {
     "rjgit-device_avd_restart-host",
     "rjgit-device_avd_toggle-drain-mode",
+    "rjgit-device_general_assign-groups-by-template",
     "rjgit-device_general_change-grouptag",
     "rjgit-device_general_check-device-compliance",
     "rjgit-device_general_check-updatable-assets",

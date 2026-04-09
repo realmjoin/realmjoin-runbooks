@@ -5,7 +5,8 @@ This document provides an overview of the permissions and RBAC roles required fo
 |----------|-------------|--------------|----------|-------------|------------|
 | Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  |
-|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a device based on a template | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  |
+|  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  |  | Check Device Compliance | Check the compliance status of a device | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Organization.Read.All<br> |  |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |

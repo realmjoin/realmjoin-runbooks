@@ -165,6 +165,122 @@
     }
   },
   {
+    "RunbookDisplayName": "Assign Groups By Template",
+    "RunbookDisplayPath": "Device \\ General \\ Assign Groups By Template",
+    "RelativeRunbookPath": "device/general/assign-groups-by-template.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Assign cloud-only groups to a device based on a template",
+    "Description": "Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name is tracked purely for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "ID of the target device in Microsoft Graph."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of group object IDs or group display names."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupsString",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Template selector used by portal customization to populate the group list."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupsTemplate",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "If set to true, treats values in GroupsString as group display names instead of IDs."
+          }
+        ],
+        "globbing": "false",
+        "name": "UseDisplaynames",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\r\n    \"Permissions\": [\r\n        {\r\n            \"Name\": \"Microsoft Graph\",\r\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\r\n            \"AppRoleAssignments\": [\r\n                \"Device.Read.All\",\r\n                \"Group.Read.All\",\r\n                \"GroupMember.ReadWrite.All\"\r\n            ]\r\n        }\r\n    ],\r\n    \"Roles\": [],\r\n    \"ManualPermissions\": []\r\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "Group.Read.All",
+            "GroupMember.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Change Grouptag",
     "RunbookDisplayPath": "Device \\ General \\ Change Grouptag",
     "RelativeRunbookPath": "device/general/change-groupTag.ps1",

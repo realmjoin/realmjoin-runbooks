@@ -17,6 +17,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Restart Host](#restart-host)
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
+      - [Assign Groups By Template](#assign-groups-by-template)
       - [Change Grouptag](#change-grouptag)
       - [Check Device Compliance](#check-device-compliance)
       - [Check Updatable Assets](#check-updatable-assets)
@@ -233,6 +234,23 @@ Device \ AVD \ Toggle Drain Mode
 <a name='device-general'></a>
 
 ## General
+<a name='device-general-assign-groups-by-template'></a>
+
+### Assign Groups By Template
+#### Assign cloud-only groups to a device based on a template
+
+#### Description
+Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
+
+#### Where to find
+Device \ General \ Assign Groups By Template
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-general-change-grouptag'></a>
 
 ### Change Grouptag

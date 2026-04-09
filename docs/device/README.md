@@ -6,6 +6,7 @@
   - [Toggle Drain Mode](avd/toggle-drain-mode.md)
 <a name='device-general'></a>
 ## General
+  - [Assign Groups By Template](general/assign-groups-by-template.md)
   - [Change Grouptag](general/change-grouptag.md)
   - [Check Device Compliance](general/check-device-compliance.md)
   - [Check Updatable Assets](general/check-updatable-assets.md)

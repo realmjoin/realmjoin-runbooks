@@ -16,6 +16,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Restart Host](#device-avd-restart-host)
     - [Toggle Drain Mode](#device-avd-toggle-drain-mode)
   - [General](#device-general)
+    - [Assign Groups By Template](#device-general-assign-groups-by-template)
     - [Change Grouptag](#device-general-change-grouptag)
     - [Check Device Compliance](#device-general-check-device-compliance)
     - [Check Updatable Assets](#device-general-check-updatable-assets)
@@ -216,6 +217,19 @@ Sets Drainmode on true or false for a specific AVD Session Host.
 
 <a name='device-general'></a>
 ## General
+
+<a name='device-general-assign-groups-by-template'></a>
+
+### Assign Groups By Template
+Assign cloud-only groups to a device based on a template
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | ID of the target device in Microsoft Graph. |
+| GroupsTemplate |  | String | Template selector used by portal customization to populate the group list. |
+| GroupsString | ✓ | String | Comma-separated list of group object IDs or group display names. |
+| UseDisplaynames |  | Boolean | If set to true, treats values in GroupsString as group display names instead of IDs. |
+| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='device-general-change-grouptag'></a>
 

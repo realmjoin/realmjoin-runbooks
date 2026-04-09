@@ -16,6 +16,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Restart Host
     - Toggle Drain Mode
   - [General](#device-general)
+    - Assign Groups By Template
     - Change Grouptag
     - Check Device Compliance
     - Check Updatable Assets
@@ -199,6 +200,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## General
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Assign Groups By Template | Assign cloud-only groups to a device based on a template |
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 | Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |

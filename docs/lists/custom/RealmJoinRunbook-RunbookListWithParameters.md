@@ -10,7 +10,12 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DrainMode | ✓ | Boolean | Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false. |
 |  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
-|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a device based on a template | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | DeviceId | ✓ | String | ID of the target device in Microsoft Graph. |
+|  |  |  |  |  |  | GroupsTemplate |  | String | Template selector used by portal customization to populate the group list. |
+|  |  |  |  |  |  | GroupsString | ✓ | String | Comma-separated list of group object IDs or group display names. |
+|  |  |  |  |  |  | UseDisplaynames |  | Boolean | If set to true, treats values in GroupsString as group display names instead of IDs. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | newGroupTag |  | String | The new AutoPilot GroupTag to assign to the device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Check Device Compliance | Check the compliance status of a device | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Organization.Read.All<br> |  | DeviceId | ✓ | String | The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform. |

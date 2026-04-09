@@ -34,6 +34,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Toggle Drain Mode](docs/device/avd/toggle-drain-mode.md)
   - [General](docs/device/README.md#device-general)
 
+    - [Assign Groups By Template](docs/device/general/assign-groups-by-template.md)
     - [Change Grouptag](docs/device/general/change-grouptag.md)
     - [Check Device Compliance](docs/device/general/check-device-compliance.md)
     - [Check Updatable Assets](docs/device/general/check-updatable-assets.md)
