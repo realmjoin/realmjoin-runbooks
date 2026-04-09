@@ -5,6 +5,8 @@
 - Update **Add Defender Indicator** Runbook in Org/Security
   - Fix logic issue regarding the alert handling.
   - Optimized output of the runbook to provide clearer information about the created indicator and its status in Microsoft Defender.
+- Add **Assign Groups By Template** Runbook in device/general
+  - Adds a device to one or more Entra ID groups using either group object IDs or display names.
 
 ## 2026-04-07
 
