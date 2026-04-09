@@ -531,7 +531,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Description | ✓ | String | Description of the indicator entry. |
 |  |  |  |  |  |  | Action | ✓ | String | Action applied to the indicator. |
 |  |  |  |  |  |  | Severity | ✓ | String | Severity used for the indicator. |
-|  |  |  |  |  |  | GenerateAlert | ✓ | String | If set to true, an alert is generated when the indicator matches. |
+|  |  |  |  |  |  | GenerateAlert |  | Boolean | If set to true, an alert is generated when the indicator matches. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>Azure IaaS: Access to the given Azure Storage Account / Resource Group<br> |  | ContainerName |  | String | Name of the Azure Storage container; if omitted, a default name is generated. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Name of the Azure Resource Group containing the Storage Account. |
