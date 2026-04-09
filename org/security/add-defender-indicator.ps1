@@ -105,7 +105,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbDefenderATP -force
@@ -140,6 +140,20 @@ catch {
 
 
 if ($result) {
-    "## Creation Sucessfull"
-    $result
+    $resultSummary = [PSCustomObject][ordered]@{
+        Title           = $result.title
+        Description     = $result.description
+        IndicatorValue  = $result.indicatorValue
+        IndicatorType   = $result.indicatorType
+        Action          = $result.action
+        Severity        = $result.severity
+        GenerateAlert   = $result.generateAlert
+        IndicatorId     = $result.id
+        CreatedAt       = $result.creationTimeDateTimeUtc
+        LastUpdatedAt   = $result.lastUpdateTime
+    }
+
+    "## Creation Successful"
+    ""
+    $resultSummary | Format-List | Out-String
 }
