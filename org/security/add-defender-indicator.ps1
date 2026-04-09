@@ -96,8 +96,8 @@ param(
     [string] $Action = "Allowed",
     [Parameter(Mandatory = $true)]
     [string] $Severity = "Informational",
-    [Parameter(Mandatory = $true)]
-    [string] $GenerateAlert = $false,
+    [Parameter(Mandatory = $false)]
+    [bool] $GenerateAlert = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -105,18 +105,16 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbDefenderATP -force
 
-#If Action is Audit Generate-Alert must be set to "true"
-$generateAlert = $false
-
+#If Action is Audit or AlertAndBlock, GenerateAlert must be set to $true
 if ($Action.Contains("Audit") -or $Action.Contains("AlertAndBlock")) {
     "For the requested action it is necessary to generate an alert."
     "Changing generateAlert to $true"
-    $generateAlert = $true
+    $GenerateAlert = $true
 }
 
 $params = @{
@@ -125,7 +123,7 @@ $params = @{
     title          = $Title
     action         = $Action
     description    = $Description
-    generateAlert  = $generateAlert
+    generateAlert  = $GenerateAlert
     severity       = $Severity
 }
 
@@ -142,6 +140,20 @@ catch {
 
 
 if ($result) {
-    "## Creation Sucessfull"
-    $result
+    $resultSummary = [PSCustomObject][ordered]@{
+        Title           = $result.title
+        Description     = $result.description
+        IndicatorValue  = $result.indicatorValue
+        IndicatorType   = $result.indicatorType
+        Action          = $result.action
+        Severity        = $result.severity
+        GenerateAlert   = $result.generateAlert
+        IndicatorId     = $result.id
+        CreatedAt       = $result.creationTimeDateTimeUtc
+        LastUpdatedAt   = $result.lastUpdateTime
+    }
+
+    "## Creation Successful"
+    ""
+    $resultSummary | Format-List | Out-String
 }

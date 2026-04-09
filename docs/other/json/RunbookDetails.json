@@ -11869,12 +11869,12 @@
         ],
         "globbing": "false",
         "name": "GenerateAlert",
-        "parameterValue": "String",
+        "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "7",
-        "required": "true",
+        "required": "false",
         "type": {
-          "name": "String"
+          "name": "Boolean"
         }
       },
       {

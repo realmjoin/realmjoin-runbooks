@@ -75,8 +75,8 @@ If set to true, an alert is generated when the indicator matches.
 | Property | Value |
 |----------|-------|
 | Default Value | False |
-| Required | true |
-| Type | String |
+| Required | false |
+| Type | Boolean |
 
 
 [Back to Table of Content](../../../README.md)
