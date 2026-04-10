@@ -283,6 +283,9 @@ if ($phoneAM) {
         exit
     }
 }
+else {
+    Write-Output "No mobile phone MFA method is currently configured."
+}
 
 #endregion StatusQuo & Preflight-Check Part
 
