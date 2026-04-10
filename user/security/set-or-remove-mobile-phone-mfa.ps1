@@ -237,7 +237,7 @@ catch {
 # Resolve user details for display and to validate the user exists
 Write-Output "Resolving user details for '$($UserId)'..."
 try {
-    $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserId?`$select=id,userPrincipalName,displayName,userType" -Method Get
+    $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)?`$select=id,userPrincipalName,displayName,userType" -Method Get
 }
 catch {
     Write-Error "Failed to resolve user '$($UserId)': $($_.Exception.Message)" -ErrorAction Continue
@@ -261,7 +261,7 @@ Write-Output "---------------------"
 # Find existing mobile phone auth methods for user
 Write-Output "Getting current phone authentication methods for user '$($userPrincipalName)'..."
 try {
-    $phoneMethodsResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserId/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
+    $phoneMethodsResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
     $phoneAM = $phoneMethodsResponse.value | Select-Object -First 1
 }
 catch {
@@ -299,7 +299,7 @@ $body = @{
 if ($phoneAM) {
     if ($Remove) {
         try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserId/authentication/phoneMethods/$($phoneAM.id)" -Method Delete | Out-Null
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods/$($phoneAM.id)" -Method Delete | Out-Null
             Write-Output "Successfully removed mobile phone authentication number '$($phoneNumber)' from user '$($userPrincipalName)'."
         }
         catch {
@@ -309,7 +309,7 @@ if ($phoneAM) {
     }
     else {
         try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserId/authentication/phoneMethods/$($phoneAM.id)" -Method Patch -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods/$($phoneAM.id)" -Method Patch -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
             Write-Output "Successfully updated mobile phone authentication number '$($phoneNumber)' for user '$($userPrincipalName)'."
         }
         catch {
@@ -332,7 +332,7 @@ else {
     }
     else {
         try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserId/authentication/phoneMethods" -Method Post -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods" -Method Post -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
             Write-Output "Successfully added mobile phone authentication number '$($phoneNumber)' to user '$($userPrincipalName)'."
         }
         catch {
