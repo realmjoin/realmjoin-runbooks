@@ -235,7 +235,6 @@ catch {
 ############################################################
 
 # Resolve user details for display and to validate the user exists
-Write-Output "Resolving user details for '$($UserId)'..."
 try {
     $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)?`$select=id,userPrincipalName,displayName,userType" -Method Get
 }
@@ -245,27 +244,28 @@ catch {
 }
 $userPrincipalName = $targetUser.userPrincipalName
 $userDisplayName = $targetUser.displayName
+Write-Output "User: '$($userDisplayName)' ($($userPrincipalName))"
 if ($targetUser.userType -eq 'Guest') {
     Write-Output "Note: User '$($userDisplayName)' ($($userPrincipalName)) is a guest user."
 }
 
 Write-Output ""
 if ($Remove) {
-    Write-Output "Trying to remove phone MFA number '$($phoneNumber)' from user '$($userPrincipalName)'."
+    Write-Output "Trying to remove phone MFA number '$($phoneNumber)'."
 }
 else {
-    Write-Output "Trying to add phone MFA number '$($phoneNumber)' to user '$($userPrincipalName)'."
+    Write-Output "Trying to add phone MFA number '$($phoneNumber)'."
 }
 Write-Output "---------------------"
 
 # Find existing mobile phone auth methods for user
-Write-Output "Getting current phone authentication methods for user '$($userPrincipalName)'..."
+Write-Output "Getting current phone authentication methods..."
 try {
     $phoneMethodsResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
     $phoneAM = $phoneMethodsResponse.value | Select-Object -First 1  # At most one mobile phone method per user
 }
 catch {
-    Write-Error "Failed to retrieve phone authentication methods for user '$($userPrincipalName)': $($_.Exception.Message)"
+    Write-Error "Failed to retrieve phone authentication methods: $($_.Exception.Message)"
     throw
 }
 
@@ -277,7 +277,7 @@ if ($phoneAM) {
     Write-Output ""
     $existingNumber = $phoneAM.phoneNumber -replace '\s', ''
     if ($existingNumber -eq $phoneNumber -and -not $Remove) {
-        Write-Output "Phone number '$($phoneNumber)' is already assigned to user '$($userPrincipalName)'. No changes needed."
+        Write-Output "Phone number '$($phoneNumber)' is already assigned to '$($userDisplayName)'. No changes needed."
         Write-Output ""
         Write-Output "Done!"
         exit
@@ -304,7 +304,7 @@ if ($phoneAM) {
     if ($Remove) {
         try {
             Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods/$($phoneAM.id)" -Method Delete | Out-Null
-            Write-Output "Successfully removed mobile phone authentication number '$($phoneNumber)' from user '$($userPrincipalName)'."
+            Write-Output "Successfully removed mobile phone authentication number '$($phoneNumber)' from '$($userDisplayName)'."
         }
         catch {
             Write-Error "Failed to remove phone MFA method: $($_.Exception.Message)" -ErrorAction Continue
@@ -314,7 +314,7 @@ if ($phoneAM) {
     else {
         try {
             Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods/$($phoneAM.id)" -Method Patch -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
-            Write-Output "Successfully updated mobile phone authentication number '$($phoneNumber)' for user '$($userPrincipalName)'."
+            Write-Output "Successfully updated mobile phone authentication number '$($phoneNumber)' for '$($userDisplayName)'."
         }
         catch {
             $fullErrorMessage = "$($_.ErrorDetails.Message) $($_.Exception.Message)"
@@ -332,12 +332,12 @@ if ($phoneAM) {
 }
 else {
     if ($Remove) {
-        Write-Output "Number '$($phoneNumber)' not found as mobile phone MFA factor for '$($userPrincipalName)'."
+        Write-Output "Number '$($phoneNumber)' not found as mobile phone MFA factor for '$($userDisplayName)'."
     }
     else {
         try {
             Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods" -Method Post -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
-            Write-Output "Successfully added mobile phone authentication number '$($phoneNumber)' to user '$($userPrincipalName)'."
+            Write-Output "Successfully added mobile phone authentication number '$($phoneNumber)' to '$($userDisplayName)'."
         }
         catch {
             $fullErrorMessage = "$($_.ErrorDetails.Message) $($_.Exception.Message)"
