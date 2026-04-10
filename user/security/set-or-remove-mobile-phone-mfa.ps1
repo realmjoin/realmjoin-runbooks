@@ -262,7 +262,7 @@ Write-Output "---------------------"
 Write-Output "Getting current phone authentication methods for user '$($userPrincipalName)'..."
 try {
     $phoneMethodsResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
-    $phoneAM = $phoneMethodsResponse.value | Select-Object -First 1
+    $phoneAM = $phoneMethodsResponse.value | Select-Object -First 1  # At most one mobile phone method per user
 }
 catch {
     Write-Error "Failed to retrieve phone authentication methods for user '$($userPrincipalName)': $($_.Exception.Message)"
@@ -271,6 +271,10 @@ catch {
 
 # Check if the number is already assigned to this user (strip whitespace for comparison)
 if ($phoneAM) {
+    Write-Output "Current mobile phone MFA method:"
+    Write-Output "  Phone Number:       $($phoneAM.phoneNumber)"
+    Write-Output "  SMS Sign-In State:  $($phoneAM.smsSignInState)"
+    Write-Output ""
     $existingNumber = $phoneAM.phoneNumber -replace '\s', ''
     if ($existingNumber -eq $phoneNumber -and -not $Remove) {
         Write-Output "Phone number '$($phoneNumber)' is already assigned to user '$($userPrincipalName)'. No changes needed."
