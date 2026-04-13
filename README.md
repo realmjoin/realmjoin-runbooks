@@ -52,6 +52,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)
     - [Restrict Or Release Code Execution](docs/device/security/restrict-or-release-code-execution.md)
     - [Show Bitlocker Recovery Key](docs/device/security/show-bitlocker-recovery-key.md)
+    - [Show Filevault Recovery Key](docs/device/security/show-filevault-recovery-key.md)
     - [Show Laps Password](docs/device/security/show-laps-password.md)
 - [Group](docs/group/README.md)
   - [Devices](docs/group/README.md#group-devices)

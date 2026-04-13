@@ -1741,6 +1741,70 @@
     }
   },
   {
+    "RunbookDisplayName": "Show Filevault Recovery Key",
+    "RunbookDisplayPath": "Device \\ Security \\ Show Filevault Recovery Key",
+    "RelativeRunbookPath": "device/security/show-filevault-recovery-key.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Display macOS FileVault recovery key",
+    "Description": "Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the person running this runbook"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Azure AD Device ID of the macOS device"
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n\t\"Permissions\": [\n\t\t{\n\t\t\t\"Name\": \"Microsoft Graph\",\n\t\t\t\"Id\": \"00000003-0000-0000-c000-000000000000\",\n\t\t\t\"AppRoleAssignments\": [\n\t\t\t\t\"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n\t\t\t\t\"DeviceManagementManagedDevices.Read.All\"\n\t\t\t]\n\t\t}\n\t],\n\t\"Roles\": [],\n\t\"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Show Laps Password",
     "RunbookDisplayPath": "Device \\ Security \\ Show Laps Password",
     "RelativeRunbookPath": "device/security/show-laps-password.ps1",

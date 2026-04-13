@@ -34,6 +34,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
       - [Restrict Or Release Code Execution](#restrict-or-release-code-execution)
       - [Show Bitlocker Recovery Key](#show-bitlocker-recovery-key)
+      - [Show Filevault Recovery Key](#show-filevault-recovery-key)
       - [Show Laps Password](#show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -515,6 +516,23 @@ Keys are sorted by creation date (newest first). Use it for disk recovery scenar
 
 #### Where to find
 Device \ Security \ Show Bitlocker Recovery Key
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-security-show-filevault-recovery-key'></a>
+
+### Show Filevault Recovery Key
+#### Display macOS FileVault recovery key
+
+#### Description
+Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.
+
+#### Where to find
+Device \ Security \ Show Filevault Recovery Key
 
 
 [Back to Table of Content](#table-of-contents)

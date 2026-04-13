@@ -33,6 +33,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
     - [Restrict Or Release Code Execution](#device-security-restrict-or-release-code-execution)
     - [Show Bitlocker Recovery Key](#device-security-show-bitlocker-recovery-key)
+    - [Show Filevault Recovery Key](#device-security-show-filevault-recovery-key)
     - [Show LAPS Password](#device-security-show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -414,6 +415,16 @@ Show all BitLocker recovery keys for a device
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | The device ID of the target device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-security-show-filevault-recovery-key'></a>
+
+### Show Filevault Recovery Key
+Display macOS FileVault recovery key
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The Azure AD Device ID of the macOS device |
+| CallerName | ✓ | String | The name of the person running this runbook |
 
 <a name='device-security-show-laps-password'></a>
 
