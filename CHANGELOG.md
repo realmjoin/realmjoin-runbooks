@@ -1,5 +1,17 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-13
+
+- Update **Set Or Remove Mobile Phone MFA** Runbook in User/Security
+  - Switch from UPN-based (`$UserName`) to Object ID-based (`$UserId`) user identification to fix 404 errors for guest users
+  - Add user resolution after connect to display UPN, display name and guest user status
+  - Add display of current phone method state (phone number and SMS Sign-In state) before making changes
+  - Restructure error handling for Graph API 409 Conflict / "phoneNumberNotUnique" errors: suppress error, wait, verify actual MFA assignment state, and report success with SMS Sign-In conflict note if MFA was assigned
+  - Add embedded `Find-PhoneNumberOwner` function to search for the user holding a phone number when MFA assignment truly fails
+- Update **Find SMS Auth Phone Number** Runbook in Org/Security
+  - Add dynamic progress interval based on total user count for batch processing output
+  - Update "not found" output to indicate that soft-deleted user accounts may still hold the phone number reservation
+
 ## 2026-04-09
 
 - Update **Add Defender Indicator** Runbook in Org/Security
