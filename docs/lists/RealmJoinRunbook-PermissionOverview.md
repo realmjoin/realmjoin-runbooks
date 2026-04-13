@@ -5,7 +5,8 @@ This document provides an overview of the permissions and RBAC roles required fo
 |----------|-------------|--------------|----------|-------------|------------|
 | Device | AVD | Restart Host | Reboots a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contributor on Subscription which contains the Hostpool<br> |  |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  |
-|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a device based on a template | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  |
+|  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  |  | Check Device Compliance | Check the compliance status of a device | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Organization.Read.All<br> |  |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
@@ -20,6 +21,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br> |  |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. | - **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br>&emsp;- Machine.RestrictExecution<br> |  |
 |  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device | - **Type**: Microsoft Graph<br>&emsp;- BitlockerKey.Read.All<br> |  |
+|  |  | Show Filevault Recovery Key | Display macOS FileVault recovery key | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  |
 |  |  | Show LAPS Password | Show a local admin password for a device. | - **Type**: Microsoft Graph<br>&emsp;- DeviceLocalCredential.Read.All<br> |  |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  |
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  |
@@ -45,6 +47,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Devices | Add Autopilot Device | Import a Windows device into Windows Autopilot | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  |
+|  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br> |  |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send<br> |  |

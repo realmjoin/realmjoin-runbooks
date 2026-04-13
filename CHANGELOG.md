@@ -1,5 +1,75 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-13
+
+- Update **Set Or Remove Mobile Phone MFA** Runbook in User/Security
+  - Switch from UPN-based (`$UserName`) to Object ID-based (`$UserId`) user identification to fix 404 errors for guest users
+  - Add user resolution after connect to display UPN, display name and guest user status
+  - Add display of current phone method state (phone number and SMS Sign-In state) before making changes
+  - Restructure error handling for Graph API 409 Conflict / "phoneNumberNotUnique" errors: suppress error, wait, verify actual MFA assignment state, and report success with SMS Sign-In conflict note if MFA was assigned
+  - Add embedded `Find-PhoneNumberOwner` function to search for the user holding a phone number when MFA assignment truly fails
+- Update **Find SMS Auth Phone Number** Runbook in Org/Security
+  - Add dynamic progress interval based on total user count for batch processing output
+  - Update "not found" output to indicate that soft-deleted user accounts may still hold the phone number reservation
+- Add **Show FileVault Recovery Key** Runbook to Device/Security
+  - This runbook retrieves and displays the FileVault recovery key for a specified Mac device.
+
+## 2026-04-09
+
+- Update **Add Defender Indicator** Runbook in Org/Security
+  - Fix logic issue regarding the alert handling.
+  - Optimized output of the runbook to provide clearer information about the created indicator and its status in Microsoft Defender.
+- Add **Assign Groups By Template** Runbook in Device/General
+  - Adds a device to one or more Entra ID groups using either group object IDs or display names.
+
+## 2026-04-07
+
+- Optimize PSScriptAnalyzer checkability across several runbooks by:
+  - Suppress false positive PSScriptAnalyzer warnings across multiple runbooks
+    - `PSUseDeclaredVarsMoreThanAssignments` for variables used inside ForEach-Object blocks or for output suppression
+    - `PSReviewUnusedParameter` for parameters used indirectly via Get-Variable or RJ Portal Customization
+    - `PSAvoidUsingPlainTextForPassword` for non-password type selector parameter
+  - Fix PSUseApprovedVerbs naming issues in internal functions by replacing non-approved verbs with approved ones
+  - Fix PSUseSingularNouns naming issues in internal functions through rename plural function names to singular
+  - Affected runbooks:
+    - **Show LAPS Password** - Device/Security
+    - **Enroll Updatable Assets** - Device/General
+    - **Unenroll Updatable Assets** - Device/General
+    - **Unenroll Updatable Assets (Scheduled)** - Group/Devices
+    - **Add Application Registration** - Org/Applications
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+    - **Update Application Registration** - Org/Applications
+    - **Outphase Devices** - Org/Devices
+    - **Add Devices Of Users To Group (Scheduled)** - Org/General
+    - **Add Primary Users Of Devices To Group (Scheduled)** - Org/General
+    - **Add Security Group** - Org/General
+    - **Add Viva Engage Community** - Org/General
+    - **Assign Groups By Template (Scheduled)** - Org/General
+    - **Check Assignments Of Devices** - Org/General
+    - **Check Assignments Of Users** - Org/General
+    - **Export CloudPC Usage (Scheduled)** - Org/General
+    - **Export Policy Report** - Org/General
+    - **Office365 License Report** - Org/General
+    - **Get Teams Phone Number Assignment** - Org/Phone
+    - **Backup Conditional Access Policies** - Org/Security
+    - **Assign Groups By Template** - User/General
+    - **Disable Teams Phone** - User/Phone
+    - **Get Teams User Info** - User/Phone
+    - **Set Teams Permanent Call Forwarding** - User/Phone
+    - **Update User** - User/Userinfo
+- Remove an unused parameter in an internal function in **Add Security Group** Runbook in Org/General
+- Simplify internal `Save-ToDataTable` function in **Export CloudPC Usage (Scheduled)** Runbook by consolidating parameter sets into a single optional switch
+- Fix typo in **Office 365 License Report** Runbook in Org/General
+- Fix severity parameter not being passed to the API in **Add Defender Indicator** Runbook in Org/Security
+- Output optimization in **Notify Changed CA Policies** Runbook in Org/Security
+- Fix fromMailAddress parameter not being passed to the API in **Resize Windows 365** Runbook in User/General
+
+## 2026-04-01
+
+- Add **Create Endpoint Analytics Baseline (Scheduled)** Runbook to org/devices section
+  - This runbook creates a new Endpoint Analytics Baseline in Microsoft Intune
+  - Naming Schema can be adjusted in the runbook parameters, e.g. to include a timestamp for better tracking of baseline versions
+
 ## 2026-03-27
 
 - Add **Auto Approve Driver Updates (Scheduled)** Runbook to org/devices section
@@ -202,7 +272,6 @@
 - Update general mail setup documentation
   - Improve clarity and detail on email configuration steps
 - Upgrade to List Application Credentials Expiry to Report Expiring Application Credentials (Scheduled) Runbook
-
 
 ## 2025-10-06
 
@@ -659,11 +728,10 @@
 ## 2022-10-20
 
 - Convert to shared mailbox:
-
-* Assign EXO E2 License if needed when converting to shared mailbox
-* Assign M365 Lic when converting back to user mailbox
-* Nicer output (UPN vs ID)
-* Remove groups when converting to shared mailbox
+  - Assign EXO E2 License if needed when converting to shared mailbox
+  - Assign M365 Lic when converting back to user mailbox
+  - Nicer output (UPN vs ID)
+  - Remove groups when converting to shared mailbox
 
 ## 2022-10-04
 
@@ -758,9 +826,6 @@
 ## 2022-05-16
 
 - new runbook: Export all Intune devices (to a storage account)
-
-## 2022-05-16
-
 - Many runbooks: Improve output
 - device wipe and device outphase: Show owner/user UPN for the device
 

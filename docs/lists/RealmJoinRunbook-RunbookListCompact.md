@@ -5,7 +5,8 @@ This document provides a comprehensive overview of all runbooks currently availa
 |----------|-------------|--------------|----------|
 | Device | AVD | Restart Host | Reboots a specific AVD Session Host. |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
-|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a device based on a template |
+|  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 |  |  | Check Device Compliance | Check the compliance status of a device |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
@@ -20,6 +21,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
 |  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
+|  |  | Show Filevault Recovery Key | Display macOS FileVault recovery key |
 |  |  | Show LAPS Password | Show a local admin password for a device. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. |
@@ -45,6 +47,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Devices | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+|  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |

@@ -34,6 +34,9 @@
 #Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
 #Requires -Modules @{ ModuleName = "Az.Resources"; ModuleVersion = "9.0.1" }
 
+# Suppress false positive from PSScriptAnalyzer - parameters are used inside the nested Get-StorageContext function
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "ResourceGroupName")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "StorageAccountName")]
 param(
     [string] $Table = 'CloudPCUsageV2',
     [Parameter(Mandatory = $true)]
@@ -122,10 +125,7 @@ function Save-ToDataTable {
         [Parameter(Mandatory = $true)]
         [hashtable]$Properties,
 
-        [Parameter(Mandatory = $false, ParameterSetName = 'Update')]
-        [switch]$Update,
-
-        [Parameter(Mandatory = $false, ParameterSetName = 'Merge')]
+        [Parameter(Mandatory = $false)]
         [switch]$Merge
     )
 

@@ -143,7 +143,7 @@ param(
 
     #region Get User Group Members
     ##############################
-    function Get-UserGroupMembers {
+    function Get-UserGroupMember {
         <#
             .SYNOPSIS
             Retrieves all user members of a group including nested memberships.
@@ -199,7 +199,7 @@ param(
 
     #region Retrieve Group Members
     ##############################
-    $UserGroupMembers = Get-UserGroupMembers -GroupId $UserGroupId
+    $UserGroupMembers = Get-UserGroupMember -GroupId $UserGroupId
     $UserGroupMemberCount = @($UserGroupMembers).Count
 
     if ($UserGroupMemberCount -eq 0) {

@@ -47,7 +47,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -68,7 +68,7 @@ foreach ($Policy in $AllPolicies) {
     $policyModifieddate = $Policy.modifiedDateTime
     $policyCreationdate = $Policy.createdDateTime
     if (($policyModifieddate -gt $Currentdate) -or ($policyCreationdate -gt $Currentdate)) {
-        write-host "------There are policies updated in the last 24 hours, please refer to txt file." -ForegroundColor Green
+        "## ------There are policies updated in the last 24 hours, please refer to txt file."
         IF (($policyModifieddate)) {
             #$Modifiedpolicies += $policy
             $Modifiedpolicies += "PolicyID:$($policy.ID) & Name:$($policy.DisplayName) & Modified date:$policyModifieddate"

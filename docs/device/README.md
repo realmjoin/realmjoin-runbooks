@@ -6,6 +6,7 @@
   - [Toggle Drain Mode](avd/toggle-drain-mode.md)
 <a name='device-general'></a>
 ## General
+  - [Assign Groups By Template](general/assign-groups-by-template.md)
   - [Change Grouptag](general/change-grouptag.md)
   - [Check Device Compliance](general/check-device-compliance.md)
   - [Check Updatable Assets](general/check-updatable-assets.md)
@@ -23,6 +24,7 @@
   - [Reset Mobile Device Pin](security/reset-mobile-device-pin.md)
   - [Restrict Or Release Code Execution](security/restrict-or-release-code-execution.md)
   - [Show Bitlocker Recovery Key](security/show-bitlocker-recovery-key.md)
+  - [Show Filevault Recovery Key](security/show-filevault-recovery-key.md)
   - [Show Laps Password](security/show-laps-password.md)
 
 [Back to Table of Content](../../README.md)

@@ -16,6 +16,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Restart Host
     - Toggle Drain Mode
   - [General](#device-general)
+    - Assign Groups By Template
     - Change Grouptag
     - Check Device Compliance
     - Check Updatable Assets
@@ -32,6 +33,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Reset Mobile Device Pin
     - Restrict Or Release Code Execution
     - Show Bitlocker Recovery Key
+    - Show Filevault Recovery Key
     - Show LAPS Password
 - [Group](#group)
   - [Devices](#group-devices)
@@ -65,6 +67,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
     - Auto Approve Driver Updates (Scheduled)
+    - Create Endpoint Analytics Baseline
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
     - Notify Users About Stale Devices (Scheduled)
@@ -198,6 +201,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## General
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Assign Groups By Template | Assign cloud-only groups to a device based on a template |
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 | Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
@@ -220,6 +224,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
 | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
+| Show Filevault Recovery Key | Display macOS FileVault recovery key |
 | Show LAPS Password | Show a local admin password for a device. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
@@ -291,6 +296,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+| Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |

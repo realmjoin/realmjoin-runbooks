@@ -10,7 +10,12 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DrainMode | ✓ | Boolean | Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false. |
 |  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
-|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a device based on a template | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | DeviceId | ✓ | String | ID of the target device in Microsoft Graph. |
+|  |  |  |  |  |  | GroupsTemplate |  | String | Template selector used by portal customization to populate the group list. |
+|  |  |  |  |  |  | GroupsString | ✓ | String | Comma-separated list of group object IDs or group display names. |
+|  |  |  |  |  |  | UseDisplaynames |  | Boolean | If set to true, treats values in GroupsString as group display names instead of IDs. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | newGroupTag |  | String | The new AutoPilot GroupTag to assign to the device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Check Device Compliance | Check the compliance status of a device | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Organization.Read.All<br> |  | DeviceId | ✓ | String | The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform. |
@@ -69,6 +74,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device | - **Type**: Microsoft Graph<br>&emsp;- BitlockerKey.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Show Filevault Recovery Key | Display macOS FileVault recovery key | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  | DeviceId | ✓ | String | The Azure AD Device ID of the macOS device |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the person running this runbook |
 |  |  | Show LAPS Password | Show a local admin password for a device. | - **Type**: Microsoft Graph<br>&emsp;- DeviceLocalCredential.Read.All<br> |  | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -197,6 +204,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
 |  |  |  |  |  |  | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+|  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br> |  | BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
+|  |  |  |  |  |  | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
@@ -426,7 +436,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-|  |  |  |  |  |  | includeExhange |  | Boolean | If set to true, includes Exchange Online related reports. |
+|  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
 |  |  |  |  |  |  | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 |  |  |  |  |  |  | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 |  |  |  |  |  |  | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
@@ -528,7 +538,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Description | ✓ | String | Description of the indicator entry. |
 |  |  |  |  |  |  | Action | ✓ | String | Action applied to the indicator. |
 |  |  |  |  |  |  | Severity | ✓ | String | Severity used for the indicator. |
-|  |  |  |  |  |  | GenerateAlert | ✓ | String | If set to true, an alert is generated when the indicator matches. |
+|  |  |  |  |  |  | GenerateAlert |  | Boolean | If set to true, an alert is generated when the indicator matches. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Backup Conditional Access Policies | Export Conditional Access policies to an Azure Storage account | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>Azure IaaS: Access to the given Azure Storage Account / Resource Group<br> |  | ContainerName |  | String | Name of the Azure Storage container; if omitted, a default name is generated. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Name of the Azure Resource Group containing the Storage Account. |
@@ -805,7 +815,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserId | ✓ | String | Object ID of the target user. |
 |  |  |  |  |  |  | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 |  |  |  |  |  |  | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

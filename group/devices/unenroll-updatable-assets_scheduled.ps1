@@ -77,7 +77,7 @@ Connect-RjRbGraph -Force
 #
 ############################################################
 
-function Get-RjRbGroupTransitiveMembers {
+function Get-RjRbGroupTransitiveMember {
     param(
         [Parameter(Mandatory = $true)]
         [string] $GroupId,
@@ -175,7 +175,7 @@ Write-Output "Fetching device members for Group ID: $GroupId"
 
 $processedDeviceIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
-$deviceObjects = Get-RjRbGroupTransitiveMembers -GroupId $GroupId -GraphTypeCast "microsoft.graph.device" -Select "id,displayName"
+$deviceObjects = Get-RjRbGroupTransitiveMember -GroupId $GroupId -GraphTypeCast "microsoft.graph.device" -Select "id,displayName"
 foreach ($deviceObject in @($deviceObjects)) {
     $DeviceId = Get-RjRbDeviceObjectId -DeviceObject $deviceObject
     $deviceName = [string] $deviceObject.displayName
@@ -194,7 +194,7 @@ if ($IncludeUserOwnedDevices) {
     # Get Group Members (Users)
     Write-Output "Fetching user members for Group ID: $GroupId"
 
-    $userObjects = Get-RjRbGroupTransitiveMembers -GroupId $GroupId -GraphTypeCast "microsoft.graph.user" -Select "id,displayName,userPrincipalName"
+    $userObjects = Get-RjRbGroupTransitiveMember -GroupId $GroupId -GraphTypeCast "microsoft.graph.user" -Select "id,displayName,userPrincipalName"
 
     foreach ($userObject in @($userObjects)) {
         $userId = [string] $userObject.id

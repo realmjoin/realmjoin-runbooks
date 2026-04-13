@@ -34,6 +34,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Toggle Drain Mode](docs/device/avd/toggle-drain-mode.md)
   - [General](docs/device/README.md#device-general)
 
+    - [Assign Groups By Template](docs/device/general/assign-groups-by-template.md)
     - [Change Grouptag](docs/device/general/change-grouptag.md)
     - [Check Device Compliance](docs/device/general/check-device-compliance.md)
     - [Check Updatable Assets](docs/device/general/check-updatable-assets.md)
@@ -51,6 +52,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)
     - [Restrict Or Release Code Execution](docs/device/security/restrict-or-release-code-execution.md)
     - [Show Bitlocker Recovery Key](docs/device/security/show-bitlocker-recovery-key.md)
+    - [Show Filevault Recovery Key](docs/device/security/show-filevault-recovery-key.md)
     - [Show Laps Password](docs/device/security/show-laps-password.md)
 - [Group](docs/group/README.md)
   - [Devices](docs/group/README.md#group-devices)
@@ -90,6 +92,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Auto Approve Driver Updates (Scheduled)](docs/org/devices/auto-approve-driver-updates_scheduled.md)
+    - [Create Endpoint Analytics Baseline](docs/org/devices/create-endpoint-analytics-baseline.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)

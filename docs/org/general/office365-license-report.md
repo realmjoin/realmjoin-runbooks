@@ -27,7 +27,7 @@ If set to true, prints a short license usage overview.
 | Required | false |
 | Type | Boolean |
 
-### includeExhange
+### includeExchange
 If set to true, includes Exchange Online related reports.
 
 | Property | Value |

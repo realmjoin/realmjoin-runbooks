@@ -9,7 +9,7 @@
     .PARAMETER printOverview
     If set to true, prints a short license usage overview.
 
-    .PARAMETER includeExhange
+    .PARAMETER includeExchange
     If set to true, includes Exchange Online related reports.
 
     .PARAMETER exportToFile
@@ -97,11 +97,13 @@
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.2" }
 
+# Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
     [bool] $printOverview = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include Exchange Reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
-    [bool] $includeExhange = $false,
+    [bool] $includeExchange = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports to Az Storage Account?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports as single ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
@@ -128,7 +130,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Sanity checks
@@ -271,7 +273,7 @@ function Get-UnusedLicenseReport {
     }
     catch {
         "## Error fetching unused licenses"
-        $_.Exception.Message
+        "$($_.Exception.Message)"
         "## Maybe missing MS Graph permission: Reports.Read.All"
     }
 }
@@ -291,7 +293,7 @@ function Get-SharedMailboxLicensing {
     set-content -Path $CSVPath -Value $content -Encoding utf8
 }
 
-function Get-GraphReports {
+function Get-GraphReport {
     param(
         [parameter(Mandatory = $true)][string]$CSVPath,
         $graphUris = ("/reports/getOffice365ServicesUserCounts(period='D90')",
@@ -321,12 +323,12 @@ function Get-GraphReports {
         }
     }
     catch {
-        Write-Host "## Error while fetching MS Graph Reports"
-        Write-Host $_.Exception.Message
+        "## Error while fetching MS Graph Reports"
+        "$($_.Exception.Message)"
     }
 }
 
-function Get-LoginLogs {
+function Get-LoginLog {
     param(
         [parameter(Mandatory = $true)][string]$CSVPath,
         $Applications = ("Power BI Premium",
@@ -358,7 +360,7 @@ function Get-LoginLogs {
     }
 }
 
-function Get-AssignedPlans {
+function Get-AssignedPlan {
     [cmdletbinding()]
     param(
         [parameter(Mandatory = $true)][string]$CSVPath
@@ -400,7 +402,7 @@ function Get-LicenseAssignmentPath {
     $content = Get-Content $Path
     set-content -Path $Path -value $content -Encoding utf8
 }
-function Get-LicensingGroups {
+function Get-LicensingGroup {
     [cmdletbinding()]
     param(
         [parameter(Mandatory = $true)][string]$CSVPath
@@ -486,10 +488,10 @@ if ($exportToFile) {
     }
 
     "## Collecting: MS Graph Reports"
-    Get-GraphReports -CSVPath $OutPutPath
+    Get-GraphReport -CSVPath $OutPutPath
 
     "## Collecting: Login Logs"
-    Get-LoginLogs -CSVPath $OutPutPath
+    Get-LoginLog -CSVPath $OutPutPath
 
     "## Collecting: All user objects"
     Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
@@ -497,10 +499,10 @@ if ($exportToFile) {
     set-content -Path $OutPutPath"\AllUser.csv" -value $content -Encoding utf8
 
     "## Collecting: Assigned License Plans"
-    Get-AssignedPlans -CSVPath $OutPutPath
+    Get-AssignedPlan -CSVPath $OutPutPath
 
     "## Collecting: Licensing Groups"
-    Get-LicensingGroups -CSVPath $OutPutPath
+    Get-LicensingGroup -CSVPath $OutPutPath
 
     "## Collecting: Directly vs. Group assigned Licenses"
     Get-LicenseAssignmentPath -CSVPath $OutPutPath

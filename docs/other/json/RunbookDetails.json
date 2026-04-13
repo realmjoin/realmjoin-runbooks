@@ -165,6 +165,122 @@
     }
   },
   {
+    "RunbookDisplayName": "Assign Groups By Template",
+    "RunbookDisplayPath": "Device \\ General \\ Assign Groups By Template",
+    "RelativeRunbookPath": "device/general/assign-groups-by-template.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Assign cloud-only groups to a device based on a template",
+    "Description": "Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name is tracked purely for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "ID of the target device in Microsoft Graph."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of group object IDs or group display names."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupsString",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Template selector used by portal customization to populate the group list."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupsTemplate",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "If set to true, treats values in GroupsString as group display names instead of IDs."
+          }
+        ],
+        "globbing": "false",
+        "name": "UseDisplaynames",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\r\n    \"Permissions\": [\r\n        {\r\n            \"Name\": \"Microsoft Graph\",\r\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\r\n            \"AppRoleAssignments\": [\r\n                \"Device.Read.All\",\r\n                \"Group.Read.All\",\r\n                \"GroupMember.ReadWrite.All\"\r\n            ]\r\n        }\r\n    ],\r\n    \"Roles\": [],\r\n    \"ManualPermissions\": []\r\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "Group.Read.All",
+            "GroupMember.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Change Grouptag",
     "RunbookDisplayPath": "Device \\ General \\ Change Grouptag",
     "RelativeRunbookPath": "device/general/change-groupTag.ps1",
@@ -1617,6 +1733,70 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "BitlockerKey.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Show Filevault Recovery Key",
+    "RunbookDisplayPath": "Device \\ Security \\ Show Filevault Recovery Key",
+    "RelativeRunbookPath": "device/security/show-filevault-recovery-key.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Display macOS FileVault recovery key",
+    "Description": "Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the person running this runbook"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Azure AD Device ID of the macOS device"
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n\t\"Permissions\": [\n\t\t{\n\t\t\t\"Name\": \"Microsoft Graph\",\n\t\t\t\"Id\": \"00000003-0000-0000-c000-000000000000\",\n\t\t\t\"AppRoleAssignments\": [\n\t\t\t\t\"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n\t\t\t\t\"DeviceManagementManagedDevices.Read.All\"\n\t\t\t]\n\t\t}\n\t],\n\t\"Roles\": [],\n\t\"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.Read.All"
           ]
         }
       ],
@@ -4564,6 +4744,86 @@
             "DeviceManagementConfiguration.ReadWrite.All",
             "Mail.Send",
             "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Create Endpoint Analytics Baseline",
+    "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
+    "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.",
+    "Description": "This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: \"EA-Baseline-{Year}-{Month}\" or \"Analytics-{Date}\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "BaselineNamingSchema",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveOldestBaseline",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementConfiguration.ReadWrite.All"
           ]
         }
       ],
@@ -9666,7 +9926,7 @@
           }
         ],
         "globbing": "false",
-        "name": "includeExhange",
+        "name": "includeExchange",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "2",
@@ -11789,12 +12049,12 @@
         ],
         "globbing": "false",
         "name": "GenerateAlert",
-        "parameterValue": "String",
+        "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "7",
-        "required": "true",
+        "required": "false",
         "type": {
-          "name": "String"
+          "name": "Boolean"
         }
       },
       {
@@ -18012,7 +18272,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Set or remove a user's mobile phone MFA method",
-    "Description": "Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the \"phoneNumberNotUnique\" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.",
+    "Description": "Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as \"MFA only\" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code \"phoneNumberNotUnique\". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.",
     "Notes": null,
     "Parameters": [
       {
@@ -18070,11 +18330,11 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the target user."
+            "Text": "Object ID of the target user."
           }
         ],
         "globbing": "false",
-        "name": "UserName",
+        "name": "UserId",
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "1",
