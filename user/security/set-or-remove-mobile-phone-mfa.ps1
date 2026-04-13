@@ -3,10 +3,10 @@
     Set or remove a user's mobile phone MFA method
 
     .DESCRIPTION
-    Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the "phoneNumberNotUnique" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.
+    Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as "MFA only" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code "phoneNumberNotUnique". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.
 
-    .PARAMETER UserName
-    User principal name of the target user.
+    .PARAMETER UserId
+    Object ID of the target user.
 
     .PARAMETER phoneNumber
     Mobile phone number in international E.164 format (e.g., +491701234567).
@@ -20,7 +20,7 @@
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
-            "UserName": {
+            "UserId": {
                 "Hide": true
             },
             "Remove": {
@@ -46,7 +46,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
-    [String]$UserName,
+    [String]$UserId,
     [Parameter(Mandatory = $true)]
     [String]$phoneNumber,
     [bool] $Remove = $false,
@@ -64,10 +64,10 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "2.0.1"
+$Version = "2.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "UserName: $UserName" -Verbose
+Write-RjRbLog -Message "UserId: $UserId" -Verbose
 Write-RjRbLog -Message "phoneNumber: $phoneNumber" -Verbose
 Write-RjRbLog -Message "Remove: $Remove" -Verbose
 
@@ -79,7 +79,7 @@ Write-RjRbLog -Message "Remove: $Remove" -Verbose
 ############################################################
 
 if ($phoneNumber -notmatch "^\+\d{8,15}$") {
-    Write-Error -Message "Error: Phone number needs to be in E.164 format ( '+' followed by country code and number, e.g. +491701234567 ). Submitted value: '$phoneNumber'" -ErrorAction Continue
+    Write-Error -Message "Error: Phone number needs to be in E.164 format ( '+' followed by country code and number, e.g. +491701234567 ). Submitted value: '$($phoneNumber)'" -ErrorAction Continue
     throw "Phone number needs to be in E.164 format ( '+' followed by country code and number, e.g. +491701234567 )."
 }
 
@@ -128,7 +128,8 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
             .DESCRIPTION
             Searches users with SMS Sign-In enabled via batch API to find the owner of a
             specific phone number. Only SMS Sign-In numbers are unique per tenant. Uses early
-            termination since these numbers must be unique.
+            termination since these numbers must be unique. Sets $script:phoneNumberOwnerFound
+            to $true if found, $false otherwise.
 
             .PARAMETER PhoneNumber
             The phone number to search for in E.164 format.
@@ -137,8 +138,10 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
             [string]$PhoneNumber
         )
 
+        $script:phoneNumberOwnerFound = $false
+
         Write-Output ""
-        Write-Output "Searching for the user who has SMS Sign-In enabled with number '$PhoneNumber'..."
+        Write-Output "Searching for the user who has SMS Sign-In enabled with number '$($PhoneNumber)'..."
         Write-Output "---------------------"
 
         try {
@@ -158,6 +161,21 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
 
         $batchSize = 20
         $processedCount = 0
+
+        # Determine progress interval based on total user count
+        $totalUsers = $phoneRegisteredUsers.Count
+        if ($totalUsers -le 500) {
+            $progressInterval = 100
+        }
+        elseif ($totalUsers -le 1000) {
+            $progressInterval = 250
+        }
+        elseif ($totalUsers -le 2500) {
+            $progressInterval = 500
+        }
+        else {
+            $progressInterval = 1000
+        }
 
         for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $batchSize) {
             $batch = $phoneRegisteredUsers[$i..([Math]::Min($i + $batchSize - 1, $phoneRegisteredUsers.Count - 1))]
@@ -184,14 +202,15 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
                     if ($response.status -eq 200 -and $response.body.value) {
                         foreach ($method in $response.body.value) {
                             $cleanNumber = $method.phoneNumber -replace '\s', ''
-                            if ($cleanNumber -eq $PhoneNumber -and $method.smsSignInState -eq 'ready') {
+                            if ($cleanNumber -eq $PhoneNumber) {
                                 Write-Output ""
-                                Write-Output "Phone number '$PhoneNumber' is reserved for SMS Sign-In by:"
+                                Write-Output "Phone number '$($PhoneNumber)' is assigned to:"
                                 Write-Output "  Display Name:       $($user.userDisplayName)"
                                 Write-Output "  UPN:                $($user.userPrincipalName)"
                                 Write-Output "  Phone Type:         $($method.phoneType)"
                                 Write-Output "  SMS Sign-In State:  $($method.smsSignInState)"
                                 Write-Output "  Entra Portal Link:  https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($user.id)"
+                                $script:phoneNumberOwnerFound = $true
                                 return
                             }
                         }
@@ -203,12 +222,13 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
             }
 
             $processedCount += $batch.Count
-            if ($processedCount % 100 -eq 0) {
+            if ($processedCount % $progressInterval -eq 0) {
                 Write-Output "Searched $processedCount of $($phoneRegisteredUsers.Count) users..."
             }
         }
 
         Write-Output "Could not identify the user holding this phone number for SMS Sign-In."
+        Write-Output "The number may be held by a deleted or soft-deleted user account."
     }
 
 #endregion Function Definitions
@@ -234,35 +254,57 @@ catch {
 #
 ############################################################
 
+# Resolve user details for display and to validate the user exists
+try {
+    $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)?`$select=id,userPrincipalName,displayName,userType" -Method Get
+}
+catch {
+    Write-Error "Failed to resolve user '$($UserId)': $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+$userPrincipalName = $targetUser.userPrincipalName
+$userDisplayName = $targetUser.displayName
+Write-Output "User: '$($userDisplayName)' ($($userPrincipalName))"
+if ($targetUser.userType -eq 'Guest') {
+    Write-Output "Note: User '$($userDisplayName)' ($($userPrincipalName)) is a guest user."
+}
+
 Write-Output ""
 if ($Remove) {
-    Write-Output "Trying to remove phone MFA number '$phoneNumber' from user '$UserName'."
+    Write-Output "Trying to remove phone MFA number '$($phoneNumber)'."
 }
 else {
-    Write-Output "Trying to add phone MFA number '$phoneNumber' to user '$UserName'."
+    Write-Output "Trying to add phone MFA number '$($phoneNumber)'."
 }
 Write-Output "---------------------"
 
 # Find existing mobile phone auth methods for user
-Write-Output "Getting current phone authentication methods for user '$UserName'..."
+Write-Output "Getting current phone authentication methods..."
 try {
-    $phoneMethodsResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserName/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
-    $phoneAM = $phoneMethodsResponse.value | Select-Object -First 1
+    $phoneMethodsResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
+    $phoneAM = $phoneMethodsResponse.value | Select-Object -First 1  # At most one mobile phone method per user
 }
 catch {
-    Write-Error "Failed to retrieve phone authentication methods for user '$UserName': $($_.Exception.Message)"
+    Write-Error "Failed to retrieve phone authentication methods: $($_.Exception.Message)"
     throw
 }
 
 # Check if the number is already assigned to this user (strip whitespace for comparison)
 if ($phoneAM) {
+    Write-Output "Current mobile phone MFA method:"
+    Write-Output "  Phone Number:       $($phoneAM.phoneNumber)"
+    Write-Output "  SMS Sign-In State:  $($phoneAM.smsSignInState)"
+    Write-Output ""
     $existingNumber = $phoneAM.phoneNumber -replace '\s', ''
     if ($existingNumber -eq $phoneNumber -and -not $Remove) {
-        Write-Output "Phone number '$phoneNumber' is already assigned to user '$UserName'. No changes needed."
+        Write-Output "Phone number '$($phoneNumber)' is already assigned to '$($userDisplayName)'. No changes needed."
         Write-Output ""
         Write-Output "Done!"
         exit
     }
+}
+else {
+    Write-Output "No mobile phone MFA method is currently configured."
 }
 
 #endregion StatusQuo & Preflight-Check Part
@@ -271,6 +313,19 @@ if ($phoneAM) {
 #region     Main Part
 #
 ############################################################
+
+# --- API Behavior Note ---
+# The Graph phoneMethods API (POST/PATCH) creates or updates the phone number as a regular MFA factor.
+# However, if the user is enabled for SMS Sign-In by the tenant's Authentication Methods Policy,
+# Graph automatically attempts to register the number for SMS Sign-In after the MFA assignment.
+# This auto-registration can fail with a 409 Conflict / "phoneNumberNotUnique" error if the number
+# is already registered for SMS Sign-In by another user. Crucially, the MFA phone method itself is
+# typically created/updated successfully despite this error — only the SMS Sign-In enablement fails.
+# The smsSignInState property is read-only and cannot be set via POST/PATCH.
+# SMS Sign-In must be managed via the separate enableSmsSignIn / disableSmsSignIn endpoints.
+# Therefore, on a 409 error we wait briefly and verify the actual state before deciding outcome.
+# Reference: https://learn.microsoft.com/en-us/graph/api/authentication-post-phonemethods
+# Reference: https://learn.microsoft.com/en-us/graph/api/phoneauthenticationmethod-update
 
 Write-Output ""
 Write-Output "Start set process"
@@ -284,8 +339,8 @@ $body = @{
 if ($phoneAM) {
     if ($Remove) {
         try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Delete | Out-Null
-            Write-Output "Successfully removed mobile phone authentication number '$phoneNumber' from user '$UserName'."
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods/$($phoneAM.id)" -Method Delete | Out-Null
+            Write-Output "Successfully removed mobile phone authentication number '$($phoneNumber)' from '$($userDisplayName)'."
         }
         catch {
             Write-Error "Failed to remove phone MFA method: $($_.Exception.Message)" -ErrorAction Continue
@@ -293,43 +348,111 @@ if ($phoneAM) {
         }
     }
     else {
+        $conflictError = $null
         try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserName/authentication/phoneMethods/$($phoneAM.id)" -Method Patch -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
-            Write-Output "Successfully updated mobile phone authentication number '$phoneNumber' for user '$UserName'."
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods/$($phoneAM.id)" -Method Patch -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+            Write-Output "Successfully updated mobile phone authentication number '$($phoneNumber)' for '$($userDisplayName)'."
         }
         catch {
             $fullErrorMessage = "$($_.ErrorDetails.Message) $($_.Exception.Message)"
-            if ($fullErrorMessage -match 'phoneNumberNotUnique') {
-                Write-Error "Phone number '$phoneNumber' cannot be used because it is reserved for SMS Sign-In by another user in this tenant." -ErrorAction Continue
-                Find-PhoneNumberOwner -PhoneNumber $phoneNumber
-                throw "Phone number '$phoneNumber' is reserved for SMS Sign-In by another user. See above for details."
+            Write-RjRbLog -Message "Graph API error during update: $($fullErrorMessage)" -Verbose
+
+            if ($fullErrorMessage -match 'phoneNumberNotUnique|409|Conflict') {
+                # Extract the error message from the JSON portion of the error response
+                if ($_.ErrorDetails.Message -match '(\{"error":.+)') {
+                    try {
+                        $errorBody = $Matches[1] | ConvertFrom-Json
+                        $conflictError = $errorBody.error.message
+                    }
+                    catch {
+                        $conflictError = "Phone number uniqueness conflict (could not parse error details)."
+                    }
+                }
+                else {
+                    $conflictError = "Phone number uniqueness conflict (could not parse error details)."
+                }
             }
             else {
                 Write-Error "Failed to update phone MFA method: $($_.Exception.Message)" -ErrorAction Continue
                 throw
             }
         }
+
+        # Handle 409 Conflict: verify actual state after a short delay
+        if ($conflictError) {
+            Write-RjRbLog -Message "Received SMS Sign-In uniqueness conflict. Waiting 5 seconds before verifying MFA assignment..." -Verbose
+            Start-Sleep -Seconds 5
+
+            $verifyResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
+            $verifyAM = $verifyResponse.value | Select-Object -First 1
+            $verifyNumber = if ($verifyAM) { $verifyAM.phoneNumber -replace '\s', '' } else { $null }
+
+            if ($verifyNumber -eq $phoneNumber) {
+                Write-Output "Successfully updated mobile phone authentication number '$($phoneNumber)' for '$($userDisplayName)'."
+                Write-Output "Note: SMS Sign-In is not available for this number because it is already registered for SMS Sign-In by another user in this tenant."
+                Write-Output "Reason: $($conflictError)"
+            }
+            else {
+                Write-Error "Phone number '$($phoneNumber)' could not be updated. The number must be unique for SMS Sign-In and cannot be used as MFA for this user." -ErrorAction Continue
+                Find-PhoneNumberOwner -PhoneNumber $phoneNumber
+                throw "Phone number '$($phoneNumber)' could not be assigned. See above for details."
+            }
+        }
     }
 }
 else {
     if ($Remove) {
-        Write-Output "Number '$phoneNumber' not found as mobile phone MFA factor for '$UserName'."
+        Write-Output "Number '$($phoneNumber)' not found as mobile phone MFA factor for '$($userDisplayName)'."
     }
     else {
+        $conflictError = $null
         try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$UserName/authentication/phoneMethods" -Method Post -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
-            Write-Output "Successfully added mobile phone authentication number '$phoneNumber' to user '$UserName'."
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods" -Method Post -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+            Write-Output "Successfully added mobile phone authentication number '$($phoneNumber)' to '$($userDisplayName)'."
         }
         catch {
             $fullErrorMessage = "$($_.ErrorDetails.Message) $($_.Exception.Message)"
-            if ($fullErrorMessage -match 'phoneNumberNotUnique') {
-                Write-Error "Phone number '$phoneNumber' cannot be used because it is reserved for SMS Sign-In by another user in this tenant." -ErrorAction Continue
-                Find-PhoneNumberOwner -PhoneNumber $phoneNumber
-                throw "Phone number '$phoneNumber' is reserved for SMS Sign-In by another user. See above for details."
+            Write-RjRbLog -Message "Graph API error during creation: $($fullErrorMessage)" -Verbose
+
+            if ($fullErrorMessage -match 'phoneNumberNotUnique|409|Conflict') {
+                # Extract the error message from the JSON portion of the error response
+                if ($_.ErrorDetails.Message -match '(\{"error":.+)') {
+                    try {
+                        $errorBody = $Matches[1] | ConvertFrom-Json
+                        $conflictError = $errorBody.error.message
+                    }
+                    catch {
+                        $conflictError = "Phone number uniqueness conflict (could not parse error details)."
+                    }
+                }
+                else {
+                    $conflictError = "Phone number uniqueness conflict (could not parse error details)."
+                }
             }
             else {
                 Write-Error "Failed to add phone MFA method: $($_.Exception.Message)" -ErrorAction Continue
                 throw
+            }
+        }
+
+        # Handle 409 Conflict: verify actual state after a short delay
+        if ($conflictError) {
+            Write-RjRbLog -Message "Received SMS Sign-In uniqueness conflict. Waiting 5 seconds before verifying MFA assignment..." -Verbose
+            Start-Sleep -Seconds 5
+
+            $verifyResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)/authentication/phoneMethods?`$filter=phoneType eq 'mobile'" -Method Get
+            $verifyAM = $verifyResponse.value | Select-Object -First 1
+            $verifyNumber = if ($verifyAM) { $verifyAM.phoneNumber -replace '\s', '' } else { $null }
+
+            if ($verifyNumber -eq $phoneNumber) {
+                Write-Output "Successfully added mobile phone authentication number '$($phoneNumber)' to '$($userDisplayName)'."
+                Write-Output "Note: SMS Sign-In is not available for this number because it is already registered for SMS Sign-In by another user in this tenant."
+                Write-Output "Reason: $($conflictError)"
+            }
+            else {
+                Write-Error "Phone number '$($phoneNumber)' could not be added. The number must be unique for SMS Sign-In and cannot be used as MFA for this user." -ErrorAction Continue
+                Find-PhoneNumberOwner -PhoneNumber $phoneNumber
+                throw "Phone number '$($phoneNumber)' could not be assigned. See above for details."
             }
         }
     }
