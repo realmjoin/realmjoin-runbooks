@@ -16,6 +16,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Restart Host](#device-avd-restart-host)
     - [Toggle Drain Mode](#device-avd-toggle-drain-mode)
   - [General](#device-general)
+    - [Assign Groups By Template](#device-general-assign-groups-by-template)
     - [Change Grouptag](#device-general-change-grouptag)
     - [Check Device Compliance](#device-general-check-device-compliance)
     - [Check Updatable Assets](#device-general-check-updatable-assets)
@@ -32,6 +33,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
     - [Restrict Or Release Code Execution](#device-security-restrict-or-release-code-execution)
     - [Show Bitlocker Recovery Key](#device-security-show-bitlocker-recovery-key)
+    - [Show Filevault Recovery Key](#device-security-show-filevault-recovery-key)
     - [Show LAPS Password](#device-security-show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -217,6 +219,19 @@ Sets Drainmode on true or false for a specific AVD Session Host.
 <a name='device-general'></a>
 ## General
 
+<a name='device-general-assign-groups-by-template'></a>
+
+### Assign Groups By Template
+Assign cloud-only groups to a device based on a template
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | ID of the target device in Microsoft Graph. |
+| GroupsTemplate |  | String | Template selector used by portal customization to populate the group list. |
+| GroupsString | ✓ | String | Comma-separated list of group object IDs or group display names. |
+| UseDisplaynames |  | Boolean | If set to true, treats values in GroupsString as group display names instead of IDs. |
+| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
 <a name='device-general-change-grouptag'></a>
 
 ### Change Grouptag
@@ -400,6 +415,16 @@ Show all BitLocker recovery keys for a device
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | The device ID of the target device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-security-show-filevault-recovery-key'></a>
+
+### Show Filevault Recovery Key
+Display macOS FileVault recovery key
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The Azure AD Device ID of the macOS device |
+| CallerName | ✓ | String | The name of the person running this runbook |
 
 <a name='device-security-show-laps-password'></a>
 
@@ -1556,7 +1581,7 @@ Create a new Microsoft Defender for Endpoint indicator
 | Description | ✓ | String | Description of the indicator entry. |
 | Action | ✓ | String | Action applied to the indicator. |
 | Severity | ✓ | String | Severity used for the indicator. |
-| GenerateAlert | ✓ | String | If set to true, an alert is generated when the indicator matches. |
+| GenerateAlert |  | Boolean | If set to true, an alert is generated when the indicator matches. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='organization-security-backup-conditional-access-policies'></a>
@@ -2252,7 +2277,7 @@ Set or remove a user's mobile phone MFA method
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the target user. |
+| UserId | ✓ | String | Object ID of the target user. |
 | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

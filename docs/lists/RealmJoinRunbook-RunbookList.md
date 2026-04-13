@@ -16,6 +16,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Restart Host
     - Toggle Drain Mode
   - [General](#device-general)
+    - Assign Groups By Template
     - Change Grouptag
     - Check Device Compliance
     - Check Updatable Assets
@@ -32,6 +33,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Reset Mobile Device Pin
     - Restrict Or Release Code Execution
     - Show Bitlocker Recovery Key
+    - Show Filevault Recovery Key
     - Show LAPS Password
 - [Group](#group)
   - [Devices](#group-devices)
@@ -199,6 +201,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## General
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Assign Groups By Template | Assign cloud-only groups to a device based on a template |
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 | Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
@@ -221,6 +224,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
 | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
+| Show Filevault Recovery Key | Display macOS FileVault recovery key |
 | Show LAPS Password | Show a local admin password for a device. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
