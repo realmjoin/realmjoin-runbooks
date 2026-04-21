@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-21
+
+- Update **Enroll Updatable Assets** Runbook in Device/General
+  - Add "All" option to `UpdateCategory` to sequentially enroll into Driver, Feature and Quality updates
+  - Restructure script with proper regions and parameter logging
+
 ## 2026-04-13
 
 - Update **Set Or Remove Mobile Phone MFA** Runbook in User/Security
