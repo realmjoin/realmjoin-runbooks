@@ -9,7 +9,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 |  |  | Check Device Compliance | Check the compliance status of a device |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
-|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
+|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business |
 |  |  | Outphase Device | Remove/Outphase a windows device |
 |  |  | Remove Primary User | Removes the primary user from a device. |
 |  |  | Rename Device | Rename a device. |

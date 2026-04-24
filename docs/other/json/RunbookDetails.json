@@ -547,8 +547,8 @@
     "RelativeRunbookPath_PathOnly": "device/general",
     "PrimaryFolder": "Device",
     "SubFolder": "General",
-    "Synopsis": "Enroll device into Windows Update for Business.",
-    "Description": "This script enrolls devices into Windows Update for Business.",
+    "Synopsis": "Enroll device into Windows Update for Business",
+    "Description": "This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.",
     "Notes": null,
     "Parameters": [
       {
@@ -572,7 +572,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "DeviceId of the device to unenroll."
+            "Text": "DeviceId of the device to enroll."
           }
         ],
         "globbing": "false",
@@ -586,10 +586,10 @@
         }
       },
       {
-        "defaultValue": "feature",
+        "defaultValue": "Feature",
         "description": [
           {
-            "Text": "Category of updates to enroll into. Possible values are: driver, feature or quality."
+            "Text": "Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially."
           }
         ],
         "globbing": "false",

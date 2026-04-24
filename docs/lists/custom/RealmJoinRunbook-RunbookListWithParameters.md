@@ -25,9 +25,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to check. |
-|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to unenroll. |
-|  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: driver, feature or quality. |
+|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to enroll. |
+|  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially. |
 |  |  | Outphase Device | Remove/Outphase a windows device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | intuneAction |  | Int32 | Determines the Intune action to perform (wipe, delete, or none). |
 |  |  |  |  |  |  | aadAction |  | Int32 | Determines the Entra ID (Azure AD) action to perform (delete, disable, or none). |

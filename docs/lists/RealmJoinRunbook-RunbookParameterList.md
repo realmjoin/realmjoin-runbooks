@@ -269,13 +269,13 @@ Check if a device is onboarded to Windows Update for Business
 <a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
-Enroll device into Windows Update for Business.
+Enroll device into Windows Update for Business
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| DeviceId | ✓ | String | DeviceId of the device to unenroll. |
-| UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: driver, feature or quality. |
+| DeviceId | ✓ | String | DeviceId of the device to enroll. |
+| UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially. |
 
 <a name='device-general-outphase-device'></a>
 
