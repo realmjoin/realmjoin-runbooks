@@ -5,6 +5,7 @@
 - Update **Export Policy Report** Runbook in Org/General
   - Replace all `$top=1000` Graph API calls with `Get-GraphPagedResult` to correctly handle pagination and prevent missing policies in large tenants
   - Add helper function and restructure script with proper regions
+  - Add logging of the count of retrieved policies for each policy type
 
 ## 2026-04-21
 
