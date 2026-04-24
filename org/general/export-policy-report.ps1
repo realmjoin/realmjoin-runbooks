@@ -1173,7 +1173,7 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
 ########################################################
 
 try {
-    Connect-MgGraph -Identity | Out-Null
+    Connect-MgGraph -Identity -NoWelcome
 }
 catch {
     "## Error connecting to Microsoft Graph."
@@ -1222,6 +1222,7 @@ toc-own-page: true
 "" >> $outputFileMarkdown
 
 $policies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+"Found $($policies.Count) Configuration Policies"
 
 foreach ($policy in $policies) {
     if ($exportJson) {
@@ -1246,6 +1247,7 @@ foreach ($policy in $policies) {
 "" >> $outputFileMarkdown
 
 $deviceConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations"
+"Found $($deviceConfigurations.Count) Device Configurations"
 
 foreach ($policy in $deviceConfigurations) {
     if ($exportJson) {
@@ -1268,6 +1270,7 @@ foreach ($policy in $deviceConfigurations) {
 "" >> $outputFileMarkdown
 
 $groupPolicyConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations"
+"Found $($groupPolicyConfigurations.Count) Group Policy Configurations"
 
 foreach ($policy in $groupPolicyConfigurations) {
     if ($exportJson) {
@@ -1292,6 +1295,7 @@ foreach ($policy in $groupPolicyConfigurations) {
 "" >> $outputFileMarkdown
 
 $compliancePolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies"
+"Found $($compliancePolicies.Count) Compliance Policies"
 
 foreach ($policy in $compliancePolicies) {
     if ($exportJson) {
@@ -1314,6 +1318,7 @@ foreach ($policy in $compliancePolicies) {
 "" >> $outputFileMarkdown
 
 $conditionalAccessPolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
+"Found $($conditionalAccessPolicies.Count) Conditional Access Policies"
 
 foreach ($policy in $conditionalAccessPolicies) {
     if ($exportJson) {
