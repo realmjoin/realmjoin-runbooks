@@ -308,10 +308,10 @@ Device \ General \ Check Updatable Assets
 <a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
-#### Enroll device into Windows Update for Business.
+#### Enroll device into Windows Update for Business
 
 #### Description
-This script enrolls devices into Windows Update for Business.
+This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.
 
 #### Where to find
 Device \ General \ Enroll Updatable Assets

@@ -205,7 +205,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 | Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
-| Enroll Updatable Assets | Enroll device into Windows Update for Business. |
+| Enroll Updatable Assets | Enroll device into Windows Update for Business |
 | Outphase Device | Remove/Outphase a windows device |
 | Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
