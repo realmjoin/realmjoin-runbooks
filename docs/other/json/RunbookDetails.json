@@ -9659,8 +9659,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "General",
     "Synopsis": "Invite external guest users to the organization",
-    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nIt can optionally add the invited user to a specified group.",
-    "Notes": "You need to setup proper RunbookCustomization in the RealmJoin Portal to use this script.\nAn example would be looking like this:\n\"rjgit-org_general_invite-external-guest-users\": {\n    \"Parameters\": {\n        \"InvitedUserEmail\": {\n            \"DisplayName\": \"Invitee's email address\",\n            \"Mandatory\": true\n        },\n        \"InvitedUserDisplayName\": {\n            \"DisplayName\": \"Invitee's display name\",\n            \"Mandatory\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        },\n        \"GroupId\": {\n            \"Hide\": true,\n            \"DefaultValue\": \"00000000-0000-0000-0000-000000000000\"\n        }\n    }\n}",
+    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nOptional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.\nThe invited user can optionally be added to a specified group.",
+    "Notes": "Common Use Cases:\n- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank\n- Full onboarding: supply all optional fields to set profile properties, assign a manager, and add to a group in a single run\n\nParameter Interactions:\n- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely\n- Manager assignment and group membership each require their respective parameters; both are silently skipped when not provided",
     "Parameters": [
       {
         "defaultValue": "",
@@ -9673,7 +9673,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "9",
         "required": "true",
         "type": {
           "name": "String"
@@ -9683,7 +9683,41 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "The object ID of the group to add the guest user to.\nIf not specified, the user will not be added to any group."
+            "Text": "Company name of the guest user."
+          }
+        ],
+        "globbing": "false",
+        "name": "CompanyName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Given name (first name) of the guest user."
+          }
+        ],
+        "globbing": "false",
+        "name": "GivenName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The object ID of the group to add the guest user to. If not specified, the user will not be added to any group."
           }
         ],
         "globbing": "false",
@@ -9708,7 +9742,7 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "2",
-        "required": "true",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -9726,6 +9760,57 @@
         "pipelineInput": "false",
         "position": "1",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Manager to assign to the guest user. Select a user from the directory."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManagerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Surname (last name) of the guest user."
+          }
+        ],
+        "globbing": "false",
+        "name": "Surname",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. \"US\", \"DE\")."
+          }
+        ],
+        "globbing": "false",
+        "name": "UsageLocation",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
         "type": {
           "name": "String"
         }

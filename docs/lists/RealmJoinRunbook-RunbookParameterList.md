@@ -1306,8 +1306,13 @@ Invite external guest users to the organization
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | InvitedUserEmail | ✓ | String | Email address of the guest user to invite. |
-| InvitedUserDisplayName | ✓ | String | Display name of the guest user. |
-| GroupId |  | String | The object ID of the group to add the guest user to.<br>If not specified, the user will not be added to any group. |
+| InvitedUserDisplayName |  | String | Display name of the guest user. |
+| GroupId |  | String | The object ID of the group to add the guest user to. If not specified, the user will not be added to any group. |
+| GivenName |  | String | Given name (first name) of the guest user. |
+| Surname |  | String | Surname (last name) of the guest user. |
+| CompanyName |  | String | Company name of the guest user. |
+| ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+| UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-general-list-all-administrative-template-policies'></a>

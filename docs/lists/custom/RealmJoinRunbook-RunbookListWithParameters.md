@@ -430,8 +430,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Invite External Guest Users | Invite external guest users to the organization | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  | InvitedUserEmail | ✓ | String | Email address of the guest user to invite. |
-|  |  |  |  |  |  | InvitedUserDisplayName | ✓ | String | Display name of the guest user. |
-|  |  |  |  |  |  | GroupId |  | String | The object ID of the group to add the guest user to.<br>If not specified, the user will not be added to any group. |
+|  |  |  |  |  |  | InvitedUserDisplayName |  | String | Display name of the guest user. |
+|  |  |  |  |  |  | GroupId |  | String | The object ID of the group to add the guest user to. If not specified, the user will not be added to any group. |
+|  |  |  |  |  |  | GivenName |  | String | Given name (first name) of the guest user. |
+|  |  |  |  |  |  | Surname |  | String | Surname (last name) of the guest user. |
+|  |  |  |  |  |  | CompanyName |  | String | Company name of the guest user. |
+|  |  |  |  |  |  | ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
