@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-29
+
+- Update **Invite External Guest Users** Runbook in Org/General
+  - Add Parameter; given name; surname; Manager; UsageLocation, Company
+
 ## 2026-04-24
 
 - Update **Export Policy Report** Runbook in Org/General
