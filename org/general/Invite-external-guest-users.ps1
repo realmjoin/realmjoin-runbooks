@@ -8,9 +8,6 @@
 	The invited user can optionally be added to a specified group.
 
 	.NOTES
-	Prerequisites:
-	- Managed identity requires these Graph application permissions: User.Invite.All, User.ReadWrite.All, GroupMember.ReadWrite.All, Organization.Read.All, Group.Read.All, User.Read.All
-
 	Common Use Cases:
 	- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank
 	- Full onboarding: supply all optional fields to set profile properties, assign a manager, and add to a group in a single run
