@@ -97,8 +97,9 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.2" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
+#Requires -Modules @{ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
 
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
@@ -191,12 +192,12 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
     ##############################
 
     function Get-ReportPrivacySetting {
-        (Invoke-RjRbRestMethodGraph -Resource "/beta/admin/reportSettings").displayConcealedNames
+        (Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta).displayConcealedNames
     }
 
     function Set-ReportPrivacySetting {
         param([bool]$concealNames)
-        Invoke-RjRbRestMethodGraph -Resource "/beta/admin/reportSettings" -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
+        Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
     }
 
     #endregion Helper Functions
@@ -319,8 +320,10 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
                 Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
             }
         }
-        $content = Get-Content -Path $CSVPath
-        set-content -Path $CSVPath -Value $content -Encoding utf8
+        if (Test-Path -Path $CSVPath) {
+            $content = Get-Content -Path $CSVPath
+            set-content -Path $CSVPath -Value $content -Encoding utf8
+        }
     }
 
     function Get-GraphReport {
@@ -549,18 +552,18 @@ if ($exportToFile) {
 
     "## Collecting: MS Graph Reports"
     $settingWasChanged = $false
-    if ($includeUserData) {
-        $currentConcealSetting = Get-ReportPrivacySetting
-        if ($currentConcealSetting -eq $false) {
-            "## Report privacy setting is already disabled - no changes needed."
-        }
-        else {
-            "## Temporarily disabling report privacy setting to include user data..."
-            Set-ReportPrivacySetting -concealNames $false
-            $settingWasChanged = $true
-        }
-    }
     try {
+        if ($includeUserData) {
+            $currentConcealSetting = Get-ReportPrivacySetting
+            if ($currentConcealSetting -eq $false) {
+                "## Report privacy setting is already disabled - no changes needed."
+            }
+            else {
+                "## Temporarily disabling report privacy setting to include user data..."
+                Set-ReportPrivacySetting -concealNames $false
+                $settingWasChanged = $true
+            }
+        }
         Get-GraphReport -CSVPath $OutPutPath
     }
     finally {
