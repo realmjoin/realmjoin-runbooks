@@ -84,7 +84,7 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 #Requires -Modules @{ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
-#Requires -Modules @{ModuleName = "ThreadJob"; ModuleVersion = "2.1.0" }
+#Requires -Modules @{ModuleName = "Microsoft.PowerShell.ThreadJob"; ModuleVersion = "2.2.0" }
 
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]

@@ -45,7 +45,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 #Requires -Modules @{ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
-#Requires -Modules @{ModuleName = "ThreadJob"; ModuleVersion = "2.1.0" }
+#Requires -Modules @{ModuleName = "Microsoft.PowerShell.ThreadJob"; ModuleVersion = "2.2.0" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
