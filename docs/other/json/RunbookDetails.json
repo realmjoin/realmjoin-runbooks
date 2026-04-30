@@ -165,6 +165,122 @@
     }
   },
   {
+    "RunbookDisplayName": "Assign Groups By Template",
+    "RunbookDisplayPath": "Device \\ General \\ Assign Groups By Template",
+    "RelativeRunbookPath": "device/general/assign-groups-by-template.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Assign cloud-only groups to a device based on a template",
+    "Description": "Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name is tracked purely for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "ID of the target device in Microsoft Graph."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of group object IDs or group display names."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupsString",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Template selector used by portal customization to populate the group list."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupsTemplate",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "If set to true, treats values in GroupsString as group display names instead of IDs."
+          }
+        ],
+        "globbing": "false",
+        "name": "UseDisplaynames",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\r\n    \"Permissions\": [\r\n        {\r\n            \"Name\": \"Microsoft Graph\",\r\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\r\n            \"AppRoleAssignments\": [\r\n                \"Device.Read.All\",\r\n                \"Group.Read.All\",\r\n                \"GroupMember.ReadWrite.All\"\r\n            ]\r\n        }\r\n    ],\r\n    \"Roles\": [],\r\n    \"ManualPermissions\": []\r\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "Group.Read.All",
+            "GroupMember.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Change Grouptag",
     "RunbookDisplayPath": "Device \\ General \\ Change Grouptag",
     "RelativeRunbookPath": "device/general/change-groupTag.ps1",
@@ -431,8 +547,8 @@
     "RelativeRunbookPath_PathOnly": "device/general",
     "PrimaryFolder": "Device",
     "SubFolder": "General",
-    "Synopsis": "Enroll device into Windows Update for Business.",
-    "Description": "This script enrolls devices into Windows Update for Business.",
+    "Synopsis": "Enroll device into Windows Update for Business",
+    "Description": "This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.",
     "Notes": null,
     "Parameters": [
       {
@@ -456,7 +572,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "DeviceId of the device to unenroll."
+            "Text": "DeviceId of the device to enroll."
           }
         ],
         "globbing": "false",
@@ -470,10 +586,10 @@
         }
       },
       {
-        "defaultValue": "feature",
+        "defaultValue": "Feature",
         "description": [
           {
-            "Text": "Category of updates to enroll into. Possible values are: driver, feature or quality."
+            "Text": "Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially."
           }
         ],
         "globbing": "false",
@@ -1617,6 +1733,70 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "BitlockerKey.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Show Filevault Recovery Key",
+    "RunbookDisplayPath": "Device \\ Security \\ Show Filevault Recovery Key",
+    "RelativeRunbookPath": "device/security/show-filevault-recovery-key.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Display macOS FileVault recovery key",
+    "Description": "Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the person running this runbook"
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Azure AD Device ID of the macOS device"
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n\t\"Permissions\": [\n\t\t{\n\t\t\t\"Name\": \"Microsoft Graph\",\n\t\t\t\"Id\": \"00000003-0000-0000-c000-000000000000\",\n\t\t\t\"AppRoleAssignments\": [\n\t\t\t\t\"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n\t\t\t\t\"DeviceManagementManagedDevices.Read.All\"\n\t\t\t]\n\t\t}\n\t],\n\t\"Roles\": [],\n\t\"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.Read.All"
           ]
         }
       ],
@@ -9479,8 +9659,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "General",
     "Synopsis": "Invite external guest users to the organization",
-    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nIt can optionally add the invited user to a specified group.",
-    "Notes": "You need to setup proper RunbookCustomization in the RealmJoin Portal to use this script.\nAn example would be looking like this:\n\"rjgit-org_general_invite-external-guest-users\": {\n    \"Parameters\": {\n        \"InvitedUserEmail\": {\n            \"DisplayName\": \"Invitee's email address\",\n            \"Mandatory\": true\n        },\n        \"InvitedUserDisplayName\": {\n            \"DisplayName\": \"Invitee's display name\",\n            \"Mandatory\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        },\n        \"GroupId\": {\n            \"Hide\": true,\n            \"DefaultValue\": \"00000000-0000-0000-0000-000000000000\"\n        }\n    }\n}",
+    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nOptional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.\nThe invited user can optionally be added to a specified group.",
+    "Notes": "Common Use Cases:\n- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank\n- Full onboarding: supply all optional fields to set profile properties, assign a manager, and add to a group in a single run\n\nParameter Interactions:\n- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely\n- Manager assignment and group membership each require their respective parameters; both are silently skipped when not provided",
     "Parameters": [
       {
         "defaultValue": "",
@@ -9493,7 +9673,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "9",
         "required": "true",
         "type": {
           "name": "String"
@@ -9503,7 +9683,41 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "The object ID of the group to add the guest user to.\nIf not specified, the user will not be added to any group."
+            "Text": "Company name of the guest user."
+          }
+        ],
+        "globbing": "false",
+        "name": "CompanyName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Given name (first name) of the guest user."
+          }
+        ],
+        "globbing": "false",
+        "name": "GivenName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The object ID of the group to add the guest user to. If not specified, the user will not be added to any group."
           }
         ],
         "globbing": "false",
@@ -9528,7 +9742,7 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "2",
-        "required": "true",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -9546,6 +9760,57 @@
         "pipelineInput": "false",
         "position": "1",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Manager to assign to the guest user. Select a user from the directory."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManagerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Surname (last name) of the guest user."
+          }
+        ],
+        "globbing": "false",
+        "name": "Surname",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. \"US\", \"DE\")."
+          }
+        ],
+        "globbing": "false",
+        "name": "UsageLocation",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -9746,7 +10011,7 @@
           }
         ],
         "globbing": "false",
-        "name": "includeExhange",
+        "name": "includeExchange",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "2",
@@ -11869,12 +12134,12 @@
         ],
         "globbing": "false",
         "name": "GenerateAlert",
-        "parameterValue": "String",
+        "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "7",
-        "required": "true",
+        "required": "false",
         "type": {
-          "name": "String"
+          "name": "Boolean"
         }
       },
       {
@@ -18092,7 +18357,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Set or remove a user's mobile phone MFA method",
-    "Description": "Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the \"phoneNumberNotUnique\" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.",
+    "Description": "Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as \"MFA only\" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code \"phoneNumberNotUnique\". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.",
     "Notes": null,
     "Parameters": [
       {
@@ -18150,11 +18415,11 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the target user."
+            "Text": "Object ID of the target user."
           }
         ],
         "globbing": "false",
-        "name": "UserName",
+        "name": "UserId",
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "1",

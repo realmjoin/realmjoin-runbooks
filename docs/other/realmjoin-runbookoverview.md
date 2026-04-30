@@ -17,6 +17,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Restart Host](#restart-host)
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
+      - [Assign Groups By Template](#assign-groups-by-template)
       - [Change Grouptag](#change-grouptag)
       - [Check Device Compliance](#check-device-compliance)
       - [Check Updatable Assets](#check-updatable-assets)
@@ -33,6 +34,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
       - [Restrict Or Release Code Execution](#restrict-or-release-code-execution)
       - [Show Bitlocker Recovery Key](#show-bitlocker-recovery-key)
+      - [Show Filevault Recovery Key](#show-filevault-recovery-key)
       - [Show Laps Password](#show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -233,6 +235,23 @@ Device \ AVD \ Toggle Drain Mode
 <a name='device-general'></a>
 
 ## General
+<a name='device-general-assign-groups-by-template'></a>
+
+### Assign Groups By Template
+#### Assign cloud-only groups to a device based on a template
+
+#### Description
+Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
+
+#### Where to find
+Device \ General \ Assign Groups By Template
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-general-change-grouptag'></a>
 
 ### Change Grouptag
@@ -289,10 +308,10 @@ Device \ General \ Check Updatable Assets
 <a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
-#### Enroll device into Windows Update for Business.
+#### Enroll device into Windows Update for Business
 
 #### Description
-This script enrolls devices into Windows Update for Business.
+This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.
 
 #### Where to find
 Device \ General \ Enroll Updatable Assets
@@ -497,6 +516,23 @@ Keys are sorted by creation date (newest first). Use it for disk recovery scenar
 
 #### Where to find
 Device \ Security \ Show Bitlocker Recovery Key
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-security-show-filevault-recovery-key'></a>
+
+### Show Filevault Recovery Key
+#### Display macOS FileVault recovery key
+
+#### Description
+Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.
+
+#### Where to find
+Device \ Security \ Show Filevault Recovery Key
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1731,7 +1767,8 @@ Org \ General \ Export Policy Report
 
 #### Description
 This runbook invites an external user as a guest user in Microsoft Entra ID.
-It can optionally add the invited user to a specified group.
+Optional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.
+The invited user can optionally be added to a specified group.
 
 #### Where to find
 Org \ General \ Invite External Guest Users
@@ -3176,7 +3213,7 @@ User \ Security \ Revoke Or Restore Access
 #### Set or remove a user's mobile phone MFA method
 
 #### Description
-Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the "phoneNumberNotUnique" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.
+Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as "MFA only" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code "phoneNumberNotUnique". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.
 
 #### Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa

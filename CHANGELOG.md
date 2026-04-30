@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-29
+
+- Update **Invite External Guest Users** Runbook in Org/General
+  - Add Parameter; given name; surname; Manager; UsageLocation, Company
+
 ## 2026-04-24
 
 - Update **Export Policy Report** Runbook in Org/General
@@ -24,12 +29,16 @@
 - Update **Find SMS Auth Phone Number** Runbook in Org/Security
   - Add dynamic progress interval based on total user count for batch processing output
   - Update "not found" output to indicate that soft-deleted user accounts may still hold the phone number reservation
+- Add **Show FileVault Recovery Key** Runbook to Device/Security
+  - This runbook retrieves and displays the FileVault recovery key for a specified Mac device.
 
 ## 2026-04-09
 
 - Update **Add Defender Indicator** Runbook in Org/Security
   - Fix logic issue regarding the alert handling.
   - Optimized output of the runbook to provide clearer information about the created indicator and its status in Microsoft Defender.
+- Add **Assign Groups By Template** Runbook in Device/General
+  - Adds a device to one or more Entra ID groups using either group object IDs or display names.
 
 ## 2026-04-07
 
