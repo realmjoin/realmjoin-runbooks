@@ -508,8 +508,9 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 #
 ############################################################
 
-# Manually import this ahead of MgGraph module to avoid conflicts
+# Manually import these ahead of MgGraph module to avoid assembly conflicts
 Import-Module Az.Accounts
+Import-Module Az.Storage
 
 Write-Output "Connecting to Exchange Online and Microsoft Graph..."
 Connect-RjRbExchangeOnline
