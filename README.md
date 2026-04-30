@@ -93,6 +93,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Auto Approve Driver Updates (Scheduled)](docs/org/devices/auto-approve-driver-updates_scheduled.md)
     - [Create Endpoint Analytics Baseline](docs/org/devices/create-endpoint-analytics-baseline.md)
+    - [Dedup Device Names (Scheduled)](docs/org/devices/dedup-device-names_scheduled.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)

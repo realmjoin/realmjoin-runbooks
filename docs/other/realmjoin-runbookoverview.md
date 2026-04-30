@@ -69,6 +69,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
+      - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
@@ -1071,6 +1072,25 @@ This runbook creates new Endpoint Analytics baselines in Intune using a customiz
 
 #### Where to find
 Org \ Devices \ Create Endpoint Analytics Baseline
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-dedup-device-names-(scheduled)'></a>
+
+### Dedup Device Names (Scheduled)
+#### Detect and rename duplicate Intune device display names using a prefix and random suffix
+
+#### Description
+This scheduled runbook queries all Intune managed devices and identifies devices that share the same display name.
+For each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.
+An optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.
+
+#### Where to find
+Org \ Devices \ Dedup Device Names_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)

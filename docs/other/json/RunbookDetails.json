@@ -4832,6 +4832,104 @@
     }
   },
   {
+    "RunbookDisplayName": "Dedup Device Names_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Dedup Device Names_Scheduled",
+    "RelativeRunbookPath": "org/devices/dedup-device-names_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Detect and rename duplicate Intune device display names using a prefix and random suffix",
+    "Description": "This scheduled runbook queries all Intune managed devices and identifies devices that share the same display name.\nFor each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.\nAn optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.",
+    "Notes": "Prerequisites:\n- The managed identity must have DeviceManagementManagedDevices.ReadWrite.All and DeviceManagementServiceConfig.ReadWrite.All Graph application permissions assigned.\n- Autopilot display name changes via updateDeviceProperties take effect at the next device sync and may not reflect immediately in the portal.\n\nParameter Interactions:\n- NameLength must be strictly greater than the character count of NamePrefix. The difference determines how many random digits are appended (e.g., NamePrefix \"CORP\" with NameLength 8 produces names like \"CORP4271\").\n- The runbook validates this constraint at startup and fails fast if violated.\n\nCommon Use Cases:\n- Schedule weekly to automatically resolve duplicate device names that arise from re-enrollment, OS reimaging, or cloning workflows.\n- The idempotent Autopilot sync path ensures that unique devices are also normalized in Autopilot even on the first run.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The identity of the person or automation account that triggered this runbook, used for auditing purposes only."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "0",
+        "description": [
+          {
+            "Text": "The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix."
+          }
+        ],
+        "globbing": "false",
+        "name": "NameLength",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string."
+          }
+        ],
+        "globbing": "false",
+        "name": "NamePrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "All",
+        "description": [
+          {
+            "Text": "Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All."
+          }
+        ],
+        "globbing": "false",
+        "name": "OsFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",

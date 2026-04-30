@@ -68,6 +68,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
+    - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
@@ -798,6 +799,18 @@ Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming
 | BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
 | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
 | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
+
+<a name='organization-devices-dedup-device-names-scheduled'></a>
+
+### Dedup Device Names (Scheduled)
+Detect and rename duplicate Intune device display names using a prefix and random suffix
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| NamePrefix | ✓ | String | The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string. |
+| NameLength | ✓ | Int32 | The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix. |
+| OsFilter |  | String | Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All. |
+| CallerName | ✓ | String | The identity of the person or automation account that triggered this runbook, used for auditing purposes only. |
 
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
