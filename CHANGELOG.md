@@ -1,9 +1,17 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-30
+
+- Add `org/devices/dedup-device-names_scheduled.ps1` — scheduled runbook to resolve duplicate Intune device names
+  - Renames the most recently enrolled duplicate using a configurable prefix and random digit suffix; syncs resolved names to Autopilot
+  - OS filter parameter (All / Windows / macOS / Other); skips personal-owned devices and unsupported platforms with warnings
+  - Checks for pending rename actions before queuing to avoid duplicate MDM commands
+
 ## 2026-04-29
 
 - Update **Invite External Guest Users** Runbook in Org/General
-  - Add Parameter; given name; surname; Manager; UsageLocation, Company
+  - Add Parameter: Given name, Surname, Manager, UsageLocation, Company
+  - Add DisplayName generation based on given name and surname if display name is not provided
 
 ## 2026-04-24
 
