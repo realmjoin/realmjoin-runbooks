@@ -10,7 +10,7 @@
     If set to true, prints a short license usage overview.
 
     .PARAMETER includeExchange
-    If set to true, includes Exchange Online related reports.
+    If set to true, includes Exchange Online related reports (Shared Mailbox licensing).
 
     .PARAMETER includeUserData
     If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use.
@@ -31,13 +31,7 @@
     Resource group that contains the storage account.
 
     .PARAMETER StorageAccountName
-    Storage account name used for uploads.
-
-    .PARAMETER StorageAccountLocation
-    Azure region for the storage account.
-
-    .PARAMETER StorageAccountSku
-    Storage account SKU.
+    Storage account name used for uploads. The account must exist before running this report.
 
     .PARAMETER SubscriptionId
     Azure subscription ID used for storage operations.
@@ -53,9 +47,7 @@
 				"ResourceGroup": "rj-test-runbooks-01",
 				"SubscriptionId": "00000000-0000-0000-0000-000000000000",
 				"StorageAccount": {
-					"Name": "rbexports01",
-					"Location": "West Europe",
-					"Sku": "Standard_LRS"
+					"Name": "rbexports01"
 				}
 			}
 		}
@@ -77,14 +69,6 @@
 				"Hide": true
 			},
 			{
-				"Name": "StorageAccountLocation",
-				"Hide": true
-			},
-			{
-				"Name": "StorageAccountSku",
-				"Hide": true
-			},
-			{
 				"Name": "SubscriptionId",
 				"Hide": true
 			},
@@ -97,9 +81,10 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 #Requires -Modules @{ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
+#Requires -Modules @{ModuleName = "ThreadJob"; ModuleVersion = "2.1.0" }
 
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
@@ -123,10 +108,6 @@ param(
     [string] $ResourceGroupName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Location" } )]
-    [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Sku" } )]
-    [string] $StorageAccountSku,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
     [string] $SubscriptionId,
     # CallerName is tracked purely for auditing purposes
@@ -160,15 +141,15 @@ Write-RjRbLog -Message "produceLinks: $produceLinks" -Verbose
 #
 ############################################################
 
-if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
+if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
     "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
     ""
     "## Please configure the following attributes in the RJ central datastore:"
     "## - OfficeLicensingReport.ResourceGroup"
     "## - OfficeLicensingReport.SubscriptionId"
     "## - OfficeLicensingReport.StorageAccount.Name"
-    "## - OfficeLicensingReport.StorageAccount.Location"
-    "## - OfficeLicensingReport.StorageAccount.Sku"
+    ""
+    "## Note: The Storage Account must exist before running this report. It is no longer created automatically."
     ""
     "## Disabling CSV export..."
     $exportToFile = $false
@@ -198,6 +179,211 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
     function Set-ReportPrivacySetting {
         param([bool]$concealNames)
         Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
+    }
+
+    function Publish-RjRbFilesToStorageContainer {
+        <#
+            .SYNOPSIS
+            Upload one or more local files to an Azure Storage container, returning SAS
+            download links. Self-adapts to avoid the ExchangeOnlineManagement / Az.Storage
+            assembly conflict.
+
+            .DESCRIPTION
+            Performs the actual upload via Az.Storage cmdlets. The execution path is
+            selected automatically based on the current PowerShell session state:
+
+            1. DIRECT PATH (fast, default for runbooks without Exchange Online):
+               If ExchangeOnlineManagement is NOT loaded in the current session, all
+               Az.Storage cmdlets run directly in-process. No job overhead.
+
+            2. ISOLATED PATH (minimal overhead, only when needed):
+               If ExchangeOnlineManagement IS loaded, all Az.Storage cmdlets are executed
+               inside a single Start-ThreadJob ScriptBlock - a separate PowerShell runspace.
+               This avoids the well-known Microsoft.OData.Core assembly conflict between
+               Az.Storage and ExchangeOnlineManagement ("Assembly with same name is already
+               loaded").
+
+            Detection is done via Get-Module -Name ExchangeOnlineManagement, which returns
+            the loaded module instance (or $null if not yet imported). The module being
+            merely available in the runtime environment (Get-Module -ListAvailable) is NOT
+            sufficient to trigger the isolated path - only an actual import does. This
+            keeps the fast path active for runbooks that have EXO available but never use it.
+
+            Why Start-ThreadJob instead of Start-Job?
+            Start-Job spawns a new pwsh child process, which is NOT supported in hosted
+            PowerShell environments (e.g. Azure Automation, Azure Functions). Start-ThreadJob
+            uses a separate runspace within the same process, which is supported everywhere
+            and avoids the startup cost of a new process.
+
+            Authentication:
+            Both paths authenticate via Connect-RjRbAzAccount. In Azure Automation, the
+            managed identity is available within the same process to all runspaces.
+
+            Required Azure RBAC on the storage account:
+            - Microsoft.Storage/storageAccounts/read
+            - Microsoft.Storage/storageAccounts/listKeys/action
+            Built-in role: 'Storage Account Contributor'.
+
+            .NOTES
+            CALLING ORDER MATTERS in runbooks that use BOTH this function AND
+            ExchangeOnlineManagement:
+
+            The conflict between Az.Storage and ExchangeOnlineManagement is bidirectional.
+            If this function takes the Direct Path (no EXO loaded yet), Az.Storage will be
+            loaded into the current process. After that, ExchangeOnlineManagement CANNOT
+            be loaded in the same session.
+
+            Safe usage patterns:
+              A) EXO first, then storage: Connect-RjRbExchangeOnline before this function
+                 -> isolation kicks in automatically.
+              B) Storage only, no EXO in the runbook -> Direct Path is safe.
+              C) Unsure / dynamic flow -> pass -ForceJobIsolation to opt into the isolated
+                 path regardless of session state.
+
+            .PARAMETER FilePaths
+            Array of local file paths to upload.
+
+            .PARAMETER ContainerName
+            Target blob container. Created automatically if missing.
+
+            .PARAMETER ResourceGroupName
+            Resource group containing the storage account.
+
+            .PARAMETER StorageAccountName
+            Target storage account name.
+
+            .PARAMETER SubscriptionId
+            Optional Azure subscription ID. Sets context before storage operations.
+
+            .PARAMETER LinkExpiryDays
+            SAS link validity in days (default 6, range 1-3650).
+
+            .PARAMETER AddBlobNamePrefix
+            When $true, prefixes blob names with yyyyMMdd-HHmmss (default $false).
+
+            .PARAMETER ForceJobIsolation
+            Optional switch. Forces the Start-ThreadJob isolated path even when EXO is not loaded.
+            Useful when the runbook may load EXO later in its flow.
+
+            .OUTPUTS
+            Array of PSCustomObject with BlobName, EndTime, SASLink for each uploaded file.
+        #>
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string[]] $FilePaths,
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ContainerName,
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $StorageAccountName,
+            [Parameter(Mandatory = $false)][string] $SubscriptionId,
+            [Parameter(Mandatory = $false)][ValidateRange(1, 3650)][int] $LinkExpiryDays = 6,
+            [Parameter(Mandatory = $false)][bool] $AddBlobNamePrefix = $false,
+            [Parameter(Mandatory = $false)][switch] $ForceJobIsolation
+        )
+
+        foreach ($p in $FilePaths) {
+            if (-not (Test-Path -Path $p -PathType Leaf)) {
+                throw "File '$p' was not found."
+            }
+        }
+
+        $exoLoaded = $null -ne (Get-Module -Name ExchangeOnlineManagement)
+        $useJob = $exoLoaded -or $ForceJobIsolation.IsPresent
+
+        if ($useJob) {
+            $reason = if ($ForceJobIsolation.IsPresent) { "ForceJobIsolation" } else { "EXO loaded" }
+            Write-Verbose "Publish-RjRbFilesToStorageContainer: using Start-ThreadJob isolation (reason: $reason)."
+
+            $job = Start-ThreadJob -ScriptBlock {
+                param($FilePaths, $ContainerName, $ResourceGroupName, $StorageAccountName, $SubscriptionId, $LinkExpiryDays, $AddBlobNamePrefix)
+                Import-Module RealmJoin.RunbookHelper -ErrorAction Stop
+                Import-Module Az.Accounts -ErrorAction Stop
+                Import-Module Az.Storage -ErrorAction Stop
+
+                Connect-RjRbAzAccount
+                if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
+
+                $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
+                if (-not $storAccount) {
+                    throw "Storage account '$StorageAccountName' in resource group '$ResourceGroupName' was not found."
+                }
+                $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction Stop
+                $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value -ErrorAction Stop
+
+                $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
+                if (-not $container) {
+                    try { $container = New-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction Stop }
+                    catch {
+                        if ($_.Exception.Message -match 'ContainerAlreadyExists|already exists') {
+                            $container = Get-AzStorageContainer -Name $ContainerName -Context $context
+                        }
+                        else { throw }
+                    }
+                }
+
+                $endTime = (Get-Date).AddDays($LinkExpiryDays)
+                $results = @()
+                foreach ($filePath in $FilePaths) {
+                    $blobName = Split-Path -Path $filePath -Leaf
+                    if ($AddBlobNamePrefix) {
+                        $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
+                        $blobName = "$prefix-$blobName"
+                    }
+                    Set-AzStorageBlobContent -File $filePath -Container $ContainerName -Blob $blobName -Context $context -Force -ErrorAction Stop | Out-Null
+                    $sasLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobName -FullUri -ExpiryTime $endTime -ErrorAction Stop
+                    $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
+                }
+                return $results
+            } -ArgumentList $FilePaths, $ContainerName, $ResourceGroupName, $StorageAccountName, $SubscriptionId, $LinkExpiryDays, $AddBlobNamePrefix
+
+            try {
+                Wait-Job -Job $job | Out-Null
+                return Receive-Job -Job $job -ErrorAction Stop
+            }
+            finally {
+                Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+            }
+        }
+        else {
+            Write-Verbose "Publish-RjRbFilesToStorageContainer: ExchangeOnlineManagement not loaded - using direct in-process path."
+
+            $azContext = Get-AzContext -ErrorAction SilentlyContinue
+            if ((-not $azContext) -or (-not $azContext.Account)) {
+                Connect-RjRbAzAccount
+            }
+            if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
+
+            $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
+            if (-not $storAccount) {
+                throw "Storage account '$StorageAccountName' in resource group '$ResourceGroupName' was not found."
+            }
+            $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction Stop
+            $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value -ErrorAction Stop
+
+            $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
+            if (-not $container) {
+                try { $container = New-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction Stop }
+                catch {
+                    if ($_.Exception.Message -match 'ContainerAlreadyExists|already exists') {
+                        $container = Get-AzStorageContainer -Name $ContainerName -Context $context
+                    }
+                    else { throw }
+                }
+            }
+
+            $endTime = (Get-Date).AddDays($LinkExpiryDays)
+            $results = @()
+            foreach ($filePath in $FilePaths) {
+                $blobName = Split-Path -Path $filePath -Leaf
+                if ($AddBlobNamePrefix) {
+                    $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
+                    $blobName = "$prefix-$blobName"
+                }
+                Set-AzStorageBlobContent -File $filePath -Container $ContainerName -Blob $blobName -Context $context -Force -ErrorAction Stop | Out-Null
+                $sasLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobName -FullUri -ExpiryTime $endTime -ErrorAction Stop
+                $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
+            }
+            return $results
+        }
     }
 
     #endregion Helper Functions
@@ -508,13 +694,14 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 #
 ############################################################
 
-# Manually import these ahead of MgGraph module to avoid assembly conflicts
-Import-Module Az.Accounts
-Import-Module Az.Storage
-
-Write-Output "Connecting to Exchange Online and Microsoft Graph..."
-Connect-RjRbExchangeOnline
+Write-Output "Connecting to Microsoft Graph..."
 Connect-RjRbGraph
+
+# Exchange Online is only connected when actually needed for the Shared Mailbox report.
+if ($includeExchange) {
+    Write-Output "Connecting to Exchange Online..."
+    Connect-RjRbExchangeOnline
+}
 
 #endregion Connect Part
 
@@ -604,64 +791,40 @@ if ($exportToFile) {
 
 if ($exportToFile) {
     ""
-    Connect-RjRbAzAccount
-    if ($SubscriptionId) {
-        Set-AzContext -Subscription $SubscriptionId | Out-Null
-    }
-
     if (-not $ContainerName) {
         $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
     }
-
-    # Make sure storage account exists
-    $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-    if (-not $storAccount) {
-        "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
-    }
-
-    # Get access to the Storage Account
-    $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
-    $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-
-    # Make sure container exists
-    $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-    if (-not $container) {
-        "## Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context
-    }
-
-    $EndTime = (Get-Date).AddDays(6)
 
     "## Upload"
     if ($exportAsZip) {
         $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
         Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
-        Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
-        if ($produceLinks) {
-            # Create signed (SAS) link
-            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
-            "$SASLink"
-        }
-        "## '$zipFileName' upload successful."
+        $filesToUpload = @($zipFileName)
     }
     else {
-        # Upload all files individually
-        Get-ChildItem -Path $OutPutPath | ForEach-Object {
-            Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
-            if ($produceLinks) {
-                # Create signed (SAS) link
-                $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
-                "## $($_.Name)"
-                " $SASLink"
-                ""
-            }
-        }
-        "## upload of CSVs successful."
+        $filesToUpload = (Get-ChildItem -Path $OutPutPath -File).FullName
     }
-    if ($produceLinks) {
+
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $filesToUpload `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -SubscriptionId $SubscriptionId `
+        -LinkExpiryDays 6 `
+        -AddBlobNamePrefix $false
+
+    foreach ($r in $uploadResults) {
+        if ($produceLinks) {
+            "## $($r.BlobName)"
+            " $($r.SASLink)"
+            ""
+        }
+    }
+    "## Upload successful ($($uploadResults.Count) file(s))."
+    if ($produceLinks -and $uploadResults) {
         ""
-        "## Expiry of Links: $EndTime"
+        "## Expiry of Links: $($uploadResults[0].EndTime)"
     }
 }
 
