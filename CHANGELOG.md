@@ -6,11 +6,13 @@
   - Add `includeUserData` parameter to optionally include real user data (UPNs) in Graph activity reports by temporarily disabling the Microsoft 365 report privacy setting
   - Add `ReportSettings.ReadWrite.All` permission to support toggling report privacy setting
   - Restructure script with proper regions, parameter logging and enhanced error handling
-  - Update PowerShell module versions
-- Add `org/devices/dedup-device-names_scheduled.ps1` — scheduled runbook to resolve duplicate Intune device names
+  - Update PowerShell module
+- Add **Dedeup Device Names (Scheduled)** Runbook to org/devices section
   - Renames the most recently enrolled duplicate using a configurable prefix and random digit suffix; syncs resolved names to Autopilot
   - OS filter parameter (All / Windows / macOS / Other); skips personal-owned devices and unsupported platforms with warnings
   - Checks for pending rename actions before queuing to avoid duplicate MDM commands
+- Update **Export Enterprise Application Users** Runbook in Org/Applications
+  - Update the export function to the enhanced one used in the Office 365 License Report runbook
 
 ## 2026-04-29
 
