@@ -61,7 +61,7 @@ if (-not $targetDevice) {
 
 if ($targetDevice.operatingSystem -ne "Windows") {
     # Currentls MS Graph only allows to update windows devices when used "as App" (vs "delegated").
-    "## Can not en-/disable non-windows devices currently in AzureAD. "
+    "## Can not en-/disable non-windows devices currently in EntraID. "
     throw ("OS not supported")
 }
 
@@ -69,10 +69,10 @@ $body = @{ accountEnabled = $Enable }
 
 if ($targetDevice.accountEnabled) {
     if ($Enable) {
-        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already enabled in AzureAD."
+        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already enabled in EntraID."
     }
     else {
-        "## Disabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
+        "## Disabling device $($targetDevice.displayName) with DeviceId $DeviceId in EntraID."
         try {
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
         }
@@ -84,7 +84,7 @@ if ($targetDevice.accountEnabled) {
 }
 else {
     if ($Enable) {
-        "## Enabling device $($targetDevice.displayName) with DeviceId $DeviceId in AzureAD."
+        "## Enabling device $($targetDevice.displayName) with DeviceId $DeviceId in EntraID."
         try {
             Invoke-RjRbRestMethodGraph -Resource "/devices/$($targetDevice.id)" -Method "Patch" -body $body | Out-Null
         }
@@ -94,6 +94,6 @@ else {
         }
     }
     else {
-        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in AzureAD."
+        "## Device $($targetDevice.displayName) with DeviceId $DeviceId is already disabled in EntraID."
     }
 }

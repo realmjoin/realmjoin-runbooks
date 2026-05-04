@@ -69,6 +69,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
+      - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
@@ -308,10 +309,10 @@ Device \ General \ Check Updatable Assets
 <a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
-#### Enroll device into Windows Update for Business.
+#### Enroll device into Windows Update for Business
 
 #### Description
-This script enrolls devices into Windows Update for Business.
+This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.
 
 #### Where to find
 Device \ General \ Enroll Updatable Assets
@@ -1078,6 +1079,25 @@ Org \ Devices \ Create Endpoint Analytics Baseline
  
  
 
+<a name='org-devices-dedup-device-names-(scheduled)'></a>
+
+### Dedup Device Names (Scheduled)
+#### Detect and rename duplicate Intune device display names using a prefix and random suffix
+
+#### Description
+This scheduled runbook queries all Intune managed devices and identifies devices that share the same display name.
+For each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.
+An optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.
+
+#### Where to find
+Org \ Devices \ Dedup Device Names_Scheduled
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
@@ -1767,7 +1787,8 @@ Org \ General \ Export Policy Report
 
 #### Description
 This runbook invites an external user as a guest user in Microsoft Entra ID.
-It can optionally add the invited user to a specified group.
+Optional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.
+The invited user can optionally be added to a specified group.
 
 #### Where to find
 Org \ General \ Invite External Guest Users

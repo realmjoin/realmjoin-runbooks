@@ -68,6 +68,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
+    - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
@@ -269,13 +270,13 @@ Check if a device is onboarded to Windows Update for Business
 <a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
-Enroll device into Windows Update for Business.
+Enroll device into Windows Update for Business
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
-| DeviceId | ✓ | String | DeviceId of the device to unenroll. |
-| UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: driver, feature or quality. |
+| DeviceId | ✓ | String | DeviceId of the device to enroll. |
+| UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially. |
 
 <a name='device-general-outphase-device'></a>
 
@@ -799,6 +800,18 @@ Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming
 | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
 | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
 
+<a name='organization-devices-dedup-device-names-scheduled'></a>
+
+### Dedup Device Names (Scheduled)
+Detect and rename duplicate Intune device display names using a prefix and random suffix
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| NamePrefix | ✓ | String | The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string. |
+| NameLength | ✓ | Int32 | The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix. |
+| OsFilter |  | String | Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All. |
+| CallerName | ✓ | String | The identity of the person or automation account that triggered this runbook, used for auditing purposes only. |
+
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
@@ -1306,8 +1319,13 @@ Invite external guest users to the organization
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | InvitedUserEmail | ✓ | String | Email address of the guest user to invite. |
-| InvitedUserDisplayName | ✓ | String | Display name of the guest user. |
-| GroupId |  | String | The object ID of the group to add the guest user to.<br>If not specified, the user will not be added to any group. |
+| InvitedUserDisplayName |  | String | Display name of the guest user. |
+| GroupId |  | String | The object ID of the group to add the guest user to. If not specified, the user will not be added to any group. |
+| GivenName |  | String | Given name (first name) of the guest user. |
+| Surname |  | String | Surname (last name) of the guest user. |
+| CompanyName |  | String | Company name of the guest user. |
+| ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+| UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-general-list-all-administrative-template-policies'></a>
@@ -1336,15 +1354,14 @@ Generate an Office 365 licensing report
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
+| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports (Shared Mailbox licensing). |
+| includeUserData |  | Boolean | If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use. |
 | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
 | ContainerName |  | String | Storage container name used for uploads. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
-| StorageAccountName |  | String | Storage account name used for uploads. |
-| StorageAccountLocation |  | String | Azure region for the storage account. |
-| StorageAccountSku |  | String | Storage account SKU. |
+| StorageAccountName |  | String | Storage account name used for uploads. The account must exist before running this report. |
 | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 

@@ -1,18 +1,18 @@
 <#
     .SYNOPSIS
-    Enroll device into Windows Update for Business.
+    Enroll device into Windows Update for Business
 
     .DESCRIPTION
-    This script enrolls devices into Windows Update for Business.
+    This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
     .PARAMETER DeviceId
-    DeviceId of the device to unenroll.
+    DeviceId of the device to enroll.
 
     .PARAMETER UpdateCategory
-    Category of updates to enroll into. Possible values are: driver, feature or quality.
+    Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially.
 
     .INPUTS
     RunbookCustomization: {
@@ -35,16 +35,35 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [Parameter(Mandatory = $true)]
-    [ValidateSet("driver", "feature", "quality")]
-    [string] $UpdateCategory = "feature"
+    [ValidateSet("Driver", "Feature", "Quality", "All")]
+    [string] $UpdateCategory = "Feature"
 )
+
+########################################################
+#region     RJ Log Part
+########################################################
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "DeviceId: $DeviceId" -Verbose
+Write-RjRbLog -Message "UpdateCategory: $UpdateCategory" -Verbose
+
+#endregion RJ Log Part
+
+########################################################
+#region     Connect Part
+########################################################
 
 Connect-RjRbGraph -Force
+
+#endregion Connect Part
+
+########################################################
+#region     Main Part
+########################################################
 
 function Register-Device {
     param (
@@ -55,7 +74,7 @@ function Register-Device {
     Write-Output "Enrolling device with ID $DeviceId into $UpdateCategory updates"
 
     $enrollBody = @{
-        updateCategory = $UpdateCategory
+        updateCategory = $UpdateCategory.ToLower()
         assets         = @(
             @{
                 "@odata.type" = "#microsoft.graph.windowsUpdates.azureADDevice"
@@ -79,4 +98,13 @@ function Register-Device {
     }
 }
 
-Register-Device -DeviceId $DeviceId -UpdateCategory $UpdateCategory
+if ($UpdateCategory -eq "All") {
+    foreach ($category in @("Driver", "Feature", "Quality")) {
+        Register-Device -DeviceId $DeviceId -UpdateCategory $category
+    }
+}
+else {
+    Register-Device -DeviceId $DeviceId -UpdateCategory $UpdateCategory
+}
+
+#endregion Main Part

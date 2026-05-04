@@ -25,9 +25,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to check. |
-|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to unenroll. |
-|  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: driver, feature or quality. |
+|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to enroll. |
+|  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially. |
 |  |  | Outphase Device | Remove/Outphase a windows device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | intuneAction |  | Int32 | Determines the Intune action to perform (wipe, delete, or none). |
 |  |  |  |  |  |  | aadAction |  | Int32 | Determines the Entra ID (Azure AD) action to perform (delete, disable, or none). |
@@ -207,6 +207,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br> |  | BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
 |  |  |  |  |  |  | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
+|  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | NamePrefix | ✓ | String | The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string. |
+|  |  |  |  |  |  | NameLength | ✓ | Int32 | The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix. |
+|  |  |  |  |  |  | OsFilter |  | String | Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The identity of the person or automation account that triggered this runbook, used for auditing purposes only. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
@@ -430,21 +434,25 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Invite External Guest Users | Invite external guest users to the organization | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  | InvitedUserEmail | ✓ | String | Email address of the guest user to invite. |
-|  |  |  |  |  |  | InvitedUserDisplayName | ✓ | String | Display name of the guest user. |
-|  |  |  |  |  |  | GroupId |  | String | The object ID of the group to add the guest user to.<br>If not specified, the user will not be added to any group. |
+|  |  |  |  |  |  | InvitedUserDisplayName |  | String | Display name of the guest user. |
+|  |  |  |  |  |  | GroupId |  | String | The object ID of the group to add the guest user to. If not specified, the user will not be added to any group. |
+|  |  |  |  |  |  | GivenName |  | String | Given name (first name) of the guest user. |
+|  |  |  |  |  |  | Surname |  | String | Surname (last name) of the guest user. |
+|  |  |  |  |  |  | CompanyName |  | String | Company name of the guest user. |
+|  |  |  |  |  |  | ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-|  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
+|  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br>&emsp;- ReportSettings.ReadWrite.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
+|  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports (Shared Mailbox licensing). |
+|  |  |  |  |  |  | includeUserData |  | Boolean | If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use. |
 |  |  |  |  |  |  | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 |  |  |  |  |  |  | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 |  |  |  |  |  |  | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container name used for uploads. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
-|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for uploads. |
-|  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the storage account. |
-|  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for uploads. The account must exist before running this report. |
 |  |  |  |  |  |  | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |

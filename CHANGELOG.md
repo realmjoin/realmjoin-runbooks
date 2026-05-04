@@ -1,5 +1,38 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-04-30
+
+- Update **Office 365 License Report** Runbook in Org/General
+  - Add `includeUserData` parameter to optionally include real user data (UPNs) in Graph activity reports by temporarily disabling the Microsoft 365 report privacy setting
+  - Add `ReportSettings.ReadWrite.All` permission to support toggling report privacy setting
+  - Restructure script with proper regions, parameter logging and enhanced error handling
+  - Update PowerShell module
+- Add **Dedeup Device Names (Scheduled)** Runbook to org/devices section
+  - Renames the most recently enrolled duplicate using a configurable prefix and random digit suffix; syncs resolved names to Autopilot
+  - OS filter parameter (All / Windows / macOS / Other); skips personal-owned devices and unsupported platforms with warnings
+  - Checks for pending rename actions before queuing to avoid duplicate MDM commands
+- Update **Export Enterprise Application Users** Runbook in Org/Applications
+  - Update the export function to the enhanced one used in the Office 365 License Report runbook
+
+## 2026-04-29
+
+- Update **Invite External Guest Users** Runbook in Org/General
+  - Add Parameter: Given name, Surname, Manager, UsageLocation, Company
+  - Add DisplayName generation based on given name and surname if display name is not provided
+
+## 2026-04-24
+
+- Update **Export Policy Report** Runbook in Org/General
+  - Replace all `$top=1000` Graph API calls with `Get-GraphPagedResult` to correctly handle pagination and prevent missing policies in large tenants
+  - Add helper function and restructure script with proper regions
+  - Add logging of the count of retrieved policies for each policy type
+
+## 2026-04-21
+
+- Update **Enroll Updatable Assets** Runbook in Device/General
+  - Add "All" option to `UpdateCategory` to sequentially enroll into Driver, Feature and Quality updates
+  - Restructure script with proper regions and parameter logging
+
 ## 2026-04-13
 
 - Update **Set Or Remove Mobile Phone MFA** Runbook in User/Security

@@ -68,6 +68,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Device Via Corporate Identifier
     - Auto Approve Driver Updates (Scheduled)
     - Create Endpoint Analytics Baseline
+    - Dedup Device Names (Scheduled)
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
     - Notify Users About Stale Devices (Scheduled)
@@ -205,7 +206,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 | Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
-| Enroll Updatable Assets | Enroll device into Windows Update for Business. |
+| Enroll Updatable Assets | Enroll device into Windows Update for Business |
 | Outphase Device | Remove/Outphase a windows device |
 | Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
@@ -297,6 +298,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
 | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
+| Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |

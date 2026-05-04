@@ -43,6 +43,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "List only Enterprise Apps" } )]
@@ -66,198 +67,200 @@ Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-function Publish-RjRbFileToStorageContainer {
+function Publish-RjRbFilesToStorageContainer {
     <#
         .SYNOPSIS
-        Upload a local file to an Azure Storage container and create a SAS download link
+        Upload one or more local files to an Azure Storage container, returning SAS
+        download links.
 
         .DESCRIPTION
-        This helper uploads a file to a blob container in an existing Azure Storage Account. It can automatically prepend
-        a prefix to the blob name to reduce overwrite risk. The prefix can either be a timestamp in 24-hour format or an
-        alphanumeric random string.
+        Performs blob upload and SAS token generation using the Azure Storage REST API
+        directly, avoiding the Az.Storage module entirely. This eliminates the well-known
+        assembly conflict between Az.Storage and ExchangeOnlineManagement.
 
-        .PARAMETER FilePath
-        Full or relative path to the local file that should be uploaded.
+        Storage account keys are retrieved via ARM REST API (Invoke-AzRestMethod from
+        Az.Accounts). Blob operations (container creation, upload, SAS generation) use
+        the Azure Storage REST API with SharedKey authentication.
 
-        .PARAMETER BlobName
-        Target blob name inside the container. If omitted, the local file name is used.
+        Required Azure RBAC on the storage account:
+        - Microsoft.Storage/storageAccounts/read
+        - Microsoft.Storage/storageAccounts/listKeys/action
+        Built-in role: 'Storage Account Contributor'.
+
+        .PARAMETER FilePaths
+        Array of local file paths to upload.
 
         .PARAMETER ContainerName
-        Blob container name where the file is uploaded.
+        Target blob container. Created automatically if missing.
 
         .PARAMETER ResourceGroupName
-        Resource group containing the target Storage Account.
+        Resource group containing the storage account.
 
         .PARAMETER StorageAccountName
-        Name of the target Storage Account.
+        Target storage account name.
+
+        .PARAMETER SubscriptionId
+        Optional Azure subscription ID. Sets context before storage operations.
 
         .PARAMETER LinkExpiryDays
-        Number of days until the generated SAS link expires.
+        SAS link validity in days (default 6, range 1-3650).
 
         .PARAMETER AddBlobNamePrefix
-        When true, adds a prefix to the blob name before upload.
-
-        .PARAMETER UseRandomPrefix
-        When used together with AddBlobNamePrefix, a 6-character alphanumeric prefix is used instead of a timestamp prefix.
+        When $true, prefixes blob names with yyyyMMdd-HHmmss (default $false).
 
         .OUTPUTS
-        PSCustomObject with upload metadata including final blob name, expiry time, and SAS link.
+        Array of PSCustomObject with BlobName, EndTime, SASLink for each uploaded file.
     #>
-
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $FilePath,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $BlobName,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $ContainerName,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $ResourceGroupName,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $StorageAccountName,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 3650)]
-        [int] $LinkExpiryDays = 6,
-
-        [Parameter(Mandatory = $false)]
-        [bool] $AddBlobNamePrefix = $true,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({
-                if ($_ -and (-not $AddBlobNamePrefix)) {
-                    throw "UseRandomPrefix cannot be used when AddBlobNamePrefix is set to false."
-                }
-                $true
-            })]
-        [switch] $UseRandomPrefix
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string[]] $FilePaths,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ContainerName,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $StorageAccountName,
+        [Parameter(Mandatory = $false)][string] $SubscriptionId,
+        [Parameter(Mandatory = $false)][ValidateRange(1, 3650)][int] $LinkExpiryDays = 6,
+        [Parameter(Mandatory = $false)][bool] $AddBlobNamePrefix = $false
     )
 
-    $connectedByFunction = $false
+    foreach ($p in $FilePaths) {
+        if (-not (Test-Path -Path $p -PathType Leaf)) {
+            throw "File '$p' was not found."
+        }
+    }
 
+    # Ensure Az context is connected
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if ((-not $azContext) -or (-not $azContext.Account)) {
+        Connect-RjRbAzAccount
+    }
+    if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
+
+    # Get storage account key via ARM REST API
+    $subscriptionId = (Get-AzContext).Subscription.Id
+    $armPath = "/subscriptions/$subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Storage/storageAccounts/$StorageAccountName/listKeys?api-version=2023-05-01"
+    $keysResponse = Invoke-AzRestMethod -Path $armPath -Method POST
+    if ($keysResponse.StatusCode -ne 200) {
+        throw "Failed to retrieve storage account keys for '$StorageAccountName' in resource group '$ResourceGroupName'. Status: $($keysResponse.StatusCode)"
+    }
+    $storageKey = ($keysResponse.Content | ConvertFrom-Json).keys[0].value
+    $keyBytes = [Convert]::FromBase64String($storageKey)
+
+    # Helper: Generate SharedKey Authorization header
+    function Get-StorageAuthHeader {
+        param([string]$Method, [string]$CanonicalizedResource, [hashtable]$Headers, [string]$ContentType = "", [int]$ContentLength = 0)
+
+        $rfcDate = $Headers["x-ms-date"]
+        $msHeaders = ($Headers.GetEnumerator() | Where-Object { $_.Key -like "x-ms-*" } | Sort-Object Key | ForEach-Object { "$($_.Key):$($_.Value)" }) -join "`n"
+
+        $contentLengthStr = if ($ContentLength -gt 0) { "$ContentLength" } else { "" }
+
+        $stringToSign = "$Method`n`n`n$contentLengthStr`n`n$ContentType`n`n`n`n`n`n`n$msHeaders`n$CanonicalizedResource"
+
+        $hmac = New-Object System.Security.Cryptography.HMACSHA256
+        $hmac.Key = $keyBytes
+        $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
+        return "SharedKey ${StorageAccountName}:$sig"
+    }
+
+    # Helper: Generate Blob SAS token
+    function New-BlobSasToken {
+        param([string]$Container, [string]$Blob, [datetime]$ExpiryTime)
+
+        $startTime = (Get-Date).ToUniversalTime().AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ssZ")
+        $expiryStr = $ExpiryTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+        $permissions = "r"
+        $signedVersion = "2023-11-03"
+        $signedResource = "b"
+        $signedProtocol = "https"
+
+        # StringToSign for Blob SAS
+        $canonicalizedResource = "/blob/$StorageAccountName/$Container/$Blob"
+        $stringToSign = "$permissions`n$startTime`n$expiryStr`n$canonicalizedResource`n`n`n$signedProtocol`n$signedVersion`n$signedResource`n`n`n`n`n`n`n"
+
+        $hmac = New-Object System.Security.Cryptography.HMACSHA256
+        $hmac.Key = $keyBytes
+        $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
+
+        $sasToken = "sp=$permissions&st=$startTime&se=$expiryStr&spr=$signedProtocol&sv=$signedVersion&sr=$signedResource&sig=$([Uri]::EscapeDataString($sig))"
+        return "https://$StorageAccountName.blob.core.windows.net/$Container/${Blob}?$sasToken"
+    }
+
+    $baseUri = "https://$StorageAccountName.blob.core.windows.net"
+
+    # Create container if it does not exist (using HttpClient to bypass Azure Automation's
+    # Invoke-RestMethod interceptor that strips required headers)
+    $dateStr = [DateTime]::UtcNow.ToString("R")
+    $containerHeaders = @{
+        "x-ms-date"    = $dateStr
+        "x-ms-version" = "2023-11-03"
+    }
+    $canonResource = "/$StorageAccountName/$ContainerName`nrestype:container"
+    $containerHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $containerHeaders
+
+    $httpClient = [System.Net.Http.HttpClient]::new()
     try {
-        if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
-            throw "File '$FilePath' was not found."
+        $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName`?restype=container")
+        foreach ($h in $containerHeaders.GetEnumerator()) {
+            $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
         }
-
-        if (-not $BlobName) {
-            $BlobName = Split-Path -Path $FilePath -Leaf
+        $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
+        $statusCode = [int]$response.StatusCode
+        if ($statusCode -ne 201 -and $statusCode -ne 409) {
+            $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+            throw "Container creation failed ($statusCode): $errBody"
         }
+    }
+    finally {
+        $httpClient.Dispose()
+    }
 
-        if ([string]::IsNullOrWhiteSpace($BlobName)) {
-            throw "BlobName cannot be empty or whitespace."
-        }
-
-        if ($BlobName.Length -gt 1024) {
-            throw "BlobName must not exceed 1024 characters."
-        }
-
-        if ($BlobName -match '[\\\x00-\x1F\x7F]') {
-            throw "BlobName contains invalid characters."
-        }
-
-        if ($BlobName.EndsWith(".") -or $BlobName.EndsWith("/")) {
-            throw "BlobName must not end with '.' or '/'."
-        }
-
+    # Upload files and generate SAS links
+    $endTime = (Get-Date).AddDays($LinkExpiryDays)
+    $results = @()
+    foreach ($filePath in $FilePaths) {
+        $blobName = Split-Path -Path $filePath -Leaf
         if ($AddBlobNamePrefix) {
-            if ($UseRandomPrefix) {
-                $prefixChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-                $prefix = -join (1..6 | ForEach-Object { $prefixChars[(Get-Random -Minimum 0 -Maximum $prefixChars.Length)] })
+            $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
+            $blobName = "$prefix-$blobName"
+        }
+
+        $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+        $contentLength = $fileBytes.Length
+
+        $dateStr = [DateTime]::UtcNow.ToString("R")
+        $blobHeaders = @{
+            "x-ms-date"      = $dateStr
+            "x-ms-version"   = "2023-11-03"
+            "x-ms-blob-type" = "BlockBlob"
+        }
+        $canonResource = "/$StorageAccountName/$ContainerName/$blobName"
+        $blobHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $blobHeaders -ContentType "application/octet-stream" -ContentLength $contentLength
+
+        # Use HttpClient directly to ensure all custom headers (x-ms-blob-type) are sent.
+        # Invoke-RestMethod in hosted PowerShell can strip custom headers with binary bodies.
+        $httpClient = [System.Net.Http.HttpClient]::new()
+        try {
+            $content = [System.Net.Http.ByteArrayContent]::new($fileBytes)
+            $content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("application/octet-stream")
+            $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName/$blobName")
+            $request.Content = $content
+            foreach ($h in $blobHeaders.GetEnumerator()) {
+                $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
             }
-            else {
-                # Timestamp format: yyyyMMdd-HHmmss-
-                $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
-            }
-
-            $BlobName = "$prefix-$BlobName"
-        }
-
-        if ($BlobName.Length -gt 1024) {
-            throw "Final BlobName must not exceed 1024 characters after prefixing."
-        }
-
-        $azContext = Get-AzContext -ErrorAction SilentlyContinue
-        if ((-not $azContext) -or (-not $azContext.Account)) {
-            Connect-RjRbAzAccount
-            $connectedByFunction = $true
-
-            $azContext = Get-AzContext -ErrorAction SilentlyContinue
-            if ((-not $azContext) -or (-not $azContext.Account)) {
-                throw "Connect-RjRbAzAccount did not produce a usable Azure context."
-            }
-        }
-
-        # Make sure storage account exists
-        $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-        if (-not $storAccount) {
-            throw "Storage account '$StorageAccountName' in resource group '$ResourceGroupName' was not found."
-        }
-
-        # Get access to the Storage Account
-        $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction Stop
-
-        if ((-not $keys) -or (-not $keys[0].Value)) {
-            throw "Could not retrieve a valid key for storage account '$StorageAccountName'."
-        }
-
-        $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value -ErrorAction Stop
-
-        # Make sure container exists
-        $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-        if (-not $container) {
-            Write-Verbose "## Creating Azure Storage Account Container $($ContainerName)"
-            try {
-                $container = New-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction Stop
-            }
-            catch {
-                # Handle race conditions from parallel runs creating the same container
-                if ($_.Exception.Message -match 'ContainerAlreadyExists|already exists') {
-                    $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-                }
-                else {
-                    throw
-                }
+            $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
+            if (-not $response.IsSuccessStatusCode) {
+                $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+                throw "Blob upload failed ($($response.StatusCode)): $errBody"
             }
         }
-
-        if (-not $container) {
-            throw "Storage container '$ContainerName' is not available."
+        finally {
+            $httpClient.Dispose()
         }
 
-        # Upload
-        Set-AzStorageBlobContent -File $FilePath -Container $ContainerName -Blob $BlobName -Context $context -Force -ErrorAction Stop | Out-Null
-
-        # Create signed (SAS) link
-        $EndTime = (Get-Date).AddDays($LinkExpiryDays)
-        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $BlobName -FullUri -ExpiryTime $EndTime -ErrorAction Stop
-
-        return [PSCustomObject]@{
-            FilePath          = $FilePath
-            BlobName          = $BlobName
-            ContainerName     = $ContainerName
-            StorageAccountName = $StorageAccountName
-            EndTime           = $EndTime
-            SASLink           = $SASLink
-            ConnectedByFunction = $connectedByFunction
-            AddBlobNamePrefix = $AddBlobNamePrefix
-            UseRandomPrefix   = [bool]$UseRandomPrefix
-            UploadSucceeded   = $true
-        }
+        $sasLink = New-BlobSasToken -Container $ContainerName -Blob $blobName -ExpiryTime $endTime
+        $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
     }
-    catch {
-        throw "Failed to publish file '$FilePath' to container '$ContainerName'. Details: $($_.Exception.Message)"
-    }
+    return $results
 }
 
 if (-not $ContainerName) {
@@ -369,14 +372,15 @@ try {
     $content = Get-Content -Path "enterpriseApps.csv"
     set-content -Path "enterpriseApps.csv" -Value $content -Encoding UTF8
 
-    $uploadResult = Publish-RjRbFileToStorageContainer `
-        -FilePath "enterpriseApps.csv" `
-        -BlobName "enterpriseApps.csv" `
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths @("enterpriseApps.csv") `
         -ContainerName $ContainerName `
         -ResourceGroupName $ResourceGroupName `
         -StorageAccountName $StorageAccountName `
-        -LinkExpiryDays $LinkExpiryDays
+        -LinkExpiryDays $LinkExpiryDays `
+        -AddBlobNamePrefix $true
 
+    $uploadResult = $uploadResults[0]
     "## App Owner/User List Export created."
     "## Expiry of Link: $($uploadResult.EndTime)"
     $uploadResult.SASLink | Out-String
