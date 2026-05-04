@@ -6,7 +6,8 @@
             "AppRoleAssignments": [
                 "Reports.Read.All",
                 "Directory.Read.All",
-                "User.Read.All"
+                "User.Read.All",
+                "ReportSettings.ReadWrite.All"
             ]
         }
     ],
