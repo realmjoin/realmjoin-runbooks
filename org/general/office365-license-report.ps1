@@ -82,9 +82,7 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
-#Requires -Modules @{ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
-#Requires -Modules @{ModuleName = "Microsoft.PowerShell.ThreadJob"; ModuleVersion = "2.2.0" }
 
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
@@ -149,7 +147,7 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
     "## - OfficeLicensingReport.SubscriptionId"
     "## - OfficeLicensingReport.StorageAccount.Name"
     ""
-    "## Note: The Storage Account must exist before running this report. It is no longer created automatically."
+    "## Note: The Storage Account must exist before running this report."
     ""
     "## Disabling CSV export..."
     $exportToFile = $false
@@ -185,60 +183,21 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
         <#
             .SYNOPSIS
             Upload one or more local files to an Azure Storage container, returning SAS
-            download links. Self-adapts to avoid the ExchangeOnlineManagement / Az.Storage
-            assembly conflict.
+            download links.
 
             .DESCRIPTION
-            Performs the actual upload via Az.Storage cmdlets. The execution path is
-            selected automatically based on the current PowerShell session state:
+            Performs blob upload and SAS token generation using the Azure Storage REST API
+            directly, avoiding the Az.Storage module entirely. This eliminates the well-known
+            assembly conflict between Az.Storage and ExchangeOnlineManagement.
 
-            1. DIRECT PATH (fast, default for runbooks without Exchange Online):
-               If ExchangeOnlineManagement is NOT loaded in the current session, all
-               Az.Storage cmdlets run directly in-process. No job overhead.
-
-            2. ISOLATED PATH (minimal overhead, only when needed):
-               If ExchangeOnlineManagement IS loaded, all Az.Storage cmdlets are executed
-               inside a single Start-ThreadJob ScriptBlock - a separate PowerShell runspace.
-               This avoids the well-known Microsoft.OData.Core assembly conflict between
-               Az.Storage and ExchangeOnlineManagement ("Assembly with same name is already
-               loaded").
-
-            Detection is done via Get-Module -Name ExchangeOnlineManagement, which returns
-            the loaded module instance (or $null if not yet imported). The module being
-            merely available in the runtime environment (Get-Module -ListAvailable) is NOT
-            sufficient to trigger the isolated path - only an actual import does. This
-            keeps the fast path active for runbooks that have EXO available but never use it.
-
-            Why Start-ThreadJob instead of Start-Job?
-            Start-Job spawns a new pwsh child process, which is NOT supported in hosted
-            PowerShell environments (e.g. Azure Automation, Azure Functions). Start-ThreadJob
-            uses a separate runspace within the same process, which is supported everywhere
-            and avoids the startup cost of a new process.
-
-            Authentication:
-            Both paths authenticate via Connect-RjRbAzAccount. In Azure Automation, the
-            managed identity is available within the same process to all runspaces.
+            Storage account keys are retrieved via ARM REST API (Invoke-AzRestMethod from
+            Az.Accounts). Blob operations (container creation, upload, SAS generation) use
+            the Azure Storage REST API with SharedKey authentication.
 
             Required Azure RBAC on the storage account:
             - Microsoft.Storage/storageAccounts/read
             - Microsoft.Storage/storageAccounts/listKeys/action
             Built-in role: 'Storage Account Contributor'.
-
-            .NOTES
-            CALLING ORDER MATTERS in runbooks that use BOTH this function AND
-            ExchangeOnlineManagement:
-
-            The conflict between Az.Storage and ExchangeOnlineManagement is bidirectional.
-            If this function takes the Direct Path (no EXO loaded yet), Az.Storage will be
-            loaded into the current process. After that, ExchangeOnlineManagement CANNOT
-            be loaded in the same session.
-
-            Safe usage patterns:
-              A) EXO first, then storage: Connect-RjRbExchangeOnline before this function
-                 -> isolation kicks in automatically.
-              B) Storage only, no EXO in the runbook -> Direct Path is safe.
-              C) Unsure / dynamic flow -> pass -ForceJobIsolation to opt into the isolated
-                 path regardless of session state.
 
             .PARAMETER FilePaths
             Array of local file paths to upload.
@@ -261,10 +220,6 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
             .PARAMETER AddBlobNamePrefix
             When $true, prefixes blob names with yyyyMMdd-HHmmss (default $false).
 
-            .PARAMETER ForceJobIsolation
-            Optional switch. Forces the Start-ThreadJob isolated path even when EXO is not loaded.
-            Useful when the runbook may load EXO later in its flow.
-
             .OUTPUTS
             Array of PSCustomObject with BlobName, EndTime, SASLink for each uploaded file.
         #>
@@ -276,8 +231,7 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
             [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $StorageAccountName,
             [Parameter(Mandatory = $false)][string] $SubscriptionId,
             [Parameter(Mandatory = $false)][ValidateRange(1, 3650)][int] $LinkExpiryDays = 6,
-            [Parameter(Mandatory = $false)][bool] $AddBlobNamePrefix = $false,
-            [Parameter(Mandatory = $false)][switch] $ForceJobIsolation
+            [Parameter(Mandatory = $false)][bool] $AddBlobNamePrefix = $false
         )
 
         foreach ($p in $FilePaths) {
@@ -286,104 +240,139 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
             }
         }
 
-        $exoLoaded = $null -ne (Get-Module -Name ExchangeOnlineManagement)
-        $useJob = $exoLoaded -or $ForceJobIsolation.IsPresent
+        # Ensure Az context is connected
+        $azContext = Get-AzContext -ErrorAction SilentlyContinue
+        if ((-not $azContext) -or (-not $azContext.Account)) {
+            Connect-RjRbAzAccount
+        }
+        if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
 
-        if ($useJob) {
-            $reason = if ($ForceJobIsolation.IsPresent) { "ForceJobIsolation" } else { "EXO loaded" }
-            Write-Verbose "Publish-RjRbFilesToStorageContainer: using Start-ThreadJob isolation (reason: $reason)."
+        # Get storage account key via ARM REST API
+        $subscriptionId = (Get-AzContext).Subscription.Id
+        $armPath = "/subscriptions/$subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Storage/storageAccounts/$StorageAccountName/listKeys?api-version=2023-05-01"
+        $keysResponse = Invoke-AzRestMethod -Path $armPath -Method POST
+        if ($keysResponse.StatusCode -ne 200) {
+            throw "Failed to retrieve storage account keys for '$StorageAccountName' in resource group '$ResourceGroupName'. Status: $($keysResponse.StatusCode)"
+        }
+        $storageKey = ($keysResponse.Content | ConvertFrom-Json).keys[0].value
+        $keyBytes = [Convert]::FromBase64String($storageKey)
 
-            $job = Start-ThreadJob -ScriptBlock {
-                param($FilePaths, $ContainerName, $ResourceGroupName, $StorageAccountName, $SubscriptionId, $LinkExpiryDays, $AddBlobNamePrefix)
-                Import-Module RealmJoin.RunbookHelper -ErrorAction Stop
-                Import-Module Az.Accounts -ErrorAction Stop
-                Import-Module Az.Storage -ErrorAction Stop
+        # Helper: Generate SharedKey Authorization header
+        function Get-StorageAuthHeader {
+            param([string]$Method, [string]$CanonicalizedResource, [hashtable]$Headers, [string]$ContentType = "", [int]$ContentLength = 0)
 
-                Connect-RjRbAzAccount
-                if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
+            $rfcDate = $Headers["x-ms-date"]
+            $msHeaders = ($Headers.GetEnumerator() | Where-Object { $_.Key -like "x-ms-*" } | Sort-Object Key | ForEach-Object { "$($_.Key):$($_.Value)" }) -join "`n"
 
-                $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-                if (-not $storAccount) {
-                    throw "Storage account '$StorageAccountName' in resource group '$ResourceGroupName' was not found."
-                }
-                $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction Stop
-                $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value -ErrorAction Stop
+            $contentLengthStr = if ($ContentLength -gt 0) { "$ContentLength" } else { "" }
 
-                $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-                if (-not $container) {
-                    try { $container = New-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction Stop }
-                    catch {
-                        if ($_.Exception.Message -match 'ContainerAlreadyExists|already exists') {
-                            $container = Get-AzStorageContainer -Name $ContainerName -Context $context
-                        }
-                        else { throw }
-                    }
-                }
+            $stringToSign = "$Method`n`n`n$contentLengthStr`n`n$ContentType`n`n`n`n`n`n`n$msHeaders`n$CanonicalizedResource"
 
-                $endTime = (Get-Date).AddDays($LinkExpiryDays)
-                $results = @()
-                foreach ($filePath in $FilePaths) {
-                    $blobName = Split-Path -Path $filePath -Leaf
-                    if ($AddBlobNamePrefix) {
-                        $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
-                        $blobName = "$prefix-$blobName"
-                    }
-                    Set-AzStorageBlobContent -File $filePath -Container $ContainerName -Blob $blobName -Context $context -Force -ErrorAction Stop | Out-Null
-                    $sasLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobName -FullUri -ExpiryTime $endTime -ErrorAction Stop
-                    $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
-                }
-                return $results
-            } -ArgumentList $FilePaths, $ContainerName, $ResourceGroupName, $StorageAccountName, $SubscriptionId, $LinkExpiryDays, $AddBlobNamePrefix
+            $hmac = New-Object System.Security.Cryptography.HMACSHA256
+            $hmac.Key = $keyBytes
+            $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
+            return "SharedKey ${StorageAccountName}:$sig"
+        }
 
+        # Helper: Generate Blob SAS token
+        function New-BlobSasToken {
+            param([string]$Container, [string]$Blob, [datetime]$ExpiryTime)
+
+            $startTime = (Get-Date).ToUniversalTime().AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ssZ")
+            $expiryStr = $ExpiryTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+            $permissions = "r"
+            $signedVersion = "2023-11-03"
+            $signedResource = "b"
+            $signedProtocol = "https"
+
+            # StringToSign for Blob SAS: permissions, start, expiry, canonicalizedResource, identifier, IP, protocol, version, resource, snapshot, encryption, rscc, rscd, rsce, rscl, rsct
+            $canonicalizedResource = "/blob/$StorageAccountName/$Container/$Blob"
+            $stringToSign = "$permissions`n$startTime`n$expiryStr`n$canonicalizedResource`n`n`n$signedProtocol`n$signedVersion`n$signedResource`n`n`n`n`n`n`n"
+
+            $hmac = New-Object System.Security.Cryptography.HMACSHA256
+            $hmac.Key = $keyBytes
+            $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
+
+            $sasToken = "sp=$permissions&st=$startTime&se=$expiryStr&spr=$signedProtocol&sv=$signedVersion&sr=$signedResource&sig=$([Uri]::EscapeDataString($sig))"
+            return "https://$StorageAccountName.blob.core.windows.net/$Container/${Blob}?$sasToken"
+        }
+
+        $baseUri = "https://$StorageAccountName.blob.core.windows.net"
+
+        # Create container if it does not exist (using HttpClient to bypass Azure Automation's
+        # Invoke-RestMethod interceptor that strips required headers)
+        $dateStr = [DateTime]::UtcNow.ToString("R")
+        $containerHeaders = @{
+            "x-ms-date"    = $dateStr
+            "x-ms-version" = "2023-11-03"
+        }
+        $canonResource = "/$StorageAccountName/$ContainerName`nrestype:container"
+        $containerHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $containerHeaders
+
+        $httpClient = [System.Net.Http.HttpClient]::new()
+        try {
+            $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName`?restype=container")
+            foreach ($h in $containerHeaders.GetEnumerator()) {
+                $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
+            }
+            $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
+            $statusCode = [int]$response.StatusCode
+            if ($statusCode -ne 201 -and $statusCode -ne 409) {
+                $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+                throw "Container creation failed ($statusCode): $errBody"
+            }
+        }
+        finally {
+            $httpClient.Dispose()
+        }
+
+        # Upload files and generate SAS links
+        $endTime = (Get-Date).AddDays($LinkExpiryDays)
+        $results = @()
+        foreach ($filePath in $FilePaths) {
+            $blobName = Split-Path -Path $filePath -Leaf
+            if ($AddBlobNamePrefix) {
+                $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
+                $blobName = "$prefix-$blobName"
+            }
+
+            $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+            $contentLength = $fileBytes.Length
+
+            $dateStr = [DateTime]::UtcNow.ToString("R")
+            $blobHeaders = @{
+                "x-ms-date"      = $dateStr
+                "x-ms-version"   = "2023-11-03"
+                "x-ms-blob-type" = "BlockBlob"
+            }
+            $canonResource = "/$StorageAccountName/$ContainerName/$blobName"
+            $blobHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $blobHeaders -ContentType "application/octet-stream" -ContentLength $contentLength
+
+            # Use HttpClient directly to ensure all custom headers (x-ms-blob-type) are sent.
+            # Invoke-RestMethod in hosted PowerShell can strip custom headers with binary bodies.
+            $httpClient = [System.Net.Http.HttpClient]::new()
             try {
-                Wait-Job -Job $job | Out-Null
-                return Receive-Job -Job $job -ErrorAction Stop
+                $content = [System.Net.Http.ByteArrayContent]::new($fileBytes)
+                $content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("application/octet-stream")
+                $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName/$blobName")
+                $request.Content = $content
+                foreach ($h in $blobHeaders.GetEnumerator()) {
+                    $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
+                }
+                $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
+                if (-not $response.IsSuccessStatusCode) {
+                    $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+                    throw "Blob upload failed ($($response.StatusCode)): $errBody"
+                }
             }
             finally {
-                Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+                $httpClient.Dispose()
             }
+
+            $sasLink = New-BlobSasToken -Container $ContainerName -Blob $blobName -ExpiryTime $endTime
+            $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
         }
-        else {
-            Write-Verbose "Publish-RjRbFilesToStorageContainer: ExchangeOnlineManagement not loaded - using direct in-process path."
-
-            $azContext = Get-AzContext -ErrorAction SilentlyContinue
-            if ((-not $azContext) -or (-not $azContext.Account)) {
-                Connect-RjRbAzAccount
-            }
-            if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
-
-            $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-            if (-not $storAccount) {
-                throw "Storage account '$StorageAccountName' in resource group '$ResourceGroupName' was not found."
-            }
-            $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction Stop
-            $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value -ErrorAction Stop
-
-            $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-            if (-not $container) {
-                try { $container = New-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction Stop }
-                catch {
-                    if ($_.Exception.Message -match 'ContainerAlreadyExists|already exists') {
-                        $container = Get-AzStorageContainer -Name $ContainerName -Context $context
-                    }
-                    else { throw }
-                }
-            }
-
-            $endTime = (Get-Date).AddDays($LinkExpiryDays)
-            $results = @()
-            foreach ($filePath in $FilePaths) {
-                $blobName = Split-Path -Path $filePath -Leaf
-                if ($AddBlobNamePrefix) {
-                    $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
-                    $blobName = "$prefix-$blobName"
-                }
-                Set-AzStorageBlobContent -File $filePath -Container $ContainerName -Blob $blobName -Context $context -Force -ErrorAction Stop | Out-Null
-                $sasLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobName -FullUri -ExpiryTime $endTime -ErrorAction Stop
-                $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
-            }
-            return $results
-        }
+        return $results
     }
 
     #endregion Helper Functions
