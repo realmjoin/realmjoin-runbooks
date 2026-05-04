@@ -10044,7 +10044,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -10061,7 +10061,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -10078,7 +10078,7 @@
         "name": "exportAsZip",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10095,7 +10095,7 @@
         "name": "exportToFile",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10105,7 +10105,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, includes Exchange Online related reports."
+            "Text": "If set to true, includes Exchange Online related reports (Shared Mailbox licensing)."
           }
         ],
         "globbing": "false",
@@ -10113,6 +10113,23 @@
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use."
+          }
+        ],
+        "globbing": "false",
+        "name": "includeUserData",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10146,7 +10163,7 @@
         "name": "produceLinks",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10163,40 +10180,6 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Azure region for the storage account."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountLocation",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "9",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Storage account name used for uploads."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountName",
-        "parameterValue": "String",
-        "pipelineInput": "false",
         "position": "8",
         "required": "false",
         "type": {
@@ -10207,14 +10190,14 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Storage account SKU."
+            "Text": "Storage account name used for uploads. The account must exist before running this report."
           }
         ],
         "globbing": "false",
-        "name": "StorageAccountSku",
+        "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -10231,7 +10214,7 @@
         "name": "SubscriptionId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -10240,7 +10223,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Reports.Read.All\",\n                \"Directory.Read.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Reports.Read.All\",\n                \"Directory.Read.All\",\n                \"User.Read.All\",\n                \"ReportSettings.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -10249,6 +10232,7 @@
           "AppRoleAssignments": [
             "Directory.Read.All",
             "Reports.Read.All",
+            "ReportSettings.ReadWrite.All",
             "User.Read.All"
           ]
         }

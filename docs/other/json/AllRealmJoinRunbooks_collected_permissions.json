@@ -31,6 +31,7 @@
       "Mail.Send",
       "Organization.Read.All",
       "Policy.Read.All",
+      "ReportSettings.ReadWrite.All",
       "Reports.Read.All",
       "RoleAssignmentSchedule.Read.Directory",
       "RoleManagement.Read.All",

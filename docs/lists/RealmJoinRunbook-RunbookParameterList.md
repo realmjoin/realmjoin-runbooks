@@ -1354,15 +1354,14 @@ Generate an Office 365 licensing report
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
+| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports (Shared Mailbox licensing). |
+| includeUserData |  | Boolean | If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use. |
 | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
 | ContainerName |  | String | Storage container name used for uploads. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
-| StorageAccountName |  | String | Storage account name used for uploads. |
-| StorageAccountLocation |  | String | Azure region for the storage account. |
-| StorageAccountSku |  | String | Storage account SKU. |
+| StorageAccountName |  | String | Storage account name used for uploads. The account must exist before running this report. |
 | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
