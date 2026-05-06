@@ -1787,7 +1787,7 @@ Org \ General \ Export Policy Report
 
 #### Description
 This runbook invites an external user as a guest user in Microsoft Entra ID.
-Optional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.
+Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
 The invited user can optionally be added to a specified group.
 
 #### Where to find

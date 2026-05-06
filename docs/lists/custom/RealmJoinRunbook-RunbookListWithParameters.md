@@ -440,6 +440,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Surname |  | String | Surname (last name) of the guest user. |
 |  |  |  |  |  |  | CompanyName |  | String | Company name of the guest user. |
 |  |  |  |  |  |  | ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | SponsorName |  | String | Sponsor to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | CustomizeInvitation |  | Boolean | Enable to customize the invitation message and redirect URL. |
+|  |  |  |  |  |  | InvitationMessage |  | String | Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled. |
+|  |  |  |  |  |  | InviteRedirectUrl |  | String | Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled. |
 |  |  |  |  |  |  | UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |

@@ -9757,8 +9757,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "General",
     "Synopsis": "Invite external guest users to the organization",
-    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nOptional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.\nThe invited user can optionally be added to a specified group.",
-    "Notes": "Common Use Cases:\n- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank\n- Full onboarding: supply all optional fields to set profile properties, assign a manager, and add to a group in a single run\n\nParameter Interactions:\n- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely\n- Manager assignment and group membership each require their respective parameters; both are silently skipped when not provided",
+    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nOptional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.\nThe invited user can optionally be added to a specified group.",
+    "Notes": "Common Use Cases:\n- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank\n- Full onboarding: supply all optional fields to set profile properties, assign a manager/sponsor, and add to a group in a single run\n\nParameter Interactions:\n- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely\n- Manager and sponsor assignment and group membership each require their respective parameters; all are silently skipped when not provided",
     "Parameters": [
       {
         "defaultValue": "",
@@ -9771,7 +9771,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "13",
         "required": "true",
         "type": {
           "name": "String"
@@ -9792,6 +9792,23 @@
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable to customize the invitation message and redirect URL."
+          }
+        ],
+        "globbing": "false",
+        "name": "CustomizeInvitation",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -9823,6 +9840,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "InvitationMessage",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -9866,6 +9900,23 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "InviteRedirectUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "Manager to assign to the guest user. Select a user from the directory."
           }
         ],
@@ -9874,6 +9925,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sponsor to assign to the guest user. Select a user from the directory."
+          }
+        ],
+        "globbing": "false",
+        "name": "SponsorName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "String"
@@ -9907,7 +9975,7 @@
         "name": "UsageLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
