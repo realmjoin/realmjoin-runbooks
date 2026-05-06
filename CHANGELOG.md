@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-06
+
+- Update **Invite External Guest Users** Runbook in Org/General
+  - Add parameter to handle sponsor assignment
+  - Modify summary for manager and sponsor to show the UPN instead of the ID for better readability
+  - Add support for customized email invitation message and invite redirection URL as parameters
+
 ## 2026-04-30
 
 - Update **Office 365 License Report** Runbook in Org/General
