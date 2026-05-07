@@ -11541,7 +11541,7 @@
         "name": "AutoMapping",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11558,7 +11558,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -11575,7 +11575,7 @@
         "name": "DelegateTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -11592,7 +11592,7 @@
         "name": "DisableUser",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11677,7 +11677,7 @@
         "name": "MessageCopyForSendOnBehalfEnabled",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11694,10 +11694,27 @@
         "name": "MessageCopyForSentAsEnabled",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "W. Europe Standard Time",
+        "description": [
+          {
+            "Text": "The time zone for the shared mailbox. Default is \"W. Europe Standard Time\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "TimeZone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
         }
       }
     ],

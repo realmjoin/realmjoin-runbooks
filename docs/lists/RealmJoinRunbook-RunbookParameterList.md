@@ -1524,6 +1524,7 @@ Create a shared mailbox
 | DisplayName |  | String | Display name for the shared mailbox. |
 | DomainName |  | String | Optional domain used for the primary SMTP address; if not provided, the default domain is used. |
 | Language |  | String | The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US". |
+| TimeZone |  | String | The time zone for the shared mailbox. Default is "W. Europe Standard Time". |
 | DelegateTo |  | String | Optional user who receives delegated access to the mailbox. |
 | AutoMapping |  | Boolean | If set to true, the mailbox is automatically mapped in Outlook for the delegate. |
 | MessageCopyForSentAsEnabled |  | Boolean | If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items. |
