@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-07
+
+- Update **Add Shared Mailbox** Runbook in Org/Mail
+  - Add parameter for time zone selection with predefined options and default value
+
 ## 2026-05-06
 
 - Update **Invite External Guest Users** Runbook in Org/General
