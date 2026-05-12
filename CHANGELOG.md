@@ -6,6 +6,15 @@
   - Lists all Microsoft Entra ID MFA and authentication methods registered for a target user.
   - Optionally masks phone numbers (last 4 digits only), with an option to display them in full (default off/setting hidden).
   - Optionally sends a notification email to the user when an administrator retrieves their MFA methods (default off/setting hidden).
+- Optimize PSScriptAnalyzer checkability across several runbooks by suppressing false positive warnings for:
+  - **Assign Groups By Template (Scheduled)** Runbook in Org/General
+    - `PSReviewUnusedParameter` for the `GroupsTemplate` parameter, which is used indirectly via RJ Portal Customization to populate the `GroupsString` parameter
+  - **Export Enterprise Application Users** Runbook in Org/Applications
+    - Remove unused parameter `rfcDate``
+    - Restructure script with proper regions and parameter logging
+  - **Office 365 License Report** Runbook in Org/General
+    - Remove unused parameter `rfcDate`
+    - Restructure script with proper regions and parameter logging
 
 ## 2026-05-07
 

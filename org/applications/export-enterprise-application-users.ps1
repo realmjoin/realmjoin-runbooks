@@ -62,10 +62,33 @@ param(
     [string] $CallerName
 )
 
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+############################################################
+#region RJ Log Part
+#
+############################################################
+
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "entAppsOnly: $entAppsOnly" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
+
+############################################################
+#region Function Definitions
+#
+############################################################
+
+#region Publish-RjRbFilesToStorageContainer
+##############################
 
 function Publish-RjRbFilesToStorageContainer {
     <#
@@ -149,7 +172,6 @@ function Publish-RjRbFilesToStorageContainer {
     function Get-StorageAuthHeader {
         param([string]$Method, [string]$CanonicalizedResource, [hashtable]$Headers, [string]$ContentType = "", [int]$ContentLength = 0)
 
-        $rfcDate = $Headers["x-ms-date"]
         $msHeaders = ($Headers.GetEnumerator() | Where-Object { $_.Key -like "x-ms-*" } | Sort-Object Key | ForEach-Object { "$($_.Key):$($_.Value)" }) -join "`n"
 
         $contentLengthStr = if ($ContentLength -gt 0) { "$ContentLength" } else { "" }
@@ -263,14 +285,34 @@ function Publish-RjRbFilesToStorageContainer {
     return $results
 }
 
-if (-not $ContainerName) {
-    $ContainerName = "enterprise-apps-users"
-}
+#endregion Publish-RjRbFilesToStorageContainer
+
+#endregion Function Definitions
+
+############################################################
+#region Connect Part
+#
+############################################################
 
 Connect-RjRbGraph
 Connect-RjRbAzAccount
 
+#endregion Connect Part
+
+############################################################
+#region Main Part
+#
+############################################################
+
 try {
+
+    #region Configuration
+    ##############################
+
+    if (-not $ContainerName) {
+        $ContainerName = "enterprise-apps-users"
+    }
+
     # Configuration import - fallback to Az Automation Variable
     if ((-not $ResourceGroupName) -or (-not $StorageAccountName)) {
         $processConfigRaw = Get-AutomationVariable -name "SettingsExports" -ErrorAction SilentlyContinue
@@ -292,8 +334,6 @@ try {
         if (-not $StorageAccountName) {
             $StorageAccountName = $processConfig.exportStorAccountName
         }
-
-        #endregion
     }
 
     if ((-not $ResourceGroupName) -or (-not $StorageAccountName)) {
@@ -308,6 +348,11 @@ try {
         throw "Missing Storage Account Configuration."
     }
 
+    #endregion Configuration
+
+    #region Data Collection
+    ##############################
+
     $invokeParams = @{
         resource = "/servicePrincipals"
     }
@@ -319,6 +364,11 @@ try {
     }
     # Get Ent. Apps / Service Principals
     $servicePrincipals = Invoke-RjRbRestMethodGraph @invokeParams
+
+    #endregion Data Collection
+
+    #region CSV Export
+    ##############################
 
     'AppId;AppDisplayName;AccountEnabled;HideApp;AssignmentRequired;PrincipalRole;PrincipalType;PrincipalId;Notes' > enterpriseApps.csv
 
@@ -337,7 +387,7 @@ try {
         }
 
         # Get Owners
-        $owners = Invoke-RjRbRestMethodGraph -resource "/servicePrincipals/$($_.id)/owners"
+        $owners = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($_.id)/owners"
         if ($owners) {
             $owners | ForEach-Object {
                 #"Owner: $($_.userPrincipalName)"
@@ -350,15 +400,15 @@ try {
         }
 
         # Get App Role assignments
-        $users = Invoke-RjRbRestMethodGraph -resource "/servicePrincipals/$($_.id)/appRoleAssignedTo"
+        $users = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($_.id)/appRoleAssignedTo"
         $users | ForEach-Object {
             if ($_.principalType -eq "User") {
-                $userobject = Invoke-RjRbRestMethodGraph -resource "/users/$($_.principalId)"
+                $userobject = Invoke-RjRbRestMethodGraph -Resource "/users/$($_.principalId)"
                 #"Assigned to User: $($userobject.userPrincipalName)"
                 "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;User;$($userobject.userPrincipalName);$Notes" >> enterpriseApps.csv
             }
             elseif ($_.principalType -eq "Group") {
-                $groupobject = $userobject = Invoke-RjRbRestMethodGraph -resource "/groups/$($_.principalId)"
+                $groupobject = $userobject = Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.principalId)"
                 #"Assigned to Group: $($groupobject.mailNickname)"
                 "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;Group;$($groupobject.mailNickname) ($($groupobject.displayName));$Notes" >> enterpriseApps.csv
             }
@@ -366,11 +416,15 @@ try {
                 #"Assigned to ServicePrincipal: $($_.principalId)"
                 "$AppId;$AppDisplayName;$AccountEnabled;$HideApp;$AssignmentRequired;Member;ServicePrincipal;$($_.principalId);$Notes" >> enterpriseApps.csv
             }
-
         }
     }
     $content = Get-Content -Path "enterpriseApps.csv"
-    set-content -Path "enterpriseApps.csv" -Value $content -Encoding UTF8
+    Set-Content -Path "enterpriseApps.csv" -Value $content -Encoding UTF8
+
+    #endregion CSV Export
+
+    #region Upload
+    ##############################
 
     $uploadResults = Publish-RjRbFilesToStorageContainer `
         -FilePaths @("enterpriseApps.csv") `
@@ -385,10 +439,22 @@ try {
     "## Expiry of Link: $($uploadResult.EndTime)"
     $uploadResult.SASLink | Out-String
 
+    Write-Output ""
+    Write-Output "Done!"
+
+    #endregion Upload
+
 }
 catch {
     throw $_
 }
 finally {
+    #region Cleanup
+    ##############################
+
     Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+
+    #endregion Cleanup
 }
+
+#endregion Main Part

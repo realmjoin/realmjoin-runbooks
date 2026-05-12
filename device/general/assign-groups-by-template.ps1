@@ -40,10 +40,12 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
 
+# GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "GroupsTemplate")]
+
 param(
     [Parameter(Mandatory = $true)]
     [String]$DeviceId,
-    # GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
     [string]$GroupsTemplate,
     [Parameter(Mandatory = $true)]
     [string]$GroupsString,
