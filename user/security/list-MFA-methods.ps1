@@ -440,12 +440,7 @@ IT Administration
 #region     Cleanup
 ########################################################
 
-try {
-    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
-}
-catch {
-    # Already disconnected or never connected
-}
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 
 Write-Output ""
 Write-Output "Done!"

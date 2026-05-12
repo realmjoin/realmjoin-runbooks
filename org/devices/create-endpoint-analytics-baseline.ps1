@@ -51,7 +51,7 @@ param(
 #region     RJ Log Part
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "BaselineNamingSchema: $BaselineNamingSchema" -Verbose
 Write-RjRbLog -Message "RemoveOldestBaseline: $RemoveOldestBaseline" -Verbose
@@ -233,12 +233,8 @@ catch {
 ########################################################
 #region     Cleanup
 ########################################################
-try {
-    Disconnect-MgGraph | Out-Null
-}
-catch {
-    # Silently ignore if already disconnected
-}
+
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 
 Write-Output ""
 Write-Output "Done!"
