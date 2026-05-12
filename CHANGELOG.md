@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-12
+
+- Add **List MFA Methods** Runbook in User/Security
+  - Lists all Microsoft Entra ID MFA and authentication methods registered for a target user.
+  - Optionally masks phone numbers (last 4 digits only), with an option to display them in full (default off/setting hidden).
+  - Optionally sends a notification email to the user when an administrator retrieves their MFA methods (default off/setting hidden).
+
 ## 2026-05-07
 
 - Update **Add Shared Mailbox** Runbook in Org/Mail
