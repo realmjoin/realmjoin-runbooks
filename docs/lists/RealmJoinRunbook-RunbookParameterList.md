@@ -178,6 +178,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Confirm Or Dismiss Risky User](#user-security-confirm-or-dismiss-risky-user)
     - [Create Temporary Access Pass](#user-security-create-temporary-access-pass)
     - [Enable Or Disable Password Expiration](#user-security-enable-or-disable-password-expiration)
+    - [List MFA Methods](#user-security-list-mfa-methods)
     - [Reset MFA](#user-security-reset-mfa)
     - [Reset Password](#user-security-reset-password)
     - [Revoke Or Restore Access](#user-security-revoke-or-restore-access)
@@ -2258,6 +2259,22 @@ Enable or disable password expiration for a user
 | UserName | ✓ | String | User principal name of the target user. |
 | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
+<a name='user-security-list-mfa-methods'></a>
+
+### List MFA Methods
+List all MFA / authentication methods of a user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context. |
+| NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled. |
+| MaskPhoneNumbers |  | Boolean | When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled. |
+| EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
 
 <a name='user-security-reset-mfa'></a>
 

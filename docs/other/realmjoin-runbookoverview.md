@@ -179,6 +179,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Confirm Or Dismiss Risky User](#confirm-or-dismiss-risky-user)
       - [Create Temporary Access Pass](#create-temporary-access-pass)
       - [Enable Or Disable Password Expiration](#enable-or-disable-password-expiration)
+      - [List MFA Methods](#list-mfa-methods)
       - [Reset Mfa](#reset-mfa)
       - [Reset Password](#reset-password)
       - [Revoke Or Restore Access](#revoke-or-restore-access)
@@ -3169,6 +3170,23 @@ Updates the password policy for a user in Microsoft Entra ID. This can be used t
 
 #### Where to find
 User \ Security \ Enable Or Disable Password Expiration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-security-list-mfa-methods'></a>
+
+### List MFA Methods
+#### List all MFA / authentication methods of a user
+
+#### Description
+Retrieves and displays every Microsoft Entra ID authentication method registered for a target user, including phone numbers for phone-based methods. Phone numbers can optionally be masked, showing only the last four digits. Optionally a notification email can be sent to the user informing them that their MFA methods have been retrieved through this runbook.
+
+#### Where to find
+User \ Security \ List MFA Methods
 
 
 [Back to Table of Content](#table-of-contents)

@@ -18281,6 +18281,174 @@
     }
   },
   {
+    "RunbookDisplayName": "List MFA Methods",
+    "RunbookDisplayPath": "User \\ Security \\ List MFA Methods",
+    "RelativeRunbookPath": "user/security/list-MFA-methods.ps1",
+    "RelativeRunbookPath_PathOnly": "user/security",
+    "PrimaryFolder": "User",
+    "SubFolder": "Security",
+    "Synopsis": "List all MFA / authentication methods of a user",
+    "Description": "Retrieves and displays every Microsoft Entra ID authentication method registered for a target user, including phone numbers for phone-based methods. Phone numbers can optionally be masked, showing only the last four digits. Optionally a notification email can be sent to the user informing them that their MFA methods have been retrieved through this runbook.",
+    "Notes": "Permissions (managed identity, application):\n- UserAuthenticationMethod.Read.All - list authentication methods\n- User.Read.All                      - resolve target user\n- Organization.Read.All              - read tenant display name for the email body\n- Mail.Send                          - only required when NotifyUser is enabled\n\nPrivacy / audit:\n- This runbook reads sensitive identity data (registered MFA methods, including phone numbers).\n  Phone numbers are masked by default. Set MaskPhoneNumbers to false only when full numbers are\n  required for legitimate support purposes; the action is logged with CallerName.\n- When NotifyUser is enabled, the target user is notified by email that an administrator has\n  retrieved their MFA methods. This requires the tenant setting RJReport.EmailSender to be\n  configured.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes. Auto-filled by the RealmJoin portal."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaskPhoneNumbers",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Mail.Send\",\n                \"Organization.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Mail.Send",
+            "Organization.Read.All",
+            "User.Read.All",
+            "UserAuthenticationMethod.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Reset Mfa",
     "RunbookDisplayPath": "User \\ Security \\ Reset Mfa",
     "RelativeRunbookPath": "user/security/reset-mfa.ps1",

@@ -42,6 +42,7 @@
   - [Confirm Or Dismiss Risky User](security/confirm-or-dismiss-risky-user.md)
   - [Create Temporary Access Pass](security/create-temporary-access-pass.md)
   - [Enable Or Disable Password Expiration](security/enable-or-disable-password-expiration.md)
+  - [List MFA Methods](security/list-mfa-methods.md)
   - [Reset Mfa](security/reset-mfa.md)
   - [Reset Password](security/reset-password.md)
   - [Revoke Or Restore Access](security/revoke-or-restore-access.md)

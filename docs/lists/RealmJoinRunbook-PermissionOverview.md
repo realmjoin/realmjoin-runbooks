@@ -148,6 +148,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  | Security | Confirm Or Dismiss Risky User | Confirm compromise or dismiss a risky user | - **Type**: Microsoft Graph<br>&emsp;- IdentityRiskyUser.ReadWrite.All<br> |  |
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  |
+|  |  | List MFA Methods | List all MFA / authentication methods of a user | - **Type**: Microsoft Graph<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  |
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> |
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> |
