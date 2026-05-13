@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-13
+
+- Update **Report Apple MDM Cert Expiry (Scheduled)** Runbook in Org/General
+  - Fix VPP tokens being silently dropped from the report due to a faulty paged-result check
+  - Fix DEP onboarding settings using the same faulty paged-result check
+  - Only send the email report when at least one alert is detected (aligns with the License Threshold Report behavior)
+
 ## 2026-05-12
 
 - Add **List MFA Methods** Runbook in User/Security
@@ -21,7 +28,6 @@
     - Replace empty `try/catch` blocks
   - **Export Policy Report** Runbook in Org/General
     - Replace empty `try/catch` blocks
-  
 
 ## 2026-05-07
 
