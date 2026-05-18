@@ -1,45 +1,11 @@
 # RealmJoin Runbooks Changelog
 
-## 2026-05-13
+## 2026-05-15
 
-- Update **Report Apple MDM Cert Expiry (Scheduled)** Runbook in Org/General
-  - Fix VPP tokens being silently dropped from the report due to a faulty paged-result check
-  - Fix DEP onboarding settings using the same faulty paged-result check
-  - Only send the email report when at least one alert is detected (aligns with the License Threshold Report behavior)
-
-## 2026-05-12
-
-- Add **List MFA Methods** Runbook in User/Security
-  - Lists all Microsoft Entra ID MFA and authentication methods registered for a target user.
-  - Optionally masks phone numbers (last 4 digits only), with an option to display them in full (default off/setting hidden).
-  - Optionally sends a notification email to the user when an administrator retrieves their MFA methods (default off/setting hidden).
-- Improve PSScriptAnalyzer compatibility across several runbooks by resolving issues or suppressing false positive warnings:
-  - **Assign Groups By Template (Scheduled)** Runbook in Org/General
-    - `PSReviewUnusedParameter` for the `GroupsTemplate` parameter, which is used indirectly via RJ Portal Customization to populate the `GroupsString` parameter
-  - **Export Enterprise Application Users** Runbook in Org/Applications
-    - Remove unused parameter `rfcDate``
-    - Restructure script with proper regions and parameter logging
-  - **Office 365 License Report** Runbook in Org/General
-    - Remove unused parameter `rfcDate`
-    - Restructure script with proper regions and parameter logging
-  - **Create Endpoint Analytics Baseline (Scheduled)** Runbook in Org/Devices
-    - Replace empty try/catch blocks by directly using `Disconnect-MgGraph` with `-ErrorAction SilentlyContinue`
-  - **List Admin Users** Runbook in Org/Security
-    - Replace empty `try/catch` blocks
-  - **Export Policy Report** Runbook in Org/General
-    - Replace empty `try/catch` blocks
-
-## 2026-05-07
-
-- Update **Add Shared Mailbox** Runbook in Org/Mail
-  - Add parameter for time zone selection with predefined options and default value
-
-## 2026-05-06
-
-- Update **Invite External Guest Users** Runbook in Org/General
-  - Add parameter to handle sponsor assignment
-  - Modify summary for manager and sponsor to show the UPN instead of the ID for better readability
-  - Add support for customized email invitation message and invite redirection URL as parameters
+- Add **Manage Archive Mailbox** Runbook to User/Mail
+  - Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user
+  - When enabling, automatically reconnects a soft-deleted archive mailbox (within 30 days) instead of creating a new one
+  - Disable action includes a note that the archive can be recovered within 30 days
 
 ## 2026-04-30
 
@@ -52,8 +18,6 @@
   - Renames the most recently enrolled duplicate using a configurable prefix and random digit suffix; syncs resolved names to Autopilot
   - OS filter parameter (All / Windows / macOS / Other); skips personal-owned devices and unsupported platforms with warnings
   - Checks for pending rename actions before queuing to avoid duplicate MDM commands
-- Update **Export Enterprise Application Users** Runbook in Org/Applications
-  - Update the export function to the enhanced one used in the Office 365 License Report runbook
 
 ## 2026-04-29
 
