@@ -16883,6 +16883,88 @@
     }
   },
   {
+    "RunbookDisplayName": "Manage Archive Mailbox",
+    "RunbookDisplayPath": "User \\ Mail \\ Manage Archive Mailbox",
+    "RelativeRunbookPath": "user/mail/manage-archive-mailbox.ps1",
+    "RelativeRunbookPath_PathOnly": "user/mail",
+    "PrimaryFolder": "User",
+    "SubFolder": "Mail",
+    "Synopsis": "Manage the Exchange Online archive mailbox for a user",
+    "Description": "Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user. Before any change the current state is verified so the script exits without making changes if the mailbox is already in the desired state. When enabling, any soft-deleted archive mailbox from within the last 30 days is automatically reconnected instead of creating a new one.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "GetStatus",
+        "description": [
+          {
+            "Text": "Action to perform: Enable, Disable, or GetStatus."
+          }
+        ],
+        "globbing": "false",
+        "name": "Action",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name is tracked purely for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the user whose archive mailbox should be managed."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Office 365 Exchange Online",
+          "Id": "00000002-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Exchange.ManageAsApp"
+          ]
+        }
+      ],
+      "Roles": [
+        "Exchange administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Remove Mailbox",
     "RunbookDisplayPath": "User \\ Mail \\ Remove Mailbox",
     "RelativeRunbookPath": "user/mail/remove-mailbox.ps1",

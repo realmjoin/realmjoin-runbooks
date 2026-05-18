@@ -166,6 +166,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Hide Or Unhide In Addressbook](#hide-or-unhide-in-addressbook)
       - [List Mailbox Permissions](#list-mailbox-permissions)
       - [List Room Mailbox Configuration](#list-room-mailbox-configuration)
+      - [Manage Archive Mailbox](#manage-archive-mailbox)
       - [Remove Mailbox](#remove-mailbox)
       - [Set Out Of Office](#set-out-of-office)
       - [Set Room Mailbox Configuration](#set-room-mailbox-configuration)
@@ -2925,6 +2926,23 @@ Reads room metadata and lists calendar processing settings. This helps validate 
 
 #### Where to find
 User \ Mail \ List Room Mailbox Configuration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-mail-manage-archive-mailbox'></a>
+
+### Manage Archive Mailbox
+#### Manage the Exchange Online archive mailbox for a user
+
+#### Description
+Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user. Before any change the current state is verified so the script exits without making changes if the mailbox is already in the desired state. When enabling, any soft-deleted archive mailbox from within the last 30 days is automatically reconnected instead of creating a new one.
+
+#### Where to find
+User \ Mail \ Manage Archive Mailbox
 
 
 [Back to Table of Content](#table-of-contents)

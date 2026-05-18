@@ -165,6 +165,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Hide Or Unhide In Addressbook
     - List Mailbox Permissions
     - List Room Mailbox Configuration
+    - Manage Archive Mailbox
     - Remove Mailbox
     - Set Out Of Office
     - Set Room Mailbox Configuration
@@ -439,6 +440,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
 | List Mailbox Permissions | List mailbox permissions for a mailbox |
 | List Room Mailbox Configuration | List room mailbox configuration |
+| Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
 | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
 | Set Room Mailbox Configuration | Set room mailbox resource policies |

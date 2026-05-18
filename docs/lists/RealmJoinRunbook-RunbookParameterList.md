@@ -165,6 +165,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Hide Or Unhide In Addressbook](#user-mail-hide-or-unhide-in-addressbook)
     - [List Mailbox Permissions](#user-mail-list-mailbox-permissions)
     - [List Room Mailbox Configuration](#user-mail-list-room-mailbox-configuration)
+    - [Manage Archive Mailbox](#user-mail-manage-archive-mailbox)
     - [Remove Mailbox](#user-mail-remove-mailbox)
     - [Set Out Of Office](#user-mail-set-out-of-office)
     - [Set Room Mailbox Configuration](#user-mail-set-room-mailbox-configuration)
@@ -2097,6 +2098,17 @@ List room mailbox configuration
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the room mailbox. |
+| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
+<a name='user-mail-manage-archive-mailbox'></a>
+
+### Manage Archive Mailbox
+Manage the Exchange Online archive mailbox for a user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the user whose archive mailbox should be managed. |
+| Action |  | String | Action to perform: Enable, Disable, or GetStatus. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-mail-remove-mailbox'></a>

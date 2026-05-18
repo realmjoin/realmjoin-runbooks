@@ -197,6 +197,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Hide Or Unhide In Addressbook](docs/user/mail/hide-or-unhide-in-addressbook.md)
     - [List Mailbox Permissions](docs/user/mail/list-mailbox-permissions.md)
     - [List Room Mailbox Configuration](docs/user/mail/list-room-mailbox-configuration.md)
+    - [Manage Archive Mailbox](docs/user/mail/manage-archive-mailbox.md)
     - [Remove Mailbox](docs/user/mail/remove-mailbox.md)
     - [Set Out Of Office](docs/user/mail/set-out-of-office.md)
     - [Set Room Mailbox Configuration](docs/user/mail/set-room-mailbox-configuration.md)

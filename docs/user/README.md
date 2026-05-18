@@ -27,6 +27,7 @@
   - [Hide Or Unhide In Addressbook](mail/hide-or-unhide-in-addressbook.md)
   - [List Mailbox Permissions](mail/list-mailbox-permissions.md)
   - [List Room Mailbox Configuration](mail/list-room-mailbox-configuration.md)
+  - [Manage Archive Mailbox](mail/manage-archive-mailbox.md)
   - [Remove Mailbox](mail/remove-mailbox.md)
   - [Set Out Of Office](mail/set-out-of-office.md)
   - [Set Room Mailbox Configuration](mail/set-room-mailbox-configuration.md)

@@ -137,6 +137,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox |
 |  |  | List Room Mailbox Configuration | List room mailbox configuration |
+|  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
 |  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies |
