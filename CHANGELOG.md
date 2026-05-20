@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-20
+
+- Update **Update User** Runbook in User/Userinfo section
+  - Add support for updating the user's manager
+
 ## 2026-05-15
 
 - Add **Manage Archive Mailbox** Runbook to User/Mail
