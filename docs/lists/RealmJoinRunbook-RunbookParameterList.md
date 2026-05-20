@@ -2384,6 +2384,7 @@ Update user metadata and memberships
 | State |  | String | State to set for the user. |
 | StreetAddress |  | String | Street address to set for the user. |
 | UsageLocation |  | String | Usage location to set for the user. |
+| ManagerId |  | String | Optional manager user ID to set for the user. |
 | DefaultLicense |  | String | Display name of a license group to assign. |
 | DefaultGroups |  | String | Comma-separated list of group display names to assign. |
 | EnableEXOArchive |  | Boolean | If set to true, enables the Exchange Online archive mailbox. |
