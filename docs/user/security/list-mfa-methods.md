@@ -96,6 +96,15 @@ Service Desk phone number for user contact information (optional). Sourced from 
 | Required | false |
 | Type | String |
 
+### LanguageOverride
+Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
 
 [Back to Table of Content](../../../README.md)
 
