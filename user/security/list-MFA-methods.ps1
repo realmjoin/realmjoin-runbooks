@@ -26,6 +26,9 @@
     .PARAMETER ServiceDeskPhone
     Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone.
 
+    .PARAMETER LanguageOverride
+    Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
+
     .PARAMETER CallerName
     Caller name for auditing purposes. Auto-filled by the RealmJoin portal.
 
@@ -70,6 +73,9 @@
             "ServiceDeskPhone": {
                 "Hide": true
             },
+            "LanguageOverride": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -100,6 +106,10 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_Phone" } )]
     [string]$ServiceDeskPhone,
 
+    # LanguageOverride allows forcing a specific notification email language ('DE' or 'EN'); empty = auto-detect from usage location
+    [ValidateSet('', 'DE', 'EN')]
+    [string]$LanguageOverride = "",
+
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string]$CallerName
@@ -118,6 +128,7 @@ Write-RjRbLog -Message "MaskPhoneNumbers: $MaskPhoneNumbers" -Verbose
 Write-RjRbLog -Message "ServiceDeskDisplayName: $ServiceDeskDisplayName" -Verbose
 Write-RjRbLog -Message "ServiceDeskEmail: $ServiceDeskEmail" -Verbose
 Write-RjRbLog -Message "ServiceDeskPhone: $ServiceDeskPhone" -Verbose
+Write-RjRbLog -Message "LanguageOverride: $LanguageOverride" -Verbose
 
 #endregion
 
@@ -362,10 +373,13 @@ else {
         Write-RjRbLog -Message "WARNING: Could not retrieve tenant display name. Falling back to a generic value. Error: $($_.Exception.Message)"
     }
 
+    # Determine effective language: explicit override takes precedence, otherwise fall back to usage location
+    $useGerman = if (-not [string]::IsNullOrWhiteSpace($LanguageOverride)) { $LanguageOverride -eq 'DE' } else { $CurrentUsageLocation -eq 'DE' }
+
     # Build Service Desk contact information section
     $serviceDeskSection = ""
     if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
-        if ($CurrentUsageLocation -eq 'DE') {
+        if ($useGerman) {
             $serviceDeskSection = "`n`n### Service Desk Kontaktinformationen`n"
         }
         else {
@@ -378,7 +392,7 @@ else {
             $serviceDeskSection += "`n **Email:** [$($ServiceDeskEmail)](mailto:$($ServiceDeskEmail))"
         }
         if ($ServiceDeskPhone) {
-            if ($CurrentUsageLocation -eq 'DE') {
+            if ($useGerman) {
                 $serviceDeskSection += "`n **Telefon:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
             }
             else {
@@ -387,7 +401,7 @@ else {
         }
     }
 
-    if ($CurrentUsageLocation -eq 'DE') {
+    if ($useGerman) {
         $subject = "Ihre MFA-Methoden wurden von einem Administrator abgerufen"
         $markdownContent = @"
 Hallo $CurrentDisplayName,

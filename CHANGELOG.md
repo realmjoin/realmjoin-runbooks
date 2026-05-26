@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-26
+
+- Update **List MFA Methods** Runbook in User/Security
+  - Add support for overriding the language of the user notification email with a parameter
+
 ## 2026-05-20
 
 - Update **Update User** Runbook in User/Userinfo section
