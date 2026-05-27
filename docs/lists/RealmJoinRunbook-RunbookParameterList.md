@@ -68,6 +68,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
+    - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
@@ -164,6 +165,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Hide Or Unhide In Addressbook](#user-mail-hide-or-unhide-in-addressbook)
     - [List Mailbox Permissions](#user-mail-list-mailbox-permissions)
     - [List Room Mailbox Configuration](#user-mail-list-room-mailbox-configuration)
+    - [Manage Archive Mailbox](#user-mail-manage-archive-mailbox)
     - [Remove Mailbox](#user-mail-remove-mailbox)
     - [Set Out Of Office](#user-mail-set-out-of-office)
     - [Set Room Mailbox Configuration](#user-mail-set-room-mailbox-configuration)
@@ -177,6 +179,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Confirm Or Dismiss Risky User](#user-security-confirm-or-dismiss-risky-user)
     - [Create Temporary Access Pass](#user-security-create-temporary-access-pass)
     - [Enable Or Disable Password Expiration](#user-security-enable-or-disable-password-expiration)
+    - [List MFA Methods](#user-security-list-mfa-methods)
     - [Reset MFA](#user-security-reset-mfa)
     - [Reset Password](#user-security-reset-password)
     - [Revoke Or Restore Access](#user-security-revoke-or-restore-access)
@@ -799,6 +802,18 @@ Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming
 | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
 | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
 
+<a name='organization-devices-dedup-device-names-scheduled'></a>
+
+### Dedup Device Names (Scheduled)
+Detect and rename duplicate Intune device display names using a prefix and random suffix
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| NamePrefix | ✓ | String | The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string. |
+| NameLength | ✓ | Int32 | The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix. |
+| OsFilter |  | String | Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All. |
+| CallerName | ✓ | String | The identity of the person or automation account that triggered this runbook, used for auditing purposes only. |
+
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
@@ -1312,6 +1327,10 @@ Invite external guest users to the organization
 | Surname |  | String | Surname (last name) of the guest user. |
 | CompanyName |  | String | Company name of the guest user. |
 | ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+| SponsorName |  | String | Sponsor to assign to the guest user. Select a user from the directory. |
+| CustomizeInvitation |  | Boolean | Enable to customize the invitation message and redirect URL. |
+| InvitationMessage |  | String | Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled. |
+| InviteRedirectUrl |  | String | Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled. |
 | UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
@@ -1341,15 +1360,14 @@ Generate an Office 365 licensing report
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
+| includeExchange |  | Boolean | If set to true, includes Exchange Online related reports (Shared Mailbox licensing). |
+| includeUserData |  | Boolean | If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use. |
 | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
 | ContainerName |  | String | Storage container name used for uploads. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
-| StorageAccountName |  | String | Storage account name used for uploads. |
-| StorageAccountLocation |  | String | Azure region for the storage account. |
-| StorageAccountSku |  | String | Storage account SKU. |
+| StorageAccountName |  | String | Storage account name used for uploads. The account must exist before running this report. |
 | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
@@ -1508,6 +1526,7 @@ Create a shared mailbox
 | DisplayName |  | String | Display name for the shared mailbox. |
 | DomainName |  | String | Optional domain used for the primary SMTP address; if not provided, the default domain is used. |
 | Language |  | String | The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US". |
+| TimeZone |  | String | The time zone for the shared mailbox. Default is "W. Europe Standard Time". |
 | DelegateTo |  | String | Optional user who receives delegated access to the mailbox. |
 | AutoMapping |  | Boolean | If set to true, the mailbox is automatically mapped in Outlook for the delegate. |
 | MessageCopyForSentAsEnabled |  | Boolean | If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items. |
@@ -2081,6 +2100,17 @@ List room mailbox configuration
 | UserName | ✓ | String | User principal name of the room mailbox. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
+<a name='user-mail-manage-archive-mailbox'></a>
+
+### Manage Archive Mailbox
+Manage the Exchange Online archive mailbox for a user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the user whose archive mailbox should be managed. |
+| Action |  | String | Action to perform: Enable, Disable, or GetStatus. |
+| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
 <a name='user-mail-remove-mailbox'></a>
 
 ### Remove Mailbox
@@ -2242,6 +2272,23 @@ Enable or disable password expiration for a user
 | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
+<a name='user-security-list-mfa-methods'></a>
+
+### List MFA Methods
+List all MFA / authentication methods of a user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context. |
+| NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled. |
+| MaskPhoneNumbers |  | Boolean | When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled. |
+| EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
+| CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
+
 <a name='user-security-reset-mfa'></a>
 
 ### Reset MFA
@@ -2250,6 +2297,12 @@ Remove all App- and Mobilephone auth methods for a user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
+| NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled. |
+| EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-security-reset-password'></a>
@@ -2285,6 +2338,12 @@ Set or remove a user's mobile phone MFA method
 | UserId | ✓ | String | Object ID of the target user. |
 | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
+| NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled. |
+| EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
@@ -2338,6 +2397,7 @@ Update user metadata and memberships
 | State |  | String | State to set for the user. |
 | StreetAddress |  | String | Street address to set for the user. |
 | UsageLocation |  | String | Usage location to set for the user. |
+| ManagerId |  | String | Optional manager user ID to set for the user. |
 | DefaultLicense |  | String | Display name of a license group to assign. |
 | DefaultGroups |  | String | Comma-separated list of group display names to assign. |
 | EnableEXOArchive |  | Boolean | If set to true, enables the Exchange Online archive mailbox. |

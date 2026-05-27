@@ -4,7 +4,7 @@ Invite external guest users to the organization
 
 ## Detailed description
 This runbook invites an external user as a guest user in Microsoft Entra ID.
-Optional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.
+Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
 The invited user can optionally be added to a specified group.
 
 ## Where to find
@@ -13,11 +13,11 @@ Org \ General \ Invite External Guest Users
 ## Notes
 Common Use Cases:
 - Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank
-- Full onboarding: supply all optional fields to set profile properties, assign a manager, and add to a group in a single run
+- Full onboarding: supply all optional fields to set profile properties, assign a manager/sponsor, and add to a group in a single run
 
 Parameter Interactions:
 - Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely
-- Manager assignment and group membership each require their respective parameters; both are silently skipped when not provided
+- Manager and sponsor assignment and group membership each require their respective parameters; all are silently skipped when not provided
 
 ## Permissions
 ### Application permissions
@@ -83,6 +83,42 @@ Company name of the guest user.
 
 ### ManagerName
 Manager to assign to the guest user. Select a user from the directory.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SponsorName
+Sponsor to assign to the guest user. Select a user from the directory.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### CustomizeInvitation
+Enable to customize the invitation message and redirect URL.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### InvitationMessage
+Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### InviteRedirectUrl
+Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled.
 
 | Property | Value |
 |----------|-------|

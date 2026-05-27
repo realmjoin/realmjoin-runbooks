@@ -4832,6 +4832,104 @@
     }
   },
   {
+    "RunbookDisplayName": "Dedup Device Names_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Dedup Device Names_Scheduled",
+    "RelativeRunbookPath": "org/devices/dedup-device-names_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Detect and rename duplicate Intune device display names using a prefix and random suffix",
+    "Description": "This scheduled runbook queries all Intune managed devices and identifies devices that share the same display name.\nFor each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.\nAn optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.",
+    "Notes": "Prerequisites:\n- The managed identity must have DeviceManagementManagedDevices.ReadWrite.All and DeviceManagementServiceConfig.ReadWrite.All Graph application permissions assigned.\n- Autopilot display name changes via updateDeviceProperties take effect at the next device sync and may not reflect immediately in the portal.\n\nParameter Interactions:\n- NameLength must be strictly greater than the character count of NamePrefix. The difference determines how many random digits are appended (e.g., NamePrefix \"CORP\" with NameLength 8 produces names like \"CORP4271\").\n- The runbook validates this constraint at startup and fails fast if violated.\n\nCommon Use Cases:\n- Schedule weekly to automatically resolve duplicate device names that arise from re-enrollment, OS reimaging, or cloning workflows.\n- The idempotent Autopilot sync path ensures that unique devices are also normalized in Autopilot even on the first run.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The identity of the person or automation account that triggered this runbook, used for auditing purposes only."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "0",
+        "description": [
+          {
+            "Text": "The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix."
+          }
+        ],
+        "globbing": "false",
+        "name": "NameLength",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string."
+          }
+        ],
+        "globbing": "false",
+        "name": "NamePrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "All",
+        "description": [
+          {
+            "Text": "Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All."
+          }
+        ],
+        "globbing": "false",
+        "name": "OsFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Stale Devices_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Delete Stale Devices_Scheduled",
     "RelativeRunbookPath": "org/devices/delete-stale-devices_scheduled.ps1",
@@ -9659,8 +9757,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "General",
     "Synopsis": "Invite external guest users to the organization",
-    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nOptional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.\nThe invited user can optionally be added to a specified group.",
-    "Notes": "Common Use Cases:\n- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank\n- Full onboarding: supply all optional fields to set profile properties, assign a manager, and add to a group in a single run\n\nParameter Interactions:\n- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely\n- Manager assignment and group membership each require their respective parameters; both are silently skipped when not provided",
+    "Description": "This runbook invites an external user as a guest user in Microsoft Entra ID.\nOptional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.\nThe invited user can optionally be added to a specified group.",
+    "Notes": "Common Use Cases:\n- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank\n- Full onboarding: supply all optional fields to set profile properties, assign a manager/sponsor, and add to a group in a single run\n\nParameter Interactions:\n- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely\n- Manager and sponsor assignment and group membership each require their respective parameters; all are silently skipped when not provided",
     "Parameters": [
       {
         "defaultValue": "",
@@ -9673,7 +9771,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "13",
         "required": "true",
         "type": {
           "name": "String"
@@ -9694,6 +9792,23 @@
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable to customize the invitation message and redirect URL."
+          }
+        ],
+        "globbing": "false",
+        "name": "CustomizeInvitation",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -9725,6 +9840,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "InvitationMessage",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -9768,6 +9900,23 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "InviteRedirectUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "Manager to assign to the guest user. Select a user from the directory."
           }
         ],
@@ -9776,6 +9925,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sponsor to assign to the guest user. Select a user from the directory."
+          }
+        ],
+        "globbing": "false",
+        "name": "SponsorName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "String"
@@ -9809,7 +9975,7 @@
         "name": "UsageLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -9946,7 +10112,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -9963,7 +10129,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -9980,7 +10146,7 @@
         "name": "exportAsZip",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -9997,7 +10163,7 @@
         "name": "exportToFile",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10007,7 +10173,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, includes Exchange Online related reports."
+            "Text": "If set to true, includes Exchange Online related reports (Shared Mailbox licensing)."
           }
         ],
         "globbing": "false",
@@ -10015,6 +10181,23 @@
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use."
+          }
+        ],
+        "globbing": "false",
+        "name": "includeUserData",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10048,7 +10231,7 @@
         "name": "produceLinks",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -10065,40 +10248,6 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Azure region for the storage account."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountLocation",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "9",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Storage account name used for uploads."
-          }
-        ],
-        "globbing": "false",
-        "name": "StorageAccountName",
-        "parameterValue": "String",
-        "pipelineInput": "false",
         "position": "8",
         "required": "false",
         "type": {
@@ -10109,14 +10258,14 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Storage account SKU."
+            "Text": "Storage account name used for uploads. The account must exist before running this report."
           }
         ],
         "globbing": "false",
-        "name": "StorageAccountSku",
+        "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -10133,7 +10282,7 @@
         "name": "SubscriptionId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -10142,7 +10291,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Reports.Read.All\",\n                \"Directory.Read.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Reports.Read.All\",\n                \"Directory.Read.All\",\n                \"User.Read.All\",\n                \"ReportSettings.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -10151,6 +10300,7 @@
           "AppRoleAssignments": [
             "Directory.Read.All",
             "Reports.Read.All",
+            "ReportSettings.ReadWrite.All",
             "User.Read.All"
           ]
         }
@@ -11391,7 +11541,7 @@
         "name": "AutoMapping",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11408,7 +11558,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -11425,7 +11575,7 @@
         "name": "DelegateTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -11442,7 +11592,7 @@
         "name": "DisableUser",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11527,7 +11677,7 @@
         "name": "MessageCopyForSendOnBehalfEnabled",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11544,10 +11694,27 @@
         "name": "MessageCopyForSentAsEnabled",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "W. Europe Standard Time",
+        "description": [
+          {
+            "Text": "The time zone for the shared mailbox. Default is \"W. Europe Standard Time\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "TimeZone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
         }
       }
     ],
@@ -16716,6 +16883,88 @@
     }
   },
   {
+    "RunbookDisplayName": "Manage Archive Mailbox",
+    "RunbookDisplayPath": "User \\ Mail \\ Manage Archive Mailbox",
+    "RelativeRunbookPath": "user/mail/manage-archive-mailbox.ps1",
+    "RelativeRunbookPath_PathOnly": "user/mail",
+    "PrimaryFolder": "User",
+    "SubFolder": "Mail",
+    "Synopsis": "Manage the Exchange Online archive mailbox for a user",
+    "Description": "Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user. Before any change the current state is verified so the script exits without making changes if the mailbox is already in the desired state. When enabling, any soft-deleted archive mailbox from within the last 30 days is automatically reconnected instead of creating a new one.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "GetStatus",
+        "description": [
+          {
+            "Text": "Action to perform: Enable, Disable, or GetStatus."
+          }
+        ],
+        "globbing": "false",
+        "name": "Action",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name is tracked purely for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the user whose archive mailbox should be managed."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Office 365 Exchange Online",
+          "Id": "00000002-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Exchange.ManageAsApp"
+          ]
+        }
+      ],
+      "Roles": [
+        "Exchange administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Remove Mailbox",
     "RunbookDisplayPath": "User \\ Mail \\ Remove Mailbox",
     "RelativeRunbookPath": "user/mail/remove-mailbox.ps1",
@@ -18114,6 +18363,191 @@
     }
   },
   {
+    "RunbookDisplayName": "List MFA Methods",
+    "RunbookDisplayPath": "User \\ Security \\ List MFA Methods",
+    "RelativeRunbookPath": "user/security/list-MFA-methods.ps1",
+    "RelativeRunbookPath_PathOnly": "user/security",
+    "PrimaryFolder": "User",
+    "SubFolder": "Security",
+    "Synopsis": "List all MFA / authentication methods of a user",
+    "Description": "Retrieves and displays every Microsoft Entra ID authentication method registered for a target user, including phone numbers for phone-based methods. Phone numbers can optionally be masked, showing only the last four digits. Optionally a notification email can be sent to the user informing them that their MFA methods have been retrieved through this runbook.",
+    "Notes": "Permissions (managed identity, application):\n- UserAuthenticationMethod.Read.All - list authentication methods\n- User.Read.All                      - resolve target user\n- Organization.Read.All              - read tenant display name for the email body\n- Mail.Send                          - only required when NotifyUser is enabled\n\nPrivacy / audit:\n- This runbook reads sensitive identity data (registered MFA methods, including phone numbers).\n  Phone numbers are masked by default. Set MaskPhoneNumbers to false only when full numbers are\n  required for legitimate support purposes; the action is logged with CallerName.\n- When NotifyUser is enabled, the target user is notified by email that an administrator has\n  retrieved their MFA methods. This requires the tenant setting RJReport.EmailSender to be\n  configured.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes. Auto-filled by the RealmJoin portal."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location."
+          }
+        ],
+        "globbing": "false",
+        "name": "LanguageOverride",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaskPhoneNumbers",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Mail.Send\",\n                \"Organization.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Mail.Send",
+            "Organization.Read.All",
+            "User.Read.All",
+            "UserAuthenticationMethod.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Reset Mfa",
     "RunbookDisplayPath": "User \\ Security \\ Reset Mfa",
     "RelativeRunbookPath": "user/security/reset-mfa.ps1",
@@ -18121,7 +18555,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Remove all App- and Mobilephone auth methods for a user",
-    "Description": "Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.",
+    "Description": "Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset. Optionally a notification email can be sent to the user informing them that their MFA methods have been reset through this runbook.",
     "Notes": null,
     "Parameters": [
       {
@@ -18135,8 +18569,110 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "8",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location."
+          }
+        ],
+        "globbing": "false",
+        "name": "LanguageOverride",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -18161,13 +18697,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Mail.Send",
             "UserAuthenticationMethod.ReadWrite.All"
           ]
         }
@@ -18358,7 +18895,7 @@
     "SubFolder": "Security",
     "Synopsis": "Set or remove a user's mobile phone MFA method",
     "Description": "Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as \"MFA only\" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code \"phoneNumberNotUnique\". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.",
-    "Notes": null,
+    "Notes": "Permissions (managed identity, application):\n- UserAuthenticationMethod.ReadWrite.All - manage phone authentication methods\n- User.Read.All                           - resolve target user\n- Organization.Read.All                  - read tenant display name for the email body\n- Mail.Send                              - only required when NotifyUser is enabled",
     "Parameters": [
       {
         "defaultValue": "",
@@ -18371,10 +18908,61 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "10",
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location."
+          }
+        ],
+        "globbing": "false",
+        "name": "LanguageOverride",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -18415,6 +19003,57 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "Object ID of the target user."
           }
         ],
@@ -18431,7 +19070,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -18439,6 +19078,7 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "AuditLog.Read.All",
+            "Mail.Send",
             "User.Read.All",
             "UserAuthenticationMethod.ReadWrite.All"
           ]
@@ -18674,7 +19314,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "21",
         "required": "true",
         "type": {
           "name": "String"
@@ -18742,7 +19382,7 @@
         "name": "DefaultGroups",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -18759,7 +19399,7 @@
         "name": "DefaultLicense",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -18810,7 +19450,7 @@
         "name": "EnableEXOArchive",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -18845,6 +19485,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional manager user ID to set for the user."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManagerId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
@@ -18912,7 +19569,7 @@
         "name": "ResetPassword",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "Boolean"

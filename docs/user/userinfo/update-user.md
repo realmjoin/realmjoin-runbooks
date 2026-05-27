@@ -154,6 +154,15 @@ Usage location to set for the user.
 | Required | false |
 | Type | String |
 
+### ManagerId
+Optional manager user ID to set for the user.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
 ### DefaultLicense
 Display name of a license group to assign.
 

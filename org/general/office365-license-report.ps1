@@ -122,7 +122,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.0"
+$Version = "1.1.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "printOverview: $printOverview" -Verbose
@@ -167,20 +167,20 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 #
 ############################################################
 
-    #region Helper Functions
-    ##############################
+#region Helper Functions
+##############################
 
-    function Get-ReportPrivacySetting {
-        (Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta).displayConcealedNames
-    }
+function Get-ReportPrivacySetting {
+    (Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta).displayConcealedNames
+}
 
-    function Set-ReportPrivacySetting {
-        param([bool]$concealNames)
-        Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
-    }
+function Set-ReportPrivacySetting {
+    param([bool]$concealNames)
+    Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
+}
 
-    function Publish-RjRbFilesToStorageContainer {
-        <#
+function Publish-RjRbFilesToStorageContainer {
+    <#
             .SYNOPSIS
             Upload one or more local files to an Azure Storage container, returning SAS
             download links.
@@ -223,458 +223,457 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
             .OUTPUTS
             Array of PSCustomObject with BlobName, EndTime, SASLink for each uploaded file.
         #>
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string[]] $FilePaths,
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ContainerName,
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $StorageAccountName,
-            [Parameter(Mandatory = $false)][string] $SubscriptionId,
-            [Parameter(Mandatory = $false)][ValidateRange(1, 3650)][int] $LinkExpiryDays = 6,
-            [Parameter(Mandatory = $false)][bool] $AddBlobNamePrefix = $false
-        )
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string[]] $FilePaths,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ContainerName,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $StorageAccountName,
+        [Parameter(Mandatory = $false)][string] $SubscriptionId,
+        [Parameter(Mandatory = $false)][ValidateRange(1, 3650)][int] $LinkExpiryDays = 6,
+        [Parameter(Mandatory = $false)][bool] $AddBlobNamePrefix = $false
+    )
 
-        foreach ($p in $FilePaths) {
-            if (-not (Test-Path -Path $p -PathType Leaf)) {
-                throw "File '$p' was not found."
-            }
+    foreach ($p in $FilePaths) {
+        if (-not (Test-Path -Path $p -PathType Leaf)) {
+            throw "File '$p' was not found."
+        }
+    }
+
+    # Ensure Az context is connected
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if ((-not $azContext) -or (-not $azContext.Account)) {
+        Connect-RjRbAzAccount
+    }
+    if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
+
+    # Get storage account key via ARM REST API
+    $subscriptionId = (Get-AzContext).Subscription.Id
+    $armPath = "/subscriptions/$subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Storage/storageAccounts/$StorageAccountName/listKeys?api-version=2023-05-01"
+    $keysResponse = Invoke-AzRestMethod -Path $armPath -Method POST
+    if ($keysResponse.StatusCode -ne 200) {
+        throw "Failed to retrieve storage account keys for '$StorageAccountName' in resource group '$ResourceGroupName'. Status: $($keysResponse.StatusCode)"
+    }
+    $storageKey = ($keysResponse.Content | ConvertFrom-Json).keys[0].value
+    $keyBytes = [Convert]::FromBase64String($storageKey)
+
+    # Helper: Generate SharedKey Authorization header
+    function Get-StorageAuthHeader {
+        param([string]$Method, [string]$CanonicalizedResource, [hashtable]$Headers, [string]$ContentType = "", [int]$ContentLength = 0)
+
+        $msHeaders = ($Headers.GetEnumerator() | Where-Object { $_.Key -like "x-ms-*" } | Sort-Object Key | ForEach-Object { "$($_.Key):$($_.Value)" }) -join "`n"
+
+        $contentLengthStr = if ($ContentLength -gt 0) { "$ContentLength" } else { "" }
+
+        $stringToSign = "$Method`n`n`n$contentLengthStr`n`n$ContentType`n`n`n`n`n`n`n$msHeaders`n$CanonicalizedResource"
+
+        $hmac = New-Object System.Security.Cryptography.HMACSHA256
+        $hmac.Key = $keyBytes
+        $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
+        return "SharedKey ${StorageAccountName}:$sig"
+    }
+
+    # Helper: Generate Blob SAS token
+    function New-BlobSasToken {
+        param([string]$Container, [string]$Blob, [datetime]$ExpiryTime)
+
+        $startTime = (Get-Date).ToUniversalTime().AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ssZ")
+        $expiryStr = $ExpiryTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+        $permissions = "r"
+        $signedVersion = "2023-11-03"
+        $signedResource = "b"
+        $signedProtocol = "https"
+
+        # StringToSign for Blob SAS: permissions, start, expiry, canonicalizedResource, identifier, IP, protocol, version, resource, snapshot, encryption, rscc, rscd, rsce, rscl, rsct
+        $canonicalizedResource = "/blob/$StorageAccountName/$Container/$Blob"
+        $stringToSign = "$permissions`n$startTime`n$expiryStr`n$canonicalizedResource`n`n`n$signedProtocol`n$signedVersion`n$signedResource`n`n`n`n`n`n`n"
+
+        $hmac = New-Object System.Security.Cryptography.HMACSHA256
+        $hmac.Key = $keyBytes
+        $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
+
+        $sasToken = "sp=$permissions&st=$startTime&se=$expiryStr&spr=$signedProtocol&sv=$signedVersion&sr=$signedResource&sig=$([Uri]::EscapeDataString($sig))"
+        return "https://$StorageAccountName.blob.core.windows.net/$Container/${Blob}?$sasToken"
+    }
+
+    $baseUri = "https://$StorageAccountName.blob.core.windows.net"
+
+    # Create container if it does not exist (using HttpClient to bypass Azure Automation's
+    # Invoke-RestMethod interceptor that strips required headers)
+    $dateStr = [DateTime]::UtcNow.ToString("R")
+    $containerHeaders = @{
+        "x-ms-date"    = $dateStr
+        "x-ms-version" = "2023-11-03"
+    }
+    $canonResource = "/$StorageAccountName/$ContainerName`nrestype:container"
+    $containerHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $containerHeaders
+
+    $httpClient = [System.Net.Http.HttpClient]::new()
+    try {
+        $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName`?restype=container")
+        foreach ($h in $containerHeaders.GetEnumerator()) {
+            $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
+        }
+        $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
+        $statusCode = [int]$response.StatusCode
+        if ($statusCode -ne 201 -and $statusCode -ne 409) {
+            $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+            throw "Container creation failed ($statusCode): $errBody"
+        }
+    }
+    finally {
+        $httpClient.Dispose()
+    }
+
+    # Upload files and generate SAS links
+    $endTime = (Get-Date).AddDays($LinkExpiryDays)
+    $results = @()
+    foreach ($filePath in $FilePaths) {
+        $blobName = Split-Path -Path $filePath -Leaf
+        if ($AddBlobNamePrefix) {
+            $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
+            $blobName = "$prefix-$blobName"
         }
 
-        # Ensure Az context is connected
-        $azContext = Get-AzContext -ErrorAction SilentlyContinue
-        if ((-not $azContext) -or (-not $azContext.Account)) {
-            Connect-RjRbAzAccount
-        }
-        if ($SubscriptionId) { Set-AzContext -Subscription $SubscriptionId | Out-Null }
+        $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+        $contentLength = $fileBytes.Length
 
-        # Get storage account key via ARM REST API
-        $subscriptionId = (Get-AzContext).Subscription.Id
-        $armPath = "/subscriptions/$subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Storage/storageAccounts/$StorageAccountName/listKeys?api-version=2023-05-01"
-        $keysResponse = Invoke-AzRestMethod -Path $armPath -Method POST
-        if ($keysResponse.StatusCode -ne 200) {
-            throw "Failed to retrieve storage account keys for '$StorageAccountName' in resource group '$ResourceGroupName'. Status: $($keysResponse.StatusCode)"
-        }
-        $storageKey = ($keysResponse.Content | ConvertFrom-Json).keys[0].value
-        $keyBytes = [Convert]::FromBase64String($storageKey)
-
-        # Helper: Generate SharedKey Authorization header
-        function Get-StorageAuthHeader {
-            param([string]$Method, [string]$CanonicalizedResource, [hashtable]$Headers, [string]$ContentType = "", [int]$ContentLength = 0)
-
-            $rfcDate = $Headers["x-ms-date"]
-            $msHeaders = ($Headers.GetEnumerator() | Where-Object { $_.Key -like "x-ms-*" } | Sort-Object Key | ForEach-Object { "$($_.Key):$($_.Value)" }) -join "`n"
-
-            $contentLengthStr = if ($ContentLength -gt 0) { "$ContentLength" } else { "" }
-
-            $stringToSign = "$Method`n`n`n$contentLengthStr`n`n$ContentType`n`n`n`n`n`n`n$msHeaders`n$CanonicalizedResource"
-
-            $hmac = New-Object System.Security.Cryptography.HMACSHA256
-            $hmac.Key = $keyBytes
-            $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
-            return "SharedKey ${StorageAccountName}:$sig"
-        }
-
-        # Helper: Generate Blob SAS token
-        function New-BlobSasToken {
-            param([string]$Container, [string]$Blob, [datetime]$ExpiryTime)
-
-            $startTime = (Get-Date).ToUniversalTime().AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ssZ")
-            $expiryStr = $ExpiryTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-            $permissions = "r"
-            $signedVersion = "2023-11-03"
-            $signedResource = "b"
-            $signedProtocol = "https"
-
-            # StringToSign for Blob SAS: permissions, start, expiry, canonicalizedResource, identifier, IP, protocol, version, resource, snapshot, encryption, rscc, rscd, rsce, rscl, rsct
-            $canonicalizedResource = "/blob/$StorageAccountName/$Container/$Blob"
-            $stringToSign = "$permissions`n$startTime`n$expiryStr`n$canonicalizedResource`n`n`n$signedProtocol`n$signedVersion`n$signedResource`n`n`n`n`n`n`n"
-
-            $hmac = New-Object System.Security.Cryptography.HMACSHA256
-            $hmac.Key = $keyBytes
-            $sig = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign)))
-
-            $sasToken = "sp=$permissions&st=$startTime&se=$expiryStr&spr=$signedProtocol&sv=$signedVersion&sr=$signedResource&sig=$([Uri]::EscapeDataString($sig))"
-            return "https://$StorageAccountName.blob.core.windows.net/$Container/${Blob}?$sasToken"
-        }
-
-        $baseUri = "https://$StorageAccountName.blob.core.windows.net"
-
-        # Create container if it does not exist (using HttpClient to bypass Azure Automation's
-        # Invoke-RestMethod interceptor that strips required headers)
         $dateStr = [DateTime]::UtcNow.ToString("R")
-        $containerHeaders = @{
-            "x-ms-date"    = $dateStr
-            "x-ms-version" = "2023-11-03"
+        $blobHeaders = @{
+            "x-ms-date"      = $dateStr
+            "x-ms-version"   = "2023-11-03"
+            "x-ms-blob-type" = "BlockBlob"
         }
-        $canonResource = "/$StorageAccountName/$ContainerName`nrestype:container"
-        $containerHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $containerHeaders
+        $canonResource = "/$StorageAccountName/$ContainerName/$blobName"
+        $blobHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $blobHeaders -ContentType "application/octet-stream" -ContentLength $contentLength
 
+        # Use HttpClient directly to ensure all custom headers (x-ms-blob-type) are sent.
+        # Invoke-RestMethod in hosted PowerShell can strip custom headers with binary bodies.
         $httpClient = [System.Net.Http.HttpClient]::new()
         try {
-            $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName`?restype=container")
-            foreach ($h in $containerHeaders.GetEnumerator()) {
+            $content = [System.Net.Http.ByteArrayContent]::new($fileBytes)
+            $content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("application/octet-stream")
+            $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName/$blobName")
+            $request.Content = $content
+            foreach ($h in $blobHeaders.GetEnumerator()) {
                 $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
             }
             $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
-            $statusCode = [int]$response.StatusCode
-            if ($statusCode -ne 201 -and $statusCode -ne 409) {
+            if (-not $response.IsSuccessStatusCode) {
                 $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-                throw "Container creation failed ($statusCode): $errBody"
+                throw "Blob upload failed ($($response.StatusCode)): $errBody"
             }
         }
         finally {
             $httpClient.Dispose()
         }
 
-        # Upload files and generate SAS links
-        $endTime = (Get-Date).AddDays($LinkExpiryDays)
-        $results = @()
-        foreach ($filePath in $FilePaths) {
-            $blobName = Split-Path -Path $filePath -Leaf
-            if ($AddBlobNamePrefix) {
-                $prefix = (Get-Date).ToString("yyyyMMdd-HHmmss")
-                $blobName = "$prefix-$blobName"
-            }
+        $sasLink = New-BlobSasToken -Container $ContainerName -Blob $blobName -ExpiryTime $endTime
+        $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
+    }
+    return $results
+}
 
-            $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-            $contentLength = $fileBytes.Length
+#endregion Helper Functions
 
-            $dateStr = [DateTime]::UtcNow.ToString("R")
-            $blobHeaders = @{
-                "x-ms-date"      = $dateStr
-                "x-ms-version"   = "2023-11-03"
-                "x-ms-blob-type" = "BlockBlob"
-            }
-            $canonResource = "/$StorageAccountName/$ContainerName/$blobName"
-            $blobHeaders["Authorization"] = Get-StorageAuthHeader -Method "PUT" -CanonicalizedResource $canonResource -Headers $blobHeaders -ContentType "application/octet-stream" -ContentLength $contentLength
+#region Report Functions
+##############################
 
-            # Use HttpClient directly to ensure all custom headers (x-ms-blob-type) are sent.
-            # Invoke-RestMethod in hosted PowerShell can strip custom headers with binary bodies.
-            $httpClient = [System.Net.Http.HttpClient]::new()
-            try {
-                $content = [System.Net.Http.ByteArrayContent]::new($fileBytes)
-                $content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("application/octet-stream")
-                $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Put, "$baseUri/$ContainerName/$blobName")
-                $request.Content = $content
-                foreach ($h in $blobHeaders.GetEnumerator()) {
-                    $request.Headers.TryAddWithoutValidation($h.Key, $h.Value) | Out-Null
-                }
-                $response = $httpClient.SendAsync($request).GetAwaiter().GetResult()
-                if (-not $response.IsSuccessStatusCode) {
-                    $errBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-                    throw "Blob upload failed ($($response.StatusCode)): $errBody"
-                }
-            }
-            finally {
-                $httpClient.Dispose()
-            }
+function Get-LicenseOverviewReport {
+    param(
+        [string]$TXTPath,
+        [bool]$printOverview
+    )
 
-            $sasLink = New-BlobSasToken -Container $ContainerName -Blob $blobName -ExpiryTime $endTime
-            $results += [PSCustomObject]@{ BlobName = $blobName; EndTime = $endTime; SASLink = $sasLink }
-        }
-        return $results
+    # List of well known SKUs - please update/add more when needed.
+    $SkuNames = @{
+        "EXCHANGESTANDARD"           = "Exchange Online Plan1"
+        "EXCHANGEENTERPRISE"         = "Exchange Online Plan2"
+        "STANDARDPACK"               = "Office365 Enterprise E1"
+        "ENTERPRISEPACK"             = "Office365 Enterprise E3"
+        "O365_BUSINESS_PREMIUM"      = "Microsoft 365 Business Standard"
+        "SPE_E3"                     = "Microsoft 365 E3"
+        "CRMPLAN2"                   = "Microsoft Dynamics CRM Online Basic"
+        "CRMSTANDARD"                = "Microsoft Dynamics CRM Online Professional"
+        "CRMINSTANCE"                = "Microsoft Dynamics CRM Online Instance"
+        "POWER_BI_STANDARD"          = "Power BI (free)"
+        "POWER_BI_PRO"               = "Power BI Pro"
+        "ATP_ENTERPRISE"             = "Exchange Online Advance Thread Protection"
+        "MDATP_XPLAT"                = "Microsoft Defender For Endpoint"
+        "PROJECTESSENTIALS"          = "Project Online Essentials"
+        "PROJECTPREMIUM"             = "Project Online Premium"
+        "POWERAPPS_VIRAL"            = "Microsoft Power Apps and Flow"
+        "STREAM"                     = "Microsoft Stream"
+        "IDENTITY_THREAT_PROTECTION" = "Microsoft 365 E5 Security"
+        "MCOEV"                      = "Microsoft 365 Phone System"
+        "MCOMEETADV"                 = "Audioconferencing in Microsoft 365"
+        "MEETING_ROOM"               = "Teams Meeting Room"
+        "FLOW_FREE"                  = "Microsoft Flow (free)"
+        "RMSBASIC"                   = "Rights Management Basic"
+        "MCOPSTNC"                   = "Communications Credits"
+        "PHONESYSTEM_VIRTUALUSER"    = "Microsoft 365 Phone System - Virtual User"
+        "SPE_E5"                     = "Microsoft 365 E5"
     }
 
-    #endregion Helper Functions
+    # SKUs to ignore
+    $ignoreListe = (
+        "TEAMS_EXPLORATORY",
+        "WINDOWS_STORE"
+    )
 
-    #region Report Functions
-    ##############################
+    # Prepare results
+    $results = @()
 
-    function Get-LicenseOverviewReport {
-        param(
-            [string]$TXTPath,
-            [bool]$printOverview
-        )
+    class LicReportObject {
+        [string] $Name
+        [int] $Total
+        [int] $Used
+        [int] $Available
+        [int] $Suspended
+    }
 
-        # List of well known SKUs - please update/add more when needed.
-        $SkuNames = @{
-            "EXCHANGESTANDARD"           = "Exchange Online Plan1"
-            "EXCHANGEENTERPRISE"         = "Exchange Online Plan2"
-            "STANDARDPACK"               = "Office365 Enterprise E1"
-            "ENTERPRISEPACK"             = "Office365 Enterprise E3"
-            "O365_BUSINESS_PREMIUM"      = "Microsoft 365 Business Standard"
-            "SPE_E3"                     = "Microsoft 365 E3"
-            "CRMPLAN2"                   = "Microsoft Dynamics CRM Online Basic"
-            "CRMSTANDARD"                = "Microsoft Dynamics CRM Online Professional"
-            "CRMINSTANCE"                = "Microsoft Dynamics CRM Online Instance"
-            "POWER_BI_STANDARD"          = "Power BI (free)"
-            "POWER_BI_PRO"               = "Power BI Pro"
-            "ATP_ENTERPRISE"             = "Exchange Online Advance Thread Protection"
-            "MDATP_XPLAT"                = "Microsoft Defender For Endpoint"
-            "PROJECTESSENTIALS"          = "Project Online Essentials"
-            "PROJECTPREMIUM"             = "Project Online Premium"
-            "POWERAPPS_VIRAL"            = "Microsoft Power Apps and Flow"
-            "STREAM"                     = "Microsoft Stream"
-            "IDENTITY_THREAT_PROTECTION" = "Microsoft 365 E5 Security"
-            "MCOEV"                      = "Microsoft 365 Phone System"
-            "MCOMEETADV"                 = "Audioconferencing in Microsoft 365"
-            "MEETING_ROOM"               = "Teams Meeting Room"
-            "FLOW_FREE"                  = "Microsoft Flow (free)"
-            "RMSBASIC"                   = "Rights Management Basic"
-            "MCOPSTNC"                   = "Communications Credits"
-            "PHONESYSTEM_VIRTUALUSER"    = "Microsoft 365 Phone System - Virtual User"
-            "SPE_E5"                     = "Microsoft 365 E5"
+    $SKUs | ForEach-Object {
+        # Only look at active and relevant licenses
+        if (($_.prepaidUnits.enabled -gt 0) -and (-not $ignoreListe.contains($_.skuPartNumber))) {
+            $entry = [LicReportObject]::new()
+
+            if ($SkuNames.contains($_.skuPartNumber)) {
+                $entry.Name = $SkuNames[$_.skuPartNumber]
+            }
+            else {
+                $entry.Name = $_.skuPartNumber
+            }
+            $entry.Total = $_.prepaidUnits.enabled
+            $entry.Used = $_.consumedUnits
+            $entry.Available = $_.prepaidUnits.enabled - $_.consumedUnits
+            $entry.Suspended = $_.prepaidUnits.suspended
+
+            $results += $entry
         }
+    }
 
-        # SKUs to ignore
-        $ignoreListe = (
-            "TEAMS_EXPLORATORY",
-            "WINDOWS_STORE"
-        )
+    "## Totals of licenses we have:"
+    ""
+    $results | Sort-Object -Property Name | Format-Table | Out-String
+    ""
+    if ($TXTPath) {
+        $results | Sort-Object -Property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation -Delimiter ";"
+        $content = Get-Content -Path "$($TXTPath)\office-licensing.csv"
+        Set-Content -Path "$($TXTPath)\office-licensing.csv" -Value $content -Encoding utf8
+    }
+}
 
-        # Prepare results
-        $results = @()
-
-        class LicReportObject {
-            [string] $Name
-            [int] $Total
-            [int] $Used
-            [int] $Available
-            [int] $Suspended
-        }
-
+function Get-UnusedLicenseReport {
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    try {
+        $Path = $CSVPath + "\unusedlicense.csv"
+        '"skuPartNumber";"ActiveUnits";"ConsumedUnits";"LockedOutUnits"' > $Path
         $SKUs | ForEach-Object {
-            # Only look at active and relevant licenses
-            if (($_.prepaidUnits.enabled -gt 0) -and (-not $ignoreListe.contains($_.skuPartNumber))) {
-                $entry = [LicReportObject]::new()
+            $_.skuPartNumber + ";" + $_.prepaidUnits.enabled + ";" + $_.consumedUnits + ";" + $_.prepaidUnits.suspended >> $Path
+        }
+        $content = Get-Content -Path $Path
+        Set-Content -Path $Path -Value $content -Encoding utf8
+    }
+    catch {
+        "## Error fetching unused licenses"
+        "$($_.Exception.Message)"
+        "## Maybe missing MS Graph permission: Reports.Read.All"
+    }
+}
 
-                if ($SkuNames.contains($_.skuPartNumber)) {
-                    $entry.Name = $SkuNames[$_.skuPartNumber]
-                }
-                else {
-                    $entry.Name = $_.skuPartNumber
-                }
-                $entry.Total = $_.prepaidUnits.enabled
-                $entry.Used = $_.consumedUnits
-                $entry.Available = $_.prepaidUnits.enabled - $_.consumedUnits
-                $entry.Suspended = $_.prepaidUnits.suspended
+function Get-SharedMailboxLicensing {
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    $CSVPath = $CSVPath + "\SharedMailboxLicensing.csv"
+    $mailbox = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox
+    foreach ($mail in $mailbox) {
+        if (Invoke-RjRbRestMethodGraph -Resource "/users/$($mail.UserPrincipalName)/licenseDetails" -ErrorAction SilentlyContinue) {
+            Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
+        }
+    }
+    if (Test-Path -Path $CSVPath) {
+        $content = Get-Content -Path $CSVPath
+        Set-Content -Path $CSVPath -Value $content -Encoding utf8
+    }
+}
 
-                $results += $entry
+function Get-GraphReport {
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath,
+        $graphUris = ("/reports/getOffice365ServicesUserCounts(period='D90')",
+            "/reports/getOffice365ActivationsUserDetail",
+            "/reports/getOffice365ActivationsUserCounts",
+            "/reports/getMailboxUsageDetail(period='D90')",
+            "/reports/getSharePointActivityUserDetail(period='D90')",
+            "/reports/getEmailActivityUserDetail(period='D90')",
+            "/reports/getOneDriveActivityUserDetail(period='D90')",
+            "/reports/getTeamsUserActivityUserDetail(period='D90')",
+            "/reports/getSkypeForBusinessActivityUserDetail(period='D90')",
+            "/reports/getYammerActivityUserDetail(period='D90')",
+            "/reports/getOffice365ActiveUserDetail(period='D90')")
+    )
+
+    try {
+        foreach ($Uri in $graphUris) {
+            $reportname = ($uri.Replace("/reports/", "").split('('))[0]
+            $Path = $CSVPath + "\" + $reportname + ".csv"
+            $Results = Invoke-RjRbRestMethodGraph -Resource $Uri
+
+            if ($Results) {
+                $Results = $Results.Remove(0, 3)
+                $Results = ConvertFrom-Csv -InputObject $Results
+                $Results | Export-Csv -Path $Path -NoTypeInformation
             }
         }
+    }
+    catch {
+        "## Error while fetching MS Graph Reports"
+        "$($_.Exception.Message)"
+    }
+}
 
-        "## Totals of licenses we have:"
-        ""
-        $results | sort-object -property Name | format-table | out-string
-        ""
-        if ($TXTPath) {
-            $results | sort-object -property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation -Delimiter ";"
-            $content = Get-Content -Path "$($TXTPath)\office-licensing.csv"
-            set-content -Path "$($TXTPath)\office-licensing.csv" -Value $content -Encoding utf8
+function Get-LoginLog {
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath,
+        $Applications = ("Power BI Premium",
+            "Microsoft Planner",
+            "Office Sway",
+            "Microsoft To-Do",
+            "Microsoft Stream",
+            "Microsoft Forms",
+            "Microsoft Cloud App Security",
+            "Project Online",
+            "Dynamics CRM Online",
+            "Azure Advanced Threat Protection",
+            "Microsoft Flow"),
+        $PastDays = 90
+    )
+
+    $today = Get-Date -Format "yyyy-MM-dd"
+    $PastPeriod = ("{0:s}" -f (Get-Date).AddDays( - ($PastDays))).Split("T")[0]
+
+    foreach ($app in $Applications) {
+        "## ... $app"
+        $appFileName = $app.Replace(" ", "")
+        # Slow down to avoid http 429 errors
+        Start-Sleep -Seconds 5
+        $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"
+        $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter
+        $outputFile = $CSVPath + "\" + "Audit-" + $appFileName + ".csv"
+        $logs | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Add-Content -Path $outputFile -Encoding utf8
+    }
+}
+
+function Get-AssignedPlan {
+    [cmdletbinding()]
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    $reportname = "\assignedPlans"
+    $Path = $CSVPath + $reportname + ".csv"
+    $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"
+
+    $users | ForEach-Object {
+        $thisUser = $_
+        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
+    } | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Out-File $Path -Append -Encoding utf8
+}
+
+function Get-LicenseAssignmentPath {
+    [cmdletbinding()]
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    $reportname = "\LicenseAssignmentPath"
+    $Path = $CSVPath + $reportname + ".csv"
+    $users = Invoke-RjRbRestMethodGraph -Resource "/users" -OdSelect "licenseAssignmentStates,userPrincipalName" -FollowPaging
+
+    foreach ($user in $users) {
+        foreach ($sku in $user.licenseAssignmentStates) {
+            $skuPartNumber = $SkuHashtable[$sku.skuId]
+
+            $UserHasLicenseAssignedDirectly = $null -eq $sku.assignedByGroup
+            $UserHasLicenseAssignedFromGroup = -not $UserHasLicenseAssignedDirectly
+
+            $obj = $user
+            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -Value $skuPartNumber -Force
+            $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -Value $UserHasLicenseAssignedDirectly -Force
+            $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -Value $UserHasLicenseAssignedFromGroup -Force
+            $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation -Delimiter ";"
         }
     }
+    $content = Get-Content $Path
+    Set-Content -Path $Path -Value $content -Encoding utf8
+}
 
-    function Get-UnusedLicenseReport {
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath
-        )
-        try {
-            $Path = $CSVPath + "\unusedlicense.csv"
-            '"skuPartNumber";"ActiveUnits";"ConsumedUnits";"LockedOutUnits"' > $Path
-            $SKUs | ForEach-Object {
-                $_.skuPartNumber + ";" + $_.prepaidUnits.enabled + ";" + $_.consumedUnits + ";" + $_.prepaidUnits.suspended >> $Path
-            }
-            $content = Get-Content -Path $Path
-            set-content -Path $Path -Value $content -Encoding utf8
+function Get-LicensingGroup {
+    [cmdletbinding()]
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    $reportname = "\LicensingGroups"
+    $Path = $CSVPath + $reportname + ".csv"
+    $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdSelect "assignedLicenses,id,displayName" -FollowPaging | Where-Object { $_.assignedLicenses }
+    foreach ($group in $groups) {
+        $LicenseString = ""
+        foreach ($assignedLicense in  $group.assignedLicenses) {
+            $LicenseString += $SkuHashtable[$assignedLicense.skuId] + ", "
         }
-        catch {
-            "## Error fetching unused licenses"
-            "$($_.Exception.Message)"
-            "## Maybe missing MS Graph permission: Reports.Read.All"
+        $obj = New-Object pscustomobject -Property @{
+            GroupLicense = $LicenseString
+            GroupName    = $group.displayName
+            GroupId      = $group.id
         }
-    }
-
-    function Get-SharedMailboxLicensing {
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath
-        )
-        $CSVPath = $CSVPath + "\SharedMailboxLicensing.csv"
-        $mailbox = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox
-        foreach ($mail in $mailbox) {
-            if (Invoke-RjRbRestMethodGraph -Resource "/users/$($mail.UserPrincipalName)/licenseDetails" -ErrorAction SilentlyContinue) {
-                Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
-            }
-        }
-        if (Test-Path -Path $CSVPath) {
-            $content = Get-Content -Path $CSVPath
-            set-content -Path $CSVPath -Value $content -Encoding utf8
-        }
-    }
-
-    function Get-GraphReport {
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath,
-            $graphUris = ("/reports/getOffice365ServicesUserCounts(period='D90')",
-                "/reports/getOffice365ActivationsUserDetail",
-                "/reports/getOffice365ActivationsUserCounts",
-                "/reports/getMailboxUsageDetail(period='D90')",
-                "/reports/getSharePointActivityUserDetail(period='D90')",
-                "/reports/getEmailActivityUserDetail(period='D90')",
-                "/reports/getOneDriveActivityUserDetail(period='D90')",
-                "/reports/getTeamsUserActivityUserDetail(period='D90')",
-                "/reports/getSkypeForBusinessActivityUserDetail(period='D90')",
-                "/reports/getYammerActivityUserDetail(period='D90')",
-                "/reports/getOffice365ActiveUserDetail(period='D90')")
-        )
-
-        try {
-            foreach ($Uri in $graphUris) {
-                $reportname = ($uri.Replace("/reports/", "").split('('))[0]
-                $Path = $CSVPath + "\" + $reportname + ".csv"
-                $Results = Invoke-RjRbRestMethodGraph -resource $Uri
-
-                if ($Results) {
-                    $Results = $Results.Remove(0, 3)
-                    $Results = ConvertFrom-Csv -InputObject $Results
-                    $Results | Export-Csv -Path $Path -NoTypeInformation
-                }
-            }
-        }
-        catch {
-            "## Error while fetching MS Graph Reports"
-            "$($_.Exception.Message)"
-        }
-    }
-
-    function Get-LoginLog {
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath,
-            $Applications = ("Power BI Premium",
-                "Microsoft Planner",
-                "Office Sway",
-                "Microsoft To-Do",
-                "Microsoft Stream",
-                "Microsoft Forms",
-                "Microsoft Cloud App Security",
-                "Project Online",
-                "Dynamics CRM Online",
-                "Azure Advanced Threat Protection",
-                "Microsoft Flow"),
-            $PastDays = 90
-        )
-
-        $today = Get-Date -Format "yyyy-MM-dd"
-        $PastPeriod = ("{0:s}" -f (get-date).AddDays( - ($PastDays))).Split("T")[0]
-
-        foreach ($app in $Applications) {
-            "## ... $app"
-            $appFileName = $app.Replace(" ", "")
-            # Slow down to avoid http 429 errors
-            Start-Sleep -Seconds 5
-            $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"
-            $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter
-            $outputFile = $CSVPath + "\" + "Audit-" + $appFileName + ".csv"
-            $logs | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Add-Content -Path $outputFile -Encoding utf8
-        }
-    }
-
-    function Get-AssignedPlan {
-        [cmdletbinding()]
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath
-        )
-        $reportname = "\assignedPlans"
-        $Path = $CSVPath + $reportname + ".csv"
-        $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"
-
-        $users | ForEach-Object {
-            $thisUser = $_
-            (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
-        } | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Out-File $Path -Append -Encoding utf8
-    }
-
-    function Get-LicenseAssignmentPath {
-        [cmdletbinding()]
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath
-        )
-        $reportname = "\LicenseAssignmentPath"
-        $Path = $CSVPath + $reportname + ".csv"
-        $users = Invoke-RjRbRestMethodGraph -Resource "/users" -OdSelect "licenseAssignmentStates,userPrincipalName" -FollowPaging
-
-        foreach ($user in $users) {
-            foreach ($sku in $user.licenseAssignmentStates) {
-                $skuPartNumber = $SkuHashtable[$sku.skuId]
-
-                $UserHasLicenseAssignedDirectly = $null -eq $sku.assignedByGroup
-                $UserHasLicenseAssignedFromGroup = -not $UserHasLicenseAssignedDirectly
-
-                $obj = $user
-                $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force
-                $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -value $UserHasLicenseAssignedDirectly -Force
-                $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -value $UserHasLicenseAssignedFromGroup -Force
-                $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation -Delimiter ";"
-            }
-        }
+        $obj | Export-Csv $Path -Append -NoTypeInformation -Delimiter ";"
         $content = Get-Content $Path
-        set-content -Path $Path -value $content -Encoding utf8
+        Set-Content -Path $Path -Value $content -Encoding utf8
     }
+}
 
-    function Get-LicensingGroup {
-        [cmdletbinding()]
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath
-        )
-        $reportname = "\LicensingGroups"
-        $Path = $CSVPath + $reportname + ".csv"
-        $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdSelect "assignedLicenses,id,displayName" -FollowPaging | Where-Object { $_.assignedLicenses }
-        foreach ($group in $groups) {
-            $LicenseString = ""
-            foreach ($assignedLicense in  $group.assignedLicenses) {
-                $LicenseString += $SkuHashtable[$assignedLicense.skuId] + ", "
-            }
-            $obj = New-Object pscustomobject -Property @{
-                GroupLicense = $LicenseString
-                GroupName    = $group.displayName
-                GroupId      = $group.id
-            }
-            $obj | Export-Csv $Path -Append -NoTypeInformation -Delimiter ";"
-            $content = Get-Content $Path
-            set-content -Path $Path -value $content -Encoding utf8
-        }
-    }
+function Get-AdminReport {
+    [cmdletbinding()]
+    param(
+        [parameter(Mandatory = $true)][string]$CSVPath
+    )
+    $reportname = "\AdminReport"
+    $Path = $CSVPath + $reportname + ".csv"
 
-    function Get-AdminReport {
-        [cmdletbinding()]
-        param(
-            [parameter(Mandatory = $true)][string]$CSVPath
-        )
-        $reportname = "\AdminReport"
-        $Path = $CSVPath + $reportname + ".csv"
+    $AllAdminRole = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
 
-        $AllAdminRole = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
-
-        $msolUserResults = [System.Collections.ArrayList]@()
-        foreach ($Role in $AllAdminRole) {
-            $RoleID = $Role.id
-            $Admins = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$RoleId'" -ErrorAction SilentlyContinue
-            foreach ($AdminCandidate in $Admins) {
-                $user = Invoke-RjRbRestMethodGraph -Resource "/users/$($AdminCandidate.principalId)" -ErrorAction SilentlyContinue
-                if ($user.mail) {
-                    [string]$licensesString = ""
-                    $Licenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -OdSelect "licenseAssignmentStates"
-                    $Licenses | ForEach-Object {
-                        if ($licensesString) {
-                            $licensesString += "+"
-                        }
-                        $licensesString += $SkuHashtable[$Licenses.licenseAssignmentStates.skuId]
+    $msolUserResults = [System.Collections.ArrayList]@()
+    foreach ($Role in $AllAdminRole) {
+        $RoleID = $Role.id
+        $Admins = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$RoleId'" -ErrorAction SilentlyContinue
+        foreach ($AdminCandidate in $Admins) {
+            $user = Invoke-RjRbRestMethodGraph -Resource "/users/$($AdminCandidate.principalId)" -ErrorAction SilentlyContinue
+            if ($user.mail) {
+                [string]$licensesString = ""
+                $Licenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -OdSelect "licenseAssignmentStates"
+                $Licenses | ForEach-Object {
+                    if ($licensesString) {
+                        $licensesString += "+"
                     }
-                    $msolUserResults += New-Object psobject -Property @{
-                        DisplayName = $user.displayName
-                        UPN         = $user.userPrincipalName
-                        IsLicensed  = ($Licenses.licenseAssignmentStates.count -gt 0)
-                        Licenses    = $licensesString
-                        Adminrole   = $role.displayName
-                    }
+                    $licensesString += $SkuHashtable[$Licenses.licenseAssignmentStates.skuId]
+                }
+                $msolUserResults += New-Object psobject -Property @{
+                    DisplayName = $user.displayName
+                    UPN         = $user.userPrincipalName
+                    IsLicensed  = ($Licenses.licenseAssignmentStates.count -gt 0)
+                    Licenses    = $licensesString
+                    Adminrole   = $role.displayName
                 }
             }
         }
-        $msolUserResults | Select-Object -Property * | Export-Csv -notypeinformation -Path $Path -Delimiter ";"
-        $content = Get-Content $Path
-        set-content -Path $Path -value $content -Encoding utf8
     }
+    $msolUserResults | Select-Object -Property * | Export-Csv -NoTypeInformation -Path $Path -Delimiter ";"
+    $content = Get-Content $Path
+    Set-Content -Path $Path -Value $content -Encoding utf8
+}
 
-    #endregion Report Functions
+#endregion Report Functions
 
 #endregion Function Definitions
 
@@ -708,7 +707,7 @@ $SKUs | ForEach-Object {
 
 $OutPutPath = "CloudEconomics\"
 
-if (-Not (Test-Path -Path $OutPutPath)) {
+if (-not (Test-Path -Path $OutPutPath)) {
     New-Item -ItemType directory -Path $OutPutPath | Out-Null
 }
 else {
@@ -756,7 +755,7 @@ if ($exportToFile) {
     "## Collecting: All user objects"
     Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
     $content = Get-Content $OutPutPath"\AllUser.csv"
-    set-content -Path $OutPutPath"\AllUser.csv" -value $content -Encoding utf8
+    Set-Content -Path $OutPutPath"\AllUser.csv" -Value $content -Encoding utf8
 
     "## Collecting: Assigned License Plans"
     Get-AssignedPlan -CSVPath $OutPutPath
@@ -781,12 +780,12 @@ if ($exportToFile) {
 if ($exportToFile) {
     ""
     if (-not $ContainerName) {
-        $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
+        $ContainerName = "office-licensing-v2-" + (Get-Date -Format "yyyy-MM-dd")
     }
 
     "## Upload"
     if ($exportAsZip) {
-        $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
+        $zipFileName = "office-licensing-v2-" + (Get-Date -Format "yyyy-MM-dd") + ".zip"
         Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
         $filesToUpload = @($zipFileName)
     }
