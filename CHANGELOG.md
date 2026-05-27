@@ -1,5 +1,20 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-05-27
+
+- Update **Reset MFA** Runbook in User/Security
+  - Add `NotifyUser` option: optionally sends a notification email to the target user when an administrator resets their MFA methods (default off/setting hidden)
+  - Add `EmailFrom`, `ServiceDeskDisplayName`, `ServiceDeskEmail`, `ServiceDeskPhone` parameters for email configuration (sourced from RJReport tenant settings, all hidden by default)
+  - Add `LanguageOverride` parameter to force DE or EN email language (default: auto-detect via usage location)
+  - Add StatusQuo section to resolve user display name, primary email, and usage location
+  - File renamed from `reset-mfa.ps1` to `reset-MFA.ps1` (capital letters)
+- Update **Set or Remove Mobile Phone MFA** Runbook in User/Security
+  - Add `NotifyUser` option: optionally sends a notification email to the target user when an administrator adds or removes their mobile phone MFA method (default off/setting hidden)
+  - Add `EmailFrom`, `ServiceDeskDisplayName`, `ServiceDeskEmail`, `ServiceDeskPhone` parameters for email configuration (sourced from RJReport tenant settings, all hidden by default)
+  - Add `LanguageOverride` parameter to force DE or EN email language (default: auto-detect via usage location)
+  - Email text distinguishes between add and remove actions
+  - File renamed from `set-or-remove-mobile-phone-mfa.ps1` to `set-or-remove-mobile-phone-MFA.ps1` (capital letters)
+
 ## 2026-05-26
 
 - Update **List MFA Methods** Runbook in User/Security
