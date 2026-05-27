@@ -150,10 +150,10 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  |
 |  |  | List MFA Methods | List all MFA / authentication methods of a user | - **Type**: Microsoft Graph<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  |
-|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
+|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> |
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  |
 |  | Userinfo | Rename User | Rename a user or mailbox | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- User.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Set Photo | Set the profile photo for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  |
 |  |  | Update User | Update user metadata and memberships | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.Read.All<br> | - User administrator<br>- Exchange Administrator<br> |

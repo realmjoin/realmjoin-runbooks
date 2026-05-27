@@ -831,7 +831,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
 |  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
-|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | EnableUserIfNeeded |  | Boolean | If set to true, enables the user account before resetting the password. |
@@ -840,9 +846,15 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserId | ✓ | String | Object ID of the target user. |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserId | ✓ | String | Object ID of the target user. |
 |  |  |  |  |  |  | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 |  |  |  |  |  |  | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  | Userinfo | Rename User | Rename a user or mailbox | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- User.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user or mailbox to rename. |
 |  |  |  |  |  |  | NewUpn | ✓ | String | New user principal name to set. |

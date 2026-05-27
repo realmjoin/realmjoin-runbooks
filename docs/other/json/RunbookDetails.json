@@ -18555,7 +18555,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "Security",
     "Synopsis": "Remove all App- and Mobilephone auth methods for a user",
-    "Description": "Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.",
+    "Description": "Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset. Optionally a notification email can be sent to the user informing them that their MFA methods have been reset through this runbook.",
     "Notes": null,
     "Parameters": [
       {
@@ -18569,8 +18569,110 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "8",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location."
+          }
+        ],
+        "globbing": "false",
+        "name": "LanguageOverride",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -18595,13 +18697,14 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
           "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
+            "Mail.Send",
             "UserAuthenticationMethod.ReadWrite.All"
           ]
         }
@@ -18792,7 +18895,7 @@
     "SubFolder": "Security",
     "Synopsis": "Set or remove a user's mobile phone MFA method",
     "Description": "Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as \"MFA only\" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code \"phoneNumberNotUnique\". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.",
-    "Notes": null,
+    "Notes": "Permissions (managed identity, application):\n- UserAuthenticationMethod.ReadWrite.All - manage phone authentication methods\n- User.Read.All                           - resolve target user\n- Organization.Read.All                  - read tenant display name for the email body\n- Mail.Send                              - only required when NotifyUser is enabled",
     "Parameters": [
       {
         "defaultValue": "",
@@ -18805,10 +18908,61 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "10",
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location."
+          }
+        ],
+        "globbing": "false",
+        "name": "LanguageOverride",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "NotifyUser",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -18849,6 +19003,57 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskEmail",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPhone",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "Object ID of the target user."
           }
         ],
@@ -18865,7 +19070,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -18873,6 +19078,7 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "AuditLog.Read.All",
+            "Mail.Send",
             "User.Read.All",
             "UserAuthenticationMethod.ReadWrite.All"
           ]

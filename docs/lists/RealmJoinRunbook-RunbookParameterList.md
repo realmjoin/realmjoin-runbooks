@@ -2297,6 +2297,12 @@ Remove all App- and Mobilephone auth methods for a user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
+| NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled. |
+| EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-security-reset-password'></a>
@@ -2332,6 +2338,12 @@ Set or remove a user's mobile phone MFA method
 | UserId | ✓ | String | Object ID of the target user. |
 | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
+| NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled. |
+| EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
