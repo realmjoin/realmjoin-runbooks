@@ -4,10 +4,10 @@
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "AuditLog.Read.All",
+                "Mail.Send",
+                "Organization.Read.All",
                 "User.Read.All",
-                "UserAuthenticationMethod.ReadWrite.All",
-                "Mail.Send"
+                "UserAuthenticationMethod.Read.All"
             ]
         }
     ],

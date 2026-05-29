@@ -17,6 +17,31 @@
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
 
+    .PARAMETER NotifyUser
+    When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled.
+
+    .PARAMETER EmailFrom
+    Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender.
+
+    .PARAMETER ServiceDeskDisplayName
+    Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName.
+
+    .PARAMETER ServiceDeskEmail
+    Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail.
+
+    .PARAMETER ServiceDeskPhone
+    Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone.
+
+    .PARAMETER LanguageOverride
+    Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
+
+    .NOTES
+    Permissions (managed identity, application):
+    - UserAuthenticationMethod.ReadWrite.All - manage phone authentication methods
+    - User.Read.All                           - resolve target user
+    - Organization.Read.All                  - read tenant display name for the email body
+    - Mail.Send                              - only required when NotifyUser is enabled
+
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
@@ -32,6 +57,25 @@
             },
             "phoneNumber": {
                 "DisplayName": "Mobile Phone Number"
+            },
+            "NotifyUser": {
+                "DisplayName": "Notify user via email",
+                "Hide": true
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
+            "ServiceDeskDisplayName": {
+                "Hide": true
+            },
+            "ServiceDeskEmail": {
+                "Hide": true
+            },
+            "ServiceDeskPhone": {
+                "Hide": true
+            },
+            "LanguageOverride": {
+                "Hide": true
             },
             "CallerName": {
                 "Hide": true
@@ -50,6 +94,25 @@ param(
     [Parameter(Mandatory = $true)]
     [String]$phoneNumber,
     [bool] $Remove = $false,
+
+    [bool]$NotifyUser = $false,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [string]$EmailFrom,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_DisplayName" } )]
+    [string]$ServiceDeskDisplayName,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_EMail" } )]
+    [string]$ServiceDeskEmail,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_Phone" } )]
+    [string]$ServiceDeskPhone,
+
+    # LanguageOverride allows forcing a specific notification email language ('DE' or 'EN'); empty = auto-detect from usage location
+    [ValidateSet('', 'DE', 'EN')]
+    [string]$LanguageOverride = "",
+
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -70,6 +133,8 @@ Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserId: $UserId" -Verbose
 Write-RjRbLog -Message "phoneNumber: $phoneNumber" -Verbose
 Write-RjRbLog -Message "Remove: $Remove" -Verbose
+Write-RjRbLog -Message "NotifyUser: $NotifyUser" -Verbose
+Write-RjRbLog -Message "LanguageOverride: $LanguageOverride" -Verbose
 
 #endregion RJ Log Part
 
@@ -247,6 +312,16 @@ catch {
     throw
 }
 
+if ($NotifyUser) {
+    try {
+        Connect-RjRbGraph | Out-Null
+    }
+    catch {
+        Write-Error "Failed to initialize the RealmJoin Graph context required for sending the notification email via Send-RjReportEmail. Error: $($_.Exception.Message)" -ErrorAction Continue
+        throw "RealmJoin Graph connection failed."
+    }
+}
+
 #endregion Connect Part
 
 ############################################################
@@ -256,7 +331,7 @@ catch {
 
 # Resolve user details for display and to validate the user exists
 try {
-    $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)?`$select=id,userPrincipalName,displayName,userType" -Method Get
+    $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($UserId)?`$select=id,userPrincipalName,displayName,userType,mail,usageLocation" -Method Get
 }
 catch {
     Write-Error "Failed to resolve user '$($UserId)': $($_.Exception.Message)" -ErrorAction Continue
@@ -267,6 +342,18 @@ $userDisplayName = $targetUser.displayName
 Write-Output "User: '$($userDisplayName)' ($($userPrincipalName))"
 if ($targetUser.userType -eq 'Guest') {
     Write-Output "Note: User '$($userDisplayName)' ($($userPrincipalName)) is a guest user."
+}
+$CurrentMail = $targetUser.mail
+$CurrentUsageLocation = $targetUser.usageLocation
+
+if ($NotifyUser) {
+    if ([string]::IsNullOrWhiteSpace($CurrentMail)) {
+        Write-RjRbLog -Message "WARNING: NotifyUser is enabled but the target user has no primary email address. The notification email will be skipped."
+    }
+    if ([string]::IsNullOrWhiteSpace($EmailFrom)) {
+        Write-Error "NotifyUser is enabled but the 'RJReport.EmailSender' tenant setting is empty. Configure a valid sender email address in RealmJoin settings or disable NotifyUser." -ErrorAction Continue
+        throw "Sender email address not configured."
+    }
 }
 
 Write-Output ""
@@ -459,6 +546,147 @@ else {
 }
 
 #endregion Main Part
+
+########################################################
+#region     Notify User
+########################################################
+
+Write-Output ""
+Write-Output "Notify User"
+Write-Output "---------------------"
+
+if (-not $NotifyUser) {
+    Write-Output "NotifyUser is disabled - no notification email sent."
+}
+elseif ([string]::IsNullOrWhiteSpace($CurrentMail)) {
+    Write-Output "Skipped: target user has no primary email address."
+}
+else {
+    $tenantDisplayName = "your organization"
+    try {
+        $tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+        if ($tenantInfo -and $tenantInfo.value -and $tenantInfo.value.Count -gt 0 -and $tenantInfo.value[0].displayName) {
+            $tenantDisplayName = $tenantInfo.value[0].displayName
+        }
+    }
+    catch {
+        Write-RjRbLog -Message "WARNING: Could not retrieve tenant display name. Falling back to a generic value. Error: $($_.Exception.Message)"
+    }
+
+    $useGerman = if (-not [string]::IsNullOrWhiteSpace($LanguageOverride)) { $LanguageOverride -eq 'DE' } else { $CurrentUsageLocation -eq 'DE' }
+
+    $serviceDeskSection = ""
+    if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
+        if ($useGerman) {
+            $serviceDeskSection = "`n`n### Service Desk Kontaktinformationen`n"
+        }
+        else {
+            $serviceDeskSection = "`n`n### Service Desk Contact Information`n"
+        }
+        if ($ServiceDeskDisplayName) {
+            $serviceDeskSection += "`n $($ServiceDeskDisplayName)"
+        }
+        if ($ServiceDeskEmail) {
+            $serviceDeskSection += "`n **Email:** [$($ServiceDeskEmail)](mailto:$($ServiceDeskEmail))"
+        }
+        if ($ServiceDeskPhone) {
+            if ($useGerman) {
+                $serviceDeskSection += "`n **Telefon:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
+            }
+            else {
+                $serviceDeskSection += "`n **Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
+            }
+        }
+    }
+
+    if ($Remove) {
+        if ($useGerman) {
+            $subject = "Ihre mobile Telefon-MFA-Methode wurde von einem Administrator entfernt"
+            $markdownContent = @"
+Hallo $userDisplayName,
+
+Dies ist eine automatische Benachrichtigung von $tenantDisplayName.
+
+Ein Administrator hat Ihre mobile Telefon-MFA-Methode ($phoneNumber) über das RealmJoin-Portal von Ihrem Konto entfernt.
+
+Falls Sie diesen Vorgang nicht erwartet haben, wenden Sie sich bitte an Ihre IT-Administration.$serviceDeskSection
+
+Durchgeführt von: $CallerName
+Datum (UTC):      $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+Mit freundlichen Grüßen,
+IT-Administration
+"@
+        }
+        else {
+            $subject = "Your mobile phone MFA method has been removed by an administrator"
+            $markdownContent = @"
+Hello $userDisplayName,
+
+This is an automated notification from $tenantDisplayName.
+
+An administrator has removed your mobile phone MFA method ($phoneNumber) from your account through the RealmJoin portal.
+
+If you did not expect this action, please contact your IT administrator.$serviceDeskSection
+
+Action performed by: $CallerName
+Date (UTC):          $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+Regards,
+IT Administration
+"@
+        }
+    }
+    else {
+        if ($useGerman) {
+            $subject = "Eine Mobiltelefonnummer wurde Ihrem Konto als MFA-Methode hinzugefügt"
+            $markdownContent = @"
+Hallo $userDisplayName,
+
+Dies ist eine automatische Benachrichtigung von $tenantDisplayName.
+
+Ein Administrator hat die Mobiltelefonnummer $phoneNumber über das RealmJoin-Portal als mobile Telefon-MFA-Methode zu Ihrem Konto hinzugefügt.
+
+Falls Sie diesen Vorgang nicht erwartet haben, wenden Sie sich bitte an Ihre IT-Administration.$serviceDeskSection
+
+Durchgeführt von: $CallerName
+Datum (UTC):      $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+Mit freundlichen Grüßen,
+IT-Administration
+"@
+        }
+        else {
+            $subject = "A mobile phone MFA method was added to your account by an administrator"
+            $markdownContent = @"
+Hello $userDisplayName,
+
+This is an automated notification from $tenantDisplayName.
+
+An administrator has added the mobile phone number $phoneNumber as a mobile phone MFA method to your account through the RealmJoin portal.
+
+If you did not expect this action, please contact your IT administrator.$serviceDeskSection
+
+Action performed by: $CallerName
+Date (UTC):          $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+Regards,
+IT Administration
+"@
+        }
+    }
+
+    try {
+        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $CurrentMail -Subject $subject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+        Write-Output "Notification email sent to $CurrentMail."
+    }
+    catch {
+        Write-Error "Failed to send notification email to '$CurrentMail'. Verify the managed identity has the 'Mail.Send' application permission and that the sender '$EmailFrom' is a valid mailbox in this tenant. Error: $($_.Exception.Message)" -ErrorAction Continue
+        throw "Notification email send failed."
+    }
+}
+
+#endregion
 
 Write-Output ""
 Write-Output "Done!"

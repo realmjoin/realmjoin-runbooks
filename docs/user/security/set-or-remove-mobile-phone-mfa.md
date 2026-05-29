@@ -8,12 +8,20 @@ Adds, updates, or removes the user's mobile phone authentication method. This ru
 ## Where to find
 User \ Security \ Set Or Remove Mobile Phone Mfa
 
+## Notes
+Permissions (managed identity, application):
+- UserAuthenticationMethod.ReadWrite.All - manage phone authentication methods
+- User.Read.All                           - resolve target user
+- Organization.Read.All                  - read tenant display name for the email body
+- Mail.Send                              - only required when NotifyUser is enabled
+
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
   - AuditLog.Read.All
   - User.Read.All
   - UserAuthenticationMethod.ReadWrite.All
+  - Mail.Send
 
 
 ## Parameters
@@ -43,6 +51,60 @@ Mobile phone number in international E.164 format (e.g., +491701234567).
 | Default Value | False |
 | Required | false |
 | Type | Boolean |
+
+### NotifyUser
+When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### EmailFrom
+Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskDisplayName
+Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskEmail
+Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskPhone
+Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LanguageOverride
+Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

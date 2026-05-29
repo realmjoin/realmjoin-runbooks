@@ -137,6 +137,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox |
 |  |  | List Room Mailbox Configuration | List room mailbox configuration |
+|  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
 |  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies |
@@ -148,6 +149,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Security | Confirm Or Dismiss Risky User | Confirm compromise or dismiss a risky user |
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user |
+|  |  | List MFA Methods | List all MFA / authentication methods of a user |
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user |
 |  |  | Reset Password | Reset a user's password |
 |  |  | Revoke Or Restore Access | Revoke or restore user access |

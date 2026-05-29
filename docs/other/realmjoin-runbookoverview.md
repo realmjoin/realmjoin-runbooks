@@ -166,6 +166,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Hide Or Unhide In Addressbook](#hide-or-unhide-in-addressbook)
       - [List Mailbox Permissions](#list-mailbox-permissions)
       - [List Room Mailbox Configuration](#list-room-mailbox-configuration)
+      - [Manage Archive Mailbox](#manage-archive-mailbox)
       - [Remove Mailbox](#remove-mailbox)
       - [Set Out Of Office](#set-out-of-office)
       - [Set Room Mailbox Configuration](#set-room-mailbox-configuration)
@@ -179,6 +180,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Confirm Or Dismiss Risky User](#confirm-or-dismiss-risky-user)
       - [Create Temporary Access Pass](#create-temporary-access-pass)
       - [Enable Or Disable Password Expiration](#enable-or-disable-password-expiration)
+      - [List MFA Methods](#list-mfa-methods)
       - [Reset Mfa](#reset-mfa)
       - [Reset Password](#reset-password)
       - [Revoke Or Restore Access](#revoke-or-restore-access)
@@ -1787,7 +1789,7 @@ Org \ General \ Export Policy Report
 
 #### Description
 This runbook invites an external user as a guest user in Microsoft Entra ID.
-Optional profile properties such as given name, surname, company name, usage location, and manager can be set after the invitation is accepted.
+Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
 The invited user can optionally be added to a specified group.
 
 #### Where to find
@@ -2931,6 +2933,23 @@ User \ Mail \ List Room Mailbox Configuration
  
  
 
+<a name='user-mail-manage-archive-mailbox'></a>
+
+### Manage Archive Mailbox
+#### Manage the Exchange Online archive mailbox for a user
+
+#### Description
+Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user. Before any change the current state is verified so the script exits without making changes if the mailbox is already in the desired state. When enabling, any soft-deleted archive mailbox from within the last 30 days is automatically reconnected instead of creating a new one.
+
+#### Where to find
+User \ Mail \ Manage Archive Mailbox
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='user-mail-remove-mailbox'></a>
 
 ### Remove Mailbox
@@ -3176,13 +3195,30 @@ User \ Security \ Enable Or Disable Password Expiration
  
  
 
+<a name='user-security-list-mfa-methods'></a>
+
+### List MFA Methods
+#### List all MFA / authentication methods of a user
+
+#### Description
+Retrieves and displays every Microsoft Entra ID authentication method registered for a target user, including phone numbers for phone-based methods. Phone numbers can optionally be masked, showing only the last four digits. Optionally a notification email can be sent to the user informing them that their MFA methods have been retrieved through this runbook.
+
+#### Where to find
+User \ Security \ List MFA Methods
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='user-security-reset-mfa'></a>
 
 ### Reset Mfa
 #### Remove all App- and Mobilephone auth methods for a user
 
 #### Description
-Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.
+Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset. Optionally a notification email can be sent to the user informing them that their MFA methods have been reset through this runbook.
 
 #### Where to find
 User \ Security \ Reset Mfa

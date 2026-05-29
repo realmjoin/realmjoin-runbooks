@@ -440,6 +440,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Surname |  | String | Surname (last name) of the guest user. |
 |  |  |  |  |  |  | CompanyName |  | String | Company name of the guest user. |
 |  |  |  |  |  |  | ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | SponsorName |  | String | Sponsor to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | CustomizeInvitation |  | Boolean | Enable to customize the invitation message and redirect URL. |
+|  |  |  |  |  |  | InvitationMessage |  | String | Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled. |
+|  |  |  |  |  |  | InviteRedirectUrl |  | String | Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled. |
 |  |  |  |  |  |  | UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -510,6 +514,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DisplayName |  | String | Display name for the shared mailbox. |
 |  |  |  |  |  |  | DomainName |  | String | Optional domain used for the primary SMTP address; if not provided, the default domain is used. |
 |  |  |  |  |  |  | Language |  | String | The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US". |
+|  |  |  |  |  |  | TimeZone |  | String | The time zone for the shared mailbox. Default is "W. Europe Standard Time". |
 |  |  |  |  |  |  | DelegateTo |  | String | Optional user who receives delegated access to the mailbox. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, the mailbox is automatically mapped in Outlook for the delegate. |
 |  |  |  |  |  |  | MessageCopyForSentAsEnabled |  | Boolean | If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items. |
@@ -751,6 +756,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user whose archive mailbox should be managed. |
+|  |  |  |  |  |  | Action |  | String | Action to perform: Enable, Disable, or GetStatus. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
@@ -814,7 +822,22 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | List MFA Methods | List all MFA / authentication methods of a user | - **Type**: Microsoft Graph<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  | UserName | ✓ | String | User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled. |
+|  |  |  |  |  |  | MaskPhoneNumbers |  | Boolean | When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
+|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | EnableUserIfNeeded |  | Boolean | If set to true, enables the user account before resetting the password. |
@@ -823,9 +846,15 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserId | ✓ | String | Object ID of the target user. |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserId | ✓ | String | Object ID of the target user. |
 |  |  |  |  |  |  | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 |  |  |  |  |  |  | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  | Userinfo | Rename User | Rename a user or mailbox | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- User.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user or mailbox to rename. |
 |  |  |  |  |  |  | NewUpn | ✓ | String | New user principal name to set. |
@@ -850,6 +879,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | State |  | String | State to set for the user. |
 |  |  |  |  |  |  | StreetAddress |  | String | Street address to set for the user. |
 |  |  |  |  |  |  | UsageLocation |  | String | Usage location to set for the user. |
+|  |  |  |  |  |  | ManagerId |  | String | Optional manager user ID to set for the user. |
 |  |  |  |  |  |  | DefaultLicense |  | String | Display name of a license group to assign. |
 |  |  |  |  |  |  | DefaultGroups |  | String | Comma-separated list of group display names to assign. |
 |  |  |  |  |  |  | EnableEXOArchive |  | Boolean | If set to true, enables the Exchange Online archive mailbox. |
