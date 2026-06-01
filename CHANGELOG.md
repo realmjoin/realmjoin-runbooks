@@ -2,6 +2,8 @@
 
 ## 2026-06-01
 
+- Bump `RealmJoin.RunbookHelper` to >= 0.8.6 in every Runbook that uses the module
+  - This module version ships an extensive update to the email-sending function around image embedding and Outlook Classic compatibility
 - Update **Export Enterprise Application Users** Runbook in Org/Applications
   - Remove inline `Publish-RjRbFilesToStorageContainer` helper function — now provided by `RealmJoin.RunbookHelper` >= 0.8.6
 - Update **Office 365 License Report** Runbook in Org/General
