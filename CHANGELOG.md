@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-01
+
+- Update **Check Device Onboarding Exclusion (Scheduled)** Runbook in Org/General
+  - Fix `System.OutOfMemoryException` on tenants with large Intune inventories: managed devices are now filtered server-side instead of pulling the full inventory into memory and filtering client-side
+  - Migrate to native Microsoft Graph
+
 ## 2026-05-27
 
 - Update **Reset MFA** Runbook in User/Security
