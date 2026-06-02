@@ -295,6 +295,8 @@ Remove/Outphase a windows device
 | removeAutopilotDevice |  | Boolean | "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant. |
 | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
+| excludeFromDefender |  | Boolean | If set to true, the device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
+| defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-general-remove-primary-user'></a>
@@ -885,6 +887,8 @@ Remove or outphase multiple devices
 | removeAutopilotDevice |  | Boolean | "Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database. |
 | removeAADDevice |  | Boolean | Internal flag derived from aadAction. |
 | disableAADDevice |  | Boolean | Internal flag derived from aadAction. |
+| excludeFromDefender |  | Boolean | If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
+| defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-devices-without-primary-user'></a>
