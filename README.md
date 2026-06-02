@@ -101,6 +101,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
+    - [Report Windows Devices Without Autopilot](docs/org/devices/report-windows-devices-without-autopilot.md)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)
 

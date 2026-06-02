@@ -274,6 +274,15 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Report Windows Devices Without Autopilot | Reports all Windows Entra devices that have no associated Windows Autopilot object. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send<br>Azure IaaS: - Contributor - access on subscription or resource group used for the export<br> |  | SendMail |  | Boolean | If enabled, the report is sent via email. Toggling this on reveals the recipient address field. |
+|  |  |  |  |  |  | EmailTo |  | String | Recipient address(es) for the email report. Only used / shown when SendMail is enabled.<br>Can be a single address or multiple comma-separated addresses (string). |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender). |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- Device.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Mail.Send<br> |  | ExtensionAttributeNumber |  | Int32 | Extension attribute number to update |
 |  |  |  |  |  |  | ProcessAllDevices |  | Boolean | If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed. |
 |  |  |  |  |  |  | MaxDevicesToProcess |  | Int32 | Maximum number of devices to process in a single run. Use 0 for unlimited. |

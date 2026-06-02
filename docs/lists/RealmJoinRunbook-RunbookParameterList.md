@@ -76,6 +76,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
     - [Report Users With More Than 5-Devices](#organization-devices-report-users-with-more-than-5-devices)
+    - [Report Windows Devices Without Autopilot](#organization-devices-report-windows-devices-without-autopilot)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](#organization-devices-sync-device-serialnumbers-to-entraid-scheduled)
   - [General](#organization-general)
     - [Add Devices Of Users To Group (Scheduled)](#organization-general-add-devices-of-users-to-group-scheduled)
@@ -931,6 +932,23 @@ Report users with more than five registered devices
 |-----------|----------|------|-------------|
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-devices-report-windows-devices-without-autopilot'></a>
+
+### Report Windows Devices Without Autopilot
+Reports all Windows Entra devices that have no associated Windows Autopilot object.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SendMail |  | Boolean | If enabled, the report is sent via email. Toggling this on reveals the recipient address field. |
+| EmailTo |  | String | Recipient address(es) for the email report. Only used / shown when SendMail is enabled.<br>Can be a single address or multiple comma-separated addresses (string). |
+| EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender). |
+| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-sync-device-serialnumbers-to-entraid-scheduled'></a>
