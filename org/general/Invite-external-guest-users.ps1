@@ -1,4 +1,4 @@
-﻿<#
+<#
 	.SYNOPSIS
 	Invite external guest users to the organization
 
@@ -138,7 +138,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -190,7 +190,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "2.0.1"
+$Version = "2.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "InvitedUserEmail: $InvitedUserEmail" -Verbose

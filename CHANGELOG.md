@@ -2,6 +2,9 @@
 
 ## 2026-06-02
 
+- Bump `Microsoft.Graph.Authentication` module to >= 2.37.0 in all runbooks that use it
+- Add **Report Windows Devices Without Autopilot** Runbook in Org/Devices
+  - Lists all Windows Entra device objects that have no associated Windows Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`)
 - Update **Outphase Device** Runbook in Device/General
   - Add optional Microsoft Defender for Endpoint exclusion: tags the device with a configurable exclusion tag (default `ExcludeFromRemediation`) to mark it as excluded from remediation (opt-in, default off)
   - Consolidates the previously separate Defender exclusion variant into this Runbook

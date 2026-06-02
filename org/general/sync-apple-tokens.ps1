@@ -32,7 +32,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6"}
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1"}
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0"}
 
 param(
 	[Parameter(Mandatory = $true)]
@@ -48,7 +48,7 @@ param(
 #region     RJ Log Part
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "SyncType: $SyncType" -Verbose
 #endregion
