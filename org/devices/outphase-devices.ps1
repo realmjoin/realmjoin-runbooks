@@ -5,6 +5,8 @@
     .DESCRIPTION
     This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
     It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
+    Optionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
+    NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
 
     .PARAMETER DeviceListChoice
     Determines whether the list contains device IDs or serial numbers.
@@ -32,6 +34,12 @@
 
     .PARAMETER disableAADDevice
     Internal flag derived from aadAction.
+
+    .PARAMETER excludeFromDefender
+    If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely.
+
+    .PARAMETER defenderExclusionTag
+    The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation".
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
@@ -116,6 +124,17 @@
             "disableAADDevice": {
                 "Hide": true
             },
+            "excludeFromDefender": {
+                "DisplayName": "Exclude devices from Defender for Endpoint?",
+                "SelectSimple": {
+                    "Tag devices as excluded in Defender for Endpoint": true,
+                    "Skip Defender operations": false
+                }
+            },
+            "defenderExclusionTag": {
+                "DisplayName": "Defender Exclusion Tag",
+                "Default": "ExcludeFromRemediation"
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -139,6 +158,8 @@ param (
     [bool] $removeAutopilotDevice = $true,
     [bool] $removeAADDevice = $true,
     [bool] $disableAADDevice = $false,
+    [bool] $excludeFromDefender = $false,
+    [string] $defenderExclusionTag = "ExcludeFromRemediation",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -146,8 +167,10 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.1"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "excludeFromDefender: $excludeFromDefender" -Verbose
+Write-RjRbLog -Message "defenderExclusionTag: $defenderExclusionTag" -Verbose
 
 # only modify parameters, if "actions" are set to non-default values
 switch ($intuneAction) {
@@ -172,6 +195,13 @@ switch ($aadAction) {
 }
 
 Connect-RjRbGraph
+if ($excludeFromDefender) {
+    Connect-RjRbDefenderATP
+    "## Note: Defender exclusion tags are applied to the devices, but a tag only shows up in the Defender portal's 'Tags' filter"
+    "##       once it has been created once via the portal (Device > Manage tags > 'Create new tag'). The tag is effective for"
+    "##       automation/remediation rules regardless of this. See https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags"
+    ""
+}
 
 $DeviceIds = @()
 $FoundDeviceSerialNotInIntune = $false
@@ -211,6 +241,33 @@ $DeviceList.Split(",") | ForEach-Object {
         "## Outphasing device '$($targetDevice.displayName)' (DeviceId '$DeviceId')"
         if ($owner) {
             "## Device owner: '$($owner.UserPrincipalName)'"
+        }
+
+        if ($excludeFromDefender) {
+            # Find device in Defender for Endpoint
+            # From experience - the first result seems to be the "freshest"
+            $atpDeviceCandidates = Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId" -ErrorAction SilentlyContinue
+            if ($atpDeviceCandidates) {
+                $atpDevice = $atpDeviceCandidates[0]
+                "## Device found in Defender for Endpoint: '$($atpDevice.computerDnsName)' (MDE ID: $($atpDevice.id))"
+                "## Adding exclusion tag '$defenderExclusionTag' to device in Defender for Endpoint"
+                $tagBody = @{
+                    Value  = $defenderExclusionTag
+                    Action = "Add"
+                }
+                try {
+                    Invoke-RjRbRestMethodDefenderATP -Method Post -Resource "/machines/$($atpDevice.id)/tags" -Body $tagBody | Out-Null
+                    "## Successfully added tag '$defenderExclusionTag' to device '$($atpDevice.computerDnsName)' in Defender for Endpoint"
+                }
+                catch {
+                    "## Error Message: $($_.Exception.Message)"
+                    "## Please see 'All logs' for more details."
+                    "## Warning Message: Adding Defender exclusion tag to device '$($atpDevice.computerDnsName)' (MDE ID: $($atpDevice.id)) failed!"
+                }
+            }
+            else {
+                "## Device not found in Defender for Endpoint. Defender exclusion tag will be skipped."
+            }
         }
 
         if ($disableAADDevice) {

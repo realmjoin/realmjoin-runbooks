@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-02
+
+- Update **Outphase Device** Runbook in Device/General
+  - Add optional Microsoft Defender for Endpoint exclusion: tags the device with a configurable exclusion tag (default `ExcludeFromRemediation`) to mark it as excluded from remediation (opt-in, default off)
+  - Consolidates the previously separate Defender exclusion variant into this Runbook
+  - Adds the `WindowsDefenderATP` permissions `Machine.Read.All` and `Machine.ReadWrite.All`
+- Update **Outphase Devices** Runbook in Org/Devices
+  - Add the same optional Microsoft Defender for Endpoint exclusion tagging, applied to every device in the list (opt-in, default off)
+  - Adds the `WindowsDefenderATP` permissions `Machine.Read.All` and `Machine.ReadWrite.All`
+
 ## 2026-06-01
 
 - Bump `RealmJoin.RunbookHelper` to >= 0.8.6 in every Runbook that uses the module
