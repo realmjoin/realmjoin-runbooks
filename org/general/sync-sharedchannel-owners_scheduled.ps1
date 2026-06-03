@@ -4,16 +4,16 @@
 
     .DESCRIPTION
     Teams shared channels do not inherit ownership from their parent team. This scheduled runbook closes
-    that gap: for teams selected by display-name prefix, it ensures the members of a mapped security group
-    are owners of the team and of every shared channel the team hosts. The prefix-to-owner-group mapping is
+    that gap: for each team named in a mapping, it ensures the members of a mapped security group are owners
+    of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
     maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
     are never removed - so newly created shared channels are simply picked up on the next run. It can
     optionally email a report and/or upload the CSV results as a download link. See the accompanying
     documentation for the mapping rules and configuration.
 
     .PARAMETER TeamOwnerGroupMapping
-    Mapping of a team display-name prefix to an owner security group object id, e.g.
-    [{ "TeamNamePrefix": "PREFIX1", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].
+    Mapping of an exact team display name to an owner security group object id, e.g.
+    [{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].
     Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects
     that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or
     as a JSON string and normalizes both.
@@ -21,11 +21,6 @@
     .PARAMETER IncludeTeamOwners
     When enabled (default), the owner-group members are also ensured as owners and members of the parent
     team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership.
-
-    .PARAMETER TeamVisibility
-    Restricts processing to teams of the given visibility: "Private" (includes hidden-membership teams),
-    "Public", or "PrivateAndPublic" (both). Org-wide teams are not specially handled yet; since their backing
-    group visibility is Public, they are only included when "Public" or "PrivateAndPublic" is selected.
 
     .PARAMETER WhatIfMode
     When enabled, the runbook only logs the changes it would make without writing anything.
@@ -61,13 +56,14 @@
 
     .NOTES
     Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under
-    "SharedChannelOwners.Mapping". The hidden TeamOwnerGroupMapping parameter is injected from it at runtime.
+    "SharedChannelOwners.Mapping". Each entry names a team by its exact display name. The hidden
+    TeamOwnerGroupMapping parameter is injected from it at runtime.
     {
         "Settings": {
             "SharedChannelOwners": {
                 "Mapping": [
-                    { "TeamNamePrefix": "EXT", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
-                    { "TeamNamePrefix": "EXT Service", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
+                    { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
+                    { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
                 ]
             }
         }
@@ -81,14 +77,6 @@
             },
             "IncludeTeamOwners": {
                 "DisplayName": "Also make them owners of the parent team"
-            },
-            "TeamVisibility": {
-                "DisplayName": "Apply to which team types",
-                "SelectSimple": {
-                    "Private only": "Private",
-                    "Private + Public": "PrivateAndPublic",
-                    "Public only": "Public"
-                }
             },
             "WhatIfMode": {
                 "DisplayName": "Dry run (log only, no changes)"
@@ -120,7 +108,7 @@
                 "Hide": true
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a download link (upload report to storage)",
+                "DisplayName": "Create a report download link (upload report to storage)",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -147,7 +135,7 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.0" }
 
 param(
     # Hidden, sourced from the org Setting "SharedChannelOwners.Mapping". May arrive as a structured
@@ -156,10 +144,6 @@ param(
     [object] $TeamOwnerGroupMapping = "[]",
 
     [bool] $IncludeTeamOwners = $true,
-
-    # Which team visibilities to process. Org-wide teams are not specially handled yet.
-    [ValidateSet("Private", "PrivateAndPublic", "Public")]
-    [string] $TeamVisibility = "Private",
 
     [bool] $WhatIfMode = $false,
 
@@ -196,7 +180,7 @@ param(
 ########################################################
 
 function ConvertTo-MappingArray {
-    # Normalizes the injected setting into an array of { TeamNamePrefix, OwnerGroupId } objects.
+    # Normalizes the injected setting into an array of { TeamName, OwnerGroupId } objects.
     # The RealmJoin portal may inject the setting as already-deserialized objects (structured
     # sub-settings) or as a JSON string - handle both, plus a hashtable variant.
     param(
@@ -247,43 +231,6 @@ function Get-GroupTransitiveUser {
     return Get-GraphPagedResult -Uri $uri
 }
 
-function Test-PrefixMatch {
-    # A team name matches a prefix only at a word boundary: it must equal the prefix exactly,
-    # or be the prefix followed by a space. This prevents "EXT" from matching "External Team",
-    # while "EXT Service" still matches "EXT Service Customer One". Trailing spaces in the configured
-    # prefix are ignored, and matching is case-insensitive (like Graph).
-    param(
-        [Parameter(Mandatory = $true)] [string] $DisplayName,
-        [Parameter(Mandatory = $true)] [string] $Prefix
-    )
-
-    $p = $Prefix.TrimEnd()
-    if ([string]::IsNullOrEmpty($p)) {
-        return $false
-    }
-    $cmp = [System.StringComparison]::OrdinalIgnoreCase
-    return $DisplayName.Equals($p, $cmp) -or $DisplayName.StartsWith($p + " ", $cmp)
-}
-
-function Get-BestMappingEntry {
-    # Returns the most specific (longest-prefix) mapping entry that matches the team name at a
-    # word boundary, or $null if none matches. Longest prefix wins so a team covered by both
-    # "EXT" and "EXT Service" is owned only by the "EXT Service" mapping.
-    param(
-        [Parameter(Mandatory = $true)] [string] $DisplayName,
-        [Parameter(Mandatory = $true)] [object[]] $Entries
-    )
-
-    $best = $null
-    foreach ($e in $Entries) {
-        if (Test-PrefixMatch -DisplayName $DisplayName -Prefix $e.Prefix) {
-            if (($null -eq $best) -or ($e.Prefix.Length -gt $best.Prefix.Length)) {
-                $best = $e
-            }
-        }
-    }
-    return $best
-}
 
 function Add-ChannelOwner {
     param(
@@ -368,7 +315,6 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "IncludeTeamOwners: $IncludeTeamOwners" -Verbose
-Write-RjRbLog -Message "TeamVisibility: $TeamVisibility" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
@@ -412,8 +358,8 @@ try {
     $mapping = ConvertTo-MappingArray -Raw $TeamOwnerGroupMapping
 }
 catch {
-    "## Invalid SharedChannelOwners.Mapping setting - expected an array of { TeamNamePrefix, OwnerGroupId }."
-    "## See this runbook's source (.EXAMPLE) for the expected format."
+    "## Invalid SharedChannelOwners.Mapping setting - expected an array of { TeamName, OwnerGroupId }."
+    "## See this runbook's source (.NOTES) for the expected format."
     throw ("Invalid mapping")
 }
 
@@ -447,16 +393,16 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
     throw ("Storage account configuration missing")
 }
 
-# Build normalized mapping entries (trimmed prefixes), skipping invalid ones
+# Build normalized mapping entries (trimmed team names), skipping invalid ones
 $mappingEntries = @()
 foreach ($entry in $mapping) {
-    $prefix = ([string]$entry.TeamNamePrefix).TrimEnd()
+    $teamName = ([string]$entry.TeamName).Trim()
     $ownerGroupId = [string]$entry.OwnerGroupId
-    if (-not $prefix -or -not $ownerGroupId) {
-        "## Skipping invalid mapping entry (missing TeamNamePrefix or OwnerGroupId)."
+    if (-not $teamName -or -not $ownerGroupId) {
+        "## Skipping invalid mapping entry (missing TeamName or OwnerGroupId)."
         continue
     }
-    $mappingEntries += [PSCustomObject]@{ Prefix = $prefix; OwnerGroupId = $ownerGroupId }
+    $mappingEntries += [PSCustomObject]@{ TeamName = $teamName; OwnerGroupId = $ownerGroupId }
 }
 
 if ($mappingEntries.Count -eq 0) {
@@ -464,52 +410,38 @@ if ($mappingEntries.Count -eq 0) {
     throw ("No valid mapping entries")
 }
 
-"## Configured mappings (most specific prefix wins per team):"
+"## Configured mappings (exact team name -> owner group):"
 foreach ($me in $mappingEntries) {
-    "##   '$($me.Prefix)' -> owner group '$($me.OwnerGroupId)'"
+    "##   '$($me.TeamName)' -> owner group '$($me.OwnerGroupId)'"
 }
 
-# Which group visibilities to process (HiddenMembership counts as private)
-$allowedVisibilities = switch ($TeamVisibility) {
-    "Public" { @("Public") }
-    "PrivateAndPublic" { @("Private", "HiddenMembership", "Public") }
-    default { @("Private", "HiddenMembership") }
-}
-"## Processing teams with visibility: $($allowedVisibilities -join ', ')"
-""
-
-# Collect candidate teams across all prefixes (deduplicated by id). Graph startswith is broad; the
-# word-boundary check (Test-PrefixMatch) is applied afterwards when resolving the best mapping.
-$teamsById = @{}
+# Resolve each mapping entry to the team(s) with that exact display name. (displayName is not guaranteed
+# unique, so a name may resolve to 0, 1 or more teams.)
+$resolvedMappings = @()
 foreach ($me in $mappingEntries) {
-    $filter = "startswith(displayName,'$($me.Prefix.Replace("'", "''"))')"
+    $filter = "displayName eq '$($me.TeamName.Replace("'", "''"))'"
     $groupsUri = "https://graph.microsoft.com/v1.0/groups`?`$filter=$([uri]::EscapeDataString($filter))&`$select=id,displayName,resourceProvisioningOptions,visibility"
-    foreach ($g in @(Get-GraphPagedResult -Uri $groupsUri | Where-Object { $_.resourceProvisioningOptions -contains "Team" -and $allowedVisibilities -contains $_.visibility })) {
-        $teamsById[$g.id] = $g
-    }
+    $teams = @(Get-GraphPagedResult -Uri $groupsUri | Where-Object { $_.resourceProvisioningOptions -contains "Team" })
+    $resolvedMappings += [PSCustomObject]@{ Entry = $me; Teams = $teams }
 }
 
-# In WhatIf mode, show up-front which teams would be processed (and which were found but skipped)
+# In WhatIf mode, show up-front which teams would be processed (and which configured names were not found)
 if ($WhatIfMode) {
-    "## Teams that WOULD be processed (visibility '$TeamVisibility'):"
+    "## Teams that WOULD be processed:"
     $wouldProcess = $false
-    $skippedAtBoundary = @()
-    foreach ($team in ($teamsById.Values | Sort-Object displayName)) {
-        $best = Get-BestMappingEntry -DisplayName $team.displayName -Entries $mappingEntries
-        if ($null -ne $best) {
+    foreach ($r in $resolvedMappings) {
+        foreach ($team in ($r.Teams | Sort-Object displayName)) {
             $wouldProcess = $true
-            "##   - '$($team.displayName)' [visibility: $($team.visibility)] -> mapping '$($best.Prefix)' / owner group '$($best.OwnerGroupId)'"
-        }
-        else {
-            $skippedAtBoundary += $team.displayName
+            "##   - '$($team.displayName)' [visibility: $($team.visibility)] -> owner group '$($r.Entry.OwnerGroupId)'"
         }
     }
     if (-not $wouldProcess) {
         "##   (none)"
     }
-    if ($skippedAtBoundary.Count -gt 0) {
-        "## Found by prefix search but skipped (no word-boundary match):"
-        foreach ($name in ($skippedAtBoundary | Sort-Object)) {
+    $notFoundNames = @($resolvedMappings | Where-Object { $_.Teams.Count -eq 0 } | ForEach-Object { $_.Entry.TeamName })
+    if ($notFoundNames.Count -gt 0) {
+        "## Configured team names not found:"
+        foreach ($name in ($notFoundNames | Sort-Object)) {
             "##   - '$name'"
         }
     }
@@ -531,34 +463,55 @@ $actionRows = @()
 # Cache resolved owner users per owner group (avoid re-querying the same group)
 $ownerUsersCache = @{}
 
-foreach ($team in $teamsById.Values) {
-    $teamId = $team.id
-
-    # Resolve this team to its single most-specific mapping (word-boundary match)
-    $best = Get-BestMappingEntry -DisplayName $team.displayName -Entries $mappingEntries
-    if ($null -eq $best) {
-        # Returned by a broad Graph startswith but not a real boundary match (e.g. "External Team" vs "EXT")
-        Write-RjRbLog -Message "Team '$($team.displayName)' did not match any prefix at a word boundary - skipping." -Verbose
+# Flatten resolved mappings to (team, owner-group) pairs; record configured names that matched no team
+$teamsToProcess = @()
+foreach ($r in $resolvedMappings) {
+    if ($r.Teams.Count -eq 0) {
+        "## Team '$($r.Entry.TeamName)' not found."
+        $teamReportRows += [PSCustomObject]@{
+            Team                  = $r.Entry.TeamName
+            TeamId                = ""
+            Visibility            = ""
+            MatchedTeamName       = $r.Entry.TeamName
+            OwnerGroupId          = $r.Entry.OwnerGroupId
+            OwnerUserCount        = 0
+            SharedChannels        = 0
+            TeamMembersAdded      = 0
+            TeamOwnersAdded       = 0
+            ChannelOwnersAdded    = 0
+            ChannelOwnersPromoted = 0
+            Status                = "Team not found"
+            Mode                  = $mode
+        }
         continue
     }
+    foreach ($team in $r.Teams) {
+        $teamsToProcess += [PSCustomObject]@{ Team = $team; Entry = $r.Entry }
+    }
+}
 
-    "## Team '$($team.displayName)' ($teamId) -> mapping '$($best.Prefix)' / owner group '$($best.OwnerGroupId)'"
+foreach ($item in $teamsToProcess) {
+    $team = $item.Team
+    $me = $item.Entry
+    $teamId = $team.id
+
+    "## Team '$($team.displayName)' ($teamId) -> owner group '$($me.OwnerGroupId)'"
     $totalTeams++
 
     # Resolve desired owners (transitive users of the owner group), excluding guests; cached per group
-    if (-not $ownerUsersCache.ContainsKey($best.OwnerGroupId)) {
-        $ownerUsersCache[$best.OwnerGroupId] = @(Get-GroupTransitiveUser -GroupId $best.OwnerGroupId | Where-Object { $_.userType -ne "Guest" })
-        Write-RjRbLog -Message "Resolved $($ownerUsersCache[$best.OwnerGroupId].Count) owner user(s) for group '$($best.OwnerGroupId)'." -Verbose
+    if (-not $ownerUsersCache.ContainsKey($me.OwnerGroupId)) {
+        $ownerUsersCache[$me.OwnerGroupId] = @(Get-GroupTransitiveUser -GroupId $me.OwnerGroupId | Where-Object { $_.userType -ne "Guest" })
+        Write-RjRbLog -Message "Resolved $($ownerUsersCache[$me.OwnerGroupId].Count) owner user(s) for group '$($me.OwnerGroupId)'." -Verbose
     }
-    $ownerUsers = $ownerUsersCache[$best.OwnerGroupId]
+    $ownerUsers = $ownerUsersCache[$me.OwnerGroupId]
     if ($ownerUsers.Count -eq 0) {
-        "##   Owner group '$($best.OwnerGroupId)' has no (non-guest) user members - skipping team."
+        "##   Owner group '$($me.OwnerGroupId)' has no (non-guest) user members - skipping team."
         $teamReportRows += [PSCustomObject]@{
             Team                  = $team.displayName
             TeamId                = $teamId
             Visibility            = $team.visibility
-            MatchedPrefix         = $best.Prefix
-            OwnerGroupId          = $best.OwnerGroupId
+            MatchedTeamName       = $me.TeamName
+            OwnerGroupId          = $me.OwnerGroupId
             OwnerUserCount        = 0
             SharedChannels        = 0
             TeamMembersAdded      = 0
@@ -686,8 +639,8 @@ foreach ($team in $teamsById.Values) {
         Team                  = $team.displayName
         TeamId                = $teamId
         Visibility            = $team.visibility
-        MatchedPrefix         = $best.Prefix
-        OwnerGroupId          = $best.OwnerGroupId
+        MatchedTeamName       = $me.TeamName
+        OwnerGroupId          = $me.OwnerGroupId
         OwnerUserCount        = $ownerUsers.Count
         SharedChannels        = $teamChannelsThis
         TeamMembersAdded      = $teamMembersAddedThis
@@ -781,8 +734,8 @@ if ($SendEmailReport -or $CreateDownloadLink) {
 
         # Per-mapping team counts for the body
         $mappingSummaryLines = foreach ($me in $mappingEntries) {
-            $cnt = @($teamReportRows | Where-Object { $_.MatchedPrefix -eq $me.Prefix }).Count
-            "| ``$($me.Prefix)`` | $($me.OwnerGroupId) | $cnt |"
+            $cnt = @($teamReportRows | Where-Object { $_.MatchedTeamName -eq $me.TeamName -and $_.Status -eq "Processed" }).Count
+            "| ``$($me.TeamName)`` | $($me.OwnerGroupId) | $cnt |"
         }
 
         $modeNote = if ($WhatIfMode) { "**WhatIf / dry run** - the figures below reflect changes that *would* have been made; nothing was written." } else { "Live run - the figures below reflect changes that were applied." }
@@ -811,7 +764,6 @@ $modeNote
 | Metric | Value |
 |---|---|
 | Mode | $mode |
-| Team visibility filter | $TeamVisibility |
 | Teams processed | $totalTeams |
 | Shared channels processed | $totalChannels |
 | Team owners added | $totalTeamOwnersAdded |
@@ -821,7 +773,7 @@ $modeNote
 
 ## Mappings
 
-| Prefix | Owner group | Matched teams |
+| Team name | Owner group | Teams processed |
 |---|---|---|
 $($mappingSummaryLines -join "`n")
 $downloadSection
