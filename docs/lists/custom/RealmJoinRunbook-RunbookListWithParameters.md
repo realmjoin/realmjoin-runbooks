@@ -259,6 +259,14 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | SyncThresholdDays |  | Int32 | Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated. |
+|  |  |  |  |  |  | DeviceNamePrefix |  | String | Optional device name prefix to filter the report to a specific subset of devices. Leave blank to include all devices. |
+|  |  |  |  |  |  | IncludeMismatches |  | Boolean | Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default. |
+|  |  |  |  |  |  | IncludeMissingInRealmJoin |  | Boolean | Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default. |
+|  |  |  |  |  |  | IncludeMissingInIntune |  | Boolean | Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default. |
+|  |  |  |  |  |  | EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale. |
 |  |  |  |  |  |  | MaxDays |  | Int32 | Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included. |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results. |

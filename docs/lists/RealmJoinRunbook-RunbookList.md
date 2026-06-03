@@ -74,6 +74,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Notify Users About Stale Devices (Scheduled)
     - Outphase Devices
     - Report Devices Without Primary User
+    - Report Primary User Mismatch (Scheduled)
     - Report Stale Devices (Scheduled)
     - Report Users With More Than 5-Devices
     - Report Windows Devices Without Autopilot
@@ -308,6 +309,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 | Outphase Devices | Remove or outphase multiple devices |
 | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+| Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
 | Report Users With More Than 5-Devices | Report users with more than five registered devices |
 | Report Windows Devices Without Autopilot | Reports all Windows Entra devices that have no associated Windows Autopilot object. |

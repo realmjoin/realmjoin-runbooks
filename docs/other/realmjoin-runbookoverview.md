@@ -75,6 +75,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
+      - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
       - [Report Windows Devices Without Autopilot](#report-windows-devices-without-autopilot)
@@ -1393,6 +1394,46 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-primary-user-mismatch-(scheduled)'></a>
+
+### Report Primary User Mismatch (Scheduled)
+#### Compare primary user assignments in Intune against RealmJoin for Windows managed devices
+
+#### Description
+
+For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.
+
+#### Where to find
+
+Org \ Devices \ Report Primary User Mismatch_Scheduled
+
+## Setup regarding email sending
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+## Setup regarding RealmJoin API credentials
+
+This runbook queries the RealmJoin customer API and requires a dedicated credential stored in the Azure Automation Account.
+
+**Step-by-step setup:**
+
+1. **Get API credentials** — If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com
+2. **Open the Automation Account** — In the Azure portal, navigate to the Automation Account used for runbooks
+3. **Go to Shared Resources > Credentials** — In the left menu under *Shared Resources*, click *Credentials*
+4. **Add a new credential** — Click *Add a credential*
+5. **Name it exactly `RJAPI`** — The runbook looks up this name; any deviation will cause the credential lookup to fail
+6. **Enter the RealmJoin API username and password** — Use the credentials from step 1
+7. **Save** — Click *Create* and re-run the runbook
 
 
 
