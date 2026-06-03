@@ -99,8 +99,10 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
     - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
+    - [Report Primary User Mismatch (Scheduled)](docs/org/devices/report-primary-user-mismatch_scheduled.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
+    - [Report Windows Devices Without Autopilot](docs/org/devices/report-windows-devices-without-autopilot.md)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)
 
@@ -139,6 +141,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
     - [Sync Apple Tokens](docs/org/general/sync-apple-tokens.md)
+    - [Sync Sharedchannel Owners (Scheduled)](docs/org/general/sync-sharedchannel-owners_scheduled.md)
   - [Mail](docs/org/README.md#org-mail)
 
     - [Add Distribution List](docs/org/mail/add-distribution-list.md)

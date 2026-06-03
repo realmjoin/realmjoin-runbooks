@@ -74,8 +74,10 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
     - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
+    - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
     - [Report Users With More Than 5-Devices](#organization-devices-report-users-with-more-than-5-devices)
+    - [Report Windows Devices Without Autopilot](#organization-devices-report-windows-devices-without-autopilot)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](#organization-devices-sync-device-serialnumbers-to-entraid-scheduled)
   - [General](#organization-general)
     - [Add Devices Of Users To Group (Scheduled)](#organization-general-add-devices-of-users-to-group-scheduled)
@@ -113,6 +115,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
     - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
+    - [Sync Sharedchannel Owners (Scheduled)](#organization-general-sync-sharedchannel-owners-scheduled)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
     - [Add Equipment Mailbox](#organization-mail-add-equipment-mailbox)
@@ -295,6 +298,8 @@ Remove/Outphase a windows device
 | removeAutopilotDevice |  | Boolean | "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant. |
 | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
+| excludeFromDefender |  | Boolean | If set to true, the device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
+| defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-general-remove-primary-user'></a>
@@ -885,6 +890,8 @@ Remove or outphase multiple devices
 | removeAutopilotDevice |  | Boolean | "Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database. |
 | removeAADDevice |  | Boolean | Internal flag derived from aadAction. |
 | disableAADDevice |  | Boolean | Internal flag derived from aadAction. |
+| excludeFromDefender |  | Boolean | If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
+| defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-devices-without-primary-user'></a>
@@ -896,6 +903,22 @@ Reports all managed devices in Intune that do not have a primary user assigned.
 |-----------|----------|------|-------------|
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-devices-report-primary-user-mismatch-scheduled'></a>
+
+### Report Primary User Mismatch (Scheduled)
+Compare primary user assignments in Intune against RealmJoin for Windows managed devices
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SyncThresholdDays |  | Int32 | Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated. |
+| DeviceNamePrefix |  | String | Optional device name prefix to filter the report to a specific subset of devices. Leave blank to include all devices. |
+| IncludeMismatches |  | Boolean | Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default. |
+| IncludeMissingInRealmJoin |  | Boolean | Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default. |
+| IncludeMissingInIntune |  | Boolean | Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default. |
+| EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
+| EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-stale-devices-scheduled'></a>
@@ -927,6 +950,23 @@ Report users with more than five registered devices
 |-----------|----------|------|-------------|
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-devices-report-windows-devices-without-autopilot'></a>
+
+### Report Windows Devices Without Autopilot
+Reports all Windows Entra devices that have no associated Windows Autopilot object.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SendMail |  | Boolean | If enabled, the report is sent via email. Toggling this on reveals the recipient address field. |
+| EmailTo |  | String | Recipient address(es) for the email report. Only used / shown when SendMail is enabled.<br>Can be a single address or multiple comma-separated addresses (string). |
+| EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender). |
+| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-sync-device-serialnumbers-to-entraid-scheduled'></a>
@@ -1424,6 +1464,26 @@ Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 |-----------|----------|------|-------------|
 | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 | CallerName | ✓ | String | Automated parameter for auditing purposes. |
+
+<a name='organization-general-sync-sharedchannel-owners-scheduled'></a>
+
+### Sync Sharedchannel Owners (Scheduled)
+Ensure a security group's members are owners of mapped Teams and their shared channels.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TeamOwnerGroupMapping |  | Object | Mapping of an exact team display name to an owner security group object id, e.g.<br>[{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].<br>Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects<br>that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or<br>as a JSON string and normalizes both. |
+| IncludeTeamOwners |  | Boolean | When enabled (default), the owner-group members are also ensured as owners and members of the parent<br>team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership. |
+| WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics and two CSV attachments (per-team summary and per-change detail). |
+| EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
+| EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender". |
+| CreateDownloadLink |  | Boolean | When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). Default off. |
+| ContainerName |  | String | Storage container used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Bound to "RJReport.StorageAccount.ResourceGroup". |
+| StorageAccountName |  | String | Storage account used for the upload. Bound to "RJReport.StorageAccount.StorageAccountName". |
+| LinkExpiryDays |  | Int32 | Days until the generated download link expires. Bound to "RJReport.StorageAccount.LinkExpiryDays". |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 

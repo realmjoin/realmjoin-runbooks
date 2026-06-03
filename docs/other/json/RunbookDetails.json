@@ -628,7 +628,7 @@
     "PrimaryFolder": "Device",
     "SubFolder": "General",
     "Synopsis": "Remove/Outphase a windows device",
-    "Description": "Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.",
+    "Description": "Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune and AutoPilot.\nOptionally, the device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.\nNOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's \"Tags\" filter once it has been created once via the portal (Device > Manage tags > \"Create new tag\").",
     "Notes": null,
     "Parameters": [
       {
@@ -659,8 +659,25 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "11",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "ExcludeFromRemediation",
+        "description": [
+          {
+            "Text": "The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to \"ExcludeFromRemediation\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "defenderExclusionTag",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -694,6 +711,23 @@
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely."
+          }
+        ],
+        "globbing": "false",
+        "name": "excludeFromDefender",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -785,9 +819,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## Microsoft Defender for Endpoint exclusion tag\n\nMicrosoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.\n\nBecause the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude device from Defender for Endpoint* is enabled. The device is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.\n\n### One-time setup: make the tag filterable\n\nThe portal's **Tags** filter unfortunately only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.\n\nTo make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > \"Create new tag\", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.\n\n> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.\n\nSee [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.\n",
+    "DocsContentEncoded": "IyMgTWljcm9zb2Z0IERlZmVuZGVyIGZvciBFbmRwb2ludCBleGNsdXNpb24gdGFnCgpNaWNyb3NvZnQgRGVmZW5kZXIgZm9yIEVuZHBvaW50IGhhcyBhIG5hdGl2ZSAqKkV4Y2x1c2lvbiBzdGF0ZSoqIChzaG93biBpbiB0aGUgRGV2aWNlIEludmVudG9yeSBmaWx0ZXIgYXMgKkV4Y2x1ZGVkKiAvICpOb3QgRXhjbHVkZWQqKS4gVGhpcyBzdGF0ZSBjYW4gb25seSBiZSBzZXQgdGhyb3VnaCB0aGUgRGVmZW5kZXIgcG9ydGFsIOKAlCB0aGVyZSBpcyAqKm5vIEFQSSoqIHRvIHNldCBhIGRldmljZSdzIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgcHJvZ3JhbW1hdGljYWxseS4KCkJlY2F1c2UgdGhlIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgY2Fubm90IGJlIGF1dG9tYXRlZCwgdGhpcyBydW5ib29rIGluc3RlYWQgYXBwbGllcyBhIGN1c3RvbSBkZXZpY2UgdGFnIChkZWZhdWx0IGBFeGNsdWRlRnJvbVJlbWVkaWF0aW9uYCkgd2hlbiAqRXhjbHVkZSBkZXZpY2UgZnJvbSBEZWZlbmRlciBmb3IgRW5kcG9pbnQqIGlzIGVuYWJsZWQuIFRoZSBkZXZpY2UgaXMgbG9va2VkIHVwIGJ5IGl0cyBFbnRyYSBJRCBkZXZpY2UgSUQgYW5kIHRhZ2dlZCB2aWEgYFBPU1QgL2FwaS9tYWNoaW5lcy97aWR9L3RhZ3NgLCBwcm92aWRpbmcgYSBtYXJrZXIgdGhhdCBjYW4gYmUgdXNlZCB0byBmaWx0ZXIgYW5kIHRhcmdldCBleGNsdWRlZCBkZXZpY2VzLgoKIyMjIE9uZS10aW1lIHNldHVwOiBtYWtlIHRoZSB0YWcgZmlsdGVyYWJsZQoKVGhlIHBvcnRhbCdzICoqVGFncyoqIGZpbHRlciB1bmZvcnR1bmF0ZWx5IG9ubHkgbGlzdHMgdGFncyB0aGF0IHdlcmUgY3JlYXRlZCB0aHJvdWdoIHRoZSBwb3J0YWwuIEEgdGFnIHNldCBwdXJlbHkgdmlhIHRoZSBBUEkgaXMgYXR0YWNoZWQgdG8gdGhlIGRldmljZSBhbmQgdmlzaWJsZSBvbiB0aGUgZGV2aWNlIHBhZ2UsIGJ1dCBpdCBkb2VzICoqbm90KiogYXBwZWFyIGluIHRoZSBUYWdzIGZpbHRlciBvbiBpdHMgb3duLgoKVG8gbWFrZSB0aGUgZXhjbHVzaW9uIHRhZyB2aXNpYmxlIGFuZCB1c2FibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgW0RlZmVuZGVyIERldmljZSBJbnZlbnRvcnldKGh0dHBzOi8vc2VjdXJpdHkubWljcm9zb2Z0LmNvbS9tYWNoaW5lcyksIG9uZSBjbGllbnQgbXVzdCBiZSB0YWdnZWQgbWFudWFsbHkgb25jZSB0aHJvdWdoIHRoZSBwb3J0YWwgKHNlbGVjdCBhIGRldmljZSA+ICoqTWFuYWdlIHRhZ3MqKiA+ICJDcmVhdGUgbmV3IHRhZyIsIHVzaW5nIHRoZSBleGFjdCBzYW1lIHRhZyB2YWx1ZSkuIEFmdGVyIHRoaXMgb25lLXRpbWUgc3RlcCB0aGUgdGFnIGJlY29tZXMgYSBrbm93biwgZmlsdGVyYWJsZSB0YWcsIGFuZCB0aGlzIHJ1bmJvb2sgY2FuIGFwcGx5IGl0IHRvIGRldmljZXMgYXQgc2NhbGUuCgo+ICoqTm90ZToqKiBUaGlzIHRhZyBpcyBvbmx5IGEgbGFiZWwg4oCUIGl0IGRvZXMgbm90IHNldCB0aGUgZGV2aWNlJ3MgbmF0aXZlIEV4Y2x1c2lvbiBzdGF0ZSBhbmQgaGFzIG5vIHJlbWVkaWF0aW9uIGVmZmVjdCBvbiBpdHMgb3duLiBJdCB0YWtlcyBlZmZlY3Qgb25seSBpZiBhIERlZmVuZGVyIGRldmljZSBncm91cCBvciBhdXRvbWF0aW9uIHJ1bGUgaXMgZXhwbGljaXRseSBjb25maWd1cmVkIHRvIG1hdGNoIHRoaXMgdGFnIHZhbHVlLiBTdWNoIHJ1bGVzIG1hdGNoIHRoZSB0YWcgdmFsdWUgZGlyZWN0bHksIGluZGVwZW5kZW50bHkgb2YgdGhlIHBvcnRhbCAqKlRhZ3MqKiBmaWx0ZXIsIHNvIHRoZSBvbmUtdGltZSBtYW51YWwgc3RlcCBvbmx5IGFmZmVjdHMgd2hldGhlciB0aGUgdGFnIGlzIHNlbGVjdGFibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgcG9ydGFsIFVJLgoKU2VlIFtDcmVhdGUgYW5kIG1hbmFnZSBkZXZpY2UgdGFnc10oaHR0cHM6Ly9sZWFybi5taWNyb3NvZnQuY29tL2RlZmVuZGVyLWVuZHBvaW50L21hY2hpbmUtdGFncyNjcmVhdGUtdGFncykgZm9yIGRldGFpbHMuCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\",\n                \"Machine.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -798,6 +832,13 @@
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.ReadWrite.All"
           ]
         }
       ],
@@ -3763,8 +3804,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.Read.All\",\n                \"Directory.Read.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }  \n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -3914,8 +3955,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -4732,8 +4773,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.ReadWrite.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -5530,8 +5571,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n## Mail Template Language Selection\n\nThis runbook supports three email template options:\n\n1. **EN (English - Default)**: Uses the built-in English template\n2. **DE (German)**: Uses the built-in German template\n3. **Custom**: Uses a custom template from Runbook Customizations\n\n### Using Custom Mail Templates\n\nTo use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.\n\n#### Example: Custom Template\n\n```json\n{\n    \"Runbooks\": {\n        \"rjgit-org_devices_notify-users-about-stale-devices_scheduled\": {\n            \"Parameters\": {\n                \"CustomMailTemplateSubject\": {\n                    \"Default\": \"This is a custom subject - Action Required: Inactive Devices\"\n                },\n                \"CustomMailTemplateBeforeDeviceDetails\": {\n                    \"Default\": \"**This is above the Device Details.** \\n\\nDear user ...\"\n                },\n                \"CustomMailTemplateAfterDeviceDetails\": {\n                    \"Default\": \"**This is below the Device Details.** \\n\\n## What you should do...\"\n                }\n            }\n        }\n    }\n}\n```\n\n**Important Notes:**\n- Use `\\n` for line breaks in the JSON configuration\n- Markdown formatting (##, ###, **, -) is supported in the template text\n- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured\n- If any parameter is missing, the runbook automatically falls back to the English (EN) template\n- When using the custom template, select \"Custom - Use Template from Runbook Customizations\" in the Mail Template dropdown\n\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCiMjIE1haWwgVGVtcGxhdGUgTGFuZ3VhZ2UgU2VsZWN0aW9uCgpUaGlzIHJ1bmJvb2sgc3VwcG9ydHMgdGhyZWUgZW1haWwgdGVtcGxhdGUgb3B0aW9uczoKCjEuICoqRU4gKEVuZ2xpc2ggLSBEZWZhdWx0KSoqOiBVc2VzIHRoZSBidWlsdC1pbiBFbmdsaXNoIHRlbXBsYXRlCjIuICoqREUgKEdlcm1hbikqKjogVXNlcyB0aGUgYnVpbHQtaW4gR2VybWFuIHRlbXBsYXRlCjMuICoqQ3VzdG9tKio6IFVzZXMgYSBjdXN0b20gdGVtcGxhdGUgZnJvbSBSdW5ib29rIEN1c3RvbWl6YXRpb25zCgojIyMgVXNpbmcgQ3VzdG9tIE1haWwgVGVtcGxhdGVzCgpUbyB1c2UgYSBjdXN0b20gbWFpbCB0ZW1wbGF0ZSAoZS5nLiwgaW4gRHV0Y2gsIFNwYW5pc2gsIG9yIGFueSBvdGhlciBsYW5ndWFnZSksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSB0aGUgdGVtcGxhdGUgdGV4dCBpbiB0aGUgUnVuYm9vayBDdXN0b21pemF0aW9ucy4gSWYgYW55IGN1c3RvbSB0ZW1wbGF0ZSBwYXJhbWV0ZXIgaXMgbWlzc2luZywgdGhlIHJ1bmJvb2sgd2lsbCBhdXRvbWF0aWNhbGx5IGZhbGwgYmFjayB0byB0aGUgRW5nbGlzaCB0ZW1wbGF0ZS4KCiMjIyMgRXhhbXBsZTogQ3VzdG9tIFRlbXBsYXRlCgpgYGBqc29uCnsKICAgICJSdW5ib29rcyI6IHsKICAgICAgICAicmpnaXQtb3JnX2RldmljZXNfbm90aWZ5LXVzZXJzLWFib3V0LXN0YWxlLWRldmljZXNfc2NoZWR1bGVkIjogewogICAgICAgICAgICAiUGFyYW1ldGVycyI6IHsKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVTdWJqZWN0IjogewogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0IjogIlRoaXMgaXMgYSBjdXN0b20gc3ViamVjdCAtIEFjdGlvbiBSZXF1aXJlZDogSW5hY3RpdmUgRGV2aWNlcyIKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAiQ3VzdG9tTWFpbFRlbXBsYXRlQmVmb3JlRGV2aWNlRGV0YWlscyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGVmYXVsdCI6ICIqKlRoaXMgaXMgYWJvdmUgdGhlIERldmljZSBEZXRhaWxzLioqIFxuXG5EZWFyIHVzZXIgLi4uIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVBZnRlckRldmljZURldGFpbHMiOiB7CiAgICAgICAgICAgICAgICAgICAgIkRlZmF1bHQiOiAiKipUaGlzIGlzIGJlbG93IHRoZSBEZXZpY2UgRGV0YWlscy4qKiBcblxuIyMgV2hhdCB5b3Ugc2hvdWxkIGRvLi4uIgogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9CmBgYAoKKipJbXBvcnRhbnQgTm90ZXM6KioKLSBVc2UgYFxuYCBmb3IgbGluZSBicmVha3MgaW4gdGhlIEpTT04gY29uZmlndXJhdGlvbgotIE1hcmtkb3duIGZvcm1hdHRpbmcgKCMjLCAjIyMsICoqLCAtKSBpcyBzdXBwb3J0ZWQgaW4gdGhlIHRlbXBsYXRlIHRleHQKLSBBbGwgdGhyZWUgY3VzdG9tIHRlbXBsYXRlIHBhcmFtZXRlcnMgKFN1YmplY3QsIEJlZm9yZURldmljZURldGFpbHMsIEFmdGVyRGV2aWNlRGV0YWlscykgc2hvdWxkIGJlIGNvbmZpZ3VyZWQKLSBJZiBhbnkgcGFyYW1ldGVyIGlzIG1pc3NpbmcsIHRoZSBydW5ib29rIGF1dG9tYXRpY2FsbHkgZmFsbHMgYmFjayB0byB0aGUgRW5nbGlzaCAoRU4pIHRlbXBsYXRlCi0gV2hlbiB1c2luZyB0aGUgY3VzdG9tIHRlbXBsYXRlLCBzZWxlY3QgIkN1c3RvbSAtIFVzZSBUZW1wbGF0ZSBmcm9tIFJ1bmJvb2sgQ3VzdG9taXphdGlvbnMiIGluIHRoZSBNYWlsIFRlbXBsYXRlIGRyb3Bkb3duCgo=",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\n## Mail Template Language Selection\n\nThis runbook supports three email template options:\n\n1. **EN (English - Default)**: Uses the built-in English template\n2. **DE (German)**: Uses the built-in German template\n3. **Custom**: Uses a custom template from Runbook Customizations\n\n### Using Custom Mail Templates\n\nTo use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.\n\n#### Example: Custom Template\n\n```json\n{\n    \"Runbooks\": {\n        \"rjgit-org_devices_notify-users-about-stale-devices_scheduled\": {\n            \"Parameters\": {\n                \"CustomMailTemplateSubject\": {\n                    \"Default\": \"This is a custom subject - Action Required: Inactive Devices\"\n                },\n                \"CustomMailTemplateBeforeDeviceDetails\": {\n                    \"Default\": \"**This is above the Device Details.** \\n\\nDear user ...\"\n                },\n                \"CustomMailTemplateAfterDeviceDetails\": {\n                    \"Default\": \"**This is below the Device Details.** \\n\\n## What you should do...\"\n                }\n            }\n        }\n    }\n}\n```\n\n**Important Notes:**\n- Use `\\n` for line breaks in the JSON configuration\n- Markdown formatting (##, ###, **, -) is supported in the template text\n- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured\n- If any parameter is missing, the runbook automatically falls back to the English (EN) template\n- When using the custom template, select \"Custom - Use Template from Runbook Customizations\" in the Mail Template dropdown\n\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4KCiMjIE1haWwgVGVtcGxhdGUgTGFuZ3VhZ2UgU2VsZWN0aW9uCgpUaGlzIHJ1bmJvb2sgc3VwcG9ydHMgdGhyZWUgZW1haWwgdGVtcGxhdGUgb3B0aW9uczoKCjEuICoqRU4gKEVuZ2xpc2ggLSBEZWZhdWx0KSoqOiBVc2VzIHRoZSBidWlsdC1pbiBFbmdsaXNoIHRlbXBsYXRlCjIuICoqREUgKEdlcm1hbikqKjogVXNlcyB0aGUgYnVpbHQtaW4gR2VybWFuIHRlbXBsYXRlCjMuICoqQ3VzdG9tKio6IFVzZXMgYSBjdXN0b20gdGVtcGxhdGUgZnJvbSBSdW5ib29rIEN1c3RvbWl6YXRpb25zCgojIyMgVXNpbmcgQ3VzdG9tIE1haWwgVGVtcGxhdGVzCgpUbyB1c2UgYSBjdXN0b20gbWFpbCB0ZW1wbGF0ZSAoZS5nLiwgaW4gRHV0Y2gsIFNwYW5pc2gsIG9yIGFueSBvdGhlciBsYW5ndWFnZSksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSB0aGUgdGVtcGxhdGUgdGV4dCBpbiB0aGUgUnVuYm9vayBDdXN0b21pemF0aW9ucy4gSWYgYW55IGN1c3RvbSB0ZW1wbGF0ZSBwYXJhbWV0ZXIgaXMgbWlzc2luZywgdGhlIHJ1bmJvb2sgd2lsbCBhdXRvbWF0aWNhbGx5IGZhbGwgYmFjayB0byB0aGUgRW5nbGlzaCB0ZW1wbGF0ZS4KCiMjIyMgRXhhbXBsZTogQ3VzdG9tIFRlbXBsYXRlCgpgYGBqc29uCnsKICAgICJSdW5ib29rcyI6IHsKICAgICAgICAicmpnaXQtb3JnX2RldmljZXNfbm90aWZ5LXVzZXJzLWFib3V0LXN0YWxlLWRldmljZXNfc2NoZWR1bGVkIjogewogICAgICAgICAgICAiUGFyYW1ldGVycyI6IHsKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVTdWJqZWN0IjogewogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0IjogIlRoaXMgaXMgYSBjdXN0b20gc3ViamVjdCAtIEFjdGlvbiBSZXF1aXJlZDogSW5hY3RpdmUgRGV2aWNlcyIKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAiQ3VzdG9tTWFpbFRlbXBsYXRlQmVmb3JlRGV2aWNlRGV0YWlscyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGVmYXVsdCI6ICIqKlRoaXMgaXMgYWJvdmUgdGhlIERldmljZSBEZXRhaWxzLioqIFxuXG5EZWFyIHVzZXIgLi4uIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVBZnRlckRldmljZURldGFpbHMiOiB7CiAgICAgICAgICAgICAgICAgICAgIkRlZmF1bHQiOiAiKipUaGlzIGlzIGJlbG93IHRoZSBEZXZpY2UgRGV0YWlscy4qKiBcblxuIyMgV2hhdCB5b3Ugc2hvdWxkIGRvLi4uIgogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9CmBgYAoKKipJbXBvcnRhbnQgTm90ZXM6KioKLSBVc2UgYFxuYCBmb3IgbGluZSBicmVha3MgaW4gdGhlIEpTT04gY29uZmlndXJhdGlvbgotIE1hcmtkb3duIGZvcm1hdHRpbmcgKCMjLCAjIyMsICoqLCAtKSBpcyBzdXBwb3J0ZWQgaW4gdGhlIHRlbXBsYXRlIHRleHQKLSBBbGwgdGhyZWUgY3VzdG9tIHRlbXBsYXRlIHBhcmFtZXRlcnMgKFN1YmplY3QsIEJlZm9yZURldmljZURldGFpbHMsIEFmdGVyRGV2aWNlRGV0YWlscykgc2hvdWxkIGJlIGNvbmZpZ3VyZWQKLSBJZiBhbnkgcGFyYW1ldGVyIGlzIG1pc3NpbmcsIHRoZSBydW5ib29rIGF1dG9tYXRpY2FsbHkgZmFsbHMgYmFjayB0byB0aGUgRW5nbGlzaCAoRU4pIHRlbXBsYXRlCi0gV2hlbiB1c2luZyB0aGUgY3VzdG9tIHRlbXBsYXRlLCBzZWxlY3QgIkN1c3RvbSAtIFVzZSBUZW1wbGF0ZSBmcm9tIFJ1bmJvb2sgQ3VzdG9taXphdGlvbnMiIGluIHRoZSBNYWlsIFRlbXBsYXRlIGRyb3Bkb3duCgo=",
     "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Group.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -5559,7 +5600,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Remove or outphase multiple devices",
-    "Description": "This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.\nIt can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.",
+    "Description": "This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.\nIt can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.\nOptionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.\nNOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's \"Tags\" filter once it has been created once via the portal (Device > Manage tags > \"Create new tag\").",
     "Notes": null,
     "Parameters": [
       {
@@ -5590,8 +5631,25 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "12",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "ExcludeFromRemediation",
+        "description": [
+          {
+            "Text": "The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to \"ExcludeFromRemediation\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "defenderExclusionTag",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -5642,6 +5700,23 @@
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely."
+          }
+        ],
+        "globbing": "false",
+        "name": "excludeFromDefender",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -5733,9 +5808,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## Microsoft Defender for Endpoint exclusion tag\n\nMicrosoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.\n\nBecause the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude devices from Defender for Endpoint* is enabled. Each device in the list is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.\n\n### One-time setup: make the tag filterable\n\nThe portal's **Tags** filter only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.\n\nTo make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > \"Create new tag\", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.\n\n> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.\n\nDevices supplied by serial number that are not found in Intune have no Entra ID device ID and are therefore not tagged in Defender.\n\nSee [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.\n",
+    "DocsContentEncoded": "IyMgTWljcm9zb2Z0IERlZmVuZGVyIGZvciBFbmRwb2ludCBleGNsdXNpb24gdGFnCgpNaWNyb3NvZnQgRGVmZW5kZXIgZm9yIEVuZHBvaW50IGhhcyBhIG5hdGl2ZSAqKkV4Y2x1c2lvbiBzdGF0ZSoqIChzaG93biBpbiB0aGUgRGV2aWNlIEludmVudG9yeSBmaWx0ZXIgYXMgKkV4Y2x1ZGVkKiAvICpOb3QgRXhjbHVkZWQqKS4gVGhpcyBzdGF0ZSBjYW4gb25seSBiZSBzZXQgdGhyb3VnaCB0aGUgRGVmZW5kZXIgcG9ydGFsIOKAlCB0aGVyZSBpcyAqKm5vIEFQSSoqIHRvIHNldCBhIGRldmljZSdzIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgcHJvZ3JhbW1hdGljYWxseS4KCkJlY2F1c2UgdGhlIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgY2Fubm90IGJlIGF1dG9tYXRlZCwgdGhpcyBydW5ib29rIGluc3RlYWQgYXBwbGllcyBhIGN1c3RvbSBkZXZpY2UgdGFnIChkZWZhdWx0IGBFeGNsdWRlRnJvbVJlbWVkaWF0aW9uYCkgd2hlbiAqRXhjbHVkZSBkZXZpY2VzIGZyb20gRGVmZW5kZXIgZm9yIEVuZHBvaW50KiBpcyBlbmFibGVkLiBFYWNoIGRldmljZSBpbiB0aGUgbGlzdCBpcyBsb29rZWQgdXAgYnkgaXRzIEVudHJhIElEIGRldmljZSBJRCBhbmQgdGFnZ2VkIHZpYSBgUE9TVCAvYXBpL21hY2hpbmVzL3tpZH0vdGFnc2AsIHByb3ZpZGluZyBhIG1hcmtlciB0aGF0IGNhbiBiZSB1c2VkIHRvIGZpbHRlciBhbmQgdGFyZ2V0IGV4Y2x1ZGVkIGRldmljZXMuCgojIyMgT25lLXRpbWUgc2V0dXA6IG1ha2UgdGhlIHRhZyBmaWx0ZXJhYmxlCgpUaGUgcG9ydGFsJ3MgKipUYWdzKiogZmlsdGVyIG9ubHkgbGlzdHMgdGFncyB0aGF0IHdlcmUgY3JlYXRlZCB0aHJvdWdoIHRoZSBwb3J0YWwuIEEgdGFnIHNldCBwdXJlbHkgdmlhIHRoZSBBUEkgaXMgYXR0YWNoZWQgdG8gdGhlIGRldmljZSBhbmQgdmlzaWJsZSBvbiB0aGUgZGV2aWNlIHBhZ2UsIGJ1dCBpdCBkb2VzICoqbm90KiogYXBwZWFyIGluIHRoZSBUYWdzIGZpbHRlciBvbiBpdHMgb3duLgoKVG8gbWFrZSB0aGUgZXhjbHVzaW9uIHRhZyB2aXNpYmxlIGFuZCB1c2FibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgW0RlZmVuZGVyIERldmljZSBJbnZlbnRvcnldKGh0dHBzOi8vc2VjdXJpdHkubWljcm9zb2Z0LmNvbS9tYWNoaW5lcyksIG9uZSBjbGllbnQgbXVzdCBiZSB0YWdnZWQgbWFudWFsbHkgb25jZSB0aHJvdWdoIHRoZSBwb3J0YWwgKHNlbGVjdCBhIGRldmljZSA+ICoqTWFuYWdlIHRhZ3MqKiA+ICJDcmVhdGUgbmV3IHRhZyIsIHVzaW5nIHRoZSBleGFjdCBzYW1lIHRhZyB2YWx1ZSkuIEFmdGVyIHRoaXMgb25lLXRpbWUgc3RlcCB0aGUgdGFnIGJlY29tZXMgYSBrbm93biwgZmlsdGVyYWJsZSB0YWcsIGFuZCB0aGlzIHJ1bmJvb2sgY2FuIGFwcGx5IGl0IHRvIGRldmljZXMgYXQgc2NhbGUuCgo+ICoqTm90ZToqKiBUaGlzIHRhZyBpcyBvbmx5IGEgbGFiZWwg4oCUIGl0IGRvZXMgbm90IHNldCB0aGUgZGV2aWNlJ3MgbmF0aXZlIEV4Y2x1c2lvbiBzdGF0ZSBhbmQgaGFzIG5vIHJlbWVkaWF0aW9uIGVmZmVjdCBvbiBpdHMgb3duLiBJdCB0YWtlcyBlZmZlY3Qgb25seSBpZiBhIERlZmVuZGVyIGRldmljZSBncm91cCBvciBhdXRvbWF0aW9uIHJ1bGUgaXMgZXhwbGljaXRseSBjb25maWd1cmVkIHRvIG1hdGNoIHRoaXMgdGFnIHZhbHVlLiBTdWNoIHJ1bGVzIG1hdGNoIHRoZSB0YWcgdmFsdWUgZGlyZWN0bHksIGluZGVwZW5kZW50bHkgb2YgdGhlIHBvcnRhbCAqKlRhZ3MqKiBmaWx0ZXIsIHNvIHRoZSBvbmUtdGltZSBtYW51YWwgc3RlcCBvbmx5IGFmZmVjdHMgd2hldGhlciB0aGUgdGFnIGlzIHNlbGVjdGFibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgcG9ydGFsIFVJLgoKRGV2aWNlcyBzdXBwbGllZCBieSBzZXJpYWwgbnVtYmVyIHRoYXQgYXJlIG5vdCBmb3VuZCBpbiBJbnR1bmUgaGF2ZSBubyBFbnRyYSBJRCBkZXZpY2UgSUQgYW5kIGFyZSB0aGVyZWZvcmUgbm90IHRhZ2dlZCBpbiBEZWZlbmRlci4KClNlZSBbQ3JlYXRlIGFuZCBtYW5hZ2UgZGV2aWNlIHRhZ3NdKGh0dHBzOi8vbGVhcm4ubWljcm9zb2Z0LmNvbS9kZWZlbmRlci1lbmRwb2ludC9tYWNoaW5lLXRhZ3MjY3JlYXRlLXRhZ3MpIGZvciBkZXRhaWxzLgo=",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\",\n                \"Machine.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -5746,6 +5821,13 @@
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.ReadWrite.All"
           ]
         }
       ],
@@ -5818,8 +5900,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -5829,6 +5911,173 @@
           "AppRoleAssignments": [
             "DeviceManagementManagedDevices.Read.All",
             "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Primary User Mismatch_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Primary User Mismatch_Scheduled",
+    "RelativeRunbookPath": "org/devices/report-primary-user-mismatch_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Compare primary user assignments in Intune against RealmJoin for Windows managed devices",
+    "Description": "For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.",
+    "Notes": "Prerequisites:\n- An Azure Automation Account shared credential named exactly \"RJAPI\" must be created manually\n  before scheduling. Set the username and password to match a RealmJoin customer API account\n  (see https://docs.realmjoin.com/dev-reference/realmjoin-api/authentication).\n- The Automation Account managed identity must have the following Graph application permissions\n  assigned: DeviceManagementManagedDevices.Read.All, Mail.Send, Organization.Read.All.\n- The RJReport.EmailSender setting must be configured with a valid sender address before the first run.\n- No email is sent when the two datasets are in sync; an empty run is not an error.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional device name prefix to filter the report to a specific subset of devices. Leave blank to include all devices."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceNamePrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This is configured via the runbook customization setting and hidden in the portal."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address (or multiple comma-separated addresses) that should receive the report."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMismatches",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMissingInIntune",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMissingInRealmJoin",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "30",
+        "description": [
+          {
+            "Text": "Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated."
+          }
+        ],
+        "globbing": "false",
+        "name": "SyncThresholdDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n## Setup regarding RealmJoin API credentials\n\nThis runbook queries the RealmJoin customer API and requires a dedicated credential stored in the Azure Automation Account.\n\n**Step-by-step setup:**\n\n1. **Get API credentials** — If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com\n2. **Open the Automation Account** — In the Azure portal, navigate to the Automation Account used for runbooks\n3. **Go to Shared Resources > Credentials** — In the left menu under *Shared Resources*, click *Credentials*\n4. **Add a new credential** — Click *Add a credential*\n5. **Name it exactly `RJAPI`** — The runbook looks up this name; any deviation will cause the credential lookup to fail\n6. **Enter the RealmJoin API username and password** — Use the credentials from step 1\n7. **Save** — Click *Create* and re-run the runbook\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCiMjIFNldHVwIHJlZ2FyZGluZyBSZWFsbUpvaW4gQVBJIGNyZWRlbnRpYWxzCgpUaGlzIHJ1bmJvb2sgcXVlcmllcyB0aGUgUmVhbG1Kb2luIGN1c3RvbWVyIEFQSSBhbmQgcmVxdWlyZXMgYSBkZWRpY2F0ZWQgY3JlZGVudGlhbCBzdG9yZWQgaW4gdGhlIEF6dXJlIEF1dG9tYXRpb24gQWNjb3VudC4KCioqU3RlcC1ieS1zdGVwIHNldHVwOioqCgoxLiAqKkdldCBBUEkgY3JlZGVudGlhbHMqKiDigJQgSWYgeW91IGRvIG5vdCB5ZXQgaGF2ZSBSZWFsbUpvaW4gQVBJIGNyZWRlbnRpYWxzLCByZXF1ZXN0IHRoZW0gYXQgc3VwcG9ydEByZWFsbWpvaW4uY29tCjIuICoqT3BlbiB0aGUgQXV0b21hdGlvbiBBY2NvdW50Kiog4oCUIEluIHRoZSBBenVyZSBwb3J0YWwsIG5hdmlnYXRlIHRvIHRoZSBBdXRvbWF0aW9uIEFjY291bnQgdXNlZCBmb3IgcnVuYm9va3MKMy4gKipHbyB0byBTaGFyZWQgUmVzb3VyY2VzID4gQ3JlZGVudGlhbHMqKiDigJQgSW4gdGhlIGxlZnQgbWVudSB1bmRlciAqU2hhcmVkIFJlc291cmNlcyosIGNsaWNrICpDcmVkZW50aWFscyoKNC4gKipBZGQgYSBuZXcgY3JlZGVudGlhbCoqIOKAlCBDbGljayAqQWRkIGEgY3JlZGVudGlhbCoKNS4gKipOYW1lIGl0IGV4YWN0bHkgYFJKQVBJYCoqIOKAlCBUaGUgcnVuYm9vayBsb29rcyB1cCB0aGlzIG5hbWU7IGFueSBkZXZpYXRpb24gd2lsbCBjYXVzZSB0aGUgY3JlZGVudGlhbCBsb29rdXAgdG8gZmFpbAo2LiAqKkVudGVyIHRoZSBSZWFsbUpvaW4gQVBJIHVzZXJuYW1lIGFuZCBwYXNzd29yZCoqIOKAlCBVc2UgdGhlIGNyZWRlbnRpYWxzIGZyb20gc3RlcCAxCjcuICoqU2F2ZSoqIOKAlCBDbGljayAqQ3JlYXRlKiBhbmQgcmUtcnVuIHRoZSBydW5ib29rCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
           ]
         }
       ],
@@ -6052,8 +6301,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -6135,8 +6384,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -6151,6 +6400,193 @@
       ],
       "Roles": [],
       "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Windows Devices Without Autopilot",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Windows Devices Without Autopilot",
+    "RelativeRunbookPath": "org/devices/report-windows-devices-without-autopilot.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Reports all Windows Entra devices that have no associated Windows Autopilot object.",
+    "Description": "This runbook lists every Windows device object in Entra ID (Microsoft Entra) and matches it against\nthe Windows Autopilot device identities in Intune. Entra devices whose device ID is not referenced by\nany Autopilot object (via the Autopilot object's azureActiveDirectoryDeviceId) are reported as orphans.\n\nSuch orphaned Entra device objects are typical leftovers (\"Objektleichen\") from devices that were\nreset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making\nthese candidates visible so they can be reviewed and - if appropriate - deleted.\n\nOptionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited\ndownload link) and/or sent via email with the CSV attached.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "windows-devices-without-autopilot",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender)."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient address(es) for the email report. Only used / shown when SendMail is enabled.\nCan be a single address or multiple comma-separated addresses (string)."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report is sent via email. Toggling this on reveals the recipient address field."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendMail",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Reporting orphaned Windows devices\n\nThis runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates (\"Objektleichen\").\n\nTwo Yes/No toggles control the output:\n\n- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.\n- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.\n\nBoth can be combined or used independently. If both are disabled, the report is only printed to the runbook output.\n\n## Setup regarding the storage account\n\nThe CSV report is uploaded to an Azure Storage Account. The target storage account is taken from the shared **RJReport** tenant settings, so it can be configured once and reused across all report runbooks:\n\n- `RJReport.StorageAccount.ResourceGroup`\n- `RJReport.StorageAccount.StorageAccountName`\n- `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)\n\nThe container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\nThe runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgUmVwb3J0aW5nIG9ycGhhbmVkIFdpbmRvd3MgZGV2aWNlcwoKVGhpcyBydW5ib29rIGxpc3RzIGV2ZXJ5IFdpbmRvd3MgZGV2aWNlIG9iamVjdCBpbiBFbnRyYSBJRCBhbmQgbWF0Y2hlcyBpdCBhZ2FpbnN0IHRoZSBXaW5kb3dzIEF1dG9waWxvdCBkZXZpY2UgaWRlbnRpdGllcyBpbiBJbnR1bmUuIERldmljZXMgdGhhdCBoYXZlIG5vIGFzc29jaWF0ZWQgQXV0b3BpbG90IG9iamVjdCAobWF0Y2hlZCB2aWEgdGhlIEF1dG9waWxvdCBvYmplY3QncyBgYXp1cmVBY3RpdmVEaXJlY3RvcnlEZXZpY2VJZGApIGFyZSByZXBvcnRlZCBhcyBjbGVhbi11cCBjYW5kaWRhdGVzICgiT2JqZWt0bGVpY2hlbiIpLgoKVHdvIFllcy9ObyB0b2dnbGVzIGNvbnRyb2wgdGhlIG91dHB1dDoKCi0gKipTZW5kIHRoZSByZXBvcnQgdmlhIGVtYWlsPyoqIOKAlCB3aGVuIGVuYWJsZWQsIHRoZSByZWNpcGllbnQgYWRkcmVzcyBmaWVsZCAoYEVtYWlsVG9gKSBpcyBzaG93biBhbmQgdGhlIHJlcG9ydCBpcyBzZW50IHZpYSBlbWFpbCB3aXRoIHRoZSBDU1YgYXR0YWNoZWQuCi0gKipDcmVhdGUgYSBmaWxlIGRvd25sb2FkIGxpbms/Kiog4oCUIHdoZW4gZW5hYmxlZCwgdGhlIENTViBpcyB1cGxvYWRlZCB0byBhbiBBenVyZSBTdG9yYWdlIEFjY291bnQgYW5kIGEgdGltZS1saW1pdGVkIGRvd25sb2FkIGxpbmsgaXMgcmV0dXJuZWQuCgpCb3RoIGNhbiBiZSBjb21iaW5lZCBvciB1c2VkIGluZGVwZW5kZW50bHkuIElmIGJvdGggYXJlIGRpc2FibGVkLCB0aGUgcmVwb3J0IGlzIG9ubHkgcHJpbnRlZCB0byB0aGUgcnVuYm9vayBvdXRwdXQuCgojIyBTZXR1cCByZWdhcmRpbmcgdGhlIHN0b3JhZ2UgYWNjb3VudAoKVGhlIENTViByZXBvcnQgaXMgdXBsb2FkZWQgdG8gYW4gQXp1cmUgU3RvcmFnZSBBY2NvdW50LiBUaGUgdGFyZ2V0IHN0b3JhZ2UgYWNjb3VudCBpcyB0YWtlbiBmcm9tIHRoZSBzaGFyZWQgKipSSlJlcG9ydCoqIHRlbmFudCBzZXR0aW5ncywgc28gaXQgY2FuIGJlIGNvbmZpZ3VyZWQgb25jZSBhbmQgcmV1c2VkIGFjcm9zcyBhbGwgcmVwb3J0IHJ1bmJvb2tzOgoKLSBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuUmVzb3VyY2VHcm91cGAKLSBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuU3RvcmFnZUFjY291bnROYW1lYAotIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC5MaW5rRXhwaXJ5RGF5c2AgKG9wdGlvbmFsLCBkZWZhdWx0cyB0byA2KQoKVGhlIGNvbnRhaW5lciBuYW1lIGlzIGNvbmZpZ3VyZWQgcGVyIHJ1bmJvb2sgKHBhcmFtZXRlciBgQ29udGFpbmVyTmFtZWAsIGRlZmF1bHQgYHdpbmRvd3MtZGV2aWNlcy13aXRob3V0LWF1dG9waWxvdGApIGFuZCBpcyBpbnRlbnRpb25hbGx5IG5vdCBwYXJ0IG9mIHRoZSBnbG9iYWwgUkpSZXBvcnQgc2V0dGluZ3MuCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzLgoKVGhlIHJ1bmJvb2sncyBtYW5hZ2VkIGlkZW50aXR5IG5lZWRzIGF0IGxlYXN0IGBDb250cmlidXRvcmAgYWNjZXNzIG9uIHRoZSBzdWJzY3JpcHRpb24gb3IgcmVzb3VyY2UgZ3JvdXAgY29udGFpbmluZyB0aGUgc3RvcmFnZSBhY2NvdW50LgoKIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\",\n                \"DeviceManagementServiceConfig.Read.All\",\n                \"Organization.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure IaaS: - Contributor - access on subscription or resource group used for the export\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "DeviceManagementServiceConfig.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure IaaS: - Contributor - access on subscription or resource group used for the export"
+      ]
     }
   },
   {
@@ -10389,8 +10825,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"DeviceManagementServiceConfig.Read.All\",\n                \"DeviceManagementConfiguration.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -10489,8 +10925,8 @@
         }
       }
     ],
-    "DocsContent": "## Runbook Customization\n\n### Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n\n### InputJson Configuration\n\nEach license configuration requires:\n\n- **SKUPartNumber** (required): Microsoft SKU identifier\n- **FriendlyName** (required): Display name\n- **MinThreshold** (optional): Alert when available licenses < threshold\n- **MaxThreshold** (optional): Alert when available licenses > threshold\n\nAt least one threshold must be set per license.\n\n### Configuration Examples\n\n**Minimum threshold only** (prevent shortages):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"ENTERPRISEPACK\",\n        \"FriendlyName\": \"Microsoft 365 E3\",\n        \"MinThreshold\": 50\n    }\n]\n```\n\n**Maximum threshold only** (prevent over-provisioning):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"POWER_BI_PRO\",\n        \"FriendlyName\": \"Power BI Pro\",\n        \"MaxThreshold\": 500\n    }\n]\n```\n\n**Both thresholds** (maintain range):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"ENTERPRISEPREMIUM\",\n        \"FriendlyName\": \"Microsoft 365 E5\",\n        \"MinThreshold\": 50,\n        \"MaxThreshold\": 150\n    }\n]\n```\n\n### Complete Runbook Customization\n\n```json\n{\n    \"Settings\": {\n        \"RJReport\": {\n            \"EmailSender\": \"sender@contoso.com\"\n        }\n    },\n    \"Runbooks\": {\n        \"rjgit-org_general_report-license-assignment_scheduled\": {\n            \"Parameters\": {\n                \"EmailTo\": {\n                    \"DisplayName\": \"Recipient Email Address(es)\"\n                },\n                \"InputJson\": {\n                    \"Hide\": true,\n                    \"DefaultValue\": [\n                        {\n                            \"SKUPartNumber\": \"SPE_E5\",\n                            \"FriendlyName\": \"Microsoft 365 E5\",\n                            \"MinThreshold\": 20,\n                            \"MaxThreshold\": 30\n                        },\n                        {\n                            \"SKUPartNumber\": \"FLOW_FREE\",\n                            \"FriendlyName\": \"Microsoft Power Automate Free\",\n                            \"MinThreshold\": 10\n                        }\n                    ]\n                },\n                \"EmailFrom\": {\n                    \"Hide\": true\n                },\n                \"CallerName\": {\n                    \"Hide\": true\n                }\n            }\n        }\n    }\n}\n```\n\n## Finding SKU Part Numbers\n\n```powershell\nConnect-MgGraph -Scopes \"Organization.Read.All\"\nGet-MgSubscribedSku | Select-Object SkuPartNumber, SkuId | Sort-Object SkuPartNumber\n```\n\nCommon SKUs:\n\n- `ENTERPRISEPACK` - Microsoft 365 E3\n- `ENTERPRISEPREMIUM` - Microsoft 365 E5\n- `EMS` - Enterprise Mobility + Security E3\n\n## Output\n\n**When violations detected:**\n\n- Console output in job log\n- CSV export (`License_Threshold_Violations.csv`)\n- Email report with summary, violations, recommendations, and CSV attachment\n\n**When all within thresholds:**\n\n- No email sent\n- Job completes successfully\n\n## Troubleshooting\n\n**SKU Not Found**: Verify SKU exists using `Get-MgSubscribedSku`\n\n**Email Not Sent**: Check EmailFrom configuration and Mail.Send permission\n\n**Invalid JSON**: Validate JSON format before configuration\n\n## Migration Note\n\nLegacy `WarningThreshold` automatically maps to `MinThreshold` - old configurations continue to work.\n",
-    "DocsContentEncoded": "IyMgUnVuYm9vayBDdXN0b21pemF0aW9uCgojIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4KCiMjIyBJbnB1dEpzb24gQ29uZmlndXJhdGlvbgoKRWFjaCBsaWNlbnNlIGNvbmZpZ3VyYXRpb24gcmVxdWlyZXM6CgotICoqU0tVUGFydE51bWJlcioqIChyZXF1aXJlZCk6IE1pY3Jvc29mdCBTS1UgaWRlbnRpZmllcgotICoqRnJpZW5kbHlOYW1lKiogKHJlcXVpcmVkKTogRGlzcGxheSBuYW1lCi0gKipNaW5UaHJlc2hvbGQqKiAob3B0aW9uYWwpOiBBbGVydCB3aGVuIGF2YWlsYWJsZSBsaWNlbnNlcyA8IHRocmVzaG9sZAotICoqTWF4VGhyZXNob2xkKiogKG9wdGlvbmFsKTogQWxlcnQgd2hlbiBhdmFpbGFibGUgbGljZW5zZXMgPiB0aHJlc2hvbGQKCkF0IGxlYXN0IG9uZSB0aHJlc2hvbGQgbXVzdCBiZSBzZXQgcGVyIGxpY2Vuc2UuCgojIyMgQ29uZmlndXJhdGlvbiBFeGFtcGxlcwoKKipNaW5pbXVtIHRocmVzaG9sZCBvbmx5KiogKHByZXZlbnQgc2hvcnRhZ2VzKToKCmBgYGpzb24KWwogICAgewogICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIkVOVEVSUFJJU0VQQUNLIiwKICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCAzNjUgRTMiLAogICAgICAgICJNaW5UaHJlc2hvbGQiOiA1MAogICAgfQpdCmBgYAoKKipNYXhpbXVtIHRocmVzaG9sZCBvbmx5KiogKHByZXZlbnQgb3Zlci1wcm92aXNpb25pbmcpOgoKYGBganNvbgpbCiAgICB7CiAgICAgICAgIlNLVVBhcnROdW1iZXIiOiAiUE9XRVJfQklfUFJPIiwKICAgICAgICAiRnJpZW5kbHlOYW1lIjogIlBvd2VyIEJJIFBybyIsCiAgICAgICAgIk1heFRocmVzaG9sZCI6IDUwMAogICAgfQpdCmBgYAoKKipCb3RoIHRocmVzaG9sZHMqKiAobWFpbnRhaW4gcmFuZ2UpOgoKYGBganNvbgpbCiAgICB7CiAgICAgICAgIlNLVVBhcnROdW1iZXIiOiAiRU5URVJQUklTRVBSRU1JVU0iLAogICAgICAgICJGcmllbmRseU5hbWUiOiAiTWljcm9zb2Z0IDM2NSBFNSIsCiAgICAgICAgIk1pblRocmVzaG9sZCI6IDUwLAogICAgICAgICJNYXhUaHJlc2hvbGQiOiAxNTAKICAgIH0KXQpgYGAKCiMjIyBDb21wbGV0ZSBSdW5ib29rIEN1c3RvbWl6YXRpb24KCmBgYGpzb24KewogICAgIlNldHRpbmdzIjogewogICAgICAgICJSSlJlcG9ydCI6IHsKICAgICAgICAgICAgIkVtYWlsU2VuZGVyIjogInNlbmRlckBjb250b3NvLmNvbSIKICAgICAgICB9CiAgICB9LAogICAgIlJ1bmJvb2tzIjogewogICAgICAgICJyamdpdC1vcmdfZ2VuZXJhbF9yZXBvcnQtbGljZW5zZS1hc3NpZ25tZW50X3NjaGVkdWxlZCI6IHsKICAgICAgICAgICAgIlBhcmFtZXRlcnMiOiB7CiAgICAgICAgICAgICAgICAiRW1haWxUbyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGlzcGxheU5hbWUiOiAiUmVjaXBpZW50IEVtYWlsIEFkZHJlc3MoZXMpIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJJbnB1dEpzb24iOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlLAogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0VmFsdWUiOiBbCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIlNQRV9FNSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCAzNjUgRTUiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1pblRocmVzaG9sZCI6IDIwLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1heFRocmVzaG9sZCI6IDMwCiAgICAgICAgICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIkZMT1dfRlJFRSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCBQb3dlciBBdXRvbWF0ZSBGcmVlIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNaW5UaHJlc2hvbGQiOiAxMAogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgXQogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJFbWFpbEZyb20iOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9LAogICAgICAgICAgICAgICAgIkNhbGxlck5hbWUiOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cn0KYGBgCgojIyBGaW5kaW5nIFNLVSBQYXJ0IE51bWJlcnMKCmBgYHBvd2Vyc2hlbGwKQ29ubmVjdC1NZ0dyYXBoIC1TY29wZXMgIk9yZ2FuaXphdGlvbi5SZWFkLkFsbCIKR2V0LU1nU3Vic2NyaWJlZFNrdSB8IFNlbGVjdC1PYmplY3QgU2t1UGFydE51bWJlciwgU2t1SWQgfCBTb3J0LU9iamVjdCBTa3VQYXJ0TnVtYmVyCmBgYAoKQ29tbW9uIFNLVXM6CgotIGBFTlRFUlBSSVNFUEFDS2AgLSBNaWNyb3NvZnQgMzY1IEUzCi0gYEVOVEVSUFJJU0VQUkVNSVVNYCAtIE1pY3Jvc29mdCAzNjUgRTUKLSBgRU1TYCAtIEVudGVycHJpc2UgTW9iaWxpdHkgKyBTZWN1cml0eSBFMwoKIyMgT3V0cHV0CgoqKldoZW4gdmlvbGF0aW9ucyBkZXRlY3RlZDoqKgoKLSBDb25zb2xlIG91dHB1dCBpbiBqb2IgbG9nCi0gQ1NWIGV4cG9ydCAoYExpY2Vuc2VfVGhyZXNob2xkX1Zpb2xhdGlvbnMuY3N2YCkKLSBFbWFpbCByZXBvcnQgd2l0aCBzdW1tYXJ5LCB2aW9sYXRpb25zLCByZWNvbW1lbmRhdGlvbnMsIGFuZCBDU1YgYXR0YWNobWVudAoKKipXaGVuIGFsbCB3aXRoaW4gdGhyZXNob2xkczoqKgoKLSBObyBlbWFpbCBzZW50Ci0gSm9iIGNvbXBsZXRlcyBzdWNjZXNzZnVsbHkKCiMjIFRyb3VibGVzaG9vdGluZwoKKipTS1UgTm90IEZvdW5kKio6IFZlcmlmeSBTS1UgZXhpc3RzIHVzaW5nIGBHZXQtTWdTdWJzY3JpYmVkU2t1YAoKKipFbWFpbCBOb3QgU2VudCoqOiBDaGVjayBFbWFpbEZyb20gY29uZmlndXJhdGlvbiBhbmQgTWFpbC5TZW5kIHBlcm1pc3Npb24KCioqSW52YWxpZCBKU09OKio6IFZhbGlkYXRlIEpTT04gZm9ybWF0IGJlZm9yZSBjb25maWd1cmF0aW9uCgojIyBNaWdyYXRpb24gTm90ZQoKTGVnYWN5IGBXYXJuaW5nVGhyZXNob2xkYCBhdXRvbWF0aWNhbGx5IG1hcHMgdG8gYE1pblRocmVzaG9sZGAgLSBvbGQgY29uZmlndXJhdGlvbnMgY29udGludWUgdG8gd29yay4K",
+    "DocsContent": "## Runbook Customization\n\n### Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\n### InputJson Configuration\n\nEach license configuration requires:\n\n- **SKUPartNumber** (required): Microsoft SKU identifier\n- **FriendlyName** (required): Display name\n- **MinThreshold** (optional): Alert when available licenses < threshold\n- **MaxThreshold** (optional): Alert when available licenses > threshold\n\nAt least one threshold must be set per license.\n\n### Configuration Examples\n\n**Minimum threshold only** (prevent shortages):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"ENTERPRISEPACK\",\n        \"FriendlyName\": \"Microsoft 365 E3\",\n        \"MinThreshold\": 50\n    }\n]\n```\n\n**Maximum threshold only** (prevent over-provisioning):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"POWER_BI_PRO\",\n        \"FriendlyName\": \"Power BI Pro\",\n        \"MaxThreshold\": 500\n    }\n]\n```\n\n**Both thresholds** (maintain range):\n\n```json\n[\n    {\n        \"SKUPartNumber\": \"ENTERPRISEPREMIUM\",\n        \"FriendlyName\": \"Microsoft 365 E5\",\n        \"MinThreshold\": 50,\n        \"MaxThreshold\": 150\n    }\n]\n```\n\n### Complete Runbook Customization\n\n```json\n{\n    \"Settings\": {\n        \"RJReport\": {\n            \"EmailSender\": \"sender@contoso.com\"\n        }\n    },\n    \"Runbooks\": {\n        \"rjgit-org_general_report-license-assignment_scheduled\": {\n            \"Parameters\": {\n                \"EmailTo\": {\n                    \"DisplayName\": \"Recipient Email Address(es)\"\n                },\n                \"InputJson\": {\n                    \"Hide\": true,\n                    \"DefaultValue\": [\n                        {\n                            \"SKUPartNumber\": \"SPE_E5\",\n                            \"FriendlyName\": \"Microsoft 365 E5\",\n                            \"MinThreshold\": 20,\n                            \"MaxThreshold\": 30\n                        },\n                        {\n                            \"SKUPartNumber\": \"FLOW_FREE\",\n                            \"FriendlyName\": \"Microsoft Power Automate Free\",\n                            \"MinThreshold\": 10\n                        }\n                    ]\n                },\n                \"EmailFrom\": {\n                    \"Hide\": true\n                },\n                \"CallerName\": {\n                    \"Hide\": true\n                }\n            }\n        }\n    }\n}\n```\n\n## Finding SKU Part Numbers\n\n```powershell\nConnect-MgGraph -Scopes \"Organization.Read.All\"\nGet-MgSubscribedSku | Select-Object SkuPartNumber, SkuId | Sort-Object SkuPartNumber\n```\n\nCommon SKUs:\n\n- `ENTERPRISEPACK` - Microsoft 365 E3\n- `ENTERPRISEPREMIUM` - Microsoft 365 E5\n- `EMS` - Enterprise Mobility + Security E3\n\n## Output\n\n**When violations detected:**\n\n- Console output in job log\n- CSV export (`License_Threshold_Violations.csv`)\n- Email report with summary, violations, recommendations, and CSV attachment\n\n**When all within thresholds:**\n\n- No email sent\n- Job completes successfully\n\n## Troubleshooting\n\n**SKU Not Found**: Verify SKU exists using `Get-MgSubscribedSku`\n\n**Email Not Sent**: Check EmailFrom configuration and Mail.Send permission\n\n**Invalid JSON**: Validate JSON format before configuration\n\n## Migration Note\n\nLegacy `WarningThreshold` automatically maps to `MinThreshold` - old configurations continue to work.\n",
+    "DocsContentEncoded": "IyMgUnVuYm9vayBDdXN0b21pemF0aW9uCgojIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4KCiMjIyBJbnB1dEpzb24gQ29uZmlndXJhdGlvbgoKRWFjaCBsaWNlbnNlIGNvbmZpZ3VyYXRpb24gcmVxdWlyZXM6CgotICoqU0tVUGFydE51bWJlcioqIChyZXF1aXJlZCk6IE1pY3Jvc29mdCBTS1UgaWRlbnRpZmllcgotICoqRnJpZW5kbHlOYW1lKiogKHJlcXVpcmVkKTogRGlzcGxheSBuYW1lCi0gKipNaW5UaHJlc2hvbGQqKiAob3B0aW9uYWwpOiBBbGVydCB3aGVuIGF2YWlsYWJsZSBsaWNlbnNlcyA8IHRocmVzaG9sZAotICoqTWF4VGhyZXNob2xkKiogKG9wdGlvbmFsKTogQWxlcnQgd2hlbiBhdmFpbGFibGUgbGljZW5zZXMgPiB0aHJlc2hvbGQKCkF0IGxlYXN0IG9uZSB0aHJlc2hvbGQgbXVzdCBiZSBzZXQgcGVyIGxpY2Vuc2UuCgojIyMgQ29uZmlndXJhdGlvbiBFeGFtcGxlcwoKKipNaW5pbXVtIHRocmVzaG9sZCBvbmx5KiogKHByZXZlbnQgc2hvcnRhZ2VzKToKCmBgYGpzb24KWwogICAgewogICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIkVOVEVSUFJJU0VQQUNLIiwKICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCAzNjUgRTMiLAogICAgICAgICJNaW5UaHJlc2hvbGQiOiA1MAogICAgfQpdCmBgYAoKKipNYXhpbXVtIHRocmVzaG9sZCBvbmx5KiogKHByZXZlbnQgb3Zlci1wcm92aXNpb25pbmcpOgoKYGBganNvbgpbCiAgICB7CiAgICAgICAgIlNLVVBhcnROdW1iZXIiOiAiUE9XRVJfQklfUFJPIiwKICAgICAgICAiRnJpZW5kbHlOYW1lIjogIlBvd2VyIEJJIFBybyIsCiAgICAgICAgIk1heFRocmVzaG9sZCI6IDUwMAogICAgfQpdCmBgYAoKKipCb3RoIHRocmVzaG9sZHMqKiAobWFpbnRhaW4gcmFuZ2UpOgoKYGBganNvbgpbCiAgICB7CiAgICAgICAgIlNLVVBhcnROdW1iZXIiOiAiRU5URVJQUklTRVBSRU1JVU0iLAogICAgICAgICJGcmllbmRseU5hbWUiOiAiTWljcm9zb2Z0IDM2NSBFNSIsCiAgICAgICAgIk1pblRocmVzaG9sZCI6IDUwLAogICAgICAgICJNYXhUaHJlc2hvbGQiOiAxNTAKICAgIH0KXQpgYGAKCiMjIyBDb21wbGV0ZSBSdW5ib29rIEN1c3RvbWl6YXRpb24KCmBgYGpzb24KewogICAgIlNldHRpbmdzIjogewogICAgICAgICJSSlJlcG9ydCI6IHsKICAgICAgICAgICAgIkVtYWlsU2VuZGVyIjogInNlbmRlckBjb250b3NvLmNvbSIKICAgICAgICB9CiAgICB9LAogICAgIlJ1bmJvb2tzIjogewogICAgICAgICJyamdpdC1vcmdfZ2VuZXJhbF9yZXBvcnQtbGljZW5zZS1hc3NpZ25tZW50X3NjaGVkdWxlZCI6IHsKICAgICAgICAgICAgIlBhcmFtZXRlcnMiOiB7CiAgICAgICAgICAgICAgICAiRW1haWxUbyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGlzcGxheU5hbWUiOiAiUmVjaXBpZW50IEVtYWlsIEFkZHJlc3MoZXMpIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJJbnB1dEpzb24iOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlLAogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0VmFsdWUiOiBbCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIlNQRV9FNSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCAzNjUgRTUiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1pblRocmVzaG9sZCI6IDIwLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1heFRocmVzaG9sZCI6IDMwCiAgICAgICAgICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTS1VQYXJ0TnVtYmVyIjogIkZMT1dfRlJFRSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiRnJpZW5kbHlOYW1lIjogIk1pY3Jvc29mdCBQb3dlciBBdXRvbWF0ZSBGcmVlIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNaW5UaHJlc2hvbGQiOiAxMAogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgXQogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJFbWFpbEZyb20iOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9LAogICAgICAgICAgICAgICAgIkNhbGxlck5hbWUiOiB7CiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cn0KYGBgCgojIyBGaW5kaW5nIFNLVSBQYXJ0IE51bWJlcnMKCmBgYHBvd2Vyc2hlbGwKQ29ubmVjdC1NZ0dyYXBoIC1TY29wZXMgIk9yZ2FuaXphdGlvbi5SZWFkLkFsbCIKR2V0LU1nU3Vic2NyaWJlZFNrdSB8IFNlbGVjdC1PYmplY3QgU2t1UGFydE51bWJlciwgU2t1SWQgfCBTb3J0LU9iamVjdCBTa3VQYXJ0TnVtYmVyCmBgYAoKQ29tbW9uIFNLVXM6CgotIGBFTlRFUlBSSVNFUEFDS2AgLSBNaWNyb3NvZnQgMzY1IEUzCi0gYEVOVEVSUFJJU0VQUkVNSVVNYCAtIE1pY3Jvc29mdCAzNjUgRTUKLSBgRU1TYCAtIEVudGVycHJpc2UgTW9iaWxpdHkgKyBTZWN1cml0eSBFMwoKIyMgT3V0cHV0CgoqKldoZW4gdmlvbGF0aW9ucyBkZXRlY3RlZDoqKgoKLSBDb25zb2xlIG91dHB1dCBpbiBqb2IgbG9nCi0gQ1NWIGV4cG9ydCAoYExpY2Vuc2VfVGhyZXNob2xkX1Zpb2xhdGlvbnMuY3N2YCkKLSBFbWFpbCByZXBvcnQgd2l0aCBzdW1tYXJ5LCB2aW9sYXRpb25zLCByZWNvbW1lbmRhdGlvbnMsIGFuZCBDU1YgYXR0YWNobWVudAoKKipXaGVuIGFsbCB3aXRoaW4gdGhyZXNob2xkczoqKgoKLSBObyBlbWFpbCBzZW50Ci0gSm9iIGNvbXBsZXRlcyBzdWNjZXNzZnVsbHkKCiMjIFRyb3VibGVzaG9vdGluZwoKKipTS1UgTm90IEZvdW5kKio6IFZlcmlmeSBTS1UgZXhpc3RzIHVzaW5nIGBHZXQtTWdTdWJzY3JpYmVkU2t1YAoKKipFbWFpbCBOb3QgU2VudCoqOiBDaGVjayBFbWFpbEZyb20gY29uZmlndXJhdGlvbiBhbmQgTWFpbC5TZW5kIHBlcm1pc3Npb24KCioqSW52YWxpZCBKU09OKio6IFZhbGlkYXRlIEpTT04gZm9ybWF0IGJlZm9yZSBjb25maWd1cmF0aW9uCgojIyBNaWdyYXRpb24gTm90ZQoKTGVnYWN5IGBXYXJuaW5nVGhyZXNob2xkYCBhdXRvbWF0aWNhbGx5IG1hcHMgdG8gYE1pblRocmVzaG9sZGAgLSBvbGQgY29uZmlndXJhdGlvbnMgY29udGludWUgdG8gd29yay4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Organization.Read.All\",\n                \"User.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -10690,6 +11126,243 @@
           "AppRoleAssignments": [
             "DeviceManagementApps.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Sync Sharedchannel Owners_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Sharedchannel Owners_Scheduled",
+    "RelativeRunbookPath": "org/general/sync-sharedchannel-owners_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Ensure a security group's members are owners of mapped Teams and their shared channels.",
+    "Description": "Teams shared channels do not inherit ownership from their parent team. This scheduled runbook closes\nthat gap: for each team named in a mapping, it ensures the members of a mapped security group are owners\nof the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is\nmaintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members\nare never removed - so newly created shared channels are simply picked up on the next run. It can\noptionally email a report and/or upload the CSV results as a download link. See the accompanying\ndocumentation for the mapping rules and configuration.",
+    "Notes": "Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under\n\"SharedChannelOwners.Mapping\". Each entry names a team by its exact display name. The hidden\nTeamOwnerGroupMapping parameter is injected from it at runtime.\n{\n    \"Settings\": {\n        \"SharedChannelOwners\": {\n            \"Mapping\": [\n                { \"TeamName\": \"EXT Service A\", \"OwnerGroupId\": \"11111111-1111-1111-1111-111111111111\" },\n                { \"TeamName\": \"EXT Service B\", \"OwnerGroupId\": \"22222222-2222-2222-2222-222222222222\" }\n            ]\n        }\n    }\n}",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "shared-channel-owners",
+        "description": [
+          {
+            "Text": "Storage container used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is\nreturned (and included in the email report if that is also enabled). Default off."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox for the report. Bound to the org Setting \"RJReport.EmailSender\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), the owner-group members are also ensured as owners and members of the parent\nteam itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeTeamOwners",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Days until the generated download link expires. Bound to \"RJReport.StorageAccount.LinkExpiryDays\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Bound to \"RJReport.StorageAccount.ResourceGroup\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body\ncontains run statistics and two CSV attachments (per-team summary and per-change detail)."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account used for the upload. Bound to \"RJReport.StorageAccount.StorageAccountName\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "[]",
+        "description": [
+          {
+            "Text": "Mapping of an exact team display name to an owner security group object id, e.g.\n[{ \"TeamName\": \"EXT Service A\", \"OwnerGroupId\": \"00000000-0000-0000-0000-000000000000\" }].\nHidden parameter, bound to the org Setting \"SharedChannelOwners.Mapping\". The RealmJoin portal injects\nthat value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or\nas a JSON string and normalizes both."
+          }
+        ],
+        "globbing": "false",
+        "name": "TeamOwnerGroupMapping",
+        "parameterValue": "Object",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Object"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the runbook only logs the changes it would make without writing anything."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIfMode",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nOn each run the runbook:\n\n1. Reads the team-name-to-owner-group mapping from the org setting `SharedChannelOwners.Mapping`.\n2. For each entry, looks up the team by its **exact display name**.\n3. Expands that entry's owner group to its transitive **user** members (guests are skipped - they cannot belong to a shared channel).\n4. Ensures those users are owners of the team and of every **hosted** shared channel of the team.\n\nThe runbook is **add-only**: it never demotes or removes existing owners or members. Newly created shared channels are therefore picked up automatically on the next scheduled run, without disturbing anything already in place.\n\n### Mapping configuration\n\nThe mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name** (see the *Notes* section for a ready-to-use example). The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.\n\n### Team matching\n\nEach mapping entry targets one explicitly named team:\n\n- A team is matched by its **exact display name** (case-insensitive, consistent with Microsoft Graph; surrounding whitespace in the configured name is ignored). Only that team is processed - there is no prefix or wildcard behaviour, so naming an entry `EXT Service A` never affects `EXT Service A Backup` or similar.\n- Display names are not guaranteed unique in Entra ID. If several teams share the configured name, the owner group is applied to **all** of them. If no team matches, the entry is reported as *not found* and skipped.\n\n### Team selection\n\nFor every configured `TeamName` the runbook runs a Graph `displayName eq '...'` lookup and keeps only Microsoft 365 groups that are provisioned as a **Team**.\n\n### What gets changed\n\n- **Team (optional, `IncludeTeamOwners`, default on):** the owner-group users are added as owners and members of the parent M365 group. Team membership is also the technical prerequisite for becoming a shared-channel owner, so this step enables the channel step.\n- **Shared channels:** for every hosted shared channel (`membershipType eq 'shared'`), each owner-group user is ensured as a channel **owner** - added directly if absent, or promoted if already a member. If a direct owner-add is rejected (e.g. membership replication lag), the runbook falls back to adding the user as a member first and then promoting.\n\n### Dry run\n\nSet **`WhatIfMode`** to log what would change without writing anything. In this mode the runbook prints, up front, the teams it would process (with their owner group) and any configured team names that were not found.\n\n### Reporting (optional, both default off)\n\n- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and two CSV attachments: a per-team summary and a per-change detail list. The sender is taken from the `RJReport.EmailSender` setting.\n- **`CreateDownloadLink`** uploads the same CSVs to a storage account and returns time-limited SAS download links (also embedded into the email when both options are enabled). The target storage account is taken from the `RJReport.StorageAccount.*` settings.\n\nThe storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n### Scheduling\n\nDesigned to run unattended on a schedule. Because configuration is centralized in the org settings and the runbook is add-only and idempotent, a single recurring schedule keeps all mapped teams and their shared channels in sync as people and channels come and go.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpPbiBlYWNoIHJ1biB0aGUgcnVuYm9vazoKCjEuIFJlYWRzIHRoZSB0ZWFtLW5hbWUtdG8tb3duZXItZ3JvdXAgbWFwcGluZyBmcm9tIHRoZSBvcmcgc2V0dGluZyBgU2hhcmVkQ2hhbm5lbE93bmVycy5NYXBwaW5nYC4KMi4gRm9yIGVhY2ggZW50cnksIGxvb2tzIHVwIHRoZSB0ZWFtIGJ5IGl0cyAqKmV4YWN0IGRpc3BsYXkgbmFtZSoqLgozLiBFeHBhbmRzIHRoYXQgZW50cnkncyBvd25lciBncm91cCB0byBpdHMgdHJhbnNpdGl2ZSAqKnVzZXIqKiBtZW1iZXJzIChndWVzdHMgYXJlIHNraXBwZWQgLSB0aGV5IGNhbm5vdCBiZWxvbmcgdG8gYSBzaGFyZWQgY2hhbm5lbCkuCjQuIEVuc3VyZXMgdGhvc2UgdXNlcnMgYXJlIG93bmVycyBvZiB0aGUgdGVhbSBhbmQgb2YgZXZlcnkgKipob3N0ZWQqKiBzaGFyZWQgY2hhbm5lbCBvZiB0aGUgdGVhbS4KClRoZSBydW5ib29rIGlzICoqYWRkLW9ubHkqKjogaXQgbmV2ZXIgZGVtb3RlcyBvciByZW1vdmVzIGV4aXN0aW5nIG93bmVycyBvciBtZW1iZXJzLiBOZXdseSBjcmVhdGVkIHNoYXJlZCBjaGFubmVscyBhcmUgdGhlcmVmb3JlIHBpY2tlZCB1cCBhdXRvbWF0aWNhbGx5IG9uIHRoZSBuZXh0IHNjaGVkdWxlZCBydW4sIHdpdGhvdXQgZGlzdHVyYmluZyBhbnl0aGluZyBhbHJlYWR5IGluIHBsYWNlLgoKIyMjIE1hcHBpbmcgY29uZmlndXJhdGlvbgoKVGhlIG1hcHBpbmcgbGl2ZXMgY2VudHJhbGx5IGluIHRoZSBSZWFsbUpvaW4gb3JnIHNldHRpbmdzIChSdW5ib29rIEN1c3RvbWl6YXRpb24g4oaSIGBTZXR0aW5nc2Ag4oaSIGBTaGFyZWRDaGFubmVsT3duZXJzLk1hcHBpbmdgKSBzbyBpdCBpcyBtYWludGFpbmVkIG9uY2UgYW5kIHNoYXJlZCBieSBldmVyeSBzY2hlZHVsZS4gSXQgaXMgYSBsaXN0IG9mIGB7IFRlYW1OYW1lLCBPd25lckdyb3VwSWQgfWAgb2JqZWN0cywgd2hlcmUgYFRlYW1OYW1lYCBpcyB0aGUgKipleGFjdCB0ZWFtIGRpc3BsYXkgbmFtZSoqIChzZWUgdGhlICpOb3Rlcyogc2VjdGlvbiBmb3IgYSByZWFkeS10by11c2UgZXhhbXBsZSkuIFRoZSBoaWRkZW4gYFRlYW1Pd25lckdyb3VwTWFwcGluZ2AgcGFyYW1ldGVyIGlzIGluamVjdGVkIGZyb20gdGhpcyBzZXR0aW5nOyB0aGUgcnVuYm9vayBhY2NlcHRzIGl0IGVpdGhlciBhcyBhIHN0cnVjdHVyZWQgYXJyYXkgKHJlY29tbWVuZGVkIHN1Yi1zZXR0aW5nIGZvcm0pIG9yIGFzIGEgSlNPTiBzdHJpbmcgYW5kIG5vcm1hbGl6ZXMgYm90aC4KCiMjIyBUZWFtIG1hdGNoaW5nCgpFYWNoIG1hcHBpbmcgZW50cnkgdGFyZ2V0cyBvbmUgZXhwbGljaXRseSBuYW1lZCB0ZWFtOgoKLSBBIHRlYW0gaXMgbWF0Y2hlZCBieSBpdHMgKipleGFjdCBkaXNwbGF5IG5hbWUqKiAoY2FzZS1pbnNlbnNpdGl2ZSwgY29uc2lzdGVudCB3aXRoIE1pY3Jvc29mdCBHcmFwaDsgc3Vycm91bmRpbmcgd2hpdGVzcGFjZSBpbiB0aGUgY29uZmlndXJlZCBuYW1lIGlzIGlnbm9yZWQpLiBPbmx5IHRoYXQgdGVhbSBpcyBwcm9jZXNzZWQgLSB0aGVyZSBpcyBubyBwcmVmaXggb3Igd2lsZGNhcmQgYmVoYXZpb3VyLCBzbyBuYW1pbmcgYW4gZW50cnkgYEVYVCBTZXJ2aWNlIEFgIG5ldmVyIGFmZmVjdHMgYEVYVCBTZXJ2aWNlIEEgQmFja3VwYCBvciBzaW1pbGFyLgotIERpc3BsYXkgbmFtZXMgYXJlIG5vdCBndWFyYW50ZWVkIHVuaXF1ZSBpbiBFbnRyYSBJRC4gSWYgc2V2ZXJhbCB0ZWFtcyBzaGFyZSB0aGUgY29uZmlndXJlZCBuYW1lLCB0aGUgb3duZXIgZ3JvdXAgaXMgYXBwbGllZCB0byAqKmFsbCoqIG9mIHRoZW0uIElmIG5vIHRlYW0gbWF0Y2hlcywgdGhlIGVudHJ5IGlzIHJlcG9ydGVkIGFzICpub3QgZm91bmQqIGFuZCBza2lwcGVkLgoKIyMjIFRlYW0gc2VsZWN0aW9uCgpGb3IgZXZlcnkgY29uZmlndXJlZCBgVGVhbU5hbWVgIHRoZSBydW5ib29rIHJ1bnMgYSBHcmFwaCBgZGlzcGxheU5hbWUgZXEgJy4uLidgIGxvb2t1cCBhbmQga2VlcHMgb25seSBNaWNyb3NvZnQgMzY1IGdyb3VwcyB0aGF0IGFyZSBwcm92aXNpb25lZCBhcyBhICoqVGVhbSoqLgoKIyMjIFdoYXQgZ2V0cyBjaGFuZ2VkCgotICoqVGVhbSAob3B0aW9uYWwsIGBJbmNsdWRlVGVhbU93bmVyc2AsIGRlZmF1bHQgb24pOioqIHRoZSBvd25lci1ncm91cCB1c2VycyBhcmUgYWRkZWQgYXMgb3duZXJzIGFuZCBtZW1iZXJzIG9mIHRoZSBwYXJlbnQgTTM2NSBncm91cC4gVGVhbSBtZW1iZXJzaGlwIGlzIGFsc28gdGhlIHRlY2huaWNhbCBwcmVyZXF1aXNpdGUgZm9yIGJlY29taW5nIGEgc2hhcmVkLWNoYW5uZWwgb3duZXIsIHNvIHRoaXMgc3RlcCBlbmFibGVzIHRoZSBjaGFubmVsIHN0ZXAuCi0gKipTaGFyZWQgY2hhbm5lbHM6KiogZm9yIGV2ZXJ5IGhvc3RlZCBzaGFyZWQgY2hhbm5lbCAoYG1lbWJlcnNoaXBUeXBlIGVxICdzaGFyZWQnYCksIGVhY2ggb3duZXItZ3JvdXAgdXNlciBpcyBlbnN1cmVkIGFzIGEgY2hhbm5lbCAqKm93bmVyKiogLSBhZGRlZCBkaXJlY3RseSBpZiBhYnNlbnQsIG9yIHByb21vdGVkIGlmIGFscmVhZHkgYSBtZW1iZXIuIElmIGEgZGlyZWN0IG93bmVyLWFkZCBpcyByZWplY3RlZCAoZS5nLiBtZW1iZXJzaGlwIHJlcGxpY2F0aW9uIGxhZyksIHRoZSBydW5ib29rIGZhbGxzIGJhY2sgdG8gYWRkaW5nIHRoZSB1c2VyIGFzIGEgbWVtYmVyIGZpcnN0IGFuZCB0aGVuIHByb21vdGluZy4KCiMjIyBEcnkgcnVuCgpTZXQgKipgV2hhdElmTW9kZWAqKiB0byBsb2cgd2hhdCB3b3VsZCBjaGFuZ2Ugd2l0aG91dCB3cml0aW5nIGFueXRoaW5nLiBJbiB0aGlzIG1vZGUgdGhlIHJ1bmJvb2sgcHJpbnRzLCB1cCBmcm9udCwgdGhlIHRlYW1zIGl0IHdvdWxkIHByb2Nlc3MgKHdpdGggdGhlaXIgb3duZXIgZ3JvdXApIGFuZCBhbnkgY29uZmlndXJlZCB0ZWFtIG5hbWVzIHRoYXQgd2VyZSBub3QgZm91bmQuCgojIyMgUmVwb3J0aW5nIChvcHRpb25hbCwgYm90aCBkZWZhdWx0IG9mZikKCi0gKipgU2VuZEVtYWlsUmVwb3J0YCoqIHNlbmRzIGEgUmVhbG1Kb2luLWJyYW5kZWQgZW1haWwgKHZpYSBgU2VuZC1SalJlcG9ydEVtYWlsYCkgd2l0aCBydW4gc3RhdGlzdGljcyBhbmQgdHdvIENTViBhdHRhY2htZW50czogYSBwZXItdGVhbSBzdW1tYXJ5IGFuZCBhIHBlci1jaGFuZ2UgZGV0YWlsIGxpc3QuIFRoZSBzZW5kZXIgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCBzZXR0aW5nLgotICoqYENyZWF0ZURvd25sb2FkTGlua2AqKiB1cGxvYWRzIHRoZSBzYW1lIENTVnMgdG8gYSBzdG9yYWdlIGFjY291bnQgYW5kIHJldHVybnMgdGltZS1saW1pdGVkIFNBUyBkb3dubG9hZCBsaW5rcyAoYWxzbyBlbWJlZGRlZCBpbnRvIHRoZSBlbWFpbCB3aGVuIGJvdGggb3B0aW9ucyBhcmUgZW5hYmxlZCkuIFRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50IGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCBzZXR0aW5ncy4KClRoZSBzdG9yYWdlIHVwbG9hZCBhdXRoZW50aWNhdGVzIHdpdGggdGhlIEF1dG9tYXRpb24gYWNjb3VudCdzIG1hbmFnZWQgaWRlbnRpdHk7IHRoYXQgaWRlbnRpdHkgbmVlZHMgdGhlICoqU3RvcmFnZSBCbG9iIERhdGEgQ29udHJpYnV0b3IqKiBSQkFDIHJvbGUgb24gdGhlIHRhcmdldCBzdG9yYWdlIGFjY291bnQgKHRoaXMgaXMgYW4gQXp1cmUgUkJBQyBhc3NpZ25tZW50LCBub3QgYSBHcmFwaCBhcHBsaWNhdGlvbiBwZXJtaXNzaW9uKS4KCiMjIyBTY2hlZHVsaW5nCgpEZXNpZ25lZCB0byBydW4gdW5hdHRlbmRlZCBvbiBhIHNjaGVkdWxlLiBCZWNhdXNlIGNvbmZpZ3VyYXRpb24gaXMgY2VudHJhbGl6ZWQgaW4gdGhlIG9yZyBzZXR0aW5ncyBhbmQgdGhlIHJ1bmJvb2sgaXMgYWRkLW9ubHkgYW5kIGlkZW1wb3RlbnQsIGEgc2luZ2xlIHJlY3VycmluZyBzY2hlZHVsZSBrZWVwcyBhbGwgbWFwcGVkIHRlYW1zIGFuZCB0aGVpciBzaGFyZWQgY2hhbm5lbHMgaW4gc3luYyBhcyBwZW9wbGUgYW5kIGNoYW5uZWxzIGNvbWUgYW5kIGdvLgo=",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"Channel.ReadBasic.All\",\n                \"ChannelMember.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "ChannelMember.ReadWrite.All",
+            "Group.ReadWrite.All",
+            "GroupMember.ReadWrite.All",
+            "Mail.Send"
           ]
         }
       ],
@@ -13628,8 +14301,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -13909,8 +14582,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1NldHVwIEVtYWlsIFJlcG9ydGluZ10oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkgZG9jdW1lbnRhdGlvbi4K",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementConfiguration.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -18265,8 +18938,8 @@
         }
       }
     ],
-    "DocsContent": "## Activate user notification\n\nThis runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_create-temporary-access-pass\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.\n",
-    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBzZW5kcyBhbiBlbWFpbCB0byB0aGUgdXNlciB3aXRoIHRoZSB0ZW1wb3JhcnkgYWNjZXNzIHBhc3MuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9jcmVhdGUtdGVtcG9yYXJ5LWFjY2Vzcy1wYXNzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClRoaXMgcHJvY2VzcyBpcyBkZXNjcmliZWQgaW4gZGV0YWlsIGluIHRoZSBbU2V0dXAgRW1haWwgUmVwb3J0aW5nXShodHRwczovL2dpdGh1Yi5jb20vcmVhbG1qb2luL3JlYWxtam9pbi1ydW5ib29rcy90cmVlL21hc3Rlci9kb2NzL2dlbmVyYWwvc2V0dXAtZW1haWwtcmVwb3J0aW5nLm1kKSBkb2N1bWVudGF0aW9uLgo=",
+    "DocsContent": "## Activate user notification\n\nThis runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_create-temporary-access-pass\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBzZW5kcyBhbiBlbWFpbCB0byB0aGUgdXNlciB3aXRoIHRoZSB0ZW1wb3JhcnkgYWNjZXNzIHBhc3MuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9jcmVhdGUtdGVtcG9yYXJ5LWFjY2Vzcy1wYXNzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhbiBlbWFpbCByZXBvcnQgaXMgb3B0aW9uYWwgYW5kIG9ubHkgaGFwcGVucyB3aGVuIGEgcmVjaXBpZW50IChgRW1haWxUb2ApIGlzIHByb3ZpZGVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzLgo=",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [

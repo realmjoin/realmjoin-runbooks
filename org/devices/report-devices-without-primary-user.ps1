@@ -1,4 +1,4 @@
-﻿<#
+<#
     .SYNOPSIS
     Reports all managed devices in Intune that do not have a primary user assigned.
     .DESCRIPTION
@@ -34,8 +34,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
 
 param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
@@ -59,7 +59,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.2"
+$Version = "1.1.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 if ($EmailTo) {
     Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose

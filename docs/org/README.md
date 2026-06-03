@@ -21,8 +21,10 @@
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
   - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
+  - [Report Primary User Mismatch (Scheduled)](devices/report-primary-user-mismatch_scheduled.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
   - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
+  - [Report Windows Devices Without Autopilot](devices/report-windows-devices-without-autopilot.md)
   - [Sync Device Serialnumbers To Entraid (Scheduled)](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
 <a name='org-general'></a>
 ## General
@@ -61,6 +63,7 @@
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
   - [Sync Apple Tokens](general/sync-apple-tokens.md)
+  - [Sync Sharedchannel Owners (Scheduled)](general/sync-sharedchannel-owners_scheduled.md)
 <a name='org-mail'></a>
 ## Mail
   - [Add Distribution List](mail/add-distribution-list.md)

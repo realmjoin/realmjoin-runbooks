@@ -1,0 +1,17 @@
+{
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                "Group.ReadWrite.All",
+                "GroupMember.ReadWrite.All",
+                "Channel.ReadBasic.All",
+                "ChannelMember.ReadWrite.All",
+                "Mail.Send"
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

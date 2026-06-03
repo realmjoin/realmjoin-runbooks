@@ -365,12 +365,14 @@ if ($outputMode -eq "OneFile") {
             }
             if ($runbook.Description) {
                 Add-Content -Path $ResultFile -Value "#### Description"
+                Add-Content -Path $ResultFile -Value ""
                 Add-Content -Path $ResultFile -Value $runbook.Description
                 Add-Content -Path $ResultFile -Value ""
             }
 
             if ($includeWhereToFind) {
                 Add-Content -Path $ResultFile -Value "#### Where to find"
+                Add-Content -Path $ResultFile -Value ""
                 Add-Content -Path $ResultFile -Value $runbook.RunbookDisplayPath
                 Add-Content -Path $ResultFile -Value ""
             }
@@ -385,6 +387,7 @@ if ($outputMode -eq "OneFile") {
             if ($includeNotes) {
                 if ($runbook.Notes) {
                     Add-Content -Path $ResultFile -Value "#### Notes"
+                    Add-Content -Path $ResultFile -Value ""
                     Add-Content -Path $ResultFile -Value $runbook.Notes
                     Add-Content -Path $ResultFile -Value ""
                 }
@@ -396,6 +399,7 @@ if ($outputMode -eq "OneFile") {
                     # Solange in $RunbookPermissions bzw. in einer der Properties ein Wert vorhanden ist, wird der Abschnitt ausgegeben
                     if (($RunbookPermissions.Permissions) -or ($RunbookPermissions.RBACRoles) -or ($RunbookPermissions.ManualPermissions)) {
                         Add-Content -Path $ResultFile -Value "#### Permissions"
+                        Add-Content -Path $ResultFile -Value ""
                         if ($RunbookPermissions.Permissions) {
                             Add-Content -Path $ResultFile -Value "##### Application permissions"
                             Add-Content -Path $ResultFile -Value $RunbookPermissions.Permissions
@@ -416,6 +420,7 @@ if ($outputMode -eq "OneFile") {
             if ($includeParameters) {
                 if ($runbook.Parameters) {
                     Add-Content -Path $ResultFile -Value "#### Parameters"
+                    Add-Content -Path $ResultFile -Value ""
                     foreach ($parameter in $runbook.Parameters) {
                         Add-Content -Path $ResultFile -Value "##### $($parameter.Name)"
                         # Filter out ValidateScript blocks from description

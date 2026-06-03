@@ -1,5 +1,40 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-03
+
+- Add **Sync Shared Channel Owners (Scheduled)** Runbook in Org/General
+  - Ensures the members of a mapped security group are owners of selected Teams and of every shared channel those teams host (shared channels do not inherit ownership from their parent team)
+  - Teams are targeted by exact display name; the team-name-to-owner-group mapping is maintained centrally via the `SharedChannelOwners.Mapping` org setting
+  - Add-only (existing owners/members are never removed); `WhatIfMode` dry run
+  - Optional email report (via `Send-RjReportEmail`) and/or storage download link, each with per-team and per-change CSV output (both default off)
+- Add **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
+  - Compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API for Windows managed devices, flags any device where the primary user differs, and emails the differences with a CSV attachment on a scheduled basis.
+
+## 2026-06-02
+
+- Bump `Microsoft.Graph.Authentication` module to >= 2.37.0 in all runbooks that use it
+- Add **Report Windows Devices Without Autopilot** Runbook in Org/Devices
+  - Lists all Windows Entra device objects that have no associated Windows Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`)
+- Update **Outphase Device** Runbook in Device/General
+  - Add optional Microsoft Defender for Endpoint exclusion: tags the device with a configurable exclusion tag (default `ExcludeFromRemediation`) to mark it as excluded from remediation (opt-in, default off)
+  - Consolidates the previously separate Defender exclusion variant into this Runbook
+  - Adds the `WindowsDefenderATP` permissions `Machine.Read.All` and `Machine.ReadWrite.All`
+- Update **Outphase Devices** Runbook in Org/Devices
+  - Add the same optional Microsoft Defender for Endpoint exclusion tagging, applied to every device in the list (opt-in, default off)
+  - Adds the `WindowsDefenderATP` permissions `Machine.Read.All` and `Machine.ReadWrite.All`
+
+## 2026-06-01
+
+- Bump `RealmJoin.RunbookHelper` to >= 0.8.6 in every Runbook that uses the module
+  - This module version ships an extensive update to the email-sending function around image embedding and Outlook Classic compatibility
+- Update **Export Enterprise Application Users** Runbook in Org/Applications
+  - Remove inline `Publish-RjRbFilesToStorageContainer` helper function — now provided by `RealmJoin.RunbookHelper` >= 0.8.6
+- Update **Office 365 License Report** Runbook in Org/General
+  - Remove inline `Publish-RjRbFilesToStorageContainer` helper function — now provided by `RealmJoin.RunbookHelper` >= 0.8.6
+- Update **Check Device Onboarding Exclusion (Scheduled)** Runbook in Org/General
+  - Fix `System.OutOfMemoryException` on tenants with large Intune inventories: managed devices are now filtered server-side instead of pulling the full inventory into memory and filtering client-side
+  - Migrate to native Microsoft Graph
+
 ## 2026-05-27
 
 - Update **Reset MFA** Runbook in User/Security
