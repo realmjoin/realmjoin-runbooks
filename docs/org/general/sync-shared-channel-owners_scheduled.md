@@ -1,4 +1,4 @@
-# Sync Sharedchannel Owners (Scheduled)
+# Sync Shared Channel Owners (Scheduled)
 
 Ensure a security group's members are owners of mapped Teams and their shared channels.
 
@@ -12,7 +12,7 @@ optionally email a report and/or upload the CSV results as a download link. See 
 documentation for the mapping rules and configuration.
 
 ## Where to find
-Org \ General \ Sync Sharedchannel Owners_Scheduled
+Org \ General \ Sync Shared Channel Owners_Scheduled
 
 ## How it works
 

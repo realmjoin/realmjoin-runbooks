@@ -63,7 +63,7 @@
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
   - [Sync Apple Tokens](general/sync-apple-tokens.md)
-  - [Sync Sharedchannel Owners (Scheduled)](general/sync-sharedchannel-owners_scheduled.md)
+  - [Sync Shared Channel Owners (Scheduled)](general/sync-shared-channel-owners_scheduled.md)
 <a name='org-mail'></a>
 ## Mail
   - [Add Distribution List](mail/add-distribution-list.md)

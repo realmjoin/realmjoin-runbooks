@@ -11134,9 +11134,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Sync Sharedchannel Owners_Scheduled",
-    "RunbookDisplayPath": "Org \\ General \\ Sync Sharedchannel Owners_Scheduled",
-    "RelativeRunbookPath": "org/general/sync-sharedchannel-owners_scheduled.ps1",
+    "RunbookDisplayName": "Sync Shared Channel Owners_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Shared Channel Owners_Scheduled",
+    "RelativeRunbookPath": "org/general/sync-shared-channel-owners_scheduled.ps1",
     "RelativeRunbookPath_PathOnly": "org/general",
     "PrimaryFolder": "Org",
     "SubFolder": "General",

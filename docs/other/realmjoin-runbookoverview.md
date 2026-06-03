@@ -116,7 +116,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
       - [Sync Apple Tokens](#sync-apple-tokens)
-      - [Sync Sharedchannel Owners (Scheduled)](#sync-sharedchannel-owners-(scheduled))
+      - [Sync Shared Channel Owners (Scheduled)](#sync-shared-channel-owners-(scheduled))
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
@@ -2434,9 +2434,9 @@ Org \ General \ Sync Apple Tokens
  
  
 
-<a name='org-general-sync-sharedchannel-owners-(scheduled)'></a>
+<a name='org-general-sync-shared-channel-owners-(scheduled)'></a>
 
-### Sync Sharedchannel Owners (Scheduled)
+### Sync Shared Channel Owners (Scheduled)
 #### Ensure a security group's members are owners of mapped Teams and their shared channels.
 
 #### Description
@@ -2451,7 +2451,7 @@ documentation for the mapping rules and configuration.
 
 #### Where to find
 
-Org \ General \ Sync Sharedchannel Owners_Scheduled
+Org \ General \ Sync Shared Channel Owners_Scheduled
 
 ## How it works
 

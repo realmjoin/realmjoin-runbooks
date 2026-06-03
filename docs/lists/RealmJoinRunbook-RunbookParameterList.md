@@ -115,7 +115,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
     - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
-    - [Sync Sharedchannel Owners (Scheduled)](#organization-general-sync-sharedchannel-owners-scheduled)
+    - [Sync Shared Channel Owners (Scheduled)](#organization-general-sync-shared-channel-owners-scheduled)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
     - [Add Equipment Mailbox](#organization-mail-add-equipment-mailbox)
@@ -1465,9 +1465,9 @@ Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 | CallerName | ✓ | String | Automated parameter for auditing purposes. |
 
-<a name='organization-general-sync-sharedchannel-owners-scheduled'></a>
+<a name='organization-general-sync-shared-channel-owners-scheduled'></a>
 
-### Sync Sharedchannel Owners (Scheduled)
+### Sync Shared Channel Owners (Scheduled)
 Ensure a security group's members are owners of mapped Teams and their shared channels.
 
 | Parameter | Required | Type | Description |
