@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-03
+
+- Add **Sync Shared Channel Owners (Scheduled)** Runbook in Org/General
+  - Ensures the members of a mapped security group are owners of selected Teams and of every shared channel those teams host (shared channels do not inherit ownership from their parent team)
+  - Teams are targeted by exact display name; the team-name-to-owner-group mapping is maintained centrally via the `SharedChannelOwners.Mapping` org setting
+  - Add-only (existing owners/members are never removed); `WhatIfMode` dry run
+  - Optional email report (via `Send-RjReportEmail`) and/or storage download link, each with per-team and per-change CSV output (both default off)
+
 ## 2026-06-02
 
 - Bump `Microsoft.Graph.Authentication` module to >= 2.37.0 in all runbooks that use it
