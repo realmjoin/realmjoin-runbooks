@@ -7,6 +7,8 @@
   - Teams are targeted by exact display name; the team-name-to-owner-group mapping is maintained centrally via the `SharedChannelOwners.Mapping` org setting
   - Add-only (existing owners/members are never removed); `WhatIfMode` dry run
   - Optional email report (via `Send-RjReportEmail`) and/or storage download link, each with per-team and per-change CSV output (both default off)
+- Add **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
+  - Compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API for Windows managed devices, flags any device where the primary user differs, and emails the differences with a CSV attachment on a scheduled basis.
 
 ## 2026-06-02
 
