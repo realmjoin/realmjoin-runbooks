@@ -56,6 +56,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices |
+|  |  | Report Windows Devices Without Autopilot | Reports all Windows Entra devices that have no associated Windows Autopilot object. |
 |  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes |
 |  | General | Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group |
 |  |  | Add Management Partner | List or add Management Partner Links (PAL) |

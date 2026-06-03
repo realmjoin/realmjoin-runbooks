@@ -628,7 +628,7 @@
     "PrimaryFolder": "Device",
     "SubFolder": "General",
     "Synopsis": "Remove/Outphase a windows device",
-    "Description": "Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.",
+    "Description": "Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune and AutoPilot.\nOptionally, the device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.\nNOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's \"Tags\" filter once it has been created once via the portal (Device > Manage tags > \"Create new tag\").",
     "Notes": null,
     "Parameters": [
       {
@@ -659,8 +659,25 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "11",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "ExcludeFromRemediation",
+        "description": [
+          {
+            "Text": "The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to \"ExcludeFromRemediation\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "defenderExclusionTag",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -694,6 +711,23 @@
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely."
+          }
+        ],
+        "globbing": "false",
+        "name": "excludeFromDefender",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -785,9 +819,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## Microsoft Defender for Endpoint exclusion tag\n\nMicrosoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.\n\nBecause the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude device from Defender for Endpoint* is enabled. The device is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.\n\n### One-time setup: make the tag filterable\n\nThe portal's **Tags** filter unfortunately only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.\n\nTo make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > \"Create new tag\", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.\n\n> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.\n\nSee [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.\n",
+    "DocsContentEncoded": "IyMgTWljcm9zb2Z0IERlZmVuZGVyIGZvciBFbmRwb2ludCBleGNsdXNpb24gdGFnCgpNaWNyb3NvZnQgRGVmZW5kZXIgZm9yIEVuZHBvaW50IGhhcyBhIG5hdGl2ZSAqKkV4Y2x1c2lvbiBzdGF0ZSoqIChzaG93biBpbiB0aGUgRGV2aWNlIEludmVudG9yeSBmaWx0ZXIgYXMgKkV4Y2x1ZGVkKiAvICpOb3QgRXhjbHVkZWQqKS4gVGhpcyBzdGF0ZSBjYW4gb25seSBiZSBzZXQgdGhyb3VnaCB0aGUgRGVmZW5kZXIgcG9ydGFsIOKAlCB0aGVyZSBpcyAqKm5vIEFQSSoqIHRvIHNldCBhIGRldmljZSdzIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgcHJvZ3JhbW1hdGljYWxseS4KCkJlY2F1c2UgdGhlIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgY2Fubm90IGJlIGF1dG9tYXRlZCwgdGhpcyBydW5ib29rIGluc3RlYWQgYXBwbGllcyBhIGN1c3RvbSBkZXZpY2UgdGFnIChkZWZhdWx0IGBFeGNsdWRlRnJvbVJlbWVkaWF0aW9uYCkgd2hlbiAqRXhjbHVkZSBkZXZpY2UgZnJvbSBEZWZlbmRlciBmb3IgRW5kcG9pbnQqIGlzIGVuYWJsZWQuIFRoZSBkZXZpY2UgaXMgbG9va2VkIHVwIGJ5IGl0cyBFbnRyYSBJRCBkZXZpY2UgSUQgYW5kIHRhZ2dlZCB2aWEgYFBPU1QgL2FwaS9tYWNoaW5lcy97aWR9L3RhZ3NgLCBwcm92aWRpbmcgYSBtYXJrZXIgdGhhdCBjYW4gYmUgdXNlZCB0byBmaWx0ZXIgYW5kIHRhcmdldCBleGNsdWRlZCBkZXZpY2VzLgoKIyMjIE9uZS10aW1lIHNldHVwOiBtYWtlIHRoZSB0YWcgZmlsdGVyYWJsZQoKVGhlIHBvcnRhbCdzICoqVGFncyoqIGZpbHRlciB1bmZvcnR1bmF0ZWx5IG9ubHkgbGlzdHMgdGFncyB0aGF0IHdlcmUgY3JlYXRlZCB0aHJvdWdoIHRoZSBwb3J0YWwuIEEgdGFnIHNldCBwdXJlbHkgdmlhIHRoZSBBUEkgaXMgYXR0YWNoZWQgdG8gdGhlIGRldmljZSBhbmQgdmlzaWJsZSBvbiB0aGUgZGV2aWNlIHBhZ2UsIGJ1dCBpdCBkb2VzICoqbm90KiogYXBwZWFyIGluIHRoZSBUYWdzIGZpbHRlciBvbiBpdHMgb3duLgoKVG8gbWFrZSB0aGUgZXhjbHVzaW9uIHRhZyB2aXNpYmxlIGFuZCB1c2FibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgW0RlZmVuZGVyIERldmljZSBJbnZlbnRvcnldKGh0dHBzOi8vc2VjdXJpdHkubWljcm9zb2Z0LmNvbS9tYWNoaW5lcyksIG9uZSBjbGllbnQgbXVzdCBiZSB0YWdnZWQgbWFudWFsbHkgb25jZSB0aHJvdWdoIHRoZSBwb3J0YWwgKHNlbGVjdCBhIGRldmljZSA+ICoqTWFuYWdlIHRhZ3MqKiA+ICJDcmVhdGUgbmV3IHRhZyIsIHVzaW5nIHRoZSBleGFjdCBzYW1lIHRhZyB2YWx1ZSkuIEFmdGVyIHRoaXMgb25lLXRpbWUgc3RlcCB0aGUgdGFnIGJlY29tZXMgYSBrbm93biwgZmlsdGVyYWJsZSB0YWcsIGFuZCB0aGlzIHJ1bmJvb2sgY2FuIGFwcGx5IGl0IHRvIGRldmljZXMgYXQgc2NhbGUuCgo+ICoqTm90ZToqKiBUaGlzIHRhZyBpcyBvbmx5IGEgbGFiZWwg4oCUIGl0IGRvZXMgbm90IHNldCB0aGUgZGV2aWNlJ3MgbmF0aXZlIEV4Y2x1c2lvbiBzdGF0ZSBhbmQgaGFzIG5vIHJlbWVkaWF0aW9uIGVmZmVjdCBvbiBpdHMgb3duLiBJdCB0YWtlcyBlZmZlY3Qgb25seSBpZiBhIERlZmVuZGVyIGRldmljZSBncm91cCBvciBhdXRvbWF0aW9uIHJ1bGUgaXMgZXhwbGljaXRseSBjb25maWd1cmVkIHRvIG1hdGNoIHRoaXMgdGFnIHZhbHVlLiBTdWNoIHJ1bGVzIG1hdGNoIHRoZSB0YWcgdmFsdWUgZGlyZWN0bHksIGluZGVwZW5kZW50bHkgb2YgdGhlIHBvcnRhbCAqKlRhZ3MqKiBmaWx0ZXIsIHNvIHRoZSBvbmUtdGltZSBtYW51YWwgc3RlcCBvbmx5IGFmZmVjdHMgd2hldGhlciB0aGUgdGFnIGlzIHNlbGVjdGFibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgcG9ydGFsIFVJLgoKU2VlIFtDcmVhdGUgYW5kIG1hbmFnZSBkZXZpY2UgdGFnc10oaHR0cHM6Ly9sZWFybi5taWNyb3NvZnQuY29tL2RlZmVuZGVyLWVuZHBvaW50L21hY2hpbmUtdGFncyNjcmVhdGUtdGFncykgZm9yIGRldGFpbHMuCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\",\n                \"Machine.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -798,6 +832,13 @@
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.ReadWrite.All"
           ]
         }
       ],
@@ -5559,7 +5600,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Remove or outphase multiple devices",
-    "Description": "This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.\nIt can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.",
+    "Description": "This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.\nIt can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.\nOptionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.\nNOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's \"Tags\" filter once it has been created once via the portal (Device > Manage tags > \"Create new tag\").",
     "Notes": null,
     "Parameters": [
       {
@@ -5590,8 +5631,25 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "12",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "ExcludeFromRemediation",
+        "description": [
+          {
+            "Text": "The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to \"ExcludeFromRemediation\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "defenderExclusionTag",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -5642,6 +5700,23 @@
         "parameterValue": "Boolean",
         "pipelineInput": "false",
         "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely."
+          }
+        ],
+        "globbing": "false",
+        "name": "excludeFromDefender",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -5733,9 +5808,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## Microsoft Defender for Endpoint exclusion tag\n\nMicrosoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.\n\nBecause the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude devices from Defender for Endpoint* is enabled. Each device in the list is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.\n\n### One-time setup: make the tag filterable\n\nThe portal's **Tags** filter only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.\n\nTo make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > \"Create new tag\", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.\n\n> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.\n\nDevices supplied by serial number that are not found in Intune have no Entra ID device ID and are therefore not tagged in Defender.\n\nSee [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.\n",
+    "DocsContentEncoded": "IyMgTWljcm9zb2Z0IERlZmVuZGVyIGZvciBFbmRwb2ludCBleGNsdXNpb24gdGFnCgpNaWNyb3NvZnQgRGVmZW5kZXIgZm9yIEVuZHBvaW50IGhhcyBhIG5hdGl2ZSAqKkV4Y2x1c2lvbiBzdGF0ZSoqIChzaG93biBpbiB0aGUgRGV2aWNlIEludmVudG9yeSBmaWx0ZXIgYXMgKkV4Y2x1ZGVkKiAvICpOb3QgRXhjbHVkZWQqKS4gVGhpcyBzdGF0ZSBjYW4gb25seSBiZSBzZXQgdGhyb3VnaCB0aGUgRGVmZW5kZXIgcG9ydGFsIOKAlCB0aGVyZSBpcyAqKm5vIEFQSSoqIHRvIHNldCBhIGRldmljZSdzIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgcHJvZ3JhbW1hdGljYWxseS4KCkJlY2F1c2UgdGhlIG5hdGl2ZSBleGNsdXNpb24gc3RhdGUgY2Fubm90IGJlIGF1dG9tYXRlZCwgdGhpcyBydW5ib29rIGluc3RlYWQgYXBwbGllcyBhIGN1c3RvbSBkZXZpY2UgdGFnIChkZWZhdWx0IGBFeGNsdWRlRnJvbVJlbWVkaWF0aW9uYCkgd2hlbiAqRXhjbHVkZSBkZXZpY2VzIGZyb20gRGVmZW5kZXIgZm9yIEVuZHBvaW50KiBpcyBlbmFibGVkLiBFYWNoIGRldmljZSBpbiB0aGUgbGlzdCBpcyBsb29rZWQgdXAgYnkgaXRzIEVudHJhIElEIGRldmljZSBJRCBhbmQgdGFnZ2VkIHZpYSBgUE9TVCAvYXBpL21hY2hpbmVzL3tpZH0vdGFnc2AsIHByb3ZpZGluZyBhIG1hcmtlciB0aGF0IGNhbiBiZSB1c2VkIHRvIGZpbHRlciBhbmQgdGFyZ2V0IGV4Y2x1ZGVkIGRldmljZXMuCgojIyMgT25lLXRpbWUgc2V0dXA6IG1ha2UgdGhlIHRhZyBmaWx0ZXJhYmxlCgpUaGUgcG9ydGFsJ3MgKipUYWdzKiogZmlsdGVyIG9ubHkgbGlzdHMgdGFncyB0aGF0IHdlcmUgY3JlYXRlZCB0aHJvdWdoIHRoZSBwb3J0YWwuIEEgdGFnIHNldCBwdXJlbHkgdmlhIHRoZSBBUEkgaXMgYXR0YWNoZWQgdG8gdGhlIGRldmljZSBhbmQgdmlzaWJsZSBvbiB0aGUgZGV2aWNlIHBhZ2UsIGJ1dCBpdCBkb2VzICoqbm90KiogYXBwZWFyIGluIHRoZSBUYWdzIGZpbHRlciBvbiBpdHMgb3duLgoKVG8gbWFrZSB0aGUgZXhjbHVzaW9uIHRhZyB2aXNpYmxlIGFuZCB1c2FibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgW0RlZmVuZGVyIERldmljZSBJbnZlbnRvcnldKGh0dHBzOi8vc2VjdXJpdHkubWljcm9zb2Z0LmNvbS9tYWNoaW5lcyksIG9uZSBjbGllbnQgbXVzdCBiZSB0YWdnZWQgbWFudWFsbHkgb25jZSB0aHJvdWdoIHRoZSBwb3J0YWwgKHNlbGVjdCBhIGRldmljZSA+ICoqTWFuYWdlIHRhZ3MqKiA+ICJDcmVhdGUgbmV3IHRhZyIsIHVzaW5nIHRoZSBleGFjdCBzYW1lIHRhZyB2YWx1ZSkuIEFmdGVyIHRoaXMgb25lLXRpbWUgc3RlcCB0aGUgdGFnIGJlY29tZXMgYSBrbm93biwgZmlsdGVyYWJsZSB0YWcsIGFuZCB0aGlzIHJ1bmJvb2sgY2FuIGFwcGx5IGl0IHRvIGRldmljZXMgYXQgc2NhbGUuCgo+ICoqTm90ZToqKiBUaGlzIHRhZyBpcyBvbmx5IGEgbGFiZWwg4oCUIGl0IGRvZXMgbm90IHNldCB0aGUgZGV2aWNlJ3MgbmF0aXZlIEV4Y2x1c2lvbiBzdGF0ZSBhbmQgaGFzIG5vIHJlbWVkaWF0aW9uIGVmZmVjdCBvbiBpdHMgb3duLiBJdCB0YWtlcyBlZmZlY3Qgb25seSBpZiBhIERlZmVuZGVyIGRldmljZSBncm91cCBvciBhdXRvbWF0aW9uIHJ1bGUgaXMgZXhwbGljaXRseSBjb25maWd1cmVkIHRvIG1hdGNoIHRoaXMgdGFnIHZhbHVlLiBTdWNoIHJ1bGVzIG1hdGNoIHRoZSB0YWcgdmFsdWUgZGlyZWN0bHksIGluZGVwZW5kZW50bHkgb2YgdGhlIHBvcnRhbCAqKlRhZ3MqKiBmaWx0ZXIsIHNvIHRoZSBvbmUtdGltZSBtYW51YWwgc3RlcCBvbmx5IGFmZmVjdHMgd2hldGhlciB0aGUgdGFnIGlzIHNlbGVjdGFibGUgZm9yIGZpbHRlcmluZyBpbiB0aGUgcG9ydGFsIFVJLgoKRGV2aWNlcyBzdXBwbGllZCBieSBzZXJpYWwgbnVtYmVyIHRoYXQgYXJlIG5vdCBmb3VuZCBpbiBJbnR1bmUgaGF2ZSBubyBFbnRyYSBJRCBkZXZpY2UgSUQgYW5kIGFyZSB0aGVyZWZvcmUgbm90IHRhZ2dlZCBpbiBEZWZlbmRlci4KClNlZSBbQ3JlYXRlIGFuZCBtYW5hZ2UgZGV2aWNlIHRhZ3NdKGh0dHBzOi8vbGVhcm4ubWljcm9zb2Z0LmNvbS9kZWZlbmRlci1lbmRwb2ludC9tYWNoaW5lLXRhZ3MjY3JlYXRlLXRhZ3MpIGZvciBkZXRhaWxzLgo=",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\",\n                \"Machine.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -5746,6 +5821,13 @@
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.ReadWrite.All"
           ]
         }
       ],
@@ -6151,6 +6233,193 @@
       ],
       "Roles": [],
       "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Windows Devices Without Autopilot",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Windows Devices Without Autopilot",
+    "RelativeRunbookPath": "org/devices/report-windows-devices-without-autopilot.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Reports all Windows Entra devices that have no associated Windows Autopilot object.",
+    "Description": "This runbook lists every Windows device object in Entra ID (Microsoft Entra) and matches it against\nthe Windows Autopilot device identities in Intune. Entra devices whose device ID is not referenced by\nany Autopilot object (via the Autopilot object's azureActiveDirectoryDeviceId) are reported as orphans.\n\nSuch orphaned Entra device objects are typical leftovers (\"Objektleichen\") from devices that were\nreset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making\nthese candidates visible so they can be reviewed and - if appropriate - deleted.\n\nOptionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited\ndownload link) and/or sent via email with the CSV attached.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "windows-devices-without-autopilot",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender)."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient address(es) for the email report. Only used / shown when SendMail is enabled.\nCan be a single address or multiple comma-separated addresses (string)."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report is sent via email. Toggling this on reveals the recipient address field."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendMail",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Reporting orphaned Windows devices\n\nThis runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates (\"Objektleichen\").\n\nTwo Yes/No toggles control the output:\n\n- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.\n- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.\n\nBoth can be combined or used independently. If both are disabled, the report is only printed to the runbook output.\n\n## Setup regarding the storage account\n\nThe CSV report is uploaded to an Azure Storage Account. The target storage account is taken from the shared **RJReport** tenant settings, so it can be configured once and reused across all report runbooks:\n\n- `RJReport.StorageAccount.ResourceGroup`\n- `RJReport.StorageAccount.StorageAccountName`\n- `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)\n\nThe container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\nThe runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgUmVwb3J0aW5nIG9ycGhhbmVkIFdpbmRvd3MgZGV2aWNlcwoKVGhpcyBydW5ib29rIGxpc3RzIGV2ZXJ5IFdpbmRvd3MgZGV2aWNlIG9iamVjdCBpbiBFbnRyYSBJRCBhbmQgbWF0Y2hlcyBpdCBhZ2FpbnN0IHRoZSBXaW5kb3dzIEF1dG9waWxvdCBkZXZpY2UgaWRlbnRpdGllcyBpbiBJbnR1bmUuIERldmljZXMgdGhhdCBoYXZlIG5vIGFzc29jaWF0ZWQgQXV0b3BpbG90IG9iamVjdCAobWF0Y2hlZCB2aWEgdGhlIEF1dG9waWxvdCBvYmplY3QncyBgYXp1cmVBY3RpdmVEaXJlY3RvcnlEZXZpY2VJZGApIGFyZSByZXBvcnRlZCBhcyBjbGVhbi11cCBjYW5kaWRhdGVzICgiT2JqZWt0bGVpY2hlbiIpLgoKVHdvIFllcy9ObyB0b2dnbGVzIGNvbnRyb2wgdGhlIG91dHB1dDoKCi0gKipTZW5kIHRoZSByZXBvcnQgdmlhIGVtYWlsPyoqIOKAlCB3aGVuIGVuYWJsZWQsIHRoZSByZWNpcGllbnQgYWRkcmVzcyBmaWVsZCAoYEVtYWlsVG9gKSBpcyBzaG93biBhbmQgdGhlIHJlcG9ydCBpcyBzZW50IHZpYSBlbWFpbCB3aXRoIHRoZSBDU1YgYXR0YWNoZWQuCi0gKipDcmVhdGUgYSBmaWxlIGRvd25sb2FkIGxpbms/Kiog4oCUIHdoZW4gZW5hYmxlZCwgdGhlIENTViBpcyB1cGxvYWRlZCB0byBhbiBBenVyZSBTdG9yYWdlIEFjY291bnQgYW5kIGEgdGltZS1saW1pdGVkIGRvd25sb2FkIGxpbmsgaXMgcmV0dXJuZWQuCgpCb3RoIGNhbiBiZSBjb21iaW5lZCBvciB1c2VkIGluZGVwZW5kZW50bHkuIElmIGJvdGggYXJlIGRpc2FibGVkLCB0aGUgcmVwb3J0IGlzIG9ubHkgcHJpbnRlZCB0byB0aGUgcnVuYm9vayBvdXRwdXQuCgojIyBTZXR1cCByZWdhcmRpbmcgdGhlIHN0b3JhZ2UgYWNjb3VudAoKVGhlIENTViByZXBvcnQgaXMgdXBsb2FkZWQgdG8gYW4gQXp1cmUgU3RvcmFnZSBBY2NvdW50LiBUaGUgdGFyZ2V0IHN0b3JhZ2UgYWNjb3VudCBpcyB0YWtlbiBmcm9tIHRoZSBzaGFyZWQgKipSSlJlcG9ydCoqIHRlbmFudCBzZXR0aW5ncywgc28gaXQgY2FuIGJlIGNvbmZpZ3VyZWQgb25jZSBhbmQgcmV1c2VkIGFjcm9zcyBhbGwgcmVwb3J0IHJ1bmJvb2tzOgoKLSBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuUmVzb3VyY2VHcm91cGAKLSBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuU3RvcmFnZUFjY291bnROYW1lYAotIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC5MaW5rRXhwaXJ5RGF5c2AgKG9wdGlvbmFsLCBkZWZhdWx0cyB0byA2KQoKVGhlIGNvbnRhaW5lciBuYW1lIGlzIGNvbmZpZ3VyZWQgcGVyIHJ1bmJvb2sgKHBhcmFtZXRlciBgQ29udGFpbmVyTmFtZWAsIGRlZmF1bHQgYHdpbmRvd3MtZGV2aWNlcy13aXRob3V0LWF1dG9waWxvdGApIGFuZCBpcyBpbnRlbnRpb25hbGx5IG5vdCBwYXJ0IG9mIHRoZSBnbG9iYWwgUkpSZXBvcnQgc2V0dGluZ3MuCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzLgoKVGhlIHJ1bmJvb2sncyBtYW5hZ2VkIGlkZW50aXR5IG5lZWRzIGF0IGxlYXN0IGBDb250cmlidXRvcmAgYWNjZXNzIG9uIHRoZSBzdWJzY3JpcHRpb24gb3IgcmVzb3VyY2UgZ3JvdXAgY29udGFpbmluZyB0aGUgc3RvcmFnZSBhY2NvdW50LgoKIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\",\n                \"DeviceManagementServiceConfig.Read.All\",\n                \"Organization.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure IaaS: - Contributor - access on subscription or resource group used for the export\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "DeviceManagementServiceConfig.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure IaaS: - Contributor - access on subscription or resource group used for the export"
+      ]
     }
   },
   {

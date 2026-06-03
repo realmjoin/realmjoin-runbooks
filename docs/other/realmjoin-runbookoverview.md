@@ -77,6 +77,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Devices Without Primary User](#report-devices-without-primary-user)
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
       - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
+      - [Report Windows Devices Without Autopilot](#report-windows-devices-without-autopilot)
       - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
       - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
@@ -331,10 +332,29 @@ Device \ General \ Enroll Updatable Assets
 #### Remove/Outphase a windows device
 
 #### Description
-Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune and AutoPilot.
+Optionally, the device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
+NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
 
 #### Where to find
 Device \ General \ Outphase Device
+
+## Microsoft Defender for Endpoint exclusion tag
+
+Microsoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.
+
+Because the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude device from Defender for Endpoint* is enabled. The device is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.
+
+### One-time setup: make the tag filterable
+
+The portal's **Tags** filter unfortunately only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.
+
+To make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > "Create new tag", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.
+
+> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.
+
+See [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1210,9 +1230,30 @@ To use a custom mail template (e.g., in Dutch, Spanish, or any other language), 
 #### Description
 This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
 It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
+Optionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
+NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
 
 #### Where to find
 Org \ Devices \ Outphase Devices
+
+## Microsoft Defender for Endpoint exclusion tag
+
+Microsoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.
+
+Because the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude devices from Defender for Endpoint* is enabled. Each device in the list is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.
+
+### One-time setup: make the tag filterable
+
+The portal's **Tags** filter only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.
+
+To make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > "Create new tag", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.
+
+> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.
+
+Devices supplied by serial number that are not found in Intune have no Entra ID device ID and are therefore not tagged in Defender.
+
+See [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1289,6 +1330,66 @@ Org \ Devices \ Report Users With More Than 5-Devices
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-windows-devices-without-autopilot'></a>
+
+### Report Windows Devices Without Autopilot
+#### Reports all Windows Entra devices that have no associated Windows Autopilot object.
+
+#### Description
+This runbook lists every Windows device object in Entra ID (Microsoft Entra) and matches it against
+the Windows Autopilot device identities in Intune. Entra devices whose device ID is not referenced by
+any Autopilot object (via the Autopilot object's azureActiveDirectoryDeviceId) are reported as orphans.
+
+Such orphaned Entra device objects are typical leftovers ("Objektleichen") from devices that were
+reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
+these candidates visible so they can be reviewed and - if appropriate - deleted.
+
+Optionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited
+download link) and/or sent via email with the CSV attached.
+
+#### Where to find
+Org \ Devices \ Report Windows Devices Without Autopilot
+
+## Reporting orphaned Windows devices
+
+This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates ("Objektleichen").
+
+Two Yes/No toggles control the output:
+
+- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.
+- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+
+Both can be combined or used independently. If both are disabled, the report is only printed to the runbook output.
+
+## Setup regarding the storage account
+
+The CSV report is uploaded to an Azure Storage Account. The target storage account is taken from the shared **RJReport** tenant settings, so it can be configured once and reused across all report runbooks:
+
+- `RJReport.StorageAccount.ResourceGroup`
+- `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
+
+The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
