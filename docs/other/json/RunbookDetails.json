@@ -19221,9 +19221,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Reset Mfa",
-    "RunbookDisplayPath": "User \\ Security \\ Reset Mfa",
-    "RelativeRunbookPath": "user/security/reset-mfa.ps1",
+    "RunbookDisplayName": "Reset MFA",
+    "RunbookDisplayPath": "User \\ Security \\ Reset MFA",
+    "RelativeRunbookPath": "user/security/reset-MFA.ps1",
     "RelativeRunbookPath_PathOnly": "user/security",
     "PrimaryFolder": "User",
     "SubFolder": "Security",
@@ -19560,9 +19560,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Set Or Remove Mobile Phone Mfa",
-    "RunbookDisplayPath": "User \\ Security \\ Set Or Remove Mobile Phone Mfa",
-    "RelativeRunbookPath": "user/security/set-or-remove-mobile-phone-mfa.ps1",
+    "RunbookDisplayName": "Set Or Remove Mobile Phone MFA",
+    "RunbookDisplayPath": "User \\ Security \\ Set Or Remove Mobile Phone MFA",
+    "RelativeRunbookPath": "user/security/set-or-remove-mobile-phone-MFA.ps1",
     "RelativeRunbookPath_PathOnly": "user/security",
     "PrimaryFolder": "User",
     "SubFolder": "Security",

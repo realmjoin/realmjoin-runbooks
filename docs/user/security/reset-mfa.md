@@ -1,4 +1,4 @@
-# Reset Mfa
+# Reset MFA
 
 Remove all App- and Mobilephone auth methods for a user
 
@@ -6,7 +6,7 @@ Remove all App- and Mobilephone auth methods for a user
 Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset. Optionally a notification email can be sent to the user informing them that their MFA methods have been reset through this runbook.
 
 ## Where to find
-User \ Security \ Reset Mfa
+User \ Security \ Reset MFA
 
 ## Permissions
 ### Application permissions

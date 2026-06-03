@@ -184,10 +184,10 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Create Temporary Access Pass](#create-temporary-access-pass)
       - [Enable Or Disable Password Expiration](#enable-or-disable-password-expiration)
       - [List MFA Methods](#list-mfa-methods)
-      - [Reset Mfa](#reset-mfa)
+      - [Reset MFA](#reset-mfa)
       - [Reset Password](#reset-password)
       - [Revoke Or Restore Access](#revoke-or-restore-access)
-      - [Set Or Remove Mobile Phone Mfa](#set-or-remove-mobile-phone-mfa)
+      - [Set Or Remove Mobile Phone MFA](#set-or-remove-mobile-phone-mfa)
   - [Userinfo](#user-userinfo)
       - [Rename User](#rename-user)
       - [Set Photo](#set-photo)
@@ -3749,7 +3749,7 @@ User \ Security \ List MFA Methods
 
 <a name='user-security-reset-mfa'></a>
 
-### Reset Mfa
+### Reset MFA
 #### Remove all App- and Mobilephone auth methods for a user
 
 #### Description
@@ -3758,7 +3758,7 @@ Removes authenticator app and phone-based authentication methods for a user. Thi
 
 #### Where to find
 
-User \ Security \ Reset Mfa
+User \ Security \ Reset MFA
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3806,7 +3806,7 @@ User \ Security \ Revoke Or Restore Access
 
 <a name='user-security-set-or-remove-mobile-phone-mfa'></a>
 
-### Set Or Remove Mobile Phone Mfa
+### Set Or Remove Mobile Phone MFA
 #### Set or remove a user's mobile phone MFA method
 
 #### Description
@@ -3815,7 +3815,7 @@ Adds, updates, or removes the user's mobile phone authentication method. This ru
 
 #### Where to find
 
-User \ Security \ Set Or Remove Mobile Phone Mfa
+User \ Security \ Set Or Remove Mobile Phone MFA
 
 
 [Back to Table of Content](#table-of-contents)
