@@ -10967,6 +10967,243 @@
     }
   },
   {
+    "RunbookDisplayName": "Sync Sharedchannel Owners_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Sharedchannel Owners_Scheduled",
+    "RelativeRunbookPath": "org/general/sync-sharedchannel-owners_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Ensure a security group's members are owners of mapped Teams and their shared channels.",
+    "Description": "Teams shared channels do not inherit ownership from their parent team. This scheduled runbook closes\nthat gap: for each team named in a mapping, it ensures the members of a mapped security group are owners\nof the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is\nmaintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members\nare never removed - so newly created shared channels are simply picked up on the next run. It can\noptionally email a report and/or upload the CSV results as a download link. See the accompanying\ndocumentation for the mapping rules and configuration.",
+    "Notes": "Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under\n\"SharedChannelOwners.Mapping\". Each entry names a team by its exact display name. The hidden\nTeamOwnerGroupMapping parameter is injected from it at runtime.\n{\n    \"Settings\": {\n        \"SharedChannelOwners\": {\n            \"Mapping\": [\n                { \"TeamName\": \"EXT Service A\", \"OwnerGroupId\": \"11111111-1111-1111-1111-111111111111\" },\n                { \"TeamName\": \"EXT Service B\", \"OwnerGroupId\": \"22222222-2222-2222-2222-222222222222\" }\n            ]\n        }\n    }\n}",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "shared-channel-owners",
+        "description": [
+          {
+            "Text": "Storage container used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is\nreturned (and included in the email report if that is also enabled). Default off."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox for the report. Bound to the org Setting \"RJReport.EmailSender\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled (default), the owner-group members are also ensured as owners and members of the parent\nteam itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeTeamOwners",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Days until the generated download link expires. Bound to \"RJReport.StorageAccount.LinkExpiryDays\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Bound to \"RJReport.StorageAccount.ResourceGroup\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body\ncontains run statistics and two CSV attachments (per-team summary and per-change detail)."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account used for the upload. Bound to \"RJReport.StorageAccount.StorageAccountName\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "[]",
+        "description": [
+          {
+            "Text": "Mapping of an exact team display name to an owner security group object id, e.g.\n[{ \"TeamName\": \"EXT Service A\", \"OwnerGroupId\": \"00000000-0000-0000-0000-000000000000\" }].\nHidden parameter, bound to the org Setting \"SharedChannelOwners.Mapping\". The RealmJoin portal injects\nthat value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or\nas a JSON string and normalizes both."
+          }
+        ],
+        "globbing": "false",
+        "name": "TeamOwnerGroupMapping",
+        "parameterValue": "Object",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Object"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the runbook only logs the changes it would make without writing anything."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIfMode",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nOn each run the runbook:\n\n1. Reads the team-name-to-owner-group mapping from the org setting `SharedChannelOwners.Mapping`.\n2. For each entry, looks up the team by its **exact display name**.\n3. Expands that entry's owner group to its transitive **user** members (guests are skipped - they cannot belong to a shared channel).\n4. Ensures those users are owners of the team and of every **hosted** shared channel of the team.\n\nThe runbook is **add-only**: it never demotes or removes existing owners or members. Newly created shared channels are therefore picked up automatically on the next scheduled run, without disturbing anything already in place.\n\n### Mapping configuration\n\nThe mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name** (see the *Notes* section for a ready-to-use example). The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.\n\n### Team matching\n\nEach mapping entry targets one explicitly named team:\n\n- A team is matched by its **exact display name** (case-insensitive, consistent with Microsoft Graph; surrounding whitespace in the configured name is ignored). Only that team is processed - there is no prefix or wildcard behaviour, so naming an entry `EXT Service A` never affects `EXT Service A Backup` or similar.\n- Display names are not guaranteed unique in Entra ID. If several teams share the configured name, the owner group is applied to **all** of them. If no team matches, the entry is reported as *not found* and skipped.\n\n### Team selection\n\nFor every configured `TeamName` the runbook runs a Graph `displayName eq '...'` lookup and keeps only Microsoft 365 groups that are provisioned as a **Team**.\n\n### What gets changed\n\n- **Team (optional, `IncludeTeamOwners`, default on):** the owner-group users are added as owners and members of the parent M365 group. Team membership is also the technical prerequisite for becoming a shared-channel owner, so this step enables the channel step.\n- **Shared channels:** for every hosted shared channel (`membershipType eq 'shared'`), each owner-group user is ensured as a channel **owner** - added directly if absent, or promoted if already a member. If a direct owner-add is rejected (e.g. membership replication lag), the runbook falls back to adding the user as a member first and then promoting.\n\n### Dry run\n\nSet **`WhatIfMode`** to log what would change without writing anything. In this mode the runbook prints, up front, the teams it would process (with their owner group) and any configured team names that were not found.\n\n### Reporting (optional, both default off)\n\n- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and two CSV attachments: a per-team summary and a per-change detail list. The sender is taken from the `RJReport.EmailSender` setting.\n- **`CreateDownloadLink`** uploads the same CSVs to a storage account and returns time-limited SAS download links (also embedded into the email when both options are enabled). The target storage account is taken from the `RJReport.StorageAccount.*` settings.\n\nThe storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n### Scheduling\n\nDesigned to run unattended on a schedule. Because configuration is centralized in the org settings and the runbook is add-only and idempotent, a single recurring schedule keeps all mapped teams and their shared channels in sync as people and channels come and go.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpPbiBlYWNoIHJ1biB0aGUgcnVuYm9vazoKCjEuIFJlYWRzIHRoZSB0ZWFtLW5hbWUtdG8tb3duZXItZ3JvdXAgbWFwcGluZyBmcm9tIHRoZSBvcmcgc2V0dGluZyBgU2hhcmVkQ2hhbm5lbE93bmVycy5NYXBwaW5nYC4KMi4gRm9yIGVhY2ggZW50cnksIGxvb2tzIHVwIHRoZSB0ZWFtIGJ5IGl0cyAqKmV4YWN0IGRpc3BsYXkgbmFtZSoqLgozLiBFeHBhbmRzIHRoYXQgZW50cnkncyBvd25lciBncm91cCB0byBpdHMgdHJhbnNpdGl2ZSAqKnVzZXIqKiBtZW1iZXJzIChndWVzdHMgYXJlIHNraXBwZWQgLSB0aGV5IGNhbm5vdCBiZWxvbmcgdG8gYSBzaGFyZWQgY2hhbm5lbCkuCjQuIEVuc3VyZXMgdGhvc2UgdXNlcnMgYXJlIG93bmVycyBvZiB0aGUgdGVhbSBhbmQgb2YgZXZlcnkgKipob3N0ZWQqKiBzaGFyZWQgY2hhbm5lbCBvZiB0aGUgdGVhbS4KClRoZSBydW5ib29rIGlzICoqYWRkLW9ubHkqKjogaXQgbmV2ZXIgZGVtb3RlcyBvciByZW1vdmVzIGV4aXN0aW5nIG93bmVycyBvciBtZW1iZXJzLiBOZXdseSBjcmVhdGVkIHNoYXJlZCBjaGFubmVscyBhcmUgdGhlcmVmb3JlIHBpY2tlZCB1cCBhdXRvbWF0aWNhbGx5IG9uIHRoZSBuZXh0IHNjaGVkdWxlZCBydW4sIHdpdGhvdXQgZGlzdHVyYmluZyBhbnl0aGluZyBhbHJlYWR5IGluIHBsYWNlLgoKIyMjIE1hcHBpbmcgY29uZmlndXJhdGlvbgoKVGhlIG1hcHBpbmcgbGl2ZXMgY2VudHJhbGx5IGluIHRoZSBSZWFsbUpvaW4gb3JnIHNldHRpbmdzIChSdW5ib29rIEN1c3RvbWl6YXRpb24g4oaSIGBTZXR0aW5nc2Ag4oaSIGBTaGFyZWRDaGFubmVsT3duZXJzLk1hcHBpbmdgKSBzbyBpdCBpcyBtYWludGFpbmVkIG9uY2UgYW5kIHNoYXJlZCBieSBldmVyeSBzY2hlZHVsZS4gSXQgaXMgYSBsaXN0IG9mIGB7IFRlYW1OYW1lLCBPd25lckdyb3VwSWQgfWAgb2JqZWN0cywgd2hlcmUgYFRlYW1OYW1lYCBpcyB0aGUgKipleGFjdCB0ZWFtIGRpc3BsYXkgbmFtZSoqIChzZWUgdGhlICpOb3Rlcyogc2VjdGlvbiBmb3IgYSByZWFkeS10by11c2UgZXhhbXBsZSkuIFRoZSBoaWRkZW4gYFRlYW1Pd25lckdyb3VwTWFwcGluZ2AgcGFyYW1ldGVyIGlzIGluamVjdGVkIGZyb20gdGhpcyBzZXR0aW5nOyB0aGUgcnVuYm9vayBhY2NlcHRzIGl0IGVpdGhlciBhcyBhIHN0cnVjdHVyZWQgYXJyYXkgKHJlY29tbWVuZGVkIHN1Yi1zZXR0aW5nIGZvcm0pIG9yIGFzIGEgSlNPTiBzdHJpbmcgYW5kIG5vcm1hbGl6ZXMgYm90aC4KCiMjIyBUZWFtIG1hdGNoaW5nCgpFYWNoIG1hcHBpbmcgZW50cnkgdGFyZ2V0cyBvbmUgZXhwbGljaXRseSBuYW1lZCB0ZWFtOgoKLSBBIHRlYW0gaXMgbWF0Y2hlZCBieSBpdHMgKipleGFjdCBkaXNwbGF5IG5hbWUqKiAoY2FzZS1pbnNlbnNpdGl2ZSwgY29uc2lzdGVudCB3aXRoIE1pY3Jvc29mdCBHcmFwaDsgc3Vycm91bmRpbmcgd2hpdGVzcGFjZSBpbiB0aGUgY29uZmlndXJlZCBuYW1lIGlzIGlnbm9yZWQpLiBPbmx5IHRoYXQgdGVhbSBpcyBwcm9jZXNzZWQgLSB0aGVyZSBpcyBubyBwcmVmaXggb3Igd2lsZGNhcmQgYmVoYXZpb3VyLCBzbyBuYW1pbmcgYW4gZW50cnkgYEVYVCBTZXJ2aWNlIEFgIG5ldmVyIGFmZmVjdHMgYEVYVCBTZXJ2aWNlIEEgQmFja3VwYCBvciBzaW1pbGFyLgotIERpc3BsYXkgbmFtZXMgYXJlIG5vdCBndWFyYW50ZWVkIHVuaXF1ZSBpbiBFbnRyYSBJRC4gSWYgc2V2ZXJhbCB0ZWFtcyBzaGFyZSB0aGUgY29uZmlndXJlZCBuYW1lLCB0aGUgb3duZXIgZ3JvdXAgaXMgYXBwbGllZCB0byAqKmFsbCoqIG9mIHRoZW0uIElmIG5vIHRlYW0gbWF0Y2hlcywgdGhlIGVudHJ5IGlzIHJlcG9ydGVkIGFzICpub3QgZm91bmQqIGFuZCBza2lwcGVkLgoKIyMjIFRlYW0gc2VsZWN0aW9uCgpGb3IgZXZlcnkgY29uZmlndXJlZCBgVGVhbU5hbWVgIHRoZSBydW5ib29rIHJ1bnMgYSBHcmFwaCBgZGlzcGxheU5hbWUgZXEgJy4uLidgIGxvb2t1cCBhbmQga2VlcHMgb25seSBNaWNyb3NvZnQgMzY1IGdyb3VwcyB0aGF0IGFyZSBwcm92aXNpb25lZCBhcyBhICoqVGVhbSoqLgoKIyMjIFdoYXQgZ2V0cyBjaGFuZ2VkCgotICoqVGVhbSAob3B0aW9uYWwsIGBJbmNsdWRlVGVhbU93bmVyc2AsIGRlZmF1bHQgb24pOioqIHRoZSBvd25lci1ncm91cCB1c2VycyBhcmUgYWRkZWQgYXMgb3duZXJzIGFuZCBtZW1iZXJzIG9mIHRoZSBwYXJlbnQgTTM2NSBncm91cC4gVGVhbSBtZW1iZXJzaGlwIGlzIGFsc28gdGhlIHRlY2huaWNhbCBwcmVyZXF1aXNpdGUgZm9yIGJlY29taW5nIGEgc2hhcmVkLWNoYW5uZWwgb3duZXIsIHNvIHRoaXMgc3RlcCBlbmFibGVzIHRoZSBjaGFubmVsIHN0ZXAuCi0gKipTaGFyZWQgY2hhbm5lbHM6KiogZm9yIGV2ZXJ5IGhvc3RlZCBzaGFyZWQgY2hhbm5lbCAoYG1lbWJlcnNoaXBUeXBlIGVxICdzaGFyZWQnYCksIGVhY2ggb3duZXItZ3JvdXAgdXNlciBpcyBlbnN1cmVkIGFzIGEgY2hhbm5lbCAqKm93bmVyKiogLSBhZGRlZCBkaXJlY3RseSBpZiBhYnNlbnQsIG9yIHByb21vdGVkIGlmIGFscmVhZHkgYSBtZW1iZXIuIElmIGEgZGlyZWN0IG93bmVyLWFkZCBpcyByZWplY3RlZCAoZS5nLiBtZW1iZXJzaGlwIHJlcGxpY2F0aW9uIGxhZyksIHRoZSBydW5ib29rIGZhbGxzIGJhY2sgdG8gYWRkaW5nIHRoZSB1c2VyIGFzIGEgbWVtYmVyIGZpcnN0IGFuZCB0aGVuIHByb21vdGluZy4KCiMjIyBEcnkgcnVuCgpTZXQgKipgV2hhdElmTW9kZWAqKiB0byBsb2cgd2hhdCB3b3VsZCBjaGFuZ2Ugd2l0aG91dCB3cml0aW5nIGFueXRoaW5nLiBJbiB0aGlzIG1vZGUgdGhlIHJ1bmJvb2sgcHJpbnRzLCB1cCBmcm9udCwgdGhlIHRlYW1zIGl0IHdvdWxkIHByb2Nlc3MgKHdpdGggdGhlaXIgb3duZXIgZ3JvdXApIGFuZCBhbnkgY29uZmlndXJlZCB0ZWFtIG5hbWVzIHRoYXQgd2VyZSBub3QgZm91bmQuCgojIyMgUmVwb3J0aW5nIChvcHRpb25hbCwgYm90aCBkZWZhdWx0IG9mZikKCi0gKipgU2VuZEVtYWlsUmVwb3J0YCoqIHNlbmRzIGEgUmVhbG1Kb2luLWJyYW5kZWQgZW1haWwgKHZpYSBgU2VuZC1SalJlcG9ydEVtYWlsYCkgd2l0aCBydW4gc3RhdGlzdGljcyBhbmQgdHdvIENTViBhdHRhY2htZW50czogYSBwZXItdGVhbSBzdW1tYXJ5IGFuZCBhIHBlci1jaGFuZ2UgZGV0YWlsIGxpc3QuIFRoZSBzZW5kZXIgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCBzZXR0aW5nLgotICoqYENyZWF0ZURvd25sb2FkTGlua2AqKiB1cGxvYWRzIHRoZSBzYW1lIENTVnMgdG8gYSBzdG9yYWdlIGFjY291bnQgYW5kIHJldHVybnMgdGltZS1saW1pdGVkIFNBUyBkb3dubG9hZCBsaW5rcyAoYWxzbyBlbWJlZGRlZCBpbnRvIHRoZSBlbWFpbCB3aGVuIGJvdGggb3B0aW9ucyBhcmUgZW5hYmxlZCkuIFRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50IGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCBzZXR0aW5ncy4KClRoZSBzdG9yYWdlIHVwbG9hZCBhdXRoZW50aWNhdGVzIHdpdGggdGhlIEF1dG9tYXRpb24gYWNjb3VudCdzIG1hbmFnZWQgaWRlbnRpdHk7IHRoYXQgaWRlbnRpdHkgbmVlZHMgdGhlICoqU3RvcmFnZSBCbG9iIERhdGEgQ29udHJpYnV0b3IqKiBSQkFDIHJvbGUgb24gdGhlIHRhcmdldCBzdG9yYWdlIGFjY291bnQgKHRoaXMgaXMgYW4gQXp1cmUgUkJBQyBhc3NpZ25tZW50LCBub3QgYSBHcmFwaCBhcHBsaWNhdGlvbiBwZXJtaXNzaW9uKS4KCiMjIyBTY2hlZHVsaW5nCgpEZXNpZ25lZCB0byBydW4gdW5hdHRlbmRlZCBvbiBhIHNjaGVkdWxlLiBCZWNhdXNlIGNvbmZpZ3VyYXRpb24gaXMgY2VudHJhbGl6ZWQgaW4gdGhlIG9yZyBzZXR0aW5ncyBhbmQgdGhlIHJ1bmJvb2sgaXMgYWRkLW9ubHkgYW5kIGlkZW1wb3RlbnQsIGEgc2luZ2xlIHJlY3VycmluZyBzY2hlZHVsZSBrZWVwcyBhbGwgbWFwcGVkIHRlYW1zIGFuZCB0aGVpciBzaGFyZWQgY2hhbm5lbHMgaW4gc3luYyBhcyBwZW9wbGUgYW5kIGNoYW5uZWxzIGNvbWUgYW5kIGdvLgo=",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"Channel.ReadBasic.All\",\n                \"ChannelMember.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "ChannelMember.ReadWrite.All",
+            "Group.ReadWrite.All",
+            "GroupMember.ReadWrite.All",
+            "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Add Distribution List",
     "RunbookDisplayPath": "Org \\ Mail \\ Add Distribution List",
     "RelativeRunbookPath": "org/mail/add-distribution-list.ps1",

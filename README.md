@@ -140,6 +140,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
     - [Sync Apple Tokens](docs/org/general/sync-apple-tokens.md)
+    - [Sync Sharedchannel Owners (Scheduled)](docs/org/general/sync-sharedchannel-owners_scheduled.md)
   - [Mail](docs/org/README.md#org-mail)
 
     - [Add Distribution List](docs/org/mail/add-distribution-list.md)

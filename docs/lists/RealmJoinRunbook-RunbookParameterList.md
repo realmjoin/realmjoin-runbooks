@@ -114,6 +114,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
     - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
+    - [Sync Sharedchannel Owners (Scheduled)](#organization-general-sync-sharedchannel-owners-scheduled)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
     - [Add Equipment Mailbox](#organization-mail-add-equipment-mailbox)
@@ -1446,6 +1447,26 @@ Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 |-----------|----------|------|-------------|
 | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 | CallerName | ✓ | String | Automated parameter for auditing purposes. |
+
+<a name='organization-general-sync-sharedchannel-owners-scheduled'></a>
+
+### Sync Sharedchannel Owners (Scheduled)
+Ensure a security group's members are owners of mapped Teams and their shared channels.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TeamOwnerGroupMapping |  | Object | Mapping of an exact team display name to an owner security group object id, e.g.<br>[{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].<br>Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects<br>that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or<br>as a JSON string and normalizes both. |
+| IncludeTeamOwners |  | Boolean | When enabled (default), the owner-group members are also ensured as owners and members of the parent<br>team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership. |
+| WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics and two CSV attachments (per-team summary and per-change detail). |
+| EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
+| EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender". |
+| CreateDownloadLink |  | Boolean | When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). Default off. |
+| ContainerName |  | String | Storage container used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Bound to "RJReport.StorageAccount.ResourceGroup". |
+| StorageAccountName |  | String | Storage account used for the upload. Bound to "RJReport.StorageAccount.StorageAccountName". |
+| LinkExpiryDays |  | Int32 | Days until the generated download link expires. Bound to "RJReport.StorageAccount.LinkExpiryDays". |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
