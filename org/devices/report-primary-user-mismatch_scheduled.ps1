@@ -30,11 +30,23 @@
 	.PARAMETER IncludeMissingInIntune
 	Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default.
 
+	.PARAMETER IncludePrimaryUserDeleted
+	Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default.
+
 	.PARAMETER EmailTo
 	Recipient email address (or multiple comma-separated addresses) that should receive the report.
 
 	.PARAMETER EmailFrom
 	The sender email address. This is configured via the runbook customization setting and hidden in the portal.
+
+	.PARAMETER UseDeviceScope
+	Enable device scope filtering to include or exclude devices based on Entra device group membership.
+
+	.PARAMETER IncludeDeviceGroup
+	Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled.
+
+	.PARAMETER ExcludeDeviceGroup
+	Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled.
 
 	.PARAMETER CallerName
 	Caller name for auditing purposes.
@@ -60,7 +72,23 @@
 				"DisplayName": "Include Missing in Intune",
                 "Hide": true
 			},
-			"EmailTo": {
+			"IncludePrimaryUserDeleted": {
+				"DisplayName": "Include Deleted Primary Users",
+                "Hide": true
+			},
+			"UseDeviceScope": {
+				"DisplayName": "Use Device Scope Filtering",
+				"Hide": true
+			},
+			"IncludeDeviceGroup": {
+				"DisplayName": "Devices to include (Group)",
+				"Hide": true
+			},
+			"ExcludeDeviceGroup": {
+				"DisplayName": "Devices to exclude (Group)",
+				"Hide": true
+			},
+            "EmailTo": {
 				"DisplayName": "Send Report To"
 			},
 			"EmailFrom": {
@@ -69,7 +97,37 @@
 			"CallerName": {
 				"Hide": true
 			}
-		}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "(Optional) Enable device scope filtering to include or exclude devices based on Entra device group membership.",
+				"DisplayAfter": "IncludePrimaryUserDeleted",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Yes - filter by device group membership",
+							"Customization": {
+								"Hide": [],
+								"Show": ["IncludeDeviceGroup", "ExcludeDeviceGroup"],
+								"Default": {
+									"UseDeviceScope": true
+								}
+							}
+						},
+						{
+							"Display": "No - include all devices",
+							"Customization": {
+								"Hide": ["IncludeDeviceGroup", "ExcludeDeviceGroup"],
+								"Default": {
+									"UseDeviceScope": false
+								}
+							},
+							"ParameterValue": false
+						}
+					]
+				}
+			}
+		]
 	}
 #>
 
@@ -86,6 +144,16 @@ param (
     [bool]$IncludeMissingInRealmJoin = $false,
 
     [bool]$IncludeMissingInIntune = $false,
+
+    [bool]$IncludePrimaryUserDeleted = $false,
+
+    [bool]$UseDeviceScope = $false,
+
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Devices from Group" } )]
+    [string]$IncludeDeviceGroup,
+
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Devices from Group" } )]
+    [string]$ExcludeDeviceGroup,
 
     [Parameter(Mandatory = $true)]
     [string]$EmailTo,
@@ -104,7 +172,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "SyncThresholdDays: $SyncThresholdDays" -Verbose
@@ -112,8 +180,12 @@ Write-RjRbLog -Message "DeviceNamePrefix: $DeviceNamePrefix" -Verbose
 Write-RjRbLog -Message "IncludeMismatches: $IncludeMismatches" -Verbose
 Write-RjRbLog -Message "IncludeMissingInRealmJoin: $IncludeMissingInRealmJoin" -Verbose
 Write-RjRbLog -Message "IncludeMissingInIntune: $IncludeMissingInIntune" -Verbose
+Write-RjRbLog -Message "IncludePrimaryUserDeleted: $IncludePrimaryUserDeleted" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "UseDeviceScope: $UseDeviceScope" -Verbose
+Write-RjRbLog -Message "IncludeDeviceGroup: $IncludeDeviceGroup" -Verbose
+Write-RjRbLog -Message "ExcludeDeviceGroup: $ExcludeDeviceGroup" -Verbose
 
 #endregion
 
@@ -293,6 +365,47 @@ else {
 Write-Output "Retrieved $($rjDevices.Count) device(s) from the RealmJoin API."
 Write-RjRbLog -Message "RealmJoin devices retrieved: $($rjDevices.Count)" -Verbose
 
+# Optional device scope filtering: resolve Entra device group membership up front so the
+# Data Processing region can drop devices that should not affect the report. Group members of
+# type #microsoft.graph.device expose their Entra Device ID via the 'deviceId' property, which
+# corresponds to the managedDevice 'azureADDeviceId' / RealmJoin 'entraDeviceId'.
+$includeDeviceIds = @()
+$excludeDeviceIds = @()
+
+if ($UseDeviceScope) {
+    Write-Output ""
+    Write-Output "Get Device Scope Groups"
+    Write-Output "---------------------"
+
+    if (-not [string]::IsNullOrEmpty($IncludeDeviceGroup)) {
+        Write-Output "Retrieving members of the include device group..."
+        try {
+            $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeDeviceGroup/members?`$select=id,deviceId,displayName"
+            $includeMembers = Get-GraphPagedResult -Uri $includeGroupUri
+            $includeDeviceIds = @($includeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' -and -not [string]::IsNullOrEmpty($_.deviceId) } | ForEach-Object { $_.deviceId.ToLower() })
+            Write-Output "Include device group contains $($includeDeviceIds.Count) device(s)."
+        }
+        catch {
+            Write-Error "Failed to retrieve members of the include device group ('$IncludeDeviceGroup'): $($_.Exception.Message)" -ErrorAction Continue
+            throw "Unable to retrieve include device group membership"
+        }
+    }
+
+    if (-not [string]::IsNullOrEmpty($ExcludeDeviceGroup)) {
+        Write-Output "Retrieving members of the exclude device group..."
+        try {
+            $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeDeviceGroup/members?`$select=id,deviceId,displayName"
+            $excludeMembers = Get-GraphPagedResult -Uri $excludeGroupUri
+            $excludeDeviceIds = @($excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' -and -not [string]::IsNullOrEmpty($_.deviceId) } | ForEach-Object { $_.deviceId.ToLower() })
+            Write-Output "Exclude device group contains $($excludeDeviceIds.Count) device(s)."
+        }
+        catch {
+            Write-Error "Failed to retrieve members of the exclude device group ('$ExcludeDeviceGroup'): $($_.Exception.Message)" -ErrorAction Continue
+            throw "Unable to retrieve exclude device group membership"
+        }
+    }
+}
+
 #endregion
 
 ########################################################
@@ -324,7 +437,18 @@ Write-RjRbLog -Message "Intune devices after name-prefix filter: $($filteredIntu
 $reportData = @()
 $reportData = $filteredIntuneDevices | ForEach-Object {
     $intuneDevice = $_
+
+    # Detect a deleted Entra primary user: when the primary user no longer exists in Entra ID,
+    # Intune mangles managedDevice.userPrincipalName by prefixing the user's object id (a GUID
+    # without dashes, 32 hex chars) in front of the original UPN, e.g.
+    # "702fabaa7fef412ea14ed0bea71e8729heidi.kabel@contoso.com". Without special handling this
+    # would surface as a false Mismatch against RealmJoin's clean, cached userName.
+    $intunePrimaryUserDeleted = $false
     $intunePrimaryUser = if ([string]::IsNullOrEmpty($intuneDevice.userPrincipalName)) { "(none)" } else { $intuneDevice.userPrincipalName }
+    if ($intuneDevice.userPrincipalName -match '^[0-9a-fA-F]{32}(?<upn>.+@.+)$') {
+        $intunePrimaryUserDeleted = $true
+        $intunePrimaryUser = $Matches['upn']
+    }
 
     # Match against RealmJoin by entraDeviceId (Azure AD Device ID) first, then by intuneDeviceId.
     $rjDevice = $null
@@ -335,17 +459,20 @@ $reportData = $filteredIntuneDevices | ForEach-Object {
         $rjDevice = $rjDevices | Where-Object { $_.intuneDeviceId -eq $intuneDevice.id } | Select-Object -First 1
     }
 
-    # A Mismatch is only possible when RealmJoin actually has a user flagged isPrimary = true.
-    # If the matched RealmJoin device has no primary user (device absent from RealmJoin, or the
-    # primary user has never logged in and therefore cannot be detected), it is NOT a Mismatch -
-    # it is classified as MissingInRealmJoin.
     $rjPrimaryUser = if ($rjDevice) { $rjDevice.users | Where-Object { $_.isPrimary -eq $true } | Select-Object -First 1 } else { $null }
-    if ($rjPrimaryUser -and -not [string]::IsNullOrEmpty($rjPrimaryUser.userName)) {
-        $rjPrimaryUserName = $rjPrimaryUser.userName
+    $rjPrimaryUserName = if ($rjPrimaryUser -and -not [string]::IsNullOrEmpty($rjPrimaryUser.userName)) { $rjPrimaryUser.userName } else { "(none)" }
+
+    # A deleted Intune primary user is its own category and takes precedence: it is not a real
+    # configuration drift but a cleanup candidate. Otherwise a Mismatch is only possible when
+    # RealmJoin actually has a user flagged isPrimary = true; a device absent from RealmJoin (or
+    # whose primary user has never logged in and therefore cannot be detected) is MissingInRealmJoin.
+    if ($intunePrimaryUserDeleted) {
+        $status = "PrimaryUserDeleted"
+    }
+    elseif ($rjPrimaryUser -and -not [string]::IsNullOrEmpty($rjPrimaryUser.userName)) {
         $status = if ($intunePrimaryUser.ToLower() -eq $rjPrimaryUserName.ToLower()) { "Match" } else { "Mismatch" }
     }
     else {
-        $rjPrimaryUserName = "(none)"
         $status = "MissingInRealmJoin"
     }
 
@@ -385,14 +512,39 @@ foreach ($orphanRj in $rjDevices) {
     }
 }
 
+# Apply optional device scope filtering by Entra device group membership. This runs after the full
+# report set (including MissingInIntune orphans) is assembled so excluded devices do not affect any
+# summary counts below. Devices are matched on their Entra Device ID (AzureAdDeviceId).
+if ($UseDeviceScope -and (($includeDeviceIds.Count -gt 0) -or ($excludeDeviceIds.Count -gt 0))) {
+    $beforeScopeCount = $reportData.Count
+    $reportData = @($reportData | Where-Object {
+            $deviceEntraId = if (-not [string]::IsNullOrEmpty($_.AzureAdDeviceId)) { $_.AzureAdDeviceId.ToLower() } else { $null }
+
+            # Include filter: keep only devices that are members of the include group.
+            if (($includeDeviceIds.Count -gt 0) -and (($null -eq $deviceEntraId) -or ($deviceEntraId -notin $includeDeviceIds))) {
+                return $false
+            }
+
+            # Exclude filter: drop devices that are members of the exclude group.
+            if (($excludeDeviceIds.Count -gt 0) -and ($null -ne $deviceEntraId) -and ($deviceEntraId -in $excludeDeviceIds)) {
+                return $false
+            }
+
+            return $true
+        })
+    Write-RjRbLog -Message "Device scope filtering applied: $beforeScopeCount -> $($reportData.Count) device(s)" -Verbose
+    Write-Output "Device scope filtering applied: $beforeScopeCount device(s) reduced to $($reportData.Count)."
+}
+
 # Build the set of difference statuses the caller asked to include in the report.
 $includedStatuses = [System.Collections.Generic.List[string]]::new()
 if ($IncludeMismatches) { $includedStatuses.Add("Mismatch") }
 if ($IncludeMissingInRealmJoin) { $includedStatuses.Add("MissingInRealmJoin") }
 if ($IncludeMissingInIntune) { $includedStatuses.Add("MissingInIntune") }
+if ($IncludePrimaryUserDeleted) { $includedStatuses.Add("PrimaryUserDeleted") }
 
 if ($includedStatuses.Count -eq 0) {
-    Write-RjRbLog -Message "WARNING: No difference categories are enabled (IncludeMismatches, IncludeMissingInRealmJoin, IncludeMissingInIntune are all false). No differences will be reported." -Verbose
+    Write-RjRbLog -Message "WARNING: No difference categories are enabled (IncludeMismatches, IncludeMissingInRealmJoin, IncludeMissingInIntune, IncludePrimaryUserDeleted are all false). No differences will be reported." -Verbose
     Write-Output "WARNING: No difference categories are enabled - the report will contain no differences."
 }
 
@@ -405,8 +557,9 @@ $matchCount = @($reportData | Where-Object { $_.Status -eq "Match" }).Count
 $mismatchCount = @($reportData | Where-Object { $_.Status -eq "Mismatch" }).Count
 $missingInRjCount = @($reportData | Where-Object { $_.Status -eq "MissingInRealmJoin" }).Count
 $missingInIntuneCount = @($reportData | Where-Object { $_.Status -eq "MissingInIntune" }).Count
+$primaryUserDeletedCount = @($reportData | Where-Object { $_.Status -eq "PrimaryUserDeleted" }).Count
 
-Write-RjRbLog -Message "Total evaluated: $totalEvaluated; Match: $matchCount; Mismatch: $mismatchCount; MissingInRealmJoin: $missingInRjCount; MissingInIntune: $missingInIntuneCount" -Verbose
+Write-RjRbLog -Message "Total evaluated: $totalEvaluated; Match: $matchCount; Mismatch: $mismatchCount; MissingInRealmJoin: $missingInRjCount; MissingInIntune: $missingInIntuneCount; PrimaryUserDeleted: $primaryUserDeletedCount" -Verbose
 
 #endregion
 
@@ -422,6 +575,7 @@ Write-Output "Matching: $matchCount"
 Write-Output "Mismatches: $mismatchCount"
 Write-Output "Missing in RealmJoin: $missingInRjCount"
 Write-Output "Missing in Intune: $missingInIntuneCount"
+Write-Output "Primary User Deleted: $primaryUserDeletedCount"
 
 $tempDir = $null
 $csvFilePath = $null
@@ -471,13 +625,14 @@ if ($differences.Count -gt 0) {
     }
 
     # Build the summary so it only lists the difference categories the caller enabled
-    # (IncludeMismatches / IncludeMissingInRealmJoin / IncludeMissingInIntune). Total Devices
-    # Evaluated is always shown for context.
+    # (IncludeMismatches / IncludeMissingInRealmJoin / IncludeMissingInIntune /
+    # IncludePrimaryUserDeleted). Total Devices Evaluated is always shown for context.
     $summaryLines = [System.Collections.Generic.List[string]]::new()
     $summaryLines.Add("- **Total Devices Evaluated**: $totalEvaluated")
     if ($IncludeMismatches) { $summaryLines.Add("- **Mismatches**: $mismatchCount") }
     if ($IncludeMissingInRealmJoin) { $summaryLines.Add("- **Missing in RealmJoin**: $missingInRjCount") }
     if ($IncludeMissingInIntune) { $summaryLines.Add("- **Missing in Intune**: $missingInIntuneCount") }
+    if ($IncludePrimaryUserDeleted) { $summaryLines.Add("- **Primary User Deleted (Entra)**: $primaryUserDeletedCount") }
     $summaryBlock = $summaryLines -join "`n"
 
     $markdownContent = @"
