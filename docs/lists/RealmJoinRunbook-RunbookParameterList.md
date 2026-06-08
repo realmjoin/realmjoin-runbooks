@@ -917,6 +917,10 @@ Compare primary user assignments in Intune against RealmJoin for Windows managed
 | IncludeMismatches |  | Boolean | Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default. |
 | IncludeMissingInRealmJoin |  | Boolean | Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default. |
 | IncludeMissingInIntune |  | Boolean | Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default. |
+| IncludePrimaryUserDeleted |  | Boolean | Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default. |
+| UseDeviceScope |  | Boolean | Enable device scope filtering to include or exclude devices based on Entra device group membership. |
+| IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled. |
+| ExcludeDeviceGroup |  | String | Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled. |
 | EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
 | EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
