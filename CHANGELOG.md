@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-08
+- Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
+  - Add optional inclusion of devices whose Intune primary user has been deleted from Entra ID in the report. Disabled by default.
+
 ## 2026-06-03
 
 - Add **Sync Shared Channel Owners (Scheduled)** Runbook in Org/General
