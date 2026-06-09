@@ -68,6 +68,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
+      - [Cleanup Autopilot Devices (Scheduled)](#cleanup-autopilot-devices-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
       - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
@@ -1164,6 +1165,34 @@ This scheduled runbook automatically approves pending driver updates in one or m
 #### Where to find
 
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-cleanup-autopilot-devices-(scheduled)'></a>
+
+### Cleanup Autopilot Devices (Scheduled)
+#### Clean up orphaned and stale Windows Autopilot device registrations
+
+#### Description
+
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+
+#### Where to find
+
+Org \ Devices \ Cleanup Autopilot Devices_Scheduled
 
 ## Setup regarding email sending
 

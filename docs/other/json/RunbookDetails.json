@@ -4793,6 +4793,192 @@
     }
   },
   {
+    "RunbookDisplayName": "Cleanup Autopilot Devices_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Cleanup Autopilot Devices_Scheduled",
+    "RelativeRunbookPath": "org/devices/cleanup-autopilot-devices_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Clean up orphaned and stale Windows Autopilot device registrations",
+    "Description": "This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.",
+    "Notes": "Prerequisites:\n- The Azure Automation managed identity must hold these Microsoft Graph application\n  permissions: DeviceManagementManagedDevices.Read.All,\n  DeviceManagementServiceConfig.ReadWrite.All, Organization.Read.All, Device.ReadWrite.All\n  (Device.ReadWrite.All only when the \"Delete Autopilot and Entra device\" mode is used), and\n  Mail.Send (Mail.Send only when email reporting is enabled).\n- Grant the permissions before the first scheduled run.\n\nWarning - deletion is irreversible:\n- Removing an Autopilot device identity permanently deletes it from Windows Autopilot.\n- The physical device cannot re-enter Autopilot until its hardware hash is re-uploaded.\n- There is no soft-delete or recycle bin for Autopilot records.\n- Deleting the Entra (Azure AD) device object is likewise permanent; only do so for records\n  that are genuinely dead (the device will never enroll again).\n\nRecommended first-run procedure:\n- Run with Delete mode = \"WhatIf (report only)\" (the default) and review the output or emailed CSV.\n- Confirm the identified devices are genuinely orphaned or never-enrolled.\n- Switch to a deletion mode only after the candidate list has been reviewed.\n\nParameter interactions:\n- DeleteMode defaults to \"WhatIf (report only)\"; no deletions occur in that mode.\n- \"Delete Autopilot device\" removes only the Autopilot identity. \"Delete Autopilot and Entra\n  device\" additionally removes the matching Entra (Azure AD) device object, which would\n  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.\n- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both\n  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.\n- GroupTagFilter is optional; leave empty to evaluate all Autopilot device identities.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CleanupNeverEnrolledDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CleanupOrphanedDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "WhatIf (report only)",
+        "description": [
+          {
+            "Text": "Controls what the runbook does with the identified cleanup candidates. \"WhatIf (report only)\" performs no deletion and only reports the candidates (default, safe). \"Delete Autopilot device\" removes the Autopilot device identities. \"Delete Autopilot and Entra device\" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeleteMode",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address for the summary report. This is configured via Runbook Customizations."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated Autopilot group tags to limit the cleanup scope. Leave empty to process all Autopilot devices regardless of group tag."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupTagFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "90",
+        "description": [
+          {
+            "Text": "Age threshold in days for never-enrolled devices. Measured on the Device creation date."
+          }
+        ],
+        "globbing": "false",
+        "name": "NeverEnrolledAgeDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "90",
+        "description": [
+          {
+            "Text": "Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently."
+          }
+        ],
+        "globbing": "false",
+        "name": "OrphanedLastContactedDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.ReadWrite.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.ReadWrite.All",
+            "DeviceManagementManagedDevices.Read.All",
+            "DeviceManagementServiceConfig.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Create Endpoint Analytics Baseline",
     "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
     "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",

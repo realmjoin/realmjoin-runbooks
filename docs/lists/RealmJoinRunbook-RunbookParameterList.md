@@ -67,6 +67,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
+    - [Cleanup Autopilot Devices (Scheduled)](#organization-devices-cleanup-autopilot-devices-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
     - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
@@ -795,6 +796,23 @@ Auto-approve new driver updates in Intune driver update policies
 | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
 | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+
+<a name='organization-devices-cleanup-autopilot-devices-scheduled'></a>
+
+### Cleanup Autopilot Devices (Scheduled)
+Clean up orphaned and stale Windows Autopilot device registrations
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeleteMode |  | String | Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records. |
+| GroupTagFilter |  | String | Comma-separated Autopilot group tags to limit the cleanup scope. Leave empty to process all Autopilot devices regardless of group tag. |
+| CleanupOrphanedDevices |  | Boolean | When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted). |
+| OrphanedLastContactedDays |  | Int32 | Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently. |
+| CleanupNeverEnrolledDevices |  | Boolean | When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune). |
+| NeverEnrolledAgeDays |  | Int32 | Age threshold in days for never-enrolled devices. Measured on the Device creation date. |
+| EmailTo |  | String | Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log. |
+| EmailFrom |  | String | The sender email address for the summary report. This is configured via Runbook Customizations. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-create-endpoint-analytics-baseline'></a>
 
