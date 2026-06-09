@@ -14,6 +14,8 @@
       "Application.ReadWrite.OwnedBy",
       "AuditLog.Read.All",
       "BitlockerKey.Read.All",
+      "Channel.ReadBasic.All",
+      "ChannelMember.ReadWrite.All",
       "CloudPC.ReadWrite.All",
       "Device.ReadWrite.All",
       "DeviceLocalCredential.Read.All",

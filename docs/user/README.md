@@ -44,10 +44,10 @@
   - [Create Temporary Access Pass](security/create-temporary-access-pass.md)
   - [Enable Or Disable Password Expiration](security/enable-or-disable-password-expiration.md)
   - [List MFA Methods](security/list-mfa-methods.md)
-  - [Reset Mfa](security/reset-mfa.md)
+  - [Reset MFA](security/reset-mfa.md)
   - [Reset Password](security/reset-password.md)
   - [Revoke Or Restore Access](security/revoke-or-restore-access.md)
-  - [Set Or Remove Mobile Phone Mfa](security/set-or-remove-mobile-phone-mfa.md)
+  - [Set Or Remove Mobile Phone MFA](security/set-or-remove-mobile-phone-mfa.md)
 <a name='user-userinfo'></a>
 ## Userinfo
   - [Rename User](userinfo/rename-user.md)
