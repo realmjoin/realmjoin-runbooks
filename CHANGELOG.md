@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-09
+- Add **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
+  - This runbook identifies and removes orphaned or never-enrolled Autopilot devices based on configurable criteria, with optional email reporting of the cleanup results. It also includes an option to delete the corresponding Entra ID device objects for orphaned devices, which can help maintain a clean directory and prevent confusion in device management. The runbook is designed to be run on a scheduled basis to ensure ongoing maintenance of the Autopilot device inventory.
+
 ## 2026-06-08
 - Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
   - Add optional inclusion of devices whose Intune primary user has been deleted from Entra ID in the report. Disabled by default.
