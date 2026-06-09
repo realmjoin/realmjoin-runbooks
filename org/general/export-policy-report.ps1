@@ -43,8 +43,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
 
 # Suppress false positive from PSScriptAnalyzer - $blob is used to suppress unwanted output from Set-AzStorageBlobContent
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "blob")]
@@ -78,7 +78,7 @@ $VerbosePreference = "SilentlyContinue"
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #endregion
@@ -134,7 +134,10 @@ function ConvertTo-MarkdownPolicyAssignment {
             try {
                 $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
             }
-            catch {}
+            catch {
+                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
+                $null = $_
+            }
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
                 "| Included Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
@@ -167,7 +170,10 @@ function ConvertTo-MarkdownPolicyAssignment {
             try {
                 $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
             }
-            catch {}
+            catch {
+                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
+                $null = $_
+            }
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
                 "| Excluded Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
@@ -1071,14 +1077,20 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
     try {
         $definitionValues = (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues").value
     }
-    catch {}
+    catch {
+        # Suppress PSAvoidUsingEmptyCatchBlock — policy may have no definition values, continue report rendering
+        $null = $_
+    }
     foreach ($definitionValue in $definitionValues) {
         $definition = $null
         try {
             $definition = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
             "#### $($definition.displayName)"
         }
-        catch {}
+        catch {
+            # Suppress PSAvoidUsingEmptyCatchBlock — definition may not be accessible, continue report rendering
+            $null = $_
+        }
         ""
         #"$($definition.explainText)"
         #""
@@ -1097,13 +1109,19 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
         try {
             $presentationValues = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
         }
-        catch {}
+        catch {
+            # Suppress PSAvoidUsingEmptyCatchBlock — presentation values may not exist, continue report rendering
+            $null = $_
+        }
         foreach ($presentationValue in $presentationValues.value) {
             $presentation = $null
             try {
                 $presentation = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues/$($presentationValue.id)/presentation"
             }
-            catch {}
+            catch {
+                # Suppress PSAvoidUsingEmptyCatchBlock — presentation may not be accessible, continue report rendering
+                $null = $_
+            }
             if ($null -ne $presentation) {
                 # "Label: " + $($presentation.label)
                 $item = ($presentation.items | Where-Object { $_.value -eq $presentationValue.value })
@@ -1142,7 +1160,10 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
         ConvertTo-MarkdownPolicyAssignment -assignments $assignments
     }
-    catch {}
+    catch {
+        # Suppress PSAvoidUsingEmptyCatchBlock — assignments may not be accessible, continue report rendering
+        $null = $_
+    }
 }
 
 #endregion

@@ -14,6 +14,8 @@
       "Application.ReadWrite.OwnedBy",
       "AuditLog.Read.All",
       "BitlockerKey.Read.All",
+      "Channel.ReadBasic.All",
+      "ChannelMember.ReadWrite.All",
       "CloudPC.ReadWrite.All",
       "Device.ReadWrite.All",
       "DeviceLocalCredential.Read.All",
@@ -31,6 +33,7 @@
       "Mail.Send",
       "Organization.Read.All",
       "Policy.Read.All",
+      "ReportSettings.ReadWrite.All",
       "Reports.Read.All",
       "RoleAssignmentSchedule.Read.Directory",
       "RoleManagement.Read.All",
@@ -54,7 +57,7 @@
     "Id": "fc780465-2017-40d4-a0c5-307022471b92",
     "AppRoleAssignments": [
       "Machine.Isolate",
-      "Machine.Read.All",
+      "Machine.ReadWrite.All",
       "Machine.RestrictExecution",
       "Ti.ReadWrite.All"
     ]

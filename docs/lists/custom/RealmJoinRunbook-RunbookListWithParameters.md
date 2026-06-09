@@ -28,7 +28,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | DeviceId | ✓ | String | DeviceId of the device to enroll. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially. |
-|  |  | Outphase Device | Remove/Outphase a windows device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceId | ✓ | String | The device ID of the target device. |
+|  |  | Outphase Device | Remove/Outphase a windows device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br>- **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br>&emsp;- Machine.ReadWrite.All<br> | - Cloud device administrator<br> | DeviceId | ✓ | String | The device ID of the target device. |
 |  |  |  |  |  |  | intuneAction |  | Int32 | Determines the Intune action to perform (wipe, delete, or none). |
 |  |  |  |  |  |  | aadAction |  | Int32 | Determines the Entra ID (Azure AD) action to perform (delete, disable, or none). |
 |  |  |  |  |  |  | wipeDevice |  | Boolean | If set to true, triggers a wipe action in Intune. |
@@ -36,6 +36,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | removeAutopilotDevice |  | Boolean | "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant. |
 |  |  |  |  |  |  | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 |  |  |  |  |  |  | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
+|  |  |  |  |  |  | excludeFromDefender |  | Boolean | If set to true, the device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
+|  |  |  |  |  |  | defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Remove Primary User | Removes the primary user from a device. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  | DeviceId | ✓ | String | The unique identifier of the device from which the primary user will be removed.<br>It will be prefilled from the RealmJoin Portal and is hidden in the UI. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -207,6 +209,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br> |  | BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
 |  |  |  |  |  |  | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
+|  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | NamePrefix | ✓ | String | The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string. |
+|  |  |  |  |  |  | NameLength | ✓ | Int32 | The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix. |
+|  |  |  |  |  |  | OsFilter |  | String | Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All. |
+|  |  |  |  |  |  | CallerName | ✓ | String | The identity of the person or automation account that triggered this runbook, used for auditing purposes only. |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
 |  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
 |  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
@@ -238,7 +244,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
 |  |  |  |  |  |  | CustomMailTemplateAfterDeviceDetails |  | String | Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Outphase Devices | Remove or outphase multiple devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceListChoice | ✓ | Int32 | Determines whether the list contains device IDs or serial numbers. |
+|  |  | Outphase Devices | Remove or outphase multiple devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br>- **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br>&emsp;- Machine.ReadWrite.All<br> | - Cloud device administrator<br> | DeviceListChoice | ✓ | Int32 | Determines whether the list contains device IDs or serial numbers. |
 |  |  |  |  |  |  | DeviceList | ✓ | String | Comma-separated list of device IDs or serial numbers. |
 |  |  |  |  |  |  | intuneAction |  | Int32 | Determines whether to wipe the device, delete it from Intune, or skip Intune actions. |
 |  |  |  |  |  |  | aadAction |  | Int32 | Determines whether to delete the Entra ID device, disable it, or skip Entra ID actions. |
@@ -247,9 +253,23 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | removeAutopilotDevice |  | Boolean | "Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database. |
 |  |  |  |  |  |  | removeAADDevice |  | Boolean | Internal flag derived from aadAction. |
 |  |  |  |  |  |  | disableAADDevice |  | Boolean | Internal flag derived from aadAction. |
+|  |  |  |  |  |  | excludeFromDefender |  | Boolean | If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
+|  |  |  |  |  |  | defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | SyncThresholdDays |  | Int32 | Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated. |
+|  |  |  |  |  |  | DeviceNamePrefix |  | String | Optional device name prefix to filter the report to a specific subset of devices. Leave blank to include all devices. |
+|  |  |  |  |  |  | IncludeMismatches |  | Boolean | Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default. |
+|  |  |  |  |  |  | IncludeMissingInRealmJoin |  | Boolean | Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default. |
+|  |  |  |  |  |  | IncludeMissingInIntune |  | Boolean | Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default. |
+|  |  |  |  |  |  | IncludePrimaryUserDeleted |  | Boolean | Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default. |
+|  |  |  |  |  |  | UseDeviceScope |  | Boolean | Enable device scope filtering to include or exclude devices based on Entra device group membership. |
+|  |  |  |  |  |  | IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled. |
+|  |  |  |  |  |  | ExcludeDeviceGroup |  | String | Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled. |
+|  |  |  |  |  |  | EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale. |
 |  |  |  |  |  |  | MaxDays |  | Int32 | Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included. |
@@ -265,6 +285,15 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Report Windows Devices Without Autopilot | Reports all Windows Entra devices that have no associated Windows Autopilot object. | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send<br>Azure IaaS: - Contributor - access on subscription or resource group used for the export<br> |  | SendMail |  | Boolean | If enabled, the report is sent via email. Toggling this on reveals the recipient address field. |
+|  |  |  |  |  |  | EmailTo |  | String | Recipient address(es) for the email report. Only used / shown when SendMail is enabled.<br>Can be a single address or multiple comma-separated addresses (string). |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender). |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>&emsp;- Device.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Mail.Send<br> |  | ExtensionAttributeNumber |  | Int32 | Extension attribute number to update |
 |  |  |  |  |  |  | ProcessAllDevices |  | Boolean | If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed. |
@@ -430,21 +459,29 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Invite External Guest Users | Invite external guest users to the organization | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  | InvitedUserEmail | ✓ | String | Email address of the guest user to invite. |
-|  |  |  |  |  |  | InvitedUserDisplayName | ✓ | String | Display name of the guest user. |
-|  |  |  |  |  |  | GroupId |  | String | The object ID of the group to add the guest user to.<br>If not specified, the user will not be added to any group. |
+|  |  |  |  |  |  | InvitedUserDisplayName |  | String | Display name of the guest user. |
+|  |  |  |  |  |  | GroupId |  | String | The object ID of the group to add the guest user to. If not specified, the user will not be added to any group. |
+|  |  |  |  |  |  | GivenName |  | String | Given name (first name) of the guest user. |
+|  |  |  |  |  |  | Surname |  | String | Surname (last name) of the guest user. |
+|  |  |  |  |  |  | CompanyName |  | String | Company name of the guest user. |
+|  |  |  |  |  |  | ManagerName |  | String | Manager to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | SponsorName |  | String | Sponsor to assign to the guest user. Select a user from the directory. |
+|  |  |  |  |  |  | CustomizeInvitation |  | Boolean | Enable to customize the invitation message and redirect URL. |
+|  |  |  |  |  |  | InvitationMessage |  | String | Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled. |
+|  |  |  |  |  |  | InviteRedirectUrl |  | String | Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled. |
+|  |  |  |  |  |  | UsageLocation |  | String | ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE"). |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
-|  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports. |
+|  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br>&emsp;- ReportSettings.ReadWrite.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
+|  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports (Shared Mailbox licensing). |
+|  |  |  |  |  |  | includeUserData |  | Boolean | If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use. |
 |  |  |  |  |  |  | exportToFile |  | Boolean | If set to true, exports reports to Azure Storage when configured. |
 |  |  |  |  |  |  | exportAsZip |  | Boolean | If set to true, exports reports as a single ZIP file. |
 |  |  |  |  |  |  | produceLinks |  | Boolean | If set to true, creates SAS tokens/links for exported artifacts. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container name used for uploads. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
-|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for uploads. |
-|  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region for the storage account. |
-|  |  |  |  |  |  | StorageAccountSku |  | String | Storage account SKU. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for uploads. The account must exist before running this report. |
 |  |  |  |  |  |  | SubscriptionId |  | String | Azure subscription ID used for storage operations. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -461,6 +498,18 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Sync All Devices | Sync all Intune Windows devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Automated parameter for auditing purposes. |
+|  |  | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Channel.ReadBasic.All<br>&emsp;- ChannelMember.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | TeamOwnerGroupMapping |  | Object | Mapping of an exact team display name to an owner security group object id, e.g.<br>[{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].<br>Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects<br>that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or<br>as a JSON string and normalizes both. |
+|  |  |  |  |  |  | IncludeTeamOwners |  | Boolean | When enabled (default), the owner-group members are also ensured as owners and members of the parent<br>team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership. |
+|  |  |  |  |  |  | WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
+|  |  |  |  |  |  | SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics and two CSV attachments (per-team summary and per-change detail). |
+|  |  |  |  |  |  | EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender". |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). Default off. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Bound to "RJReport.StorageAccount.ResourceGroup". |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account used for the upload. Bound to "RJReport.StorageAccount.StorageAccountName". |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Days until the generated download link expires. Bound to "RJReport.StorageAccount.LinkExpiryDays". |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  | Mail | Add Distribution List | Create a classic distribution group | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | Alias | ✓ | String | Mail alias (mail nickname) for the distribution group. |
 |  |  |  |  |  |  | PrimarySMTPAddress |  | String | Optional primary SMTP address for the distribution group. |
 |  |  |  |  |  |  | GroupName |  | String | Optional display name for the distribution group; defaults to the alias. |
@@ -502,6 +551,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | DisplayName |  | String | Display name for the shared mailbox. |
 |  |  |  |  |  |  | DomainName |  | String | Optional domain used for the primary SMTP address; if not provided, the default domain is used. |
 |  |  |  |  |  |  | Language |  | String | The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US". |
+|  |  |  |  |  |  | TimeZone |  | String | The time zone for the shared mailbox. Default is "W. Europe Standard Time". |
 |  |  |  |  |  |  | DelegateTo |  | String | Optional user who receives delegated access to the mailbox. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, the mailbox is automatically mapped in Outlook for the delegate. |
 |  |  |  |  |  |  | MessageCopyForSentAsEnabled |  | Boolean | If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items. |
@@ -743,6 +793,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user whose archive mailbox should be managed. |
+|  |  |  |  |  |  | Action |  | String | Action to perform: Enable, Disable, or GetStatus. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
@@ -806,7 +859,22 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | List MFA Methods | List all MFA / authentication methods of a user | - **Type**: Microsoft Graph<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br> |  | UserName | ✓ | String | User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled. |
+|  |  |  |  |  |  | MaskPhoneNumbers |  | Boolean | When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
+|  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | EnableUserIfNeeded |  | Boolean | If set to true, enables the user account before resetting the password. |
@@ -815,9 +883,15 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Revoke Or Restore Access | Revoke or restore user access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | "(Re-)Enable User" (final value: $false) or "Revoke Access" (final value: $true) can be selected as action to perform. If set to true, the runbook will block the user from signing in and revoke active sessions. If set to false, it will re-enable the user account. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br> |  | UserId | ✓ | String | Object ID of the target user. |
+|  |  | Set Or Remove Mobile Phone MFA | Set or remove a user's mobile phone MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserId | ✓ | String | Object ID of the target user. |
 |  |  |  |  |  |  | phoneNumber | ✓ | String | Mobile phone number in international E.164 format (e.g., +491701234567). |
 |  |  |  |  |  |  | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
+|  |  |  |  |  |  | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
+|  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
+|  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  | Userinfo | Rename User | Rename a user or mailbox | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- User.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user or mailbox to rename. |
 |  |  |  |  |  |  | NewUpn | ✓ | String | New user principal name to set. |
@@ -842,6 +916,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | State |  | String | State to set for the user. |
 |  |  |  |  |  |  | StreetAddress |  | String | Street address to set for the user. |
 |  |  |  |  |  |  | UsageLocation |  | String | Usage location to set for the user. |
+|  |  |  |  |  |  | ManagerId |  | String | Optional manager user ID to set for the user. |
 |  |  |  |  |  |  | DefaultLicense |  | String | Display name of a license group to assign. |
 |  |  |  |  |  |  | DefaultGroups |  | String | Comma-separated list of group display names to assign. |
 |  |  |  |  |  |  | EnableEXOArchive |  | Boolean | If set to true, enables the Exchange Online archive mailbox. |

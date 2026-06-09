@@ -1,10 +1,20 @@
-﻿<#
+<#
 	.SYNOPSIS
 	Invite external guest users to the organization
 
 	.DESCRIPTION
 	This runbook invites an external user as a guest user in Microsoft Entra ID.
-	It can optionally add the invited user to a specified group.
+	Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
+	The invited user can optionally be added to a specified group.
+
+	.NOTES
+	Common Use Cases:
+	- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank
+	- Full onboarding: supply all optional fields to set profile properties, assign a manager/sponsor, and add to a group in a single run
+
+	Parameter Interactions:
+	- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely
+	- Manager and sponsor assignment and group membership each require their respective parameters; all are silently skipped when not provided
 
 	.PARAMETER InvitedUserEmail
 	Email address of the guest user to invite.
@@ -12,219 +22,463 @@
 	.PARAMETER InvitedUserDisplayName
 	Display name of the guest user.
 
-    .PARAMETER GroupId
-    The object ID of the group to add the guest user to.
-    If not specified, the user will not be added to any group.
+	.PARAMETER GroupId
+	The object ID of the group to add the guest user to. If not specified, the user will not be added to any group.
+
+	.PARAMETER GivenName
+	Given name (first name) of the guest user.
+
+	.PARAMETER Surname
+	Surname (last name) of the guest user.
+
+	.PARAMETER CompanyName
+	Company name of the guest user.
+
+	.PARAMETER ManagerName
+	Manager to assign to the guest user. Select a user from the directory.
+
+	.PARAMETER SponsorName
+	Sponsor to assign to the guest user. Select a user from the directory.
+
+	.PARAMETER CustomizeInvitation
+	Enable to customize the invitation message and redirect URL.
+
+	.PARAMETER InvitationMessage
+	Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled.
+
+	.PARAMETER InviteRedirectUrl
+	Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled.
+
+	.PARAMETER UsageLocation
+	ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE").
 
 	.PARAMETER CallerName
 	Caller name for auditing purposes.
 
-    .NOTES
-    You need to setup proper RunbookCustomization in the RealmJoin Portal to use this script.
-    An example would be looking like this:
-    "rjgit-org_general_invite-external-guest-users": {
-        "Parameters": {
-            "InvitedUserEmail": {
-                "DisplayName": "Invitee's email address",
-                "Mandatory": true
-            },
-            "InvitedUserDisplayName": {
-                "DisplayName": "Invitee's display name",
-                "Mandatory": true
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "GroupId": {
-                "Hide": true,
-                "DefaultValue": "00000000-0000-0000-0000-000000000000"
-            }
-        }
-    }
-
-
-
 	.INPUTS
 	RunbookCustomization: {
-		"Parameters": {
-			"InvitedUserEmail": {
+		"ParameterList": [
+			{
+				"Name": "InvitedUserEmail",
 				"DisplayName": "Invitee email address",
 				"Mandatory": true
 			},
-			"InvitedUserDisplayName": {
+			{
+				"Name": "InvitedUserDisplayName",
 				"DisplayName": "Invitee display name",
 				"Mandatory": true
 			},
-			"CallerName": {
-				"Hide": true
+			{
+				"Name": "GroupId",
+				"Hide": true,
+				"DefaultValue": ""
 			},
-			"GroupId": {
+			{
+				"Name": "GivenName",
+				"DisplayName": "Given name (optional)"
+			},
+			{
+				"Name": "Surname",
+				"DisplayName": "Surname (optional)"
+			},
+			{
+				"Name": "CompanyName",
+				"DisplayName": "Company name (optional)"
+			},
+			{
+				"Name": "ManagerName",
+				"DisplayName": "Manager (optional)"
+			},
+			{
+				"Name": "SponsorName",
+				"DisplayName": "Sponsor (optional)"
+			},
+			{
+				"Name": "CustomizeInvitation",
+				"DisplayName": "Customize Invitation",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Yes - customize message/redirect",
+							"ParameterValue": true
+						},
+						{
+							"Display": "No - use defaults",
+							"ParameterValue": false,
+							"Customization": {
+								"Hide": [
+									"InvitationMessage",
+									"InviteRedirectUrl"
+								]
+							}
+						}
+					],
+					"ShowValue": false
+				},
+				"DefaultValue": false
+			},
+			{
+				"Name": "InvitationMessage",
+				"DisplayName": "Invitation message (optional)"
+			},
+			{
+				"Name": "InviteRedirectUrl",
+				"DisplayName": "Invite redirect URL (optional)"
+			},
+			{
+				"Name": "UsageLocation",
+				"DisplayName": "Usage location - ISO country code (optional)"
+			},
+			{
+				"Name": "CallerName",
 				"Hide": true
 			}
-		}
+		]
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
 
 param(
     [Parameter(Mandatory = $true)]
     [string]$InvitedUserEmail,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string]$InvitedUserDisplayName,
 
     [Parameter(Mandatory = $false)]
     [string]$GroupId = "",
 
+    [Parameter(Mandatory = $false)]
+    [string]$GivenName = "",
+
+    [Parameter(Mandatory = $false)]
+    [string]$Surname = "",
+
+    [Parameter(Mandatory = $false)]
+    [string]$CompanyName = "",
+
+    [Parameter(Mandatory = $false)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" } )]
+    [string]$ManagerName = "",
+
+    [Parameter(Mandatory = $false)]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Sponsor" } )]
+    [string]$SponsorName = "",
+
+    [Parameter(Mandatory = $false)]
+    [bool]$CustomizeInvitation = $false,
+
+    [Parameter(Mandatory = $false)]
+    [string]$InvitationMessage = "",
+
+    [Parameter(Mandatory = $false)]
+    [string]$InviteRedirectUrl = "",
+
+    [Parameter(Mandatory = $false)]
+    [string]$UsageLocation = "",
+
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string]$CallerName
-
 )
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "2.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Add Parameter in Verbose output
-Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "InvitedUserEmail: $InvitedUserEmail" -Verbose
 Write-RjRbLog -Message "InvitedUserDisplayName: $InvitedUserDisplayName" -Verbose
 Write-RjRbLog -Message "GroupId: $GroupId" -Verbose
+Write-RjRbLog -Message "GivenName: $GivenName" -Verbose
+Write-RjRbLog -Message "Surname: $Surname" -Verbose
+Write-RjRbLog -Message "CompanyName: $CompanyName" -Verbose
+Write-RjRbLog -Message "ManagerName: $ManagerName" -Verbose
+Write-RjRbLog -Message "SponsorName: $SponsorName" -Verbose
+Write-RjRbLog -Message "CustomizeInvitation: $CustomizeInvitation" -Verbose
+Write-RjRbLog -Message "InvitationMessage: $InvitationMessage" -Verbose
+Write-RjRbLog -Message "InviteRedirectUrl: $InviteRedirectUrl" -Verbose
+Write-RjRbLog -Message "UsageLocation: $UsageLocation" -Verbose
 
 #endregion
 
-####################################################################
-#region Validate Parameters
-####################################################################
-# Validate if the InvitedUserEmail is a valid email format
-if (-not $InvitedUserEmail -or $InvitedUserEmail -notmatch '^[^@\s]+@[^@\s]+\.[^@\s]+$') {
-    Write-Error "Invalid email format for InvitedUserEmail: '$($InvitedUserEmail)'"
-    exit 1
+########################################################
+#region     Parameter Validation
+########################################################
+
+if ($InvitedUserEmail -notmatch '^[^@\s]+@[^@\s]+\.[^@\s]+$') {
+    Write-Error "Invalid email format for InvitedUserEmail: '$InvitedUserEmail'" -ErrorAction Continue
+    throw "Invalid email format for InvitedUserEmail: '$InvitedUserEmail'"
 }
 
+if ([string]::IsNullOrWhiteSpace($InvitedUserDisplayName) -and -not [string]::IsNullOrWhiteSpace($Surname) -and -not [string]::IsNullOrWhiteSpace($GivenName)) {
+    $InvitedUserDisplayName = "$Surname, $GivenName"
+    Write-RjRbLog -Message "InvitedUserDisplayName derived from Surname/GivenName: '$InvitedUserDisplayName'" -Verbose
+}
 
-####################################################################
-#region Connect to Microsoft Graph
-####################################################################
+#endregion
+
+########################################################
+#region     Connect Part
+########################################################
 
 try {
-    Write-Verbose "Connecting to Microsoft Graph..."
     Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-    Write-Verbose "Successfully connected to Microsoft Graph."
 }
 catch {
-    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)"
+    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)" -ErrorAction Continue
     throw
 }
 
 #endregion
 
-####################################################################
-#region Prepare Invitation Parameters
-####################################################################
+########################################################
+#region     StatusQuo & Preflight-Check Part
+########################################################
 
-# Build the invitation URL
-$tenantId = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization" | Select-Object -ExpandProperty value | Select-Object -First 1 | Select-Object -ExpandProperty id
-if (-not $tenantId) {
-    Write-Error "Failed to retrieve tenant ID."
-    exit 1
+Write-Output ""
+Write-Output "Get StatusQuo"
+Write-Output "---------------------"
+
+# Check if a guest user with the same email already exists
+$existingUsersResult = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mail eq '$InvitedUserEmail'&`$select=id,displayName,mail,userType" -ErrorAction Stop
+$existingUser = $existingUsersResult.value | Select-Object -First 1
+
+if ($existingUser) {
+    Write-RjRbLog -Message "WARNING: A user with email '$InvitedUserEmail' already exists in the tenant."
+    Write-Output ""
+    Write-Output "Existing user found"
+    Write-Output "---------------------"
+    Write-Output "  User ID:      $($existingUser.id)"
+    Write-Output "  Display Name: $($existingUser.displayName)"
+    Write-Output "  Mail:         $($existingUser.mail)"
+    Write-Output "  User Type:    $($existingUser.userType)"
+    Write-Output ""
+    Write-Output "WARNING: A user with this email already exists. The invitation will still proceed."
 }
-$InviteRedirectUrl = "https://myapplications.microsoft.com/?tenantid=$($tenantId)"
+else {
+    Write-Output "No existing user found with email '$InvitedUserEmail'. Proceeding with invitation."
+}
 
-[bool]$SendInvitationMessage = $true
+# If GroupId is provided, verify the group exists
+if (-not [string]::IsNullOrEmpty($GroupId)) {
+    try {
+        $preflightGroup = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups/$GroupId" -ErrorAction Stop
+        Write-Output "Target group verified: '$($preflightGroup.displayName)' ($GroupId)"
+    }
+    catch {
+        Write-Error "Group with ID '$GroupId' does not exist or is not accessible: $($_.Exception.Message)" -ErrorAction Continue
+        throw "Group '$GroupId' not found. Verify the GroupId is correct."
+    }
+}
 
 #endregion
 
-####################################################################
-#region Invite Guest User and Add to Group
-####################################################################
+########################################################
+#region     Main Part
+########################################################
 
-# Step 1: Invite guest user
-Write-Output "Inviting guest user: $($InvitedUserDisplayName) ($($InvitedUserEmail))"
+# Determine invite redirect URL
+if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InviteRedirectUrl)) {
+    $effectiveRedirectUrl = $InviteRedirectUrl
+}
+else {
+    $orgResult = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization" -ErrorAction Stop
+    $tenantId = $orgResult.value | Select-Object -First 1 | Select-Object -ExpandProperty id
+    if (-not $tenantId) {
+        Write-Error "Failed to retrieve tenant ID." -ErrorAction Continue
+        throw "Failed to retrieve tenant ID."
+    }
+    $effectiveRedirectUrl = "https://myapplications.microsoft.com/?tenantid=$tenantId"
+}
+
+# Step 1: Send invitation
+Write-Output ""
+Write-Output "Invite Guest User"
+Write-Output "---------------------"
+Write-Output "Inviting guest user: $InvitedUserDisplayName ($InvitedUserEmail)"
 
 $invitationBody = @{
     invitedUserEmailAddress = $InvitedUserEmail
-    invitedUserDisplayName = $InvitedUserDisplayName
-    inviteRedirectUrl = $InviteRedirectUrl
-    sendInvitationMessage = $SendInvitationMessage
+    invitedUserDisplayName  = $InvitedUserDisplayName
+    inviteRedirectUrl       = $effectiveRedirectUrl
+    sendInvitationMessage   = $true
+}
+
+if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) {
+    $invitationBody["invitedUserMessageInfo"] = @{
+        customizedMessageBody = $InvitationMessage
+    }
 }
 
 try {
-    $invitationResponse = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/invitations" -Body ($invitationBody | ConvertTo-Json) -ContentType "application/json"
-
+    $invitationResponse = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/invitations" -Body ($invitationBody | ConvertTo-Json -Depth 5) -ContentType "application/json" -ErrorAction Stop
     $invitedUserId = $invitationResponse.invitedUser.id
-    Write-Output "Guest user successfully invited. User ID: $($invitedUserId)"
-
-    # Wait for user to be available in Azure AD
+    Write-Output "Guest user successfully invited. User ID: $invitedUserId"
+    # Allow time for the user object to replicate in Entra ID
     Start-Sleep -Seconds 5
 }
 catch {
-    Write-Error "Error inviting guest user: $($_.Exception.Message)"
-    exit 1
+    Write-Error "Error inviting guest user: $($_.Exception.Message)" -ErrorAction Continue
+    throw
 }
 
-# Step 2: Add user to group (if specified)
-if ($GroupId) {
-    Write-Output "Validating Group ID..."
+# Step 2: Set optional profile properties via PATCH
+$profilePatch = @{}
+if (-not [string]::IsNullOrEmpty($GivenName)) {
+    $profilePatch["givenName"] = $GivenName
+}
+if (-not [string]::IsNullOrEmpty($Surname)) {
+    $profilePatch["surname"] = $Surname
+}
+if (-not [string]::IsNullOrEmpty($CompanyName)) {
+    $profilePatch["companyName"] = $CompanyName
+}
+if (-not [string]::IsNullOrEmpty($UsageLocation)) {
+    $profilePatch["usageLocation"] = $UsageLocation
+}
+
+if ($profilePatch.Count -gt 0) {
+    Write-Output ""
+    Write-Output "Set Profile Properties"
+    Write-Output "---------------------"
+    try {
+        Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/v1.0/users/$invitedUserId" -Body ($profilePatch | ConvertTo-Json -Depth 5) -ContentType "application/json" -ErrorAction Stop
+        Write-Output "Profile properties updated: $($profilePatch.Keys -join ', ')"
+    }
+    catch {
+        Write-Error "Failed to update profile properties for user '$invitedUserId': $($_.Exception.Message)" -ErrorAction Continue
+        throw
+    }
+}
+
+# Step 3: Assign manager if provided
+if (-not [string]::IsNullOrEmpty($ManagerName)) {
+    Write-Output ""
+    Write-Output "Assign Manager"
+    Write-Output "---------------------"
+    try {
+        $managerBody = @{
+            "@odata.id" = "https://graph.microsoft.com/v1.0/users/$ManagerName"
+        }
+        Invoke-MgGraphRequest -Method PUT -Uri "https://graph.microsoft.com/v1.0/users/$invitedUserId/manager/`$ref" -Body ($managerBody | ConvertTo-Json -Depth 5) -ContentType "application/json" -ErrorAction Stop
+        Write-Output "Manager '$ManagerName' assigned to guest user."
+    }
+    catch {
+        Write-Error "Failed to assign manager '$ManagerName' to user '$invitedUserId': $($_.Exception.Message)" -ErrorAction Continue
+        throw
+    }
+}
+
+# Step 4: Assign sponsor if provided
+if (-not [string]::IsNullOrEmpty($SponsorName)) {
+    Write-Output ""
+    Write-Output "Assign Sponsor"
+    Write-Output "---------------------"
+    try {
+        $sponsorBody = @{
+            "@odata.id" = "https://graph.microsoft.com/v1.0/users/$SponsorName"
+        }
+        Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/users/$invitedUserId/sponsors/`$ref" -Body ($sponsorBody | ConvertTo-Json -Depth 5) -ContentType "application/json" -ErrorAction Stop
+        Write-Output "Sponsor '$SponsorName' assigned to guest user."
+    }
+    catch {
+        Write-Error "Failed to assign sponsor '$SponsorName' to user '$invitedUserId': $($_.Exception.Message)" -ErrorAction Continue
+        throw
+    }
+}
+
+# Step 5: Add user to group if specified
+if (-not [string]::IsNullOrEmpty($GroupId)) {
+    Write-Output ""
+    Write-Output "Add User to Group"
+    Write-Output "---------------------"
 
     try {
-        # Check if group exists
-        $group = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups/$GroupId" -ErrorAction Stop
-        Write-Output "Adding user to group: $($group.displayName) - ID: $($GroupId)"
-
-        # Add user to group
         $memberBody = @{
-            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($invitedUserId)"
+            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$invitedUserId"
         }
+        Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/groups/$GroupId/members/`$ref" -Body ($memberBody | ConvertTo-Json -Depth 5) -ContentType "application/json" -ErrorAction Stop
+        Write-Output "User successfully added to group '$($preflightGroup.displayName)'"
 
-        Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/groups/$GroupId/members/`$ref" -Body ($memberBody | ConvertTo-Json) -ContentType "application/json"
-
-        Write-Output "User successfully added to group '$($group.displayName)'"
-
-        # Step 3: Verify group membership
-        Write-Output "Verifying group membership for invited user..."
-
+        # Step 6: Verify group membership
+        Write-Output ""
+        Write-Output "Verify Group Membership"
+        Write-Output "---------------------"
         Start-Sleep -Seconds 3
-        $userGroups = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$($invitedUserId)/memberOf"
-
-        $assignedGroup = $userGroups.value | Where-Object { $_.id -eq $GroupId }
+        $userGroupsResult = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$invitedUserId/memberOf" -ErrorAction Stop
+        $assignedGroup = $userGroupsResult.value | Where-Object { $_.id -eq $GroupId }
         if ($assignedGroup) {
             Write-Output "Group membership successfully verified."
-        } else {
-            Write-Output "Group assignment may take a few minutes to appear"
+        }
+        else {
+            Write-Output "Group assignment may take a few minutes to propagate."
         }
     }
     catch {
-        Write-Error "Error adding user to group $($GroupId): $($_.Exception.Message)"
+        Write-Error "Error adding user to group '$GroupId': $($_.Exception.Message)" -ErrorAction Continue
+        throw
     }
-} else {
-    Write-Output "No group specified for assignment"
 }
+else {
+    Write-Output ""
+    Write-Output "No group specified for assignment."
+}
+
+# Resolve UPN for Manager and Sponsor for display purposes
+$managerUpn = ""
+if (-not [string]::IsNullOrEmpty($ManagerName)) {
+    try {
+        $managerUser = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$ManagerName" -ErrorAction Stop
+        $managerUpn = $managerUser.userPrincipalName
+    }
+    catch {
+        $managerUpn = $ManagerName
+    }
+}
+$sponsorUpn = ""
+if (-not [string]::IsNullOrEmpty($SponsorName)) {
+    try {
+        $sponsorUser = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$SponsorName" -ErrorAction Stop
+        $sponsorUpn = $sponsorUser.userPrincipalName
+    }
+    catch {
+        $sponsorUpn = $SponsorName
+    }
+}
+
+# Summary
+Write-Output ""
+Write-Output "Summary"
+Write-Output "---------------------"
+Write-Output "  Email:        $InvitedUserEmail"
+Write-Output "  Display Name: $InvitedUserDisplayName"
+Write-Output "  User ID:      $invitedUserId"
+if (-not [string]::IsNullOrEmpty($GivenName)) { Write-Output "  Given Name:   $GivenName" }
+if (-not [string]::IsNullOrEmpty($Surname)) { Write-Output "  Surname:      $Surname" }
+if (-not [string]::IsNullOrEmpty($CompanyName)) { Write-Output "  Company:      $CompanyName" }
+if (-not [string]::IsNullOrEmpty($UsageLocation)) { Write-Output "  Usage Loc.:   $UsageLocation" }
+if (-not [string]::IsNullOrEmpty($ManagerName)) { Write-Output "  Manager:      $managerUpn" }
+if (-not [string]::IsNullOrEmpty($SponsorName)) { Write-Output "  Sponsor:      $sponsorUpn" }
+if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) { Write-Output "  Message:      $InvitationMessage" }
+if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InviteRedirectUrl)) { Write-Output "  Redirect URL: $InviteRedirectUrl" }
+Write-Output "  Group:        $(if ([string]::IsNullOrEmpty($GroupId)) { 'None' } else { "$($preflightGroup.displayName) ($GroupId)" })"
+
 #endregion
 
-####################################################################
-#region Output Summary
-####################################################################
-# Output summary
+########################################################
+#region     Cleanup
+########################################################
+
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
 Write-Output ""
-Write-Output "=== Summary ==="
-Write-Output "Invited User:"
-Write-Output "  Email: $InvitedUserEmail"
-Write-Output "  Display Name: $InvitedUserDisplayName"
-Write-Output "  User ID: $invitedUserId"
-Write-Output "Group Assigned: $(if ([string]::IsNullOrEmpty($GroupId)) { 'None' } else { "$($group.displayName) - $GroupId" })"
-Write-Output "Invitation Sent: $SendInvitationMessage"
+Write-Output "Done!"
 
 #endregion

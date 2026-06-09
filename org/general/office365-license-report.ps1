@@ -10,7 +10,10 @@
     If set to true, prints a short license usage overview.
 
     .PARAMETER includeExchange
-    If set to true, includes Exchange Online related reports.
+    If set to true, includes Exchange Online related reports (Shared Mailbox licensing).
+
+    .PARAMETER includeUserData
+    If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use.
 
     .PARAMETER exportToFile
     If set to true, exports reports to Azure Storage when configured.
@@ -28,13 +31,7 @@
     Resource group that contains the storage account.
 
     .PARAMETER StorageAccountName
-    Storage account name used for uploads.
-
-    .PARAMETER StorageAccountLocation
-    Azure region for the storage account.
-
-    .PARAMETER StorageAccountSku
-    Storage account SKU.
+    Storage account name used for uploads. The account must exist before running this report.
 
     .PARAMETER SubscriptionId
     Azure subscription ID used for storage operations.
@@ -50,9 +47,7 @@
 				"ResourceGroup": "rj-test-runbooks-01",
 				"SubscriptionId": "00000000-0000-0000-0000-000000000000",
 				"StorageAccount": {
-					"Name": "rbexports01",
-					"Location": "West Europe",
-					"Sku": "Standard_LRS"
+					"Name": "rbexports01"
 				}
 			}
 		}
@@ -74,14 +69,6 @@
 				"Hide": true
 			},
 			{
-				"Name": "StorageAccountLocation",
-				"Hide": true
-			},
-			{
-				"Name": "StorageAccountSku",
-				"Hide": true
-			},
-			{
 				"Name": "SubscriptionId",
 				"Hide": true
 			},
@@ -93,9 +80,9 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.2" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
@@ -104,6 +91,8 @@ param(
     [bool] $printOverview = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include Exchange Reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
     [bool] $includeExchange = $false,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include real user data (UPNs) in reports?" -Type Setting -Attribute "OfficeLicensingReport.IncludeUserData" } )]
+    [bool] $includeUserData = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports to Az Storage Account?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports as single ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
@@ -117,10 +106,6 @@ param(
     [string] $ResourceGroupName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Location" } )]
-    [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Sku" } )]
-    [string] $StorageAccountSku,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
     [string] $SubscriptionId,
     # CallerName is tracked purely for auditing purposes
@@ -128,21 +113,41 @@ param(
     [string] $CallerName
 )
 
-Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+############################################################
+#region     RJ Log Part
+#
+############################################################
 
-$Version = "1.0.1"
+if ($CallerName) {
+    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+}
+
+$Version = "1.1.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "printOverview: $printOverview" -Verbose
+Write-RjRbLog -Message "includeExchange: $includeExchange" -Verbose
+Write-RjRbLog -Message "includeUserData: $includeUserData" -Verbose
+Write-RjRbLog -Message "exportToFile: $exportToFile" -Verbose
+Write-RjRbLog -Message "exportAsZip: $exportAsZip" -Verbose
+Write-RjRbLog -Message "produceLinks: $produceLinks" -Verbose
 
-# Sanity checks
-if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
+#endregion RJ Log Part
+
+############################################################
+#region     Parameter Validation
+#
+############################################################
+
+if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
     "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
     ""
     "## Please configure the following attributes in the RJ central datastore:"
     "## - OfficeLicensingReport.ResourceGroup"
     "## - OfficeLicensingReport.SubscriptionId"
     "## - OfficeLicensingReport.StorageAccount.Name"
-    "## - OfficeLicensingReport.StorageAccount.Location"
-    "## - OfficeLicensingReport.StorageAccount.Sku"
+    ""
+    "## Note: The Storage Account must exist before running this report."
     ""
     "## Disabling CSV export..."
     $exportToFile = $false
@@ -155,21 +160,29 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
     exit
 }
 
-# Static / internal defaults
-$OutPutPath = "CloudEconomics\"
+#endregion Parameter Validation
 
-# Manually import this ahead of MgGraph module to avoid conflicts
-Import-Module Az.Accounts
+############################################################
+#region     Function Definitions
+#
+############################################################
 
-Connect-RjRbExchangeOnline
-Connect-RjRbGraph
+#region Helper Functions
+##############################
 
-# "Get SKUs and build a lookuptable for SKU IDs"
-$SkuHashtable = @{}
-$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
-$SKUs | ForEach-Object {
-    $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
+function Get-ReportPrivacySetting {
+    (Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta).displayConcealedNames
 }
+
+function Set-ReportPrivacySetting {
+    param([bool]$concealNames)
+    Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
+}
+
+#endregion Helper Functions
+
+#region Report Functions
+##############################
 
 function Get-LicenseOverviewReport {
     param(
@@ -177,7 +190,7 @@ function Get-LicenseOverviewReport {
         [bool]$printOverview
     )
 
-    # "List of well known SKUs - please update/add more when needed."
+    # List of well known SKUs - please update/add more when needed.
     $SkuNames = @{
         "EXCHANGESTANDARD"           = "Exchange Online Plan1"
         "EXCHANGEENTERPRISE"         = "Exchange Online Plan2"
@@ -213,7 +226,7 @@ function Get-LicenseOverviewReport {
         "WINDOWS_STORE"
     )
 
-    # "Prepare results"
+    # Prepare results
     $results = @()
 
     class LicReportObject {
@@ -225,16 +238,14 @@ function Get-LicenseOverviewReport {
     }
 
     $SKUs | ForEach-Object {
-        #only look at active and relevant licenses
+        # Only look at active and relevant licenses
         if (($_.prepaidUnits.enabled -gt 0) -and (-not $ignoreListe.contains($_.skuPartNumber))) {
             $entry = [LicReportObject]::new()
 
             if ($SkuNames.contains($_.skuPartNumber)) {
-                # "Well known SKU found: $($SkuNames[$_.SkuPartNumber])"
                 $entry.Name = $SkuNames[$_.skuPartNumber]
             }
             else {
-                # "Fallback if unknown SKU: $($_.SkuPartNumber)"
                 $entry.Name = $_.skuPartNumber
             }
             $entry.Total = $_.prepaidUnits.enabled
@@ -248,13 +259,12 @@ function Get-LicenseOverviewReport {
 
     "## Totals of licenses we have:"
     ""
-    $results | sort-object -property Name | format-table | out-string
+    $results | Sort-Object -Property Name | Format-Table | Out-String
     ""
     if ($TXTPath) {
-        #$results | sort-object -property Name | format-table > "$($TXTPath)\office-licensing.txt"
-        $results | sort-object -property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation -Delimiter ";"
+        $results | Sort-Object -Property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation -Delimiter ";"
         $content = Get-Content -Path "$($TXTPath)\office-licensing.csv"
-        set-content -Path "$($TXTPath)\office-licensing.csv" -Value $content -Encoding utf8
+        Set-Content -Path "$($TXTPath)\office-licensing.csv" -Value $content -Encoding utf8
     }
 }
 
@@ -269,7 +279,7 @@ function Get-UnusedLicenseReport {
             $_.skuPartNumber + ";" + $_.prepaidUnits.enabled + ";" + $_.consumedUnits + ";" + $_.prepaidUnits.suspended >> $Path
         }
         $content = Get-Content -Path $Path
-        set-content -Path $Path -Value $content -Encoding utf8
+        Set-Content -Path $Path -Value $content -Encoding utf8
     }
     catch {
         "## Error fetching unused licenses"
@@ -289,8 +299,10 @@ function Get-SharedMailboxLicensing {
             Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
         }
     }
-    $content = Get-Content -Path $CSVPath
-    set-content -Path $CSVPath -Value $content -Encoding utf8
+    if (Test-Path -Path $CSVPath) {
+        $content = Get-Content -Path $CSVPath
+        Set-Content -Path $CSVPath -Value $content -Encoding utf8
+    }
 }
 
 function Get-GraphReport {
@@ -313,7 +325,7 @@ function Get-GraphReport {
         foreach ($Uri in $graphUris) {
             $reportname = ($uri.Replace("/reports/", "").split('('))[0]
             $Path = $CSVPath + "\" + $reportname + ".csv"
-            $Results = Invoke-RjRbRestMethodGraph -resource $Uri
+            $Results = Invoke-RjRbRestMethodGraph -Resource $Uri
 
             if ($Results) {
                 $Results = $Results.Remove(0, 3)
@@ -346,7 +358,7 @@ function Get-LoginLog {
     )
 
     $today = Get-Date -Format "yyyy-MM-dd"
-    $PastPeriod = ("{0:s}" -f (get-date).AddDays( - ($PastDays))).Split("T")[0]
+    $PastPeriod = ("{0:s}" -f (Get-Date).AddDays( - ($PastDays))).Split("T")[0]
 
     foreach ($app in $Applications) {
         "## ... $app"
@@ -367,15 +379,14 @@ function Get-AssignedPlan {
     )
     $reportname = "\assignedPlans"
     $Path = $CSVPath + $reportname + ".csv"
-    #alle lizenzierten Benutzer
     $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"
 
     $users | ForEach-Object {
         $thisUser = $_
-        #        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails").servicePlans | Select-Object -Property @{name = "licenses"; expression = { $_.servicePlanName } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
         (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
     } | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Out-File $Path -Append -Encoding utf8
 }
+
 function Get-LicenseAssignmentPath {
     [cmdletbinding()]
     param(
@@ -393,15 +404,16 @@ function Get-LicenseAssignmentPath {
             $UserHasLicenseAssignedFromGroup = -not $UserHasLicenseAssignedDirectly
 
             $obj = $user
-            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -value $skuPartNumber -Force
-            $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -value $UserHasLicenseAssignedDirectly -Force
-            $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -value $UserHasLicenseAssignedFromGroup -Force
+            $obj | Add-Member -MemberType NoteProperty -Name "SKU" -Value $skuPartNumber -Force
+            $obj | Add-Member -MemberType NoteProperty -Name "AssignedDirectly" -Value $UserHasLicenseAssignedDirectly -Force
+            $obj | Add-Member -MemberType NoteProperty -Name "AssignedFromGroup" -Value $UserHasLicenseAssignedFromGroup -Force
             $obj | Select-Object -Property ObjectId, UserPrincipalName, AssignedDirectly, AssignedFromGroup, SKU | Export-Csv -Path $path -Append -NoTypeInformation -Delimiter ";"
         }
     }
     $content = Get-Content $Path
-    set-content -Path $Path -value $content -Encoding utf8
+    Set-Content -Path $Path -Value $content -Encoding utf8
 }
+
 function Get-LicensingGroup {
     [cmdletbinding()]
     param(
@@ -422,7 +434,7 @@ function Get-LicensingGroup {
         }
         $obj | Export-Csv $Path -Append -NoTypeInformation -Delimiter ";"
         $content = Get-Content $Path
-        set-content -Path $Path -value $content -Encoding utf8
+        Set-Content -Path $Path -Value $content -Encoding utf8
     }
 }
 
@@ -461,20 +473,52 @@ function Get-AdminReport {
             }
         }
     }
-    $msolUserResults | Select-Object -Property * | Export-Csv -notypeinformation -Path $Path -Delimiter ";"
+    $msolUserResults | Select-Object -Property * | Export-Csv -NoTypeInformation -Path $Path -Delimiter ";"
     $content = Get-Content $Path
-    set-content -Path $Path -value $content -Encoding utf8
+    Set-Content -Path $Path -Value $content -Encoding utf8
 }
 
-# start of main script
+#endregion Report Functions
 
-if (-Not (Test-Path -Path $OutPutPath)) {
+#endregion Function Definitions
+
+############################################################
+#region     Connect Part
+#
+############################################################
+
+Write-Output "Connecting to Microsoft Graph..."
+Connect-RjRbGraph
+
+# Exchange Online is only connected when actually needed for the Shared Mailbox report.
+if ($includeExchange) {
+    Write-Output "Connecting to Exchange Online..."
+    Connect-RjRbExchangeOnline
+}
+
+#endregion Connect Part
+
+############################################################
+#region     Data Collection
+#
+############################################################
+
+# Get SKUs and build a lookup table for SKU IDs
+$SkuHashtable = @{}
+$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
+$SKUs | ForEach-Object {
+    $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
+}
+
+$OutPutPath = "CloudEconomics\"
+
+if (-not (Test-Path -Path $OutPutPath)) {
     New-Item -ItemType directory -Path $OutPutPath | Out-Null
 }
 else {
     "## Deleting old reports"
-    Get-ChildItem -Path $OutPutPath -Filter *.csv  | Remove-Item | Out-Null
-    Get-ChildItem -Path $OutPutPath -Filter *.txt  | Remove-Item | Out-Null
+    Get-ChildItem -Path $OutPutPath -Filter *.csv | Remove-Item | Out-Null
+    Get-ChildItem -Path $OutPutPath -Filter *.txt | Remove-Item | Out-Null
 }
 
 "## Collecting: License Usage Overview"
@@ -488,7 +532,27 @@ if ($exportToFile) {
     }
 
     "## Collecting: MS Graph Reports"
-    Get-GraphReport -CSVPath $OutPutPath
+    $settingWasChanged = $false
+    try {
+        if ($includeUserData) {
+            $currentConcealSetting = Get-ReportPrivacySetting
+            if ($currentConcealSetting -eq $false) {
+                "## Report privacy setting is already disabled - no changes needed."
+            }
+            else {
+                "## Temporarily disabling report privacy setting to include user data..."
+                Set-ReportPrivacySetting -concealNames $false
+                $settingWasChanged = $true
+            }
+        }
+        Get-GraphReport -CSVPath $OutPutPath
+    }
+    finally {
+        if ($settingWasChanged) {
+            "## Restoring report privacy setting..."
+            Set-ReportPrivacySetting -concealNames $true
+        }
+    }
 
     "## Collecting: Login Logs"
     Get-LoginLog -CSVPath $OutPutPath
@@ -496,7 +560,7 @@ if ($exportToFile) {
     "## Collecting: All user objects"
     Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
     $content = Get-Content $OutPutPath"\AllUser.csv"
-    set-content -Path $OutPutPath"\AllUser.csv" -value $content -Encoding utf8
+    Set-Content -Path $OutPutPath"\AllUser.csv" -Value $content -Encoding utf8
 
     "## Collecting: Assigned License Plans"
     Get-AssignedPlan -CSVPath $OutPutPath
@@ -509,65 +573,52 @@ if ($exportToFile) {
 
     #"## Collecting: Licensed Admin Accounts"
     #Get-AdminReport -CSVPath $OutPutPath
+}
 
+#endregion Data Collection
+
+############################################################
+#region     Output/Export
+#
+############################################################
+
+if ($exportToFile) {
     ""
-    Connect-RjRbAzAccount
-    if ($SubscriptionId) {
-        Set-AzContext -Subscription $SubscriptionId | Out-Null
-    }
-
     if (-not $ContainerName) {
-        $ContainerName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd")
+        $ContainerName = "office-licensing-v2-" + (Get-Date -Format "yyyy-MM-dd")
     }
-
-    # Make sure storage account exists
-    $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-    if (-not $storAccount) {
-        "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
-    }
-
-    # Get access to the Storage Account
-    $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
-    $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-
-    # Make sure, container exists
-    $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-    if (-not $container) {
-        "## Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context
-    }
-
-    $EndTime = (Get-Date).AddDays(6)
 
     "## Upload"
     if ($exportAsZip) {
-        $zipFileName = "office-licensing-v2-" + (get-date -Format "yyyy-MM-dd") + ".zip"
+        $zipFileName = "office-licensing-v2-" + (Get-Date -Format "yyyy-MM-dd") + ".zip"
         Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
-        Set-AzStorageBlobContent -File $zipFileName -Container $ContainerName -Blob $zipFileName -Context $context -Force | Out-Null
-        if ($produceLinks) {
-            #Create signed (SAS) link
-            $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $zipFileName -FullUri -ExpiryTime $EndTime
-            "$SASLink"
-        }
-        "## '$zipFileName' upload successful."
+        $filesToUpload = @($zipFileName)
     }
     else {
-        # Upload all files individually
-        Get-ChildItem -Path $OutPutPath | ForEach-Object {
-            Set-AzStorageBlobContent -File $_.FullName -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
-            if ($produceLinks) {
-                #Create signed (SAS) link
-                $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $_.Name -FullUri -ExpiryTime $EndTime
-                "## $($_.Name)"
-                " $SASLink"
-                ""
-            }
-        }
-        "## upload of CSVs successful."
+        $filesToUpload = (Get-ChildItem -Path $OutPutPath -File).FullName
     }
-    if ($produceLinks) {
+
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $filesToUpload `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -SubscriptionId $SubscriptionId `
+        -LinkExpiryDays 6 `
+        -AddBlobNamePrefix $false
+
+    foreach ($r in $uploadResults) {
+        if ($produceLinks) {
+            "## $($r.BlobName)"
+            " $($r.SASLink)"
+            ""
+        }
+    }
+    "## Upload successful ($($uploadResults.Count) file(s))."
+    if ($produceLinks -and $uploadResults) {
         ""
-        "## Expiry of Links: $EndTime"
+        "## Expiry of Links: $($uploadResults[0].EndTime)"
     }
 }
+
+#endregion Output/Export

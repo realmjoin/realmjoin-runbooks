@@ -18,6 +18,9 @@
     .PARAMETER Language
     The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
 
+    .PARAMETER TimeZone
+    The time zone for the shared mailbox. Default is "W. Europe Standard Time".
+
 	.PARAMETER DelegateTo
 	Optional user who receives delegated access to the mailbox.
 
@@ -48,6 +51,44 @@
 					"de-DE": "de-DE",
 					"fr-FR": "fr-FR"
 				}
+			},
+			"TimeZone": {
+				"SelectSimple": {
+					"W. Europe Standard Time": "W. Europe Standard Time",
+					"Central Europe Standard Time": "Central Europe Standard Time",
+					"E. Europe Standard Time": "E. Europe Standard Time",
+					"GMT Standard Time": "GMT Standard Time",
+					"UTC": "UTC",
+					"Eastern Standard Time": "Eastern Standard Time",
+					"Central Standard Time": "Central Standard Time",
+					"Mountain Standard Time": "Mountain Standard Time",
+					"Pacific Standard Time": "Pacific Standard Time",
+					"Alaska Standard Time": "Alaska Standard Time",
+					"Hawaiian Standard Time": "Hawaiian Standard Time",
+					"China Standard Time": "China Standard Time",
+					"Tokyo Standard Time": "Tokyo Standard Time",
+					"Korea Standard Time": "Korea Standard Time",
+					"India Standard Time": "India Standard Time",
+					"Arabian Standard Time": "Arabian Standard Time",
+					"AUS Eastern Standard Time": "AUS Eastern Standard Time",
+					"New Zealand Standard Time": "New Zealand Standard Time",
+					"Romance Standard Time": "Romance Standard Time",
+					"Russian Standard Time": "Russian Standard Time",
+					"SA Pacific Standard Time": "SA Pacific Standard Time",
+					"SE Asia Standard Time": "SE Asia Standard Time",
+					"Singapore Standard Time": "Singapore Standard Time",
+					"South Africa Standard Time": "South Africa Standard Time",
+					"Turkey Standard Time": "Turkey Standard Time",
+					"Argentina Standard Time": "Argentina Standard Time",
+					"Atlantic Standard Time": "Atlantic Standard Time",
+					"Canada Central Standard Time": "Canada Central Standard Time",
+					"E. South America Standard Time": "E. South America Standard Time",
+					"FLE Standard Time": "FLE Standard Time",
+					"Israel Standard Time": "Israel Standard Time",
+					"Middle East Standard Time": "Middle East Standard Time",
+					"Nepal Standard Time": "Nepal Standard Time",
+					"West Pacific Standard Time": "West Pacific Standard Time"
+				}
 			}
 		}
 	}
@@ -76,7 +117,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 param (
@@ -86,6 +127,7 @@ param (
     [string] $DisplayName,
     [string] $DomainName,
     [string] $Language = "en-US",
+    [string] $TimeZone = "W. Europe Standard Time",
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
@@ -119,6 +161,7 @@ Write-RjRbLog -Message "MailboxName: $($MailboxName)" -Verbose
 Write-RjRbLog -Message "DisplayName: $($DisplayName)" -Verbose
 Write-RjRbLog -Message "DomainName: $($DomainName)" -Verbose
 Write-RjRbLog -Message "Language: $($Language)" -Verbose
+Write-RjRbLog -Message "TimeZone: $($TimeZone)" -Verbose
 Write-RjRbLog -Message "DelegateTo: $($DelegateTo)" -Verbose
 Write-RjRbLog -Message "AutoMapping: $($AutoMapping)" -Verbose
 Write-RjRbLog -Message "MessageCopyForSentAsEnabled: $($MessageCopyForSentAsEnabled)" -Verbose
@@ -278,7 +321,7 @@ try {
 
     # Set Language ( i.e. rename folders like "inbox" )
     Write-Output "Configuring mailbox regional settings..."
-    $mailbox |  Set-MailboxRegionalConfiguration -Language $Language -LocalizeDefaultFolderName
+    $mailbox |  Set-MailboxRegionalConfiguration -Language $Language -TimeZone $TimeZone -LocalizeDefaultFolderName
 
     if ($DisableUser) {
         Write-Output "Disabling associated EntraID user account..."

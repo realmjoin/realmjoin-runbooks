@@ -1,5 +1,137 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-08
+- Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
+  - Add optional inclusion of devices whose Intune primary user has been deleted from Entra ID in the report. Disabled by default.
+
+## 2026-06-03
+
+- Add **Sync Shared Channel Owners (Scheduled)** Runbook in Org/General
+  - Ensures the members of a mapped security group are owners of selected Teams and of every shared channel those teams host (shared channels do not inherit ownership from their parent team)
+  - Teams are targeted by exact display name; the team-name-to-owner-group mapping is maintained centrally via the `SharedChannelOwners.Mapping` org setting
+  - Add-only (existing owners/members are never removed); `WhatIfMode` dry run
+  - Optional email report (via `Send-RjReportEmail`) and/or storage download link, each with per-team and per-change CSV output (both default off)
+- Add **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
+  - Compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API for Windows managed devices, flags any device where the primary user differs, and emails the differences with a CSV attachment on a scheduled basis.
+
+## 2026-06-02
+
+- Bump `Microsoft.Graph.Authentication` module to >= 2.37.0 in all runbooks that use it
+- Add **Report Windows Devices Without Autopilot** Runbook in Org/Devices
+  - Lists all Windows Entra device objects that have no associated Windows Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`)
+- Update **Outphase Device** Runbook in Device/General
+  - Add optional Microsoft Defender for Endpoint exclusion: tags the device with a configurable exclusion tag (default `ExcludeFromRemediation`) to mark it as excluded from remediation (opt-in, default off)
+  - Consolidates the previously separate Defender exclusion variant into this Runbook
+  - Adds the `WindowsDefenderATP` permissions `Machine.Read.All` and `Machine.ReadWrite.All`
+- Update **Outphase Devices** Runbook in Org/Devices
+  - Add the same optional Microsoft Defender for Endpoint exclusion tagging, applied to every device in the list (opt-in, default off)
+  - Adds the `WindowsDefenderATP` permissions `Machine.Read.All` and `Machine.ReadWrite.All`
+
+## 2026-06-01
+
+- Bump `RealmJoin.RunbookHelper` to >= 0.8.6 in every Runbook that uses the module
+  - This module version ships an extensive update to the email-sending function around image embedding and Outlook Classic compatibility
+- Update **Export Enterprise Application Users** Runbook in Org/Applications
+  - Remove inline `Publish-RjRbFilesToStorageContainer` helper function — now provided by `RealmJoin.RunbookHelper` >= 0.8.6
+- Update **Office 365 License Report** Runbook in Org/General
+  - Remove inline `Publish-RjRbFilesToStorageContainer` helper function — now provided by `RealmJoin.RunbookHelper` >= 0.8.6
+- Update **Check Device Onboarding Exclusion (Scheduled)** Runbook in Org/General
+  - Fix `System.OutOfMemoryException` on tenants with large Intune inventories: managed devices are now filtered server-side instead of pulling the full inventory into memory and filtering client-side
+  - Migrate to native Microsoft Graph
+
+## 2026-05-27
+
+- Update **Reset MFA** Runbook in User/Security
+  - Add `NotifyUser` option: optionally sends a notification email to the target user when an administrator resets their MFA methods (default off/setting hidden)
+  - Add `EmailFrom`, `ServiceDeskDisplayName`, `ServiceDeskEmail`, `ServiceDeskPhone` parameters for email configuration (sourced from RJReport tenant settings, all hidden by default)
+  - Add `LanguageOverride` parameter to force DE or EN email language (default: auto-detect via usage location)
+  - Add StatusQuo section to resolve user display name, primary email, and usage location
+  - File renamed from `reset-mfa.ps1` to `reset-MFA.ps1` (capital letters)
+- Update **Set or Remove Mobile Phone MFA** Runbook in User/Security
+  - Add `NotifyUser` option: optionally sends a notification email to the target user when an administrator adds or removes their mobile phone MFA method (default off/setting hidden)
+  - Add `EmailFrom`, `ServiceDeskDisplayName`, `ServiceDeskEmail`, `ServiceDeskPhone` parameters for email configuration (sourced from RJReport tenant settings, all hidden by default)
+  - Add `LanguageOverride` parameter to force DE or EN email language (default: auto-detect via usage location)
+  - Email text distinguishes between add and remove actions
+  - File renamed from `set-or-remove-mobile-phone-mfa.ps1` to `set-or-remove-mobile-phone-MFA.ps1` (capital letters)
+
+## 2026-05-26
+
+- Update **List MFA Methods** Runbook in User/Security
+  - Add support for overriding the language of the user notification email with a parameter
+
+## 2026-05-20
+
+- Update **Update User** Runbook in User/Userinfo section
+  - Add support for updating the user's manager
+
+## 2026-05-15
+
+- Add **Manage Archive Mailbox** Runbook to User/Mail
+  - Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user
+  - When enabling, automatically reconnects a soft-deleted archive mailbox (within 30 days) instead of creating a new one
+  - Disable action includes a note that the archive can be recovered within 30 days
+
+## 2026-05-13
+
+- Update **Report Apple MDM Cert Expiry (Scheduled)** Runbook in Org/General
+  - Fix VPP tokens being silently dropped from the report due to a faulty paged-result check
+  - Fix DEP onboarding settings using the same faulty paged-result check
+  - Only send the email report when at least one alert is detected (aligns with the License Threshold Report behavior)
+
+## 2026-05-12
+
+- Add **List MFA Methods** Runbook in User/Security
+  - Lists all Microsoft Entra ID MFA and authentication methods registered for a target user.
+  - Optionally masks phone numbers (last 4 digits only), with an option to display them in full (default off/setting hidden).
+  - Optionally sends a notification email to the user when an administrator retrieves their MFA methods (default off/setting hidden).
+- Improve PSScriptAnalyzer compatibility across several runbooks by resolving issues or suppressing false positive warnings:
+  - **Assign Groups By Template (Scheduled)** Runbook in Org/General
+    - `PSReviewUnusedParameter` for the `GroupsTemplate` parameter, which is used indirectly via RJ Portal Customization to populate the `GroupsString` parameter
+  - **Export Enterprise Application Users** Runbook in Org/Applications
+    - Remove unused parameter `rfcDate``
+    - Restructure script with proper regions and parameter logging
+  - **Office 365 License Report** Runbook in Org/General
+    - Remove unused parameter `rfcDate`
+    - Restructure script with proper regions and parameter logging
+  - **Create Endpoint Analytics Baseline (Scheduled)** Runbook in Org/Devices
+    - Replace empty try/catch blocks by directly using `Disconnect-MgGraph` with `-ErrorAction SilentlyContinue`
+  - **List Admin Users** Runbook in Org/Security
+    - Replace empty `try/catch` blocks
+  - **Export Policy Report** Runbook in Org/General
+    - Replace empty `try/catch` blocks
+
+## 2026-05-07
+
+- Update **Add Shared Mailbox** Runbook in Org/Mail
+  - Add parameter for time zone selection with predefined options and default value
+
+## 2026-05-06
+
+- Update **Invite External Guest Users** Runbook in Org/General
+  - Add parameter to handle sponsor assignment
+  - Modify summary for manager and sponsor to show the UPN instead of the ID for better readability
+  - Add support for customized email invitation message and invite redirection URL as parameters
+
+## 2026-04-30
+
+- Update **Office 365 License Report** Runbook in Org/General
+  - Add `includeUserData` parameter to optionally include real user data (UPNs) in Graph activity reports by temporarily disabling the Microsoft 365 report privacy setting
+  - Add `ReportSettings.ReadWrite.All` permission to support toggling report privacy setting
+  - Restructure script with proper regions, parameter logging and enhanced error handling
+  - Update PowerShell module
+- Add **Dedeup Device Names (Scheduled)** Runbook to org/devices section
+  - Renames the most recently enrolled duplicate using a configurable prefix and random digit suffix; syncs resolved names to Autopilot
+  - OS filter parameter (All / Windows / macOS / Other); skips personal-owned devices and unsupported platforms with warnings
+  - Checks for pending rename actions before queuing to avoid duplicate MDM commands
+- Update **Export Enterprise Application Users** Runbook in Org/Applications
+  - Update the export function to the enhanced one used in the Office 365 License Report runbook
+
+## 2026-04-29
+
+- Update **Invite External Guest Users** Runbook in Org/General
+  - Add Parameter: Given name, Surname, Manager, UsageLocation, Company
+  - Add DisplayName generation based on given name and surname if display name is not provided
+
 ## 2026-04-24
 
 - Update **Export Policy Report** Runbook in Org/General

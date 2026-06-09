@@ -92,8 +92,8 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export Admin-to-Role Report to Az Storage Account?" } )]
@@ -131,7 +131,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.1"
+$Version = "1.2.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -368,20 +368,16 @@ $getPimEligibilityInfo = {
         $expirationType = $expiration.type
 
         if (($expirationType -eq 'afterDateTime') -and $expiration.endDateTime) {
-            try {
-                $endDates += [datetime]$expiration.endDateTime
-            }
-            catch {
-            }
+            # -as returns $null if parsing fails instead of throwing — only add if parseable
+            $parsed = $expiration.endDateTime -as [datetime]
+            if ($parsed) { $endDates += $parsed }
             continue
         }
 
         if ($schedule.endDateTime) {
-            try {
-                $endDates += [datetime]$schedule.endDateTime
-            }
-            catch {
-            }
+            # -as returns $null if parsing fails instead of throwing — only add if parseable
+            $parsed = $schedule.endDateTime -as [datetime]
+            if ($parsed) { $endDates += $parsed }
             continue
         }
 
@@ -399,6 +395,8 @@ $getPimEligibilityInfo = {
                     continue
                 }
                 catch {
+                    # Suppress PSAvoidUsingEmptyCatchBlock — invalid XML duration, fall through to regex fallback
+                    $null = $_
                 }
 
                 if ($durationText -match '^P(?<days>\d+)D$') {
@@ -484,11 +482,9 @@ if ($allPimActiveInstances -and ([array]$allPimActiveInstances).Count -gt 0) {
                 continue
             }
             if ($instance.endDateTime) {
-                try {
-                    $endDates += [datetime]$instance.endDateTime
-                }
-                catch {
-                }
+                # -as returns $null if parsing fails instead of throwing — only add if parseable
+                $parsed = $instance.endDateTime -as [datetime]
+                if ($parsed) { $endDates += $parsed }
             }
         }
 

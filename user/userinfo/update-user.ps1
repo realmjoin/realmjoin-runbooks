@@ -50,6 +50,9 @@
 	.PARAMETER UsageLocation
 	Usage location to set for the user.
 
+	.PARAMETER ManagerId
+	Optional manager user ID to set for the user.
+
 	.PARAMETER DefaultLicense
 	Display name of a license group to assign.
 
@@ -230,13 +233,16 @@
 			},
 			"DefaultLicense": {
 				"DisplayName": "License group to assign"
+			},
+			"ManagerId": {
+				"DisplayName": "Manager"
 			}
 		}
 	}
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
 # Suppress false positive from PSScriptAnalyzer - parameters are used indirectly via Get-Variable in the addToUserArgs helper function
@@ -269,6 +275,8 @@ param (
     [string]$State,
     [string]$StreetAddress,
     [string]$UsageLocation,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
+    [string]$ManagerId = "",
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",
     [bool]$EnableEXOArchive = $false,
@@ -331,6 +339,15 @@ try {
 
     Write-RjRbLog "Updating user object with the following properties" $userArgs
     Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $userArgs
+
+    # Assign a manager
+    if ($ManagerId) {
+        $body = @{
+            "@odata.id" = "https://graph.microsoft.com/v1.0/users/$($ManagerId)"
+        }
+        Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/manager/`$ref" -Method Put -Body $body | Out-Null
+        "## Manager updated for '$UserName'."
+    }
 
     if ($DefaultLicense -ne "") {
         #"Searching license group $DefaultLicense."

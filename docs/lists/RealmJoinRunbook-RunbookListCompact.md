@@ -48,13 +48,16 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
+|  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 |  |  | Outphase Devices | Remove or outphase multiple devices |
 |  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+|  |  | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
 |  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices |
+|  |  | Report Windows Devices Without Autopilot | Reports all Windows Entra devices that have no associated Windows Autopilot object. |
 |  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes |
 |  | General | Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group |
 |  |  | Add Management Partner | List or add Management Partner Links (PAL) |
@@ -91,6 +94,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 |  |  | Sync All Devices | Sync all Intune Windows devices |
 |  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
+|  |  | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 |  | Mail | Add Distribution List | Create a classic distribution group |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder |
@@ -136,6 +140,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox |
 |  |  | List Room Mailbox Configuration | List room mailbox configuration |
+|  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
 |  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies |
@@ -147,6 +152,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Security | Confirm Or Dismiss Risky User | Confirm compromise or dismiss a risky user |
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user |
+|  |  | List MFA Methods | List all MFA / authentication methods of a user |
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user |
 |  |  | Reset Password | Reset a user's password |
 |  |  | Revoke Or Restore Access | Revoke or restore user access |
