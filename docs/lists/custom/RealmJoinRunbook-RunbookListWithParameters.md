@@ -376,6 +376,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | JobTitle |  | String | Job title of the user. |
 |  |  |  |  |  |  | Department |  | String | Department of the user. |
 |  |  |  |  |  |  | ManagerId |  | String | Optional manager user ID to set for the user. |
+|  |  |  |  |  |  | SponsorIds |  | String Array | Optional sponsor user IDs to set for the user. Multiple sponsors supported. |
 |  |  |  |  |  |  | MobilePhone |  | String | Mobile phone number of the user. |
 |  |  |  |  |  |  | LocationName |  | String | Office location name used for portal customization. |
 |  |  |  |  |  |  | StreetAddress |  | String | Street address of the user. |

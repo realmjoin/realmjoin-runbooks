@@ -8230,7 +8230,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "22",
+        "position": "23",
         "required": "true",
         "type": {
           "name": "String"
@@ -8247,7 +8247,7 @@
         "name": "City",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
@@ -8281,7 +8281,7 @@
         "name": "Country",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -8298,7 +8298,7 @@
         "name": "DefaultGroups",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "String"
@@ -8315,7 +8315,7 @@
         "name": "DefaultLicense",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"
@@ -8366,7 +8366,7 @@
         "name": "EnableEXOArchive",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "22",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -8400,7 +8400,7 @@
         "name": "InitialPassword",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "21",
         "required": "false",
         "type": {
           "name": "String"
@@ -8434,7 +8434,7 @@
         "name": "LocationName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -8485,7 +8485,7 @@
         "name": "MobilePhone",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -8502,10 +8502,27 @@
         "name": "PostalCode",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional sponsor user IDs to set for the user. Multiple sponsors supported."
+          }
+        ],
+        "globbing": "false",
+        "name": "SponsorIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String[]"
         }
       },
       {
@@ -8519,7 +8536,7 @@
         "name": "State",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
@@ -8536,7 +8553,7 @@
         "name": "StreetAddress",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -8570,7 +8587,7 @@
         "name": "UsageLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
