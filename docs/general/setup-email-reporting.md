@@ -40,7 +40,8 @@ To include Service Desk contact information in the notification emails, you can 
   "RJReport": {
     "ServiceDesk_DisplayName": "IT Service Desk",
     "ServiceDesk_EMail": "servicedesk@domain.com",
-    "ServiceDesk_Phone": "+49123456789"
+    "ServiceDesk_Phone": "+49123456789",
+    "ServiceDesk_PortalUrl": "https://servicedesk.domain.com"
   }
 }
 ```
@@ -50,5 +51,6 @@ To include Service Desk contact information in the notification emails, you can 
 - `ServiceDesk_DisplayName` - Display name of your Service Desk (e.g., "IT Support", "Help Desk")
 - `ServiceDesk_EMail` - Service Desk email address (will be shown as clickable mailto link)
 - `ServiceDesk_Phone` - Service Desk phone number in international format (will be shown as clickable tel link)
+- `ServiceDesk_PortalUrl` - URL of your Service Desk portal (will be shown as clickable link)
 
-All three parameters are optional. If configured, they will be displayed in the email footer as clickable links, making it easy for users to contact support.
+All parameters are optional. If configured, they will be displayed in the email footer as clickable links, making it easy for users to contact support.

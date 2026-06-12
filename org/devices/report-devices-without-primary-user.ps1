@@ -226,6 +226,10 @@ if ($EmailTo) {
 - ✅ **Complete User Assignment**: All managed devices in Intune have a primary user assigned
 - ✅ **Proper Device Enrollment**: Devices are correctly enrolled and associated with users
 - ✅ **Good Device Management**: Your device inventory is well-maintained
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
         $emailSubject = "Devices Without Primary User Report - No Issues Found"
@@ -298,6 +302,10 @@ For devices that are legitimately shared:
 The following file is attached to this email:
 
 - **$($fileName_Details)**: Complete list of all devices without primary user assignment
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 
 "@
 

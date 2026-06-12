@@ -583,6 +583,10 @@ if ($notFoundCount -gt 0) {
 "@
 }
 })
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
 #endregion Prepare Email Content

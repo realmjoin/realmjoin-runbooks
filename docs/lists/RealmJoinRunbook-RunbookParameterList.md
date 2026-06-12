@@ -67,6 +67,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
+    - [Cleanup Autopilot Devices (Scheduled)](#organization-devices-cleanup-autopilot-devices-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
     - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
@@ -796,6 +797,26 @@ Auto-approve new driver updates in Intune driver update policies
 | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
 
+<a name='organization-devices-cleanup-autopilot-devices-scheduled'></a>
+
+### Cleanup Autopilot Devices (Scheduled)
+Clean up orphaned and stale Windows Autopilot device registrations
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeleteMode |  | String | Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records. |
+| GroupTagFilter |  | String | Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag. |
+| ManufacturerFilter |  | String | Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so "Dell" matches "Dell Inc.". Combined with the other filters using AND. Leave empty to process all manufacturers. |
+| ModelFilter |  | String | Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models. |
+| ExcludeSerialNumbers |  | String | Comma-separated serial numbers to exclude from the cleanup. Matched exactly (case-insensitive). Any device whose serial number is in this list is removed from scope regardless of the other filters. Leave empty to exclude nothing. |
+| CleanupOrphanedDevices |  | Boolean | When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted). |
+| OrphanedLastContactedDays |  | Int32 | Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently. |
+| CleanupNeverEnrolledDevices |  | Boolean | When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune). |
+| NeverEnrolledAgeDays |  | Int32 | Age threshold in days for never-enrolled devices. Measured on the Device creation date. |
+| EmailTo |  | String | Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log. |
+| EmailFrom |  | String | The sender email address for the summary report. This is configured via Runbook Customizations. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
 <a name='organization-devices-create-endpoint-analytics-baseline'></a>
 
 ### Create Endpoint Analytics Baseline
@@ -864,6 +885,8 @@ Notify primary users about their stale devices via email
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+| ServiceDeskTicketUrl |  | String | Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
 | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
@@ -1134,6 +1157,7 @@ Create a new user account
 | JobTitle |  | String | Job title of the user. |
 | Department |  | String | Department of the user. |
 | ManagerId |  | String | Optional manager user ID to set for the user. |
+| SponsorIds |  | String Array | Optional sponsor user IDs to set for the user. Multiple sponsors supported. |
 | MobilePhone |  | String | Mobile phone number of the user. |
 | LocationName |  | String | Office location name used for portal customization. |
 | StreetAddress |  | String | Street address of the user. |
@@ -2323,6 +2347,8 @@ Create a temporary access pass for a user
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-security-enable-or-disable-password-expiration'></a>
@@ -2350,6 +2376,8 @@ List all MFA / authentication methods of a user
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
 
@@ -2366,6 +2394,8 @@ Remove all App- and Mobilephone auth methods for a user
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
@@ -2407,6 +2437,8 @@ Set or remove a user's mobile phone MFA method
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 

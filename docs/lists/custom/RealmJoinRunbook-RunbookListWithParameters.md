@@ -206,6 +206,18 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
 |  |  |  |  |  |  | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
+|  |  | Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations | - **Type**: Microsoft Graph<br>&emsp;- Device.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | DeleteMode |  | String | Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records. |
+|  |  |  |  |  |  | GroupTagFilter |  | String | Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag. |
+|  |  |  |  |  |  | ManufacturerFilter |  | String | Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so "Dell" matches "Dell Inc.". Combined with the other filters using AND. Leave empty to process all manufacturers. |
+|  |  |  |  |  |  | ModelFilter |  | String | Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models. |
+|  |  |  |  |  |  | ExcludeSerialNumbers |  | String | Comma-separated serial numbers to exclude from the cleanup. Matched exactly (case-insensitive). Any device whose serial number is in this list is removed from scope regardless of the other filters. Leave empty to exclude nothing. |
+|  |  |  |  |  |  | CleanupOrphanedDevices |  | Boolean | When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted). |
+|  |  |  |  |  |  | OrphanedLastContactedDays |  | Int32 | Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently. |
+|  |  |  |  |  |  | CleanupNeverEnrolledDevices |  | Boolean | When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune). |
+|  |  |  |  |  |  | NeverEnrolledAgeDays |  | Int32 | Age threshold in days for never-enrolled devices. Measured on the Device creation date. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address for the summary report. This is configured via Runbook Customizations. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.ReadWrite.All<br> |  | BaselineNamingSchema | ✓ | String | The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}". |
 |  |  |  |  |  |  | RemoveOldestBaseline |  | Boolean | When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes. |
@@ -235,6 +247,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 |  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 |  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+|  |  |  |  |  |  | ServiceDeskTicketUrl |  | String | Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 |  |  |  |  |  |  | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
 |  |  |  |  |  |  | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 |  |  |  |  |  |  | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
@@ -364,6 +378,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | JobTitle |  | String | Job title of the user. |
 |  |  |  |  |  |  | Department |  | String | Department of the user. |
 |  |  |  |  |  |  | ManagerId |  | String | Optional manager user ID to set for the user. |
+|  |  |  |  |  |  | SponsorIds |  | String Array | Optional sponsor user IDs to set for the user. Multiple sponsors supported. |
 |  |  |  |  |  |  | MobilePhone |  | String | Mobile phone number of the user. |
 |  |  |  |  |  |  | LocationName |  | String | Office location name used for portal customization. |
 |  |  |  |  |  |  | StreetAddress |  | String | Street address of the user. |
@@ -855,6 +870,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 |  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 |  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+|  |  |  |  |  |  | ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+|  |  |  |  |  |  | ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | DisablePasswordExpiration |  | Boolean | If set to true, disables password expiration for the user. |
@@ -866,6 +883,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 |  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 |  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+|  |  |  |  |  |  | ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 |  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user | - **Type**: Microsoft Graph<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send<br> |  | UserName | ✓ | String | User principal name of the target user. |
@@ -874,6 +893,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 |  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 |  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+|  |  |  |  |  |  | ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 |  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Reset Password | Reset a user's password |  | - User administrator<br> | UserName | ✓ | String | User principal name of the target user. |
@@ -891,6 +912,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 |  |  |  |  |  |  | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 |  |  |  |  |  |  | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+|  |  |  |  |  |  | ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+|  |  |  |  |  |  | ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 |  |  |  |  |  |  | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  | Userinfo | Rename User | Rename a user or mailbox | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- User.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user or mailbox to rename. |

@@ -33,6 +33,9 @@
     .PARAMETER ManagerId
     Optional manager user ID to set for the user.
 
+    .PARAMETER SponsorIds
+    Optional sponsor user IDs to set for the user. Multiple sponsors supported.
+
     .PARAMETER MobilePhone
     Mobile phone number of the user.
 
@@ -217,6 +220,8 @@ param (
     [string]$Department = "",
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
     [string]$ManagerId = "",
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Sponsors" -Filter "userType eq 'Member'" } )]
+    [string[]]$SponsorIds,
     [string]$MobilePhone = "",
     [string]$LocationName = "",
     [string]$StreetAddress,
@@ -385,6 +390,14 @@ if ($ManagerId) {
         "@odata.id" = "https://graph.microsoft.com/v1.0/users/$($ManagerId)"
     }
     Invoke-RjRbRestMethodGraph -Resource "/users/$($userObject.id)/manager/`$ref" -Method Put -Body $body | Out-Null
+}
+
+# Assign sponsors
+foreach ($sponsorId in $SponsorIds) {
+    $body = @{
+        "@odata.id" = "https://graph.microsoft.com/v1.0/users/$($sponsorId)"
+    }
+    Invoke-RjRbRestMethodGraph -Resource "/users/$($userObject.id)/sponsors/`$ref" -Method Post -Body $body | Out-Null
 }
 
 # Assign the default license. Continue even if this fails.

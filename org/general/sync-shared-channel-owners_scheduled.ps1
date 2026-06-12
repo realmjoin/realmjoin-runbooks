@@ -781,6 +781,10 @@ $downloadSection
 
 - **$([IO.Path]::GetFileName($teamsCsvPath))** - one row per processed team (visibility, matched prefix, owner group, channel count, owners/members added/promoted).
 - **$([IO.Path]::GetFileName($actionsCsvPath))** - one row per individual change (team/channel scope, user, action).
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
         $emailSubject = "Shared Channel Owner Sync - $totalTeams team(s), $totalChannels channel(s)$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()

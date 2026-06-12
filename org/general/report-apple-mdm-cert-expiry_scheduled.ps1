@@ -445,6 +445,10 @@ If you expect to see Apple integrations here:
 - Ensure DEP tokens from Apple Business Manager are properly configured
 
 For more information on setting up Apple device management, please refer to Microsoft Intune documentation.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 else {
@@ -476,6 +480,10 @@ $depTable
 - Review certificates and tokens that show an alert status.
 - Renew any items scheduled to expire within the warning window.
 - For invalid tokens, resolve state issues in Apple Business Manager.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 

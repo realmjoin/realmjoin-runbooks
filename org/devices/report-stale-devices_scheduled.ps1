@@ -512,6 +512,10 @@ $(if ($UseUserScope) {
 - Continue to monitor this report regularly to spot newly idle devices early
 - Keep lifecycle policies and retirement procedures current
 - Ensure device owners stay informed about required check-ins
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 else {
@@ -617,6 +621,10 @@ Regularly reviewing stale devices helps:
 ## Attachments
 
 The .csv-file attached to this email contains the full list of stale devices for further analysis.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 
 "@
 }

@@ -1,11 +1,11 @@
 ## Activate user notification
 
-This runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were reset by an administrator. To enable this, you need to activate user notification in the runbook customization.
 
 The json configuration for this is as follows:
 
 ```json
-"rjgit-user_security_create-temporary-access-pass": {
+"rjgit-user_security_reset-mfa": {
     "parameters": {
         "UserName": {
             "Hide": true
@@ -32,6 +32,9 @@ The json configuration for this is as follows:
         "ServiceDeskTicketUrl": {
             "Hide": true
         },
+        "LanguageOverride": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }
@@ -43,7 +46,7 @@ For more information on how to customize runbooks, please refer to the [Runbook 
 
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
