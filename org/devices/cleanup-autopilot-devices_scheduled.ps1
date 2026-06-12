@@ -33,13 +33,23 @@
 	  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.
 	- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both
 	  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.
-	- GroupTagFilter is optional; leave empty to evaluate all Autopilot device identities.
+	- GroupTagFilter, ManufacturerFilter and ModelFilter are all optional; leave a filter empty to
+	  evaluate all values for that dimension. When more than one filter is set they are combined with
+	  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the
+	  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive
+	  substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
 
 	.PARAMETER DeleteMode
 	Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records.
 
 	.PARAMETER GroupTagFilter
-	Comma-separated Autopilot group tags to limit the cleanup scope. Leave empty to process all Autopilot devices regardless of group tag.
+	Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag.
+
+	.PARAMETER ManufacturerFilter
+	Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so "Dell" matches "Dell Inc.". Combined with the other filters using AND. Leave empty to process all manufacturers.
+
+	.PARAMETER ModelFilter
+	Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models.
 
 	.PARAMETER CleanupOrphanedDevices
 	When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted).
@@ -69,7 +79,13 @@
 				"DisplayName": "Deletion mode"
 			},
 			"GroupTagFilter": {
-				"DisplayName": "Autopilot Group Tag Filter (comma-separated, leave empty for all)"
+				"DisplayName": "Autopilot Group Tag Filter (comma-separated exact match, leave empty for all)"
+			},
+			"ManufacturerFilter": {
+				"DisplayName": "Manufacturer Filter (comma-separated, substring match, leave empty for all)"
+			},
+			"ModelFilter": {
+				"DisplayName": "Model Filter (comma-separated, substring match, leave empty for all)"
 			},
 			"CleanupOrphanedDevices": {
 				"DisplayName": "Clean up orphaned Autopilot devices"
@@ -128,6 +144,10 @@ param (
 
     [string]$GroupTagFilter = "",
 
+    [string]$ManufacturerFilter = "",
+
+    [string]$ModelFilter = "",
+
     [bool]$CleanupOrphanedDevices = $true,
 
     [int]$OrphanedLastContactedDays = 90,
@@ -157,6 +177,8 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "DeleteMode: $DeleteMode" -Verbose
 Write-RjRbLog -Message "GroupTagFilter: $GroupTagFilter" -Verbose
+Write-RjRbLog -Message "ManufacturerFilter: $ManufacturerFilter" -Verbose
+Write-RjRbLog -Message "ModelFilter: $ModelFilter" -Verbose
 Write-RjRbLog -Message "CleanupOrphanedDevices: $CleanupOrphanedDevices" -Verbose
 Write-RjRbLog -Message "OrphanedLastContactedDays: $OrphanedLastContactedDays" -Verbose
 Write-RjRbLog -Message "CleanupNeverEnrolledDevices: $CleanupNeverEnrolledDevices" -Verbose
@@ -232,16 +254,18 @@ if (-not $CleanupOrphanedDevices -and -not $CleanupNeverEnrolledDevices) {
     Write-Output "WARNING: No cleanup action is enabled. The runbook will report counts only."
 }
 
-# --- Check 4: Parse $GroupTagFilter into a trimmed, non-empty array ---
-if ($GroupTagFilter -notlike "") {
-    $groupTagList = $GroupTagFilter -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
-    if ($groupTagList.Count -eq 0) {
-        $groupTagList = @()
-    }
+# --- Check 4: Parse the scope filters into trimmed, non-empty arrays ---
+# Each filter is independent; an empty filter means "match all values for that dimension".
+# When more than one is populated they are combined with AND (a device must match every set filter).
+function ConvertTo-FilterList {
+    param([string]$RawValue)
+    if ($RawValue -like "") { return @() }
+    return @($RawValue -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
 }
-else {
-    $groupTagList = @()
-}
+
+$groupTagList = ConvertTo-FilterList -RawValue $GroupTagFilter
+$manufacturerList = ConvertTo-FilterList -RawValue $ManufacturerFilter
+$modelList = ConvertTo-FilterList -RawValue $ModelFilter
 
 # --- Resolve the deletion mode into the action flags used throughout the runbook ---
 $whatIfMode = ($DeleteMode -eq "WhatIf (report only)")
@@ -279,10 +303,28 @@ else {
 }
 
 if ($groupTagList.Count -gt 0) {
-    Write-Output "Group Tag Filter: $($groupTagList -join ', ')"
+    Write-Output "Group Tag Filter (exact): $($groupTagList -join ', ')"
 }
 else {
     Write-Output "Group Tag Filter: all group tags (no filter applied)"
+}
+
+if ($manufacturerList.Count -gt 0) {
+    Write-Output "Manufacturer Filter (substring): $($manufacturerList -join ', ')"
+}
+else {
+    Write-Output "Manufacturer Filter: all manufacturers (no filter applied)"
+}
+
+if ($modelList.Count -gt 0) {
+    Write-Output "Model Filter (substring): $($modelList -join ', ')"
+}
+else {
+    Write-Output "Model Filter: all models (no filter applied)"
+}
+
+if ($groupTagList.Count -gt 0 -and ($manufacturerList.Count -gt 0 -or $modelList.Count -gt 0) -or ($manufacturerList.Count -gt 0 -and $modelList.Count -gt 0)) {
+    Write-Output "(Filters are combined with AND - a device must match every populated filter.)"
 }
 
 #endregion
@@ -368,14 +410,25 @@ foreach ($d in $intuneWindowsDevices) {
     }
 }
 
-# --- Apply group tag filter (if any) ---
-if ($groupTagList.Count -gt 0) {
+# --- Apply scope filters (group tag / manufacturer / model), combined with AND ---
+# groupTag, model and manufacturer are all returned by the collection query, so scoping can happen
+# here before the per-device detail lookups. Group tag is matched exactly (case-insensitive); model
+# and manufacturer are matched as case-insensitive substrings (e.g. "Dell" matches "Dell Inc.").
+if ($groupTagList.Count -gt 0 -or $manufacturerList.Count -gt 0 -or $modelList.Count -gt 0) {
     $autopilotScoped = $autopilotDevices | Where-Object {
-        $tag = $_.groupTag
-        ($null -ne $tag) -and ($groupTagList -contains $tag.Trim())
+        $tag = if ($null -ne $_.groupTag) { $_.groupTag.Trim() } else { "" }
+        $manufacturer = if ($null -ne $_.manufacturer) { $_.manufacturer } else { "" }
+        $model = if ($null -ne $_.model) { $_.model } else { "" }
+
+        $tagMatch = ($groupTagList.Count -eq 0) -or ($groupTagList -contains $tag)
+        $manufacturerMatch = ($manufacturerList.Count -eq 0) -or ($manufacturerList | Where-Object { $manufacturer -like "*$_*" }).Count -gt 0
+        $modelMatch = ($modelList.Count -eq 0) -or ($modelList | Where-Object { $model -like "*$_*" }).Count -gt 0
+
+        $tagMatch -and $manufacturerMatch -and $modelMatch
     }
-    Write-RjRbLog -Message "Group tag filter applied: $($autopilotScoped.Count) of $($autopilotDevices.Count) Autopilot devices match." -Verbose
-    Write-Output "Group tag filter applied: $($autopilotScoped.Count) of $($autopilotDevices.Count) Autopilot devices in scope."
+    $scopedCount = @($autopilotScoped).Count
+    Write-RjRbLog -Message "Scope filters applied (AND): $scopedCount of $($autopilotDevices.Count) Autopilot devices match." -Verbose
+    Write-Output "Scope filters applied: $scopedCount of $($autopilotDevices.Count) Autopilot devices in scope."
 }
 else {
     $autopilotScoped = $autopilotDevices

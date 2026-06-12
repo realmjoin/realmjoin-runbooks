@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-12
+- Update **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
+  - Add Parameter `Manufacturer` and ``Model` to allow filtering for specific device models, which can be useful for targeting cleanup efforts on certain types of devices that are more prone to enrollment issues or that are being phased out.
+
 ## 2026-06-09
 - Add **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
   - This runbook identifies and removes orphaned or never-enrolled Autopilot devices based on configurable criteria, with optional email reporting of the cleanup results. It also includes an option to delete the corresponding Entra ID device objects for orphaned devices, which can help maintain a clean directory and prevent confusion in device management. The runbook is designed to be run on a scheduled basis to ensure ongoing maintenance of the Autopilot device inventory.
