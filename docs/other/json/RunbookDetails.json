@@ -4801,7 +4801,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Clean up orphaned and stale Windows Autopilot device registrations",
     "Description": "This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.",
-    "Notes": "Prerequisites:\n- The Azure Automation managed identity must hold these Microsoft Graph application\n  permissions: DeviceManagementManagedDevices.Read.All,\n  DeviceManagementServiceConfig.ReadWrite.All, Organization.Read.All, Device.ReadWrite.All\n  (Device.ReadWrite.All only when the \"Delete Autopilot and Entra device\" mode is used), and\n  Mail.Send (Mail.Send only when email reporting is enabled).\n- Grant the permissions before the first scheduled run.\n\nWarning - deletion is irreversible:\n- Removing an Autopilot device identity permanently deletes it from Windows Autopilot.\n- The physical device cannot re-enter Autopilot until its hardware hash is re-uploaded.\n- There is no soft-delete or recycle bin for Autopilot records.\n- Deleting the Entra (Azure AD) device object is likewise permanent; only do so for records\n  that are genuinely dead (the device will never enroll again).\n\nRecommended first-run procedure:\n- Run with Delete mode = \"WhatIf (report only)\" (the default) and review the output or emailed CSV.\n- Confirm the identified devices are genuinely orphaned or never-enrolled.\n- Switch to a deletion mode only after the candidate list has been reviewed.\n\nParameter interactions:\n- DeleteMode defaults to \"WhatIf (report only)\"; no deletions occur in that mode.\n- \"Delete Autopilot device\" removes only the Autopilot identity. \"Delete Autopilot and Entra\n  device\" additionally removes the matching Entra (Azure AD) device object, which would\n  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.\n- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both\n  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.\n- GroupTagFilter is optional; leave empty to evaluate all Autopilot device identities.",
+    "Notes": "Prerequisites:\n- The Azure Automation managed identity must hold these Microsoft Graph application\n  permissions: DeviceManagementManagedDevices.Read.All,\n  DeviceManagementServiceConfig.ReadWrite.All, Organization.Read.All, Device.ReadWrite.All\n  (Device.ReadWrite.All only when the \"Delete Autopilot and Entra device\" mode is used), and\n  Mail.Send (Mail.Send only when email reporting is enabled).\n- Grant the permissions before the first scheduled run.\n\nWarning - deletion is irreversible:\n- Removing an Autopilot device identity permanently deletes it from Windows Autopilot.\n- The physical device cannot re-enter Autopilot until its hardware hash is re-uploaded.\n- There is no soft-delete or recycle bin for Autopilot records.\n- Deleting the Entra (Azure AD) device object is likewise permanent; only do so for records\n  that are genuinely dead (the device will never enroll again).\n\nRecommended first-run procedure:\n- Run with Delete mode = \"WhatIf (report only)\" (the default) and review the output or emailed CSV.\n- Confirm the identified devices are genuinely orphaned or never-enrolled.\n- Switch to a deletion mode only after the candidate list has been reviewed.\n\nParameter interactions:\n- DeleteMode defaults to \"WhatIf (report only)\"; no deletions occur in that mode.\n- \"Delete Autopilot device\" removes only the Autopilot identity. \"Delete Autopilot and Entra\n  device\" additionally removes the matching Entra (Azure AD) device object, which would\n  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.\n- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both\n  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.\n- GroupTagFilter, ManufacturerFilter and ModelFilter are all optional; leave a filter empty to\n  evaluate all values for that dimension. When more than one filter is set they are combined with\n  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the\n  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive\n  substrings, so \"Dell\" matches \"Dell Inc.\" and \"Surface\" matches \"Surface Laptop 3\".",
     "Parameters": [
       {
         "defaultValue": "",
@@ -4814,7 +4814,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -4831,7 +4831,7 @@
         "name": "CleanupNeverEnrolledDevices",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -4848,7 +4848,7 @@
         "name": "CleanupOrphanedDevices",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -4882,7 +4882,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -4899,7 +4899,7 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -4909,7 +4909,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Comma-separated Autopilot group tags to limit the cleanup scope. Leave empty to process all Autopilot devices regardless of group tag."
+            "Text": "Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag."
           }
         ],
         "globbing": "false",
@@ -4917,6 +4917,40 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so \"Dell\" matches \"Dell Inc.\". Combined with the other filters using AND. Leave empty to process all manufacturers."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManufacturerFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so \"Surface\" matches \"Surface Laptop 3\". Combined with the other filters using AND. Leave empty to process all models."
+          }
+        ],
+        "globbing": "false",
+        "name": "ModelFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "String"
@@ -4933,7 +4967,7 @@
         "name": "NeverEnrolledAgeDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -4950,7 +4984,7 @@
         "name": "OrphanedLastContactedDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Int32"

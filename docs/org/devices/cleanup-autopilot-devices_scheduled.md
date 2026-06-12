@@ -45,7 +45,11 @@ Parameter interactions:
   otherwise be left behind as a stale/dead record once the Autopilot identity is gone.
 - CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both
   can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.
-- GroupTagFilter is optional; leave empty to evaluate all Autopilot device identities.
+- GroupTagFilter, ManufacturerFilter and ModelFilter are all optional; leave a filter empty to
+  evaluate all values for that dimension. When more than one filter is set they are combined with
+  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the
+  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive
+  substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
 
 ## Permissions
 ### Application permissions
@@ -68,7 +72,25 @@ Controls what the runbook does with the identified cleanup candidates. "WhatIf (
 | Type | String |
 
 ### GroupTagFilter
-Comma-separated Autopilot group tags to limit the cleanup scope. Leave empty to process all Autopilot devices regardless of group tag.
+Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ManufacturerFilter
+Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so "Dell" matches "Dell Inc.". Combined with the other filters using AND. Leave empty to process all manufacturers.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ModelFilter
+Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models.
 
 | Property | Value |
 |----------|-------|

@@ -805,7 +805,9 @@ Clean up orphaned and stale Windows Autopilot device registrations
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | DeleteMode |  | String | Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records. |
-| GroupTagFilter |  | String | Comma-separated Autopilot group tags to limit the cleanup scope. Leave empty to process all Autopilot devices regardless of group tag. |
+| GroupTagFilter |  | String | Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag. |
+| ManufacturerFilter |  | String | Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so "Dell" matches "Dell Inc.". Combined with the other filters using AND. Leave empty to process all manufacturers. |
+| ModelFilter |  | String | Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models. |
 | CleanupOrphanedDevices |  | Boolean | When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted). |
 | OrphanedLastContactedDays |  | Int32 | Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently. |
 | CleanupNeverEnrolledDevices |  | Boolean | When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune). |
