@@ -885,6 +885,8 @@ Notify primary users about their stale devices via email
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+| ServiceDeskTicketUrl |  | String | Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
 | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
@@ -2345,6 +2347,8 @@ Create a temporary access pass for a user
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-security-enable-or-disable-password-expiration'></a>
@@ -2372,6 +2376,8 @@ List all MFA / authentication methods of a user
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
 
@@ -2388,6 +2394,8 @@ Remove all App- and Mobilephone auth methods for a user
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
@@ -2429,6 +2437,8 @@ Set or remove a user's mobile phone MFA method
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl. |
+| ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
