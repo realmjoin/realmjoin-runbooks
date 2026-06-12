@@ -50,6 +50,9 @@ Parameter interactions:
   AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the
   group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive
   substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
+- ExcludeSerialNumbers is applied after the AND filters as an exclusion: any device whose serial
+  number is in the list (exact, case-insensitive) is removed from scope regardless of the other
+  filters. Leave empty to exclude nothing.
 
 ## Permissions
 ### Application permissions
@@ -91,6 +94,15 @@ Comma-separated device manufacturers to limit the cleanup scope. Matched as case
 
 ### ModelFilter
 Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ExcludeSerialNumbers
+Comma-separated serial numbers to exclude from the cleanup. Matched exactly (case-insensitive). Any device whose serial number is in this list is removed from scope regardless of the other filters. Leave empty to exclude nothing.
 
 | Property | Value |
 |----------|-------|
