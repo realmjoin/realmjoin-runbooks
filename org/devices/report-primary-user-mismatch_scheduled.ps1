@@ -658,6 +658,8 @@ A total of $($differences.Count) device(s) differ between Intune and RealmJoin. 
 
     $markdownContent += "`n`nSee the attached CSV for full details.`n"
 
+    $markdownContent += "`n---`n`n*This email was automatically generated. Please do not reply to this email.*`n"
+
     $emailSubject = "Primary User Mismatch Report - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')"
     $attachments = @($csvFilePath)
 

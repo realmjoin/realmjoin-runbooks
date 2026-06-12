@@ -464,6 +464,10 @@ The attached CSV file contains complete details for all matching requests, inclu
 - Created, modified, and expiry timestamps
 - Reviewer comments (if applicable)
 
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+
 "@
 
 # Create CSV file with all request details

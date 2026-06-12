@@ -382,6 +382,10 @@ To receive detailed request information including a CSV export, enable the "Incl
 "@
 })
 
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+
 "@
 
 # Create CSV file if detailed report is requested

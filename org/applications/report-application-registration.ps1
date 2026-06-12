@@ -367,6 +367,10 @@ The attached CSV files contain detailed information including:
 - Publisher Domain and Sign-in Audience
 - Authentication method details (secrets/certificates)
 - Direct links to Azure Portal for management
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
 #endregion

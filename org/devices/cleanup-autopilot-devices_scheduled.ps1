@@ -763,6 +763,10 @@ $NeverEnrolledOut
 $EntraOut
 
 The attached CSV lists every candidate device with its category and the action taken.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
 Write-Output ""

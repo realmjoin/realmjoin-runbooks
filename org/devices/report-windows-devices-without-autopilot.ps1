@@ -360,6 +360,10 @@ try {
 **No orphaned Windows devices were found** for tenant **$($tenantDisplayName)**.
 
 Every Windows device object in Entra ID is associated with a Windows Autopilot object. No clean-up action is required at this time.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
             $emailSubject = "Windows Devices Without Autopilot - $($tenantDisplayName) - No Issues Found"
         }
@@ -410,6 +414,10 @@ $($table)
 The following file is attached to this email:
 
 - **$($csvFileName)**: Complete list of all Windows Entra devices without an associated Autopilot object.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
             $emailSubject = "Windows Devices Without Autopilot - $($tenantDisplayName) - $($totalDevices) Device(s) Found"
         }

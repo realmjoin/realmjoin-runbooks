@@ -245,6 +245,10 @@ This indicates:
 | **Report Date** | $(Get-Date -Format 'yyyy-MM-dd HH:mm') |
 | **Tenant** | $($tenantDisplayName) |
 
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+
 "@
 
         $emailSubject = "Users with More Than 5 Devices Report - No Issues Found - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"
@@ -379,6 +383,10 @@ $(
 The attached CSV files contain:
 - **Summary:** User Object ID, Display Name, UPN, and Device Count
 - **Details:** Complete device list for each user including Device IDs and Names
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
         $emailSubject = "Users with More Than 5 Devices Report - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"

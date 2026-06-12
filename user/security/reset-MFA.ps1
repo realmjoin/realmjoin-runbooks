@@ -325,6 +325,10 @@ Datum (UTC):      $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 Mit freundlichen Grüßen,
 IT-Administration
+
+---
+
+*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*
 "@
     }
     else {
@@ -343,6 +347,10 @@ Date (UTC):          $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 Regards,
 IT Administration
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
     }
 

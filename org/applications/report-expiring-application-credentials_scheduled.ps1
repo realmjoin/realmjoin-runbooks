@@ -485,6 +485,10 @@ The attached CSV file contains complete information for all $($totalCreds) crede
 - Current status classification
 
 **Use the CSV to prioritize your renewal tasks and track progress.**
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 else {
@@ -618,6 +622,10 @@ The attached CSV file contains the complete inventory of all $($totalCreds) cred
 - Compliance reporting
 - Renewal planning and tracking
 - Security audits
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 

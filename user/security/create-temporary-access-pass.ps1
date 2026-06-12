@@ -261,6 +261,10 @@ Hallo,
 für Ihr Konto **$UserName** wurde ein neuer **Temporary Access Pass (TAP)** erstellt. Dieser ist **$LifetimeInMinutes Minuten** gültig und kann zur Anmeldung an Ihrem Konto verwendet werden.
 
 Falls Sie davon nichts wissen oder nicht eingebunden waren, wenden Sie sich bitte umgehend an Ihren IT Support.$($serviceDeskSection)
+
+---
+
+*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*
 "@
         }
         else {
@@ -273,6 +277,10 @@ Hello,
 a new **Temporary Access Pass (TAP)** has been created for your account **$UserName**. This pass is valid for **$LifetimeInMinutes minutes** and can be used to sign in to your account.
 
 If you are not aware of this or were not involved, please contact your IT support immediately.$($serviceDeskSection)
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
         }
 
