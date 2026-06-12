@@ -2,6 +2,7 @@
 
 ## 2026-06-12
 
+- Add "do not reply" footer to all runbooks sending email via `Send-RjReportEmail` (localized where applicable)
 - Add optional `ServiceDeskPortalUrl` and `ServiceDeskTicketUrl` parameters (both hidden by default) to all runbooks that include Service Desk contact information in notification emails; if configured, each is rendered as a clickable link in the Service Desk section
   - `ServiceDeskPortalUrl` is sourced from the RJReport tenant setting `RJReport.ServiceDesk_PortalUrl`
   - `ServiceDeskTicketUrl` is a direct link to the related Service Desk ticket; empty by default, so no ticket link is added
