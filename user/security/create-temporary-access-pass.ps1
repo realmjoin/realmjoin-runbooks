@@ -29,6 +29,12 @@
     .PARAMETER ServiceDeskPhone
     Service Desk phone number for user contact information (optional).
 
+    .PARAMETER ServiceDeskPortalUrl
+    Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+
+    .PARAMETER ServiceDeskTicketUrl
+    Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
 
@@ -51,6 +57,12 @@
                 "Hide": true
             },
             "ServiceDeskPhone": {
+                "Hide": true
+            },
+            "ServiceDeskPortalUrl": {
+                "Hide": true
+            },
+            "ServiceDeskTicketUrl": {
                 "Hide": true
             },
             "CallerName": {
@@ -80,6 +92,9 @@ param(
     [string] $ServiceDeskEmail,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_Phone" } )]
     [string] $ServiceDeskPhone,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_PortalUrl" } )]
+    [string] $ServiceDeskPortalUrl,
+    [string] $ServiceDeskTicketUrl = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -92,7 +107,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -103,6 +118,8 @@ Write-RjRbLog -Message "NotifyUser: $NotifyUser" -Verbose
 Write-RjRbLog -Message "ServiceDeskDisplayName: $ServiceDeskDisplayName" -Verbose
 Write-RjRbLog -Message "ServiceDeskEmail: $ServiceDeskEmail" -Verbose
 Write-RjRbLog -Message "ServiceDeskPhone: $ServiceDeskPhone" -Verbose
+Write-RjRbLog -Message "ServiceDeskPortalUrl: $ServiceDeskPortalUrl" -Verbose
+Write-RjRbLog -Message "ServiceDeskTicketUrl: $ServiceDeskTicketUrl" -Verbose
 
 #endregion RJ Log Part
 
@@ -204,7 +221,7 @@ catch {
     if ($NotifyUser) {
         # Build Service Desk contact information section
         $serviceDeskSection = ""
-        if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
+        if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone -or $ServiceDeskPortalUrl -or $ServiceDeskTicketUrl) {
             if ($userLanguage -eq "DE") {
                 $serviceDeskSection = "`n`n---`n`n### Service Desk Kontaktinformationen`n"
             }
@@ -224,6 +241,12 @@ catch {
                 else {
                     $serviceDeskSection += "`n**Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
                 }
+            }
+            if ($ServiceDeskPortalUrl) {
+                $serviceDeskSection += "`n**Portal:** [$($ServiceDeskPortalUrl)]($($ServiceDeskPortalUrl))"
+            }
+            if ($ServiceDeskTicketUrl) {
+                $serviceDeskSection += "`n**Ticket:** [$($ServiceDeskTicketUrl)]($($ServiceDeskTicketUrl))"
             }
         }
 

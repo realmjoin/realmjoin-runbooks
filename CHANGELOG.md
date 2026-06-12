@@ -1,16 +1,24 @@
 # RealmJoin Runbooks Changelog
 
 ## 2026-06-12
+
+- Add optional `ServiceDeskPortalUrl` and `ServiceDeskTicketUrl` parameters (both hidden by default) to all runbooks that include Service Desk contact information in notification emails; if configured, each is rendered as a clickable link in the Service Desk section
+  - `ServiceDeskPortalUrl` is sourced from the RJReport tenant setting `RJReport.ServiceDesk_PortalUrl`
+  - `ServiceDeskTicketUrl` is a direct link to the related Service Desk ticket; empty by default, so no ticket link is added
+  - **Reset MFA**, **List MFA Methods**, **Set or Remove Mobile Phone MFA**, **Create Temporary Access Pass** in User/Security
+  - **Notify Users About Stale Devices (Scheduled)** in Org/Devices
 - Update **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
   - Add Parameter `Manufacturer` and ``Model` to allow filtering for specific device models, which can be useful for targeting cleanup efforts on certain types of devices that are more prone to enrollment issues or that are being phased out.
 - Update **Add User** Runbook in User/Userinfo section
   - Add support for setting the user's sponsor
 
 ## 2026-06-09
+
 - Add **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
   - This runbook identifies and removes orphaned or never-enrolled Autopilot devices based on configurable criteria, with optional email reporting of the cleanup results. It also includes an option to delete the corresponding Entra ID device objects for orphaned devices, which can help maintain a clean directory and prevent confusion in device management. The runbook is designed to be run on a scheduled basis to ensure ongoing maintenance of the Autopilot device inventory.
 
 ## 2026-06-08
+
 - Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
   - Add optional inclusion of devices whose Intune primary user has been deleted from Entra ID in the report. Disabled by default.
 
