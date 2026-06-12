@@ -38,6 +38,9 @@
 	  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the
 	  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive
 	  substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
+	- ExcludeSerialNumbers is applied after the AND filters as an exclusion: any device whose serial
+	  number is in the list (exact, case-insensitive) is removed from scope regardless of the other
+	  filters. Leave empty to exclude nothing.
 
 	.PARAMETER DeleteMode
 	Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records.
@@ -50,6 +53,9 @@
 
 	.PARAMETER ModelFilter
 	Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models.
+
+	.PARAMETER ExcludeSerialNumbers
+	Comma-separated serial numbers to exclude from the cleanup. Matched exactly (case-insensitive). Any device whose serial number is in this list is removed from scope regardless of the other filters. Leave empty to exclude nothing.
 
 	.PARAMETER CleanupOrphanedDevices
 	When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted).
@@ -86,6 +92,9 @@
 			},
 			"ModelFilter": {
 				"DisplayName": "Model Filter (comma-separated, substring match, leave empty for all)"
+			},
+			"ExcludeSerialNumbers": {
+				"DisplayName": "Exclude Serial Numbers (comma-separated exact match, leave empty for none)"
 			},
 			"CleanupOrphanedDevices": {
 				"DisplayName": "Clean up orphaned Autopilot devices"
@@ -148,6 +157,8 @@ param (
 
     [string]$ModelFilter = "",
 
+    [string]$ExcludeSerialNumbers = "",
+
     [bool]$CleanupOrphanedDevices = $true,
 
     [int]$OrphanedLastContactedDays = 90,
@@ -179,6 +190,7 @@ Write-RjRbLog -Message "DeleteMode: $DeleteMode" -Verbose
 Write-RjRbLog -Message "GroupTagFilter: $GroupTagFilter" -Verbose
 Write-RjRbLog -Message "ManufacturerFilter: $ManufacturerFilter" -Verbose
 Write-RjRbLog -Message "ModelFilter: $ModelFilter" -Verbose
+Write-RjRbLog -Message "ExcludeSerialNumbers: $ExcludeSerialNumbers" -Verbose
 Write-RjRbLog -Message "CleanupOrphanedDevices: $CleanupOrphanedDevices" -Verbose
 Write-RjRbLog -Message "OrphanedLastContactedDays: $OrphanedLastContactedDays" -Verbose
 Write-RjRbLog -Message "CleanupNeverEnrolledDevices: $CleanupNeverEnrolledDevices" -Verbose
@@ -266,6 +278,7 @@ function ConvertTo-FilterList {
 $groupTagList = ConvertTo-FilterList -RawValue $GroupTagFilter
 $manufacturerList = ConvertTo-FilterList -RawValue $ManufacturerFilter
 $modelList = ConvertTo-FilterList -RawValue $ModelFilter
+$excludeSerialList = ConvertTo-FilterList -RawValue $ExcludeSerialNumbers
 
 # --- Resolve the deletion mode into the action flags used throughout the runbook ---
 $whatIfMode = ($DeleteMode -eq "WhatIf (report only)")
@@ -321,6 +334,13 @@ if ($modelList.Count -gt 0) {
 }
 else {
     Write-Output "Model Filter: all models (no filter applied)"
+}
+
+if ($excludeSerialList.Count -gt 0) {
+    Write-Output "Exclude Serial Numbers (exact): $($excludeSerialList -join ', ')"
+}
+else {
+    Write-Output "Exclude Serial Numbers: none"
 }
 
 if ($groupTagList.Count -gt 0 -and ($manufacturerList.Count -gt 0 -or $modelList.Count -gt 0) -or ($manufacturerList.Count -gt 0 -and $modelList.Count -gt 0)) {
@@ -432,6 +452,22 @@ if ($groupTagList.Count -gt 0 -or $manufacturerList.Count -gt 0 -or $modelList.C
 }
 else {
     $autopilotScoped = $autopilotDevices
+}
+
+# --- Apply serial number exclusion (exact, case-insensitive) after the inclusion filters ---
+if ($excludeSerialList.Count -gt 0) {
+    $excludeSerialSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($s in $excludeSerialList) { [void]$excludeSerialSet.Add($s) }
+
+    $beforeExcludeCount = @($autopilotScoped).Count
+    $autopilotScoped = $autopilotScoped | Where-Object {
+        $serial = if ($null -ne $_.serialNumber) { $_.serialNumber.Trim() } else { "" }
+        -not $excludeSerialSet.Contains($serial)
+    }
+    $afterExcludeCount = @($autopilotScoped).Count
+    $excludedCount = $beforeExcludeCount - $afterExcludeCount
+    Write-RjRbLog -Message "Serial number exclusion applied: $excludedCount device(s) excluded; $afterExcludeCount remain in scope." -Verbose
+    Write-Output "Serial number exclusion applied: $excludedCount device(s) excluded; $afterExcludeCount remain in scope."
 }
 
 # --- Classify cleanup candidates ---
