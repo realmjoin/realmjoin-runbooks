@@ -3,6 +3,8 @@
 ## 2026-06-12
 - Update **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
   - Add Parameter `Manufacturer` and ``Model` to allow filtering for specific device models, which can be useful for targeting cleanup efforts on certain types of devices that are more prone to enrollment issues or that are being phased out.
+- Update **Add User** Runbook in User/Userinfo section
+  - Add support for setting the user's sponsor
 
 ## 2026-06-09
 - Add **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
