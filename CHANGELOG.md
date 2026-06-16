@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-16
+
+- Add **Add Exchange Online Mail Contact** Runbook in Org/Mail
+  - Creates an Exchange Online external mail contact via `New-MailContact` using managed identity authentication.
+  - Validates external email address format and checks for duplicate contacts, aliases, and display names before creation.
+  - Optionally sets first name, last name, and alias, and supports hiding the contact from the Global Address List.
+
 ## 2026-06-12
 
 - Add "do not reply" footer to all runbooks sending email via `Send-RjReportEmail` (localized where applicable)
@@ -9,7 +16,7 @@
   - **Reset MFA**, **List MFA Methods**, **Set or Remove Mobile Phone MFA**, **Create Temporary Access Pass** in User/Security
   - **Notify Users About Stale Devices (Scheduled)** in Org/Devices
 - Update **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
-  - Add Parameter `Manufacturer` and ``Model` to allow filtering for specific device models, which can be useful for targeting cleanup efforts on certain types of devices that are more prone to enrollment issues or that are being phased out.
+  - Add Parameter `Manufacturer` and `Model` to allow filtering for specific device models, which can be useful for targeting cleanup efforts on certain types of devices that are more prone to enrollment issues or that are being phased out.
 - Update **Add User** Runbook in User/Userinfo section
   - Add support for setting the user's sponsor
 
