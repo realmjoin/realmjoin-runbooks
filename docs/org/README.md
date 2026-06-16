@@ -69,6 +69,7 @@
 ## Mail
   - [Add Distribution List](mail/add-distribution-list.md)
   - [Add Equipment Mailbox](mail/add-equipment-mailbox.md)
+  - [Add Mail Contact](mail/add-mail-contact.md)
   - [Add Or Remove Public Folder](mail/add-or-remove-public-folder.md)
   - [Add Or Remove Teams Mailcontact](mail/add-or-remove-teams-mailcontact.md)
   - [Add Or Remove Tenant Allow Block List](mail/add-or-remove-tenant-allow-block-list.md)
