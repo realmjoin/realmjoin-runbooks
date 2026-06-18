@@ -34,7 +34,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 
 param(
     [int] $ExtensionAttributeNumber = 1,
@@ -57,6 +57,9 @@ if ($ExtensionAttributeNumber -lt 1 -or $ExtensionAttributeNumber -gt 15) {
 $ExtensionAttributeName = "extensionAttribute$ExtensionAttributeNumber"
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
+
+$Version = "1.0.1"
+Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Connect to Microsoft Graph
 Connect-RjRbGraph

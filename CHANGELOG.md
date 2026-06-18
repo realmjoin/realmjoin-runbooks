@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-18
+
+- Bump required `RealmJoin.RunbookHelper` module version from `0.8.6` to `0.8.7` across all runbooks
+  - this module version includes new functions for password/key vault handling and several improvements to the email-sending function, including improved compatibility with Outlook Classic
+- Increment each affected runbook's internal `$Version` by one patch level (e.g. `1.0.0` → `1.0.1`)
+
 ## 2026-06-16
 
 - Add **Add Exchange Online Mail Contact** Runbook in Org/Mail
