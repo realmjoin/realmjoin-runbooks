@@ -121,6 +121,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
+      - [Add Mail Contact](#add-mail-contact)
       - [Add Or Remove Public Folder](#add-or-remove-public-folder)
       - [Add Or Remove Teams Mailcontact](#add-or-remove-teams-mailcontact)
       - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
@@ -2572,6 +2573,25 @@ Creates an Exchange Online equipment mailbox and optionally configures delegate 
 #### Where to find
 
 Org \ Mail \ Add Equipment Mailbox
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-mail-add-mail-contact'></a>
+
+### Add Mail Contact
+#### Create a new Exchange Online mail contact with optional display name and address list settings
+
+#### Description
+
+This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.
+
+#### Where to find
+
+Org \ Mail \ Add Mail Contact
 
 
 [Back to Table of Content](#table-of-contents)

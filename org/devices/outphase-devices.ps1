@@ -142,7 +142,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 
 # Suppress false positive from PSScriptAnalyzer - variable is assigned inside ForEach-Object but used in a later if-condition
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "FoundDeviceSerialNotInIntune")]
@@ -167,7 +167,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "excludeFromDefender: $excludeFromDefender" -Verbose
 Write-RjRbLog -Message "defenderExclusionTag: $defenderExclusionTag" -Verbose

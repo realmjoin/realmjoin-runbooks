@@ -98,6 +98,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 |  | Mail | Add Distribution List | Create a classic distribution group |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox |
+|  |  | Add Mail Contact | Create a new Exchange Online mail contact with optional display name and address list settings |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder |
 |  |  | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. |
 |  |  | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List |

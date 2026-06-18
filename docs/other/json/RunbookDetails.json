@@ -12035,6 +12035,173 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Mail Contact",
+    "RunbookDisplayPath": "Org \\ Mail \\ Add Mail Contact",
+    "RelativeRunbookPath": "org/mail/add-mail-contact.ps1",
+    "RelativeRunbookPath_PathOnly": "org/mail",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Mail",
+    "Synopsis": "Create a new Exchange Online mail contact with optional display name and address list settings",
+    "Description": "This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The mail nickname (alias) for the mail contact. If not specified, the system generates one automatically from the display name."
+          }
+        ],
+        "globbing": "false",
+        "name": "Alias",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The display name shown for the mail contact in Exchange Online and the Global Address List."
+          }
+        ],
+        "globbing": "false",
+        "name": "DisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The external SMTP email address for the mail contact. This is the primary email address used for communication with the contact."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExternalEmailAddress",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The first name of the contact. If not specified, the field is left empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "FirstName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the mail contact will be hidden from the Global Address List and other address lists. If false, the contact is visible to all users. Defaults to false."
+          }
+        ],
+        "globbing": "false",
+        "name": "HideFromAddressLists",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The last name of the contact. If not specified, the field is left empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "LastName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The unique contact name used for management and identification. If left empty, defaults to the DisplayName value."
+          }
+        ],
+        "globbing": "false",
+        "name": "Name",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange Administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Office 365 Exchange Online",
+          "Id": "00000002-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Exchange.ManageAsApp"
+          ]
+        }
+      ],
+      "Roles": [
+        "Exchange Administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Add Or Remove Public Folder",
     "RunbookDisplayPath": "Org \\ Mail \\ Add Or Remove Public Folder",
     "RelativeRunbookPath": "org/mail/add-or-remove-public-folder.ps1",

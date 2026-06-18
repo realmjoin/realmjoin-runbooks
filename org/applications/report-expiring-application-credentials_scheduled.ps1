@@ -90,8 +90,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 # Suppress false positive from PSScriptAnalyzer - CredentialType is a type selector (Both/ClientSecrets/Certificates), not a password
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "CredentialType")]
@@ -126,7 +126,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.3"
+$Version = "1.0.4"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
