@@ -36,6 +36,12 @@ The json configuration for this is as follows:
         "ServiceDeskPhone": {
             "Hide": true
         },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }
@@ -126,6 +132,24 @@ Service Desk email address for user contact information (optional).
 
 ### ServiceDeskPhone
 Service Desk phone number for user contact information (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskPortalUrl
+Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskTicketUrl
+Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
 
 | Property | Value |
 |----------|-------|

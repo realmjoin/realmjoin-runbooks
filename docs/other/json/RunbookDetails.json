@@ -1177,7 +1177,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -1228,7 +1228,7 @@
         "name": "macOsObliterationBehavior",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -1245,7 +1245,7 @@
         "name": "macOsRecoveryCode",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -1306,6 +1306,23 @@
         "defaultValue": "False",
         "description": [
           {
+            "Text": "If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe."
+          }
+        ],
+        "globbing": "false",
+        "name": "skipWipeIfAtRisk",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
             "Text": "Windows-only. If set to true, uses protected wipe."
           }
         ],
@@ -1339,7 +1356,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -1351,11 +1368,88 @@
             "DeviceManagementManagedDevices.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
           ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.Read.All"
+          ]
         }
       ],
       "Roles": [
         "Cloud device administrator"
       ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Check Defender Status",
+    "RunbookDisplayPath": "Device \\ Security \\ Check Defender Status",
+    "RelativeRunbookPath": "device/security/check-defender-status.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint",
+    "Description": "This runbook compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID. It reports whether the device exists in each service, returns key properties like onboarding and health state, and evaluates the Defender risk score to flag elevated risk.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra device ID of the target device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All"
+          ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
       "ManualPermissions": []
     }
   },
@@ -4793,6 +4887,243 @@
     }
   },
   {
+    "RunbookDisplayName": "Cleanup Autopilot Devices_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Cleanup Autopilot Devices_Scheduled",
+    "RelativeRunbookPath": "org/devices/cleanup-autopilot-devices_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Clean up orphaned and stale Windows Autopilot device registrations",
+    "Description": "This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.",
+    "Notes": "Prerequisites:\n- The Azure Automation managed identity must hold these Microsoft Graph application\n  permissions: DeviceManagementManagedDevices.Read.All,\n  DeviceManagementServiceConfig.ReadWrite.All, Organization.Read.All, Device.ReadWrite.All\n  (Device.ReadWrite.All only when the \"Delete Autopilot and Entra device\" mode is used), and\n  Mail.Send (Mail.Send only when email reporting is enabled).\n- Grant the permissions before the first scheduled run.\n\nWarning - deletion is irreversible:\n- Removing an Autopilot device identity permanently deletes it from Windows Autopilot.\n- The physical device cannot re-enter Autopilot until its hardware hash is re-uploaded.\n- There is no soft-delete or recycle bin for Autopilot records.\n- Deleting the Entra (Azure AD) device object is likewise permanent; only do so for records\n  that are genuinely dead (the device will never enroll again).\n\nRecommended first-run procedure:\n- Run with Delete mode = \"WhatIf (report only)\" (the default) and review the output or emailed CSV.\n- Confirm the identified devices are genuinely orphaned or never-enrolled.\n- Switch to a deletion mode only after the candidate list has been reviewed.\n\nParameter interactions:\n- DeleteMode defaults to \"WhatIf (report only)\"; no deletions occur in that mode.\n- \"Delete Autopilot device\" removes only the Autopilot identity. \"Delete Autopilot and Entra\n  device\" additionally removes the matching Entra (Azure AD) device object, which would\n  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.\n- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both\n  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.\n- GroupTagFilter, ManufacturerFilter and ModelFilter are all optional; leave a filter empty to\n  evaluate all values for that dimension. When more than one filter is set they are combined with\n  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the\n  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive\n  substrings, so \"Dell\" matches \"Dell Inc.\" and \"Surface\" matches \"Surface Laptop 3\".\n- ExcludeSerialNumbers is applied after the AND filters as an exclusion: any device whose serial\n  number is in the list (exact, case-insensitive) is removed from scope regardless of the other\n  filters. Leave empty to exclude nothing.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CleanupNeverEnrolledDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CleanupOrphanedDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "WhatIf (report only)",
+        "description": [
+          {
+            "Text": "Controls what the runbook does with the identified cleanup candidates. \"WhatIf (report only)\" performs no deletion and only reports the candidates (default, safe). \"Delete Autopilot device\" removes the Autopilot device identities. \"Delete Autopilot and Entra device\" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeleteMode",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address for the summary report. This is configured via Runbook Customizations."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated serial numbers to exclude from the cleanup. Matched exactly (case-insensitive). Any device whose serial number is in this list is removed from scope regardless of the other filters. Leave empty to exclude nothing."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeSerialNumbers",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupTagFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so \"Dell\" matches \"Dell Inc.\". Combined with the other filters using AND. Leave empty to process all manufacturers."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManufacturerFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so \"Surface\" matches \"Surface Laptop 3\". Combined with the other filters using AND. Leave empty to process all models."
+          }
+        ],
+        "globbing": "false",
+        "name": "ModelFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "90",
+        "description": [
+          {
+            "Text": "Age threshold in days for never-enrolled devices. Measured on the Device creation date."
+          }
+        ],
+        "globbing": "false",
+        "name": "NeverEnrolledAgeDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "90",
+        "description": [
+          {
+            "Text": "Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently."
+          }
+        ],
+        "globbing": "false",
+        "name": "OrphanedLastContactedDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.ReadWrite.All\",\n                \"DeviceManagementManagedDevices.Read.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.ReadWrite.All",
+            "DeviceManagementManagedDevices.Read.All",
+            "DeviceManagementServiceConfig.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Create Endpoint Analytics Baseline",
     "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
     "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",
@@ -5245,7 +5576,7 @@
     "SubFolder": "Devices",
     "Synopsis": "Notify primary users about their stale devices via email",
     "Description": "Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.",
-    "Notes": "This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.\nThe email is sent directly to the primary user's email address and includes detailed information about each inactive device.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone)\n\nCommon Use Cases:\n- Automated user reminders about inactive devices to encourage regular device check-ins\n- Proactive device lifecycle management by alerting users before devices are retired\n- Security and compliance by ensuring users are aware of all devices registered to them\n- Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)\n- User scope filtering to target specific departments or exclude service accounts\n\nPilot and Testing Options:\n- Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users\n- Perfect for validating email content and testing filters before rolling out to production\n- Send notifications to ticket systems or shared mailboxes for centralized handling",
+    "Notes": "This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.\nThe email is sent directly to the primary user's email address and includes detailed information about each inactive device.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)\n\nCommon Use Cases:\n- Automated user reminders about inactive devices to encourage regular device check-ins\n- Proactive device lifecycle management by alerting users before devices are retired\n- Security and compliance by ensuring users are aware of all devices registered to them\n- Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)\n- User scope filtering to target specific departments or exclude service accounts\n\nPilot and Testing Options:\n- Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users\n- Perfect for validating email content and testing filters before rolling out to production\n- Send notifications to ticket systems or shared mailboxes for centralized handling",
     "Parameters": [
       {
         "defaultValue": "True",
@@ -5275,7 +5606,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "21",
         "required": "true",
         "type": {
           "name": "String"
@@ -5292,7 +5623,7 @@
         "name": "CustomMailTemplateAfterDeviceDetails",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "String"
@@ -5309,7 +5640,7 @@
         "name": "CustomMailTemplateBeforeDeviceDetails",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"
@@ -5326,7 +5657,7 @@
         "name": "CustomMailTemplateSubject",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -5377,7 +5708,7 @@
         "name": "ExcludeUserGroup",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
@@ -5394,7 +5725,7 @@
         "name": "IncludeUserGroup",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
@@ -5445,7 +5776,7 @@
         "name": "MailTemplateLanguage",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -5479,7 +5810,7 @@
         "name": "OverrideEmailRecipient",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
@@ -5537,6 +5868,40 @@
         }
       },
       {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Service Desk portal URL for user contact information, rendered as a clickable link (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPortalUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskTicketUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
         "defaultValue": "False",
         "description": [
           {
@@ -5547,7 +5912,7 @@
         "name": "UseUserScope",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -7993,7 +8358,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "22",
+        "position": "23",
         "required": "true",
         "type": {
           "name": "String"
@@ -8010,7 +8375,7 @@
         "name": "City",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
@@ -8044,7 +8409,7 @@
         "name": "Country",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -8061,7 +8426,7 @@
         "name": "DefaultGroups",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "String"
@@ -8078,7 +8443,7 @@
         "name": "DefaultLicense",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"
@@ -8129,7 +8494,7 @@
         "name": "EnableEXOArchive",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "22",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -8163,7 +8528,7 @@
         "name": "InitialPassword",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "21",
         "required": "false",
         "type": {
           "name": "String"
@@ -8197,7 +8562,7 @@
         "name": "LocationName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -8248,7 +8613,7 @@
         "name": "MobilePhone",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -8265,10 +8630,27 @@
         "name": "PostalCode",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional sponsor user IDs to set for the user. Multiple sponsors supported."
+          }
+        ],
+        "globbing": "false",
+        "name": "SponsorIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String[]"
         }
       },
       {
@@ -8282,7 +8664,7 @@
         "name": "State",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
@@ -8299,7 +8681,7 @@
         "name": "StreetAddress",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -8333,7 +8715,7 @@
         "name": "UsageLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -11742,6 +12124,173 @@
       ],
       "Roles": [
         "Exchange administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Add Mail Contact",
+    "RunbookDisplayPath": "Org \\ Mail \\ Add Mail Contact",
+    "RelativeRunbookPath": "org/mail/add-mail-contact.ps1",
+    "RelativeRunbookPath_PathOnly": "org/mail",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Mail",
+    "Synopsis": "Create a new Exchange Online mail contact with optional display name and address list settings",
+    "Description": "This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The mail nickname (alias) for the mail contact. If not specified, the system generates one automatically from the display name."
+          }
+        ],
+        "globbing": "false",
+        "name": "Alias",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The display name shown for the mail contact in Exchange Online and the Global Address List."
+          }
+        ],
+        "globbing": "false",
+        "name": "DisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The external SMTP email address for the mail contact. This is the primary email address used for communication with the contact."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExternalEmailAddress",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The first name of the contact. If not specified, the field is left empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "FirstName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the mail contact will be hidden from the Global Address List and other address lists. If false, the contact is visible to all users. Defaults to false."
+          }
+        ],
+        "globbing": "false",
+        "name": "HideFromAddressLists",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The last name of the contact. If not specified, the field is left empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "LastName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The unique contact name used for management and identification. If left empty, defaults to the DisplayName value."
+          }
+        ],
+        "globbing": "false",
+        "name": "Name",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange Administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Office 365 Exchange Online",
+          "Id": "00000002-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Exchange.ManageAsApp"
+          ]
+        }
+      ],
+      "Roles": [
+        "Exchange Administrator"
       ],
       "ManualPermissions": []
     }
@@ -18864,7 +19413,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -18993,6 +19542,40 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk portal URL for user contact information, rendered as a clickable link (optional)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPortalUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskTicketUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "User principal name of the target user."
           }
         ],
@@ -19007,8 +19590,8 @@
         }
       }
     ],
-    "DocsContent": "## Activate user notification\n\nThis runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_create-temporary-access-pass\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
-    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBzZW5kcyBhbiBlbWFpbCB0byB0aGUgdXNlciB3aXRoIHRoZSB0ZW1wb3JhcnkgYWNjZXNzIHBhc3MuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9jcmVhdGUtdGVtcG9yYXJ5LWFjY2Vzcy1wYXNzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhbiBlbWFpbCByZXBvcnQgaXMgb3B0aW9uYWwgYW5kIG9ubHkgaGFwcGVucyB3aGVuIGEgcmVjaXBpZW50IChgRW1haWxUb2ApIGlzIHByb3ZpZGVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzLgo=",
+    "DocsContent": "## Activate user notification\n\nThis runbook sends an email to the user with the temporary access pass. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_create-temporary-access-pass\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPortalUrl\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskTicketUrl\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBzZW5kcyBhbiBlbWFpbCB0byB0aGUgdXNlciB3aXRoIHRoZSB0ZW1wb3JhcnkgYWNjZXNzIHBhc3MuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9jcmVhdGUtdGVtcG9yYXJ5LWFjY2Vzcy1wYXNzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQb3J0YWxVcmwiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrVGlja2V0VXJsIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJDYWxsZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9CiAgICB9Cn0KYGBgCgpGb3IgbW9yZSBpbmZvcm1hdGlvbiBvbiBob3cgdG8gY3VzdG9taXplIHJ1bmJvb2tzLCBwbGVhc2UgcmVmZXIgdG8gdGhlIFtSdW5ib29rIEN1c3RvbWl6YXRpb24gR3VpZGVdKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1jdXN0b21pemF0aW9uKS4KCiMjIFNldHVwIHJlZ2FyZGluZyBlbWFpbCBzZW5kaW5nCgpTZW5kaW5nIGFuIGVtYWlsIHJlcG9ydCBpcyBvcHRpb25hbCBhbmQgb25seSBoYXBwZW5zIHdoZW4gYSByZWNpcGllbnQgKGBFbWFpbFRvYCkgaXMgcHJvdmlkZWQuIFRoZSBzZW5kZXIgYWRkcmVzcyBpcyB0YWtlbiBmcm9tIHRoZSBgUkpSZXBvcnQuRW1haWxTZW5kZXJgIHRlbmFudCBzZXR0aW5nLgoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIGRldGFpbHMuCg==",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -19126,7 +19709,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -19160,7 +19743,7 @@
         "name": "LanguageOverride",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -19255,6 +19838,40 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPortalUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskTicketUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "User Principal Name of the target user. Auto-filled by the RealmJoin portal in the user context."
           }
         ],
@@ -19269,8 +19886,8 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
+    "DocsContent": "## Activate user notification\n\nThis runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_list-mfa-methods\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"MaskPhoneNumbers\": {\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPortalUrl\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskTicketUrl\": {\n            \"Hide\": true\n        },\n        \"LanguageOverride\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nSending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBjYW4gb3B0aW9uYWxseSBzZW5kIGEgbm90aWZpY2F0aW9uIGVtYWlsIHRvIHRoZSB0YXJnZXQgdXNlciBpbmZvcm1pbmcgdGhlbSB0aGF0IHRoZWlyIE1GQSBtZXRob2RzIHdlcmUgcmV0cmlldmVkIGJ5IGFuIGFkbWluaXN0cmF0b3IuIFRvIGVuYWJsZSB0aGlzLCB5b3UgbmVlZCB0byBhY3RpdmF0ZSB1c2VyIG5vdGlmaWNhdGlvbiBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKVGhlIGpzb24gY29uZmlndXJhdGlvbiBmb3IgdGhpcyBpcyBhcyBmb2xsb3dzOgoKYGBganNvbgoicmpnaXQtdXNlcl9zZWN1cml0eV9saXN0LW1mYS1tZXRob2RzIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJOb3RpZnlVc2VyIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIk1hc2tQaG9uZU51bWJlcnMiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIkVtYWlsRnJvbSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tEaXNwbGF5TmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tFbWFpbCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQaG9uZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiU2VydmljZURlc2tQb3J0YWxVcmwiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrVGlja2V0VXJsIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJMYW5ndWFnZU92ZXJyaWRlIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJDYWxsZXJOYW1lIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9CiAgICB9Cn0KYGBgCgpGb3IgbW9yZSBpbmZvcm1hdGlvbiBvbiBob3cgdG8gY3VzdG9taXplIHJ1bmJvb2tzLCBwbGVhc2UgcmVmZXIgdG8gdGhlIFtSdW5ib29rIEN1c3RvbWl6YXRpb24gR3VpZGVdKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1jdXN0b21pemF0aW9uKS4KCiMjIFNldHVwIHJlZ2FyZGluZyBlbWFpbCBzZW5kaW5nCgpTZW5kaW5nIGEgbm90aWZpY2F0aW9uIGVtYWlsIGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBgTm90aWZ5VXNlcmAgaXMgZW5hYmxlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Mail.Send\",\n                \"Organization.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -19311,7 +19928,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "10",
         "required": "true",
         "type": {
           "name": "String"
@@ -19345,7 +19962,7 @@
         "name": "LanguageOverride",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -19423,6 +20040,40 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPortalUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskTicketUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "User principal name of the target user."
           }
         ],
@@ -19437,8 +20088,8 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
+    "DocsContent": "## Activate user notification\n\nThis runbook can optionally send a notification email to the target user informing them that their MFA methods were reset by an administrator. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_reset-mfa\": {\n    \"parameters\": {\n        \"UserName\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPortalUrl\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskTicketUrl\": {\n            \"Hide\": true\n        },\n        \"LanguageOverride\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nSending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBjYW4gb3B0aW9uYWxseSBzZW5kIGEgbm90aWZpY2F0aW9uIGVtYWlsIHRvIHRoZSB0YXJnZXQgdXNlciBpbmZvcm1pbmcgdGhlbSB0aGF0IHRoZWlyIE1GQSBtZXRob2RzIHdlcmUgcmVzZXQgYnkgYW4gYWRtaW5pc3RyYXRvci4gVG8gZW5hYmxlIHRoaXMsIHlvdSBuZWVkIHRvIGFjdGl2YXRlIHVzZXIgbm90aWZpY2F0aW9uIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGUganNvbiBjb25maWd1cmF0aW9uIGZvciB0aGlzIGlzIGFzIGZvbGxvd3M6CgpgYGBqc29uCiJyamdpdC11c2VyX3NlY3VyaXR5X3Jlc2V0LW1mYSI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJVc2VyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiTm90aWZ5VXNlciI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiB0cnVlLAogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJFbWFpbEZyb20iOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrRGlzcGxheU5hbWUiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrRW1haWwiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrUGhvbmUiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrUG9ydGFsVXJsIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJTZXJ2aWNlRGVza1RpY2tldFVybCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiTGFuZ3VhZ2VPdmVycmlkZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhIG5vdGlmaWNhdGlvbiBlbWFpbCBpcyBvcHRpb25hbCBhbmQgb25seSBoYXBwZW5zIHdoZW4gYE5vdGlmeVVzZXJgIGlzIGVuYWJsZWQuIFRoZSBzZW5kZXIgYWRkcmVzcyBpcyB0YWtlbiBmcm9tIHRoZSBgUkpSZXBvcnQuRW1haWxTZW5kZXJgIHRlbmFudCBzZXR0aW5nLgoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIGRldGFpbHMuCg==",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"UserAuthenticationMethod.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
@@ -19650,7 +20301,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "12",
         "required": "true",
         "type": {
           "name": "String"
@@ -19684,7 +20335,7 @@
         "name": "LanguageOverride",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -19796,6 +20447,40 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskPortalUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added."
+          }
+        ],
+        "globbing": "false",
+        "name": "ServiceDeskTicketUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "Object ID of the target user."
           }
         ],
@@ -19810,8 +20495,8 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
+    "DocsContent": "## Activate user notification\n\nThis runbook can optionally send a notification email to the target user informing them that their mobile phone MFA method was added, updated, or removed by an administrator. To enable this, you need to activate user notification in the runbook customization.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-user_security_set-or-remove-mobile-phone-mfa\": {\n    \"parameters\": {\n        \"UserId\": {\n            \"Hide\": true\n        },\n        \"NotifyUser\": {\n            \"Default\": true,\n            \"Hide\": true\n        },\n        \"EmailFrom\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskDisplayName\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskEmail\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPhone\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskPortalUrl\": {\n            \"Hide\": true\n        },\n        \"ServiceDeskTicketUrl\": {\n            \"Hide\": true\n        },\n        \"LanguageOverride\": {\n            \"Hide\": true\n        },\n        \"CallerName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nFor more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Setup regarding email sending\n\nSending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgQWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24KClRoaXMgcnVuYm9vayBjYW4gb3B0aW9uYWxseSBzZW5kIGEgbm90aWZpY2F0aW9uIGVtYWlsIHRvIHRoZSB0YXJnZXQgdXNlciBpbmZvcm1pbmcgdGhlbSB0aGF0IHRoZWlyIG1vYmlsZSBwaG9uZSBNRkEgbWV0aG9kIHdhcyBhZGRlZCwgdXBkYXRlZCwgb3IgcmVtb3ZlZCBieSBhbiBhZG1pbmlzdHJhdG9yLiBUbyBlbmFibGUgdGhpcywgeW91IG5lZWQgdG8gYWN0aXZhdGUgdXNlciBub3RpZmljYXRpb24gaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClRoZSBqc29uIGNvbmZpZ3VyYXRpb24gZm9yIHRoaXMgaXMgYXMgZm9sbG93czoKCmBgYGpzb24KInJqZ2l0LXVzZXJfc2VjdXJpdHlfc2V0LW9yLXJlbW92ZS1tb2JpbGUtcGhvbmUtbWZhIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIlVzZXJJZCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiTm90aWZ5VXNlciI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiB0cnVlLAogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJFbWFpbEZyb20iOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrRGlzcGxheU5hbWUiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrRW1haWwiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrUGhvbmUiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0sCiAgICAgICAgIlNlcnZpY2VEZXNrUG9ydGFsVXJsIjogewogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJTZXJ2aWNlRGVza1RpY2tldFVybCI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiTGFuZ3VhZ2VPdmVycmlkZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiQ2FsbGVyTmFtZSI6IHsKICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgfQogICAgfQp9CmBgYAoKRm9yIG1vcmUgaW5mb3JtYXRpb24gb24gaG93IHRvIGN1c3RvbWl6ZSBydW5ib29rcywgcGxlYXNlIHJlZmVyIHRvIHRoZSBbUnVuYm9vayBDdXN0b21pemF0aW9uIEd1aWRlXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhIG5vdGlmaWNhdGlvbiBlbWFpbCBpcyBvcHRpb25hbCBhbmQgb25seSBoYXBwZW5zIHdoZW4gYE5vdGlmeVVzZXJgIGlzIGVuYWJsZWQuIFRoZSBzZW5kZXIgYWRkcmVzcyBpcyB0YWtlbiBmcm9tIHRoZSBgUkpSZXBvcnQuRW1haWxTZW5kZXJgIHRlbmFudCBzZXR0aW5nLgoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIGRldGFpbHMuCg==",
     "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"User.Read.All\",\n                \"UserAuthenticationMethod.ReadWrite.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [

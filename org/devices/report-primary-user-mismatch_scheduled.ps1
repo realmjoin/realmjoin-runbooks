@@ -131,8 +131,8 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param (
     [int]$SyncThresholdDays = 30,
@@ -172,7 +172,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.4.0"
+$Version = "1.4.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "SyncThresholdDays: $SyncThresholdDays" -Verbose
@@ -657,6 +657,8 @@ A total of $($differences.Count) device(s) differ between Intune and RealmJoin. 
     }
 
     $markdownContent += "`n`nSee the attached CSV for full details.`n"
+
+    $markdownContent += "`n---`n`n*This email was automatically generated. Please do not reply to this email.*`n"
 
     $emailSubject = "Primary User Mismatch Report - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')"
     $attachments = @($csvFilePath)

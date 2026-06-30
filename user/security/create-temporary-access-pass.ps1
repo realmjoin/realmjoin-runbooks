@@ -29,6 +29,12 @@
     .PARAMETER ServiceDeskPhone
     Service Desk phone number for user contact information (optional).
 
+    .PARAMETER ServiceDeskPortalUrl
+    Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+
+    .PARAMETER ServiceDeskTicketUrl
+    Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
 
@@ -53,6 +59,12 @@
             "ServiceDeskPhone": {
                 "Hide": true
             },
+            "ServiceDeskPortalUrl": {
+                "Hide": true
+            },
+            "ServiceDeskTicketUrl": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -61,7 +73,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -80,6 +92,9 @@ param(
     [string] $ServiceDeskEmail,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_Phone" } )]
     [string] $ServiceDeskPhone,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_PortalUrl" } )]
+    [string] $ServiceDeskPortalUrl,
+    [string] $ServiceDeskTicketUrl = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -92,7 +107,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.2.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -103,6 +118,8 @@ Write-RjRbLog -Message "NotifyUser: $NotifyUser" -Verbose
 Write-RjRbLog -Message "ServiceDeskDisplayName: $ServiceDeskDisplayName" -Verbose
 Write-RjRbLog -Message "ServiceDeskEmail: $ServiceDeskEmail" -Verbose
 Write-RjRbLog -Message "ServiceDeskPhone: $ServiceDeskPhone" -Verbose
+Write-RjRbLog -Message "ServiceDeskPortalUrl: $ServiceDeskPortalUrl" -Verbose
+Write-RjRbLog -Message "ServiceDeskTicketUrl: $ServiceDeskTicketUrl" -Verbose
 
 #endregion RJ Log Part
 
@@ -204,7 +221,7 @@ catch {
     if ($NotifyUser) {
         # Build Service Desk contact information section
         $serviceDeskSection = ""
-        if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
+        if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone -or $ServiceDeskPortalUrl -or $ServiceDeskTicketUrl) {
             if ($userLanguage -eq "DE") {
                 $serviceDeskSection = "`n`n---`n`n### Service Desk Kontaktinformationen`n"
             }
@@ -225,6 +242,12 @@ catch {
                     $serviceDeskSection += "`n**Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
                 }
             }
+            if ($ServiceDeskPortalUrl) {
+                $serviceDeskSection += "`n**Portal:** [$($ServiceDeskPortalUrl)]($($ServiceDeskPortalUrl))"
+            }
+            if ($ServiceDeskTicketUrl) {
+                $serviceDeskSection += "`n**Ticket:** [$($ServiceDeskTicketUrl)]($($ServiceDeskTicketUrl))"
+            }
         }
 
         # Build email content based on user's usage location
@@ -238,6 +261,10 @@ Hallo,
 für Ihr Konto **$UserName** wurde ein neuer **Temporary Access Pass (TAP)** erstellt. Dieser ist **$LifetimeInMinutes Minuten** gültig und kann zur Anmeldung an Ihrem Konto verwendet werden.
 
 Falls Sie davon nichts wissen oder nicht eingebunden waren, wenden Sie sich bitte umgehend an Ihren IT Support.$($serviceDeskSection)
+
+---
+
+*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*
 "@
         }
         else {
@@ -250,6 +277,10 @@ Hello,
 a new **Temporary Access Pass (TAP)** has been created for your account **$UserName**. This pass is valid for **$LifetimeInMinutes minutes** and can be used to sign in to your account.
 
 If you are not aware of this or were not involved, please contact your IT support immediately.$($serviceDeskSection)
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
         }
 

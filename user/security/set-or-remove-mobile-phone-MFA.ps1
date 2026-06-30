@@ -32,6 +32,12 @@
     .PARAMETER ServiceDeskPhone
     Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone.
 
+    .PARAMETER ServiceDeskPortalUrl
+    Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl.
+
+    .PARAMETER ServiceDeskTicketUrl
+    Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+
     .PARAMETER LanguageOverride
     Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
 
@@ -74,6 +80,12 @@
             "ServiceDeskPhone": {
                 "Hide": true
             },
+            "ServiceDeskPortalUrl": {
+                "Hide": true
+            },
+            "ServiceDeskTicketUrl": {
+                "Hide": true
+            },
             "LanguageOverride": {
                 "Hide": true
             },
@@ -84,8 +96,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -109,6 +121,11 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_Phone" } )]
     [string]$ServiceDeskPhone,
 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_PortalUrl" } )]
+    [string]$ServiceDeskPortalUrl,
+
+    [string]$ServiceDeskTicketUrl = "",
+
     # LanguageOverride allows forcing a specific notification email language ('DE' or 'EN'); empty = auto-detect from usage location
     [ValidateSet('', 'DE', 'EN')]
     [string]$LanguageOverride = "",
@@ -127,7 +144,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "2.1.1"
+$Version = "2.1.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserId: $UserId" -Verbose
@@ -576,7 +593,7 @@ else {
     $useGerman = if (-not [string]::IsNullOrWhiteSpace($LanguageOverride)) { $LanguageOverride -eq 'DE' } else { $CurrentUsageLocation -eq 'DE' }
 
     $serviceDeskSection = ""
-    if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone) {
+    if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone -or $ServiceDeskPortalUrl -or $ServiceDeskTicketUrl) {
         if ($useGerman) {
             $serviceDeskSection = "`n`n### Service Desk Kontaktinformationen`n"
         }
@@ -597,6 +614,12 @@ else {
                 $serviceDeskSection += "`n **Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
             }
         }
+        if ($ServiceDeskPortalUrl) {
+            $serviceDeskSection += "`n **Portal:** [$($ServiceDeskPortalUrl)]($($ServiceDeskPortalUrl))"
+        }
+        if ($ServiceDeskTicketUrl) {
+            $serviceDeskSection += "`n **Ticket:** [$($ServiceDeskTicketUrl)]($($ServiceDeskTicketUrl))"
+        }
     }
 
     if ($Remove) {
@@ -616,6 +639,10 @@ Datum (UTC):      $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 Mit freundlichen Grüßen,
 IT-Administration
+
+---
+
+*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*
 "@
         }
         else {
@@ -634,6 +661,10 @@ Date (UTC):          $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 Regards,
 IT Administration
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
         }
     }
@@ -654,6 +685,10 @@ Datum (UTC):      $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 Mit freundlichen Grüßen,
 IT-Administration
+
+---
+
+*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*
 "@
         }
         else {
@@ -672,6 +707,10 @@ Date (UTC):          $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 Regards,
 IT Administration
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
         }
     }

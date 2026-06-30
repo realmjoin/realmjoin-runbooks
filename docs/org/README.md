@@ -14,6 +14,7 @@
   - [Add Autopilot Device](devices/add-autopilot-device.md)
   - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
   - [Auto Approve Driver Updates (Scheduled)](devices/auto-approve-driver-updates_scheduled.md)
+  - [Cleanup Autopilot Devices (Scheduled)](devices/cleanup-autopilot-devices_scheduled.md)
   - [Create Endpoint Analytics Baseline](devices/create-endpoint-analytics-baseline.md)
   - [Dedup Device Names (Scheduled)](devices/dedup-device-names_scheduled.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)
@@ -68,6 +69,7 @@
 ## Mail
   - [Add Distribution List](mail/add-distribution-list.md)
   - [Add Equipment Mailbox](mail/add-equipment-mailbox.md)
+  - [Add Mail Contact](mail/add-mail-contact.md)
   - [Add Or Remove Public Folder](mail/add-or-remove-public-folder.md)
   - [Add Or Remove Teams Mailcontact](mail/add-or-remove-teams-mailcontact.md)
   - [Add Or Remove Tenant Allow Block List](mail/add-or-remove-tenant-allow-block-list.md)

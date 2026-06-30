@@ -41,7 +41,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.2" }
 
 param(
@@ -81,7 +81,7 @@ if ($produceLinks -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Manually import this ahead of MgGraph module to avoid conflicts

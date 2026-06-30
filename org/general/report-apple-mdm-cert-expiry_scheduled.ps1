@@ -39,8 +39,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -60,7 +60,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.5"
+$Version = "1.0.6"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -445,6 +445,10 @@ If you expect to see Apple integrations here:
 - Ensure DEP tokens from Apple Business Manager are properly configured
 
 For more information on setting up Apple device management, please refer to Microsoft Intune documentation.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 else {
@@ -476,6 +480,10 @@ $depTable
 - Review certificates and tokens that show an alert status.
 - Renew any items scheduled to expire within the warning window.
 - For invalid tokens, resolve state issues in Apple Business Manager.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 }
 

@@ -47,6 +47,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Wipe Device](docs/device/general/wipe-device.md)
   - [Security](docs/device/README.md#device-security)
 
+    - [Check Defender Status](docs/device/security/check-defender-status.md)
     - [Enable Or Disable Device](docs/device/security/enable-or-disable-device.md)
     - [Isolate Or Release Device](docs/device/security/isolate-or-release-device.md)
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)
@@ -92,6 +93,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Auto Approve Driver Updates (Scheduled)](docs/org/devices/auto-approve-driver-updates_scheduled.md)
+    - [Cleanup Autopilot Devices (Scheduled)](docs/org/devices/cleanup-autopilot-devices_scheduled.md)
     - [Create Endpoint Analytics Baseline](docs/org/devices/create-endpoint-analytics-baseline.md)
     - [Dedup Device Names (Scheduled)](docs/org/devices/dedup-device-names_scheduled.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
@@ -146,6 +148,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Add Distribution List](docs/org/mail/add-distribution-list.md)
     - [Add Equipment Mailbox](docs/org/mail/add-equipment-mailbox.md)
+    - [Add Mail Contact](docs/org/mail/add-mail-contact.md)
     - [Add Or Remove Public Folder](docs/org/mail/add-or-remove-public-folder.md)
     - [Add Or Remove Teams Mailcontact](docs/org/mail/add-or-remove-teams-mailcontact.md)
     - [Add Or Remove Tenant Allow Block List](docs/org/mail/add-or-remove-tenant-allow-block-list.md)

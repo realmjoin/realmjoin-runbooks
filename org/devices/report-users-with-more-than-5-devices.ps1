@@ -33,8 +33,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
@@ -58,7 +58,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.3"
+$Version = "1.1.4"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -245,6 +245,10 @@ This indicates:
 | **Report Date** | $(Get-Date -Format 'yyyy-MM-dd HH:mm') |
 | **Tenant** | $($tenantDisplayName) |
 
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+
 "@
 
         $emailSubject = "Users with More Than 5 Devices Report - No Issues Found - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"
@@ -379,6 +383,10 @@ $(
 The attached CSV files contain:
 - **Summary:** User Object ID, Display Name, UPN, and Device Count
 - **Details:** Complete device list for each user including Device IDs and Names
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
         $emailSubject = "Users with More Than 5 Devices Report - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"

@@ -29,6 +29,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
   - [Security](#device-security)
+      - [Check Defender Status](#check-defender-status)
       - [Enable Or Disable Device](#enable-or-disable-device)
       - [Isolate Or Release Device](#isolate-or-release-device)
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
@@ -68,6 +69,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
+      - [Cleanup Autopilot Devices (Scheduled)](#cleanup-autopilot-devices-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
       - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
@@ -120,6 +122,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
+      - [Add Mail Contact](#add-mail-contact)
       - [Add Or Remove Public Folder](#add-or-remove-public-folder)
       - [Add Or Remove Teams Mailcontact](#add-or-remove-teams-mailcontact)
       - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
@@ -482,6 +485,25 @@ Device \ General \ Wipe Device
 <a name='device-security'></a>
 
 ## Security
+<a name='device-security-check-defender-status'></a>
+
+### Check Defender Status
+#### Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint
+
+#### Description
+
+This runbook compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID. It reports whether the device exists in each service, returns key properties like onboarding and health state, and evaluates the Defender risk score to flag elevated risk.
+
+#### Where to find
+
+Device \ Security \ Check Defender Status
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-security-enable-or-disable-device'></a>
 
 ### Enable Or Disable Device
@@ -1164,6 +1186,34 @@ This scheduled runbook automatically approves pending driver updates in one or m
 #### Where to find
 
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-cleanup-autopilot-devices-(scheduled)'></a>
+
+### Cleanup Autopilot Devices (Scheduled)
+#### Clean up orphaned and stale Windows Autopilot device registrations
+
+#### Description
+
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+
+#### Where to find
+
+Org \ Devices \ Cleanup Autopilot Devices_Scheduled
 
 ## Setup regarding email sending
 
@@ -2550,6 +2600,25 @@ Org \ Mail \ Add Equipment Mailbox
  
  
 
+<a name='org-mail-add-mail-contact'></a>
+
+### Add Mail Contact
+#### Create a new Exchange Online mail contact with optional display name and address list settings
+
+#### Description
+
+This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.
+
+#### Where to find
+
+Org \ Mail \ Add Mail Contact
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-mail-add-or-remove-public-folder'></a>
 
 ### Add Or Remove Public Folder
@@ -3685,6 +3754,12 @@ The json configuration for this is as follows:
         "ServiceDeskPhone": {
             "Hide": true
         },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }
@@ -3741,6 +3816,64 @@ Retrieves and displays every Microsoft Entra ID authentication method registered
 
 User \ Security \ List MFA Methods
 
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_list-mfa-methods": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "MaskPhoneNumbers": {
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -3759,6 +3892,61 @@ Removes authenticator app and phone-based authentication methods for a user. Thi
 #### Where to find
 
 User \ Security \ Reset MFA
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were reset by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_reset-mfa": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3816,6 +4004,61 @@ Adds, updates, or removes the user's mobile phone authentication method. This ru
 #### Where to find
 
 User \ Security \ Set Or Remove Mobile Phone MFA
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their mobile phone MFA method was added, updated, or removed by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_set-or-remove-mobile-phone-mfa": {
+    "parameters": {
+        "UserId": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)

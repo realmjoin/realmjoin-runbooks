@@ -65,7 +65,7 @@ The email is sent directly to the primary user's email address and includes deta
 
 Prerequisites:
 - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone)
+- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)
 
 Common Use Cases:
 - Automated user reminders about inactive devices to encourage regular device check-ins
@@ -173,6 +173,24 @@ Service Desk email address for user contact information (optional).
 
 ### ServiceDeskPhone
 Service Desk phone number for user contact information (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskPortalUrl
+Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskTicketUrl
+Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
 
 | Property | Value |
 |----------|-------|
