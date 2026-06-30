@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-30
+
+- Update **Wipe Device** Runbook in Device/General
+  - Add optional `skipWipeIfAtRisk` parameter (default off): when enabled, the wipe is only performed if the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices potentially involved in a security incident from being destroyed.
+  - Adds the `WindowsDefenderATP` permission `Machine.Read.All`.
+- Add **Check Defender Status** Runbook in Device/Security
+  - Compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID, reporting presence, onboarding/health state and the Defender risk score.
+
 ## 2026-06-18
 
 - Bump required `RealmJoin.RunbookHelper` module version from `0.8.6` to `0.8.7` across all runbooks

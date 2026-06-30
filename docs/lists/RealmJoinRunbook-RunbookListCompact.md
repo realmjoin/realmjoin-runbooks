@@ -16,7 +16,8 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Set Primary User | Set a new primary user on a managed Intune device |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 |  |  | Wipe Device | Wipe a Windows or MacOS device |
-|  | Security | Enable Or Disable Device | Enable or disable a device in Entra ID |
+|  | Security | Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
+|  |  | Enable Or Disable Device | Enable or disable a device in Entra ID |
 |  |  | Isolate Or Release Device | Isolate this device. |
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |

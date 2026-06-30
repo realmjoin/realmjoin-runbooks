@@ -47,6 +47,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Wipe Device](docs/device/general/wipe-device.md)
   - [Security](docs/device/README.md#device-security)
 
+    - [Check Defender Status](docs/device/security/check-defender-status.md)
     - [Enable Or Disable Device](docs/device/security/enable-or-disable-device.md)
     - [Isolate Or Release Device](docs/device/security/isolate-or-release-device.md)
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)

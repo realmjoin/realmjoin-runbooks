@@ -29,6 +29,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
   - [Security](#device-security)
+      - [Check Defender Status](#check-defender-status)
       - [Enable Or Disable Device](#enable-or-disable-device)
       - [Isolate Or Release Device](#isolate-or-release-device)
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
@@ -484,6 +485,25 @@ Device \ General \ Wipe Device
 <a name='device-security'></a>
 
 ## Security
+<a name='device-security-check-defender-status'></a>
+
+### Check Defender Status
+#### Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint
+
+#### Description
+
+This runbook compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID. It reports whether the device exists in each service, returns key properties like onboarding and health state, and evaluates the Defender risk score to flag elevated risk.
+
+#### Where to find
+
+Device \ Security \ Check Defender Status
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-security-enable-or-disable-device'></a>
 
 ### Enable Or Disable Device
