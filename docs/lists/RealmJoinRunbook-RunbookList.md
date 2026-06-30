@@ -28,6 +28,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Unenroll Updatable Assets
     - Wipe Device
   - [Security](#device-security)
+    - Check Defender Status
     - Enable Or Disable Device
     - Isolate Or Release Device
     - Reset Mobile Device Pin
@@ -227,6 +228,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## Security
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
 | Enable Or Disable Device | Enable or disable a device in Entra ID |
 | Isolate Or Release Device | Isolate this device. |
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |

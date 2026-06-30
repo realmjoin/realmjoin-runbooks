@@ -1177,7 +1177,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "true",
         "type": {
           "name": "String"
@@ -1228,7 +1228,7 @@
         "name": "macOsObliterationBehavior",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -1245,7 +1245,7 @@
         "name": "macOsRecoveryCode",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -1306,6 +1306,23 @@
         "defaultValue": "False",
         "description": [
           {
+            "Text": "If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe."
+          }
+        ],
+        "globbing": "false",
+        "name": "skipWipeIfAtRisk",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
             "Text": "Windows-only. If set to true, uses protected wipe."
           }
         ],
@@ -1339,7 +1356,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -1351,11 +1368,88 @@
             "DeviceManagementManagedDevices.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
           ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.Read.All"
+          ]
         }
       ],
       "Roles": [
         "Cloud device administrator"
       ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Check Defender Status",
+    "RunbookDisplayPath": "Device \\ Security \\ Check Defender Status",
+    "RelativeRunbookPath": "device/security/check-defender-status.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint",
+    "Description": "This runbook compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID. It reports whether the device exists in each service, returns key properties like onboarding and health state, and evaluates the Defender risk score to flag elevated risk.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The Entra device ID of the target device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All"
+          ]
+        },
+        {
+          "Name": "WindowsDefenderATP",
+          "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+          "AppRoleAssignments": [
+            "Machine.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
       "ManualPermissions": []
     }
   },

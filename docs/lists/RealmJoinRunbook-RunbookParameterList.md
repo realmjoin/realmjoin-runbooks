@@ -28,6 +28,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
   - [Security](#device-security)
+    - [Check Defender Status](#device-security-check-defender-status)
     - [Enable Or Disable Device](#device-security-enable-or-disable-device)
     - [Isolate Or Release Device](#device-security-isolate-or-release-device)
     - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
@@ -361,6 +362,7 @@ Wipe a Windows or MacOS device
 | removeAutopilotDevice |  | Boolean | Windows-only. "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant. |
 | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
+| skipWipeIfAtRisk |  | Boolean | If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe. |
 | macOsRecoveryCode |  | String | MacOS-only. Recovery code for older devices; newer devices may not require this. |
 | macOsObliterationBehavior |  | String | MacOS-only. Controls the OS obliteration behavior during wipe. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -369,6 +371,16 @@ Wipe a Windows or MacOS device
 
 <a name='device-security'></a>
 ## Security
+
+<a name='device-security-check-defender-status'></a>
+
+### Check Defender Status
+Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The Entra device ID of the target device. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-security-enable-or-disable-device'></a>
 
