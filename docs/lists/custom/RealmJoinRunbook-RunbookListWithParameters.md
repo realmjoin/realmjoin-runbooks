@@ -709,15 +709,31 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | fromMailAddress |  | String | Mailbox used to send the ticket and user notification emails. |
 |  |  |  |  |  |  | ticketCustomerId |  | String | Customer identifier used in ticket subject lines. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Group Memberships | List group memberships for this user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | List Group Memberships | List group memberships for this user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | GroupType |  | String | Filter by group type: Security (security permissions only), M365 (Microsoft 365 groups with mailbox), or All (default). |
 |  |  |  |  |  |  | MembershipType |  | String | Filter by membership type: Assigned (manually added members), Dynamic (rule-based membership), or All (default). |
 |  |  |  |  |  |  | RoleAssignable |  | String | Filter groups that can be assigned to Azure AD roles: Yes (role-assignable only) or NotSet (all groups, default). |
 |  |  |  |  |  |  | TeamsEnabled |  | String | Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default). |
 |  |  |  |  |  |  | Source |  | String | Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default). |
 |  |  |  |  |  |  | WritebackEnabled |  | String | Filter groups by writeback enablement. |
+|  |  |  |  |  |  | SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+|  |  |  |  |  |  | EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Group Ownerships | List group ownerships for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  | List Group Ownerships | List group ownerships for this user. | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
+|  |  |  |  |  |  | SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+|  |  |  |  |  |  | EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | List Manager | List manager information for this user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br> |  | UserName | ✓ | String | User principal name of the target user. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-01
+
+- Update **List Group Memberships** and **List Group Ownerships** Runbooks in User/General
+  - Add optional email delivery (`SendMail`/`EmailTo`) that sends the result as a CSV attachment
+  - Add optional download link creation (`CreateDownloadLink`) that uploads the CSV via `Publish-RjRbFilesToStorageContainer` and returns a time-limited link in the runbook output
+  - Add the `Az.Accounts` module requirement and the `Mail.Send` and `Organization.Read.All` Graph permissions
+
 ## 2026-06-30
 
 - Update **Wipe Device** Runbook in Device/General
