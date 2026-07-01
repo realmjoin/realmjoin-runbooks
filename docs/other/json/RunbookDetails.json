@@ -15797,8 +15797,76 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "16",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "user-group-memberships",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -15821,6 +15889,23 @@
         }
       },
       {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
         "defaultValue": "All",
         "description": [
           {
@@ -15832,6 +15917,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -15855,6 +15957,23 @@
         }
       },
       {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendMail",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "All",
         "description": [
           {
@@ -15866,6 +15985,23 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
@@ -15925,7 +16061,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\r\n    \"Permissions\": [\r\n        {\r\n            \"Name\": \"Microsoft Graph\",\r\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\r\n            \"AppRoleAssignments\": [\r\n                \"User.Read.All\",\r\n                \"Group.Read.All\"\r\n            ]\r\n        }\r\n    ],\r\n    \"Roles\": [],\r\n    \"ManualPermissions\": []\r\n}",
+    "PermissionsContent": "{\r\n    \"Permissions\": [\r\n        {\r\n            \"Name\": \"Microsoft Graph\",\r\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\r\n            \"AppRoleAssignments\": [\r\n                \"User.Read.All\",\r\n                \"Group.Read.All\",\r\n                \"Mail.Send\",\r\n                \"Organization.Read.All\"\r\n            ]\r\n        }\r\n    ],\r\n    \"Roles\": [],\r\n    \"ManualPermissions\": []\r\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -15933,6 +16069,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Group.Read.All",
+            "Mail.Send",
+            "Organization.Read.All",
             "User.Read.All"
           ]
         }
@@ -15963,8 +16101,144 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "10",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "user-group-ownerandmemberships",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendMail",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -15989,7 +16263,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"User.Read.All\",\n                \"Group.Read.All\",\n                \"Mail.Send\",\n                \"Organization.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -15997,6 +16271,8 @@
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Group.Read.All",
+            "Mail.Send",
+            "Organization.Read.All",
             "User.Read.All"
           ]
         }

@@ -1980,6 +1980,14 @@ List group memberships for this user
 | TeamsEnabled |  | String | Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default). |
 | Source |  | String | Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default). |
 | WritebackEnabled |  | String | Filter groups by writeback enablement. |
+| SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+| EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+| ContainerName |  | String | Storage container name used for the upload. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. |
+| StorageAccountName |  | String | Storage account name used for the upload. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-general-list-group-ownerships'></a>
@@ -1990,6 +1998,14 @@ List group ownerships for this user.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
+| SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+| EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+| ContainerName |  | String | Storage container name used for the upload. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. |
+| StorageAccountName |  | String | Storage account name used for the upload. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-general-list-manager'></a>
