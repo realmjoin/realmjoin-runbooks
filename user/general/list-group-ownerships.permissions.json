@@ -5,7 +5,9 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 "User.Read.All",
-                "Group.Read.All"
+                "Group.Read.All",
+                "Mail.Send",
+                "Organization.Read.All"
             ]
         }
     ],
