@@ -1,5 +1,50 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-06-30
+
+- Update **Wipe Device** Runbook in Device/General
+  - Add optional `skipWipeIfAtRisk` parameter (default off): when enabled, the wipe is only performed if the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices potentially involved in a security incident from being destroyed.
+  - Adds the `WindowsDefenderATP` permission `Machine.Read.All`.
+- Add **Check Defender Status** Runbook in Device/Security
+  - Compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID, reporting presence, onboarding/health state and the Defender risk score.
+
+## 2026-06-18
+
+- Bump required `RealmJoin.RunbookHelper` module version from `0.8.6` to `0.8.7` across all runbooks
+  - this module version includes new functions for password/key vault handling and several improvements to the email-sending function, including improved compatibility with Outlook Classic
+- Increment each affected runbook's internal `$Version` by one patch level (e.g. `1.0.0` → `1.0.1`)
+- Bump required `Microsoft.Graph.Authentication` module version from `2.37.0` to `2.38.0` across all affected runbooks
+
+## 2026-06-16
+
+- Add **Add Exchange Online Mail Contact** Runbook in Org/Mail
+  - Creates an Exchange Online external mail contact via `New-MailContact` using managed identity authentication.
+  - Validates external email address format and checks for duplicate contacts, aliases, and display names before creation.
+  - Optionally sets first name, last name, and alias, and supports hiding the contact from the Global Address List.
+
+## 2026-06-12
+
+- Add "do not reply" footer to all runbooks sending email via `Send-RjReportEmail` (localized where applicable)
+- Add optional `ServiceDeskPortalUrl` and `ServiceDeskTicketUrl` parameters (both hidden by default) to all runbooks that include Service Desk contact information in notification emails; if configured, each is rendered as a clickable link in the Service Desk section
+  - `ServiceDeskPortalUrl` is sourced from the RJReport tenant setting `RJReport.ServiceDesk_PortalUrl`
+  - `ServiceDeskTicketUrl` is a direct link to the related Service Desk ticket; empty by default, so no ticket link is added
+  - **Reset MFA**, **List MFA Methods**, **Set or Remove Mobile Phone MFA**, **Create Temporary Access Pass** in User/Security
+  - **Notify Users About Stale Devices (Scheduled)** in Org/Devices
+- Update **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
+  - Add Parameter `Manufacturer` and `Model` to allow filtering for specific device models, which can be useful for targeting cleanup efforts on certain types of devices that are more prone to enrollment issues or that are being phased out.
+- Update **Add User** Runbook in User/Userinfo section
+  - Add support for setting the user's sponsor
+
+## 2026-06-09
+
+- Add **Cleanup Autopilot Devices (Scheduled)** Runbook to Org/Devices
+  - This runbook identifies and removes orphaned or never-enrolled Autopilot devices based on configurable criteria, with optional email reporting of the cleanup results. It also includes an option to delete the corresponding Entra ID device objects for orphaned devices, which can help maintain a clean directory and prevent confusion in device management. The runbook is designed to be run on a scheduled basis to ensure ongoing maintenance of the Autopilot device inventory.
+
+## 2026-06-08
+
+- Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices
+  - Add optional inclusion of devices whose Intune primary user has been deleted from Entra ID in the report. Disabled by default.
+
 ## 2026-06-03
 
 - Add **Sync Shared Channel Owners (Scheduled)** Runbook in Org/General

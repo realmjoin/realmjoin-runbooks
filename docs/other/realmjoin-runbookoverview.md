@@ -29,6 +29,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
   - [Security](#device-security)
+      - [Check Defender Status](#check-defender-status)
       - [Enable Or Disable Device](#enable-or-disable-device)
       - [Isolate Or Release Device](#isolate-or-release-device)
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
@@ -68,6 +69,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
+      - [Cleanup Autopilot Devices (Scheduled)](#cleanup-autopilot-devices-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
       - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
@@ -116,10 +118,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
       - [Sync Apple Tokens](#sync-apple-tokens)
-      - [Sync Sharedchannel Owners (Scheduled)](#sync-sharedchannel-owners-(scheduled))
+      - [Sync Shared Channel Owners (Scheduled)](#sync-shared-channel-owners-(scheduled))
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
+      - [Add Mail Contact](#add-mail-contact)
       - [Add Or Remove Public Folder](#add-or-remove-public-folder)
       - [Add Or Remove Teams Mailcontact](#add-or-remove-teams-mailcontact)
       - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
@@ -184,10 +187,10 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Create Temporary Access Pass](#create-temporary-access-pass)
       - [Enable Or Disable Password Expiration](#enable-or-disable-password-expiration)
       - [List MFA Methods](#list-mfa-methods)
-      - [Reset Mfa](#reset-mfa)
+      - [Reset MFA](#reset-mfa)
       - [Reset Password](#reset-password)
       - [Revoke Or Restore Access](#revoke-or-restore-access)
-      - [Set Or Remove Mobile Phone Mfa](#set-or-remove-mobile-phone-mfa)
+      - [Set Or Remove Mobile Phone MFA](#set-or-remove-mobile-phone-mfa)
   - [Userinfo](#user-userinfo)
       - [Rename User](#rename-user)
       - [Set Photo](#set-photo)
@@ -482,6 +485,25 @@ Device \ General \ Wipe Device
 <a name='device-security'></a>
 
 ## Security
+<a name='device-security-check-defender-status'></a>
+
+### Check Defender Status
+#### Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint
+
+#### Description
+
+This runbook compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID. It reports whether the device exists in each service, returns key properties like onboarding and health state, and evaluates the Defender risk score to flag elevated risk.
+
+#### Where to find
+
+Device \ Security \ Check Defender Status
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-security-enable-or-disable-device'></a>
 
 ### Enable Or Disable Device
@@ -1164,6 +1186,34 @@ This scheduled runbook automatically approves pending driver updates in one or m
 #### Where to find
 
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-cleanup-autopilot-devices-(scheduled)'></a>
+
+### Cleanup Autopilot Devices (Scheduled)
+#### Clean up orphaned and stale Windows Autopilot device registrations
+
+#### Description
+
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+
+#### Where to find
+
+Org \ Devices \ Cleanup Autopilot Devices_Scheduled
 
 ## Setup regarding email sending
 
@@ -2434,14 +2484,14 @@ Org \ General \ Sync Apple Tokens
  
  
 
-<a name='org-general-sync-sharedchannel-owners-(scheduled)'></a>
+<a name='org-general-sync-shared-channel-owners-(scheduled)'></a>
 
-### Sync Sharedchannel Owners (Scheduled)
+### Sync Shared Channel Owners (Scheduled)
 #### Ensure a security group's members are owners of mapped Teams and their shared channels.
 
 #### Description
 
-Teams shared channels do not inherit ownership from their parent team. This scheduled runbook closes
+Teams Shared Channels do not inherit ownership from their parent team. This scheduled runbook closes
 that gap: for each team named in a mapping, it ensures the members of a mapped security group are owners
 of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
 maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
@@ -2451,7 +2501,7 @@ documentation for the mapping rules and configuration.
 
 #### Where to find
 
-Org \ General \ Sync Sharedchannel Owners_Scheduled
+Org \ General \ Sync Shared Channel Owners_Scheduled
 
 ## How it works
 
@@ -2543,6 +2593,25 @@ Creates an Exchange Online equipment mailbox and optionally configures delegate 
 #### Where to find
 
 Org \ Mail \ Add Equipment Mailbox
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-mail-add-mail-contact'></a>
+
+### Add Mail Contact
+#### Create a new Exchange Online mail contact with optional display name and address list settings
+
+#### Description
+
+This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.
+
+#### Where to find
+
+Org \ Mail \ Add Mail Contact
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3685,6 +3754,12 @@ The json configuration for this is as follows:
         "ServiceDeskPhone": {
             "Hide": true
         },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }
@@ -3741,6 +3816,64 @@ Retrieves and displays every Microsoft Entra ID authentication method registered
 
 User \ Security \ List MFA Methods
 
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_list-mfa-methods": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "MaskPhoneNumbers": {
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -3749,7 +3882,7 @@ User \ Security \ List MFA Methods
 
 <a name='user-security-reset-mfa'></a>
 
-### Reset Mfa
+### Reset MFA
 #### Remove all App- and Mobilephone auth methods for a user
 
 #### Description
@@ -3758,7 +3891,62 @@ Removes authenticator app and phone-based authentication methods for a user. Thi
 
 #### Where to find
 
-User \ Security \ Reset Mfa
+User \ Security \ Reset MFA
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were reset by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_reset-mfa": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3806,7 +3994,7 @@ User \ Security \ Revoke Or Restore Access
 
 <a name='user-security-set-or-remove-mobile-phone-mfa'></a>
 
-### Set Or Remove Mobile Phone Mfa
+### Set Or Remove Mobile Phone MFA
 #### Set or remove a user's mobile phone MFA method
 
 #### Description
@@ -3815,7 +4003,62 @@ Adds, updates, or removes the user's mobile phone authentication method. This ru
 
 #### Where to find
 
-User \ Security \ Set Or Remove Mobile Phone Mfa
+User \ Security \ Set Or Remove Mobile Phone MFA
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their mobile phone MFA method was added, updated, or removed by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_set-or-remove-mobile-phone-mfa": {
+    "parameters": {
+        "UserId": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)

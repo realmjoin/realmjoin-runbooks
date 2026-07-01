@@ -28,6 +28,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Unenroll Updatable Assets
     - Wipe Device
   - [Security](#device-security)
+    - Check Defender Status
     - Enable Or Disable Device
     - Isolate Or Release Device
     - Reset Mobile Device Pin
@@ -67,6 +68,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
     - Auto Approve Driver Updates (Scheduled)
+    - Cleanup Autopilot Devices (Scheduled)
     - Create Endpoint Analytics Baseline
     - Dedup Device Names (Scheduled)
     - Delete Stale Devices (Scheduled)
@@ -115,10 +117,11 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report PIM Activations (Scheduled)
     - Sync All Devices
     - Sync Apple Tokens
-    - Sync Sharedchannel Owners (Scheduled)
+    - Sync Shared Channel Owners (Scheduled)
   - [Mail](#organization-mail)
     - Add Distribution List
     - Add Equipment Mailbox
+    - Add Mail Contact
     - Add Or Remove Public Folder
     - Add Or Remove Teams Mailcontact
     - Add Or Remove Tenant Allow Block List
@@ -225,6 +228,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ## Security
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
 | Enable Or Disable Device | Enable or disable a device in Entra ID |
 | Isolate Or Release Device | Isolate this device. |
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
@@ -302,6 +306,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+| Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations |
 | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
@@ -356,7 +361,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
 | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
-| Sync Sharedchannel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
+| Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
@@ -366,6 +371,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Add Distribution List | Create a classic distribution group |
 | Add Equipment Mailbox | Create an equipment mailbox |
+| Add Mail Contact | Create a new Exchange Online mail contact with optional display name and address list settings |
 | Add Or Remove Public Folder | Add or remove a public folder |
 | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. |
 | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List |

@@ -16,7 +16,8 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Set Primary User | Set a new primary user on a managed Intune device |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 |  |  | Wipe Device | Wipe a Windows or MacOS device |
-|  | Security | Enable Or Disable Device | Enable or disable a device in Entra ID |
+|  | Security | Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
+|  |  | Enable Or Disable Device | Enable or disable a device in Entra ID |
 |  |  | Isolate Or Release Device | Isolate this device. |
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
@@ -47,6 +48,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Devices | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+|  |  | Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations |
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 |  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
@@ -94,9 +96,10 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 |  |  | Sync All Devices | Sync all Intune Windows devices |
 |  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
-|  |  | Sync Sharedchannel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
+|  |  | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 |  | Mail | Add Distribution List | Create a classic distribution group |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox |
+|  |  | Add Mail Contact | Create a new Exchange Online mail contact with optional display name and address list settings |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder |
 |  |  | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. |
 |  |  | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List |

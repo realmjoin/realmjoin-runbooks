@@ -26,6 +26,12 @@ The json configuration for this is as follows:
         "ServiceDeskPhone": {
             "Hide": true
         },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }

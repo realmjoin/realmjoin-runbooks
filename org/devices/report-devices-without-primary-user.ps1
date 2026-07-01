@@ -34,8 +34,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.37.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
@@ -59,7 +59,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.3"
+$Version = "1.1.4"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 if ($EmailTo) {
     Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
@@ -226,6 +226,10 @@ if ($EmailTo) {
 - ✅ **Complete User Assignment**: All managed devices in Intune have a primary user assigned
 - ✅ **Proper Device Enrollment**: Devices are correctly enrolled and associated with users
 - ✅ **Good Device Management**: Your device inventory is well-maintained
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
         $emailSubject = "Devices Without Primary User Report - No Issues Found"
@@ -298,6 +302,10 @@ For devices that are legitimately shared:
 The following file is attached to this email:
 
 - **$($fileName_Details)**: Complete list of all devices without primary user assignment
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 
 "@
 

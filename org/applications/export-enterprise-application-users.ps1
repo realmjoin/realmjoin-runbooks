@@ -42,7 +42,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 
 param(
@@ -71,7 +71,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.2"
+$Version = "1.1.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "entAppsOnly: $entAppsOnly" -Verbose

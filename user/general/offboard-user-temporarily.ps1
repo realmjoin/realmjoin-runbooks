@@ -195,7 +195,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 #Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
 #Requires -Modules @{ ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
 
@@ -238,7 +238,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Sanity checks

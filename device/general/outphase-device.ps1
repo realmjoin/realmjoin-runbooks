@@ -123,7 +123,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.6" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -149,7 +149,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "DeviceId: $DeviceId" -Verbose
