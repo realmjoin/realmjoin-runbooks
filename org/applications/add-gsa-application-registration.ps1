@@ -245,11 +245,14 @@ function New-Group {
     )
     $uri = "https://graph.microsoft.com/v1.0/groups"
 
-    # mailNickname must not contain spaces or special characters
-    $mailNickname = ($groupName -replace '[^a-zA-Z0-9\-_.]', '')
-    if ([string]::IsNullOrWhiteSpace($mailNickname)) {
-        $mailNickname = "group" + (Get-Random -Maximum 99999)
-    }
+# mailNickname must not contain spaces or special characters
+$mailNickname = ($groupName -replace '[^a-zA-Z0-9\-_.]', '')
+if ($mailNickname.Length -gt 64) {
+    $mailNickname = $mailNickname.Substring(0, 64)
+}
+if ([string]::IsNullOrWhiteSpace($mailNickname)) {
+    $mailNickname = "group" + (Get-Random -Maximum 99999)
+}
 
     $body = @{
         displayName     = $groupName
