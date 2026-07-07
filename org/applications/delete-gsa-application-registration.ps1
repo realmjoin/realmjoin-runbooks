@@ -65,7 +65,8 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -87,7 +88,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.0"
+$Version = "1.2.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #endregion
@@ -198,8 +199,16 @@ foreach ($group in $schemeGroups) {
 # Best-effort lookup: find groups starting with the groupPrefix whose base name matches
 # the end of the application name (the app prefix is unknown here).
 if ($schemeGroups.Count -eq 0) {
-    $uri = "https://graph.microsoft.com/v1.0/groups?`$filter=startswith(displayName,'$groupPrefix')&`$select=id,displayName"
-    $candidateGroups = (Invoke-MgGraphRequest -Method GET -Uri $uri -ErrorAction Stop).value
+    # groupPrefix comes from Runbook Customization - escape single quotes for the OData filter.
+    # Follow paging in case many groups share the prefix.
+    $groupPrefixEscaped = $groupPrefix -replace "'", "''"
+    $uri = "https://graph.microsoft.com/v1.0/groups?`$filter=startswith(displayName,'$groupPrefixEscaped')&`$select=id,displayName&`$top=999"
+    $candidateGroups = @()
+    do {
+        $page = Invoke-MgGraphRequest -Method GET -Uri $uri -ErrorAction Stop
+        $candidateGroups += $page.value
+        $uri = $page.'@odata.nextLink'
+    } while ($uri)
     $orphanGroups = @($candidateGroups | Where-Object {
             $baseName = $_.displayName.Substring($groupPrefix.Length)
             if (![string]::IsNullOrEmpty($groupSuffix) -and $baseName.EndsWith($groupSuffix)) {

@@ -132,7 +132,8 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -163,7 +164,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.0"
+$Version = "1.3.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #endregion
@@ -285,7 +286,7 @@ Connect-MgGraph -Identity -NoWelcome
 ## BEFORE any object is created.
 ########################################################
 
-# List of reserved words (example list, you may need to expand this based on actual reserved words)
+# List of reserved words disallowed in application / group names
 $reservedWords = @("admin", "administrator", "system", "guest")
 
 # Validate the base name
@@ -356,7 +357,9 @@ if ($applicationType -eq "quickaccessapp") {
 }
 
 # Check if the group already exists (update mode reuses it)
-$uri = "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$groupName'&`$select=id"
+# groupPrefix/groupSuffix come from Runbook Customization - escape single quotes for the OData filter
+$groupNameEscaped = $groupName -replace "'", "''"
+$uri = "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$groupNameEscaped'&`$select=id"
 $existingGroup = (Invoke-MgGraphRequest -Method GET -Uri $uri -ErrorAction Stop).value
 
 #endregion
@@ -401,6 +404,23 @@ if ($continue) {
     else {
         $applicationId = $existingApp.value[0].id
         $appId = $existingApp.value[0].appId
+
+        # Safety check: verify the existing application is actually a GSA / App Proxy application
+        # before modifying it - a name collision with an unrelated app must not be touched.
+        $isGsaApp = $false
+        try {
+            $betaApp = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/applications/$applicationId`?`$select=onPremisesPublishing" -ErrorAction Stop
+            if ($betaApp.onPremisesPublishing -and $betaApp.onPremisesPublishing.applicationType) {
+                $isGsaApp = $true
+            }
+        }
+        catch {
+            Write-RjRbLog -Message "Could not read onPremisesPublishing: $_" -Verbose
+        }
+        if (-not $isGsaApp) {
+            throw "Application '$applicationName' already exists (id: $applicationId) but does not appear to be a GSA / App Proxy application (no onPremisesPublishing configuration). Aborting to avoid modifying an unrelated application. Nothing has been created."
+        }
+
         "## Application '$applicationName' already exists, id: $($applicationId). Running in update mode - the application will not be removed on failure."
     }
 }
@@ -456,7 +476,7 @@ try {
         # Assign App to Connector Group
         Invoke-MgGraphRequest -Method PUT -Uri "https://graph.microsoft.com/beta/applications/$applicationId/connectorGroup/`$ref" -Body @"
 {
-  "@odata.id":"https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationproxy/connectorGroups/$connectorGroupId"
+  "@odata.id":"https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/$connectorGroupId"
 }
 "@ -ContentType "application/json" -ErrorAction Stop
         "## Assigned Application '$applicationName' to Connector Group Id: $connectorGroupId"
