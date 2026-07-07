@@ -245,11 +245,14 @@ function New-Group {
     )
     $uri = "https://graph.microsoft.com/v1.0/groups"
 
-    # mailNickname must not contain spaces or special characters
-    $mailNickname = ($groupName -replace '[^a-zA-Z0-9\-_.]', '')
-    if ([string]::IsNullOrWhiteSpace($mailNickname)) {
-        $mailNickname = "group" + (Get-Random -Maximum 99999)
-    }
+# mailNickname must not contain spaces or special characters
+$mailNickname = ($groupName -replace '[^a-zA-Z0-9\-_.]', '')
+if ($mailNickname.Length -gt 64) {
+    $mailNickname = $mailNickname.Substring(0, 64)
+}
+if ([string]::IsNullOrWhiteSpace($mailNickname)) {
+    $mailNickname = "group" + (Get-Random -Maximum 99999)
+}
 
     $body = @{
         displayName     = $groupName
@@ -424,12 +427,11 @@ if ($continue) {
         "## Application '$applicationName' already exists, id: $($applicationId). Running in update mode - the application will not be removed on failure."
     }
 }
-else {
-    # A Quick Access App already exists - reuse it for segment addition
-    $applicationId = $existingQuickAccessApp.value[0].id
-    $appId = $existingQuickAccessApp.value[0].appId
-    "## Application of type 'quickaccessapp' already exists ('$($existingQuickAccessApp.value[0].displayName)'). Running in update mode - the application will not be removed on failure."
-}
+# A Quick Access App already exists - reuse it for segment addition
+$applicationId = $existingQuickAccessApp.value[0].id
+$appId = $existingQuickAccessApp.value[0].appId
+$applicationName = $existingQuickAccessApp.value[0].displayName
+"## Using existing Quick Access App '$applicationName'. Running in update mode - the application will not be removed on failure."
 
 #endregion
 
@@ -482,18 +484,25 @@ try {
         "## Assigned Application '$applicationName' to Connector Group Id: $connectorGroupId"
 
         # Add Application Segment
-        # Split the ports string and normalize to range format
-        $portsArray = @($ports -split ',' | ForEach-Object {
-                $port = $_.Trim()
-                if ($port -notmatch '-') {
-                    # Single port - convert to range format
-                    "$port-$port"
+# Split the ports string, validate, and normalize to range format
+$portsArray = @(
+    $ports -split ',' |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        ForEach-Object {
+            if ($_ -match '^(?<start>\d{1,5})(-(?<end>\d{1,5}))?$') {
+                $start = [int]$Matches.start
+                $end = if ($Matches.end) { [int]$Matches.end } else { $start }
+                if ($start -lt 1 -or $start -gt 65535 -or $end -lt 1 -or $end -gt 65535 -or $start -gt $end) {
+                    throw "Invalid port or port range: '$_'. Ports must be 1-65535 and ranges must be start<=end."
                 }
-                else {
-                    # Already a range
-                    $port
-                }
-            })
+                "$start-$end"
+            }
+            else {
+                throw "Invalid port format: '$_'. Use '443', '80,443', or '8000-8080'."
+            }
+        }
+)
 
         $bodyObject = @{
             destinationHost = $destinationHost
@@ -531,12 +540,12 @@ try {
     ## Group Creation
     ##########################
     # Set group description based on application type
-    if ($applicationType -eq "nonwebapp") {
-        $groupDescription = "Security Group for the Enterprise Application '$applicationName'. This group is used for managing access to the application and should not be deleted."
-    }
-    else {
-        $groupDescription = "Security Group for the Quick Access Application '$applicationName'. This group is used for managing access to the application and should not be deleted."
-    }
+if ($applicationType -eq "nonwebapp") {
+    $groupDescription = "Security Group for the Enterprise Application '$applicationName'. This group is used for managing access to the application and can be removed when the application is deleted."
+}
+else {
+    $groupDescription = "Security Group for the Quick Access Application '$applicationName'. This group is used for managing access to the application and can be removed when the application is deleted."
+}
 
     if ($existingGroup -and $existingGroup.Count -gt 0) {
         $groupId = $existingGroup[0].id
