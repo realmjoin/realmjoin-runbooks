@@ -88,7 +88,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.1"
+$Version = "1.2.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #endregion
@@ -166,8 +166,9 @@ else {
 # Split assigned groups into naming scheme group(s) vs. others.
 # A scheme group starts with the admin-defined groupPrefix (and ends with groupSuffix, if set).
 $schemeGroups = @($assignedGroups | Where-Object {
-        $_.principalDisplayName -like "$groupPrefix*" -and
-        ([string]::IsNullOrEmpty($groupSuffix) -or $_.principalDisplayName -like "*$groupSuffix")
+        $_.principalDisplayName -and
+        $_.principalDisplayName.StartsWith($groupPrefix, [System.StringComparison]::OrdinalIgnoreCase) -and
+        ([string]::IsNullOrEmpty($groupSuffix) -or $_.principalDisplayName.EndsWith($groupSuffix, [System.StringComparison]::OrdinalIgnoreCase))
     })
 $otherGroups = @($assignedGroups | Where-Object { $schemeGroups -notcontains $_ })
 
@@ -211,10 +212,10 @@ if ($schemeGroups.Count -eq 0) {
     } while ($uri)
     $orphanGroups = @($candidateGroups | Where-Object {
             $baseName = $_.displayName.Substring($groupPrefix.Length)
-            if (![string]::IsNullOrEmpty($groupSuffix) -and $baseName.EndsWith($groupSuffix)) {
+            if (![string]::IsNullOrEmpty($groupSuffix) -and $baseName.EndsWith($groupSuffix, [System.StringComparison]::OrdinalIgnoreCase)) {
                 $baseName = $baseName.Substring(0, $baseName.Length - $groupSuffix.Length)
             }
-            (![string]::IsNullOrWhiteSpace($baseName)) -and $applicationName.EndsWith($baseName)
+            (![string]::IsNullOrWhiteSpace($baseName)) -and $applicationName.EndsWith($baseName, [System.StringComparison]::OrdinalIgnoreCase)
         })
 
     if ($orphanGroups.Count -gt 0) {
