@@ -427,11 +427,14 @@ if ($continue) {
         "## Application '$applicationName' already exists, id: $($applicationId). Running in update mode - the application will not be removed on failure."
     }
 }
-# A Quick Access App already exists - reuse it for segment addition
-$applicationId = $existingQuickAccessApp.value[0].id
-$appId = $existingQuickAccessApp.value[0].appId
-$applicationName = $existingQuickAccessApp.value[0].displayName
-"## Using existing Quick Access App '$applicationName'. Running in update mode - the application will not be removed on failure."
+
+if (-not $continue) {
+    # A Quick Access App already exists - reuse it for segment addition
+    $applicationId = $existingQuickAccessApp.value[0].id
+    $appId = $existingQuickAccessApp.value[0].appId
+    $applicationName = $existingQuickAccessApp.value[0].displayName
+    "## Using existing Quick Access App '$applicationName'. Running in update mode - the application will not be removed on failure."
+}
 
 #endregion
 
