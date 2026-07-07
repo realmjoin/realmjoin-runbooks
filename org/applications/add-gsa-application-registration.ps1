@@ -164,7 +164,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.2"
+$Version = "1.3.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #endregion
@@ -245,14 +245,14 @@ function New-Group {
     )
     $uri = "https://graph.microsoft.com/v1.0/groups"
 
-# mailNickname must not contain spaces or special characters
-$mailNickname = ($groupName -replace '[^a-zA-Z0-9\-_.]', '')
-if ($mailNickname.Length -gt 64) {
-    $mailNickname = $mailNickname.Substring(0, 64)
-}
-if ([string]::IsNullOrWhiteSpace($mailNickname)) {
-    $mailNickname = "group" + (Get-Random -Maximum 99999)
-}
+    # mailNickname must not contain spaces or special characters (max length 64)
+    $mailNickname = ($groupName -replace '[^a-zA-Z0-9\-_.]', '')
+    if ($mailNickname.Length -gt 64) {
+        $mailNickname = $mailNickname.Substring(0, 64)
+    }
+    if ([string]::IsNullOrWhiteSpace($mailNickname)) {
+        $mailNickname = "group" + (Get-Random -Maximum 99999)
+    }
 
     $body = @{
         displayName     = $groupName
@@ -487,25 +487,25 @@ try {
         "## Assigned Application '$applicationName' to Connector Group Id: $connectorGroupId"
 
         # Add Application Segment
-# Split the ports string, validate, and normalize to range format
-$portsArray = @(
-    $ports -split ',' |
-        ForEach-Object { $_.Trim() } |
-        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-        ForEach-Object {
-            if ($_ -match '^(?<start>\d{1,5})(-(?<end>\d{1,5}))?$') {
-                $start = [int]$Matches.start
-                $end = if ($Matches.end) { [int]$Matches.end } else { $start }
-                if ($start -lt 1 -or $start -gt 65535 -or $end -lt 1 -or $end -gt 65535 -or $start -gt $end) {
-                    throw "Invalid port or port range: '$_'. Ports must be 1-65535 and ranges must be start<=end."
+        # Split the ports string, validate, and normalize to range format
+        $portsArray = @(
+            $ports -split ',' |
+                ForEach-Object { $_.Trim() } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                ForEach-Object {
+                    if ($_ -match '^(?<start>\d{1,5})(-(?<end>\d{1,5}))?$') {
+                        $start = [int]$Matches.start
+                        $end = if ($Matches.end) { [int]$Matches.end } else { $start }
+                        if ($start -lt 1 -or $start -gt 65535 -or $end -lt 1 -or $end -gt 65535 -or $start -gt $end) {
+                            throw "Invalid port or port range: '$_'. Ports must be 1-65535 and ranges must be start<=end."
+                        }
+                        "$start-$end"
+                    }
+                    else {
+                        throw "Invalid port format: '$_'. Use '443', '80,443', or '8000-8080'."
+                    }
                 }
-                "$start-$end"
-            }
-            else {
-                throw "Invalid port format: '$_'. Use '443', '80,443', or '8000-8080'."
-            }
-        }
-)
+        )
 
         $bodyObject = @{
             destinationHost = $destinationHost
