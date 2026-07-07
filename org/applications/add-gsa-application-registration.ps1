@@ -531,12 +531,12 @@ try {
     ## Group Creation
     ##########################
     # Set group description based on application type
-    if ($applicationType -eq "nonwebapp") {
-        $groupDescription = "Security Group for the Enterprise Application '$applicationName'. This group is used for managing access to the application and should not be deleted."
-    }
-    else {
-        $groupDescription = "Security Group for the Quick Access Application '$applicationName'. This group is used for managing access to the application and should not be deleted."
-    }
+if ($applicationType -eq "nonwebapp") {
+    $groupDescription = "Security Group for the Enterprise Application '$applicationName'. This group is used for managing access to the application and can be removed when the application is deleted."
+}
+else {
+    $groupDescription = "Security Group for the Quick Access Application '$applicationName'. This group is used for managing access to the application and can be removed when the application is deleted."
+}
 
     if ($existingGroup -and $existingGroup.Count -gt 0) {
         $groupId = $existingGroup[0].id
