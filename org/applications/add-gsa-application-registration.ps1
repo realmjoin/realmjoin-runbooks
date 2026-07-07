@@ -481,18 +481,25 @@ try {
         "## Assigned Application '$applicationName' to Connector Group Id: $connectorGroupId"
 
         # Add Application Segment
-        # Split the ports string and normalize to range format
-        $portsArray = @($ports -split ',' | ForEach-Object {
-                $port = $_.Trim()
-                if ($port -notmatch '-') {
-                    # Single port - convert to range format
-                    "$port-$port"
+# Split the ports string, validate, and normalize to range format
+$portsArray = @(
+    $ports -split ',' |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        ForEach-Object {
+            if ($_ -match '^(?<start>\d{1,5})(-(?<end>\d{1,5}))?$') {
+                $start = [int]$Matches.start
+                $end = if ($Matches.end) { [int]$Matches.end } else { $start }
+                if ($start -lt 1 -or $start -gt 65535 -or $end -lt 1 -or $end -gt 65535 -or $start -gt $end) {
+                    throw "Invalid port or port range: '$_'. Ports must be 1-65535 and ranges must be start<=end."
                 }
-                else {
-                    # Already a range
-                    $port
-                }
-            })
+                "$start-$end"
+            }
+            else {
+                throw "Invalid port format: '$_'. Use '443', '80,443', or '8000-8080'."
+            }
+        }
+)
 
         $bodyObject = @{
             destinationHost = $destinationHost
