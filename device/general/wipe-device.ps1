@@ -149,7 +149,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 ############################################################
@@ -185,6 +185,50 @@ if ($wipeDevice -and $skipWipeIfAtRisk) {
 #endregion Connect Part
 
 ############################################################
+#region     Defender Risk Preflight (runs first, may abort)
+#
+############################################################
+
+# Evaluate the device's Defender for Endpoint risk score before doing anything else.
+# If the device is at risk (Medium/High), abort immediately to protect forensic data
+# (e.g. logs) of a device that may be involved in a security incident.
+if ($wipeDevice -and $skipWipeIfAtRisk) {
+    "## 'Skip wipe if at risk' is enabled. Checking Microsoft Defender for Endpoint risk score..."
+    try {
+        # From experience the first result seems to be the "freshest" candidate.
+        $atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId" -ErrorAction Stop |
+            Sort-Object { [datetime]$_.lastSeen } -Descending |
+            Select-Object -First 1
+    }
+    catch {
+        "## Error Message: $($_.Exception.Message)"
+        "## Please see 'All logs' for more details."
+        "## Execution stopped."
+        throw "Could not determine the device's Defender risk score. Aborting to avoid wiping a potentially at-risk device."
+    }
+
+    if ($atpDevice) {
+        "## Defender risk score: '$($atpDevice.riskScore)'"
+        if ($atpDevice.riskScore -in @('Medium', 'High')) {
+            ""
+            "!!!!! Warning !!!!!"
+            "Defender risk score of this device is '$($atpDevice.riskScore)'."
+            "The device may be involved in a security incident. Wiping it now could destroy forensic data (e.g. logs)."
+            "Please align with your security team before wiping this device."
+            "To wipe it anyway, disable 'Only wipe if device is not at risk' and re-run this runbook."
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            ""
+            throw "Execution stopped: Defender risk score is '$($atpDevice.riskScore)'. Wipe cancelled to protect forensic data. Align with security or disable 'Only wipe if device is not at risk'."
+        }
+    }
+    else {
+        "## Device not found in Defender for Endpoint. Risk score could not be determined; proceeding with wipe."
+    }
+}
+
+#endregion Defender Risk Preflight
+
+############################################################
 #region     StatusQuo & Preflight-Check Part
 #
 ############################################################
@@ -205,40 +249,6 @@ if ($wipeDevice -and $skipWipeIfAtRisk) {
     }
 
     #endregion Resolve Target Device
-
-    #region Defender Risk Preflight
-    ##############################
-
-    # Evaluate the device's Defender for Endpoint risk score before wiping, if requested.
-    # This protects forensic data (e.g. logs) of devices that may be involved in a security incident.
-    $deviceIsAtRisk = $false
-    if ($wipeDevice -and $skipWipeIfAtRisk) {
-        "## 'Skip wipe if at risk' is enabled. Checking Microsoft Defender for Endpoint risk score..."
-        try {
-            # From experience the first result seems to be the "freshest" candidate.
-            $atpDevice = Invoke-RjRbRestMethodDefenderATP -Resource "/machines" -OdFilter "aadDeviceId eq $DeviceId" -ErrorAction Stop |
-                Sort-Object { [datetime]$_.lastSeen } -Descending |
-                Select-Object -First 1
-        }
-        catch {
-            "## Error Message: $($_.Exception.Message)"
-            "## Please see 'All logs' for more details."
-            "## Execution stopped."
-            throw "Could not determine the device's Defender risk score. Aborting to avoid wiping a potentially at-risk device."
-        }
-
-        if ($atpDevice) {
-            "## Defender risk score: '$($atpDevice.riskScore)'"
-            if ($atpDevice.riskScore -in @('Medium', 'High')) {
-                $deviceIsAtRisk = $true
-            }
-        }
-        else {
-            "## Device not found in Defender for Endpoint. Risk score could not be determined; proceeding with wipe."
-        }
-    }
-
-    #endregion Defender Risk Preflight
 
 #endregion StatusQuo & Preflight-Check Part
 
@@ -298,34 +308,28 @@ if ($wipeDevice -and $skipWipeIfAtRisk) {
     $mgdDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$DeviceId'" -ErrorAction SilentlyContinue
     if ($mgdDevice) {
         if ($wipeDevice) {
-            if ($skipWipeIfAtRisk -and $deviceIsAtRisk) {
-                "## Device risk score is Medium or High. Skipping wipe to preserve forensic data (e.g. logs) for the ongoing security investigation."
-                "## Disable 'Only wipe if device is not at risk' to wipe this device anyway."
+            "## Wiping DeviceId $DeviceID (Intune ID: $($mgdDevice.id))"
+            $body = @{
+                "keepEnrollmentData" = "false"
+                "keepUserData"       = "false"
             }
-            else {
-                "## Wiping DeviceId $DeviceID (Intune ID: $($mgdDevice.id))"
-                $body = @{
-                    "keepEnrollmentData" = "false"
-                    "keepUserData"       = "false"
-                }
-                if ($mgdDevice.operatingSystem -eq "macOS") {
-                    "## MacOS device detected."
-                    $body["macOsUnlockCode"] = $macOsRecoveryCode
-                    $body["obliterationBehavior"] = $macOsObliterationBehavior
-                }
-                if ($mgdDevice.operatingSystem -eq "Windows") {
-                    "## Windows device detected."
-                    $body["useProtectedWipe"] = $useProtectedWipe
-                }
-                try {
-                    Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body -Beta | Out-Null
-                }
-                catch {
-                    "## Error Message: $($_.Exception.Message)"
-                    "## Please see 'All logs' for more details."
-                    "## Execution stopped."
-                    throw "Wiping DeviceID $DeviceID (Intune ID: $($mgdDevice.id)) failed!"
-                }
+            if ($mgdDevice.operatingSystem -eq "macOS") {
+                "## MacOS device detected."
+                $body["macOsUnlockCode"] = $macOsRecoveryCode
+                $body["obliterationBehavior"] = $macOsObliterationBehavior
+            }
+            if ($mgdDevice.operatingSystem -eq "Windows") {
+                "## Windows device detected."
+                $body["useProtectedWipe"] = $useProtectedWipe
+            }
+            try {
+                Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($mgdDevice.id)/wipe" -Method Post -Body $body -Beta | Out-Null
+            }
+            catch {
+                "## Error Message: $($_.Exception.Message)"
+                "## Please see 'All logs' for more details."
+                "## Execution stopped."
+                throw "Wiping DeviceID $DeviceID (Intune ID: $($mgdDevice.id)) failed!"
             }
         }
         elseif ($removeIntuneDevice) {

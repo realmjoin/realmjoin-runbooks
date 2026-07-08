@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-08
+
+- Update **Wipe Device** Runbook in Device/General
+  - The Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) now runs as an upfront preflight check before any device object or wipe operations are performed
+  - When the device's risk score is Medium or High, the runbook aborts with a clearly visible warning banner and a distinct error message, protecting forensic data of devices potentially involved in a security incident
+
 ## 2026-07-07
 
 - Add **Add GSA Application Registration** Runbook in Org/Applications
