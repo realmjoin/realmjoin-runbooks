@@ -1,5 +1,16 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-07
+
+- Add **Add GSA Application Registration** Runbook in Org/Applications
+  - Creates a Global Secure Access application (Enterprise App or Quick Access App) from the application template, assigns a connector group and adds an application segment (FQDN, IP, CIDR or IP range)
+  - Creates a security group per naming scheme and assigns it to the application's service principal (with retry to handle replication delays)
+  - Naming scheme is configurable via Runbook Customization: app prefix (default `GSA-`, free text) and admin-defined group prefix (default `App - Entra - GSA - `, shown read-only in the UI)
+  - Pre-flight validation (connector group, names) before anything is created; update mode adds segments to an existing application; rollback removes objects created in a failed run
+- Add **Delete GSA Application Registration** Runbook in Org/Applications
+  - Deletes a GSA application by display name including its naming scheme security group; verifies the target is a GSA / App Proxy application before deleting
+  - Other assigned groups are listed but only deleted with explicit opt-in (`deleteAllAssignedGroups`)
+
 ## 2026-07-01
 
 - Update **List Group Memberships** and **List Group Ownerships** Runbooks in User/General
