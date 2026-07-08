@@ -10,7 +10,8 @@
     "Name": "Microsoft Graph",
     "Id": "00000003-0000-0000-c000-000000000000",
     "AppRoleAssignments": [
-      "Application.Read.All",
+      "AppRoleAssignment.ReadWrite.All",
+      "Application.ReadWrite.All",
       "Application.ReadWrite.OwnedBy",
       "AuditLog.Read.All",
       "BitlockerKey.Read.All",
@@ -24,7 +25,7 @@
       "DeviceManagementManagedDevices.PrivilegedOperations.All",
       "DeviceManagementManagedDevices.ReadWrite.All",
       "DeviceManagementServiceConfig.ReadWrite.All",
-      "Directory.Read.All",
+      "Directory.ReadWrite.All",
       "Group.Create",
       "Group.ReadWrite.All",
       "GroupMember.ReadWrite.All",

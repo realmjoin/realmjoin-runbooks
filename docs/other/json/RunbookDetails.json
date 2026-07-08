@@ -3555,6 +3555,225 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Gsa Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Add Gsa Application Registration",
+    "RelativeRunbookPath": "org/applications/add-gsa-application-registration.ps1",
+    "RelativeRunbookPath_PathOnly": "org/applications",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Applications",
+    "Synopsis": "Add a GSA application registration to Azure AD",
+    "Description": "This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.\n\nIn addition to the application, a security group for managing access to the application is created (naming scheme configurable\nvia Runbook Customization) and assigned to the application's service principal.\n\nIf the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /\ngroup / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.\nIf a later step fails anyway, objects created in this run (application, group) are rolled back and removed.\nPre-existing objects (update mode) are never removed.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The type of GSA application to create. Options: \"nonwebapp\" (Enterprise App) or \"quickaccessapp\" (Quick Access App)."
+          }
+        ],
+        "globbing": "false",
+        "name": "applicationType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The connectorGroup to be used for the application. Must be defined in the Runbook Customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "connectorGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20)."
+          }
+        ],
+        "globbing": "false",
+        "name": "destinationHost",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The type of destination specified. Options: \"fqdn\", \"ip\", \"ipRangeCidr\", or \"ipRange\". Hidden in UI as it's automatically determined from destinationHost format."
+          }
+        ],
+        "globbing": "false",
+        "name": "destinationType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "App - Entra - GSA -",
+        "description": [
+          {
+            "Text": "Prefix for the security group name. The group name is built as \"<groupPrefix><name><groupSuffix>\" -\nindependent of the application prefix. Example: groupPrefix \"App - Entra - GSA - \" + name \"MyApp\"\nresults in group \"App - Entra - GSA - MyApp\". Default: \"App - Entra - GSA - \"."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupPrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional suffix for the security group name, e.g. \" (users)\". Default: empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupSuffix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The base name of the Global Secure Access application to create. The final application name is built as \"<prefix> <name>\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "name",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ports",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends\nwith \"-\", \"_\" or a space. Example: prefix \"GSA-\" + name \"MyApp\" results in application \"GSA-MyApp\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "prefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The network protocol to use. Options: \"tcp\", \"udp\", or \"tcp,udp\". Default is \"tcp\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "protocol",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Directory.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"AppRoleAssignment.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Application.ReadWrite.All",
+            "AppRoleAssignment.ReadWrite.All",
+            "Directory.ReadWrite.All",
+            "Group.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Application Registration",
     "RunbookDisplayPath": "Org \\ Applications \\ Delete Application Registration",
     "RelativeRunbookPath": "org/applications/delete-application-registration.ps1",
@@ -3617,6 +3836,121 @@
       "Roles": [
         "Application Developer"
       ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Delete Gsa Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Delete Gsa Application Registration",
+    "RelativeRunbookPath": "org/applications/delete-gsa-application-registration.ps1",
+    "RelativeRunbookPath_PathOnly": "org/applications",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Applications",
+    "Synopsis": "Delete a GSA application registration from Azure AD including associated objects",
+    "Description": "This runbook deletes a Global Secure Access application registration created by the\n\"add-gsa-application-registration\" runbook, including everything provisioned with it:\nthe application (and thereby its service principal, application segments and connector\ngroup assignment) and the security group created by the naming scheme.\n\nThe naming scheme group is identified via the groups assigned to the application whose\ndisplay name matches the admin-defined group prefix. If the group was created but never\nassigned (partial provisioning), a best-effort lookup by naming scheme is performed.\n\nSafety measures:\n- The runbook verifies the application is actually a GSA / App Proxy application\n  (onPremisesPublishing) before deleting anything.\n- By default only security group(s) matching the naming scheme are deleted. Other\n  groups assigned to the application are listed but NOT deleted, as they may be\n  shared with other applications. Set deleteAllAssignedGroups to change this.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The full display name of the GSA application to delete, e.g. \"GSA-MyApp\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "applicationName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If true, ALL groups assigned to the application are deleted, not only the naming scheme group(s).\nUse with care - assigned groups may be shared with other applications. Default: false."
+          }
+        ],
+        "globbing": "false",
+        "name": "deleteAllAssignedGroups",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "App - Entra - GSA -",
+        "description": [
+          {
+            "Text": "Prefix of the security group naming scheme, used to identify the group(s) to delete.\nMust match the groupPrefix of the add-gsa-application-registration runbook.\nDefault: \"App - Entra - GSA - \"."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupPrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional suffix of the security group naming scheme. Default: empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupSuffix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Application.ReadWrite.All",
+            "Group.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
       "ManualPermissions": []
     }
   },

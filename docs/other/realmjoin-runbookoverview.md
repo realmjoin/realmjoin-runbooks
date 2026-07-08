@@ -59,7 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
+      - [Add Gsa Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
+      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -987,6 +989,33 @@ Org \ Applications \ Add Application Registration
  
  
 
+<a name='org-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+#### Add a GSA application registration to Azure AD
+
+#### Description
+
+This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+
+In addition to the application, a security group for managing access to the application is created (naming scheme configurable
+via Runbook Customization) and assigned to the application's service principal.
+
+If the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /
+group / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.
+If a later step fails anyway, objects created in this run (application, group) are rolled back and removed.
+Pre-existing objects (update mode) are never removed.
+
+#### Where to find
+
+Org \ Applications \ Add Gsa Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-applications-delete-application-registration'></a>
 
 ### Delete Application Registration
@@ -1000,6 +1029,39 @@ It verifies that the application exists before deletion and performs a best-effo
 #### Where to find
 
 Org \ Applications \ Delete Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-delete-gsa-application-registration'></a>
+
+### Delete Gsa Application Registration
+#### Delete a GSA application registration from Azure AD including associated objects
+
+#### Description
+
+This runbook deletes a Global Secure Access application registration created by the
+"add-gsa-application-registration" runbook, including everything provisioned with it:
+the application (and thereby its service principal, application segments and connector
+group assignment) and the security group created by the naming scheme.
+
+The naming scheme group is identified via the groups assigned to the application whose
+display name matches the admin-defined group prefix. If the group was created but never
+assigned (partial provisioning), a best-effort lookup by naming scheme is performed.
+
+Safety measures:
+- The runbook verifies the application is actually a GSA / App Proxy application
+  (onPremisesPublishing) before deleting anything.
+- By default only security group(s) matching the naming scheme are deleted. Other
+  groups assigned to the application are listed but NOT deleted, as they may be
+  shared with other applications. Set deleteAllAssignedGroups to change this.
+
+#### Where to find
+
+Org \ Applications \ Delete Gsa Application Registration
 
 
 [Back to Table of Content](#table-of-contents)

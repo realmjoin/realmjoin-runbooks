@@ -58,7 +58,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
+    - [Add Gsa Application Registration](#organization-applications-add-gsa-application-registration)
     - [Delete Application Registration](#organization-applications-delete-application-registration)
+    - [Delete Gsa Application Registration](#organization-applications-delete-gsa-application-registration)
     - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
     - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
     - [Report Application Registration](#organization-applications-report-application-registration)
@@ -671,6 +673,25 @@ Add an application registration to Azure AD
 | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. Default is false. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+Add a GSA application registration to Azure AD
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| name | ✓ | String | The base name of the Global Secure Access application to create. The final application name is built as "<prefix> <name>". |
+| prefix | ✓ | String | Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends<br>with "-", "_" or a space. Example: prefix "GSA-" + name "MyApp" results in application "GSA-MyApp". |
+| groupPrefix |  | String | Prefix for the security group name. The group name is built as "<groupPrefix><name><groupSuffix>" -<br>independent of the application prefix. Example: groupPrefix "App - Entra - GSA - " + name "MyApp"<br>results in group "App - Entra - GSA - MyApp". Default: "App - Entra - GSA - ". |
+| groupSuffix |  | String | Optional suffix for the security group name, e.g. " (users)". Default: empty. |
+| applicationType | ✓ | String | The type of GSA application to create. Options: "nonwebapp" (Enterprise App) or "quickaccessapp" (Quick Access App). |
+| connectorGroup |  | String | The connectorGroup to be used for the application. Must be defined in the Runbook Customization. |
+| destinationHost |  | String | The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20). |
+| destinationType |  | String | The type of destination specified. Options: "fqdn", "ip", "ipRangeCidr", or "ipRange". Hidden in UI as it's automatically determined from destinationHost format. |
+| ports |  | String | The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080). |
+| protocol |  | String | The network protocol to use. Options: "tcp", "udp", or "tcp,udp". Default is "tcp". |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
+
 <a name='organization-applications-delete-application-registration'></a>
 
 ### Delete Application Registration
@@ -679,6 +700,19 @@ Delete an application registration from Azure AD
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ClientId | ✓ | String | The application client ID (appId) of the application registration to delete. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-applications-delete-gsa-application-registration'></a>
+
+### Delete Gsa Application Registration
+Delete a GSA application registration from Azure AD including associated objects
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| applicationName | ✓ | String | The full display name of the GSA application to delete, e.g. "GSA-MyApp". |
+| groupPrefix |  | String | Prefix of the security group naming scheme, used to identify the group(s) to delete.<br>Must match the groupPrefix of the add-gsa-application-registration runbook.<br>Default: "App - Entra - GSA - ". |
+| groupSuffix |  | String | Optional suffix of the security group naming scheme. Default: empty. |
+| deleteAllAssignedGroups |  | Boolean | If true, ALL groups assigned to the application are deleted, not only the naming scheme group(s).<br>Use with care - assigned groups may be shared with other applications. Default: false. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-export-enterprise-application-users'></a>

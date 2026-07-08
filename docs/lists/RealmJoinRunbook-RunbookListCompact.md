@@ -39,7 +39,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Show Or Hide In Address Book | Show or hide a group in the address book |
 |  | Teams | Archive Team | Archive a team |
 | Organization | Applications | Add Application Registration | Add an application registration to Azure AD |
+|  |  | Add Gsa Application Registration | Add a GSA application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
+|  |  | Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
 |  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
