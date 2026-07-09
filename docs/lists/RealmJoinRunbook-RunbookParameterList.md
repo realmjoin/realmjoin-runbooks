@@ -119,6 +119,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
     - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
+    - [Sync Channel Or Group Members (Scheduled)](#organization-general-sync-channel-or-group-members-scheduled)
     - [Sync Shared Channel Owners (Scheduled)](#organization-general-sync-shared-channel-owners-scheduled)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
@@ -1539,6 +1540,32 @@ Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 |-----------|----------|------|-------------|
 | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 | CallerName | ✓ | String | Automated parameter for auditing purposes. |
+
+<a name='organization-general-sync-channel-or-group-members-scheduled'></a>
+
+### Sync Channel Or Group Members (Scheduled)
+Sync members between a Teams Shared Channel or a group and an Entra security group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Direction | ✓ | String | Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target<br>group, GroupToGroup copies the source group members into the target group, and GroupToSharedChannel<br>copies the source group members into the shared channel. |
+| TeamId |  | String | Object id of the team that hosts the shared channel. Only used for the shared channel directions. |
+| ChannelName |  | String | Exact display name of the shared channel inside the selected team. Only used for the shared channel<br>directions. |
+| SourceGroupId |  | String | Object id of the source group whose members are copied. Used for the group source directions. |
+| TargetGroupId |  | String | Object id of the target security group that receives the members. Used for the group target directions. |
+| RemoveExtraMembers |  | Boolean | When enabled, members that exist only in the target and not in the source are removed so the target<br>mirrors the source. When disabled (default), the runbook only adds missing members. |
+| IncludeGuests |  | Boolean | When enabled, guest users are included in the sync and may be added or removed. When disabled (default),<br>guests are skipped and are never added or removed. |
+| RemoveFromTeam |  | Boolean | Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also<br>removes that user from the host team membership. When disabled (default), only the channel membership<br>is removed. |
+| WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. |
+| EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
+| EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender. |
+| CreateDownloadLink |  | Boolean | When enabled, the CSV report is uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). |
+| ContainerName |  | String | Storage container used for the upload. Configured per runbook. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName. |
+| LinkExpiryDays |  | Int32 | Days until the generated download link expires. Bound to RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-general-sync-shared-channel-owners-scheduled'></a>
 

@@ -40,6 +40,7 @@
       "RoleManagement.Read.All",
       "RoleManagement.Read.Directory",
       "Team.Create",
+      "TeamMember.ReadWrite.All",
       "TeamSettings.ReadWrite.All",
       "User.ReadWrite.All",
       "UserAuthenticationMethod.ReadWrite.All",

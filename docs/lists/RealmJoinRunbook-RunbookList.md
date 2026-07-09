@@ -119,6 +119,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report PIM Activations (Scheduled)
     - Sync All Devices
     - Sync Apple Tokens
+    - Sync Channel Or Group Members (Scheduled)
     - Sync Shared Channel Owners (Scheduled)
   - [Mail](#organization-mail)
     - Add Distribution List
@@ -365,6 +366,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
 | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
+| Sync Channel Or Group Members (Scheduled) | Sync members between a Teams Shared Channel or a group and an Entra security group |
 | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)

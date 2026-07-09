@@ -11919,6 +11919,348 @@
     }
   },
   {
+    "RunbookDisplayName": "Sync Channel Or Group Members_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Channel Or Group Members_Scheduled",
+    "RelativeRunbookPath": "org/general/sync-channel-or-group-members_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Sync members between a Teams Shared Channel or a group and an Entra security group",
+    "Description": "This scheduled runbook mirrors the membership of a source object into a target object in one\ndirection per run. It supports syncing Teams Shared Channel members into a security group, syncing\nthe members of one group into another group (for example a Microsoft 365 group into a security group\nor vice versa) and syncing group members into a Teams Shared Channel. Adding missing members is always\nperformed, while removing members that only exist in the target is optional and controlled by a\nparameter. Guest handling and whether channel removals also remove the host team membership are\nconfigurable, and the runbook can optionally send an email report and upload the results as a\ntime-limited download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Exact display name of the shared channel inside the selected team. Only used for the shared channel\ndirections."
+          }
+        ],
+        "globbing": "false",
+        "name": "ChannelName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "channel-group-member-sync",
+        "description": [
+          {
+            "Text": "Storage container used for the upload. Configured per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the CSV report is uploaded to a storage account and a time-limited download link is\nreturned (and included in the email report if that is also enabled)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target\ngroup, GroupToGroup copies the source group members into the target group, and GroupToSharedChannel\ncopies the source group members into the shared channel."
+          }
+        ],
+        "globbing": "false",
+        "name": "Direction",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, guest users are included in the sync and may be added or removed. When disabled (default),\nguests are skipped and are never added or removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeGuests",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Days until the generated download link expires. Bound to RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, members that exist only in the target and not in the source are removed so the target\nmirrors the source. When disabled (default), the runbook only adds missing members."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveExtraMembers",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also\nremoves that user from the host team membership. When disabled (default), only the channel membership\nis removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveFromTeam",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object id of the source group whose members are copied. Used for the group source directions."
+          }
+        ],
+        "globbing": "false",
+        "name": "SourceGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object id of the target security group that receives the members. Used for the group target directions."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object id of the team that hosts the shared channel. Only used for the shared channel directions."
+          }
+        ],
+        "globbing": "false",
+        "name": "TeamId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the runbook only logs the changes it would make without writing anything."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIfMode",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThis scheduled runbook mirrors the membership of a **source** object into a **target** object in a\nsingle direction per run. On each run it:\n\n1. Resolves the source and target objects for the selected direction.\n2. Reads the current member set of both sides.\n3. Adds every source member that is missing from the target.\n4. Optionally removes every target member that does not exist in the source (mirror mode).\n\n### Directions\n\nThe `Direction` parameter selects what is synced into what:\n\n- **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.\n- **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).\n- **`GroupToSharedChannel`** - the members of a source group are copied into a Teams shared channel.\n\n### Adding and removing\n\nAdding missing members is always performed. Removing members that exist only in the target is **opt-in**\nvia `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the\nsource; with it disabled, the runbook is add-only.\n\n### Group member expansion\n\nGroup members on the source side are resolved **transitively**, so users that are members through nested\ngroups are included. On the target side only **direct** members are considered, because add and remove\noperations act on direct membership.\n\n### Guest handling\n\n`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests\nare skipped on both sides and are never added or removed. Shared channels frequently reject guests, so\nthis is off by default.\n\n### Shared channel specifics\n\n- When a group is synced **into** a shared channel, team membership is a prerequisite for channel\n  membership, so the runbook first ensures the user is a member of the host team and then adds the user\n  to the channel.\n- When members are **removed** from a shared channel, only the channel membership is removed by default.\n  Enable `RemoveFromTeam` to also remove the user from the host team membership.\n\n### Dry run\n\nSet `WhatIfMode` to log what would change without writing anything.\n\n### Reporting (optional, both default off)\n\n- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and\n  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`\n  setting.\n- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS\n  download link (also embedded into the email when both options are enabled). The target storage account\n  is taken from the `RJReport.StorageAccount.*` settings.\n\nThe storage upload authenticates with the Automation account's managed identity; that identity needs the\n**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC\nassignment, not a Graph application permission).\n\n### Scheduling\n\nDesigned to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule\nkeeps the target in sync with the source as members come and go.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGlzIHNjaGVkdWxlZCBydW5ib29rIG1pcnJvcnMgdGhlIG1lbWJlcnNoaXAgb2YgYSAqKnNvdXJjZSoqIG9iamVjdCBpbnRvIGEgKip0YXJnZXQqKiBvYmplY3QgaW4gYQpzaW5nbGUgZGlyZWN0aW9uIHBlciBydW4uIE9uIGVhY2ggcnVuIGl0OgoKMS4gUmVzb2x2ZXMgdGhlIHNvdXJjZSBhbmQgdGFyZ2V0IG9iamVjdHMgZm9yIHRoZSBzZWxlY3RlZCBkaXJlY3Rpb24uCjIuIFJlYWRzIHRoZSBjdXJyZW50IG1lbWJlciBzZXQgb2YgYm90aCBzaWRlcy4KMy4gQWRkcyBldmVyeSBzb3VyY2UgbWVtYmVyIHRoYXQgaXMgbWlzc2luZyBmcm9tIHRoZSB0YXJnZXQuCjQuIE9wdGlvbmFsbHkgcmVtb3ZlcyBldmVyeSB0YXJnZXQgbWVtYmVyIHRoYXQgZG9lcyBub3QgZXhpc3QgaW4gdGhlIHNvdXJjZSAobWlycm9yIG1vZGUpLgoKIyMjIERpcmVjdGlvbnMKClRoZSBgRGlyZWN0aW9uYCBwYXJhbWV0ZXIgc2VsZWN0cyB3aGF0IGlzIHN5bmNlZCBpbnRvIHdoYXQ6CgotICoqYFNoYXJlZENoYW5uZWxUb0dyb3VwYCoqIC0gdGhlIG1lbWJlcnMgb2YgYSBUZWFtcyBzaGFyZWQgY2hhbm5lbCBhcmUgY29waWVkIGludG8gYSB0YXJnZXQgc2VjdXJpdHkgZ3JvdXAuCi0gKipgR3JvdXBUb0dyb3VwYCoqIC0gdGhlIG1lbWJlcnMgb2YgYSBzb3VyY2UgZ3JvdXAgYXJlIGNvcGllZCBpbnRvIGEgdGFyZ2V0IGdyb3VwIChmb3IgZXhhbXBsZSBhIE1pY3Jvc29mdCAzNjUgZ3JvdXAgaW50byBhIHNlY3VyaXR5IGdyb3VwLCBvciB0aGUgcmV2ZXJzZSBieSBzd2FwcGluZyBzb3VyY2UgYW5kIHRhcmdldCkuCi0gKipgR3JvdXBUb1NoYXJlZENoYW5uZWxgKiogLSB0aGUgbWVtYmVycyBvZiBhIHNvdXJjZSBncm91cCBhcmUgY29waWVkIGludG8gYSBUZWFtcyBzaGFyZWQgY2hhbm5lbC4KCiMjIyBBZGRpbmcgYW5kIHJlbW92aW5nCgpBZGRpbmcgbWlzc2luZyBtZW1iZXJzIGlzIGFsd2F5cyBwZXJmb3JtZWQuIFJlbW92aW5nIG1lbWJlcnMgdGhhdCBleGlzdCBvbmx5IGluIHRoZSB0YXJnZXQgaXMgKipvcHQtaW4qKgp2aWEgYFJlbW92ZUV4dHJhTWVtYmVyc2AgKGRlZmF1bHQgb2ZmKS4gV2l0aCByZW1vdmFsIGVuYWJsZWQsIHRoZSB0YXJnZXQgaXMgbWlycm9yZWQgZXhhY3RseSBhZ2FpbnN0IHRoZQpzb3VyY2U7IHdpdGggaXQgZGlzYWJsZWQsIHRoZSBydW5ib29rIGlzIGFkZC1vbmx5LgoKIyMjIEdyb3VwIG1lbWJlciBleHBhbnNpb24KCkdyb3VwIG1lbWJlcnMgb24gdGhlIHNvdXJjZSBzaWRlIGFyZSByZXNvbHZlZCAqKnRyYW5zaXRpdmVseSoqLCBzbyB1c2VycyB0aGF0IGFyZSBtZW1iZXJzIHRocm91Z2ggbmVzdGVkCmdyb3VwcyBhcmUgaW5jbHVkZWQuIE9uIHRoZSB0YXJnZXQgc2lkZSBvbmx5ICoqZGlyZWN0KiogbWVtYmVycyBhcmUgY29uc2lkZXJlZCwgYmVjYXVzZSBhZGQgYW5kIHJlbW92ZQpvcGVyYXRpb25zIGFjdCBvbiBkaXJlY3QgbWVtYmVyc2hpcC4KCiMjIyBHdWVzdCBoYW5kbGluZwoKYEluY2x1ZGVHdWVzdHNgIChkZWZhdWx0IG9mZikgY29udHJvbHMgd2hldGhlciBndWVzdCB1c2VycyB0YWtlIHBhcnQgaW4gdGhlIHN5bmMuIFdoZW4gaXQgaXMgb2ZmLCBndWVzdHMKYXJlIHNraXBwZWQgb24gYm90aCBzaWRlcyBhbmQgYXJlIG5ldmVyIGFkZGVkIG9yIHJlbW92ZWQuIFNoYXJlZCBjaGFubmVscyBmcmVxdWVudGx5IHJlamVjdCBndWVzdHMsIHNvCnRoaXMgaXMgb2ZmIGJ5IGRlZmF1bHQuCgojIyMgU2hhcmVkIGNoYW5uZWwgc3BlY2lmaWNzCgotIFdoZW4gYSBncm91cCBpcyBzeW5jZWQgKippbnRvKiogYSBzaGFyZWQgY2hhbm5lbCwgdGVhbSBtZW1iZXJzaGlwIGlzIGEgcHJlcmVxdWlzaXRlIGZvciBjaGFubmVsCiAgbWVtYmVyc2hpcCwgc28gdGhlIHJ1bmJvb2sgZmlyc3QgZW5zdXJlcyB0aGUgdXNlciBpcyBhIG1lbWJlciBvZiB0aGUgaG9zdCB0ZWFtIGFuZCB0aGVuIGFkZHMgdGhlIHVzZXIKICB0byB0aGUgY2hhbm5lbC4KLSBXaGVuIG1lbWJlcnMgYXJlICoqcmVtb3ZlZCoqIGZyb20gYSBzaGFyZWQgY2hhbm5lbCwgb25seSB0aGUgY2hhbm5lbCBtZW1iZXJzaGlwIGlzIHJlbW92ZWQgYnkgZGVmYXVsdC4KICBFbmFibGUgYFJlbW92ZUZyb21UZWFtYCB0byBhbHNvIHJlbW92ZSB0aGUgdXNlciBmcm9tIHRoZSBob3N0IHRlYW0gbWVtYmVyc2hpcC4KCiMjIyBEcnkgcnVuCgpTZXQgYFdoYXRJZk1vZGVgIHRvIGxvZyB3aGF0IHdvdWxkIGNoYW5nZSB3aXRob3V0IHdyaXRpbmcgYW55dGhpbmcuCgojIyMgUmVwb3J0aW5nIChvcHRpb25hbCwgYm90aCBkZWZhdWx0IG9mZikKCi0gKipgU2VuZEVtYWlsUmVwb3J0YCoqIHNlbmRzIGEgUmVhbG1Kb2luLWJyYW5kZWQgZW1haWwgKHZpYSBgU2VuZC1SalJlcG9ydEVtYWlsYCkgd2l0aCBydW4gc3RhdGlzdGljcyBhbmQKICBhIENTViBhdHRhY2htZW50IGxpc3RpbmcgZXZlcnkgaW5kaXZpZHVhbCBjaGFuZ2UuIFRoZSBzZW5kZXIgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYAogIHNldHRpbmcuCi0gKipgQ3JlYXRlRG93bmxvYWRMaW5rYCoqIHVwbG9hZHMgdGhlIHNhbWUgQ1NWIHRvIGEgc3RvcmFnZSBhY2NvdW50IGFuZCByZXR1cm5zIGEgdGltZS1saW1pdGVkIFNBUwogIGRvd25sb2FkIGxpbmsgKGFsc28gZW1iZWRkZWQgaW50byB0aGUgZW1haWwgd2hlbiBib3RoIG9wdGlvbnMgYXJlIGVuYWJsZWQpLiBUaGUgdGFyZ2V0IHN0b3JhZ2UgYWNjb3VudAogIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCBzZXR0aW5ncy4KClRoZSBzdG9yYWdlIHVwbG9hZCBhdXRoZW50aWNhdGVzIHdpdGggdGhlIEF1dG9tYXRpb24gYWNjb3VudCdzIG1hbmFnZWQgaWRlbnRpdHk7IHRoYXQgaWRlbnRpdHkgbmVlZHMgdGhlCioqU3RvcmFnZSBCbG9iIERhdGEgQ29udHJpYnV0b3IqKiBSQkFDIHJvbGUgb24gdGhlIHRhcmdldCBzdG9yYWdlIGFjY291bnQgKHRoaXMgaXMgYW4gQXp1cmUgUkJBQwphc3NpZ25tZW50LCBub3QgYSBHcmFwaCBhcHBsaWNhdGlvbiBwZXJtaXNzaW9uKS4KCiMjIyBTY2hlZHVsaW5nCgpEZXNpZ25lZCB0byBydW4gdW5hdHRlbmRlZCBvbiBhIHNjaGVkdWxlLiBCZWNhdXNlIHRoZSBydW5ib29rIGlzIGlkZW1wb3RlbnQsIGEgc2luZ2xlIHJlY3VycmluZyBzY2hlZHVsZQprZWVwcyB0aGUgdGFyZ2V0IGluIHN5bmMgd2l0aCB0aGUgc291cmNlIGFzIG1lbWJlcnMgY29tZSBhbmQgZ28uCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"Channel.ReadBasic.All\",\n                \"ChannelMember.ReadWrite.All\",\n                \"TeamMember.ReadWrite.All\",\n                \"User.Read.All\",\n                \"Organization.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "ChannelMember.ReadWrite.All",
+            "Group.ReadWrite.All",
+            "GroupMember.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All",
+            "TeamMember.ReadWrite.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Sync Shared Channel Owners_Scheduled",
     "RunbookDisplayPath": "Org \\ General \\ Sync Shared Channel Owners_Scheduled",
     "RelativeRunbookPath": "org/general/sync-shared-channel-owners_scheduled.ps1",
