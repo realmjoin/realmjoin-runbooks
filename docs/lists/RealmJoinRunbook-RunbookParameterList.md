@@ -366,6 +366,9 @@ Wipe a Windows or MacOS device
 | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
 | skipWipeIfAtRisk |  | Boolean | If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe. |
+| addToExclusionGroup |  | Boolean | Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook). |
+| exclusionGroupName |  | String | Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled. |
+| exclusionGroupId |  | String | Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization. |
 | macOsRecoveryCode |  | String | MacOS-only. Recovery code for older devices; newer devices may not require this. |
 | macOsObliterationBehavior |  | String | MacOS-only. Controls the OS obliteration behavior during wipe. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |

@@ -1167,6 +1167,23 @@
     "Notes": null,
     "Parameters": [
       {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook)."
+          }
+        ],
+        "globbing": "false",
+        "name": "addToExclusionGroup",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "",
         "description": [
           {
@@ -1177,7 +1194,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "14",
         "required": "true",
         "type": {
           "name": "String"
@@ -1218,6 +1235,40 @@
         }
       },
       {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "exclusionGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
+        "description": [
+          {
+            "Text": "Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "exclusionGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
         "defaultValue": "default",
         "description": [
           {
@@ -1228,7 +1279,7 @@
         "name": "macOsObliterationBehavior",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -1245,7 +1296,7 @@
         "name": "macOsRecoveryCode",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -1354,9 +1405,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## Add the device to a compliance exclusion group\n\nWhen *Add device to compliance exclusion group* (`addToExclusionGroup`) is enabled, the wiped Windows device is added to a compliance exclusion group. Devices in that group receive a longer compliance grace period after they are re-enrolled via Autopilot (this mirrors the **Check Device Onboarding Exclusion** runbook).\n\nBy default the group is identified by its **display name** (`exclusionGroupName`). Because display names are not guaranteed to be unique, you can instead pin the group by its **Object ID** (`exclusionGroupId`). When an Object ID is provided, it **always overrides** the display name, so name conflicts can never lead to the wrong group being used. `exclusionGroupId` is hidden by default and is meant to be set via runbook customization.\n\nThe group is resolved and validated in an upfront preflight check. If the configured group does not exist, the runbook aborts **before** any wipe/delete/disable action, so no half-applied state is left behind. Adding to the group is skipped for non-Windows devices and when the device is deleted from EntraID (`removeAADDevice`).\n\n### Pin the group by Object ID (recommended)\n\nPreset the group's Object ID and enable the switch, keeping the fields hidden. This avoids any ambiguity from duplicate display names.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-device_general_wipe-device\": {\n    \"parameters\": {\n        \"addToExclusionGroup\": {\n            \"Default\": true\n        },\n        \"exclusionGroupId\": {\n            \"Default\": \"00000000-0000-0000-0000-000000000000\",\n            \"Hide\": true\n        },\n        \"exclusionGroupName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nReplace `00000000-0000-0000-0000-000000000000` with the Object ID of your group (EntraID > Groups > *your group* > **Object Id**).\n\n### Pin the group by display name\n\nIf you prefer to work with the display name (and it is unique in your tenant), preset `exclusionGroupName` and leave `exclusionGroupId` empty so the name is used.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-device_general_wipe-device\": {\n    \"parameters\": {\n        \"addToExclusionGroup\": {\n            \"Default\": true\n        },\n        \"exclusionGroupName\": {\n            \"Default\": \"cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)\",\n            \"Hide\": true\n        }\n    }\n}\n```\n",
+    "DocsContentEncoded": "IyMgQWRkIHRoZSBkZXZpY2UgdG8gYSBjb21wbGlhbmNlIGV4Y2x1c2lvbiBncm91cAoKV2hlbiAqQWRkIGRldmljZSB0byBjb21wbGlhbmNlIGV4Y2x1c2lvbiBncm91cCogKGBhZGRUb0V4Y2x1c2lvbkdyb3VwYCkgaXMgZW5hYmxlZCwgdGhlIHdpcGVkIFdpbmRvd3MgZGV2aWNlIGlzIGFkZGVkIHRvIGEgY29tcGxpYW5jZSBleGNsdXNpb24gZ3JvdXAuIERldmljZXMgaW4gdGhhdCBncm91cCByZWNlaXZlIGEgbG9uZ2VyIGNvbXBsaWFuY2UgZ3JhY2UgcGVyaW9kIGFmdGVyIHRoZXkgYXJlIHJlLWVucm9sbGVkIHZpYSBBdXRvcGlsb3QgKHRoaXMgbWlycm9ycyB0aGUgKipDaGVjayBEZXZpY2UgT25ib2FyZGluZyBFeGNsdXNpb24qKiBydW5ib29rKS4KCkJ5IGRlZmF1bHQgdGhlIGdyb3VwIGlzIGlkZW50aWZpZWQgYnkgaXRzICoqZGlzcGxheSBuYW1lKiogKGBleGNsdXNpb25Hcm91cE5hbWVgKS4gQmVjYXVzZSBkaXNwbGF5IG5hbWVzIGFyZSBub3QgZ3VhcmFudGVlZCB0byBiZSB1bmlxdWUsIHlvdSBjYW4gaW5zdGVhZCBwaW4gdGhlIGdyb3VwIGJ5IGl0cyAqKk9iamVjdCBJRCoqIChgZXhjbHVzaW9uR3JvdXBJZGApLiBXaGVuIGFuIE9iamVjdCBJRCBpcyBwcm92aWRlZCwgaXQgKiphbHdheXMgb3ZlcnJpZGVzKiogdGhlIGRpc3BsYXkgbmFtZSwgc28gbmFtZSBjb25mbGljdHMgY2FuIG5ldmVyIGxlYWQgdG8gdGhlIHdyb25nIGdyb3VwIGJlaW5nIHVzZWQuIGBleGNsdXNpb25Hcm91cElkYCBpcyBoaWRkZW4gYnkgZGVmYXVsdCBhbmQgaXMgbWVhbnQgdG8gYmUgc2V0IHZpYSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGUgZ3JvdXAgaXMgcmVzb2x2ZWQgYW5kIHZhbGlkYXRlZCBpbiBhbiB1cGZyb250IHByZWZsaWdodCBjaGVjay4gSWYgdGhlIGNvbmZpZ3VyZWQgZ3JvdXAgZG9lcyBub3QgZXhpc3QsIHRoZSBydW5ib29rIGFib3J0cyAqKmJlZm9yZSoqIGFueSB3aXBlL2RlbGV0ZS9kaXNhYmxlIGFjdGlvbiwgc28gbm8gaGFsZi1hcHBsaWVkIHN0YXRlIGlzIGxlZnQgYmVoaW5kLiBBZGRpbmcgdG8gdGhlIGdyb3VwIGlzIHNraXBwZWQgZm9yIG5vbi1XaW5kb3dzIGRldmljZXMgYW5kIHdoZW4gdGhlIGRldmljZSBpcyBkZWxldGVkIGZyb20gRW50cmFJRCAoYHJlbW92ZUFBRERldmljZWApLgoKIyMjIFBpbiB0aGUgZ3JvdXAgYnkgT2JqZWN0IElEIChyZWNvbW1lbmRlZCkKClByZXNldCB0aGUgZ3JvdXAncyBPYmplY3QgSUQgYW5kIGVuYWJsZSB0aGUgc3dpdGNoLCBrZWVwaW5nIHRoZSBmaWVsZHMgaGlkZGVuLiBUaGlzIGF2b2lkcyBhbnkgYW1iaWd1aXR5IGZyb20gZHVwbGljYXRlIGRpc3BsYXkgbmFtZXMuCgpUaGUganNvbiBjb25maWd1cmF0aW9uIGZvciB0aGlzIGlzIGFzIGZvbGxvd3M6CgpgYGBqc29uCiJyamdpdC1kZXZpY2VfZ2VuZXJhbF93aXBlLWRldmljZSI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJhZGRUb0V4Y2x1c2lvbkdyb3VwIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUKICAgICAgICB9LAogICAgICAgICJleGNsdXNpb25Hcm91cElkIjogewogICAgICAgICAgICAiRGVmYXVsdCI6ICIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLAogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJleGNsdXNpb25Hcm91cE5hbWUiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0KICAgIH0KfQpgYGAKClJlcGxhY2UgYDAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMGAgd2l0aCB0aGUgT2JqZWN0IElEIG9mIHlvdXIgZ3JvdXAgKEVudHJhSUQgPiBHcm91cHMgPiAqeW91ciBncm91cCogPiAqKk9iamVjdCBJZCoqKS4KCiMjIyBQaW4gdGhlIGdyb3VwIGJ5IGRpc3BsYXkgbmFtZQoKSWYgeW91IHByZWZlciB0byB3b3JrIHdpdGggdGhlIGRpc3BsYXkgbmFtZSAoYW5kIGl0IGlzIHVuaXF1ZSBpbiB5b3VyIHRlbmFudCksIHByZXNldCBgZXhjbHVzaW9uR3JvdXBOYW1lYCBhbmQgbGVhdmUgYGV4Y2x1c2lvbkdyb3VwSWRgIGVtcHR5IHNvIHRoZSBuYW1lIGlzIHVzZWQuCgpUaGUganNvbiBjb25maWd1cmF0aW9uIGZvciB0aGlzIGlzIGFzIGZvbGxvd3M6CgpgYGBqc29uCiJyamdpdC1kZXZpY2VfZ2VuZXJhbF93aXBlLWRldmljZSI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJhZGRUb0V4Y2x1c2lvbkdyb3VwIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUKICAgICAgICB9LAogICAgICAgICJleGNsdXNpb25Hcm91cE5hbWUiOiB7CiAgICAgICAgICAgICJEZWZhdWx0IjogImNmZyAtIEludHVuZSAtIFdpbmRvd3MgLSBDb21wbGlhbmNlIGZvciB1bmVucm9sbGVkIEF1dG9waWxvdCBkZXZpY2VzIChkZXZpY2VzKSIsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0KICAgIH0KfQpgYGAK",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -1366,7 +1417,8 @@
             "Device.Read.All",
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
-            "DeviceManagementServiceConfig.ReadWrite.All"
+            "DeviceManagementServiceConfig.ReadWrite.All",
+            "GroupMember.ReadWrite.All"
           ]
         },
         {
