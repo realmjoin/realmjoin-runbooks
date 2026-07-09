@@ -2,6 +2,11 @@
 
 ## 2026-07-08
 
+- Add **Sync Channel Or Group Members** Runbook in Org/General
+  - Scheduled runbook that mirrors membership in one direction: shared channel members into a security group, group members into another group, or group members into a shared channel
+  - Adding missing members is always performed; removing members that only exist in the target is opt-in via `RemoveExtraMembers`
+  - Group sources are expanded transitively; guest handling (`IncludeGuests`) and removing channel members from the host team (`RemoveFromTeam`) are configurable, plus a `WhatIfMode` dry run
+  - Optional email report and time-limited download link (CSV of all changes) via the `RJReport.*` settings
 - Update **Wipe Device** Runbook in Device/General
   - The Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) now runs as an upfront preflight check before any device object or wipe operations are performed
   - When the device's risk score is Medium or High, the runbook aborts with a clearly visible warning banner and a distinct error message, protecting forensic data of devices potentially involved in a security incident
