@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-09
+
+- Update **Wipe Device** Runbook in Device/General
+  - Add optional `addToExclusionGroup` switch that adds the (Windows) device to the compliance exclusion group (`exclusionGroupName`), granting it a longer compliance grace period after it is re-enrolled via Autopilot (aligns with the **Check Device Onboarding Exclusion** runbook)
+  - Add an optional `exclusionGroupId` parameter (hidden by default) that, when set, always overrides `exclusionGroupName` to avoid display-name conflicts;
+  - The exclusion group is resolved and validated in an upfront preflight check, so the runbook aborts before any destructive action (wipe/delete/disable) if the group is missing, avoiding a "half-baked" device state
+  - The device is added before any EntraID object deletion; the operation is skipped for non-Windows devices, when the device is being deleted from EntraID, or when it is already a member of the group
+  - Add the `GroupMember.ReadWrite.All` Graph permission
+
 ## 2026-07-08
 
 - Add **Sync Channel Or Group Members** Runbook in Org/General
