@@ -1,5 +1,44 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-10
+
+- Add **Wipe Managed App Data** Runbook in Device/General
+  - Performs an "App selective wipe" (MAM) for a device, mirroring the Intune portal flow *Apps > App selective wipe > Create wipe request* - removes company data from apps protected by app protection policies without wiping the whole device (typical use case: lost or stolen MAM-managed devices)
+  - Resolves the users registered on the device, matches their MAM app registrations against the device (via `azureADDeviceId`, with a device-name fallback for registrations without an EntraID device id) and creates a wipe request per affected user/device tag via `wipeManagedAppRegistrationsByDeviceTag`
+  - Wipe requests can be monitored/cancelled in the Intune portal under *Apps > App selective wipe*
+  - Requires the `DeviceManagementApps.ReadWrite.All`, `Device.Read.All` and `User.Read.All` Graph permissions
+
+## 2026-07-09
+
+- Update **Wipe Device** Runbook in Device/General
+  - Add optional `addToExclusionGroup` switch that adds the (Windows) device to the compliance exclusion group (`exclusionGroupName`), granting it a longer compliance grace period after it is re-enrolled via Autopilot (aligns with the **Check Device Onboarding Exclusion** runbook)
+  - Add an optional `exclusionGroupId` parameter (hidden by default) that, when set, always overrides `exclusionGroupName` to avoid display-name conflicts;
+  - The exclusion group is resolved and validated in an upfront preflight check, so the runbook aborts before any destructive action (wipe/delete/disable) if the group is missing, avoiding a "half-baked" device state
+  - The device is added before any EntraID object deletion; the operation is skipped for non-Windows devices, when the device is being deleted from EntraID, or when it is already a member of the group
+  - Add the `GroupMember.ReadWrite.All` Graph permission
+
+## 2026-07-08
+
+- Add **Sync Channel Or Group Members** Runbook in Org/General
+  - Scheduled runbook that mirrors membership in one direction: shared channel members into a security group, group members into another group, or group members into a shared channel
+  - Adding missing members is always performed; removing members that only exist in the target is opt-in via `RemoveExtraMembers`
+  - Group sources are expanded transitively; guest handling (`IncludeGuests`) and removing channel members from the host team (`RemoveFromTeam`) are configurable, plus a `WhatIfMode` dry run
+  - Optional email report and time-limited download link (CSV of all changes) via the `RJReport.*` settings
+- Update **Wipe Device** Runbook in Device/General
+  - The Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) now runs as an upfront preflight check before any device object or wipe operations are performed
+  - When the device's risk score is Medium or High, the runbook aborts with a clearly visible warning banner and a distinct error message, protecting forensic data of devices potentially involved in a security incident
+
+## 2026-07-07
+
+- Add **Add GSA Application Registration** Runbook in Org/Applications
+  - Creates a Global Secure Access application (Enterprise App or Quick Access App) from the application template, assigns a connector group and adds an application segment (FQDN, IP, CIDR or IP range)
+  - Creates a security group per naming scheme and assigns it to the application's service principal (with retry to handle replication delays)
+  - Naming scheme is configurable via Runbook Customization: app prefix (default `GSA-`, free text) and admin-defined group prefix (default `App - Entra - GSA - `, shown read-only in the UI)
+  - Pre-flight validation (connector group, names) before anything is created; update mode adds segments to an existing application; rollback removes objects created in a failed run
+- Add **Delete GSA Application Registration** Runbook in Org/Applications
+  - Deletes a GSA application by display name including its naming scheme security group; verifies the target is a GSA / App Proxy application before deleting
+  - Other assigned groups are listed but only deleted with explicit opt-in (`deleteAllAssignedGroups`)
+
 ## 2026-07-01
 
 - Update **List Group Memberships** and **List Group Ownerships** Runbooks in User/General

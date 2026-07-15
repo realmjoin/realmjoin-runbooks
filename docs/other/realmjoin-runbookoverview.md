@@ -28,6 +28,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Set Primary User](#set-primary-user)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
+      - [Wipe Managed App Data](#wipe-managed-app-data)
   - [Security](#device-security)
       - [Check Defender Status](#check-defender-status)
       - [Enable Or Disable Device](#enable-or-disable-device)
@@ -59,7 +60,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
+      - [Add Gsa Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
+      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -118,6 +121,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
       - [Sync Apple Tokens](#sync-apple-tokens)
+      - [Sync Channel Or Group Members (Scheduled)](#sync-channel-or-group-members-(scheduled))
       - [Sync Shared Channel Owners (Scheduled)](#sync-shared-channel-owners-(scheduled))
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
@@ -472,6 +476,107 @@ Wipe a Windows or MacOS device. For Windows devices, you can choose between a re
 #### Where to find
 
 Device \ General \ Wipe Device
+
+## Add the device to a compliance exclusion group
+
+When *Add device to compliance exclusion group* (`addToExclusionGroup`) is enabled, the wiped Windows device is added to a compliance exclusion group. Devices in that group receive a longer compliance grace period after they are re-enrolled via Autopilot (this mirrors the **Check Device Onboarding Exclusion** runbook).
+
+By default the group is identified by its **display name** (`exclusionGroupName`). Because display names are not guaranteed to be unique, you can instead pin the group by its **Object ID** (`exclusionGroupId`). When an Object ID is provided, it **always overrides** the display name, so name conflicts can never lead to the wrong group being used. `exclusionGroupId` is hidden by default and is meant to be set via runbook customization.
+
+The group is resolved and validated in an upfront preflight check. If the configured group does not exist, the runbook aborts **before** any wipe/delete/disable action, so no half-applied state is left behind. Adding to the group is skipped for non-Windows devices and when the device is deleted from EntraID (`removeAADDevice`).
+
+### Pin the group by Object ID (recommended)
+
+Preset the group's Object ID and enable the switch, keeping the fields hidden. This avoids any ambiguity from duplicate display names.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "addToExclusionGroup": {
+            "Default": true
+        },
+        "exclusionGroupId": {
+            "Default": "00000000-0000-0000-0000-000000000000",
+            "Hide": true
+        },
+        "exclusionGroupName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+Replace `00000000-0000-0000-0000-000000000000` with the Object ID of your group (EntraID > Groups > *your group* > **Object Id**).
+
+### Pin the group by display name
+
+If you prefer to work with the display name (and it is unique in your tenant), preset `exclusionGroupName` and leave `exclusionGroupId` empty so the name is used.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "addToExclusionGroup": {
+            "Default": true
+        },
+        "exclusionGroupName": {
+            "Default": "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
+            "Hide": true
+        }
+    }
+}
+```
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-wipe-managed-app-data'></a>
+
+### Wipe Managed App Data
+#### App selective wipe - remove company app data from this MAM device
+
+#### Description
+
+Performs an "App selective wipe" (Mobile Application Management) for this device, mirroring the
+Intune portal flow "Apps > App selective wipe > Create wipe request". It removes company data
+from apps protected by app protection policies without wiping the whole device - typically
+used for lost or stolen devices that are MAM-managed (not MDM-enrolled).
+
+The runbook resolves the users registered on the device, collects their MAM app registrations
+that belong to this device and creates a wipe request for each affected user/device tag. The
+wipe is executed the next time each protected app checks in. Wipe requests can be monitored
+and cancelled in the Intune portal under "Apps > App selective wipe".
+
+#### Where to find
+
+Device \ General \ Wipe Managed App Data
+
+## Device matching
+
+MAM app registrations belong to a user, not to a device object. The runbook therefore resolves the
+users registered on the device and matches their app registrations against the device's EntraID
+device id (`azureADDeviceId`). Registrations without an EntraID device id are matched by the
+device's display name as fallback; the runbook output indicates when this fallback was used.
+
+## Wipe behavior
+
+- The company app data is removed the next time each protected app checks in on the device; the
+  wipe is not instantaneous.
+- Pending wipe requests can be monitored and cancelled in the Intune portal under
+  *Apps > App selective wipe*.
+- Only app data protected by app protection policies (MAM) is affected. The device object itself
+  is not touched: it remains in EntraID (and in Intune/Autopilot, if it is additionally
+  MDM-enrolled). To disable or remove the device there as well, run the **Outphase Device**
+  runbook (Device \ General) afterwards; for a full wipe of MDM-enrolled devices use
+  **Wipe Device**.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -987,6 +1092,33 @@ Org \ Applications \ Add Application Registration
  
  
 
+<a name='org-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+#### Add a GSA application registration to Azure AD
+
+#### Description
+
+This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+
+In addition to the application, a security group for managing access to the application is created (naming scheme configurable
+via Runbook Customization) and assigned to the application's service principal.
+
+If the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /
+group / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.
+If a later step fails anyway, objects created in this run (application, group) are rolled back and removed.
+Pre-existing objects (update mode) are never removed.
+
+#### Where to find
+
+Org \ Applications \ Add Gsa Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-applications-delete-application-registration'></a>
 
 ### Delete Application Registration
@@ -1000,6 +1132,39 @@ It verifies that the application exists before deletion and performs a best-effo
 #### Where to find
 
 Org \ Applications \ Delete Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-delete-gsa-application-registration'></a>
+
+### Delete Gsa Application Registration
+#### Delete a GSA application registration from Azure AD including associated objects
+
+#### Description
+
+This runbook deletes a Global Secure Access application registration created by the
+"add-gsa-application-registration" runbook, including everything provisioned with it:
+the application (and thereby its service principal, application segments and connector
+group assignment) and the security group created by the naming scheme.
+
+The naming scheme group is identified via the groups assigned to the application whose
+display name matches the admin-defined group prefix. If the group was created but never
+assigned (partial provisioning), a best-effort lookup by naming scheme is performed.
+
+Safety measures:
+- The runbook verifies the application is actually a GSA / App Proxy application
+  (onPremisesPublishing) before deleting anything.
+- By default only security group(s) matching the naming scheme are deleted. Other
+  groups assigned to the application are listed but NOT deleted, as they may be
+  shared with other applications. Set deleteAllAssignedGroups to change this.
+
+#### Where to find
+
+Org \ Applications \ Delete Gsa Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2477,6 +2642,99 @@ This runbook triggers synchronization of Apple tokens in Microsoft Intune. It ca
 #### Where to find
 
 Org \ General \ Sync Apple Tokens
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-sync-channel-or-group-members-(scheduled)'></a>
+
+### Sync Channel Or Group Members (Scheduled)
+#### Sync members between a Teams Shared Channel or a group and an Entra security group
+
+#### Description
+
+This scheduled runbook mirrors the membership of a source object into a target object in one
+direction per run. It supports syncing Teams Shared Channel members into a security group, syncing
+the members of one group into another group (for example a Microsoft 365 group into a security group
+or vice versa) and syncing group members into a Teams Shared Channel. Adding missing members is always
+performed, while removing members that only exist in the target is optional and controlled by a
+parameter. Guest handling and whether channel removals also remove the host team membership are
+configurable, and the runbook can optionally send an email report and upload the results as a
+time-limited download link.
+
+#### Where to find
+
+Org \ General \ Sync Channel Or Group Members_Scheduled
+
+## How it works
+
+This scheduled runbook mirrors the membership of a **source** object into a **target** object in a
+single direction per run. On each run it:
+
+1. Resolves the source and target objects for the selected direction.
+2. Reads the current member set of both sides.
+3. Adds every source member that is missing from the target.
+4. Optionally removes every target member that does not exist in the source (mirror mode).
+
+### Directions
+
+The `Direction` parameter selects what is synced into what:
+
+- **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.
+- **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).
+- **`GroupToSharedChannel`** - the members of a source group are copied into a Teams shared channel.
+
+### Adding and removing
+
+Adding missing members is always performed. Removing members that exist only in the target is **opt-in**
+via `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the
+source; with it disabled, the runbook is add-only.
+
+### Group member expansion
+
+Group members on the source side are resolved **transitively**, so users that are members through nested
+groups are included. On the target side only **direct** members are considered, because add and remove
+operations act on direct membership.
+
+### Guest handling
+
+`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests
+are skipped on both sides and are never added or removed. Shared channels frequently reject guests, so
+this is off by default.
+
+### Shared channel specifics
+
+- When a group is synced **into** a shared channel, team membership is a prerequisite for channel
+  membership, so the runbook first ensures the user is a member of the host team and then adds the user
+  to the channel.
+- When members are **removed** from a shared channel, only the channel membership is removed by default.
+  Enable `RemoveFromTeam` to also remove the user from the host team membership.
+
+### Dry run
+
+Set `WhatIfMode` to log what would change without writing anything.
+
+### Reporting (optional, both default off)
+
+- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and
+  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
+  setting.
+- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS
+  download link (also embedded into the email when both options are enabled). The target storage account
+  is taken from the `RJReport.StorageAccount.*` settings.
+
+The storage upload authenticates with the Automation account's managed identity; that identity needs the
+**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC
+assignment, not a Graph application permission).
+
+### Scheduling
+
+Designed to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule
+keeps the target in sync with the source as members come and go.
+
 
 
 [Back to Table of Content](#table-of-contents)

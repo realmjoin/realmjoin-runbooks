@@ -1167,6 +1167,23 @@
     "Notes": null,
     "Parameters": [
       {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook)."
+          }
+        ],
+        "globbing": "false",
+        "name": "addToExclusionGroup",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "",
         "description": [
           {
@@ -1177,7 +1194,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "14",
         "required": "true",
         "type": {
           "name": "String"
@@ -1218,6 +1235,40 @@
         }
       },
       {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "exclusionGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
+        "description": [
+          {
+            "Text": "Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "exclusionGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
         "defaultValue": "default",
         "description": [
           {
@@ -1228,7 +1279,7 @@
         "name": "macOsObliterationBehavior",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -1245,7 +1296,7 @@
         "name": "macOsRecoveryCode",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -1354,9 +1405,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## Add the device to a compliance exclusion group\n\nWhen *Add device to compliance exclusion group* (`addToExclusionGroup`) is enabled, the wiped Windows device is added to a compliance exclusion group. Devices in that group receive a longer compliance grace period after they are re-enrolled via Autopilot (this mirrors the **Check Device Onboarding Exclusion** runbook).\n\nBy default the group is identified by its **display name** (`exclusionGroupName`). Because display names are not guaranteed to be unique, you can instead pin the group by its **Object ID** (`exclusionGroupId`). When an Object ID is provided, it **always overrides** the display name, so name conflicts can never lead to the wrong group being used. `exclusionGroupId` is hidden by default and is meant to be set via runbook customization.\n\nThe group is resolved and validated in an upfront preflight check. If the configured group does not exist, the runbook aborts **before** any wipe/delete/disable action, so no half-applied state is left behind. Adding to the group is skipped for non-Windows devices and when the device is deleted from EntraID (`removeAADDevice`).\n\n### Pin the group by Object ID (recommended)\n\nPreset the group's Object ID and enable the switch, keeping the fields hidden. This avoids any ambiguity from duplicate display names.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-device_general_wipe-device\": {\n    \"parameters\": {\n        \"addToExclusionGroup\": {\n            \"Default\": true\n        },\n        \"exclusionGroupId\": {\n            \"Default\": \"00000000-0000-0000-0000-000000000000\",\n            \"Hide\": true\n        },\n        \"exclusionGroupName\": {\n            \"Hide\": true\n        }\n    }\n}\n```\n\nReplace `00000000-0000-0000-0000-000000000000` with the Object ID of your group (EntraID > Groups > *your group* > **Object Id**).\n\n### Pin the group by display name\n\nIf you prefer to work with the display name (and it is unique in your tenant), preset `exclusionGroupName` and leave `exclusionGroupId` empty so the name is used.\n\nThe json configuration for this is as follows:\n\n```json\n\"rjgit-device_general_wipe-device\": {\n    \"parameters\": {\n        \"addToExclusionGroup\": {\n            \"Default\": true\n        },\n        \"exclusionGroupName\": {\n            \"Default\": \"cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)\",\n            \"Hide\": true\n        }\n    }\n}\n```\n",
+    "DocsContentEncoded": "IyMgQWRkIHRoZSBkZXZpY2UgdG8gYSBjb21wbGlhbmNlIGV4Y2x1c2lvbiBncm91cAoKV2hlbiAqQWRkIGRldmljZSB0byBjb21wbGlhbmNlIGV4Y2x1c2lvbiBncm91cCogKGBhZGRUb0V4Y2x1c2lvbkdyb3VwYCkgaXMgZW5hYmxlZCwgdGhlIHdpcGVkIFdpbmRvd3MgZGV2aWNlIGlzIGFkZGVkIHRvIGEgY29tcGxpYW5jZSBleGNsdXNpb24gZ3JvdXAuIERldmljZXMgaW4gdGhhdCBncm91cCByZWNlaXZlIGEgbG9uZ2VyIGNvbXBsaWFuY2UgZ3JhY2UgcGVyaW9kIGFmdGVyIHRoZXkgYXJlIHJlLWVucm9sbGVkIHZpYSBBdXRvcGlsb3QgKHRoaXMgbWlycm9ycyB0aGUgKipDaGVjayBEZXZpY2UgT25ib2FyZGluZyBFeGNsdXNpb24qKiBydW5ib29rKS4KCkJ5IGRlZmF1bHQgdGhlIGdyb3VwIGlzIGlkZW50aWZpZWQgYnkgaXRzICoqZGlzcGxheSBuYW1lKiogKGBleGNsdXNpb25Hcm91cE5hbWVgKS4gQmVjYXVzZSBkaXNwbGF5IG5hbWVzIGFyZSBub3QgZ3VhcmFudGVlZCB0byBiZSB1bmlxdWUsIHlvdSBjYW4gaW5zdGVhZCBwaW4gdGhlIGdyb3VwIGJ5IGl0cyAqKk9iamVjdCBJRCoqIChgZXhjbHVzaW9uR3JvdXBJZGApLiBXaGVuIGFuIE9iamVjdCBJRCBpcyBwcm92aWRlZCwgaXQgKiphbHdheXMgb3ZlcnJpZGVzKiogdGhlIGRpc3BsYXkgbmFtZSwgc28gbmFtZSBjb25mbGljdHMgY2FuIG5ldmVyIGxlYWQgdG8gdGhlIHdyb25nIGdyb3VwIGJlaW5nIHVzZWQuIGBleGNsdXNpb25Hcm91cElkYCBpcyBoaWRkZW4gYnkgZGVmYXVsdCBhbmQgaXMgbWVhbnQgdG8gYmUgc2V0IHZpYSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGUgZ3JvdXAgaXMgcmVzb2x2ZWQgYW5kIHZhbGlkYXRlZCBpbiBhbiB1cGZyb250IHByZWZsaWdodCBjaGVjay4gSWYgdGhlIGNvbmZpZ3VyZWQgZ3JvdXAgZG9lcyBub3QgZXhpc3QsIHRoZSBydW5ib29rIGFib3J0cyAqKmJlZm9yZSoqIGFueSB3aXBlL2RlbGV0ZS9kaXNhYmxlIGFjdGlvbiwgc28gbm8gaGFsZi1hcHBsaWVkIHN0YXRlIGlzIGxlZnQgYmVoaW5kLiBBZGRpbmcgdG8gdGhlIGdyb3VwIGlzIHNraXBwZWQgZm9yIG5vbi1XaW5kb3dzIGRldmljZXMgYW5kIHdoZW4gdGhlIGRldmljZSBpcyBkZWxldGVkIGZyb20gRW50cmFJRCAoYHJlbW92ZUFBRERldmljZWApLgoKIyMjIFBpbiB0aGUgZ3JvdXAgYnkgT2JqZWN0IElEIChyZWNvbW1lbmRlZCkKClByZXNldCB0aGUgZ3JvdXAncyBPYmplY3QgSUQgYW5kIGVuYWJsZSB0aGUgc3dpdGNoLCBrZWVwaW5nIHRoZSBmaWVsZHMgaGlkZGVuLiBUaGlzIGF2b2lkcyBhbnkgYW1iaWd1aXR5IGZyb20gZHVwbGljYXRlIGRpc3BsYXkgbmFtZXMuCgpUaGUganNvbiBjb25maWd1cmF0aW9uIGZvciB0aGlzIGlzIGFzIGZvbGxvd3M6CgpgYGBqc29uCiJyamdpdC1kZXZpY2VfZ2VuZXJhbF93aXBlLWRldmljZSI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJhZGRUb0V4Y2x1c2lvbkdyb3VwIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUKICAgICAgICB9LAogICAgICAgICJleGNsdXNpb25Hcm91cElkIjogewogICAgICAgICAgICAiRGVmYXVsdCI6ICIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLAogICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICB9LAogICAgICAgICJleGNsdXNpb25Hcm91cE5hbWUiOiB7CiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0KICAgIH0KfQpgYGAKClJlcGxhY2UgYDAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMGAgd2l0aCB0aGUgT2JqZWN0IElEIG9mIHlvdXIgZ3JvdXAgKEVudHJhSUQgPiBHcm91cHMgPiAqeW91ciBncm91cCogPiAqKk9iamVjdCBJZCoqKS4KCiMjIyBQaW4gdGhlIGdyb3VwIGJ5IGRpc3BsYXkgbmFtZQoKSWYgeW91IHByZWZlciB0byB3b3JrIHdpdGggdGhlIGRpc3BsYXkgbmFtZSAoYW5kIGl0IGlzIHVuaXF1ZSBpbiB5b3VyIHRlbmFudCksIHByZXNldCBgZXhjbHVzaW9uR3JvdXBOYW1lYCBhbmQgbGVhdmUgYGV4Y2x1c2lvbkdyb3VwSWRgIGVtcHR5IHNvIHRoZSBuYW1lIGlzIHVzZWQuCgpUaGUganNvbiBjb25maWd1cmF0aW9uIGZvciB0aGlzIGlzIGFzIGZvbGxvd3M6CgpgYGBqc29uCiJyamdpdC1kZXZpY2VfZ2VuZXJhbF93aXBlLWRldmljZSI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJhZGRUb0V4Y2x1c2lvbkdyb3VwIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUKICAgICAgICB9LAogICAgICAgICJleGNsdXNpb25Hcm91cE5hbWUiOiB7CiAgICAgICAgICAgICJEZWZhdWx0IjogImNmZyAtIEludHVuZSAtIFdpbmRvd3MgLSBDb21wbGlhbmNlIGZvciB1bmVucm9sbGVkIEF1dG9waWxvdCBkZXZpY2VzIChkZXZpY2VzKSIsCiAgICAgICAgICAgICJIaWRlIjogdHJ1ZQogICAgICAgIH0KICAgIH0KfQpgYGAK",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                \"DeviceManagementManagedDevices.ReadWrite.All\",\n                \"DeviceManagementServiceConfig.ReadWrite.All\",\n                \"Device.Read.All\",\n                \"GroupMember.ReadWrite.All\"\n            ]\n        },\n        {\n            \"Name\": \"WindowsDefenderATP\",\n            \"Id\": \"fc780465-2017-40d4-a0c5-307022471b92\",\n            \"AppRoleAssignments\": [\n                \"Machine.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Cloud device administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -1366,7 +1417,8 @@
             "Device.Read.All",
             "DeviceManagementManagedDevices.PrivilegedOperations.All",
             "DeviceManagementManagedDevices.ReadWrite.All",
-            "DeviceManagementServiceConfig.ReadWrite.All"
+            "DeviceManagementServiceConfig.ReadWrite.All",
+            "GroupMember.ReadWrite.All"
           ]
         },
         {
@@ -1379,6 +1431,73 @@
       ],
       "Roles": [
         "Cloud device administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Wipe Managed App Data",
+    "RunbookDisplayPath": "Device \\ General \\ Wipe Managed App Data",
+    "RelativeRunbookPath": "device/general/wipe-managed-app-data.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "App selective wipe - remove company app data from this MAM device",
+    "Description": "Performs an \"App selective wipe\" (Mobile Application Management) for this device, mirroring the\nIntune portal flow \"Apps > App selective wipe > Create wipe request\". It removes company data\nfrom apps protected by app protection policies without wiping the whole device - typically\nused for lost or stolen devices that are MAM-managed (not MDM-enrolled).\n\nThe runbook resolves the users registered on the device, collects their MAM app registrations\nthat belong to this device and creates a wipe request for each affected user/device tag. The\nwipe is executed the next time each protected app checks in. Wipe requests can be monitored\nand cancelled in the Intune portal under \"Apps > App selective wipe\".",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The device ID of the target device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Device matching\n\nMAM app registrations belong to a user, not to a device object. The runbook therefore resolves the\nusers registered on the device and matches their app registrations against the device's EntraID\ndevice id (`azureADDeviceId`). Registrations without an EntraID device id are matched by the\ndevice's display name as fallback; the runbook output indicates when this fallback was used.\n\n## Wipe behavior\n\n- The company app data is removed the next time each protected app checks in on the device; the\n  wipe is not instantaneous.\n- Pending wipe requests can be monitored and cancelled in the Intune portal under\n  *Apps > App selective wipe*.\n- Only app data protected by app protection policies (MAM) is affected. The device object itself\n  is not touched: it remains in EntraID (and in Intune/Autopilot, if it is additionally\n  MDM-enrolled). To disable or remove the device there as well, run the **Outphase Device**\n  runbook (Device \\ General) afterwards; for a full wipe of MDM-enrolled devices use\n  **Wipe Device**.\n",
+    "DocsContentEncoded": "IyMgRGV2aWNlIG1hdGNoaW5nCgpNQU0gYXBwIHJlZ2lzdHJhdGlvbnMgYmVsb25nIHRvIGEgdXNlciwgbm90IHRvIGEgZGV2aWNlIG9iamVjdC4gVGhlIHJ1bmJvb2sgdGhlcmVmb3JlIHJlc29sdmVzIHRoZQp1c2VycyByZWdpc3RlcmVkIG9uIHRoZSBkZXZpY2UgYW5kIG1hdGNoZXMgdGhlaXIgYXBwIHJlZ2lzdHJhdGlvbnMgYWdhaW5zdCB0aGUgZGV2aWNlJ3MgRW50cmFJRApkZXZpY2UgaWQgKGBhenVyZUFERGV2aWNlSWRgKS4gUmVnaXN0cmF0aW9ucyB3aXRob3V0IGFuIEVudHJhSUQgZGV2aWNlIGlkIGFyZSBtYXRjaGVkIGJ5IHRoZQpkZXZpY2UncyBkaXNwbGF5IG5hbWUgYXMgZmFsbGJhY2s7IHRoZSBydW5ib29rIG91dHB1dCBpbmRpY2F0ZXMgd2hlbiB0aGlzIGZhbGxiYWNrIHdhcyB1c2VkLgoKIyMgV2lwZSBiZWhhdmlvcgoKLSBUaGUgY29tcGFueSBhcHAgZGF0YSBpcyByZW1vdmVkIHRoZSBuZXh0IHRpbWUgZWFjaCBwcm90ZWN0ZWQgYXBwIGNoZWNrcyBpbiBvbiB0aGUgZGV2aWNlOyB0aGUKICB3aXBlIGlzIG5vdCBpbnN0YW50YW5lb3VzLgotIFBlbmRpbmcgd2lwZSByZXF1ZXN0cyBjYW4gYmUgbW9uaXRvcmVkIGFuZCBjYW5jZWxsZWQgaW4gdGhlIEludHVuZSBwb3J0YWwgdW5kZXIKICAqQXBwcyA+IEFwcCBzZWxlY3RpdmUgd2lwZSouCi0gT25seSBhcHAgZGF0YSBwcm90ZWN0ZWQgYnkgYXBwIHByb3RlY3Rpb24gcG9saWNpZXMgKE1BTSkgaXMgYWZmZWN0ZWQuIFRoZSBkZXZpY2Ugb2JqZWN0IGl0c2VsZgogIGlzIG5vdCB0b3VjaGVkOiBpdCByZW1haW5zIGluIEVudHJhSUQgKGFuZCBpbiBJbnR1bmUvQXV0b3BpbG90LCBpZiBpdCBpcyBhZGRpdGlvbmFsbHkKICBNRE0tZW5yb2xsZWQpLiBUbyBkaXNhYmxlIG9yIHJlbW92ZSB0aGUgZGV2aWNlIHRoZXJlIGFzIHdlbGwsIHJ1biB0aGUgKipPdXRwaGFzZSBEZXZpY2UqKgogIHJ1bmJvb2sgKERldmljZSBcIEdlbmVyYWwpIGFmdGVyd2FyZHM7IGZvciBhIGZ1bGwgd2lwZSBvZiBNRE0tZW5yb2xsZWQgZGV2aWNlcyB1c2UKICAqKldpcGUgRGV2aWNlKiouCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementApps.ReadWrite.All\",\n                \"Device.Read.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Intune Administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "DeviceManagementApps.ReadWrite.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [
+        "Intune Administrator"
       ],
       "ManualPermissions": []
     }
@@ -3555,6 +3674,225 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Gsa Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Add Gsa Application Registration",
+    "RelativeRunbookPath": "org/applications/add-gsa-application-registration.ps1",
+    "RelativeRunbookPath_PathOnly": "org/applications",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Applications",
+    "Synopsis": "Add a GSA application registration to Azure AD",
+    "Description": "This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.\n\nIn addition to the application, a security group for managing access to the application is created (naming scheme configurable\nvia Runbook Customization) and assigned to the application's service principal.\n\nIf the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /\ngroup / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.\nIf a later step fails anyway, objects created in this run (application, group) are rolled back and removed.\nPre-existing objects (update mode) are never removed.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The type of GSA application to create. Options: \"nonwebapp\" (Enterprise App) or \"quickaccessapp\" (Quick Access App)."
+          }
+        ],
+        "globbing": "false",
+        "name": "applicationType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The name of the user executing the runbook. Used for auditing purposes. Hidden in UI."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The connectorGroup to be used for the application. Must be defined in the Runbook Customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "connectorGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20)."
+          }
+        ],
+        "globbing": "false",
+        "name": "destinationHost",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The type of destination specified. Options: \"fqdn\", \"ip\", \"ipRangeCidr\", or \"ipRange\". Hidden in UI as it's automatically determined from destinationHost format."
+          }
+        ],
+        "globbing": "false",
+        "name": "destinationType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "App - Entra - GSA -",
+        "description": [
+          {
+            "Text": "Prefix for the security group name. The group name is built as \"<groupPrefix><name><groupSuffix>\" -\nindependent of the application prefix. Example: groupPrefix \"App - Entra - GSA - \" + name \"MyApp\"\nresults in group \"App - Entra - GSA - MyApp\". Default: \"App - Entra - GSA - \"."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupPrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional suffix for the security group name, e.g. \" (users)\". Default: empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupSuffix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The base name of the Global Secure Access application to create. The final application name is built as \"<prefix> <name>\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "name",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ports",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends\nwith \"-\", \"_\" or a space. Example: prefix \"GSA-\" + name \"MyApp\" results in application \"GSA-MyApp\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "prefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The network protocol to use. Options: \"tcp\", \"udp\", or \"tcp,udp\". Default is \"tcp\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "protocol",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Directory.ReadWrite.All\",\n                \"Group.ReadWrite.All\",\n                \"AppRoleAssignment.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Application.ReadWrite.All",
+            "AppRoleAssignment.ReadWrite.All",
+            "Directory.ReadWrite.All",
+            "Group.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Delete Application Registration",
     "RunbookDisplayPath": "Org \\ Applications \\ Delete Application Registration",
     "RelativeRunbookPath": "org/applications/delete-application-registration.ps1",
@@ -3617,6 +3955,121 @@
       "Roles": [
         "Application Developer"
       ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Delete Gsa Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Delete Gsa Application Registration",
+    "RelativeRunbookPath": "org/applications/delete-gsa-application-registration.ps1",
+    "RelativeRunbookPath_PathOnly": "org/applications",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Applications",
+    "Synopsis": "Delete a GSA application registration from Azure AD including associated objects",
+    "Description": "This runbook deletes a Global Secure Access application registration created by the\n\"add-gsa-application-registration\" runbook, including everything provisioned with it:\nthe application (and thereby its service principal, application segments and connector\ngroup assignment) and the security group created by the naming scheme.\n\nThe naming scheme group is identified via the groups assigned to the application whose\ndisplay name matches the admin-defined group prefix. If the group was created but never\nassigned (partial provisioning), a best-effort lookup by naming scheme is performed.\n\nSafety measures:\n- The runbook verifies the application is actually a GSA / App Proxy application\n  (onPremisesPublishing) before deleting anything.\n- By default only security group(s) matching the naming scheme are deleted. Other\n  groups assigned to the application are listed but NOT deleted, as they may be\n  shared with other applications. Set deleteAllAssignedGroups to change this.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The full display name of the GSA application to delete, e.g. \"GSA-MyApp\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "applicationName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If true, ALL groups assigned to the application are deleted, not only the naming scheme group(s).\nUse with care - assigned groups may be shared with other applications. Default: false."
+          }
+        ],
+        "globbing": "false",
+        "name": "deleteAllAssignedGroups",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "App - Entra - GSA -",
+        "description": [
+          {
+            "Text": "Prefix of the security group naming scheme, used to identify the group(s) to delete.\nMust match the groupPrefix of the add-gsa-application-registration runbook.\nDefault: \"App - Entra - GSA - \"."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupPrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional suffix of the security group naming scheme. Default: empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "groupSuffix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Application.ReadWrite.All\",\n                \"Group.ReadWrite.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Application.ReadWrite.All",
+            "Group.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
       "ManualPermissions": []
     }
   },
@@ -11577,6 +12030,348 @@
           "AppRoleAssignments": [
             "DeviceManagementApps.ReadWrite.All",
             "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Sync Channel Or Group Members_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Sync Channel Or Group Members_Scheduled",
+    "RelativeRunbookPath": "org/general/sync-channel-or-group-members_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Sync members between a Teams Shared Channel or a group and an Entra security group",
+    "Description": "This scheduled runbook mirrors the membership of a source object into a target object in one\ndirection per run. It supports syncing Teams Shared Channel members into a security group, syncing\nthe members of one group into another group (for example a Microsoft 365 group into a security group\nor vice versa) and syncing group members into a Teams Shared Channel. Adding missing members is always\nperformed, while removing members that only exist in the target is optional and controlled by a\nparameter. Guest handling and whether channel removals also remove the host team membership are\nconfigurable, and the runbook can optionally send an email report and upload the results as a\ntime-limited download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Exact display name of the shared channel inside the selected team. Only used for the shared channel\ndirections."
+          }
+        ],
+        "globbing": "false",
+        "name": "ChannelName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "channel-group-member-sync",
+        "description": [
+          {
+            "Text": "Storage container used for the upload. Configured per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the CSV report is uploaded to a storage account and a time-limited download link is\nreturned (and included in the email report if that is also enabled)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target\ngroup, GroupToGroup copies the source group members into the target group, and GroupToSharedChannel\ncopies the source group members into the shared channel."
+          }
+        ],
+        "globbing": "false",
+        "name": "Direction",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, guest users are included in the sync and may be added or removed. When disabled (default),\nguests are skipped and are never added or removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeGuests",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Days until the generated download link expires. Bound to RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, members that exist only in the target and not in the source are removed so the target\nmirrors the source. When disabled (default), the runbook only adds missing members."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveExtraMembers",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also\nremoves that user from the host team membership. When disabled (default), only the channel membership\nis removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "RemoveFromTeam",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object id of the source group whose members are copied. Used for the group source directions."
+          }
+        ],
+        "globbing": "false",
+        "name": "SourceGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object id of the target security group that receives the members. Used for the group target directions."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object id of the team that hosts the shared channel. Only used for the shared channel directions."
+          }
+        ],
+        "globbing": "false",
+        "name": "TeamId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When enabled, the runbook only logs the changes it would make without writing anything."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIfMode",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThis scheduled runbook mirrors the membership of a **source** object into a **target** object in a\nsingle direction per run. On each run it:\n\n1. Resolves the source and target objects for the selected direction.\n2. Reads the current member set of both sides.\n3. Adds every source member that is missing from the target.\n4. Optionally removes every target member that does not exist in the source (mirror mode).\n\n### Directions\n\nThe `Direction` parameter selects what is synced into what:\n\n- **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.\n- **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).\n- **`GroupToSharedChannel`** - the members of a source group are copied into a Teams shared channel.\n\n### Adding and removing\n\nAdding missing members is always performed. Removing members that exist only in the target is **opt-in**\nvia `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the\nsource; with it disabled, the runbook is add-only.\n\n### Group member expansion\n\nGroup members on the source side are resolved **transitively**, so users that are members through nested\ngroups are included. On the target side only **direct** members are considered, because add and remove\noperations act on direct membership.\n\n### Guest handling\n\n`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests\nare skipped on both sides and are never added or removed. Shared channels frequently reject guests, so\nthis is off by default.\n\n### Shared channel specifics\n\n- When a group is synced **into** a shared channel, team membership is a prerequisite for channel\n  membership, so the runbook first ensures the user is a member of the host team and then adds the user\n  to the channel.\n- When members are **removed** from a shared channel, only the channel membership is removed by default.\n  Enable `RemoveFromTeam` to also remove the user from the host team membership.\n\n### Dry run\n\nSet `WhatIfMode` to log what would change without writing anything.\n\n### Reporting (optional, both default off)\n\n- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and\n  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`\n  setting.\n- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS\n  download link (also embedded into the email when both options are enabled). The target storage account\n  is taken from the `RJReport.StorageAccount.*` settings.\n\nThe storage upload authenticates with the Automation account's managed identity; that identity needs the\n**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC\nassignment, not a Graph application permission).\n\n### Scheduling\n\nDesigned to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule\nkeeps the target in sync with the source as members come and go.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGlzIHNjaGVkdWxlZCBydW5ib29rIG1pcnJvcnMgdGhlIG1lbWJlcnNoaXAgb2YgYSAqKnNvdXJjZSoqIG9iamVjdCBpbnRvIGEgKip0YXJnZXQqKiBvYmplY3QgaW4gYQpzaW5nbGUgZGlyZWN0aW9uIHBlciBydW4uIE9uIGVhY2ggcnVuIGl0OgoKMS4gUmVzb2x2ZXMgdGhlIHNvdXJjZSBhbmQgdGFyZ2V0IG9iamVjdHMgZm9yIHRoZSBzZWxlY3RlZCBkaXJlY3Rpb24uCjIuIFJlYWRzIHRoZSBjdXJyZW50IG1lbWJlciBzZXQgb2YgYm90aCBzaWRlcy4KMy4gQWRkcyBldmVyeSBzb3VyY2UgbWVtYmVyIHRoYXQgaXMgbWlzc2luZyBmcm9tIHRoZSB0YXJnZXQuCjQuIE9wdGlvbmFsbHkgcmVtb3ZlcyBldmVyeSB0YXJnZXQgbWVtYmVyIHRoYXQgZG9lcyBub3QgZXhpc3QgaW4gdGhlIHNvdXJjZSAobWlycm9yIG1vZGUpLgoKIyMjIERpcmVjdGlvbnMKClRoZSBgRGlyZWN0aW9uYCBwYXJhbWV0ZXIgc2VsZWN0cyB3aGF0IGlzIHN5bmNlZCBpbnRvIHdoYXQ6CgotICoqYFNoYXJlZENoYW5uZWxUb0dyb3VwYCoqIC0gdGhlIG1lbWJlcnMgb2YgYSBUZWFtcyBzaGFyZWQgY2hhbm5lbCBhcmUgY29waWVkIGludG8gYSB0YXJnZXQgc2VjdXJpdHkgZ3JvdXAuCi0gKipgR3JvdXBUb0dyb3VwYCoqIC0gdGhlIG1lbWJlcnMgb2YgYSBzb3VyY2UgZ3JvdXAgYXJlIGNvcGllZCBpbnRvIGEgdGFyZ2V0IGdyb3VwIChmb3IgZXhhbXBsZSBhIE1pY3Jvc29mdCAzNjUgZ3JvdXAgaW50byBhIHNlY3VyaXR5IGdyb3VwLCBvciB0aGUgcmV2ZXJzZSBieSBzd2FwcGluZyBzb3VyY2UgYW5kIHRhcmdldCkuCi0gKipgR3JvdXBUb1NoYXJlZENoYW5uZWxgKiogLSB0aGUgbWVtYmVycyBvZiBhIHNvdXJjZSBncm91cCBhcmUgY29waWVkIGludG8gYSBUZWFtcyBzaGFyZWQgY2hhbm5lbC4KCiMjIyBBZGRpbmcgYW5kIHJlbW92aW5nCgpBZGRpbmcgbWlzc2luZyBtZW1iZXJzIGlzIGFsd2F5cyBwZXJmb3JtZWQuIFJlbW92aW5nIG1lbWJlcnMgdGhhdCBleGlzdCBvbmx5IGluIHRoZSB0YXJnZXQgaXMgKipvcHQtaW4qKgp2aWEgYFJlbW92ZUV4dHJhTWVtYmVyc2AgKGRlZmF1bHQgb2ZmKS4gV2l0aCByZW1vdmFsIGVuYWJsZWQsIHRoZSB0YXJnZXQgaXMgbWlycm9yZWQgZXhhY3RseSBhZ2FpbnN0IHRoZQpzb3VyY2U7IHdpdGggaXQgZGlzYWJsZWQsIHRoZSBydW5ib29rIGlzIGFkZC1vbmx5LgoKIyMjIEdyb3VwIG1lbWJlciBleHBhbnNpb24KCkdyb3VwIG1lbWJlcnMgb24gdGhlIHNvdXJjZSBzaWRlIGFyZSByZXNvbHZlZCAqKnRyYW5zaXRpdmVseSoqLCBzbyB1c2VycyB0aGF0IGFyZSBtZW1iZXJzIHRocm91Z2ggbmVzdGVkCmdyb3VwcyBhcmUgaW5jbHVkZWQuIE9uIHRoZSB0YXJnZXQgc2lkZSBvbmx5ICoqZGlyZWN0KiogbWVtYmVycyBhcmUgY29uc2lkZXJlZCwgYmVjYXVzZSBhZGQgYW5kIHJlbW92ZQpvcGVyYXRpb25zIGFjdCBvbiBkaXJlY3QgbWVtYmVyc2hpcC4KCiMjIyBHdWVzdCBoYW5kbGluZwoKYEluY2x1ZGVHdWVzdHNgIChkZWZhdWx0IG9mZikgY29udHJvbHMgd2hldGhlciBndWVzdCB1c2VycyB0YWtlIHBhcnQgaW4gdGhlIHN5bmMuIFdoZW4gaXQgaXMgb2ZmLCBndWVzdHMKYXJlIHNraXBwZWQgb24gYm90aCBzaWRlcyBhbmQgYXJlIG5ldmVyIGFkZGVkIG9yIHJlbW92ZWQuIFNoYXJlZCBjaGFubmVscyBmcmVxdWVudGx5IHJlamVjdCBndWVzdHMsIHNvCnRoaXMgaXMgb2ZmIGJ5IGRlZmF1bHQuCgojIyMgU2hhcmVkIGNoYW5uZWwgc3BlY2lmaWNzCgotIFdoZW4gYSBncm91cCBpcyBzeW5jZWQgKippbnRvKiogYSBzaGFyZWQgY2hhbm5lbCwgdGVhbSBtZW1iZXJzaGlwIGlzIGEgcHJlcmVxdWlzaXRlIGZvciBjaGFubmVsCiAgbWVtYmVyc2hpcCwgc28gdGhlIHJ1bmJvb2sgZmlyc3QgZW5zdXJlcyB0aGUgdXNlciBpcyBhIG1lbWJlciBvZiB0aGUgaG9zdCB0ZWFtIGFuZCB0aGVuIGFkZHMgdGhlIHVzZXIKICB0byB0aGUgY2hhbm5lbC4KLSBXaGVuIG1lbWJlcnMgYXJlICoqcmVtb3ZlZCoqIGZyb20gYSBzaGFyZWQgY2hhbm5lbCwgb25seSB0aGUgY2hhbm5lbCBtZW1iZXJzaGlwIGlzIHJlbW92ZWQgYnkgZGVmYXVsdC4KICBFbmFibGUgYFJlbW92ZUZyb21UZWFtYCB0byBhbHNvIHJlbW92ZSB0aGUgdXNlciBmcm9tIHRoZSBob3N0IHRlYW0gbWVtYmVyc2hpcC4KCiMjIyBEcnkgcnVuCgpTZXQgYFdoYXRJZk1vZGVgIHRvIGxvZyB3aGF0IHdvdWxkIGNoYW5nZSB3aXRob3V0IHdyaXRpbmcgYW55dGhpbmcuCgojIyMgUmVwb3J0aW5nIChvcHRpb25hbCwgYm90aCBkZWZhdWx0IG9mZikKCi0gKipgU2VuZEVtYWlsUmVwb3J0YCoqIHNlbmRzIGEgUmVhbG1Kb2luLWJyYW5kZWQgZW1haWwgKHZpYSBgU2VuZC1SalJlcG9ydEVtYWlsYCkgd2l0aCBydW4gc3RhdGlzdGljcyBhbmQKICBhIENTViBhdHRhY2htZW50IGxpc3RpbmcgZXZlcnkgaW5kaXZpZHVhbCBjaGFuZ2UuIFRoZSBzZW5kZXIgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYAogIHNldHRpbmcuCi0gKipgQ3JlYXRlRG93bmxvYWRMaW5rYCoqIHVwbG9hZHMgdGhlIHNhbWUgQ1NWIHRvIGEgc3RvcmFnZSBhY2NvdW50IGFuZCByZXR1cm5zIGEgdGltZS1saW1pdGVkIFNBUwogIGRvd25sb2FkIGxpbmsgKGFsc28gZW1iZWRkZWQgaW50byB0aGUgZW1haWwgd2hlbiBib3RoIG9wdGlvbnMgYXJlIGVuYWJsZWQpLiBUaGUgdGFyZ2V0IHN0b3JhZ2UgYWNjb3VudAogIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCBzZXR0aW5ncy4KClRoZSBzdG9yYWdlIHVwbG9hZCBhdXRoZW50aWNhdGVzIHdpdGggdGhlIEF1dG9tYXRpb24gYWNjb3VudCdzIG1hbmFnZWQgaWRlbnRpdHk7IHRoYXQgaWRlbnRpdHkgbmVlZHMgdGhlCioqU3RvcmFnZSBCbG9iIERhdGEgQ29udHJpYnV0b3IqKiBSQkFDIHJvbGUgb24gdGhlIHRhcmdldCBzdG9yYWdlIGFjY291bnQgKHRoaXMgaXMgYW4gQXp1cmUgUkJBQwphc3NpZ25tZW50LCBub3QgYSBHcmFwaCBhcHBsaWNhdGlvbiBwZXJtaXNzaW9uKS4KCiMjIyBTY2hlZHVsaW5nCgpEZXNpZ25lZCB0byBydW4gdW5hdHRlbmRlZCBvbiBhIHNjaGVkdWxlLiBCZWNhdXNlIHRoZSBydW5ib29rIGlzIGlkZW1wb3RlbnQsIGEgc2luZ2xlIHJlY3VycmluZyBzY2hlZHVsZQprZWVwcyB0aGUgdGFyZ2V0IGluIHN5bmMgd2l0aCB0aGUgc291cmNlIGFzIG1lbWJlcnMgY29tZSBhbmQgZ28uCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Group.ReadWrite.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"Channel.ReadBasic.All\",\n                \"ChannelMember.ReadWrite.All\",\n                \"TeamMember.ReadWrite.All\",\n                \"User.Read.All\",\n                \"Organization.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "ChannelMember.ReadWrite.All",
+            "Group.ReadWrite.All",
+            "GroupMember.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All",
+            "TeamMember.ReadWrite.All",
+            "User.Read.All"
           ]
         }
       ],

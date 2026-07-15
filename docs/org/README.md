@@ -3,7 +3,9 @@
 <a name='org-applications'></a>
 ## Applications
   - [Add Application Registration](applications/add-application-registration.md)
+  - [Add Gsa Application Registration](applications/add-gsa-application-registration.md)
   - [Delete Application Registration](applications/delete-application-registration.md)
+  - [Delete Gsa Application Registration](applications/delete-gsa-application-registration.md)
   - [Export Enterprise Application Users](applications/export-enterprise-application-users.md)
   - [List Inactive Enterprise Applications](applications/list-inactive-enterprise-applications.md)
   - [Report Application Registration](applications/report-application-registration.md)
@@ -64,6 +66,7 @@
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
   - [Sync Apple Tokens](general/sync-apple-tokens.md)
+  - [Sync Channel Or Group Members (Scheduled)](general/sync-channel-or-group-members_scheduled.md)
   - [Sync Shared Channel Owners (Scheduled)](general/sync-shared-channel-owners_scheduled.md)
 <a name='org-mail'></a>
 ## Mail

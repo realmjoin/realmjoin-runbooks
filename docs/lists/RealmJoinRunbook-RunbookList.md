@@ -27,6 +27,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Set Primary User
     - Unenroll Updatable Assets
     - Wipe Device
+    - Wipe Managed App Data
   - [Security](#device-security)
     - Check Defender Status
     - Enable Or Disable Device
@@ -58,7 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - Add Application Registration
+    - Add Gsa Application Registration
     - Delete Application Registration
+    - Delete Gsa Application Registration
     - Export Enterprise Application Users
     - List Inactive Enterprise Applications
     - Report Application Registration
@@ -117,6 +120,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report PIM Activations (Scheduled)
     - Sync All Devices
     - Sync Apple Tokens
+    - Sync Channel Or Group Members (Scheduled)
     - Sync Shared Channel Owners (Scheduled)
   - [Mail](#organization-mail)
     - Add Distribution List
@@ -221,6 +225,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Set Primary User | Set a new primary user on a managed Intune device |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
+| Wipe Managed App Data | App selective wipe - remove company app data from this MAM device |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
@@ -290,7 +295,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Application Registration | Add an application registration to Azure AD |
+| Add Gsa Application Registration | Add a GSA application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
+| Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
 | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
 | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 | Report Application Registration | Generate and email a comprehensive Application Registration report |
@@ -361,6 +368,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
 | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
+| Sync Channel Or Group Members (Scheduled) | Sync members between a Teams Shared Channel or a group and an Entra security group |
 | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)

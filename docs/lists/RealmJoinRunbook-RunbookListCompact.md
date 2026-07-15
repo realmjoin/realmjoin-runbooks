@@ -16,6 +16,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Set Primary User | Set a new primary user on a managed Intune device |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 |  |  | Wipe Device | Wipe a Windows or MacOS device |
+|  |  | Wipe Managed App Data | App selective wipe - remove company app data from this MAM device |
 |  | Security | Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
 |  |  | Enable Or Disable Device | Enable or disable a device in Entra ID |
 |  |  | Isolate Or Release Device | Isolate this device. |
@@ -39,7 +40,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Show Or Hide In Address Book | Show or hide a group in the address book |
 |  | Teams | Archive Team | Archive a team |
 | Organization | Applications | Add Application Registration | Add an application registration to Azure AD |
+|  |  | Add Gsa Application Registration | Add a GSA application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
+|  |  | Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
 |  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
@@ -96,6 +99,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 |  |  | Sync All Devices | Sync all Intune Windows devices |
 |  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
+|  |  | Sync Channel Or Group Members (Scheduled) | Sync members between a Teams Shared Channel or a group and an Entra security group |
 |  |  | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 |  | Mail | Add Distribution List | Create a classic distribution group |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox |

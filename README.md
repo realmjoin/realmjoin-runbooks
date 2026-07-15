@@ -45,6 +45,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Primary User](docs/device/general/set-primary-user.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
+    - [Wipe Managed App Data](docs/device/general/wipe-managed-app-data.md)
   - [Security](docs/device/README.md#device-security)
 
     - [Check Defender Status](docs/device/security/check-defender-status.md)
@@ -82,7 +83,9 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [Applications](docs/org/README.md#org-applications)
 
     - [Add Application Registration](docs/org/applications/add-application-registration.md)
+    - [Add Gsa Application Registration](docs/org/applications/add-gsa-application-registration.md)
     - [Delete Application Registration](docs/org/applications/delete-application-registration.md)
+    - [Delete Gsa Application Registration](docs/org/applications/delete-gsa-application-registration.md)
     - [Export Enterprise Application Users](docs/org/applications/export-enterprise-application-users.md)
     - [List Inactive Enterprise Applications](docs/org/applications/list-inactive-enterprise-applications.md)
     - [Report Application Registration](docs/org/applications/report-application-registration.md)
@@ -143,6 +146,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
     - [Sync Apple Tokens](docs/org/general/sync-apple-tokens.md)
+    - [Sync Channel Or Group Members (Scheduled)](docs/org/general/sync-channel-or-group-members_scheduled.md)
     - [Sync Shared Channel Owners (Scheduled)](docs/org/general/sync-shared-channel-owners_scheduled.md)
   - [Mail](docs/org/README.md#org-mail)
 

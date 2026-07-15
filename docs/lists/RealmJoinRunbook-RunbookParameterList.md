@@ -27,6 +27,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Set Primary User](#device-general-set-primary-user)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
+    - [Wipe Managed App Data](#device-general-wipe-managed-app-data)
   - [Security](#device-security)
     - [Check Defender Status](#device-security-check-defender-status)
     - [Enable Or Disable Device](#device-security-enable-or-disable-device)
@@ -58,7 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
+    - [Add Gsa Application Registration](#organization-applications-add-gsa-application-registration)
     - [Delete Application Registration](#organization-applications-delete-application-registration)
+    - [Delete Gsa Application Registration](#organization-applications-delete-gsa-application-registration)
     - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
     - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
     - [Report Application Registration](#organization-applications-report-application-registration)
@@ -117,6 +120,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
     - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
+    - [Sync Channel Or Group Members (Scheduled)](#organization-general-sync-channel-or-group-members-scheduled)
     - [Sync Shared Channel Owners (Scheduled)](#organization-general-sync-shared-channel-owners-scheduled)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
@@ -363,8 +367,21 @@ Wipe a Windows or MacOS device
 | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
 | skipWipeIfAtRisk |  | Boolean | If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe. |
+| addToExclusionGroup |  | Boolean | Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook). |
+| exclusionGroupName |  | String | Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled. |
+| exclusionGroupId |  | String | Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization. |
 | macOsRecoveryCode |  | String | MacOS-only. Recovery code for older devices; newer devices may not require this. |
 | macOsObliterationBehavior |  | String | MacOS-only. Controls the OS obliteration behavior during wipe. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-general-wipe-managed-app-data'></a>
+
+### Wipe Managed App Data
+App selective wipe - remove company app data from this MAM device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The device ID of the target device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
@@ -671,6 +688,25 @@ Add an application registration to Azure AD
 | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. Default is false. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+Add a GSA application registration to Azure AD
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| name | ✓ | String | The base name of the Global Secure Access application to create. The final application name is built as "<prefix> <name>". |
+| prefix | ✓ | String | Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends<br>with "-", "_" or a space. Example: prefix "GSA-" + name "MyApp" results in application "GSA-MyApp". |
+| groupPrefix |  | String | Prefix for the security group name. The group name is built as "<groupPrefix><name><groupSuffix>" -<br>independent of the application prefix. Example: groupPrefix "App - Entra - GSA - " + name "MyApp"<br>results in group "App - Entra - GSA - MyApp". Default: "App - Entra - GSA - ". |
+| groupSuffix |  | String | Optional suffix for the security group name, e.g. " (users)". Default: empty. |
+| applicationType | ✓ | String | The type of GSA application to create. Options: "nonwebapp" (Enterprise App) or "quickaccessapp" (Quick Access App). |
+| connectorGroup |  | String | The connectorGroup to be used for the application. Must be defined in the Runbook Customization. |
+| destinationHost |  | String | The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20). |
+| destinationType |  | String | The type of destination specified. Options: "fqdn", "ip", "ipRangeCidr", or "ipRange". Hidden in UI as it's automatically determined from destinationHost format. |
+| ports |  | String | The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080). |
+| protocol |  | String | The network protocol to use. Options: "tcp", "udp", or "tcp,udp". Default is "tcp". |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
+
 <a name='organization-applications-delete-application-registration'></a>
 
 ### Delete Application Registration
@@ -679,6 +715,19 @@ Delete an application registration from Azure AD
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ClientId | ✓ | String | The application client ID (appId) of the application registration to delete. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-applications-delete-gsa-application-registration'></a>
+
+### Delete Gsa Application Registration
+Delete a GSA application registration from Azure AD including associated objects
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| applicationName | ✓ | String | The full display name of the GSA application to delete, e.g. "GSA-MyApp". |
+| groupPrefix |  | String | Prefix of the security group naming scheme, used to identify the group(s) to delete.<br>Must match the groupPrefix of the add-gsa-application-registration runbook.<br>Default: "App - Entra - GSA - ". |
+| groupSuffix |  | String | Optional suffix of the security group naming scheme. Default: empty. |
+| deleteAllAssignedGroups |  | Boolean | If true, ALL groups assigned to the application are deleted, not only the naming scheme group(s).<br>Use with care - assigned groups may be shared with other applications. Default: false. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-export-enterprise-application-users'></a>
@@ -1505,6 +1554,32 @@ Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 |-----------|----------|------|-------------|
 | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 | CallerName | ✓ | String | Automated parameter for auditing purposes. |
+
+<a name='organization-general-sync-channel-or-group-members-scheduled'></a>
+
+### Sync Channel Or Group Members (Scheduled)
+Sync members between a Teams Shared Channel or a group and an Entra security group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Direction | ✓ | String | Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target<br>group, GroupToGroup copies the source group members into the target group, and GroupToSharedChannel<br>copies the source group members into the shared channel. |
+| TeamId |  | String | Object id of the team that hosts the shared channel. Only used for the shared channel directions. |
+| ChannelName |  | String | Exact display name of the shared channel inside the selected team. Only used for the shared channel<br>directions. |
+| SourceGroupId |  | String | Object id of the source group whose members are copied. Used for the group source directions. |
+| TargetGroupId |  | String | Object id of the target security group that receives the members. Used for the group target directions. |
+| RemoveExtraMembers |  | Boolean | When enabled, members that exist only in the target and not in the source are removed so the target<br>mirrors the source. When disabled (default), the runbook only adds missing members. |
+| IncludeGuests |  | Boolean | When enabled, guest users are included in the sync and may be added or removed. When disabled (default),<br>guests are skipped and are never added or removed. |
+| RemoveFromTeam |  | Boolean | Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also<br>removes that user from the host team membership. When disabled (default), only the channel membership<br>is removed. |
+| WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. |
+| EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
+| EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender. |
+| CreateDownloadLink |  | Boolean | When enabled, the CSV report is uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). |
+| ContainerName |  | String | Storage container used for the upload. Configured per runbook. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName. |
+| LinkExpiryDays |  | Int32 | Days until the generated download link expires. Bound to RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-general-sync-shared-channel-owners-scheduled'></a>
 
