@@ -5,6 +5,28 @@
     .DESCRIPTION
     This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
     It outputs a summary table and can optionally send an email with CSV attachments.
+    The detailed CSV export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device.
+    The report CSV files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+
+.PARAMETER IntuneOnlyDevices
+    If enabled, only devices that are present in Intune (managed devices) are considered for the report.
+    The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.
+    Disabled by default.
+
+.PARAMETER CreateDownloadLink
+    If enabled, the report CSV files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+.PARAMETER ContainerName
+    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+.PARAMETER ResourceGroupName
+    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+.PARAMETER StorageAccountName
+    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+.PARAMETER LinkExpiryDays
+    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
 
 .PARAMETER EmailTo
     If specified, an email with the report will be sent to the provided address(es).
@@ -20,6 +42,28 @@
 .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "IntuneOnlyDevices": {
+                "DisplayName": "Only include devices present in Intune"
+            },
+            "CreateDownloadLink": {
+                "DisplayName": "Create a file download link (upload report to storage)?",
+                "SelectSimple": {
+                    "Yes - upload report and return a download link": true,
+                    "No - do not create a download link": false
+                }
+            },
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "LinkExpiryDays": {
+                "Hide": true
+            },
             "EmailTo": {
                 "DisplayName": "Recipient Email Address(es)"
             },
@@ -35,8 +79,25 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 
 param (
+    [bool]$IntuneOnlyDevices = $false,
+
+    [bool]$CreateDownloadLink = $false,
+
+    [string]$ContainerName = "users-with-more-than-5-devices",
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ })]
+    [string]$ResourceGroupName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ })]
+    [string]$StorageAccountName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
+
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
     [string]$EmailFrom,
 
@@ -58,13 +119,21 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.4"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "IntuneOnlyDevices: $IntuneOnlyDevices" -Verbose
 
 # Add Parameter in Verbose output
 if ($EmailTo) {
     Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
     Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+}
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
 #endregion
@@ -80,6 +149,12 @@ if ($EmailTo) {
     throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
     exit
     }
+}
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
 }
 
 #endregion
@@ -149,7 +224,7 @@ Connect-RjRbGraph
 
 Write-Output "Querying devices..."
 Write-Output "  Note: Depending on the number of devices in the tenant, this process can take several minutes!"
-$property = 'id,registeredUsers'
+$property = 'id,deviceId,displayName,registeredUsers'
 
 $AllDevices_BasedOnUsers = @()
 $uri = "https://graph.microsoft.com/v1.0/devices?`$select=$property&`$expand=registeredUsers"
@@ -157,6 +232,22 @@ $uri = "https://graph.microsoft.com/v1.0/devices?`$select=$property&`$expand=reg
 $AllDevices_BasedOnUsers = Get-GraphPagedResult -Uri $uri
 
 Write-Output "  Retrieved $($AllDevices_BasedOnUsers.Count) devices from the tenant."
+
+# Retrieve all Intune managed devices to determine Intune presence per device (and to filter, if requested)
+Write-Output "Querying Intune managed devices..."
+$intuneManagedDevices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=azureADDeviceId"
+$intuneDeviceIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($managedDevice in $intuneManagedDevices) {
+    if ($managedDevice.azureADDeviceId) {
+        [void]$intuneDeviceIds.Add([string]$managedDevice.azureADDeviceId)
+    }
+}
+Write-Output "  Retrieved $($($intuneManagedDevices | Measure-Object).Count) managed devices from Intune."
+
+if ($IntuneOnlyDevices) {
+    $AllDevices_BasedOnUsers = $AllDevices_BasedOnUsers | Where-Object { $_.deviceId -and $intuneDeviceIds.Contains([string]$_.deviceId) }
+    Write-Output "  Only devices present in Intune are considered: $($($AllDevices_BasedOnUsers | Measure-Object).Count) devices remain."
+}
 
 $raw = $AllDevices_BasedOnUsers | Where-Object { $_.RegisteredUsers.Count -gt 0 } | Group-Object { $_.RegisteredUsers.Id } | Where-Object Count -GT 5
 
@@ -195,6 +286,93 @@ else {
 #endregion
 
 ######################################################################
+#region CSV Export (if needed for download link or email)
+######################################################################
+
+$totalUsers = ($Output | Measure-Object).Count
+$csvFiles = @()
+$tempDir = $null
+$detailedOutput = @()
+$fileName_Summary = "UsersWithMoreThan5Devices_Summary.csv"
+$fileName_Details = "UsersWithMoreThan5Devices_Details.csv"
+
+if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
+    Write-RjRbLog -Message "Found $totalUsers users with more than 5 devices - preparing CSV export" -Verbose
+
+    # Create temporary directory for CSV files
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "UsersWithMultipleDevicesReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+
+    # Export summary to CSV
+    $csvFile = Join-Path $tempDir $fileName_Summary
+    $Output | Sort-Object DeviceCount -Descending | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
+    Write-Verbose "Exported summary data to: $csvFile"
+    $csvFiles += $csvFile
+
+    # Create detailed device list for each user
+    $detailedCsvFile = Join-Path $tempDir $fileName_Details
+
+    foreach ($group in $raw) {
+        $objectId = $group.Name
+        $upn = ($group.Group | Select-Object -First 1).RegisteredUsers.UserPrincipalName
+        $displayName = ($group.Group | Select-Object -First 1).RegisteredUsers.DisplayName
+
+        foreach ($device in $group.Group) {
+            $deviceEntry = [ordered]@{
+                UserObjectId    = $objectId
+                UserDisplayName = $displayName
+                UserUPN         = $upn
+                DeviceObjectId  = $device.Id
+                EntraIDDeviceID = $device.deviceId
+                DeviceName      = if ($device.DisplayName) { $device.DisplayName } else { "N/A" }
+            }
+            if (-not $IntuneOnlyDevices) {
+                $deviceEntry.InIntune = if ($device.deviceId -and $intuneDeviceIds.Contains([string]$device.deviceId)) { "yes" } else { "no" }
+            }
+            $detailedOutput += [PSCustomObject]$deviceEntry
+        }
+    }
+
+    $detailedOutput | Export-Csv -Path $detailedCsvFile -NoTypeInformation -Encoding UTF8
+    Write-Verbose "Exported detailed device data to: $detailedCsvFile"
+    $csvFiles += $detailedCsvFile
+}
+
+#endregion
+
+######################################################################
+#region Upload / Download Link (if CreateDownloadLink is enabled)
+######################################################################
+
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($totalUsers -gt 0) {
+        Write-Output "Uploading report files to storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $csvFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No users with more than five devices were found - skipping report upload."
+    }
+}
+
+#endregion
+
+######################################################################
 #region Send Email Report (if requested)
 ######################################################################
 
@@ -217,10 +395,6 @@ if ($EmailTo) {
         $tenantDisplayName = ""
     }
 
-    # Check if any users were found
-    $totalUsers = ($Output | Measure-Object).Count
-    $csvFiles = @()
-
     if ($totalUsers -eq 0) {
         # No users found - send email without attachments
         Write-RjRbLog -Message "No users found with more than 5 devices - sending notification email" -Verbose
@@ -231,6 +405,7 @@ if ($EmailTo) {
 ## Summary
 
 ✅ **Good News!** No users were found with more than 5 devices registered in Entra ID.
+$(if ($IntuneOnlyDevices) { "`n**Scope:** Only devices present in Intune were considered for this report.`n" })
 
 This indicates:
 - Users are following device management policies
@@ -255,45 +430,8 @@ This indicates:
 
     }
     else {
-        # Users found - create CSV files and send detailed report
+        # Users found - send detailed report (CSV files were already exported above)
         Write-RjRbLog -Message "Found $totalUsers users with more than 5 devices - preparing detailed report" -Verbose
-
-        # Create temporary directory for CSV files
-        $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "UsersWithMultipleDevicesReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-        Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
-
-        # Export summary to CSV
-        $fileName_Summary = "UsersWithMoreThan5Devices_Summary.csv"
-        $csvFile = Join-Path $tempDir $fileName_Summary
-        $Output | Sort-Object DeviceCount -Descending | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
-        Write-Verbose "Exported summary data to: $csvFile"
-        $csvFiles += $csvFile
-
-        # Create detailed device list for each user
-        $fileName_Details = "UsersWithMoreThan5Devices_Details.csv"
-        $detailedCsvFile = Join-Path $tempDir $fileName_Details
-        $detailedOutput = @()
-
-        foreach ($group in $raw) {
-            $objectId = $group.Name
-            $upn = ($group.Group | Select-Object -First 1).RegisteredUsers.UserPrincipalName
-            $displayName = ($group.Group | Select-Object -First 1).RegisteredUsers.DisplayName
-
-            foreach ($device in $group.Group) {
-                $detailedOutput += [PSCustomObject]@{
-                    UserObjectId    = $objectId
-                    UserDisplayName = $displayName
-                    UserUPN         = $upn
-                    DeviceId        = $device.Id
-                    DeviceName      = if ($device.DisplayName) { $device.DisplayName } else { "N/A" }
-                }
-            }
-        }
-
-        $detailedOutput | Export-Csv -Path $detailedCsvFile -NoTypeInformation -Encoding UTF8
-        Write-Verbose "Exported detailed device data to: $detailedCsvFile"
-        $csvFiles += $detailedCsvFile
 
         # Calculate statistics
         $totalDevices = ($detailedOutput | Measure-Object).Count
@@ -306,6 +444,7 @@ This indicates:
 # Users with More Than 5 Devices Report
 
 This report identifies users who have more than 5 devices registered in Entra ID.
+$(if ($IntuneOnlyDevices) { "`n**Scope:** Only devices present in Intune were considered for this report.`n" })
 
 ## Summary Statistics
 
@@ -382,7 +521,7 @@ $(
 
 The attached CSV files contain:
 - **Summary:** User Object ID, Display Name, UPN, and Device Count
-- **Details:** Complete device list for each user including Device IDs and Names
+- **Details:** Complete device list for each user including the device object ID, the Entra ID device ID and the device name$(if (-not $IntuneOnlyDevices) { ", plus an ""InIntune"" column indicating whether the device is present in Intune" })
 
 ---
 
@@ -446,6 +585,18 @@ The attached CSV files contain:
             }
         }
     }
+}
+
+#endregion
+
+######################################################################
+#region Cleanup
+######################################################################
+
+# Cleanup temporary files (covers the download-link-only case; the email path cleans up in its finally block)
+if ($tempDir -and (Test-Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Cleaned up temporary directory: $($tempDir)" -Verbose
 }
 
 #endregion

@@ -3,9 +3,41 @@
     Reports all managed devices in Intune that do not have a primary user assigned.
     .DESCRIPTION
     This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-    The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
+    The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
+    The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-    Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+    Optionally, the report can be sent via email with a CSV attachment containing detailed device information.
+    The report CSV can also be uploaded to an Azure Storage Account, returning a time-limited download link.
+
+    .PARAMETER IncludeWindows
+    Include Windows devices in the report. Enabled by default.
+
+    .PARAMETER IncludeMacOS
+    Include macOS devices in the report. Enabled by default.
+
+    .PARAMETER IncludeIOS
+    Include iOS and iPadOS devices in the report. Enabled by default.
+
+    .PARAMETER IncludeAndroid
+    Include Android devices in the report. Enabled by default.
+
+    .PARAMETER IncludeOther
+    Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default.
+
+    .PARAMETER CreateDownloadLink
+    If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. Disabled by default.
+
+    .PARAMETER ContainerName
+    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+    .PARAMETER LinkExpiryDays
+    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
 
     .PARAMETER EmailTo
     If specified, an email with the report will be sent to the provided address(es).
@@ -21,6 +53,40 @@
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "IncludeWindows": {
+                "DisplayName": "Include Windows Devices"
+            },
+            "IncludeMacOS": {
+                "DisplayName": "Include macOS Devices"
+            },
+            "IncludeIOS": {
+                "DisplayName": "Include iOS/iPadOS Devices"
+            },
+            "IncludeAndroid": {
+                "DisplayName": "Include Android Devices"
+            },
+            "IncludeOther": {
+                "DisplayName": "Include Other Devices (e.g. Linux, ChromeOS)"
+            },
+            "CreateDownloadLink": {
+                "DisplayName": "Create a file download link (upload report to storage)?",
+                "SelectSimple": {
+                    "Yes - upload report and return a download link": true,
+                    "No - do not create a download link": false
+                }
+            },
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "LinkExpiryDays": {
+                "Hide": true
+            },
             "EmailTo": {
                 "DisplayName": "Recipient Email Address(es)"
             },
@@ -36,8 +102,33 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 
 param (
+    [bool]$IncludeWindows = $true,
+
+    [bool]$IncludeMacOS = $true,
+
+    [bool]$IncludeIOS = $true,
+
+    [bool]$IncludeAndroid = $true,
+
+    [bool]$IncludeOther = $true,
+
+    [bool]$CreateDownloadLink = $false,
+
+    [string]$ContainerName = "devices-without-primary-user",
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ })]
+    [string]$ResourceGroupName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ })]
+    [string]$StorageAccountName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
+
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
     [string]$EmailFrom,
 
@@ -59,11 +150,23 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.4"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "IncludeWindows: $IncludeWindows" -Verbose
+Write-RjRbLog -Message "IncludeMacOS: $IncludeMacOS" -Verbose
+Write-RjRbLog -Message "IncludeIOS: $IncludeIOS" -Verbose
+Write-RjRbLog -Message "IncludeAndroid: $IncludeAndroid" -Verbose
+Write-RjRbLog -Message "IncludeOther: $IncludeOther" -Verbose
 if ($EmailTo) {
     Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
     Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+}
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
 #endregion
@@ -79,6 +182,12 @@ if ($EmailTo) {
     throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
     exit
     }
+}
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
 }
 
 #endregion
@@ -121,6 +230,28 @@ function Get-GraphPagedResult {
     return $allResults
 }
 
+function Test-OsIncluded {
+    <#
+        .SYNOPSIS
+        Checks whether a device's operating system is included by the platform filter parameters.
+
+        .PARAMETER OperatingSystem
+        The operatingSystem value of the managed device as reported by Intune.
+    #>
+    param(
+        [string]$OperatingSystem
+    )
+
+    switch -Wildcard ($OperatingSystem) {
+        "Windows*" { return $IncludeWindows }
+        "macOS*" { return $IncludeMacOS }
+        "iOS*" { return $IncludeIOS }
+        "iPadOS*" { return $IncludeIOS }
+        "Android*" { return $IncludeAndroid }
+        default { return $IncludeOther }
+    }
+}
+
 #endregion
 
 ####################################################################
@@ -151,15 +282,28 @@ Connect-RjRbGraph
 #region Get all devices without registered users
 ####################################################################
 
+$enabledPlatforms = @(
+    @{ Name = "Windows"; Enabled = $IncludeWindows },
+    @{ Name = "macOS"; Enabled = $IncludeMacOS },
+    @{ Name = "iOS/iPadOS"; Enabled = $IncludeIOS },
+    @{ Name = "Android"; Enabled = $IncludeAndroid },
+    @{ Name = "Other"; Enabled = $IncludeOther }
+) | Where-Object { $_.Enabled } | ForEach-Object { $_.Name }
+
+if (($enabledPlatforms | Measure-Object).Count -eq 0) {
+    throw "All platform filters are disabled. Enable at least one platform (Windows, macOS, iOS/iPadOS, Android, Other) to generate a report."
+}
+
 Write-Output ""
 Write-Output "Getting all managed devices and filter those without a primary user..."
+Write-Output "Included platforms: $($enabledPlatforms -join ', ')"
 Write-Output "Note: This may take a while depending on the number of devices in your tenant."
 
 # Define the base URI for the Microsoft Graph API to retrieve managed devices and the properties to select.
 $baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices'
 
-$selectQuery = "?$select="
-$selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,userId"
+$selectQuery = '?$select='
+$selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,operatingSystem,userId"
 
 $raw = @()
 $uri = $baseURI + $selectQuery + $selectProperties
@@ -167,8 +311,8 @@ $uri = $baseURI + $selectQuery + $selectProperties
 do {
     $response = Invoke-MgGraphRequest -Uri $uri -Method Get -ErrorAction Stop
     $raw += $response.value | Where-Object {
-        # Filter devices where userId is null or empty
-        [string]::IsNullOrEmpty($_.userId)
+        # Filter devices where userId is null or empty and the platform is included
+        [string]::IsNullOrEmpty($_.userId) -and (Test-OsIncluded -OperatingSystem $_.operatingSystem)
     }
     $uri = $response.'@odata.nextLink'
 } while ($null -ne $uri)
@@ -186,6 +330,7 @@ $devicesWithoutPrimaryUser = $raw | ForEach-Object {
         ObjectId         = $_.id
         DeviceId         = $_.azureADDeviceId
         DisplayName      = $_.deviceName
+        OperatingSystem  = $_.operatingSystem
         LastSyncDateTime = $_.lastSyncDateTime
     }
 }
@@ -202,15 +347,64 @@ else {
 #endregion
 
 ####################################################################
+#region CSV Export (if needed for download link or email)
+####################################################################
+
+$totalDevices = ($devicesWithoutPrimaryUser | Measure-Object).Count
+$csvFiles = @()
+$tempDir = $null
+$fileName_Details = "devices-without-primary-user.csv"
+
+if (($CreateDownloadLink -or $EmailTo) -and $totalDevices -gt 0) {
+    $tempDir = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "DevicesWithoutPrimaryUser_$(Get-Date -Format 'yyyyMMdd_HHmmss')"))
+
+    $csvPath = Join-Path $tempDir.FullName $fileName_Details
+    $devicesWithoutPrimaryUser | Sort-Object DisplayName | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+    $csvFiles += $csvPath
+
+    Write-Output "Exported devices to: $csvPath"
+}
+
+#endregion
+
+####################################################################
+#region Upload / Download Link (if CreateDownloadLink is enabled)
+####################################################################
+
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($totalDevices -gt 0) {
+        Write-Output "Uploading report to storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $csvFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No devices without a primary user were found - skipping report upload."
+    }
+}
+
+#endregion
+
+####################################################################
 #region Send Email Report (if EmailTo is provided)
 ####################################################################
 
 if ($EmailTo) {
     Write-Output ""
     Write-Output "Preparing email report..."
-
-    $totalDevices = ($devicesWithoutPrimaryUser | Measure-Object).Count
-    $csvFiles = @()
 
     if ($totalDevices -eq 0) {
         # No devices without primary user found - send positive message without attachments
@@ -220,6 +414,8 @@ if ($EmailTo) {
 ## Summary
 
 **No devices without primary users were found** in your tenant. This is a positive result indicating that all managed devices have proper user assignments.
+
+**Included platforms:** $($enabledPlatforms -join ', ')
 
 ## What does this mean
 
@@ -235,22 +431,15 @@ if ($EmailTo) {
         $emailSubject = "Devices Without Primary User Report - No Issues Found"
     }
     else {
-        # Devices without primary user found - prepare CSV and detailed report
-        $tempDir = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "DevicesWithoutPrimaryUser_$(Get-Date -Format 'yyyyMMdd_HHmmss')"))
-
-        $fileName_Details = "devices-without-primary-user.csv"
-        $csvPath = Join-Path $tempDir.FullName $fileName_Details
-        $devicesWithoutPrimaryUser | Sort-Object DisplayName | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
-        $csvFiles += $csvPath
-
-        Write-Output "Exported devices to: $csvPath"
-
+        # Devices without primary user found - prepare detailed report (CSV was already exported above)
         $markdownContent = @"
 # Devices Without Primary User Report
 
 ## Executive Summary
 
 This report identifies **$($totalDevices) managed device(s)** in your Intune tenant that do not have a primary user assigned.
+
+**Included platforms:** $($enabledPlatforms -join ', ')
 
 ## Impact & Implications
 
@@ -271,6 +460,7 @@ The attached CSV file contains the following information for each device:
 | **ObjectId** | Intune managed device object ID |
 | **DeviceId** | Entra ID device ID |
 | **DisplayName** | Device name in Intune |
+| **OperatingSystem** | Operating system of the device |
 | **LastSyncDateTime** | Last sync date and time with Intune |
 
 ## Recommended Actions
@@ -334,6 +524,18 @@ The following file is attached to this email:
             Write-Verbose "Cleaned up temporary files"
         }
     }
+}
+
+#endregion
+
+####################################################################
+#region Cleanup
+####################################################################
+
+# Cleanup temporary files (covers the download-link-only case; the email path cleans up in its finally block)
+if ($tempDir -and (Test-Path $tempDir.FullName)) {
+    Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Verbose "Cleaned up temporary files"
 }
 
 #endregion
