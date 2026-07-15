@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-10
+
+- Add **Wipe Managed App Data** Runbook in Device/General
+  - Performs an "App selective wipe" (MAM) for a device, mirroring the Intune portal flow *Apps > App selective wipe > Create wipe request* - removes company data from apps protected by app protection policies without wiping the whole device (typical use case: lost or stolen MAM-managed devices)
+  - Resolves the users registered on the device, matches their MAM app registrations against the device (via `azureADDeviceId`, with a device-name fallback for registrations without an EntraID device id) and creates a wipe request per affected user/device tag via `wipeManagedAppRegistrationsByDeviceTag`
+  - Wipe requests can be monitored/cancelled in the Intune portal under *Apps > App selective wipe*
+  - Requires the `DeviceManagementApps.ReadWrite.All`, `Device.Read.All` and `User.Read.All` Graph permissions
+
 ## 2026-07-09
 
 - Update **Wipe Device** Runbook in Device/General
