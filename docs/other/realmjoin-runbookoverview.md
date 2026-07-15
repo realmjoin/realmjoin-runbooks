@@ -1594,9 +1594,11 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
 #### Description
 
 This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
+The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
+The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+Optionally, the report can be sent via email with a CSV attachment containing detailed device information.
+The report CSV can also be uploaded to an Azure Storage Account, returning a time-limited download link.
 
 #### Where to find
 
@@ -1695,6 +1697,8 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
 It outputs a summary table and can optionally send an email with CSV attachments.
+The detailed CSV export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device.
+The report CSV files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 #### Where to find
 

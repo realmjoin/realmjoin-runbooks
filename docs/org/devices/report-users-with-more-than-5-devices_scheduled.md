@@ -5,6 +5,8 @@ Report users with more than five registered devices
 ## Detailed description
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
 It outputs a summary table and can optionally send an email with CSV attachments.
+The detailed CSV export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device.
+The report CSV files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 ## Where to find
 Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
@@ -26,6 +28,62 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 
 ## Parameters
+### IntuneOnlyDevices
+If enabled, only devices that are present in Intune (managed devices) are considered for the report.
+The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.
+Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### CreateDownloadLink
+If enabled, the report CSV files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ContainerName
+Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+| Property | Value |
+|----------|-------|
+| Default Value | users-with-more-than-5-devices |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
+
 ### EmailFrom
 The sender email address. This needs to be configured in the runbook customization.
 

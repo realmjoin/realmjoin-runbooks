@@ -4,9 +4,11 @@ Reports all managed devices in Intune that do not have a primary user assigned.
 
 ## Detailed description
 This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
+The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
+The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+Optionally, the report can be sent via email with a CSV attachment containing detailed device information.
+The report CSV can also be uploaded to an Azure Storage Account, returning a time-limited download link.
 
 ## Where to find
 Org \ Devices \ Report Devices Without Primary User_Scheduled
@@ -28,6 +30,96 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 
 ## Parameters
+### IncludeWindows
+Include Windows devices in the report. Enabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### IncludeMacOS
+Include macOS devices in the report. Enabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### IncludeIOS
+Include iOS and iPadOS devices in the report. Enabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### IncludeAndroid
+Include Android devices in the report. Enabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### IncludeOther
+Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | True |
+| Required | false |
+| Type | Boolean |
+
+### CreateDownloadLink
+If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ContainerName
+Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+| Property | Value |
+|----------|-------|
+| Default Value | devices-without-primary-user |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
+
 ### EmailFrom
 The sender email address. This needs to be configured in the runbook customization.
 

@@ -986,6 +986,16 @@ Reports all managed devices in Intune that do not have a primary user assigned.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IncludeWindows |  | Boolean | Include Windows devices in the report. Enabled by default. |
+| IncludeMacOS |  | Boolean | Include macOS devices in the report. Enabled by default. |
+| IncludeIOS |  | Boolean | Include iOS and iPadOS devices in the report. Enabled by default. |
+| IncludeAndroid |  | Boolean | Include Android devices in the report. Enabled by default. |
+| IncludeOther |  | Boolean | Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default. |
+| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -1037,6 +1047,12 @@ Report users with more than five registered devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IntuneOnlyDevices |  | Boolean | If enabled, only devices that are present in Intune (managed devices) are considered for the report.<br>The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.<br>Disabled by default. |
+| CreateDownloadLink |  | Boolean | If enabled, the report CSV files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |

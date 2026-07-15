@@ -6663,7 +6663,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Reports all managed devices in Intune that do not have a primary user assigned.",
-    "Description": "This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).\nThe output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.\n\nOptionally, the report can be sent via email with a CSV attachment containing detailed device information",
+    "Description": "This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).\nThe output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.\nThe report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.\n\nOptionally, the report can be sent via email with a CSV attachment containing detailed device information.\nThe report CSV can also be uploaded to an Azure Storage Account, returning a time-limited download link.",
     "Notes": null,
     "Parameters": [
       {
@@ -6677,10 +6677,44 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "13",
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "devices-without-primary-user",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -6694,7 +6728,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -6711,7 +6745,143 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Android devices in the report. Enabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeAndroid",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include iOS and iPadOS devices in the report. Enabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeIOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include macOS devices in the report. Enabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMacOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
         "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeOther",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Windows devices in the report. Enabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeWindows",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -7216,7 +7386,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Report users with more than five registered devices",
-    "Description": "This runbook queries Entra ID devices and their registered users to identify users with more than five devices.\nIt outputs a summary table and can optionally send an email with CSV attachments.",
+    "Description": "This runbook queries Entra ID devices and their registered users to identify users with more than five devices.\nIt outputs a summary table and can optionally send an email with CSV attachments.\nThe detailed CSV export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device.\nThe report CSV files can also be uploaded to an Azure Storage Account, returning time-limited download links.",
     "Notes": null,
     "Parameters": [
       {
@@ -7230,10 +7400,44 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "9",
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "users-with-more-than-5-devices",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report CSV files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -7247,7 +7451,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -7264,7 +7468,75 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, only devices that are present in Intune (managed devices) are considered for the report.\nThe \"InIntune\" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.\nDisabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "IntuneOnlyDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "String"
