@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-15
+
+- Enable the "Scheduled" option for the following runbooks in Org/Devices (files renamed with the `_scheduled` suffix):
+  - **Report Devices Without Primary User**
+  - **Report Users With More Than 5 Devices**
+  - **Report Windows Devices Without Autopilot**
+
 ## 2026-07-10
 
 - Add **Wipe Managed App Data** Runbook in Device/General
