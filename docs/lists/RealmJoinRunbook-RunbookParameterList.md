@@ -27,6 +27,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Set Primary User](#device-general-set-primary-user)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
+    - [Wipe Managed App Data](#device-general-wipe-managed-app-data)
   - [Security](#device-security)
     - [Check Defender Status](#device-security-check-defender-status)
     - [Enable Or Disable Device](#device-security-enable-or-disable-device)
@@ -371,6 +372,16 @@ Wipe a Windows or MacOS device
 | exclusionGroupId |  | String | Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization. |
 | macOsRecoveryCode |  | String | MacOS-only. Recovery code for older devices; newer devices may not require this. |
 | macOsObliterationBehavior |  | String | MacOS-only. Controls the OS obliteration behavior during wipe. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-general-wipe-managed-app-data'></a>
+
+### Wipe Managed App Data
+App selective wipe - remove company app data from this MAM device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The device ID of the target device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)

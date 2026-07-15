@@ -45,6 +45,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Primary User](docs/device/general/set-primary-user.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
+    - [Wipe Managed App Data](docs/device/general/wipe-managed-app-data.md)
   - [Security](docs/device/README.md#device-security)
 
     - [Check Defender Status](docs/device/security/check-defender-status.md)

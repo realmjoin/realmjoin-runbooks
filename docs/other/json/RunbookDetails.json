@@ -1436,6 +1436,73 @@
     }
   },
   {
+    "RunbookDisplayName": "Wipe Managed App Data",
+    "RunbookDisplayPath": "Device \\ General \\ Wipe Managed App Data",
+    "RelativeRunbookPath": "device/general/wipe-managed-app-data.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "App selective wipe - remove company app data from this MAM device",
+    "Description": "Performs an \"App selective wipe\" (Mobile Application Management) for this device, mirroring the\nIntune portal flow \"Apps > App selective wipe > Create wipe request\". It removes company data\nfrom apps protected by app protection policies without wiping the whole device - typically\nused for lost or stolen devices that are MAM-managed (not MDM-enrolled).\n\nThe runbook resolves the users registered on the device, collects their MAM app registrations\nthat belong to this device and creates a wipe request for each affected user/device tag. The\nwipe is executed the next time each protected app checks in. Wipe requests can be monitored\nand cancelled in the Intune portal under \"Apps > App selective wipe\".",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The device ID of the target device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Device matching\n\nMAM app registrations belong to a user, not to a device object. The runbook therefore resolves the\nusers registered on the device and matches their app registrations against the device's EntraID\ndevice id (`azureADDeviceId`). Registrations without an EntraID device id are matched by the\ndevice's display name as fallback; the runbook output indicates when this fallback was used.\n\n## Wipe behavior\n\n- The company app data is removed the next time each protected app checks in on the device; the\n  wipe is not instantaneous.\n- Pending wipe requests can be monitored and cancelled in the Intune portal under\n  *Apps > App selective wipe*.\n- Only app data protected by app protection policies (MAM) is affected. The device object itself\n  is not touched: it remains in EntraID (and in Intune/Autopilot, if it is additionally\n  MDM-enrolled). To disable or remove the device there as well, run the **Outphase Device**\n  runbook (Device \\ General) afterwards; for a full wipe of MDM-enrolled devices use\n  **Wipe Device**.\n",
+    "DocsContentEncoded": "IyMgRGV2aWNlIG1hdGNoaW5nCgpNQU0gYXBwIHJlZ2lzdHJhdGlvbnMgYmVsb25nIHRvIGEgdXNlciwgbm90IHRvIGEgZGV2aWNlIG9iamVjdC4gVGhlIHJ1bmJvb2sgdGhlcmVmb3JlIHJlc29sdmVzIHRoZQp1c2VycyByZWdpc3RlcmVkIG9uIHRoZSBkZXZpY2UgYW5kIG1hdGNoZXMgdGhlaXIgYXBwIHJlZ2lzdHJhdGlvbnMgYWdhaW5zdCB0aGUgZGV2aWNlJ3MgRW50cmFJRApkZXZpY2UgaWQgKGBhenVyZUFERGV2aWNlSWRgKS4gUmVnaXN0cmF0aW9ucyB3aXRob3V0IGFuIEVudHJhSUQgZGV2aWNlIGlkIGFyZSBtYXRjaGVkIGJ5IHRoZQpkZXZpY2UncyBkaXNwbGF5IG5hbWUgYXMgZmFsbGJhY2s7IHRoZSBydW5ib29rIG91dHB1dCBpbmRpY2F0ZXMgd2hlbiB0aGlzIGZhbGxiYWNrIHdhcyB1c2VkLgoKIyMgV2lwZSBiZWhhdmlvcgoKLSBUaGUgY29tcGFueSBhcHAgZGF0YSBpcyByZW1vdmVkIHRoZSBuZXh0IHRpbWUgZWFjaCBwcm90ZWN0ZWQgYXBwIGNoZWNrcyBpbiBvbiB0aGUgZGV2aWNlOyB0aGUKICB3aXBlIGlzIG5vdCBpbnN0YW50YW5lb3VzLgotIFBlbmRpbmcgd2lwZSByZXF1ZXN0cyBjYW4gYmUgbW9uaXRvcmVkIGFuZCBjYW5jZWxsZWQgaW4gdGhlIEludHVuZSBwb3J0YWwgdW5kZXIKICAqQXBwcyA+IEFwcCBzZWxlY3RpdmUgd2lwZSouCi0gT25seSBhcHAgZGF0YSBwcm90ZWN0ZWQgYnkgYXBwIHByb3RlY3Rpb24gcG9saWNpZXMgKE1BTSkgaXMgYWZmZWN0ZWQuIFRoZSBkZXZpY2Ugb2JqZWN0IGl0c2VsZgogIGlzIG5vdCB0b3VjaGVkOiBpdCByZW1haW5zIGluIEVudHJhSUQgKGFuZCBpbiBJbnR1bmUvQXV0b3BpbG90LCBpZiBpdCBpcyBhZGRpdGlvbmFsbHkKICBNRE0tZW5yb2xsZWQpLiBUbyBkaXNhYmxlIG9yIHJlbW92ZSB0aGUgZGV2aWNlIHRoZXJlIGFzIHdlbGwsIHJ1biB0aGUgKipPdXRwaGFzZSBEZXZpY2UqKgogIHJ1bmJvb2sgKERldmljZSBcIEdlbmVyYWwpIGFmdGVyd2FyZHM7IGZvciBhIGZ1bGwgd2lwZSBvZiBNRE0tZW5yb2xsZWQgZGV2aWNlcyB1c2UKICAqKldpcGUgRGV2aWNlKiouCg==",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"DeviceManagementApps.ReadWrite.All\",\n                \"Device.Read.All\",\n                \"User.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Intune Administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Device.Read.All",
+            "DeviceManagementApps.ReadWrite.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [
+        "Intune Administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Check Defender Status",
     "RunbookDisplayPath": "Device \\ Security \\ Check Defender Status",
     "RelativeRunbookPath": "device/security/check-defender-status.ps1",

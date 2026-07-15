@@ -16,6 +16,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Set Primary User | Set a new primary user on a managed Intune device |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 |  |  | Wipe Device | Wipe a Windows or MacOS device |
+|  |  | Wipe Managed App Data | App selective wipe - remove company app data from this MAM device |
 |  | Security | Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
 |  |  | Enable Or Disable Device | Enable or disable a device in Entra ID |
 |  |  | Isolate Or Release Device | Isolate this device. |

@@ -64,6 +64,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | macOsRecoveryCode |  | String | MacOS-only. Recovery code for older devices; newer devices may not require this. |
 |  |  |  |  |  |  | macOsObliterationBehavior |  | String | MacOS-only. Controls the OS obliteration behavior during wipe. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Wipe Managed App Data | App selective wipe - remove company app data from this MAM device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- Device.Read.All<br>&emsp;- User.Read.All<br> | - Intune Administrator<br> | DeviceId | ✓ | String | The device ID of the target device. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  | Security | Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>- **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br> |  | DeviceId | ✓ | String | The Entra device ID of the target device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Enable Or Disable Device | Enable or disable a device in Entra ID | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br> | - Cloud device administrator<br> | DeviceId | ✓ | String | The device ID of the target device. |

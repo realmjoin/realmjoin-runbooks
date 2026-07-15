@@ -27,6 +27,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Set Primary User
     - Unenroll Updatable Assets
     - Wipe Device
+    - Wipe Managed App Data
   - [Security](#device-security)
     - Check Defender Status
     - Enable Or Disable Device
@@ -224,6 +225,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Set Primary User | Set a new primary user on a managed Intune device |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
+| Wipe Managed App Data | App selective wipe - remove company app data from this MAM device |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
