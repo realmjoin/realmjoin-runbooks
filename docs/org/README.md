@@ -23,11 +23,11 @@
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
-  - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
+  - [Report Devices Without Primary User (Scheduled)](devices/report-devices-without-primary-user_scheduled.md)
   - [Report Primary User Mismatch (Scheduled)](devices/report-primary-user-mismatch_scheduled.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
-  - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
-  - [Report Windows Devices Without Autopilot](devices/report-windows-devices-without-autopilot.md)
+  - [Report Users With More Than 5-Devices (Scheduled)](devices/report-users-with-more-than-5-devices_scheduled.md)
+  - [Report Windows Devices Without Autopilot (Scheduled)](devices/report-windows-devices-without-autopilot_scheduled.md)
   - [Sync Device Serialnumbers To Entraid (Scheduled)](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
 <a name='org-general'></a>
 ## General

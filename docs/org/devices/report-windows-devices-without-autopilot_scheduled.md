@@ -1,4 +1,4 @@
-# Report Windows Devices Without Autopilot
+# Report Windows Devices Without Autopilot (Scheduled)
 
 Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
@@ -15,7 +15,7 @@ Optionally, the report CSV can be uploaded to an Azure Storage Account (returnin
 download link) and/or sent via email with the CSV attached.
 
 ## Where to find
-Org \ Devices \ Report Windows Devices Without Autopilot
+Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 ## Reporting orphaned Windows devices
 

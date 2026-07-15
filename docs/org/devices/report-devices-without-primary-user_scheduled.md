@@ -1,4 +1,4 @@
-# Report Devices Without Primary User
+# Report Devices Without Primary User (Scheduled)
 
 Reports all managed devices in Intune that do not have a primary user assigned.
 
@@ -9,7 +9,7 @@ The output is a formatted table showing Object ID, Device ID, Display Name, and 
 Optionally, the report can be sent via email with a CSV attachment containing detailed device information
 
 ## Where to find
-Org \ Devices \ Report Devices Without Primary User
+Org \ Devices \ Report Devices Without Primary User_Scheduled
 
 ## Setup regarding email sending
 

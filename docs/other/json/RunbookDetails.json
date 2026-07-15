@@ -6656,9 +6656,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Report Devices Without Primary User",
-    "RunbookDisplayPath": "Org \\ Devices \\ Report Devices Without Primary User",
-    "RelativeRunbookPath": "org/devices/report-devices-without-primary-user.ps1",
+    "RunbookDisplayName": "Report Devices Without Primary User_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Devices Without Primary User_Scheduled",
+    "RelativeRunbookPath": "org/devices/report-devices-without-primary-user_scheduled.ps1",
     "RelativeRunbookPath_PathOnly": "org/devices",
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
@@ -7209,9 +7209,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Report Users With More Than 5-Devices",
-    "RunbookDisplayPath": "Org \\ Devices \\ Report Users With More Than 5-Devices",
-    "RelativeRunbookPath": "org/devices/report-users-with-more-than-5-devices.ps1",
+    "RunbookDisplayName": "Report Users With More Than 5-Devices_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Users With More Than 5-Devices_Scheduled",
+    "RelativeRunbookPath": "org/devices/report-users-with-more-than-5-devices_scheduled.ps1",
     "RelativeRunbookPath_PathOnly": "org/devices",
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
@@ -7290,9 +7290,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Report Windows Devices Without Autopilot",
-    "RunbookDisplayPath": "Org \\ Devices \\ Report Windows Devices Without Autopilot",
-    "RelativeRunbookPath": "org/devices/report-windows-devices-without-autopilot.ps1",
+    "RunbookDisplayName": "Report Windows Devices Without Autopilot_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Windows Devices Without Autopilot_Scheduled",
+    "RelativeRunbookPath": "org/devices/report-windows-devices-without-autopilot_scheduled.ps1",
     "RelativeRunbookPath_PathOnly": "org/devices",
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",

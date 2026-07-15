@@ -1,4 +1,4 @@
-# Report Users With More Than 5-Devices
+# Report Users With More Than 5-Devices (Scheduled)
 
 Report users with more than five registered devices
 
@@ -7,7 +7,7 @@ This runbook queries Entra ID devices and their registered users to identify use
 It outputs a summary table and can optionally send an email with CSV attachments.
 
 ## Where to find
-Org \ Devices \ Report Users With More Than 5-Devices
+Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
 
 ## Setup regarding email sending
 

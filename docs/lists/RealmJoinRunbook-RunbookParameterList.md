@@ -78,11 +78,11 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
-    - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
+    - [Report Devices Without Primary User (Scheduled)](#organization-devices-report-devices-without-primary-user-scheduled)
     - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
-    - [Report Users With More Than 5-Devices](#organization-devices-report-users-with-more-than-5-devices)
-    - [Report Windows Devices Without Autopilot](#organization-devices-report-windows-devices-without-autopilot)
+    - [Report Users With More Than 5-Devices (Scheduled)](#organization-devices-report-users-with-more-than-5-devices-scheduled)
+    - [Report Windows Devices Without Autopilot (Scheduled)](#organization-devices-report-windows-devices-without-autopilot-scheduled)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](#organization-devices-sync-device-serialnumbers-to-entraid-scheduled)
   - [General](#organization-general)
     - [Add Devices Of Users To Group (Scheduled)](#organization-general-add-devices-of-users-to-group-scheduled)
@@ -979,9 +979,9 @@ Remove or outphase multiple devices
 | defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-devices-without-primary-user'></a>
+<a name='organization-devices-report-devices-without-primary-user-scheduled'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 Reports all managed devices in Intune that do not have a primary user assigned.
 
 | Parameter | Required | Type | Description |
@@ -1030,9 +1030,9 @@ Scheduled report of stale devices based on last activity date and platform.
 | EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-users-with-more-than-5-devices'></a>
+<a name='organization-devices-report-users-with-more-than-5-devices-scheduled'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 Report users with more than five registered devices
 
 | Parameter | Required | Type | Description |
@@ -1041,9 +1041,9 @@ Report users with more than five registered devices
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-windows-devices-without-autopilot'></a>
+<a name='organization-devices-report-windows-devices-without-autopilot-scheduled'></a>
 
-### Report Windows Devices Without Autopilot
+### Report Windows Devices Without Autopilot (Scheduled)
 Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
 | Parameter | Required | Type | Description |

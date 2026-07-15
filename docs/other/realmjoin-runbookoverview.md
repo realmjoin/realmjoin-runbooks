@@ -79,11 +79,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
-      - [Report Devices Without Primary User](#report-devices-without-primary-user)
+      - [Report Devices Without Primary User (Scheduled)](#report-devices-without-primary-user-(scheduled))
       - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
-      - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
-      - [Report Windows Devices Without Autopilot](#report-windows-devices-without-autopilot)
+      - [Report Users With More Than 5-Devices (Scheduled)](#report-users-with-more-than-5-devices-(scheduled))
+      - [Report Windows Devices Without Autopilot (Scheduled)](#report-windows-devices-without-autopilot-(scheduled))
       - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
       - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
@@ -1586,9 +1586,9 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
  
  
 
-<a name='org-devices-report-devices-without-primary-user'></a>
+<a name='org-devices-report-devices-without-primary-user-(scheduled)'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 #### Reports all managed devices in Intune that do not have a primary user assigned.
 
 #### Description
@@ -1600,7 +1600,7 @@ Optionally, the report can be sent via email with a CSV attachment containing de
 
 #### Where to find
 
-Org \ Devices \ Report Devices Without Primary User
+Org \ Devices \ Report Devices Without Primary User_Scheduled
 
 ## Setup regarding email sending
 
@@ -1686,9 +1686,9 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
  
  
 
-<a name='org-devices-report-users-with-more-than-5-devices'></a>
+<a name='org-devices-report-users-with-more-than-5-devices-(scheduled)'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 #### Report users with more than five registered devices
 
 #### Description
@@ -1698,7 +1698,7 @@ It outputs a summary table and can optionally send an email with CSV attachments
 
 #### Where to find
 
-Org \ Devices \ Report Users With More Than 5-Devices
+Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
 
 ## Setup regarding email sending
 
@@ -1715,9 +1715,9 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
  
  
 
-<a name='org-devices-report-windows-devices-without-autopilot'></a>
+<a name='org-devices-report-windows-devices-without-autopilot-(scheduled)'></a>
 
-### Report Windows Devices Without Autopilot
+### Report Windows Devices Without Autopilot (Scheduled)
 #### Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
 #### Description
@@ -1735,7 +1735,7 @@ download link) and/or sent via email with the CSV attached.
 
 #### Where to find
 
-Org \ Devices \ Report Windows Devices Without Autopilot
+Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 ## Reporting orphaned Windows devices
 
