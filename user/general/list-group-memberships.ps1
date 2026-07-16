@@ -1055,6 +1055,10 @@ if ($SendMail -and $csvFilePath) {
 - Groups matching the selected filters: **$($reportData.Count)**
 
 Details are attached as CSV and Excel files for your review.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
     try {

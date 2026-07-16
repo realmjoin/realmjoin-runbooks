@@ -309,6 +309,10 @@ if ($SendMail -and $csvFilePath) {
 - Groups owned by the user: **$($reportData.Count)**
 
 Details are attached as a CSV file for your review.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
     try {
