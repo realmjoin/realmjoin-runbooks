@@ -2,6 +2,14 @@
 
 ## 2026-07-16
 
+- Add **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
+  - Synchronizes an Entra ID group with all member users that have at least one "secure" MFA method registered, based on the Entra authentication methods registration report (`userRegistrationDetails`)
+  - Secure method groups are configurable via toggles: Passkeys/FIDO2, platform credentials (Windows Hello for Business / macOS Secure Enclave), Microsoft Authenticator app, software OTP, hardware OTP and certificate-based authentication
+  - Optional strict mode (`SecureOnly`): users that also have an unsecure method registered (phone, email, security questions) never qualify and are removed from the group
+  - Hidden expert parameters allow fully custom comma-separated secure/unsecure method lists; a companion documentation page lists every known `methodsRegistered` value with its classification
+  - Optional email report (`SendEmail`, disabled by default; the recipient field only appears when enabled) and optional download links (`CreateDownloadLink`, disabled by default, uses the `RJReport.*` tenant settings); report files (CSV and Excel) are only generated when one of the two options is enabled
+  - Large-tenant safe email delivery: when the CSV files exceed the email attachment size budget, the mail is sent with only the Excel workbook attached (complete data in compressed form) and a corresponding note; a failed full-size send is retried automatically with the workbook only
+  - The Excel report (via `Export-RjRbXlsx`) contains an "Info" cover sheet with the chosen parameters and result counts, a "Changes" worksheet (added users highlighted in green, removed in red) and an "All Users" worksheet with the per-user method evaluation
 - Introduce the inline helper function `Export-RjRbXlsx` - a dependency-free Excel (xlsx) report writer (pure .NET, no additional PowerShell modules required) - and use it in **Report Devices Without Primary User (Scheduled)** (Org/Devices), **Report Users With More Than 5 Devices (Scheduled)** (Org/Devices) and **List Group Memberships** (User/General)
   - The reports are now additionally exported as a formatted Excel workbook - attached to the report email and included in the storage upload alongside the CSV files
   - Typed cells: .NET numbers and dates as well as ISO-8601 date strings become real, sortable Excel values (localized by the client); serial numbers, IMEIs and other IDs always stay text and formula injection is not possible; http/https URLs become clickable hyperlinks
