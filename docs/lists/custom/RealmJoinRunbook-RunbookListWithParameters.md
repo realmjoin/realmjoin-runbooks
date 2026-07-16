@@ -243,6 +243,12 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
 |  |  |  |  |  |  | OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
 |  |  |  |  |  |  | WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+|  |  |  |  |  |  | ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
 |  |  |  |  |  |  | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |

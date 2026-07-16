@@ -5401,7 +5401,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Auto-approve new driver updates in Intune driver update policies",
-    "Description": "This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.",
+    "Description": "This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.\nThe notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).\nThe report files can also be uploaded to an Azure Storage Account, returning time-limited download links.\nThe ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).\nWhen the CSV attachment exceeds the email size limit and \"CSV & XLSX\" is selected, the email falls back to the Excel workbook alone.",
     "Notes": "Prerequisites:\n- Microsoft Graph BETA API access (driver update endpoints are in beta)\n- RJReport.EmailSender setting configured (if email notifications are used)\n\nCommon Use Cases:\n- Test filters first: Use WhatIf parameter to preview which drivers would be approved\n- Auto-approve all drivers: Run without any filter parameters\n- Approve specific manufacturers: Use DriverManufacturer to target vendors like \"Intel\" or \"AMD\"\n- Target specific policies: Use PolicyNames or PolicyIds to scope to test policies first\n- Monitor approvals: Configure EmailTo to receive detailed reports after each run\n\nParameter Interactions:\n- If no policy filter is specified, ALL driver update policies are processed\n- If no driver filter is specified, ALL pending drivers in selected policies are approved\n- PolicyNames and PolicyIds can be combined - both filters apply independently\n- Email notifications require RJReport.EmailSender setting and Connect-RjRbGraph\n- WhatIf mode simulates approvals without making changes - useful for testing filters",
     "Parameters": [
       {
@@ -5415,10 +5415,44 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "16",
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "auto-approve-driver-updates",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -5483,7 +5517,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
@@ -5500,10 +5534,27 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "Int32"
         }
       },
       {
@@ -5569,6 +5620,57 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Controls which report file formats are generated and delivered: \"CSV only\", \"CSV & XLSX\" (default) or \"XLSX only\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"

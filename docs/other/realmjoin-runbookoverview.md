@@ -1359,6 +1359,10 @@ Org \ Devices \ Add Device Via Corporate Identifier
 #### Description
 
 This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+The notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
