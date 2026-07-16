@@ -179,6 +179,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Monitor Pending EPM Requests (Scheduled)](docs/org/security/monitor-pending-epm-requests_scheduled.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
+    - [Sync MFA Secure Users To Group (Scheduled)](docs/org/security/sync-mfa-secure-users-to-group_scheduled.md)
 - [User](docs/user/README.md)
   - [AVD](docs/user/README.md#user-avd)
 

@@ -738,6 +738,26 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | MaxAgeInDays |  | Int32 | Filter requests created within the last X days (default: 30).<br>Note: Request details are retained in Intune for 30 days after creation. |
 |  |  |  |  |  |  | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  | Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send<br> |  | TargetGroupId | ✓ | String | The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook. |
+|  |  |  |  |  |  | IncludePasskeys |  | Boolean | Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDeviceBound, passKeyDeviceBoundAuthenticator). |
+|  |  |  |  |  |  | IncludePlatformCredentials |  | Boolean | Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoundWindowsHello, macOsSecureEnclaveKey). |
+|  |  |  |  |  |  | IncludeMicrosoftAuthenticator |  | Boolean | Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, microsoftAuthenticatorPasswordless). |
+|  |  |  |  |  |  | IncludeSoftwareOtp |  | Boolean | Count software OTP / authenticator TOTP apps as secure (softwareOneTimePasscode). |
+|  |  |  |  |  |  | IncludeHardwareOtp |  | Boolean | Count hardware OTP tokens as secure (hardwareOneTimePasscode). |
+|  |  |  |  |  |  | IncludeCertificateBasedAuth |  | Boolean | Count certificate-based authentication as secure (certificateBasedAuthentication). |
+|  |  |  |  |  |  | SecureOnly |  | Boolean | Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member. |
+|  |  |  |  |  |  | SecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values. |
+|  |  |  |  |  |  | UnsecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly). |
+|  |  |  |  |  |  | WhatIfMode |  | Boolean | Dry run: log which users would be added or removed without changing the group. |
+|  |  |  |  |  |  | SendEmail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default. |
+|  |  |  |  |  |  | EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 | User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. | Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool<br> |  | UserName | ✓ | String | The username (UPN) of the user to sign out from their AVD session. Hidden in UI. |
 |  |  |  |  |  |  | SubscriptionIds | ✓ | String Array | Array of Azure subscription IDs where the AVD resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes |

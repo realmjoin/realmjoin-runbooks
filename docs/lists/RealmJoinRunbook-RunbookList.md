@@ -150,6 +150,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Monitor Pending EPM Requests (Scheduled)
     - Notify Changed CA Policies
     - Report EPM Elevation Requests (Scheduled)
+    - Sync MFA Secure Users To Group (Scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - User Signout
@@ -416,6 +417,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests |
 | Notify Changed CA Policies | Send notification email if Conditional Access policies have been created or modified in the last 24 hours. |
 | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests |
+| Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
