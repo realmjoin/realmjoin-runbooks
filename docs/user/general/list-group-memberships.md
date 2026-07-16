@@ -82,7 +82,7 @@ Filter groups by writeback enablement.
 | Type | String |
 
 ### SendMail
-If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field.
+If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Toggling this on reveals the recipient address field.
 
 | Property | Value |
 |----------|-------|
@@ -109,7 +109,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output.
+If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output.
 
 | Property | Value |
 |----------|-------|

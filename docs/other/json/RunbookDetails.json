@@ -6663,7 +6663,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Reports all managed devices in Intune that do not have a primary user assigned.",
-    "Description": "This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).\nThe output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.\nThe report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.\n\nOptionally, the report can be sent via email with a CSV attachment containing detailed device information.\nThe report CSV can also be uploaded to an Azure Storage Account, returning a time-limited download link.",
+    "Description": "This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).\nThe output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.\nThe report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.\n\nOptionally, the report can be sent via email with CSV and Excel (xlsx) attachments containing detailed device information.\nThe report files can also be uploaded to an Azure Storage Account, returning time-limited download links.",
     "Notes": null,
     "Parameters": [
       {
@@ -7386,7 +7386,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Report users with more than five registered devices",
-    "Description": "This runbook queries Entra ID devices and their registered users to identify users with more than five devices.\nIt outputs a summary table and can optionally send an email with CSV attachments.\nThe detailed CSV export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device.\nThe report CSV files can also be uploaded to an Azure Storage Account, returning time-limited download links.",
+    "Description": "This runbook queries Entra ID devices and their registered users to identify users with more than five devices.\nIt outputs a summary table and can optionally send an email with the report attached as CSV files and as an Excel workbook (one worksheet for the summary, one for the details).\nThe detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device (highlighted green/red in the Excel workbook).\nThe report files can also be uploaded to an Azure Storage Account, returning time-limited download links.",
     "Notes": null,
     "Parameters": [
       {
@@ -16891,7 +16891,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output."
+            "Text": "If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output."
           }
         ],
         "globbing": "false",
@@ -17027,7 +17027,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field."
+            "Text": "If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Toggling this on reveals the recipient address field."
           }
         ],
         "globbing": "false",

@@ -7,8 +7,8 @@ This script retrieves all managed devices from Intune, and filters out those wit
 The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
 The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information.
-The report CSV can also be uploaded to an Azure Storage Account, returning a time-limited download link.
+Optionally, the report can be sent via email with CSV and Excel (xlsx) attachments containing detailed device information.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 ## Where to find
 Org \ Devices \ Report Devices Without Primary User_Scheduled

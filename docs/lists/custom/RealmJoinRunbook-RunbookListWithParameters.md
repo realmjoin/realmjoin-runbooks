@@ -771,10 +771,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | TeamsEnabled |  | String | Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default). |
 |  |  |  |  |  |  | Source |  | String | Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default). |
 |  |  |  |  |  |  | WritebackEnabled |  | String | Filter groups by writeback enablement. |
-|  |  |  |  |  |  | SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+|  |  |  |  |  |  | SendMail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Toggling this on reveals the recipient address field. |
 |  |  |  |  |  |  | EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
-|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. |

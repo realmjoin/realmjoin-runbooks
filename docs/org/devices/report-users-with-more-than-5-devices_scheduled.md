@@ -4,9 +4,9 @@ Report users with more than five registered devices
 
 ## Detailed description
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-It outputs a summary table and can optionally send an email with CSV attachments.
-The detailed CSV export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device.
-The report CSV files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+It outputs a summary table and can optionally send an email with the report attached as CSV files and as an Excel workbook (one worksheet for the summary, one for the details).
+The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device (highlighted green/red in the Excel workbook).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 ## Where to find
 Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
