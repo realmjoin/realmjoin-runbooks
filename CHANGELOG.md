@@ -2,6 +2,19 @@
 
 ## 2026-07-16
 
+- Extend the Excel (xlsx) report writer to all modern report runbooks (17 runbooks):
+  - Org/Applications: **Export Enterprise Application Users**, **Report Application Registration**, **Report Expiring Application Credentials (Scheduled)**
+  - Org/Devices: **Cleanup Autopilot Devices (Scheduled)**, **Report Devices Without Primary User (Scheduled)**, **Report Primary User Mismatch (Scheduled)**, **Report Stale Devices (Scheduled)**, **Report Users With More Than 5 Devices (Scheduled)**, **Report Windows Devices Without Autopilot (Scheduled)**
+  - Org/General: **Report License Assignment (Scheduled)**, **Sync Channel Or Group Members (Scheduled)**, **Sync Shared Channel Owners (Scheduled)**
+  - Org/Security: **Monitor Pending EPM Requests (Scheduled)**, **Report EPM Elevation Requests (Scheduled)**, **Sync MFA Secure Users To Group (Scheduled)**
+  - User/General: **List Group Memberships**, **List Group Ownerships**
+  - Every report runbook now delivers its data as CSV and/or as a formatted Excel workbook; runbooks with multiple result sets (Report Application Registration, Report Users With More Than 5 Devices, Sync Shared Channel Owners, Sync MFA Secure Users To Group) deliver a single workbook with one worksheet per result set and an "Info" cover worksheet
+  - Add a **report file format selection** ("CSV only" / "CSV & XLSX" / "XLSX only", default "CSV & XLSX") that controls which files are generated, attached to the report email and uploaded to the storage account; shown when the email or download link option is enabled
+  - Add the **storage download link option** (`CreateDownloadLink` with the `RJReport.StorageAccount.*` settings) to the report runbooks that only supported email delivery so far: Report EPM Elevation Requests, Monitor Pending EPM Requests, Report License Assignment, Report Application Registration, Report Expiring Application Credentials, Cleanup Autopilot Devices, Report Stale Devices and Report Primary User Mismatch
+  - Add the **email report option** to **Export Enterprise Application Users** (previously storage-only) and rework its report generation from hand-built CSV strings to typed objects
+  - Add an **attachment size guard** to every report email (new inline helper `Send-RjRbGuardedReportEmail`, planned to be absorbed into `Send-RjReportEmail` in the RealmJoin.RunbookHelper module): with "CSV & XLSX" the email automatically falls back to the Excel workbook alone when the attachments exceed the email size limit (~4 MB Graph sendMail request limit), with a retry safety net; with "CSV only" or "XLSX only" a failed send raises a clear error pointing to the other formats and the download link option
+  - Runbooks that previously required a recipient address (EPM reports, Report License Assignment, Report Application Registration) now also run with the download link option alone
+
 - Add **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
   - Synchronizes an Entra ID group with all member users that have at least one "secure" MFA method registered, based on the Entra authentication methods registration report (`userRegistrationDetails`)
   - Secure method groups are configurable via toggles: Passkeys/FIDO2, platform credentials (Windows Hello for Business / macOS Secure Enclave), Microsoft Authenticator app, software OTP, hardware OTP and certificate-based authentication

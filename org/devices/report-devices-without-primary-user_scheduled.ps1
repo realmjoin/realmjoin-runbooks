@@ -6,8 +6,10 @@
     The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
     The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-    Optionally, the report can be sent via email with CSV and Excel (xlsx) attachments containing detailed device information.
+    Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing detailed device information.
     The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
     .PARAMETER IncludeWindows
     Include Windows devices in the report. Enabled by default.
@@ -24,8 +26,11 @@
     .PARAMETER IncludeOther
     Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default.
 
+    .PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
     .PARAMETER CreateDownloadLink
-    If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. Disabled by default.
+    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
 
     .PARAMETER ContainerName
     Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
@@ -67,6 +72,26 @@
             },
             "IncludeOther": {
                 "DisplayName": "Include Other Devices (e.g. Linux, ChromeOS)"
+            },
+            "ReportFileFormat": {
+                "DisplayName": "Report file format",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
+                }
             },
             "CreateDownloadLink": {
                 "DisplayName": "Create a file download link (upload report to storage)?",
@@ -115,6 +140,9 @@ param (
 
     [bool]$IncludeOther = $true,
 
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string]$ReportFileFormat = 'CSV & XLSX',
+
     [bool]$CreateDownloadLink = $false,
 
     [string]$ContainerName = "devices-without-primary-user",
@@ -150,7 +178,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.6.0"
+$Version = "1.7.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "IncludeWindows: $IncludeWindows" -Verbose
 Write-RjRbLog -Message "IncludeMacOS: $IncludeMacOS" -Verbose
@@ -161,6 +189,7 @@ if ($EmailTo) {
     Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
     Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 }
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
@@ -844,6 +873,154 @@ function Export-RjRbXlsx {
     }
 }
 
+function Send-RjRbGuardedReportEmail {
+    <#
+        .SYNOPSIS
+        Sends a report email via Send-RjReportEmail with an attachment size guard.
+
+        .DESCRIPTION
+        Wraps Send-RjReportEmail: when the attachments are likely to exceed the Graph sendMail
+        request limit (~4 MB total; attachments count base64-encoded, +33%), the email is sent
+        with a smaller fallback attachment set instead. If the send fails anyway, one retry with
+        the fallback set is attempted before failing hard with an actionable error message.
+
+        The function is content-agnostic - which files form the regular and the fallback set
+        (e.g. all files vs. only the Excel workbook) is decided by the caller.
+
+        NOTE: This logic is planned to move into Send-RjReportEmail in the
+        RealmJoin.RunbookHelper module. Until then it is duplicated inline in the runbooks.
+
+        .PARAMETER EmailFrom
+        Sender address, passed through to Send-RjReportEmail.
+
+        .PARAMETER EmailTo
+        Recipient address(es), passed through to Send-RjReportEmail.
+
+        .PARAMETER Subject
+        Mail subject, passed through to Send-RjReportEmail.
+
+        .PARAMETER MarkdownContent
+        Mail body (Markdown) used when the regular attachment set is sent.
+
+        .PARAMETER Attachments
+        The regular attachment set (file paths). May be empty for a text-only mail.
+
+        .PARAMETER FallbackAttachments
+        Optional smaller attachment set used when the regular set exceeds the size budget or
+        its send attempt fails. Without this parameter there is no fallback - a failed send
+        throws immediately.
+
+        .PARAMETER FallbackMarkdownContent
+        Mail body (Markdown) used when the fallback attachment set is sent.
+
+        .PARAMETER MaxAttachmentBytes
+        Raw size budget for the regular attachment set (default 2.5MB - stays safely below
+        the ~4 MB Graph sendMail request limit after base64 encoding and HTML body overhead).
+
+        .PARAMETER TenantDisplayName
+        Tenant name for the report footer, passed through to Send-RjReportEmail.
+
+        .PARAMETER ReportVersion
+        Runbook version for the report footer, passed through to Send-RjReportEmail.
+
+        .PARAMETER UseNativeGraphRequest
+        Passed through to Send-RjReportEmail.
+
+        .EXAMPLE
+        PS C:\> Send-RjRbGuardedReportEmail -EmailFrom $from -EmailTo $to -Subject $subject `
+                    -MarkdownContent $md -Attachments ($csvFiles + $xlsxPath) `
+                    -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $mdFallback `
+                    -TenantDisplayName $tenant -ReportVersion $Version
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$EmailFrom,
+
+        [Parameter(Mandatory = $true)]
+        [string]$EmailTo,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Subject,
+
+        [Parameter(Mandatory = $true)]
+        [string]$MarkdownContent,
+
+        [AllowEmptyCollection()]
+        [string[]]$Attachments = @(),
+
+        [string[]]$FallbackAttachments,
+
+        [string]$FallbackMarkdownContent,
+
+        [long]$MaxAttachmentBytes = 2.5MB,
+
+        [string]$TenantDisplayName,
+
+        [string]$ReportVersion,
+
+        [switch]$UseNativeGraphRequest
+    )
+
+    $baseParams = @{
+        EmailFrom = $EmailFrom
+        EmailTo   = $EmailTo
+        Subject   = $Subject
+    }
+    if ($TenantDisplayName) { $baseParams.TenantDisplayName = $TenantDisplayName }
+    if ($ReportVersion) { $baseParams.ReportVersion = $ReportVersion }
+    if ($UseNativeGraphRequest) { $baseParams.UseNativeGraphRequest = $true }
+
+    $sizeLimitHint = "If the attachments exceed the email size limit, choose a different report file format or enable the download link option (CreateDownloadLink) to deliver the files."
+
+    $attachments = @($Attachments | Where-Object { $_ })
+    $hasFallback = ($null -ne $FallbackAttachments) -and (@($FallbackAttachments | Where-Object { $_ }).Count -gt 0)
+
+    # Graph sendMail rejects the whole request at ~4 MB; attachments count base64-encoded (+33%),
+    # plus HTML body and inline header image. Above this raw budget the fallback set is sent directly.
+    $useFallback = $false
+    if ($hasFallback -and $attachments.Count -gt 0) {
+        $totalBytes = ($attachments | ForEach-Object { (Get-Item -LiteralPath $_).Length } | Measure-Object -Sum).Sum
+        if (-not $totalBytes) { $totalBytes = 0 }
+        if ($totalBytes -gt $MaxAttachmentBytes) {
+            $useFallback = $true
+            Write-Output "The attachments total $([math]::Round($totalBytes / 1MB, 2)) MB and exceed the email attachment budget of $([math]::Round($MaxAttachmentBytes / 1MB, 2)) MB - sending the reduced attachment set instead."
+        }
+    }
+
+    try {
+        if ($useFallback) {
+            Send-RjReportEmail @baseParams -MarkdownContent $FallbackMarkdownContent -Attachments $FallbackAttachments
+            Write-Output "Email report sent successfully to: $EmailTo (reduced attachment set - the full set exceeds the email size limit)"
+        }
+        elseif ($attachments.Count -gt 0) {
+            Send-RjReportEmail @baseParams -MarkdownContent $MarkdownContent -Attachments $attachments
+            Write-Output "Email report sent successfully to: $EmailTo"
+        }
+        else {
+            Send-RjReportEmail @baseParams -MarkdownContent $MarkdownContent
+            Write-Output "Email report sent successfully to: $EmailTo"
+        }
+    }
+    catch {
+        # Safety net: retry once with the fallback set if the full set was just attempted
+        if ($useFallback -or -not $hasFallback -or $attachments.Count -eq 0) {
+            Write-Error "Failed to send email report: $($_.Exception.Message). $sizeLimitHint"
+            throw
+        }
+
+        Write-Output "Sending the email with all attachments failed: $($_.Exception.Message)"
+        Write-Output "Retrying with the reduced attachment set..."
+        try {
+            Send-RjReportEmail @baseParams -MarkdownContent $FallbackMarkdownContent -Attachments $FallbackAttachments
+            Write-Output "Email report sent successfully to: $EmailTo (reduced attachment set - the first attempt with all attachments failed)"
+        }
+        catch {
+            Write-Error "Failed to send email report (retry with the reduced attachment set also failed): $($_.Exception.Message). $sizeLimitHint"
+            throw
+        }
+    }
+}
+
 #endregion
 
 ####################################################################
@@ -944,6 +1121,7 @@ else {
 
 $totalDevices = ($devicesWithoutPrimaryUser | Measure-Object).Count
 $reportFiles = @()
+$xlsxPath = $null
 $tempDir = $null
 $fileName_Details = "devices-without-primary-user.csv"
 $fileName_DetailsXlsx = "devices-without-primary-user.xlsx"
@@ -953,16 +1131,19 @@ if (($CreateDownloadLink -or $EmailTo) -and $totalDevices -gt 0) {
 
     $sortedDevices = $devicesWithoutPrimaryUser | Sort-Object DisplayName
 
-    $csvPath = Join-Path $tempDir.FullName $fileName_Details
-    $sortedDevices | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
-    $reportFiles += $csvPath
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvPath = Join-Path $tempDir.FullName $fileName_Details
+        $sortedDevices | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+        $reportFiles += $csvPath
+        Write-Output "Exported devices to: $csvPath"
+    }
 
-    $xlsxPath = Join-Path $tempDir.FullName $fileName_DetailsXlsx
-    $sortedDevices | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Devices"
-    $reportFiles += $xlsxPath
-
-    Write-Output "Exported devices to: $csvPath"
-    Write-Output "Exported devices to: $xlsxPath"
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxPath = Join-Path $tempDir.FullName $fileName_DetailsXlsx
+        $sortedDevices | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Devices"
+        $reportFiles += $xlsxPath
+        Write-Output "Exported devices to: $xlsxPath"
+    }
 }
 
 #endregion
@@ -1089,10 +1270,10 @@ For devices that are legitimately shared:
 
 ## Data Files
 
-The following files are attached to this email:
+The following file(s) are attached to this email:
 
-- **$($fileName_Details)**: Complete list of all devices without primary user assignment (CSV)
-- **$($fileName_DetailsXlsx)**: The same list as a formatted Excel workbook
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$($fileName_Details)**: Complete list of all devices without primary user assignment (CSV)" })
+$(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_DetailsXlsx)**: The same list as a formatted Excel workbook" })
 
 ---
 
@@ -1103,16 +1284,48 @@ The following files are attached to this email:
         $emailSubject = "Devices Without Primary User Report - $totalDevices Device(s) Found"
     }
 
-    # Send email
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSVs are too large)
     try {
         if ($($reportFiles | Measure-Object).Count -gt 0) {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -Attachments $reportFiles -TenantDisplayName $TenantDisplayName -ReportVersion $Version
+            $markdownFallback = @"
+# Devices Without Primary User Report
+
+## Executive Summary
+
+This report identifies **$($totalDevices) managed device(s)** in your Intune tenant that do not have a primary user assigned.
+
+**Included platforms:** $($enabledPlatforms -join ', ')
+
+## Data Files
+
+- **$($fileName_DetailsXlsx)**: Formatted Excel workbook with the complete device list
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+            $guardParams = @{
+                EmailFrom         = $EmailFrom
+                EmailTo           = $EmailTo
+                Subject           = $emailSubject
+                MarkdownContent   = $markdownContent
+                TenantDisplayName = $TenantDisplayName
+                ReportVersion     = $Version
+            }
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
+                Send-RjRbGuardedReportEmail @guardParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+            }
+            else {
+                Send-RjRbGuardedReportEmail @guardParams -Attachments $reportFiles
+            }
         }
         else {
             Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $TenantDisplayName -ReportVersion $Version
+            Write-Output "Email report sent successfully to: $EmailTo"
         }
-
-        Write-Output "Email report sent successfully to: $EmailTo"
     }
     catch {
         Write-Error "Failed to send email report: $($_.Exception.Message)"

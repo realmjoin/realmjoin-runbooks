@@ -4,17 +4,22 @@
 
     .DESCRIPTION
     This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-    It outputs a summary table and can optionally send an email with the report attached as CSV files and as an Excel workbook (one worksheet for the summary, one for the details).
+    It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
     The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device (highlighted green/red in the Excel workbook).
     The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+    When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 .PARAMETER IntuneOnlyDevices
     If enabled, only devices that are present in Intune (managed devices) are considered for the report.
     The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.
     Disabled by default.
 
+.PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
 .PARAMETER CreateDownloadLink
-    If enabled, the report CSV files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
 
 .PARAMETER ContainerName
     Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
@@ -44,6 +49,26 @@
         "Parameters": {
             "IntuneOnlyDevices": {
                 "DisplayName": "Only include devices present in Intune"
+            },
+            "ReportFileFormat": {
+                "DisplayName": "Report file format",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
+                }
             },
             "CreateDownloadLink": {
                 "DisplayName": "Create a file download link (upload report to storage)?",
@@ -84,6 +109,9 @@
 param (
     [bool]$IntuneOnlyDevices = $false,
 
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string]$ReportFileFormat = 'CSV & XLSX',
+
     [bool]$CreateDownloadLink = $false,
 
     [string]$ContainerName = "users-with-more-than-5-devices",
@@ -119,7 +147,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.7.0"
+$Version = "1.8.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "IntuneOnlyDevices: $IntuneOnlyDevices" -Verbose
 
@@ -128,6 +156,7 @@ if ($EmailTo) {
     Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
     Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
 }
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
@@ -788,6 +817,154 @@ function Export-RjRbXlsx {
     }
 }
 
+function Send-RjRbGuardedReportEmail {
+    <#
+        .SYNOPSIS
+        Sends a report email via Send-RjReportEmail with an attachment size guard.
+
+        .DESCRIPTION
+        Wraps Send-RjReportEmail: when the attachments are likely to exceed the Graph sendMail
+        request limit (~4 MB total; attachments count base64-encoded, +33%), the email is sent
+        with a smaller fallback attachment set instead. If the send fails anyway, one retry with
+        the fallback set is attempted before failing hard with an actionable error message.
+
+        The function is content-agnostic - which files form the regular and the fallback set
+        (e.g. all files vs. only the Excel workbook) is decided by the caller.
+
+        NOTE: This logic is planned to move into Send-RjReportEmail in the
+        RealmJoin.RunbookHelper module. Until then it is duplicated inline in the runbooks.
+
+        .PARAMETER EmailFrom
+        Sender address, passed through to Send-RjReportEmail.
+
+        .PARAMETER EmailTo
+        Recipient address(es), passed through to Send-RjReportEmail.
+
+        .PARAMETER Subject
+        Mail subject, passed through to Send-RjReportEmail.
+
+        .PARAMETER MarkdownContent
+        Mail body (Markdown) used when the regular attachment set is sent.
+
+        .PARAMETER Attachments
+        The regular attachment set (file paths). May be empty for a text-only mail.
+
+        .PARAMETER FallbackAttachments
+        Optional smaller attachment set used when the regular set exceeds the size budget or
+        its send attempt fails. Without this parameter there is no fallback - a failed send
+        throws immediately.
+
+        .PARAMETER FallbackMarkdownContent
+        Mail body (Markdown) used when the fallback attachment set is sent.
+
+        .PARAMETER MaxAttachmentBytes
+        Raw size budget for the regular attachment set (default 2.5MB - stays safely below
+        the ~4 MB Graph sendMail request limit after base64 encoding and HTML body overhead).
+
+        .PARAMETER TenantDisplayName
+        Tenant name for the report footer, passed through to Send-RjReportEmail.
+
+        .PARAMETER ReportVersion
+        Runbook version for the report footer, passed through to Send-RjReportEmail.
+
+        .PARAMETER UseNativeGraphRequest
+        Passed through to Send-RjReportEmail.
+
+        .EXAMPLE
+        PS C:\> Send-RjRbGuardedReportEmail -EmailFrom $from -EmailTo $to -Subject $subject `
+                    -MarkdownContent $md -Attachments ($csvFiles + $xlsxPath) `
+                    -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $mdFallback `
+                    -TenantDisplayName $tenant -ReportVersion $Version
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$EmailFrom,
+
+        [Parameter(Mandatory = $true)]
+        [string]$EmailTo,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Subject,
+
+        [Parameter(Mandatory = $true)]
+        [string]$MarkdownContent,
+
+        [AllowEmptyCollection()]
+        [string[]]$Attachments = @(),
+
+        [string[]]$FallbackAttachments,
+
+        [string]$FallbackMarkdownContent,
+
+        [long]$MaxAttachmentBytes = 2.5MB,
+
+        [string]$TenantDisplayName,
+
+        [string]$ReportVersion,
+
+        [switch]$UseNativeGraphRequest
+    )
+
+    $baseParams = @{
+        EmailFrom = $EmailFrom
+        EmailTo   = $EmailTo
+        Subject   = $Subject
+    }
+    if ($TenantDisplayName) { $baseParams.TenantDisplayName = $TenantDisplayName }
+    if ($ReportVersion) { $baseParams.ReportVersion = $ReportVersion }
+    if ($UseNativeGraphRequest) { $baseParams.UseNativeGraphRequest = $true }
+
+    $sizeLimitHint = "If the attachments exceed the email size limit, choose a different report file format or enable the download link option (CreateDownloadLink) to deliver the files."
+
+    $attachments = @($Attachments | Where-Object { $_ })
+    $hasFallback = ($null -ne $FallbackAttachments) -and (@($FallbackAttachments | Where-Object { $_ }).Count -gt 0)
+
+    # Graph sendMail rejects the whole request at ~4 MB; attachments count base64-encoded (+33%),
+    # plus HTML body and inline header image. Above this raw budget the fallback set is sent directly.
+    $useFallback = $false
+    if ($hasFallback -and $attachments.Count -gt 0) {
+        $totalBytes = ($attachments | ForEach-Object { (Get-Item -LiteralPath $_).Length } | Measure-Object -Sum).Sum
+        if (-not $totalBytes) { $totalBytes = 0 }
+        if ($totalBytes -gt $MaxAttachmentBytes) {
+            $useFallback = $true
+            Write-Output "The attachments total $([math]::Round($totalBytes / 1MB, 2)) MB and exceed the email attachment budget of $([math]::Round($MaxAttachmentBytes / 1MB, 2)) MB - sending the reduced attachment set instead."
+        }
+    }
+
+    try {
+        if ($useFallback) {
+            Send-RjReportEmail @baseParams -MarkdownContent $FallbackMarkdownContent -Attachments $FallbackAttachments
+            Write-Output "Email report sent successfully to: $EmailTo (reduced attachment set - the full set exceeds the email size limit)"
+        }
+        elseif ($attachments.Count -gt 0) {
+            Send-RjReportEmail @baseParams -MarkdownContent $MarkdownContent -Attachments $attachments
+            Write-Output "Email report sent successfully to: $EmailTo"
+        }
+        else {
+            Send-RjReportEmail @baseParams -MarkdownContent $MarkdownContent
+            Write-Output "Email report sent successfully to: $EmailTo"
+        }
+    }
+    catch {
+        # Safety net: retry once with the fallback set if the full set was just attempted
+        if ($useFallback -or -not $hasFallback -or $attachments.Count -eq 0) {
+            Write-Error "Failed to send email report: $($_.Exception.Message). $sizeLimitHint"
+            throw
+        }
+
+        Write-Output "Sending the email with all attachments failed: $($_.Exception.Message)"
+        Write-Output "Retrying with the reduced attachment set..."
+        try {
+            Send-RjReportEmail @baseParams -MarkdownContent $FallbackMarkdownContent -Attachments $FallbackAttachments
+            Write-Output "Email report sent successfully to: $EmailTo (reduced attachment set - the first attempt with all attachments failed)"
+        }
+        catch {
+            Write-Error "Failed to send email report (retry with the reduced attachment set also failed): $($_.Exception.Message). $sizeLimitHint"
+            throw
+        }
+    }
+}
+
 #endregion
 
 ####################################################################
@@ -883,6 +1060,7 @@ else {
 
 $totalUsers = ($Output | Measure-Object).Count
 $reportFiles = @()
+$xlsxFile = $null
 $tempDir = $null
 $detailedOutput = @()
 $fileName_Summary = "UsersWithMoreThan5Devices_Summary.csv"
@@ -890,23 +1068,16 @@ $fileName_Details = "UsersWithMoreThan5Devices_Details.csv"
 $fileName_Workbook = "UsersWithMoreThan5Devices.xlsx"
 
 if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
-    Write-RjRbLog -Message "Found $totalUsers users with more than 5 devices - preparing CSV export" -Verbose
+    Write-RjRbLog -Message "Found $totalUsers users with more than 5 devices - preparing report file export" -Verbose
 
-    # Create temporary directory for CSV files
+    # Create temporary directory for report files
     $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "UsersWithMultipleDevicesReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
     Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
-    # Export summary to CSV
     $summaryOutput = $Output | Sort-Object DeviceCount -Descending
-    $csvFile = Join-Path $tempDir $fileName_Summary
-    $summaryOutput | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
-    Write-Verbose "Exported summary data to: $csvFile"
-    $reportFiles += $csvFile
 
     # Create detailed device list for each user
-    $detailedCsvFile = Join-Path $tempDir $fileName_Details
-
     foreach ($group in $raw) {
         $objectId = $group.Name
         $upn = ($group.Group | Select-Object -First 1).RegisteredUsers.UserPrincipalName
@@ -928,27 +1099,39 @@ if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
         }
     }
 
-    $detailedOutput | Export-Csv -Path $detailedCsvFile -NoTypeInformation -Encoding UTF8
-    Write-Verbose "Exported detailed device data to: $detailedCsvFile"
-    $reportFiles += $detailedCsvFile
+    if ($ReportFileFormat -ne 'XLSX only') {
+        # Export summary to CSV
+        $csvFile = Join-Path $tempDir $fileName_Summary
+        $summaryOutput | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
+        Write-Verbose "Exported summary data to: $csvFile"
+        $reportFiles += $csvFile
 
-    # Export both datasets into a single Excel workbook (one worksheet per dataset) with an "Info" cover sheet.
-    # The InIntune column is highlighted green/red; when IntuneOnlyDevices omits the column, the rules are skipped.
-    $xlsxFile = Join-Path $tempDir $fileName_Workbook
-    $workbookCoverSheet = [ordered]@{
-        Title                = 'Users with More Than 5 Devices'
-        Generated            = "$((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm')) UTC"
-        'Runbook Version'    = $Version
-        Scope                = if ($IntuneOnlyDevices) { 'Only devices present in Intune' } else { 'All Entra ID devices' }
-        'Users (>5 devices)' = $totalUsers
-        'Device entries'     = ($detailedOutput | Measure-Object).Count
+        # Export detailed device list to CSV
+        $detailedCsvFile = Join-Path $tempDir $fileName_Details
+        $detailedOutput | Export-Csv -Path $detailedCsvFile -NoTypeInformation -Encoding UTF8
+        Write-Verbose "Exported detailed device data to: $detailedCsvFile"
+        $reportFiles += $detailedCsvFile
     }
-    Export-RjRbXlsx -Worksheets ([ordered]@{ 'Summary' = $summaryOutput; 'Details' = $detailedOutput }) -Path $xlsxFile -CoverSheet $workbookCoverSheet -HighlightRules @(
-        @{ Column = 'InIntune'; Value = 'yes'; Color = 'Green' }
-        @{ Column = 'InIntune'; Value = 'no'; Color = 'Red' }
-    )
-    Write-Verbose "Exported summary and detailed data to: $xlsxFile"
-    $reportFiles += $xlsxFile
+
+    if ($ReportFileFormat -ne 'CSV only') {
+        # Export both datasets into a single Excel workbook (one worksheet per dataset) with an "Info" cover sheet.
+        # The InIntune column is highlighted green/red; when IntuneOnlyDevices omits the column, the rules are skipped.
+        $xlsxFile = Join-Path $tempDir $fileName_Workbook
+        $workbookCoverSheet = [ordered]@{
+            Title                = 'Users with More Than 5 Devices'
+            Generated            = "$((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm')) UTC"
+            'Runbook Version'    = $Version
+            Scope                = if ($IntuneOnlyDevices) { 'Only devices present in Intune' } else { 'All Entra ID devices' }
+            'Users (>5 devices)' = $totalUsers
+            'Device entries'     = ($detailedOutput | Measure-Object).Count
+        }
+        Export-RjRbXlsx -Worksheets ([ordered]@{ 'Summary' = $summaryOutput; 'Details' = $detailedOutput }) -Path $xlsxFile -CoverSheet $workbookCoverSheet -HighlightRules @(
+            @{ Column = 'InIntune'; Value = 'yes'; Color = 'Green' }
+            @{ Column = 'InIntune'; Value = 'no'; Color = 'Red' }
+        )
+        Write-Verbose "Exported summary and detailed data to: $xlsxFile"
+        $reportFiles += $xlsxFile
+    }
 }
 
 #endregion
@@ -959,7 +1142,7 @@ if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
 
 if ($CreateDownloadLink) {
     Write-Output ""
-    if ($totalUsers -gt 0) {
+    if ($reportFiles.Count -gt 0) {
         Write-Output "Uploading report files to storage account..."
 
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
@@ -1042,7 +1225,7 @@ This indicates:
 
     }
     else {
-        # Users found - send detailed report (CSV files were already exported above)
+        # Users found - send detailed report (report files were already exported above)
         Write-RjRbLog -Message "Found $totalUsers users with more than 5 devices - preparing detailed report" -Verbose
 
         # Calculate statistics
@@ -1083,19 +1266,11 @@ $(
 
 ## Report Details
 
-### Summary File
-- **File:** $($fileName_Summary)
-- **Count:** $($totalUsers) users
-- Contains user information and device counts
+The following file(s) are attached to this email:
 
-### Detailed File
-- **File:** $($fileName_Details)
-- **Count:** $($totalDevices) device entries
-- Contains detailed device information for each user
-
-### Excel Workbook
-- **File:** $($fileName_Workbook)
-- Contains both datasets as separate worksheets ("Summary" and "Details")
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$($fileName_Summary)**: Summary of $($totalUsers) users with their device counts (CSV)" })
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$($fileName_Details)**: Detailed device information for each user, $($totalDevices) device entries (CSV)" })
+$(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_Workbook)**: Both datasets as separate worksheets (`"Summary`" and `"Details`") in an Excel workbook" })
 
 ## Recommendations
 
@@ -1135,10 +1310,10 @@ $(
 
 ## Data Export Information
 
-The attached files contain:
+The attached file(s) contain:
 - **Summary:** User Object ID, Display Name, UPN, and Device Count
 - **Details:** Complete device list for each user including the device object ID, the Entra ID device ID and the device name$(if (-not $IntuneOnlyDevices) { ", plus an ""InIntune"" column indicating whether the device is present in Intune" })
-- **Excel Workbook:** Both datasets in one file, one worksheet each
+$(if ($ReportFileFormat -ne 'CSV only') { "- **Excel Workbook:** Both datasets in one file, one worksheet each" })
 
 ---
 
@@ -1148,18 +1323,49 @@ The attached files contain:
         $emailSubject = "Users with More Than 5 Devices Report - $($tenantDisplayName) - $(Get-Date -Format 'yyyy-MM-dd')"
     }
 
-    # Send email (with or without attachments depending on findings)
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSVs are too large)
     try {
-        if ($totalUsers -gt 0) {
+        if ($reportFiles.Count -gt 0) {
             Write-RjRbLog -Message "Sending email with $($reportFiles.Count) attachment(s)" -Verbose
-            Send-RjReportEmail `
-                -EmailFrom $EmailFrom `
-                -EmailTo $EmailTo `
-                -Subject $emailSubject `
-                -MarkdownContent $markdownContent `
-                -Attachments $reportFiles `
-                -TenantDisplayName $tenantDisplayName `
-                -ReportVersion $Version
+
+            $markdownFallback = @"
+# Users with More Than 5 Devices Report
+
+This report identifies users who have more than 5 devices registered in Entra ID.
+$(if ($IntuneOnlyDevices) { "`n**Scope:** Only devices present in Intune were considered for this report.`n" })
+
+## Summary Statistics
+
+| Metric | Value |
+|--------|-------|
+| **Total Users with >5 Devices** | $totalUsers |
+| **Total Devices** | $totalDevices |
+
+## Report Details
+
+- **$($fileName_Workbook)**: Excel workbook with both datasets as separate worksheets (`"Summary`" and `"Details`")
+
+> **Note:** The CSV files were not attached because they exceed the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV files.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+            $guardParams = @{
+                EmailFrom         = $EmailFrom
+                EmailTo           = $EmailTo
+                Subject           = $emailSubject
+                MarkdownContent   = $markdownContent
+                TenantDisplayName = $tenantDisplayName
+                ReportVersion     = $Version
+            }
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFile) {
+                Send-RjRbGuardedReportEmail @guardParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallback
+            }
+            else {
+                Send-RjRbGuardedReportEmail @guardParams -Attachments $reportFiles
+            }
         }
         else {
             Write-RjRbLog -Message "Sending email without attachments" -Verbose
@@ -1170,10 +1376,9 @@ The attached files contain:
                 -MarkdownContent $markdownContent `
                 -TenantDisplayName $tenantDisplayName `
                 -ReportVersion $Version
+            Write-Output "Email report sent successfully to: $($EmailTo)"
         }
 
-
-        Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
         Write-Output "✅ Report generated and sent successfully"
         Write-Output "📧 Recipient: $($EmailTo)"
         if ($totalUsers -gt 0) {
