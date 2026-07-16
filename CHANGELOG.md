@@ -1,5 +1,19 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-16
+
+- Introduce the inline helper function `Export-RjRbXlsx` - a dependency-free Excel (xlsx) report writer (pure .NET, no additional PowerShell modules required) - and use it in **Report Devices Without Primary User (Scheduled)** (Org/Devices), **Report Users With More Than 5 Devices (Scheduled)** (Org/Devices) and **List Group Memberships** (User/General)
+  - The reports are now additionally exported as a formatted Excel workbook - attached to the report email and included in the storage upload alongside the CSV files
+  - Typed cells: .NET numbers and dates as well as ISO-8601 date strings become real, sortable Excel values (localized by the client); serial numbers, IMEIs and other IDs always stay text and formula injection is not possible; http/https URLs become clickable hyperlinks
+  - RealmJoin-branded report design: custom table style with a navy header (white bold text) and zebra striping that follows re-sorting; an explicit white second stripe keeps grid lines from showing through inside the table; worksheet tab colors (first tab in RealmJoin orange, further tabs in gray); frozen header row with filter dropdowns and calculated column widths
+  - Optional `CoverSheet` parameter that renders an indented "Info" cover worksheet: large navy title with an orange accent line plus label/value rows (e.g. tenant, generation time, runbook version, filters)
+  - Optional `HighlightRules` parameter for conditional formatting of status columns (exact match, case-insensitive; Green/Red/Yellow classic Excel presets)
+  - Optional `DataBarColumns` parameter that renders orange in-cell data bars for numeric columns, making outliers visible at a glance while the cells stay sortable and filterable
+  - Optional `HyperlinkText` parameter for friendly hyperlink display texts per column (e.g. "Open in Intune" instead of the full URL; the link target stays the URL)
+  - Optional `HideGridLines` and `UseThousandsSeparator` switches (both off by default)
+  - Automatic print setup: orientation (portrait/landscape) is derived from the content width, the table is scaled to one page wide and the header row is repeated on every printed page
+  - **Report Users With More Than 5 Devices** delivers its summary and detail exports as a single workbook with two worksheets ("Summary" and "Details"), starts it with an "Info" cover worksheet (report name, generation time (UTC), runbook version, scope and result counts) and highlights the "InIntune" column via conditional formatting ("yes" in green, "no" in red; the rule is skipped automatically when the column is omitted via `IntuneOnlyDevices`)
+
 ## 2026-07-15
 
 - Update **Report Devices Without Primary User (Scheduled)** Runbook in Org/Devices
