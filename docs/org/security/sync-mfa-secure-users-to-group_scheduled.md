@@ -242,6 +242,15 @@ The sender email address. Sourced from the RJReport tenant settings.
 | Required | false |
 | Type | String |
 
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
 ### CreateDownloadLink
 If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
 

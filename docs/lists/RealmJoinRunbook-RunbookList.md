@@ -299,7 +299,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Gsa Application Registration | Add a GSA application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
 | Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
-| Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+| Export Enterprise Application Users | Export a report of all (enterprise) application owners and users |
 | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 | Report Application Registration | Generate and email a comprehensive Application Registration report |
 | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |

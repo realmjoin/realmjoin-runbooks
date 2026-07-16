@@ -1176,12 +1176,15 @@ Org \ Applications \ Delete Gsa Application Registration
 <a name='org-applications-export-enterprise-application-users'></a>
 
 ### Export Enterprise Application Users
-#### Export a CSV of all (enterprise) application owners and users
+#### Export a report of all (enterprise) application owners and users
 
 #### Description
 
-This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
-It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
+This runbook exports a report of enterprise applications (or all service principals) including owners and assigned users or groups.
+By default, the generated report files are uploaded to an Azure Storage Account and time-limited download links are returned.
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1222,7 +1225,10 @@ Org \ Applications \ List Inactive Enterprise Applications
 #### Description
 
 This runbook generates a report of all application registrations in Microsoft Entra ID and can optionally include deleted registrations.
-It exports the results to CSV files and sends them via email.
+It exports the results to CSV files and an Excel (xlsx) workbook and can send them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 Use it for periodic inventory, review, and audit purposes.
 
 #### Where to find
@@ -1253,6 +1259,11 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
 It can optionally filter by application IDs and can limit output to credentials that are about to expire.
+
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1375,7 +1386,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1598,8 +1612,10 @@ This script retrieves all managed devices from Intune, and filters out those wit
 The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
 The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-Optionally, the report can be sent via email with CSV and Excel (xlsx) attachments containing detailed device information.
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing detailed device information.
 The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1627,7 +1643,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.
+For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1668,7 +1687,10 @@ This runbook queries the RealmJoin customer API and requires a dedicated credent
 #### Description
 
 Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1697,9 +1719,11 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 #### Description
 
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-It outputs a summary table and can optionally send an email with the report attached as CSV files and as an Excel workbook (one worksheet for the summary, one for the details).
+It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
 The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device (highlighted green/red in the Excel workbook).
 The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1735,8 +1759,10 @@ Such orphaned Entra device objects are typical leftovers ("Objektleichen") from 
 reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
 these candidates visible so they can be reviewed and - if appropriate - deleted.
 
-Optionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited
-download link) and/or sent via email with the CSV attached.
+Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
+download links) and/or sent via email with the selected report file format(s) attached.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -2441,7 +2467,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
 Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
 The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
-The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
+The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV and/or Excel (xlsx) files, and sends them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -2668,7 +2697,9 @@ or vice versa) and syncing group members into a Teams Shared Channel. Adding mis
 performed, while removing members that only exist in the target is optional and controlled by a
 parameter. Guest handling and whether channel removals also remove the host team membership are
 configurable, and the runbook can optionally send an email report and upload the results as a
-time-limited download link.
+time-limited download link. The ReportFileFormat parameter controls which report file formats are
+generated and delivered (CSV only, CSV & XLSX, or XLSX only). When the CSV attachment exceeds the
+email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -2759,8 +2790,11 @@ that gap: for each team named in a mapping, it ensures the members of a mapped s
 of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
 maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
 are never removed - so newly created shared channels are simply picked up on the next run. It can
-optionally email a report and/or upload the CSV results as a download link. See the accompanying
-documentation for the mapping rules and configuration.
+optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+rules and configuration.
 
 #### Where to find
 
@@ -3278,7 +3312,10 @@ Org \ Security \ List Vulnerable App Regs
 
 Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
 Email is only sent when there are pending requests.
-Optionally includes detailed information about each request in a table and CSV attachment.
+Optionally includes detailed information about each request in a table and report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -3327,7 +3364,10 @@ Org \ Security \ Notify Changed CA Policies
 
 Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
 Supports filtering by multiple status types and time range.
-Sends an email report with summary statistics and detailed CSV attachment.
+Sends an email report with summary statistics and detailed report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -3579,6 +3619,8 @@ User \ General \ List Group Memberships
 #### Description
 
 Lists Entra ID groups where the specified user is an owner. Outputs the group names and IDs.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 

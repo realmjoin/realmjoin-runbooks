@@ -82,7 +82,7 @@ Filter groups by writeback enablement.
 | Type | String |
 
 ### SendMail
-If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Toggling this on reveals the recipient address field.
+If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields.
 
 | Property | Value |
 |----------|-------|
@@ -105,6 +105,15 @@ The sender email address. This needs to be configured in the runbook customizati
 | Property | Value |
 |----------|-------|
 | Default Value |  |
+| Required | false |
+| Type | String |
+
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
 | Required | false |
 | Type | String |
 
