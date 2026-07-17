@@ -306,7 +306,13 @@ if ($outputMode -eq "OneFile") {
     Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $includedScope) {
-        Add-Content -Path $ResultFile -Value "- $scope"
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $ResultFile -Value "- $scopeDisplayName"
     }
     Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory."

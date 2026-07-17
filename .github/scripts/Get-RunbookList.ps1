@@ -195,7 +195,13 @@ function New-RunbookOverviewDocument {
     Add-Content -Path $OutputFile -Value ""
     Add-Content -Path $OutputFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $IncludedScope) {
-        Add-Content -Path $OutputFile -Value "- $scope"
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $OutputFile -Value "- $scopeDisplayName"
     }
     Add-Content -Path $OutputFile -Value ""
     Add-Content -Path $OutputFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory."
@@ -466,7 +472,13 @@ if ($createParameterList) {
     Add-Content -Path $ParameterFile -Value ""
     Add-Content -Path $ParameterFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $includedScope) {
-        Add-Content -Path $ParameterFile -Value "- $scope"
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $ParameterFile -Value "- $scopeDisplayName"
     }
     Add-Content -Path $ParameterFile -Value ""
     Add-Content -Path $ParameterFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row."
