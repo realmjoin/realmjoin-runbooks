@@ -285,15 +285,23 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | NameLength | ✓ | Int32 | The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix. |
 |  |  |  |  |  |  | OsFilter |  | String | Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All. |
 |  |  |  |  |  |  | CallerName | ✓ | String | The identity of the person or automation account that triggered this runbook, used for auditing purposes only. |
-|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale |
-|  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results |
-|  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results |
-|  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results |
-|  |  |  |  |  |  | Android |  | Boolean | Include Android devices in the results |
-|  |  |  |  |  |  | DeleteDevices |  | Boolean | If set to true, the script will delete the stale devices. If false, it will only report them. |
-|  |  |  |  |  |  | ConfirmDeletion |  | Boolean | If set to true, the script will prompt for confirmation before deleting devices.<br>Should be set to false for scheduled runs. |
-|  |  |  |  |  |  | sendAlertTo |  | String | Email address to send the report to. |
-|  |  |  |  |  |  | sendAlertFrom |  | String | Email address to send the report from. |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | Days |  | Int32 | Number of days without activity to be considered stale. |
+|  |  |  |  |  |  | Windows |  | Boolean | Include Windows devices in the results. |
+|  |  |  |  |  |  | MacOS |  | Boolean | Include macOS devices in the results. |
+|  |  |  |  |  |  | iOS |  | Boolean | Include iOS devices in the results. |
+|  |  |  |  |  |  | Android |  | Boolean | Include Android devices in the results. |
+|  |  |  |  |  |  | DeleteDevices |  | Boolean | If set to true, the matching stale devices are deleted from Intune.<br>If false (default), the runbook only reports which devices would be deleted (simulation). |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+|  |  |  |  |  |  | ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
+|  |  |  |  |  |  | IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+|  |  |  |  |  |  | ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+|  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  |  |  |  |  | bitlockeryRecoveryKeyId | ✓ | String | Recovery key ID of the desired key. |

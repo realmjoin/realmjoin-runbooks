@@ -1462,12 +1462,14 @@ Org \ Devices \ Dedup Device Names_Scheduled
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
-#### Scheduled deletion of stale devices based on last activity
+#### Scheduled deletion of stale devices based on last activity date and platform
 
 #### Description
 
-This runbook identifies Intune managed devices that have not been active for a defined number of days.
-It can optionally delete the matching devices and can send an email report.
+Identifies Intune managed devices that have not been active for a specified number of days.
+By default the runbook runs in report-only mode (simulation) and lists the devices that would be deleted.
+When deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.
+An email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 #### Where to find
 

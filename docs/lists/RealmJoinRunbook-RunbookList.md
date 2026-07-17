@@ -317,7 +317,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations |
 | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
-| Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
+| Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 | Outphase Devices | Remove or outphase multiple devices |

@@ -942,19 +942,27 @@ Detect and rename duplicate Intune device display names using a prefix and rando
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
-Scheduled deletion of stale devices based on last activity
+Scheduled deletion of stale devices based on last activity date and platform
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 | Number of days without activity to be considered stale |
-| Windows |  | Boolean | Include Windows devices in the results |
-| MacOS |  | Boolean | Include macOS devices in the results |
-| iOS |  | Boolean | Include iOS devices in the results |
-| Android |  | Boolean | Include Android devices in the results |
-| DeleteDevices |  | Boolean | If set to true, the script will delete the stale devices. If false, it will only report them. |
-| ConfirmDeletion |  | Boolean | If set to true, the script will prompt for confirmation before deleting devices.<br>Should be set to false for scheduled runs. |
-| sendAlertTo |  | String | Email address to send the report to. |
-| sendAlertFrom |  | String | Email address to send the report from. |
+| Days |  | Int32 | Number of days without activity to be considered stale. |
+| Windows |  | Boolean | Include Windows devices in the results. |
+| MacOS |  | Boolean | Include macOS devices in the results. |
+| iOS |  | Boolean | Include iOS devices in the results. |
+| Android |  | Boolean | Include Android devices in the results. |
+| DeleteDevices |  | Boolean | If set to true, the matching stale devices are deleted from Intune.<br>If false (default), the runbook only reports which devices would be deleted (simulation). |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
+| IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-get-bitlocker-recovery-key'></a>

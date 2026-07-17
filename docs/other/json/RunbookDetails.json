@@ -6373,15 +6373,15 @@
     "RelativeRunbookPath_PathOnly": "org/devices",
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
-    "Synopsis": "Scheduled deletion of stale devices based on last activity",
-    "Description": "This runbook identifies Intune managed devices that have not been active for a defined number of days.\nIt can optionally delete the matching devices and can send an email report.",
-    "Notes": null,
+    "Synopsis": "Scheduled deletion of stale devices based on last activity date and platform",
+    "Description": "Identifies Intune managed devices that have not been active for a specified number of days.\nBy default the runbook runs in report-only mode (simulation) and lists the devices that would be deleted.\nWhen deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.\nAn email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.",
+    "Notes": "This runbook deletes managed devices from Intune based on inactivity. Use with care!\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when email reporting is used\n\nCommon Use Cases:\n- Regular cleanup of stale device records in Intune\n- Simulation runs (report-only mode) before enabling actual deletion\n- Scheduled lifecycle management with an audit trail via email report\n\nThe runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.\nThis acts as an additional safety net when deletion is enabled.",
     "Parameters": [
       {
         "defaultValue": "True",
         "description": [
           {
-            "Text": "Include Android devices in the results"
+            "Text": "Include Android devices in the results."
           }
         ],
         "globbing": "false",
@@ -6405,24 +6405,41 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "18",
         "required": "true",
         "type": {
           "name": "String"
         }
       },
       {
-        "defaultValue": "True",
+        "defaultValue": "delete-stale-devices",
         "description": [
           {
-            "Text": "If set to true, the script will prompt for confirmation before deleting devices.\nShould be set to false for scheduled runs."
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
           }
         ],
         "globbing": "false",
-        "name": "ConfirmDeletion",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -6432,7 +6449,7 @@
         "defaultValue": "30",
         "description": [
           {
-            "Text": "Number of days without activity to be considered stale"
+            "Text": "Number of days without activity to be considered stale."
           }
         ],
         "globbing": "false",
@@ -6449,7 +6466,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, the script will delete the stale devices. If false, it will only report them."
+            "Text": "If set to true, the matching stale devices are deleted from Intune.\nIf false (default), the runbook only reports which devices would be deleted (simulation)."
           }
         ],
         "globbing": "false",
@@ -6463,10 +6480,78 @@
         }
       },
       {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization"
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "If specified, an email with the report will be sent to the provided address(es).\nCan be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeUserGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeUserGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
         "defaultValue": "True",
         "description": [
           {
-            "Text": "Include iOS devices in the results"
+            "Text": "Include iOS devices in the results."
           }
         ],
         "globbing": "false",
@@ -6480,10 +6565,27 @@
         }
       },
       {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
         "defaultValue": "True",
         "description": [
           {
-            "Text": "Include macOS devices in the results"
+            "Text": "Include macOS devices in the results."
           }
         ],
         "globbing": "false",
@@ -6497,31 +6599,14 @@
         }
       },
       {
-        "defaultValue": "runbook@glueckkanja.com",
+        "defaultValue": "CSV & XLSX",
         "description": [
           {
-            "Text": "Email address to send the report from."
+            "Text": "Controls which report file formats are generated and delivered: \"CSV only\", \"CSV & XLSX\" (default) or \"XLSX only\"."
           }
         ],
         "globbing": "false",
-        "name": "sendAlertFrom",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "9",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "support@glueckkanja.com",
-        "description": [
-          {
-            "Text": "Email address to send the report to."
-          }
-        ],
-        "globbing": "false",
-        "name": "sendAlertTo",
+        "name": "ReportFileFormat",
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "8",
@@ -6531,10 +6616,61 @@
         }
       },
       {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Enable user scope filtering to include or exclude devices based on primary user group membership."
+          }
+        ],
+        "globbing": "false",
+        "name": "UseUserScope",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "True",
         "description": [
           {
-            "Text": "Include Windows devices in the results"
+            "Text": "Include Windows devices in the results."
           }
         ],
         "globbing": "false",
