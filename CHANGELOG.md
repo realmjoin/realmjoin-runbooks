@@ -1,5 +1,16 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-17
+
+- Update **Delete Stale Devices (Scheduled)** Runbook in Org/Devices
+  - Streamline the deletion control to the single `DeleteDevices` parameter with a clear mode selection: **report-only simulation** (default, lists devices that *would be deleted*) or "Delete stale devices from Intune" - fully unattended-safe for scheduled runs
+  - Improve the report accuracy: devices are deleted before the report is generated, so the report reflects the actual per-device results (Deleted/Failed)
+  - Adopt the standard email reporting pattern: optional `EmailTo`, sender from the `RJReport.EmailSender` tenant setting, Markdown-based report email with attachment size guard and Excel-workbook-only fallback
+  - Add report file delivery as CSV and/or formatted Excel workbook with a per-device `DeletionStatus` column, plus the storage download link option (`CreateDownloadLink` with the `RJReport.StorageAccount.*` settings)
+  - Add optional **user scope filtering** (`UseUserScope` with `IncludeUserGroup`/`ExcludeUserGroup` group pickers) based on primary user group membership
+  - Align the runbook with the current standards: region structure, full parameter logging, parameter validation and cleanup of temporary report files
+  - Note: the runbook parameters changed (`ConfirmDeletion`, `sendAlertTo` and `sendAlertFrom` were replaced by the patterns above) - existing schedules and customizations should be reviewed and updated
+
 ## 2026-07-16
 
 - Extend the Excel (xlsx) report writer to all modern report runbooks (19 runbooks)
