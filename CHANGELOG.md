@@ -1,5 +1,134 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-07-17
+
+- Update **Report Users With More Than 5 Devices (Scheduled)** Runbook in Org/Devices
+  - Extend the detailed report export (CSV and Excel workbook) with a `Compliant` column (yes/no/unknown, based on the Entra ID device compliance state), highlighted green/red in the Excel workbook alongside the existing `InIntune` column
+- Update **Delete Stale Devices (Scheduled)** Runbook in Org/Devices
+  - Streamline the deletion control to the single `DeleteDevices` parameter with a clear mode selection: **report-only simulation** (default, lists devices that *would be deleted*) or "Delete stale devices from Intune" - fully unattended-safe for scheduled runs
+  - Improve the report accuracy: devices are deleted before the report is generated, so the report reflects the actual per-device results (Deleted/Failed)
+  - Adopt the standard email reporting pattern: optional `EmailTo`, sender from the `RJReport.EmailSender` tenant setting, Markdown-based report email with attachment size guard and Excel-workbook-only fallback
+  - Add report file delivery as CSV and/or formatted Excel workbook with a per-device `DeletionStatus` column, plus the storage download link option (`CreateDownloadLink` with the `RJReport.StorageAccount.*` settings)
+  - Add optional **user scope filtering** (`UseUserScope` with `IncludeUserGroup`/`ExcludeUserGroup` group pickers) based on primary user group membership
+  - Align the runbook with the current standards: region structure, full parameter logging, parameter validation and cleanup of temporary report files
+  - Note: the runbook parameters changed (`ConfirmDeletion`, `sendAlertTo` and `sendAlertFrom` were replaced by the patterns above) - existing schedules and customizations should be reviewed and updated
+
+## 2026-07-16
+
+- Extend the Excel (xlsx) report writer to all modern report runbooks (19 runbooks)
+  - Affected runbooks:
+    - **Export Enterprise Application Users** - Org/Applications
+    - **List Inactive Enterprise Applications** - Org/Applications
+    - **Report Application Registration** - Org/Applications
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+    - **Auto Approve Driver Updates (Scheduled)** - Org/Devices
+    - **Cleanup Autopilot Devices (Scheduled)** - Org/Devices
+    - **Report Devices Without Primary User (Scheduled)** - Org/Devices
+    - **Report Primary User Mismatch (Scheduled)** - Org/Devices
+    - **Report Stale Devices (Scheduled)** - Org/Devices
+    - **Report Users With More Than 5 Devices (Scheduled)** - Org/Devices
+    - **Report Windows Devices Without Autopilot (Scheduled)** - Org/Devices
+    - **Report License Assignment (Scheduled)** - Org/General
+    - **Sync Channel Or Group Members (Scheduled)** - Org/General
+    - **Sync Shared Channel Owners (Scheduled)** - Org/General
+    - **Monitor Pending EPM Requests (Scheduled)** - Org/Security
+    - **Report EPM Elevation Requests (Scheduled)** - Org/Security
+    - **Sync MFA Secure Users To Group (Scheduled)** - Org/Security
+    - **List Group Memberships** - User/General
+    - **List Group Ownerships** - User/General
+  - Every report runbook now delivers its data as CSV and/or as a formatted Excel workbook; runbooks with multiple result sets (Report Application Registration, Report Users With More Than 5 Devices, Sync Shared Channel Owners, Sync MFA Secure Users To Group) deliver a single workbook with one worksheet per result set and an "Info" cover worksheet
+  - Add a **report file format selection** ("CSV only" / "CSV & XLSX" / "XLSX only", default "CSV & XLSX") that controls which files are generated, attached to the report email and uploaded to the storage account; shown when the email or download link option is enabled
+  - Add the **storage download link option** (`CreateDownloadLink` with the `RJReport.StorageAccount.*` settings) to the report runbooks that only supported email delivery so far: Report EPM Elevation Requests, Monitor Pending EPM Requests, Report License Assignment, Report Application Registration, Report Expiring Application Credentials, Cleanup Autopilot Devices, Report Stale Devices and Report Primary User Mismatch
+  - Add the **email report option** to **Export Enterprise Application Users** (previously storage-only) and rework its report generation from hand-built CSV strings to typed objects
+  - **List Inactive Enterprise Applications** (previously console output only) now also delivers its two result sets (apps with stale sign-ins, apps without any sign-in record) via email and/or download link - as CSV files and as an Excel workbook with an "Info" cover worksheet
+  - Add an **attachment size guard** to every report email (new inline helper `Send-RjRbGuardedReportEmail`, planned to be absorbed into `Send-RjReportEmail` in the RealmJoin.RunbookHelper module): with "CSV & XLSX" the email automatically falls back to the Excel workbook alone when the attachments exceed the email size limit (~4 MB Graph sendMail request limit), with a retry safety net; with "CSV only" or "XLSX only" a failed send raises a clear error pointing to the other formats and the download link option
+  - Runbooks that previously required a recipient address (EPM reports, Report License Assignment, Report Application Registration, Report Stale Devices, Report Primary User Mismatch) now also run with the download link option alone
+- Update **Auto Approve Driver Updates (Scheduled)** Runbook in Org/Devices - now produces a driver approval detail report (policy, driver name, version, manufacturer, driver class, release date and per-driver approval outcome) as CSV/Excel attachment and download; the per-policy driver lists in the email body are capped at 15 entries with a pointer to the attached report
+- Add **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
+  - Synchronizes an Entra ID group with all member users that have at least one "secure" MFA method registered, based on the Entra authentication methods registration report (`userRegistrationDetails`)
+  - Secure method groups are configurable via toggles: Passkeys/FIDO2, platform credentials (Windows Hello for Business / macOS Secure Enclave), Microsoft Authenticator app, software OTP, hardware OTP and certificate-based authentication
+  - Optional strict mode (`SecureOnly`): users that also have an unsecure method registered (phone, email, security questions) never qualify and are removed from the group
+  - Hidden expert parameters allow fully custom comma-separated secure/unsecure method lists; a companion documentation page lists every known `methodsRegistered` value with its classification
+  - Optional email report (`SendEmail`, disabled by default; the recipient field only appears when enabled) and optional download links (`CreateDownloadLink`, disabled by default, uses the `RJReport.*` tenant settings); report files (CSV and Excel) are only generated when one of the two options is enabled
+  - Large-tenant safe email delivery: when the CSV files exceed the email attachment size budget, the mail is sent with only the Excel workbook attached (complete data in compressed form) and a corresponding note; a failed full-size send is retried automatically with the workbook only
+  - The Excel report (via `Export-RjRbXlsx`) contains an "Info" cover sheet with the chosen parameters and result counts, a "Changes" worksheet (added users highlighted in green, removed in red) and an "All Users" worksheet with the per-user method evaluation
+- Introduce the inline helper function `Export-RjRbXlsx` - a dependency-free Excel (xlsx) report writer (pure .NET, no additional PowerShell modules required) - and use it in **Report Devices Without Primary User (Scheduled)** (Org/Devices), **Report Users With More Than 5 Devices (Scheduled)** (Org/Devices) and **List Group Memberships** (User/General)
+  - The reports are now additionally exported as a formatted Excel workbook - attached to the report email and included in the storage upload alongside the CSV files
+  - Typed cells: .NET numbers and dates as well as ISO-8601 date strings become real, sortable Excel values (localized by the client); serial numbers, IMEIs and other IDs always stay text and formula injection is not possible; http/https URLs become clickable hyperlinks
+  - RealmJoin-branded report design: custom table style with a navy header (white bold text) and zebra striping that follows re-sorting; an explicit white second stripe keeps grid lines from showing through inside the table; worksheet tab colors (first tab in RealmJoin orange, further tabs in gray); frozen header row with filter dropdowns and calculated column widths
+  - Optional `CoverSheet` parameter that renders an indented "Info" cover worksheet: large navy title with an orange accent line plus label/value rows (e.g. tenant, generation time, runbook version, filters)
+  - Optional `HighlightRules` parameter for conditional formatting of status columns (exact match, case-insensitive; Green/Red/Yellow classic Excel presets)
+  - Optional `DataBarColumns` parameter that renders orange in-cell data bars for numeric columns, making outliers visible at a glance while the cells stay sortable and filterable
+  - Optional `HyperlinkText` parameter for friendly hyperlink display texts per column (e.g. "Open in Intune" instead of the full URL; the link target stays the URL)
+  - Optional `HideGridLines` and `UseThousandsSeparator` switches (both off by default)
+  - Automatic print setup: orientation (portrait/landscape) is derived from the content width, the table is scaled to one page wide and the header row is repeated on every printed page
+  - **Report Users With More Than 5 Devices** delivers its summary and detail exports as a single workbook with two worksheets ("Summary" and "Details"), starts it with an "Info" cover worksheet (report name, generation time (UTC), runbook version, scope and result counts) and highlights the "InIntune" column via conditional formatting ("yes" in green, "no" in red; the rule is skipped automatically when the column is omitted via `IntuneOnlyDevices`)
+
+## 2026-07-15
+
+- Update **Report Devices Without Primary User (Scheduled)** Runbook in Org/Devices
+  - Add the device operating system to the report output, the CSV export and the email report
+  - Add platform filter parameters (`IncludeWindows`, `IncludeMacOS`, `IncludeIOS`, `IncludeAndroid`, `IncludeOther`) to limit the report to selected platforms; all platforms are included by default
+  - The selected platforms are listed in the runbook output and the email report
+  - Optimize the managed device query so only the required device properties are requested from Microsoft Graph
+  - Add an optional download link (`CreateDownloadLink`, disabled by default): the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the runbook output (uses the `RJReport.StorageAccount.*` settings)
+- Update **Report Users With More Than 5 Devices (Scheduled)** Runbook in Org/Devices
+  - Enhance the detailed CSV export: each device entry now includes the device display name
+  - Rename the `DeviceId` column to `DeviceObjectId` to clarify that it contains the Entra object ID, and add an `EntraIDDeviceID` column with the Entra ID device ID
+  - Add an `InIntune` column ("yes"/"no") to the detailed CSV export, indicating whether the device is also present in Intune as a managed device
+  - Add an `IntuneOnlyDevices` parameter (disabled by default) to limit the report to devices that are present in Intune; the `InIntune` column is omitted in this case and the report scope is noted in the email
+  - Add an optional download link (`CreateDownloadLink`, disabled by default): the summary and detail CSV files are uploaded to an Azure Storage Account and time-limited download links are returned in the runbook output (uses the `RJReport.StorageAccount.*` settings)
+- Enable the "Scheduled" option for the following runbooks in Org/Devices (files renamed with the `_scheduled` suffix):
+  - **Report Devices Without Primary User**
+  - **Report Users With More Than 5 Devices**
+  - **Report Windows Devices Without Autopilot**
+
+## 2026-07-10
+
+- Add **Wipe Managed App Data** Runbook in Device/General
+  - Performs an "App selective wipe" (MAM) for a device, mirroring the Intune portal flow *Apps > App selective wipe > Create wipe request* - removes company data from apps protected by app protection policies without wiping the whole device (typical use case: lost or stolen MAM-managed devices)
+  - Resolves the users registered on the device, matches their MAM app registrations against the device (via `azureADDeviceId`, with a device-name fallback for registrations without an EntraID device id) and creates a wipe request per affected user/device tag via `wipeManagedAppRegistrationsByDeviceTag`
+  - Wipe requests can be monitored/cancelled in the Intune portal under *Apps > App selective wipe*
+  - Requires the `DeviceManagementApps.ReadWrite.All`, `Device.Read.All` and `User.Read.All` Graph permissions
+
+## 2026-07-09
+
+- Update **Wipe Device** Runbook in Device/General
+  - Add optional `addToExclusionGroup` switch that adds the (Windows) device to the compliance exclusion group (`exclusionGroupName`), granting it a longer compliance grace period after it is re-enrolled via Autopilot (aligns with the **Check Device Onboarding Exclusion** runbook)
+  - Add an optional `exclusionGroupId` parameter (hidden by default) that, when set, always overrides `exclusionGroupName` to avoid display-name conflicts;
+  - The exclusion group is resolved and validated in an upfront preflight check, so the runbook aborts before any destructive action (wipe/delete/disable) if the group is missing, avoiding a "half-baked" device state
+  - The device is added before any EntraID object deletion; the operation is skipped for non-Windows devices, when the device is being deleted from EntraID, or when it is already a member of the group
+  - Add the `GroupMember.ReadWrite.All` Graph permission
+
+## 2026-07-08
+
+- Add **Sync Channel Or Group Members** Runbook in Org/General
+  - Scheduled runbook that mirrors membership in one direction: shared channel members into a security group, group members into another group, or group members into a shared channel
+  - Adding missing members is always performed; removing members that only exist in the target is opt-in via `RemoveExtraMembers`
+  - Group sources are expanded transitively; guest handling (`IncludeGuests`) and removing channel members from the host team (`RemoveFromTeam`) are configurable, plus a `WhatIfMode` dry run
+  - Optional email report and time-limited download link (CSV of all changes) via the `RJReport.*` settings
+- Update **Wipe Device** Runbook in Device/General
+  - The Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) now runs as an upfront preflight check before any device object or wipe operations are performed
+  - When the device's risk score is Medium or High, the runbook aborts with a clearly visible warning banner and a distinct error message, protecting forensic data of devices potentially involved in a security incident
+
+## 2026-07-07
+
+- Add **Add GSA Application Registration** Runbook in Org/Applications
+  - Creates a Global Secure Access application (Enterprise App or Quick Access App) from the application template, assigns a connector group and adds an application segment (FQDN, IP, CIDR or IP range)
+  - Creates a security group per naming scheme and assigns it to the application's service principal (with retry to handle replication delays)
+  - Naming scheme is configurable via Runbook Customization: app prefix (default `GSA-`, free text) and admin-defined group prefix (default `App - Entra - GSA - `, shown read-only in the UI)
+  - Pre-flight validation (connector group, names) before anything is created; update mode adds segments to an existing application; rollback removes objects created in a failed run
+- Add **Delete GSA Application Registration** Runbook in Org/Applications
+  - Deletes a GSA application by display name including its naming scheme security group; verifies the target is a GSA / App Proxy application before deleting
+  - Other assigned groups are listed but only deleted with explicit opt-in (`deleteAllAssignedGroups`)
+
+## 2026-07-01
+
+- Update **List Group Memberships** and **List Group Ownerships** Runbooks in User/General
+  - Add optional email delivery (`SendMail`/`EmailTo`) that sends the result as a CSV attachment
+  - Add optional download link creation (`CreateDownloadLink`) that uploads the CSV via `Publish-RjRbFilesToStorageContainer` and returns a time-limited link in the runbook output
+  - Add the `Az.Accounts` module requirement and the `Mail.Send` and `Organization.Read.All` Graph permissions
+
 ## 2026-06-30
 
 - Update **Wipe Device** Runbook in Device/General

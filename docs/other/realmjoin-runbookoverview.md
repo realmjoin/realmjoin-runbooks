@@ -3,10 +3,10 @@
 This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality.
 
 To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:
-- device
-- group
-- org
-- user
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory.
 
@@ -28,6 +28,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Set Primary User](#set-primary-user)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
+      - [Wipe Managed App Data](#wipe-managed-app-data)
   - [Security](#device-security)
       - [Check Defender Status](#check-defender-status)
       - [Enable Or Disable Device](#enable-or-disable-device)
@@ -59,7 +60,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
+      - [Add Gsa Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
+      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -76,11 +79,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
-      - [Report Devices Without Primary User](#report-devices-without-primary-user)
+      - [Report Devices Without Primary User (Scheduled)](#report-devices-without-primary-user-(scheduled))
       - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
-      - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
-      - [Report Windows Devices Without Autopilot](#report-windows-devices-without-autopilot)
+      - [Report Users With More Than 5-Devices (Scheduled)](#report-users-with-more-than-5-devices-(scheduled))
+      - [Report Windows Devices Without Autopilot (Scheduled)](#report-windows-devices-without-autopilot-(scheduled))
       - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
       - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
@@ -118,6 +121,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
       - [Sync Apple Tokens](#sync-apple-tokens)
+      - [Sync Channel Or Group Members (Scheduled)](#sync-channel-or-group-members-(scheduled))
       - [Sync Shared Channel Owners (Scheduled)](#sync-shared-channel-owners-(scheduled))
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
@@ -147,6 +151,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Monitor Pending EPM Requests (Scheduled)](#monitor-pending-epm-requests-(scheduled))
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
       - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
+      - [Sync MFA Secure Users To Group (Scheduled)](#sync-mfa-secure-users-to-group-(scheduled))
 - [User](#user)
   - [AVD](#user-avd)
       - [User Signout](#user-signout)
@@ -472,6 +477,107 @@ Wipe a Windows or MacOS device. For Windows devices, you can choose between a re
 #### Where to find
 
 Device \ General \ Wipe Device
+
+## Add the device to a compliance exclusion group
+
+When *Add device to compliance exclusion group* (`addToExclusionGroup`) is enabled, the wiped Windows device is added to a compliance exclusion group. Devices in that group receive a longer compliance grace period after they are re-enrolled via Autopilot (this mirrors the **Check Device Onboarding Exclusion** runbook).
+
+By default the group is identified by its **display name** (`exclusionGroupName`). Because display names are not guaranteed to be unique, you can instead pin the group by its **Object ID** (`exclusionGroupId`). When an Object ID is provided, it **always overrides** the display name, so name conflicts can never lead to the wrong group being used. `exclusionGroupId` is hidden by default and is meant to be set via runbook customization.
+
+The group is resolved and validated in an upfront preflight check. If the configured group does not exist, the runbook aborts **before** any wipe/delete/disable action, so no half-applied state is left behind. Adding to the group is skipped for non-Windows devices and when the device is deleted from EntraID (`removeAADDevice`).
+
+### Pin the group by Object ID (recommended)
+
+Preset the group's Object ID and enable the switch, keeping the fields hidden. This avoids any ambiguity from duplicate display names.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "addToExclusionGroup": {
+            "Default": true
+        },
+        "exclusionGroupId": {
+            "Default": "00000000-0000-0000-0000-000000000000",
+            "Hide": true
+        },
+        "exclusionGroupName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+Replace `00000000-0000-0000-0000-000000000000` with the Object ID of your group (EntraID > Groups > *your group* > **Object Id**).
+
+### Pin the group by display name
+
+If you prefer to work with the display name (and it is unique in your tenant), preset `exclusionGroupName` and leave `exclusionGroupId` empty so the name is used.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "addToExclusionGroup": {
+            "Default": true
+        },
+        "exclusionGroupName": {
+            "Default": "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
+            "Hide": true
+        }
+    }
+}
+```
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-wipe-managed-app-data'></a>
+
+### Wipe Managed App Data
+#### App selective wipe - remove company app data from this MAM device
+
+#### Description
+
+Performs an "App selective wipe" (Mobile Application Management) for this device, mirroring the
+Intune portal flow "Apps > App selective wipe > Create wipe request". It removes company data
+from apps protected by app protection policies without wiping the whole device - typically
+used for lost or stolen devices that are MAM-managed (not MDM-enrolled).
+
+The runbook resolves the users registered on the device, collects their MAM app registrations
+that belong to this device and creates a wipe request for each affected user/device tag. The
+wipe is executed the next time each protected app checks in. Wipe requests can be monitored
+and cancelled in the Intune portal under "Apps > App selective wipe".
+
+#### Where to find
+
+Device \ General \ Wipe Managed App Data
+
+## Device matching
+
+MAM app registrations belong to a user, not to a device object. The runbook therefore resolves the
+users registered on the device and matches their app registrations against the device's EntraID
+device id (`azureADDeviceId`). Registrations without an EntraID device id are matched by the
+device's display name as fallback; the runbook output indicates when this fallback was used.
+
+## Wipe behavior
+
+- The company app data is removed the next time each protected app checks in on the device; the
+  wipe is not instantaneous.
+- Pending wipe requests can be monitored and cancelled in the Intune portal under
+  *Apps > App selective wipe*.
+- Only app data protected by app protection policies (MAM) is affected. The device object itself
+  is not touched: it remains in EntraID (and in Intune/Autopilot, if it is additionally
+  MDM-enrolled). To disable or remove the device there as well, run the **Outphase Device**
+  runbook (Device \ General) afterwards; for a full wipe of MDM-enrolled devices use
+  **Wipe Device**.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -987,6 +1093,33 @@ Org \ Applications \ Add Application Registration
  
  
 
+<a name='org-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+#### Add a GSA application registration to Azure AD
+
+#### Description
+
+This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+
+In addition to the application, a security group for managing access to the application is created (naming scheme configurable
+via Runbook Customization) and assigned to the application's service principal.
+
+If the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /
+group / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.
+If a later step fails anyway, objects created in this run (application, group) are rolled back and removed.
+Pre-existing objects (update mode) are never removed.
+
+#### Where to find
+
+Org \ Applications \ Add Gsa Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-applications-delete-application-registration'></a>
 
 ### Delete Application Registration
@@ -1007,15 +1140,51 @@ Org \ Applications \ Delete Application Registration
  
  
 
-<a name='org-applications-export-enterprise-application-users'></a>
+<a name='org-applications-delete-gsa-application-registration'></a>
 
-### Export Enterprise Application Users
-#### Export a CSV of all (enterprise) application owners and users
+### Delete Gsa Application Registration
+#### Delete a GSA application registration from Azure AD including associated objects
 
 #### Description
 
-This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
-It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
+This runbook deletes a Global Secure Access application registration created by the
+"add-gsa-application-registration" runbook, including everything provisioned with it:
+the application (and thereby its service principal, application segments and connector
+group assignment) and the security group created by the naming scheme.
+
+The naming scheme group is identified via the groups assigned to the application whose
+display name matches the admin-defined group prefix. If the group was created but never
+assigned (partial provisioning), a best-effort lookup by naming scheme is performed.
+
+Safety measures:
+- The runbook verifies the application is actually a GSA / App Proxy application
+  (onPremisesPublishing) before deleting anything.
+- By default only security group(s) matching the naming scheme are deleted. Other
+  groups assigned to the application are listed but NOT deleted, as they may be
+  shared with other applications. Set deleteAllAssignedGroups to change this.
+
+#### Where to find
+
+Org \ Applications \ Delete Gsa Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-export-enterprise-application-users'></a>
+
+### Export Enterprise Application Users
+#### Export a report of all (enterprise) application owners and users
+
+#### Description
+
+This runbook exports a report of enterprise applications (or all service principals) including owners and assigned users or groups.
+By default, the generated report files are uploaded to an Azure Storage Account and time-limited download links are returned.
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1038,6 +1207,11 @@ This runbook identifies enterprise applications with no recent sign-in activity 
 It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
 Use it to find candidates for review, cleanup, or decommissioning.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 #### Where to find
 
 Org \ Applications \ List Inactive Enterprise Applications
@@ -1056,7 +1230,10 @@ Org \ Applications \ List Inactive Enterprise Applications
 #### Description
 
 This runbook generates a report of all application registrations in Microsoft Entra ID and can optionally include deleted registrations.
-It exports the results to CSV files and sends them via email.
+It exports the results to CSV files and an Excel (xlsx) workbook and can send them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 Use it for periodic inventory, review, and audit purposes.
 
 #### Where to find
@@ -1087,6 +1264,11 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
 It can optionally filter by application IDs and can limit output to credentials that are about to expire.
+
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1182,6 +1364,10 @@ Org \ Devices \ Add Device Via Corporate Identifier
 #### Description
 
 This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+The notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1209,7 +1395,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1273,12 +1462,14 @@ Org \ Devices \ Dedup Device Names_Scheduled
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
-#### Scheduled deletion of stale devices based on last activity
+#### Scheduled deletion of stale devices based on last activity date and platform
 
 #### Description
 
-This runbook identifies Intune managed devices that have not been active for a defined number of days.
-It can optionally delete the matching devices and can send an email report.
+Identifies Intune managed devices that have not been active for a specified number of days.
+By default the runbook runs in report-only mode (simulation) and lists the devices that would be deleted.
+When deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.
+An email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 #### Where to find
 
@@ -1421,21 +1612,25 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
  
  
 
-<a name='org-devices-report-devices-without-primary-user'></a>
+<a name='org-devices-report-devices-without-primary-user-(scheduled)'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 #### Reports all managed devices in Intune that do not have a primary user assigned.
 
 #### Description
 
 This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
+The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
+The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing detailed device information.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
-Org \ Devices \ Report Devices Without Primary User
+Org \ Devices \ Report Devices Without Primary User_Scheduled
 
 ## Setup regarding email sending
 
@@ -1459,7 +1654,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.
+For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1500,7 +1698,10 @@ This runbook queries the RealmJoin customer API and requires a dedicated credent
 #### Description
 
 Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1521,19 +1722,23 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
  
  
 
-<a name='org-devices-report-users-with-more-than-5-devices'></a>
+<a name='org-devices-report-users-with-more-than-5-devices-(scheduled)'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 #### Report users with more than five registered devices
 
 #### Description
 
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-It outputs a summary table and can optionally send an email with CSV attachments.
+It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
+The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device and whether it is compliant (both highlighted green/red in the Excel workbook).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
-Org \ Devices \ Report Users With More Than 5-Devices
+Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
 
 ## Setup regarding email sending
 
@@ -1550,9 +1755,9 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
  
  
 
-<a name='org-devices-report-windows-devices-without-autopilot'></a>
+<a name='org-devices-report-windows-devices-without-autopilot-(scheduled)'></a>
 
-### Report Windows Devices Without Autopilot
+### Report Windows Devices Without Autopilot (Scheduled)
 #### Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
 #### Description
@@ -1565,12 +1770,14 @@ Such orphaned Entra device objects are typical leftovers ("Objektleichen") from 
 reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
 these candidates visible so they can be reviewed and - if appropriate - deleted.
 
-Optionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited
-download link) and/or sent via email with the CSV attached.
+Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
+download links) and/or sent via email with the selected report file format(s) attached.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
-Org \ Devices \ Report Windows Devices Without Autopilot
+Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 ## Reporting orphaned Windows devices
 
@@ -2271,7 +2478,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
 Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
 The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
-The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
+The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV and/or Excel (xlsx) files, and sends them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -2484,6 +2694,101 @@ Org \ General \ Sync Apple Tokens
  
  
 
+<a name='org-general-sync-channel-or-group-members-(scheduled)'></a>
+
+### Sync Channel Or Group Members (Scheduled)
+#### Sync members between a Teams Shared Channel or a group and an Entra security group
+
+#### Description
+
+This scheduled runbook mirrors the membership of a source object into a target object in one
+direction per run. It supports syncing Teams Shared Channel members into a security group, syncing
+the members of one group into another group (for example a Microsoft 365 group into a security group
+or vice versa) and syncing group members into a Teams Shared Channel. Adding missing members is always
+performed, while removing members that only exist in the target is optional and controlled by a
+parameter. Guest handling and whether channel removals also remove the host team membership are
+configurable, and the runbook can optionally send an email report and upload the results as a
+time-limited download link. The ReportFileFormat parameter controls which report file formats are
+generated and delivered (CSV only, CSV & XLSX, or XLSX only). When the CSV attachment exceeds the
+email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ General \ Sync Channel Or Group Members_Scheduled
+
+## How it works
+
+This scheduled runbook mirrors the membership of a **source** object into a **target** object in a
+single direction per run. On each run it:
+
+1. Resolves the source and target objects for the selected direction.
+2. Reads the current member set of both sides.
+3. Adds every source member that is missing from the target.
+4. Optionally removes every target member that does not exist in the source (mirror mode).
+
+### Directions
+
+The `Direction` parameter selects what is synced into what:
+
+- **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.
+- **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).
+- **`GroupToSharedChannel`** - the members of a source group are copied into a Teams shared channel.
+
+### Adding and removing
+
+Adding missing members is always performed. Removing members that exist only in the target is **opt-in**
+via `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the
+source; with it disabled, the runbook is add-only.
+
+### Group member expansion
+
+Group members on the source side are resolved **transitively**, so users that are members through nested
+groups are included. On the target side only **direct** members are considered, because add and remove
+operations act on direct membership.
+
+### Guest handling
+
+`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests
+are skipped on both sides and are never added or removed. Shared channels frequently reject guests, so
+this is off by default.
+
+### Shared channel specifics
+
+- When a group is synced **into** a shared channel, team membership is a prerequisite for channel
+  membership, so the runbook first ensures the user is a member of the host team and then adds the user
+  to the channel.
+- When members are **removed** from a shared channel, only the channel membership is removed by default.
+  Enable `RemoveFromTeam` to also remove the user from the host team membership.
+
+### Dry run
+
+Set `WhatIfMode` to log what would change without writing anything.
+
+### Reporting (optional, both default off)
+
+- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and
+  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
+  setting.
+- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS
+  download link (also embedded into the email when both options are enabled). The target storage account
+  is taken from the `RJReport.StorageAccount.*` settings.
+
+The storage upload authenticates with the Automation account's managed identity; that identity needs the
+**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC
+assignment, not a Graph application permission).
+
+### Scheduling
+
+Designed to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule
+keeps the target in sync with the source as members come and go.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-general-sync-shared-channel-owners-(scheduled)'></a>
 
 ### Sync Shared Channel Owners (Scheduled)
@@ -2496,8 +2801,11 @@ that gap: for each team named in a mapping, it ensures the members of a mapped s
 of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
 maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
 are never removed - so newly created shared channels are simply picked up on the next run. It can
-optionally email a report and/or upload the CSV results as a download link. See the accompanying
-documentation for the mapping rules and configuration.
+optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+rules and configuration.
 
 #### Where to find
 
@@ -3015,7 +3323,10 @@ Org \ Security \ List Vulnerable App Regs
 
 Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
 Email is only sent when there are pending requests.
-Optionally includes detailed information about each request in a table and CSV attachment.
+Optionally includes detailed information about each request in a table and report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -3064,7 +3375,10 @@ Org \ Security \ Notify Changed CA Policies
 
 Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
 Supports filtering by multiple status types and time range.
-Sends an email report with summary statistics and detailed CSV attachment.
+Sends an email report with summary statistics and detailed report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -3077,6 +3391,121 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-sync-mfa-secure-users-to-group-(scheduled)'></a>
+
+### Sync MFA Secure Users To Group (Scheduled)
+#### Sync users with secure MFA methods registered into an Entra ID group
+
+#### Description
+
+This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Guest users and non-user group members are never touched.
+
+Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
+
+#### Where to find
+
+Org \ Security \ Sync MFA Secure Users To Group_Scheduled
+
+## How it works
+
+The runbook reads the Entra ID [authentication methods registration report](https://learn.microsoft.com/en-us/graph/api/authenticationmethodsroot-list-userregistrationdetails) (`userRegistrationDetails`) and mirrors the target group against all **member users** that qualify:
+
+- A user qualifies when at least one of their registered methods is in the configured **secure** set.
+- In **strict mode** (`SecureOnly`), a user additionally must not have any method from the **unsecure** set registered — a passkey user who also keeps an SMS factor does not qualify.
+- Qualifying users that are not yet group members are added; members that no longer qualify are removed (mirror sync).
+- Guest users are never added or removed. Non-user group members (devices, service principals, nested groups) are never touched.
+
+The target group should be managed exclusively by this runbook.
+
+## Secure method groups
+
+Each toggle controls which `methodsRegistered` values count as secure:
+
+| Toggle | Default | Covered values |
+| --- | --- | --- |
+| Passkeys / FIDO2 security keys | on | `fido2SecurityKey`, `passKeyDeviceBound`, `passKeyDeviceBoundAuthenticator` |
+| Platform credentials | on | `windowsHelloForBusiness`, `passKeyDeviceBoundWindowsHello`, `macOsSecureEnclaveKey` |
+| Microsoft Authenticator app | on | `microsoftAuthenticatorPush`, `microsoftAuthenticatorPasswordless` |
+| Software OTP | off | `softwareOneTimePasscode` |
+| Hardware OTP | off | `hardwareOneTimePasscode` |
+| Certificate-based authentication | on | `certificateBasedAuthentication` |
+
+## Strict mode (SecureOnly)
+
+With strict mode enabled, users with any of the following built-in unsecure methods never qualify:
+
+`mobilePhone`, `alternateMobilePhone`, `officePhone`, `email`, `securityQuestion`
+
+If a method ends up in both the secure and the unsecure set (only possible via the override parameters), unsecure wins — such users never qualify in strict mode. The runbook warns about this at startup.
+
+## Method classification reference
+
+Use the exact Graph values from this table when building the comma-separated override strings:
+
+| `methodsRegistered` value | Friendly name | Classification | Covered by toggle (default) |
+| --- | --- | --- | --- |
+| `fido2SecurityKey` | FIDO2 security key | Secure | Passkeys / FIDO2 (on) |
+| `passKeyDeviceBound` | Passkey (device-bound) | Secure | Passkeys / FIDO2 (on) |
+| `passKeyDeviceBoundAuthenticator` | Passkey in Microsoft Authenticator | Secure | Passkeys / FIDO2 (on) |
+| `windowsHelloForBusiness` | Windows Hello for Business | Secure | Platform credentials (on) |
+| `passKeyDeviceBoundWindowsHello` | Passkey in Windows Hello | Secure | Platform credentials (on) |
+| `macOsSecureEnclaveKey` | Platform Credential for macOS | Secure | Platform credentials (on) |
+| `microsoftAuthenticatorPush` | Microsoft Authenticator (push notification) | Secure | Microsoft Authenticator app (on) |
+| `microsoftAuthenticatorPasswordless` | Microsoft Authenticator (passwordless phone sign-in) | Secure | Microsoft Authenticator app (on) |
+| `softwareOneTimePasscode` | Software OATH token (TOTP app) | Secure | Software OTP (off) |
+| `hardwareOneTimePasscode` | Hardware OATH token | Secure | Hardware OTP (off) |
+| `certificateBasedAuthentication` | Certificate-based authentication | Secure | Certificate-based authentication (on) |
+| `mobilePhone` | Phone (SMS / voice call) | Unsecure | built-in unsecure list |
+| `alternateMobilePhone` | Alternate phone (voice call) | Unsecure | built-in unsecure list |
+| `officePhone` | Office phone (voice call) | Unsecure | built-in unsecure list |
+| `email` | Email (SSPR only) | Unsecure | built-in unsecure list |
+| `securityQuestion` | Security questions (SSPR only) | Unsecure | built-in unsecure list |
+| `temporaryAccessPass` | Temporary Access Pass | Neutral | never qualifies, never disqualifies |
+
+Unknown or future Graph values are treated as neutral unless explicitly listed in an override parameter.
+
+## Override parameters
+
+Both override parameters are hidden by default and intended for RealmJoin runbook customization:
+
+- **SecureMethodsOverride** — comma-separated list of `methodsRegistered` values that defines the secure set. When set, **all** method group toggles are ignored. Example: `fido2SecurityKey,passKeyDeviceBound,passKeyDeviceBoundAuthenticator,windowsHelloForBusiness`
+- **UnsecureMethodsOverride** — comma-separated list that replaces the built-in unsecure list. Only evaluated in strict mode. Example: `mobilePhone,alternateMobilePhone,officePhone,email,securityQuestion,softwareOneTimePasscode`
+
+Unknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.
+
+## Email report and download links
+
+Optionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+
+- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [email reporting setup](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md)).
+- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+
+Report files are only generated when at least one of the two options is enabled. The report consists of:
+
+- **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
+- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification and group membership
+- **mfa-secure-users-group-sync-report.xlsx** - the same data as a formatted Excel workbook: an "Info" cover sheet with the chosen parameters and result counts, a "Changes" worksheet (added users highlighted in green, removed in red) and an "All Users" worksheet
+
+In large tenants the raw CSV files can exceed the email attachment size limit (Graph rejects mails at roughly 4 MB total). When the CSV files exceed a 2.5 MB budget, the email is sent with only the Excel workbook attached (which contains the complete data in compressed form) and a note explaining the omission; a failed full-size send is also retried automatically with the workbook only. The download link upload always includes all files regardless of size.
+
+## Notes and limitations
+
+- The registration report requires an **Entra ID P1 or P2** license.
+- The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
+- Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
+- The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
+
+## Scheduling
+
+The sync is idempotent — a single recurring schedule (e.g. daily) keeps the group up to date, and reruns after partial failures self-heal. Recommendation: run once with **Dry run (WhatIf)** enabled and review the job output before scheduling the runbook in live mode.
 
 
 
@@ -3201,6 +3630,8 @@ User \ General \ List Group Memberships
 #### Description
 
 Lists Entra ID groups where the specified user is an owner. Outputs the group names and IDs.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 

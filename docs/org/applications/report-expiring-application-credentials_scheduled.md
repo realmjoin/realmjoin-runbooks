@@ -6,6 +6,11 @@ List expiry date of all Application Registration credentials
 This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
 It can optionally filter by application IDs and can limit output to credentials that are about to expire.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 ## Where to find
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
 
@@ -63,6 +68,60 @@ Optional - comma-separated list of Application IDs to filter the credentials.
 | Required | false |
 | Type | String |
 
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
+### CreateDownloadLink
+If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ContainerName
+Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+| Property | Value |
+|----------|-------|
+| Default Value | report-expiring-app-credentials |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
+
 ### EmailTo
 If specified, an email with the report will be sent to the provided address(es).
 Can be a single address or multiple comma-separated addresses (string).
@@ -71,7 +130,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Property | Value |
 |----------|-------|
 | Default Value |  |
-| Required | true |
+| Required | false |
 | Type | String |
 
 ### EmailFrom

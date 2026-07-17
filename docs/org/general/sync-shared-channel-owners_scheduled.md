@@ -8,8 +8,11 @@ that gap: for each team named in a mapping, it ensures the members of a mapped s
 of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
 maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
 are never removed - so newly created shared channels are simply picked up on the next run. It can
-optionally email a report and/or upload the CSV results as a download link. See the accompanying
-documentation for the mapping rules and configuration.
+optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+rules and configuration.
 
 ## Where to find
 Org \ General \ Sync Shared Channel Owners_Scheduled
@@ -121,7 +124,8 @@ When enabled, the runbook only logs the changes it would make without writing an
 
 ### SendEmailReport
 When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body
-contains run statistics and two CSV attachments (per-team summary and per-change detail).
+contains run statistics; the report files (per-team summary and per-change detail) are attached in the
+selected report file format(s).
 
 | Property | Value |
 |----------|-------|
@@ -147,8 +151,17 @@ Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender".
 | Required | false |
 | Type | String |
 
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
 ### CreateDownloadLink
-When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is
+When enabled, the report file(s) are uploaded to a storage account and time-limited download links are
 returned (and included in the email report if that is also enabled). Default off.
 
 | Property | Value |

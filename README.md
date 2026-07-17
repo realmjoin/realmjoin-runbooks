@@ -45,6 +45,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Primary User](docs/device/general/set-primary-user.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
+    - [Wipe Managed App Data](docs/device/general/wipe-managed-app-data.md)
   - [Security](docs/device/README.md#device-security)
 
     - [Check Defender Status](docs/device/security/check-defender-status.md)
@@ -82,7 +83,9 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [Applications](docs/org/README.md#org-applications)
 
     - [Add Application Registration](docs/org/applications/add-application-registration.md)
+    - [Add Gsa Application Registration](docs/org/applications/add-gsa-application-registration.md)
     - [Delete Application Registration](docs/org/applications/delete-application-registration.md)
+    - [Delete Gsa Application Registration](docs/org/applications/delete-gsa-application-registration.md)
     - [Export Enterprise Application Users](docs/org/applications/export-enterprise-application-users.md)
     - [List Inactive Enterprise Applications](docs/org/applications/list-inactive-enterprise-applications.md)
     - [Report Application Registration](docs/org/applications/report-application-registration.md)
@@ -100,11 +103,11 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Get Bitlocker Recovery Key](docs/org/devices/get-bitlocker-recovery-key.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
-    - [Report Devices Without Primary User](docs/org/devices/report-devices-without-primary-user.md)
+    - [Report Devices Without Primary User (Scheduled)](docs/org/devices/report-devices-without-primary-user_scheduled.md)
     - [Report Primary User Mismatch (Scheduled)](docs/org/devices/report-primary-user-mismatch_scheduled.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
-    - [Report Users With More Than 5-Devices](docs/org/devices/report-users-with-more-than-5-devices.md)
-    - [Report Windows Devices Without Autopilot](docs/org/devices/report-windows-devices-without-autopilot.md)
+    - [Report Users With More Than 5-Devices (Scheduled)](docs/org/devices/report-users-with-more-than-5-devices_scheduled.md)
+    - [Report Windows Devices Without Autopilot (Scheduled)](docs/org/devices/report-windows-devices-without-autopilot_scheduled.md)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](docs/org/devices/sync-device-serialnumbers-to-entraid_scheduled.md)
   - [General](docs/org/README.md#org-general)
 
@@ -143,6 +146,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Pim Activations (Scheduled)](docs/org/general/report-pim-activations_scheduled.md)
     - [Sync All Devices](docs/org/general/sync-all-devices.md)
     - [Sync Apple Tokens](docs/org/general/sync-apple-tokens.md)
+    - [Sync Channel Or Group Members (Scheduled)](docs/org/general/sync-channel-or-group-members_scheduled.md)
     - [Sync Shared Channel Owners (Scheduled)](docs/org/general/sync-shared-channel-owners_scheduled.md)
   - [Mail](docs/org/README.md#org-mail)
 
@@ -175,6 +179,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Monitor Pending EPM Requests (Scheduled)](docs/org/security/monitor-pending-epm-requests_scheduled.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
+    - [Sync MFA Secure Users To Group (Scheduled)](docs/org/security/sync-mfa-secure-users-to-group_scheduled.md)
 - [User](docs/user/README.md)
   - [AVD](docs/user/README.md#user-avd)
 

@@ -3,10 +3,10 @@
 This document provides a comprehensive overview of all parameters used in the runbooks available in the RealmJoin portal. Each parameter is listed with its type and whether it is required or optional.
 
 To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:
-- device
-- group
-- org
-- user
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row.
 
@@ -27,6 +27,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Set Primary User](#device-general-set-primary-user)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
+    - [Wipe Managed App Data](#device-general-wipe-managed-app-data)
   - [Security](#device-security)
     - [Check Defender Status](#device-security-check-defender-status)
     - [Enable Or Disable Device](#device-security-enable-or-disable-device)
@@ -58,7 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
+    - [Add Gsa Application Registration](#organization-applications-add-gsa-application-registration)
     - [Delete Application Registration](#organization-applications-delete-application-registration)
+    - [Delete Gsa Application Registration](#organization-applications-delete-gsa-application-registration)
     - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
     - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
     - [Report Application Registration](#organization-applications-report-application-registration)
@@ -75,11 +78,11 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
-    - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
+    - [Report Devices Without Primary User (Scheduled)](#organization-devices-report-devices-without-primary-user-scheduled)
     - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
-    - [Report Users With More Than 5-Devices](#organization-devices-report-users-with-more-than-5-devices)
-    - [Report Windows Devices Without Autopilot](#organization-devices-report-windows-devices-without-autopilot)
+    - [Report Users With More Than 5-Devices (Scheduled)](#organization-devices-report-users-with-more-than-5-devices-scheduled)
+    - [Report Windows Devices Without Autopilot (Scheduled)](#organization-devices-report-windows-devices-without-autopilot-scheduled)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](#organization-devices-sync-device-serialnumbers-to-entraid-scheduled)
   - [General](#organization-general)
     - [Add Devices Of Users To Group (Scheduled)](#organization-general-add-devices-of-users-to-group-scheduled)
@@ -117,6 +120,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
     - [Sync Apple Tokens](#organization-general-sync-apple-tokens)
+    - [Sync Channel Or Group Members (Scheduled)](#organization-general-sync-channel-or-group-members-scheduled)
     - [Sync Shared Channel Owners (Scheduled)](#organization-general-sync-shared-channel-owners-scheduled)
   - [Mail](#organization-mail)
     - [Add Distribution List](#organization-mail-add-distribution-list)
@@ -146,6 +150,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Monitor Pending EPM Requests (Scheduled)](#organization-security-monitor-pending-epm-requests-scheduled)
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
     - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
+    - [Sync MFA Secure Users To Group (Scheduled)](#organization-security-sync-mfa-secure-users-to-group-scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - [User Signout](#user-avd-user-signout)
@@ -363,8 +368,21 @@ Wipe a Windows or MacOS device
 | removeAADDevice |  | Boolean | "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD). |
 | disableAADDevice |  | Boolean | "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD). |
 | skipWipeIfAtRisk |  | Boolean | If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe. |
+| addToExclusionGroup |  | Boolean | Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook). |
+| exclusionGroupName |  | String | Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled. |
+| exclusionGroupId |  | String | Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization. |
 | macOsRecoveryCode |  | String | MacOS-only. Recovery code for older devices; newer devices may not require this. |
 | macOsObliterationBehavior |  | String | MacOS-only. Controls the OS obliteration behavior during wipe. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='device-general-wipe-managed-app-data'></a>
+
+### Wipe Managed App Data
+App selective wipe - remove company app data from this MAM device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | The device ID of the target device. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
@@ -671,6 +689,25 @@ Add an application registration to Azure AD
 | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. Default is false. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+Add a GSA application registration to Azure AD
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| name | ✓ | String | The base name of the Global Secure Access application to create. The final application name is built as "<prefix> <name>". |
+| prefix | ✓ | String | Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends<br>with "-", "_" or a space. Example: prefix "GSA-" + name "MyApp" results in application "GSA-MyApp". |
+| groupPrefix |  | String | Prefix for the security group name. The group name is built as "<groupPrefix><name><groupSuffix>" -<br>independent of the application prefix. Example: groupPrefix "App - Entra - GSA - " + name "MyApp"<br>results in group "App - Entra - GSA - MyApp". Default: "App - Entra - GSA - ". |
+| groupSuffix |  | String | Optional suffix for the security group name, e.g. " (users)". Default: empty. |
+| applicationType | ✓ | String | The type of GSA application to create. Options: "nonwebapp" (Enterprise App) or "quickaccessapp" (Quick Access App). |
+| connectorGroup |  | String | The connectorGroup to be used for the application. Must be defined in the Runbook Customization. |
+| destinationHost |  | String | The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20). |
+| destinationType |  | String | The type of destination specified. Options: "fqdn", "ip", "ipRangeCidr", or "ipRange". Hidden in UI as it's automatically determined from destinationHost format. |
+| ports |  | String | The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080). |
+| protocol |  | String | The network protocol to use. Options: "tcp", "udp", or "tcp,udp". Default is "tcp". |
+| CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
+
 <a name='organization-applications-delete-application-registration'></a>
 
 ### Delete Application Registration
@@ -681,18 +718,35 @@ Delete an application registration from Azure AD
 | ClientId | ✓ | String | The application client ID (appId) of the application registration to delete. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-applications-delete-gsa-application-registration'></a>
+
+### Delete Gsa Application Registration
+Delete a GSA application registration from Azure AD including associated objects
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| applicationName | ✓ | String | The full display name of the GSA application to delete, e.g. "GSA-MyApp". |
+| groupPrefix |  | String | Prefix of the security group naming scheme, used to identify the group(s) to delete.<br>Must match the groupPrefix of the add-gsa-application-registration runbook.<br>Default: "App - Entra - GSA - ". |
+| groupSuffix |  | String | Optional suffix of the security group naming scheme. Default: empty. |
+| deleteAllAssignedGroups |  | Boolean | If true, ALL groups assigned to the application are deleted, not only the naming scheme group(s).<br>Use with care - assigned groups may be shared with other applications. Default: false. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
 <a name='organization-applications-export-enterprise-application-users'></a>
 
 ### Export Enterprise Application Users
-Export a CSV of all (enterprise) application owners and users
+Export a report of all (enterprise) application owners and users
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | entAppsOnly |  | Boolean | Determines whether to export only enterprise applications (final value: true) or all service principals/applications (final value: false). |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Enabled by default. |
 | ContainerName |  | String | Storage container name used for the upload. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
 | StorageAccountName |  | String | Storage account name used for the upload. |
 | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-list-inactive-enterprise-applications'></a>
@@ -703,6 +757,14 @@ List enterprise applications with no recent sign-ins
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-report-application-registration'></a>
@@ -712,9 +774,15 @@ Generate and email a comprehensive Application Registration report
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | IncludeDeletedApps |  | Boolean | Whether to include deleted application registrations in the report (default: true) |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-report-expiring-application-credentials-scheduled'></a>
@@ -728,7 +796,13 @@ List expiry date of all Application Registration credentials
 | Days |  | Int32 | The number of days before a credential expires to consider it "about to expire". |
 | CredentialType |  | String | Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates". |
 | ApplicationIds |  | String | Optional - comma-separated list of Application IDs to filter the credentials. |
-| EmailTo | ✓ | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
@@ -806,6 +880,12 @@ Auto-approve new driver updates in Intune driver update policies
 | MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
 | OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
 | WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
 | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
@@ -828,6 +908,12 @@ Clean up orphaned and stale Windows Autopilot device registrations
 | NeverEnrolledAgeDays |  | Int32 | Age threshold in days for never-enrolled devices. Measured on the Device creation date. |
 | EmailTo |  | String | Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log. |
 | EmailFrom |  | String | The sender email address for the summary report. This is configured via Runbook Customizations. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-create-endpoint-analytics-baseline'></a>
@@ -856,19 +942,27 @@ Detect and rename duplicate Intune device display names using a prefix and rando
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
-Scheduled deletion of stale devices based on last activity
+Scheduled deletion of stale devices based on last activity date and platform
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 | Number of days without activity to be considered stale |
-| Windows |  | Boolean | Include Windows devices in the results |
-| MacOS |  | Boolean | Include macOS devices in the results |
-| iOS |  | Boolean | Include iOS devices in the results |
-| Android |  | Boolean | Include Android devices in the results |
-| DeleteDevices |  | Boolean | If set to true, the script will delete the stale devices. If false, it will only report them. |
-| ConfirmDeletion |  | Boolean | If set to true, the script will prompt for confirmation before deleting devices.<br>Should be set to false for scheduled runs. |
-| sendAlertTo |  | String | Email address to send the report to. |
-| sendAlertFrom |  | String | Email address to send the report from. |
+| Days |  | Int32 | Number of days without activity to be considered stale. |
+| Windows |  | Boolean | Include Windows devices in the results. |
+| MacOS |  | Boolean | Include macOS devices in the results. |
+| iOS |  | Boolean | Include iOS devices in the results. |
+| Android |  | Boolean | Include Android devices in the results. |
+| DeleteDevices |  | Boolean | If set to true, the matching stale devices are deleted from Intune.<br>If false (default), the runbook only reports which devices would be deleted (simulation). |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
+| IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-get-bitlocker-recovery-key'></a>
@@ -930,13 +1024,24 @@ Remove or outphase multiple devices
 | defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-devices-without-primary-user'></a>
+<a name='organization-devices-report-devices-without-primary-user-scheduled'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 Reports all managed devices in Intune that do not have a primary user assigned.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IncludeWindows |  | Boolean | Include Windows devices in the report. Enabled by default. |
+| IncludeMacOS |  | Boolean | Include macOS devices in the report. Enabled by default. |
+| IncludeIOS |  | Boolean | Include iOS and iPadOS devices in the report. Enabled by default. |
+| IncludeAndroid |  | Boolean | Include Android devices in the report. Enabled by default. |
+| IncludeOther |  | Boolean | Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
@@ -957,8 +1062,14 @@ Compare primary user assignments in Intune against RealmJoin for Windows managed
 | UseDeviceScope |  | Boolean | Enable device scope filtering to include or exclude devices based on Entra device group membership. |
 | IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled. |
 | ExcludeDeviceGroup |  | String | Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled. |
-| EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses. |
 | EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-stale-devices-scheduled'></a>
@@ -975,34 +1086,48 @@ Scheduled report of stale devices based on last activity date and platform.
 | iOS |  | Boolean | Include iOS devices in the results. |
 | Android |  | Boolean | Include Android devices in the results. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
 | IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
 | ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-users-with-more-than-5-devices'></a>
+<a name='organization-devices-report-users-with-more-than-5-devices-scheduled'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 Report users with more than five registered devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IntuneOnlyDevices |  | Boolean | If enabled, only devices that are present in Intune (managed devices) are considered for the report.<br>The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.<br>Disabled by default. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-windows-devices-without-autopilot'></a>
+<a name='organization-devices-report-windows-devices-without-autopilot-scheduled'></a>
 
-### Report Windows Devices Without Autopilot
+### Report Windows Devices Without Autopilot (Scheduled)
 Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| SendMail |  | Boolean | If enabled, the report is sent via email. Toggling this on reveals the recipient address field. |
+| SendMail |  | Boolean | If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields. |
 | EmailTo |  | String | Recipient address(es) for the email report. Only used / shown when SendMail is enabled.<br>Can be a single address or multiple comma-separated addresses (string). |
 | EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender). |
-| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. |
 | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
 | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
 | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
@@ -1472,7 +1597,13 @@ Generate and email a license availability report based on thresholds
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | InputJson | ✓ | Object | JSON array containing SKU configurations with thresholds. Each entry should include a SKUPartNumber for the Microsoft SKU identifier, a FriendlyName as the display name for the license, an optional MinThreshold specifying the minimum number of licenses that should be available, and an optional MaxThreshold specifying the maximum number of licenses that should be available.<br><br>This needs to be configured in the runbook customization |
-| EmailTo | ✓ | String | Recipient email address or comma-separated recipient list. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string). |
 | EmailFrom |  | String | Sender email address resolved from settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
@@ -1506,6 +1637,33 @@ Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 | SyncType | ✓ | String | Select which token type(s) to synchronize with Apple Business Manager. |
 | CallerName | ✓ | String | Automated parameter for auditing purposes. |
 
+<a name='organization-general-sync-channel-or-group-members-scheduled'></a>
+
+### Sync Channel Or Group Members (Scheduled)
+Sync members between a Teams Shared Channel or a group and an Entra security group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Direction | ✓ | String | Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target<br>group, GroupToGroup copies the source group members into the target group, and GroupToSharedChannel<br>copies the source group members into the shared channel. |
+| TeamId |  | String | Object id of the team that hosts the shared channel. Only used for the shared channel directions. |
+| ChannelName |  | String | Exact display name of the shared channel inside the selected team. Only used for the shared channel<br>directions. |
+| SourceGroupId |  | String | Object id of the source group whose members are copied. Used for the group source directions. |
+| TargetGroupId |  | String | Object id of the target security group that receives the members. Used for the group target directions. |
+| RemoveExtraMembers |  | Boolean | When enabled, members that exist only in the target and not in the source are removed so the target<br>mirrors the source. When disabled (default), the runbook only adds missing members. |
+| IncludeGuests |  | Boolean | When enabled, guest users are included in the sync and may be added or removed. When disabled (default),<br>guests are skipped and are never added or removed. |
+| RemoveFromTeam |  | Boolean | Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also<br>removes that user from the host team membership. When disabled (default), only the channel membership<br>is removed. |
+| WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. Toggling<br>this on reveals the recipient address and report file format fields. |
+| EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
+| EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | When enabled, the report file(s) are uploaded to a storage account and time-limited download links are<br>returned (and included in the email report if that is also enabled). |
+| ContainerName |  | String | Storage container used for the upload. Configured per runbook. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName. |
+| LinkExpiryDays |  | Int32 | Days until the generated download link expires. Bound to RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
 <a name='organization-general-sync-shared-channel-owners-scheduled'></a>
 
 ### Sync Shared Channel Owners (Scheduled)
@@ -1516,10 +1674,11 @@ Ensure a security group's members are owners of mapped Teams and their shared ch
 | TeamOwnerGroupMapping |  | Object | Mapping of an exact team display name to an owner security group object id, e.g.<br>[{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].<br>Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects<br>that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or<br>as a JSON string and normalizes both. |
 | IncludeTeamOwners |  | Boolean | When enabled (default), the owner-group members are also ensured as owners and members of the parent<br>team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership. |
 | WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
-| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics and two CSV attachments (per-team summary and per-change detail). |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics; the report files (per-team summary and per-change detail) are attached in the<br>selected report file format(s). |
 | EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
 | EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender". |
-| CreateDownloadLink |  | Boolean | When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). Default off. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | When enabled, the report file(s) are uploaded to a storage account and time-limited download links are<br>returned (and included in the email report if that is also enabled). Default off. |
 | ContainerName |  | String | Storage container used for the upload. Configured per runbook (not a global RJReport setting). |
 | ResourceGroupName |  | String | Resource group that contains the storage account. Bound to "RJReport.StorageAccount.ResourceGroup". |
 | StorageAccountName |  | String | Storage account used for the upload. Bound to "RJReport.StorageAccount.StorageAccountName". |
@@ -1863,9 +2022,15 @@ Monitor and report pending Endpoint Privilege Management (EPM) elevation request
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
-| DetailedReport |  | Boolean | When enabled, includes detailed request information in a table and as CSV attachment.<br>When disabled, only provides a summary count of pending requests. |
+| DetailedReport |  | Boolean | When enabled, includes detailed request information in a table and as report file attachment(s).<br>When disabled, only provides a summary count of pending requests. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 
 <a name='organization-security-notify-changed-ca-policies'></a>
 
@@ -1895,6 +2060,41 @@ Generate report for Endpoint Privilege Management (EPM) elevation requests
 | MaxAgeInDays |  | Int32 | Filter requests created within the last X days (default: 30).<br>Note: Request details are retained in Intune for 30 days after creation. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+
+<a name='organization-security-sync-mfa-secure-users-to-group-scheduled'></a>
+
+### Sync MFA Secure Users To Group (Scheduled)
+Sync users with secure MFA methods registered into an Entra ID group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TargetGroupId | ✓ | String | The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook. |
+| IncludePasskeys |  | Boolean | Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDeviceBound, passKeyDeviceBoundAuthenticator). |
+| IncludePlatformCredentials |  | Boolean | Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoundWindowsHello, macOsSecureEnclaveKey). |
+| IncludeMicrosoftAuthenticator |  | Boolean | Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, microsoftAuthenticatorPasswordless). |
+| IncludeSoftwareOtp |  | Boolean | Count software OTP / authenticator TOTP apps as secure (softwareOneTimePasscode). |
+| IncludeHardwareOtp |  | Boolean | Count hardware OTP tokens as secure (hardwareOneTimePasscode). |
+| IncludeCertificateBasedAuth |  | Boolean | Count certificate-based authentication as secure (certificateBasedAuthentication). |
+| SecureOnly |  | Boolean | Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member. |
+| SecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values. |
+| UnsecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly). |
+| WhatIfMode |  | Boolean | Dry run: log which users would be added or removed without changing the group. |
+| SendEmail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default. |
+| EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled. |
+| EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -1980,6 +2180,15 @@ List group memberships for this user
 | TeamsEnabled |  | String | Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default). |
 | Source |  | String | Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default). |
 | WritebackEnabled |  | String | Filter groups by writeback enablement. |
+| SendMail |  | Boolean | If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields. |
+| EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output. |
+| ContainerName |  | String | Storage container name used for the upload. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. |
+| StorageAccountName |  | String | Storage account name used for the upload. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-general-list-group-ownerships'></a>
@@ -1990,6 +2199,15 @@ List group ownerships for this user.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
+| SendMail |  | Boolean | If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields. |
+| EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output. |
+| ContainerName |  | String | Storage container name used for the upload. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. |
+| StorageAccountName |  | String | Storage account name used for the upload. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 
 <a name='user-general-list-manager'></a>

@@ -1,4 +1,4 @@
-# Report Windows Devices Without Autopilot
+# Report Windows Devices Without Autopilot (Scheduled)
 
 Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
@@ -11,11 +11,13 @@ Such orphaned Entra device objects are typical leftovers ("Objektleichen") from 
 reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
 these candidates visible so they can be reviewed and - if appropriate - deleted.
 
-Optionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited
-download link) and/or sent via email with the CSV attached.
+Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
+download links) and/or sent via email with the selected report file format(s) attached.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 ## Where to find
-Org \ Devices \ Report Windows Devices Without Autopilot
+Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 ## Reporting orphaned Windows devices
 
@@ -65,7 +67,7 @@ Azure IaaS: - Contributor - access on subscription or resource group used for th
 
 ## Parameters
 ### SendMail
-If enabled, the report is sent via email. Toggling this on reveals the recipient address field.
+If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields.
 
 | Property | Value |
 |----------|-------|
@@ -92,8 +94,17 @@ The sender email address. Sourced from the RJReport tenant settings (RJReport.Em
 | Required | false |
 | Type | String |
 
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
 ### CreateDownloadLink
-If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned.
 
 | Property | Value |
 |----------|-------|

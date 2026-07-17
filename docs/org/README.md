@@ -3,7 +3,9 @@
 <a name='org-applications'></a>
 ## Applications
   - [Add Application Registration](applications/add-application-registration.md)
+  - [Add Gsa Application Registration](applications/add-gsa-application-registration.md)
   - [Delete Application Registration](applications/delete-application-registration.md)
+  - [Delete Gsa Application Registration](applications/delete-gsa-application-registration.md)
   - [Export Enterprise Application Users](applications/export-enterprise-application-users.md)
   - [List Inactive Enterprise Applications](applications/list-inactive-enterprise-applications.md)
   - [Report Application Registration](applications/report-application-registration.md)
@@ -21,11 +23,11 @@
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
-  - [Report Devices Without Primary User](devices/report-devices-without-primary-user.md)
+  - [Report Devices Without Primary User (Scheduled)](devices/report-devices-without-primary-user_scheduled.md)
   - [Report Primary User Mismatch (Scheduled)](devices/report-primary-user-mismatch_scheduled.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
-  - [Report Users With More Than 5-Devices](devices/report-users-with-more-than-5-devices.md)
-  - [Report Windows Devices Without Autopilot](devices/report-windows-devices-without-autopilot.md)
+  - [Report Users With More Than 5-Devices (Scheduled)](devices/report-users-with-more-than-5-devices_scheduled.md)
+  - [Report Windows Devices Without Autopilot (Scheduled)](devices/report-windows-devices-without-autopilot_scheduled.md)
   - [Sync Device Serialnumbers To Entraid (Scheduled)](devices/sync-device-serialnumbers-to-entraid_scheduled.md)
 <a name='org-general'></a>
 ## General
@@ -64,6 +66,7 @@
   - [Report Pim Activations (Scheduled)](general/report-pim-activations_scheduled.md)
   - [Sync All Devices](general/sync-all-devices.md)
   - [Sync Apple Tokens](general/sync-apple-tokens.md)
+  - [Sync Channel Or Group Members (Scheduled)](general/sync-channel-or-group-members_scheduled.md)
   - [Sync Shared Channel Owners (Scheduled)](general/sync-shared-channel-owners_scheduled.md)
 <a name='org-mail'></a>
 ## Mail
@@ -96,6 +99,7 @@
   - [Monitor Pending EPM Requests (Scheduled)](security/monitor-pending-epm-requests_scheduled.md)
   - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
   - [Report EPM Elevation Requests (Scheduled)](security/report-epm-elevation-requests_scheduled.md)
+  - [Sync MFA Secure Users To Group (Scheduled)](security/sync-mfa-secure-users-to-group_scheduled.md)
 
 [Back to Table of Content](../../README.md)
 
