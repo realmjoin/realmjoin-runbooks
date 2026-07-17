@@ -45,6 +45,7 @@
     Include Android devices in the results.
 
     .PARAMETER EmailTo
+    If specified, an email with the report will be sent to the provided address(es).
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
@@ -225,7 +226,7 @@ param(
     [string]$IncludeUserGroup,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
     [string]$ExcludeUserGroup,
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string] $EmailTo,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -272,16 +273,11 @@ if ($CreateDownloadLink) {
 #region     Parameter Validation
 ########################################################
 
-# Validate Email Addresses
-if (-not $EmailFrom) {
+# Validate Email Addresses (only if email is requested)
+if ($EmailTo -and -not $EmailFrom) {
     Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
     throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
     exit
-}
-
-if (-not $EmailTo) {
-    Write-RjRbLog -Message "The recipient email address is required. It could be a single address or multiple comma-separated addresses." -Verbose
-    throw "The recipient email address is required."
 }
 
 # A target storage account is required to create a download link
@@ -1293,8 +1289,10 @@ foreach ($device in $filteredDevices) {
 $displayDevices | Sort-Object -Property LastSync | Format-Table -AutoSize
 
 # Create Markdown content for email
-Write-Output ""
-Write-Output "## Preparing email report to send to $($EmailTo)"
+if ($EmailTo) {
+    Write-Output ""
+    Write-Output "## Preparing email report to send to $($EmailTo)"
+}
 
 # Prepare additional metadata for the report body
 $selectedPlatforms = @()
@@ -1510,6 +1508,7 @@ $emailSubjectSuffix = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
 }
 $emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($emailSubjectSuffix)"
 
+if ($EmailTo) {
 Write-Output "Sending report to '$($EmailTo)'..."
 try {
     if ($reportFiles.Count -gt 0) {
@@ -1578,6 +1577,10 @@ catch {
     Write-Output "Error sending email: $_"
     Write-RjRbLog -Message "Error sending email: $_" -Verbose
     throw "Failed to send email report: $($_.Exception.Message)"
+}
+}
+else {
+    Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
 }
 
 ########################################################

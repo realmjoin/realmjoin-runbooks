@@ -37,7 +37,7 @@
 	Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default.
 
 	.PARAMETER EmailTo
-	Recipient email address (or multiple comma-separated addresses) that should receive the report.
+	If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses.
 
 	.PARAMETER EmailFrom
 	The sender email address. This is configured via the runbook customization setting and hidden in the portal.
@@ -216,7 +216,7 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Devices from Group" } )]
     [string]$ExcludeDeviceGroup,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string]$EmailTo,
 
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
@@ -282,6 +282,12 @@ if ($CreateDownloadLink) {
 Write-Output ""
 Write-Output "Parameter Validation"
 Write-Output "---------------------"
+
+# A configured sender address is required when an email report is requested
+if ($EmailTo -and -not $EmailFrom) {
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
+}
 
 # Retrieve the RealmJoin API credential from the Automation Account shared credentials store.
 # Reference: https://docs.realmjoin.com/dev-reference/realmjoin-api/authentication
@@ -1493,7 +1499,10 @@ if ($CreateDownloadLink) {
 #region     Email Report
 ########################################################
 
-if ($differences.Count -gt 0) {
+if (-not $EmailTo) {
+    Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
+}
+elseif ($differences.Count -gt 0) {
     try {
         $tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
         $tenantDisplayName = $tenantInfo.value[0].displayName ?? "Tenant"

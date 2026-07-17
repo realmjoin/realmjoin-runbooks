@@ -2,9 +2,10 @@
 
 ## 2026-07-16
 
-- Extend the Excel (xlsx) report writer to all modern report runbooks (18 runbooks)
+- Extend the Excel (xlsx) report writer to all modern report runbooks (19 runbooks)
   - Affected runbooks:
     - **Export Enterprise Application Users** - Org/Applications
+    - **List Inactive Enterprise Applications** - Org/Applications
     - **Report Application Registration** - Org/Applications
     - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
     - **Auto Approve Driver Updates (Scheduled)** - Org/Devices
@@ -26,8 +27,9 @@
   - Add a **report file format selection** ("CSV only" / "CSV & XLSX" / "XLSX only", default "CSV & XLSX") that controls which files are generated, attached to the report email and uploaded to the storage account; shown when the email or download link option is enabled
   - Add the **storage download link option** (`CreateDownloadLink` with the `RJReport.StorageAccount.*` settings) to the report runbooks that only supported email delivery so far: Report EPM Elevation Requests, Monitor Pending EPM Requests, Report License Assignment, Report Application Registration, Report Expiring Application Credentials, Cleanup Autopilot Devices, Report Stale Devices and Report Primary User Mismatch
   - Add the **email report option** to **Export Enterprise Application Users** (previously storage-only) and rework its report generation from hand-built CSV strings to typed objects
+  - **List Inactive Enterprise Applications** (previously console output only) now also delivers its two result sets (apps with stale sign-ins, apps without any sign-in record) via email and/or download link - as CSV files and as an Excel workbook with an "Info" cover worksheet
   - Add an **attachment size guard** to every report email (new inline helper `Send-RjRbGuardedReportEmail`, planned to be absorbed into `Send-RjReportEmail` in the RealmJoin.RunbookHelper module): with "CSV & XLSX" the email automatically falls back to the Excel workbook alone when the attachments exceed the email size limit (~4 MB Graph sendMail request limit), with a retry safety net; with "CSV only" or "XLSX only" a failed send raises a clear error pointing to the other formats and the download link option
-  - Runbooks that previously required a recipient address (EPM reports, Report License Assignment, Report Application Registration) now also run with the download link option alone
+  - Runbooks that previously required a recipient address (EPM reports, Report License Assignment, Report Application Registration, Report Stale Devices, Report Primary User Mismatch) now also run with the download link option alone
 - Update **Auto Approve Driver Updates (Scheduled)** Runbook in Org/Devices - now produces a driver approval detail report (policy, driver name, version, manufacturer, driver class, release date and per-driver approval outcome) as CSV/Excel attachment and download; the per-policy driver lists in the email body are capped at 15 entries with a pointer to the attached report
 - Add **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
   - Synchronizes an Entra ID group with all member users that have at least one "secure" MFA method registered, based on the Entra authentication methods registration report (`userRegistrationDetails`)
