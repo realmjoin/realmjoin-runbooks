@@ -5,7 +5,7 @@
     .DESCRIPTION
     This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
     It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
-    The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device (highlighted green/red in the Excel workbook).
+    The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device and whether it is compliant (both highlighted green/red in the Excel workbook).
     The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
     The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
     When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
@@ -147,7 +147,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.8.0"
+$Version = "1.9.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "IntuneOnlyDevices: $IntuneOnlyDevices" -Verbose
 
@@ -993,7 +993,7 @@ Connect-RjRbGraph
 
 Write-Output "Querying devices..."
 Write-Output "  Note: Depending on the number of devices in the tenant, this process can take several minutes!"
-$property = 'id,deviceId,displayName,registeredUsers'
+$property = 'id,deviceId,displayName,isCompliant,registeredUsers'
 
 $AllDevices_BasedOnUsers = @()
 $uri = "https://graph.microsoft.com/v1.0/devices?`$select=$property&`$expand=registeredUsers"
@@ -1095,6 +1095,7 @@ if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
             if (-not $IntuneOnlyDevices) {
                 $deviceEntry.InIntune = if ($device.deviceId -and $intuneDeviceIds.Contains([string]$device.deviceId)) { "yes" } else { "no" }
             }
+            $deviceEntry.Compliant = if ($null -eq $device.isCompliant) { "unknown" } elseif ($device.isCompliant) { "yes" } else { "no" }
             $detailedOutput += [PSCustomObject]$deviceEntry
         }
     }
@@ -1115,7 +1116,7 @@ if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
 
     if ($ReportFileFormat -ne 'CSV only') {
         # Export both datasets into a single Excel workbook (one worksheet per dataset) with an "Info" cover sheet.
-        # The InIntune column is highlighted green/red; when IntuneOnlyDevices omits the column, the rules are skipped.
+        # The InIntune and Compliant columns are highlighted green/red; when IntuneOnlyDevices omits the InIntune column, its rules are skipped.
         $xlsxFile = Join-Path $tempDir $fileName_Workbook
         $workbookCoverSheet = [ordered]@{
             Title                = 'Users with More Than 5 Devices'
@@ -1128,6 +1129,8 @@ if (($CreateDownloadLink -or $EmailTo) -and $totalUsers -gt 0) {
         Export-RjRbXlsx -Worksheets ([ordered]@{ 'Summary' = $summaryOutput; 'Details' = $detailedOutput }) -Path $xlsxFile -CoverSheet $workbookCoverSheet -HighlightRules @(
             @{ Column = 'InIntune'; Value = 'yes'; Color = 'Green' }
             @{ Column = 'InIntune'; Value = 'no'; Color = 'Red' }
+            @{ Column = 'Compliant'; Value = 'yes'; Color = 'Green' }
+            @{ Column = 'Compliant'; Value = 'no'; Color = 'Red' }
         )
         Write-Verbose "Exported summary and detailed data to: $xlsxFile"
         $reportFiles += $xlsxFile
@@ -1312,7 +1315,7 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_Workbook)**: Both dat
 
 The attached file(s) contain:
 - **Summary:** User Object ID, Display Name, UPN, and Device Count
-- **Details:** Complete device list for each user including the device object ID, the Entra ID device ID and the device name$(if (-not $IntuneOnlyDevices) { ", plus an ""InIntune"" column indicating whether the device is present in Intune" })
+- **Details:** Complete device list for each user including the device object ID, the Entra ID device ID and the device name$(if (-not $IntuneOnlyDevices) { ", plus an ""InIntune"" column indicating whether the device is present in Intune" }), plus a ""Compliant"" column indicating the device compliance state (yes/no/unknown)
 $(if ($ReportFileFormat -ne 'CSV only') { "- **Excel Workbook:** Both datasets in one file, one worksheet each" })
 
 ---

@@ -2,6 +2,8 @@
 
 ## 2026-07-17
 
+- Update **Report Users With More Than 5 Devices (Scheduled)** Runbook in Org/Devices
+  - Extend the detailed report export (CSV and Excel workbook) with a `Compliant` column (yes/no/unknown, based on the Entra ID device compliance state), highlighted green/red in the Excel workbook alongside the existing `InIntune` column
 - Update **Delete Stale Devices (Scheduled)** Runbook in Org/Devices
   - Streamline the deletion control to the single `DeleteDevices` parameter with a clear mode selection: **report-only simulation** (default, lists devices that *would be deleted*) or "Delete stale devices from Intune" - fully unattended-safe for scheduled runs
   - Improve the report accuracy: devices are deleted before the report is generated, so the report reflects the actual per-device results (Deleted/Failed)
