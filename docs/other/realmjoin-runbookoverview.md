@@ -1207,6 +1207,11 @@ This runbook identifies enterprise applications with no recent sign-in activity 
 It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
 Use it to find candidates for review, cleanup, or decommissioning.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 #### Where to find
 
 Org \ Applications \ List Inactive Enterprise Applications

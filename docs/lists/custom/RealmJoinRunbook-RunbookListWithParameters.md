@@ -181,6 +181,14 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Device.Read.All<br> |  | Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+|  |  |  |  |  |  | ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report | - **Type**: Microsoft Graph<br>&emsp;- Application.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br> |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
@@ -345,7 +353,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | UseDeviceScope |  | Boolean | Enable device scope filtering to include or exclude devices based on Entra device group membership. |
 |  |  |  |  |  |  | IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled. |
 |  |  |  |  |  |  | ExcludeDeviceGroup |  | String | Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled. |
-|  |  |  |  |  |  | EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
+|  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses. |
 |  |  |  |  |  |  | EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
 |  |  |  |  |  |  | ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
 |  |  |  |  |  |  | CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
@@ -370,7 +378,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
 |  |  |  |  |  |  | IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
 |  |  |  |  |  |  | ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
-|  |  |  |  |  |  | EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+|  |  |  |  |  |  | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | Report Users With More Than 5-Devices (Scheduled) | Report users with more than five registered devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Mail.Send<br> |  | IntuneOnlyDevices |  | Boolean | If enabled, only devices that are present in Intune (managed devices) are considered for the report.<br>The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.<br>Disabled by default. |
 |  |  |  |  |  |  | ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |

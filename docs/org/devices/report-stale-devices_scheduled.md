@@ -193,13 +193,14 @@ Exclude devices whose primary users are members of this group. Requires UseUserS
 | Type | String |
 
 ### EmailTo
+If specified, an email with the report will be sent to the provided address(es).
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
-| Required | true |
+| Required | false |
 | Type | String |
 
 

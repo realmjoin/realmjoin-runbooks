@@ -4283,7 +4283,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Applications",
     "Synopsis": "List enterprise applications with no recent sign-ins",
-    "Description": "This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.\nIt lists apps that have not been used for the specified number of days and apps that have no sign-in records.\nUse it to find candidates for review, cleanup, or decommissioning.",
+    "Description": "This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.\nIt lists apps that have not been used for the specified number of days and apps that have no sign-in records.\nUse it to find candidates for review, cleanup, or decommissioning.\n\nOptionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.\nThe report files can also be uploaded to an Azure Storage Account, returning time-limited download links.\nThe ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).\nWhen the CSV attachments exceed the email size limit and \"CSV & XLSX\" is selected, the email falls back to the Excel workbook alone.",
     "Notes": null,
     "Parameters": [
       {
@@ -4297,10 +4297,44 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "10",
         "required": "true",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "list-inactive-enterprise-applications",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -4318,6 +4352,108 @@
         "required": "false",
         "type": {
           "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "If specified, an email with the report will be sent to the provided address(es).\nCan be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Controls which report file formats are generated and delivered: \"CSV only\", \"CSV & XLSX\" (default) or \"XLSX only\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
         }
       }
     ],
@@ -7499,7 +7635,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Recipient email address (or multiple comma-separated addresses) that should receive the report."
+            "Text": "If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses."
           }
         ],
         "globbing": "false",
@@ -7507,7 +7643,7 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "10",
-        "required": "true",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -7854,7 +7990,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Can be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+            "Text": "If specified, an email with the report will be sent to the provided address(es).\nCan be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
           }
         ],
         "globbing": "false",
@@ -7862,7 +7998,7 @@
         "parameterValue": "String",
         "pipelineInput": "false",
         "position": "17",
-        "required": "true",
+        "required": "false",
         "type": {
           "name": "String"
         }
