@@ -78,24 +78,31 @@
 
     .INPUTS
     RunbookCustomization: {
-        "Parameters": {
-            "TeamOwnerGroupMapping": {
+        "ParameterList": [
+            {
+                "Name": "TeamOwnerGroupMapping",
                 "Hide": true
             },
-            "IncludeTeamOwners": {
+            {
+                "Name": "IncludeTeamOwners",
                 "DisplayName": "Also make them owners of the parent team"
             },
-            "WhatIfMode": {
+            {
+                "Name": "WhatIfMode",
                 "DisplayName": "Dry run (log only, no changes)"
             },
-            "SendEmailReport": {
-                "DisplayName": "Send email report",
+            {
+                "DisplayName": "Report delivery",
+                "DisplayAfter": "WhatIfMode",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "No",
-                            "ParameterValue": false,
+                            "Display": "No report",
                             "Customization": {
+                                "Default": {
+                                    "SendEmailReport": false,
+                                    "CreateDownloadLink": false
+                                },
                                 "Hide": [
                                     "EmailTo",
                                     "ReportFileFormat"
@@ -103,51 +110,78 @@
                             }
                         },
                         {
-                            "Display": "Yes",
-                            "ParameterValue": true,
+                            "Display": "Email report",
                             "Customization": {
+                                "Default": {
+                                    "SendEmailReport": true,
+                                    "CreateDownloadLink": false
+                                },
                                 "Show": [
                                     "EmailTo",
                                     "ReportFileFormat"
+                                ],
+                                "Mandatory": [
+                                    "EmailTo"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Report download link",
+                            "Customization": {
+                                "Default": {
+                                    "SendEmailReport": false,
+                                    "CreateDownloadLink": true
+                                },
+                                "Show": [
+                                    "ReportFileFormat"
+                                ],
+                                "Hide": [
+                                    "EmailTo"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Email report & download link",
+                            "Customization": {
+                                "Default": {
+                                    "SendEmailReport": true,
+                                    "CreateDownloadLink": true
+                                },
+                                "Show": [
+                                    "EmailTo",
+                                    "ReportFileFormat"
+                                ],
+                                "Mandatory": [
+                                    "EmailTo"
                                 ]
                             }
                         }
                     ]
-                }
+                },
+                "Default": "No report"
             },
-            "EmailTo": {
-                "DisplayName": "Send report to (email address(es))"
-            },
-            "EmailFrom": {
+            {
+                "Name": "SendEmailReport",
                 "Hide": true
             },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a report download link (upload report to storage)",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - upload report and return a download link",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": [
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "No - do not create a download link",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": [
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        }
-                    ]
-                }
+            {
+                "Name": "EmailTo",
+                "DisplayName": "Send report to (email address(es))",
+                "Hide": true
             },
-            "ReportFileFormat": {
+            {
+                "Name": "EmailFrom",
+                "Hide": true
+            },
+            {
+                "Name": "CreateDownloadLink",
+                "Hide": true
+            },
+            {
+                "Name": "ReportFileFormat",
                 "DisplayName": "Report file format",
+                "DisplayAfter": "EmailTo",
+                "DefaultValue": "CSV & XLSX",
                 "Hide": true,
                 "Select": {
                     "Options": [
@@ -167,22 +201,27 @@
                     "ShowValue": false
                 }
             },
-            "ContainerName": {
+            {
+                "Name": "ContainerName",
                 "Hide": true
             },
-            "ResourceGroupName": {
+            {
+                "Name": "ResourceGroupName",
                 "Hide": true
             },
-            "StorageAccountName": {
+            {
+                "Name": "StorageAccountName",
                 "Hide": true
             },
-            "LinkExpiryDays": {
+            {
+                "Name": "LinkExpiryDays",
                 "Hide": true
             },
-            "CallerName": {
+            {
+                "Name": "CallerName",
                 "Hide": true
             }
-        }
+        ]
     }
 #>
 
@@ -200,7 +239,7 @@ param(
 
     [bool] $WhatIfMode = $false,
 
-    # Enables the email report; when on, EmailTo becomes visible in the portal.
+    # Enables the email report. Hidden in the portal; set via the "Report delivery" dropdown.
     [bool] $SendEmailReport = $false,
 
     [string] $EmailTo,
@@ -213,6 +252,7 @@ param(
     [string] $ReportFileFormat = 'CSV & XLSX',
 
     # Enables uploading the report file(s) to a storage account and returning a download link.
+    # Hidden in the portal; set via the "Report delivery" dropdown.
     [bool] $CreateDownloadLink = $false,
 
     [string] $ContainerName = "shared-channel-owners",
