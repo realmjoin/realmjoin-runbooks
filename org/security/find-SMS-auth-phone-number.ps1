@@ -1,4 +1,4 @@
-﻿<#
+<#
     .SYNOPSIS
     Find the user associated with a specific SMS-based authentication phone number
 
@@ -24,8 +24,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param (
     [Parameter(Mandatory = $true)]
@@ -44,7 +44,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.1"
+$Version = "1.2.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "PhoneNumber: $PhoneNumber" -Verbose
@@ -166,6 +166,21 @@ $mfaOnlyMatches = @()
 $batchSize = 20
 $processedCount = 0
 
+# Determine progress interval based on total user count
+$totalUsers = $phoneRegisteredUsers.Count
+if ($totalUsers -le 500) {
+    $progressInterval = 100
+}
+elseif ($totalUsers -le 1000) {
+    $progressInterval = 250
+}
+elseif ($totalUsers -le 2500) {
+    $progressInterval = 500
+}
+else {
+    $progressInterval = 1000
+}
+
 for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $batchSize) {
     $batch = $phoneRegisteredUsers[$i..([Math]::Min($i + $batchSize - 1, $phoneRegisteredUsers.Count - 1))]
 
@@ -238,7 +253,7 @@ for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $batchSize) {
     }
 
     $processedCount += $batch.Count
-    if ($processedCount % 100 -eq 0 -or $processedCount -eq $phoneRegisteredUsers.Count) {
+    if ($processedCount % $progressInterval -eq 0) {
         Write-Output "Processed $processedCount of $($phoneRegisteredUsers.Count) users..."
     }
 }
@@ -269,8 +284,9 @@ if ($smsSignInMatch) {
     Write-Output ""
 }
 else {
-    Write-Output "No user found with phone number '$PhoneNumber' registered for SMS Sign-In."
-    Write-Output "The number is not currently reserved for SMS-based sign-in in this tenant."
+    Write-Output "No active user found with phone number '$PhoneNumber' registered for SMS Sign-In."
+    Write-Output "Note: The number may still be reserved by a soft-deleted (recently deleted) user account."
+    Write-Output "Soft-deleted users are not included in this search. Check Entra ID > Deleted users if a 'phoneNumberNotUnique' error persists."
     Write-Output ""
 }
 

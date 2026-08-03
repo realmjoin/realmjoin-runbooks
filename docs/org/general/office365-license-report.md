@@ -15,6 +15,7 @@ Org \ General \ Office365 License Report
   - Reports.Read.All
   - Directory.Read.All
   - User.Read.All
+  - ReportSettings.ReadWrite.All
 
 
 ## Parameters
@@ -28,7 +29,16 @@ If set to true, prints a short license usage overview.
 | Type | Boolean |
 
 ### includeExchange
-If set to true, includes Exchange Online related reports.
+If set to true, includes Exchange Online related reports (Shared Mailbox licensing).
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### includeUserData
+If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use.
 
 | Property | Value |
 |----------|-------|
@@ -82,25 +92,7 @@ Resource group that contains the storage account.
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for uploads.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
-### StorageAccountLocation
-Azure region for the storage account.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
-### StorageAccountSku
-Storage account SKU.
+Storage account name used for uploads. The account must exist before running this report.
 
 | Property | Value |
 |----------|-------|

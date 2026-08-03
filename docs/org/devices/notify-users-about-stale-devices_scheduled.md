@@ -10,9 +10,11 @@ Org \ Devices \ Notify Users About Stale Devices_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 ## Mail Template Language Selection
 
@@ -63,7 +65,7 @@ The email is sent directly to the primary user's email address and includes deta
 
 Prerequisites:
 - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone)
+- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)
 
 Common Use Cases:
 - Automated user reminders about inactive devices to encourage regular device check-ins
@@ -171,6 +173,24 @@ Service Desk email address for user contact information (optional).
 
 ### ServiceDeskPhone
 Service Desk phone number for user contact information (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskPortalUrl
+Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskTicketUrl
+Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
 
 | Property | Value |
 |----------|-------|

@@ -7,7 +7,15 @@
                 "DeviceManagementManagedDevices.PrivilegedOperations.All",
                 "DeviceManagementManagedDevices.ReadWrite.All",
                 "DeviceManagementServiceConfig.ReadWrite.All",
-                "Device.Read.All"
+                "Device.Read.All",
+                "GroupMember.ReadWrite.All"
+            ]
+        },
+        {
+            "Name": "WindowsDefenderATP",
+            "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+            "AppRoleAssignments": [
+                "Machine.Read.All"
             ]
         }
     ],

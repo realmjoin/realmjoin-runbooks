@@ -3,10 +3,10 @@
 This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality.
 
 To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:
-- device
-- group
-- org
-- user
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory.
 
@@ -17,6 +17,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Restart Host](#restart-host)
       - [Toggle Drain Mode](#toggle-drain-mode)
   - [General](#device-general)
+      - [Assign Groups By Template](#assign-groups-by-template)
       - [Change Grouptag](#change-grouptag)
       - [Check Device Compliance](#check-device-compliance)
       - [Check Updatable Assets](#check-updatable-assets)
@@ -27,12 +28,15 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Set Primary User](#set-primary-user)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
+      - [Wipe Managed App Data](#wipe-managed-app-data)
   - [Security](#device-security)
+      - [Check Defender Status](#check-defender-status)
       - [Enable Or Disable Device](#enable-or-disable-device)
       - [Isolate Or Release Device](#isolate-or-release-device)
       - [Reset Mobile Device Pin](#reset-mobile-device-pin)
       - [Restrict Or Release Code Execution](#restrict-or-release-code-execution)
       - [Show Bitlocker Recovery Key](#show-bitlocker-recovery-key)
+      - [Show Filevault Recovery Key](#show-filevault-recovery-key)
       - [Show Laps Password](#show-laps-password)
 - [Group](#group)
   - [Devices](#group-devices)
@@ -56,7 +60,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
+      - [Add Gsa Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
+      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -66,14 +72,18 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
+      - [Cleanup Autopilot Devices (Scheduled)](#cleanup-autopilot-devices-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
+      - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
-      - [Report Devices Without Primary User](#report-devices-without-primary-user)
+      - [Report Devices Without Primary User (Scheduled)](#report-devices-without-primary-user-(scheduled))
+      - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
-      - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
+      - [Report Users With More Than 5-Devices (Scheduled)](#report-users-with-more-than-5-devices-(scheduled))
+      - [Report Windows Devices Without Autopilot (Scheduled)](#report-windows-devices-without-autopilot-(scheduled))
       - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
       - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
@@ -111,9 +121,12 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
       - [Sync Apple Tokens](#sync-apple-tokens)
+      - [Sync Channel Or Group Members (Scheduled)](#sync-channel-or-group-members-(scheduled))
+      - [Sync Shared Channel Owners (Scheduled)](#sync-shared-channel-owners-(scheduled))
   - [Mail](#org-mail)
       - [Add Distribution List](#add-distribution-list)
       - [Add Equipment Mailbox](#add-equipment-mailbox)
+      - [Add Mail Contact](#add-mail-contact)
       - [Add Or Remove Public Folder](#add-or-remove-public-folder)
       - [Add Or Remove Teams Mailcontact](#add-or-remove-teams-mailcontact)
       - [Add Or Remove Tenant Allow Block List](#add-or-remove-tenant-allow-block-list)
@@ -138,6 +151,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Monitor Pending EPM Requests (Scheduled)](#monitor-pending-epm-requests-(scheduled))
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
       - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
+      - [Sync MFA Secure Users To Group (Scheduled)](#sync-mfa-secure-users-to-group-(scheduled))
 - [User](#user)
   - [AVD](#user-avd)
       - [User Signout](#user-signout)
@@ -163,6 +177,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Hide Or Unhide In Addressbook](#hide-or-unhide-in-addressbook)
       - [List Mailbox Permissions](#list-mailbox-permissions)
       - [List Room Mailbox Configuration](#list-room-mailbox-configuration)
+      - [Manage Archive Mailbox](#manage-archive-mailbox)
       - [Remove Mailbox](#remove-mailbox)
       - [Set Out Of Office](#set-out-of-office)
       - [Set Room Mailbox Configuration](#set-room-mailbox-configuration)
@@ -176,10 +191,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Confirm Or Dismiss Risky User](#confirm-or-dismiss-risky-user)
       - [Create Temporary Access Pass](#create-temporary-access-pass)
       - [Enable Or Disable Password Expiration](#enable-or-disable-password-expiration)
-      - [Reset Mfa](#reset-mfa)
+      - [List MFA Methods](#list-mfa-methods)
+      - [Reset MFA](#reset-mfa)
       - [Reset Password](#reset-password)
       - [Revoke Or Restore Access](#revoke-or-restore-access)
-      - [Set Or Remove Mobile Phone Mfa](#set-or-remove-mobile-phone-mfa)
+      - [Set Or Remove Mobile Phone MFA](#set-or-remove-mobile-phone-mfa)
   - [Userinfo](#user-userinfo)
       - [Rename User](#rename-user)
       - [Set Photo](#set-photo)
@@ -197,10 +213,12 @@ Each category contains multiple runbooks that are further divided into subcatego
 #### Reboots a specific AVD Session Host.
 
 #### Description
+
 This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted.
 If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
 
 #### Where to find
+
 Device \ AVD \ Restart Host
 
 
@@ -215,10 +233,12 @@ Device \ AVD \ Restart Host
 #### Sets Drainmode on true or false for a specific AVD Session Host.
 
 #### Description
+
 This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
 The SubscriptionId value must be defined in the runbooks customization.
 
 #### Where to find
+
 Device \ AVD \ Toggle Drain Mode
 
 
@@ -233,15 +253,36 @@ Device \ AVD \ Toggle Drain Mode
 <a name='device-general'></a>
 
 ## General
+<a name='device-general-assign-groups-by-template'></a>
+
+### Assign Groups By Template
+#### Assign cloud-only groups to a device based on a template
+
+#### Description
+
+Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
+
+#### Where to find
+
+Device \ General \ Assign Groups By Template
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-general-change-grouptag'></a>
 
 ### Change Grouptag
 #### Assign a new AutoPilot GroupTag to this device.
 
 #### Description
+
 This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to trigger a new deployment with different policies and applications for the device.
 
 #### Where to find
+
 Device \ General \ Change Grouptag
 
 
@@ -256,11 +297,13 @@ Device \ General \ Change Grouptag
 #### Check the compliance status of a device
 
 #### Description
+
 This runbook retrieves the compliance status of a managed device from Microsoft Intune.
 In simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.
 Optionally, a report with the full compliance details can be sent via email.
 
 #### Where to find
+
 Device \ General \ Check Device Compliance
 
 
@@ -275,9 +318,11 @@ Device \ General \ Check Device Compliance
 #### Check if a device is onboarded to Windows Update for Business
 
 #### Description
+
 This script checks if single device is onboarded to Windows Update for Business
 
 #### Where to find
+
 Device \ General \ Check Updatable Assets
 
 
@@ -289,12 +334,14 @@ Device \ General \ Check Updatable Assets
 <a name='device-general-enroll-updatable-assets'></a>
 
 ### Enroll Updatable Assets
-#### Enroll device into Windows Update for Business.
+#### Enroll device into Windows Update for Business
 
 #### Description
-This script enrolls devices into Windows Update for Business.
+
+This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.
 
 #### Where to find
+
 Device \ General \ Enroll Updatable Assets
 
 
@@ -309,10 +356,31 @@ Device \ General \ Enroll Updatable Assets
 #### Remove/Outphase a windows device
 
 #### Description
-Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune an AutoPilot.
+
+Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune and AutoPilot.
+Optionally, the device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
+NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
 
 #### Where to find
+
 Device \ General \ Outphase Device
+
+## Microsoft Defender for Endpoint exclusion tag
+
+Microsoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.
+
+Because the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude device from Defender for Endpoint* is enabled. The device is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.
+
+### One-time setup: make the tag filterable
+
+The portal's **Tags** filter unfortunately only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.
+
+To make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > "Create new tag", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.
+
+> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.
+
+See [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -326,10 +394,12 @@ Device \ General \ Outphase Device
 #### Removes the primary user from a device.
 
 #### Description
+
 This script removes the assigned primary user from a specified Azure AD device.
 It requires the DeviceId of the target device and the name of the caller for auditing purposes.
 
 #### Where to find
+
 Device \ General \ Remove Primary User
 
 
@@ -344,9 +414,11 @@ Device \ General \ Remove Primary User
 #### Rename a device.
 
 #### Description
+
 Rename a device (in Intune and Autopilot).
 
 #### Where to find
+
 Device \ General \ Rename Device
 
 
@@ -361,9 +433,11 @@ Device \ General \ Rename Device
 #### Set a new primary user on a managed Intune device
 
 #### Description
+
 This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.
 
 #### Where to find
+
 Device \ General \ Set Primary User
 
 
@@ -378,9 +452,11 @@ Device \ General \ Set Primary User
 #### Unenroll device from Windows Update for Business.
 
 #### Description
+
 This script unenrolls devices from Windows Update for Business.
 
 #### Where to find
+
 Device \ General \ Unenroll Updatable Assets
 
 
@@ -395,10 +471,113 @@ Device \ General \ Unenroll Updatable Assets
 #### Wipe a Windows or MacOS device
 
 #### Description
+
 Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
 
 #### Where to find
+
 Device \ General \ Wipe Device
+
+## Add the device to a compliance exclusion group
+
+When *Add device to compliance exclusion group* (`addToExclusionGroup`) is enabled, the wiped Windows device is added to a compliance exclusion group. Devices in that group receive a longer compliance grace period after they are re-enrolled via Autopilot (this mirrors the **Check Device Onboarding Exclusion** runbook).
+
+By default the group is identified by its **display name** (`exclusionGroupName`). Because display names are not guaranteed to be unique, you can instead pin the group by its **Object ID** (`exclusionGroupId`). When an Object ID is provided, it **always overrides** the display name, so name conflicts can never lead to the wrong group being used. `exclusionGroupId` is hidden by default and is meant to be set via runbook customization.
+
+The group is resolved and validated in an upfront preflight check. If the configured group does not exist, the runbook aborts **before** any wipe/delete/disable action, so no half-applied state is left behind. Adding to the group is skipped for non-Windows devices and when the device is deleted from EntraID (`removeAADDevice`).
+
+### Pin the group by Object ID (recommended)
+
+Preset the group's Object ID and enable the switch, keeping the fields hidden. This avoids any ambiguity from duplicate display names.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "addToExclusionGroup": {
+            "Default": true
+        },
+        "exclusionGroupId": {
+            "Default": "00000000-0000-0000-0000-000000000000",
+            "Hide": true
+        },
+        "exclusionGroupName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+Replace `00000000-0000-0000-0000-000000000000` with the Object ID of your group (EntraID > Groups > *your group* > **Object Id**).
+
+### Pin the group by display name
+
+If you prefer to work with the display name (and it is unique in your tenant), preset `exclusionGroupName` and leave `exclusionGroupId` empty so the name is used.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "addToExclusionGroup": {
+            "Default": true
+        },
+        "exclusionGroupName": {
+            "Default": "cfg - Intune - Windows - Compliance for unenrolled Autopilot devices (devices)",
+            "Hide": true
+        }
+    }
+}
+```
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-wipe-managed-app-data'></a>
+
+### Wipe Managed App Data
+#### App selective wipe - remove company app data from this MAM device
+
+#### Description
+
+Performs an "App selective wipe" (Mobile Application Management) for this device, mirroring the
+Intune portal flow "Apps > App selective wipe > Create wipe request". It removes company data
+from apps protected by app protection policies without wiping the whole device - typically
+used for lost or stolen devices that are MAM-managed (not MDM-enrolled).
+
+The runbook resolves the users registered on the device, collects their MAM app registrations
+that belong to this device and creates a wipe request for each affected user/device tag. The
+wipe is executed the next time each protected app checks in. Wipe requests can be monitored
+and cancelled in the Intune portal under "Apps > App selective wipe".
+
+#### Where to find
+
+Device \ General \ Wipe Managed App Data
+
+## Device matching
+
+MAM app registrations belong to a user, not to a device object. The runbook therefore resolves the
+users registered on the device and matches their app registrations against the device's EntraID
+device id (`azureADDeviceId`). Registrations without an EntraID device id are matched by the
+device's display name as fallback; the runbook output indicates when this fallback was used.
+
+## Wipe behavior
+
+- The company app data is removed the next time each protected app checks in on the device; the
+  wipe is not instantaneous.
+- Pending wipe requests can be monitored and cancelled in the Intune portal under
+  *Apps > App selective wipe*.
+- Only app data protected by app protection policies (MAM) is affected. The device object itself
+  is not touched: it remains in EntraID (and in Intune/Autopilot, if it is additionally
+  MDM-enrolled). To disable or remove the device there as well, run the **Outphase Device**
+  runbook (Device \ General) afterwards; for a full wipe of MDM-enrolled devices use
+  **Wipe Device**.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -412,16 +591,37 @@ Device \ General \ Wipe Device
 <a name='device-security'></a>
 
 ## Security
+<a name='device-security-check-defender-status'></a>
+
+### Check Defender Status
+#### Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint
+
+#### Description
+
+This runbook compares a device between Entra ID and Microsoft Defender for Endpoint based on its Entra device ID. It reports whether the device exists in each service, returns key properties like onboarding and health state, and evaluates the Defender risk score to flag elevated risk.
+
+#### Where to find
+
+Device \ Security \ Check Defender Status
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='device-security-enable-or-disable-device'></a>
 
 ### Enable Or Disable Device
 #### Enable or disable a device in Entra ID
 
 #### Description
+
 This runbook enables or disables a Windows device object in Entra ID (Azure AD) based on the provided device ID.
 Use it to temporarily block sign-ins from a compromised or lost device, or to re-enable the device after remediation.
 
 #### Where to find
+
 Device \ Security \ Enable Or Disable Device
 
 
@@ -436,11 +636,13 @@ Device \ Security \ Enable Or Disable Device
 #### Isolate this device.
 
 #### Description
+
 This runbook isolates a device in Microsoft Defender for Endpoint to reduce the risk of lateral movement and data exfiltration.
 Optionally, it can release a previously isolated device.
 Provide a short reason so the action is documented in the service.
 
 #### Where to find
+
 Device \ Security \ Isolate Or Release Device
 
 
@@ -455,10 +657,12 @@ Device \ Security \ Isolate Or Release Device
 #### Reset a mobile device's password/PIN code.
 
 #### Description
+
 This runbook triggers an Intune reset passcode action for a managed mobile device.
 The action is only supported for certain, corporate-owned device types and will be rejected for personal or unsupported devices.
 
 #### Where to find
+
 Device \ Security \ Reset Mobile Device Pin
 
 
@@ -473,11 +677,13 @@ Device \ Security \ Reset Mobile Device Pin
 #### Only allow Microsoft-signed code to run on a device, or remove an existing restriction.
 
 #### Description
+
 This runbook restricts code execution on a device via Microsoft Defender for Endpoint so that only Microsoft-signed code can run.
 Optionally, it can remove an existing restriction.
 Provide a short reason so the action is documented in the service.
 
 #### Where to find
+
 Device \ Security \ Restrict Or Release Code Execution
 
 
@@ -492,11 +698,32 @@ Device \ Security \ Restrict Or Release Code Execution
 #### Show all BitLocker recovery keys for a device
 
 #### Description
+
 This runbook retrieves and displays all BitLocker recovery keys that are backed up for the specified device.
 Keys are sorted by creation date (newest first). Use it for disk recovery scenarios.
 
 #### Where to find
+
 Device \ Security \ Show Bitlocker Recovery Key
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-security-show-filevault-recovery-key'></a>
+
+### Show Filevault Recovery Key
+#### Display macOS FileVault recovery key
+
+#### Description
+
+Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.
+
+#### Where to find
+
+Device \ Security \ Show Filevault Recovery Key
 
 
 [Back to Table of Content](#table-of-contents)
@@ -510,10 +737,12 @@ Device \ Security \ Show Bitlocker Recovery Key
 #### Show a local admin password for a device.
 
 #### Description
+
 This runbook retrieves and displays the most recent Windows LAPS local administrator password that is backed up for the specified device.
 Use it for break-glass troubleshooting and rotate the password after use.
 
 #### Where to find
+
 Device \ Security \ Show Laps Password
 
 
@@ -534,11 +763,13 @@ Device \ Security \ Show Laps Password
 #### Check if devices in a group are onboarded to Windows Update for Business.
 
 #### Description
+
 This runbook checks the Windows Update for Business onboarding status for all device members of a Microsoft Entra ID group.
 It queries each device and reports the enrollment state per update category and any returned error details.
 Use this to validate whether group members are correctly registered as updatable assets.
 
 #### Where to find
+
 Group \ Devices \ Check Updatable Assets
 
 
@@ -553,11 +784,13 @@ Group \ Devices \ Check Updatable Assets
 #### Unenroll devices from Windows Update for Business.
 
 #### Description
+
 This runbook unenrolls all device members of a Microsoft Entra ID group from Windows Update for Business updatable assets.
 You can remove a specific update category enrollment or delete the updatable asset registration entirely.
 Use this to offboard devices from WUfB reporting or to reset their enrollment state.
 
 #### Where to find
+
 Group \ Devices \ Unenroll Updatable Assets_Scheduled
 
 
@@ -578,11 +811,13 @@ Group \ Devices \ Unenroll Updatable Assets_Scheduled
 #### Add/remove a nested group to/from a group
 
 #### Description
+
 This runbook adds a nested group to a target group or removes an existing nesting.
 It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
 Use the Remove switch to remove the nested group instead of adding it.
 
 #### Where to find
+
 Group \ General \ Add Or Remove Nested Group
 
 
@@ -597,11 +832,13 @@ Group \ General \ Add Or Remove Nested Group
 #### Add or remove a Office 365 group owner
 
 #### Description
+
 This runbook adds a user as an owner of a group or removes an existing owner.
 For Microsoft 365 groups, it also ensures that newly added owners are members of the group.
 Use the Remove switch to remove ownership instead of adding it.
 
 #### Where to find
+
 Group \ General \ Add Or Remove Owner
 
 
@@ -616,11 +853,13 @@ Group \ General \ Add Or Remove Owner
 #### Add or remove a group member
 
 #### Description
+
 This runbook adds a user to a group or removes a user from a group.
 It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
 Use the Remove switch to remove the user instead of adding the user.
 
 #### Where to find
+
 Group \ General \ Add Or Remove User
 
 
@@ -635,11 +874,13 @@ Group \ General \ Add Or Remove User
 #### Change a group's visibility
 
 #### Description
+
 This runbook changes the visibility of a Microsoft 365 group between Private and Public.
 Set the Public switch to make the group public; otherwise it will be set to private.
 This does not change group membership, owners, or email addresses.
 
 #### Where to find
+
 Group \ General \ Change Visibility
 
 
@@ -654,11 +895,13 @@ Group \ General \ Change Visibility
 #### List all members of a group, including members that are part of nested groups
 
 #### Description
+
 This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
 The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
 The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
 
 #### Where to find
+
 Group \ General \ List All Members
 
 
@@ -673,11 +916,13 @@ Group \ General \ List All Members
 #### List all owners of an Office 365 group.
 
 #### Description
+
 This runbook retrieves and lists the owners of the specified group.
 It uses Microsoft Graph to query the group and its owners and outputs the results as a table.
 Use this to quickly review ownership assignments.
 
 #### Where to find
+
 Group \ General \ List Owners
 
 
@@ -692,11 +937,13 @@ Group \ General \ List Owners
 #### List devices owned by group members.
 
 #### Description
+
 This runbook enumerates the users in a group and lists their registered devices.
 Optionally, it can add the discovered devices to a specified device group.
 Use this to create or maintain a device group based on group member ownership.
 
 #### Where to find
+
 Group \ General \ List User Devices
 
 
@@ -711,9 +958,11 @@ Group \ General \ List User Devices
 #### Remove a group. For Microsoft 365 groups, also the associated resources (Teams, SharePoint site) will be removed.
 
 #### Description
+
 This runbook deletes the specified group, which for Microsoft 365 groups means, that it also deletes the associated resources such as the Teams Team and the SharePoint Site.
 
 #### Where to find
+
 Group \ General \ Remove Group
 
 
@@ -728,11 +977,13 @@ Group \ General \ Remove Group
 #### Rename a group.
 
 #### Description
+
 This runbook updates a group's DisplayName, MailNickname, and Description.
 It does not change the group's email addresses.
 Provide only the fields you want to update; empty values are ignored.
 
 #### Where to find
+
 Group \ General \ Rename Group
 
 
@@ -753,11 +1004,13 @@ Group \ General \ Rename Group
 #### Enable or disable external parties to send emails to a Microsoft 365 group
 
 #### Description
+
 This runbook configures whether external senders are allowed to email a Microsoft 365 group.
 It uses Exchange Online to enable or disable the RequireSenderAuthenticationEnabled setting.
 You can also query the current state without making changes.
 
 #### Where to find
+
 Group \ Mail \ Enable Or Disable External Mail
 
 
@@ -772,10 +1025,12 @@ Group \ Mail \ Enable Or Disable External Mail
 #### Show or hide a group in the address book
 
 #### Description
+
 This runbook shows or hides a Microsoft 365 group or a distribution group from address lists.
 You can also query the current visibility state without making changes.
 
 #### Where to find
+
 Group \ Mail \ Show Or Hide In Address Book
 
 
@@ -796,11 +1051,13 @@ Group \ Mail \ Show Or Hide In Address Book
 #### Archive a team
 
 #### Description
+
 This runbook archives a Microsoft Teams team backed by the specified Microsoft 365 group.
 It verifies that the group is provisioned as a team and then triggers the archive action via Microsoft Graph.
 Use this to decommission inactive teams while preserving their contents for review.
 
 #### Where to find
+
 Group \ Teams \ Archive Team
 
 
@@ -821,12 +1078,41 @@ Group \ Teams \ Archive Team
 #### Add an application registration to Azure AD
 
 #### Description
+
 This runbook creates a new application registration in Microsoft Entra ID and optionally configures redirect URIs and SAML settings.
 It validates the submitted parameters, prevents duplicate app creation, and writes verbose logs for troubleshooting.
 Use it to standardize application registration setup, including visibility and assignment-related options.
 
 #### Where to find
+
 Org \ Applications \ Add Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-add-gsa-application-registration'></a>
+
+### Add Gsa Application Registration
+#### Add a GSA application registration to Azure AD
+
+#### Description
+
+This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+
+In addition to the application, a security group for managing access to the application is created (naming scheme configurable
+via Runbook Customization) and assigned to the application's service principal.
+
+If the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /
+group / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.
+If a later step fails anyway, objects created in this run (application, group) are rolled back and removed.
+Pre-existing objects (update mode) are never removed.
+
+#### Where to find
+
+Org \ Applications \ Add Gsa Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -840,11 +1126,46 @@ Org \ Applications \ Add Application Registration
 #### Delete an application registration from Azure AD
 
 #### Description
+
 This runbook deletes an application registration and its associated service principal from Microsoft Entra ID.
 It verifies that the application exists before deletion and performs a best-effort cleanup of groups assigned during provisioning.
 
 #### Where to find
+
 Org \ Applications \ Delete Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-applications-delete-gsa-application-registration'></a>
+
+### Delete Gsa Application Registration
+#### Delete a GSA application registration from Azure AD including associated objects
+
+#### Description
+
+This runbook deletes a Global Secure Access application registration created by the
+"add-gsa-application-registration" runbook, including everything provisioned with it:
+the application (and thereby its service principal, application segments and connector
+group assignment) and the security group created by the naming scheme.
+
+The naming scheme group is identified via the groups assigned to the application whose
+display name matches the admin-defined group prefix. If the group was created but never
+assigned (partial provisioning), a best-effort lookup by naming scheme is performed.
+
+Safety measures:
+- The runbook verifies the application is actually a GSA / App Proxy application
+  (onPremisesPublishing) before deleting anything.
+- By default only security group(s) matching the naming scheme are deleted. Other
+  groups assigned to the application are listed but NOT deleted, as they may be
+  shared with other applications. Set deleteAllAssignedGroups to change this.
+
+#### Where to find
+
+Org \ Applications \ Delete Gsa Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -855,13 +1176,18 @@ Org \ Applications \ Delete Application Registration
 <a name='org-applications-export-enterprise-application-users'></a>
 
 ### Export Enterprise Application Users
-#### Export a CSV of all (enterprise) application owners and users
+#### Export a report of all (enterprise) application owners and users
 
 #### Description
-This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
-It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
+
+This runbook exports a report of enterprise applications (or all service principals) including owners and assigned users or groups.
+By default, the generated report files are uploaded to an Azure Storage Account and time-limited download links are returned.
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 Org \ Applications \ Export Enterprise Application Users
 
 
@@ -876,11 +1202,18 @@ Org \ Applications \ Export Enterprise Application Users
 #### List enterprise applications with no recent sign-ins
 
 #### Description
+
 This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.
 It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
 Use it to find candidates for review, cleanup, or decommissioning.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 #### Where to find
+
 Org \ Applications \ List Inactive Enterprise Applications
 
 
@@ -895,18 +1228,25 @@ Org \ Applications \ List Inactive Enterprise Applications
 #### Generate and email a comprehensive Application Registration report
 
 #### Description
+
 This runbook generates a report of all application registrations in Microsoft Entra ID and can optionally include deleted registrations.
-It exports the results to CSV files and sends them via email.
+It exports the results to CSV files and an Excel (xlsx) workbook and can send them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 Use it for periodic inventory, review, and audit purposes.
 
 #### Where to find
+
 Org \ Applications \ Report Application Registration
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -921,17 +1261,26 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### List expiry date of all Application Registration credentials
 
 #### Description
+
 This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
 It can optionally filter by application IDs and can limit output to credentials that are about to expire.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 #### Where to find
+
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -946,11 +1295,13 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Update an application registration in Azure AD
 
 #### Description
+
 This runbook updates an existing application registration and its related configuration in Microsoft Entra ID.
 It compares the current settings with the requested parameters and applies only the necessary updates.
 Use it to manage redirect URIs, SAML settings, visibility, assignment requirements, and token issuance behavior.
 
 #### Where to find
+
 Org \ Applications \ Update Application Registration
 
 
@@ -971,10 +1322,12 @@ Org \ Applications \ Update Application Registration
 #### Import a Windows device into Windows Autopilot
 
 #### Description
+
 This runbook imports a Windows device into Windows Autopilot using the device serial number and hardware hash.
 It can optionally wait for the import job to finish and supports tagging during import.
 
 #### Where to find
+
 Org \ Devices \ Add Autopilot Device
 
 
@@ -989,10 +1342,12 @@ Org \ Devices \ Add Autopilot Device
 #### Import a device into Intune via corporate identifier
 
 #### Description
+
 This runbook imports a device into Intune using a corporate identifier such as serial number or IMEI.
 It can overwrite existing entries and optionally stores a description for the imported identity.
 
 #### Where to find
+
 Org \ Devices \ Add Device Via Corporate Identifier
 
 
@@ -1007,16 +1362,55 @@ Org \ Devices \ Add Device Via Corporate Identifier
 #### Auto-approve new driver updates in Intune driver update policies
 
 #### Description
+
 This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+The notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-cleanup-autopilot-devices-(scheduled)'></a>
+
+### Cleanup Autopilot Devices (Scheduled)
+#### Clean up orphaned and stale Windows Autopilot device registrations
+
+#### Description
+
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ Devices \ Cleanup Autopilot Devices_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -1031,10 +1425,33 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
 
 #### Description
+
 This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.
 
 #### Where to find
+
 Org \ Devices \ Create Endpoint Analytics Baseline
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-dedup-device-names-(scheduled)'></a>
+
+### Dedup Device Names (Scheduled)
+#### Detect and rename duplicate Intune device display names using a prefix and random suffix
+
+#### Description
+
+This scheduled runbook queries all Intune managed devices and identifies devices that share the same display name.
+For each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.
+An optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.
+
+#### Where to find
+
+Org \ Devices \ Dedup Device Names_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1045,13 +1462,17 @@ Org \ Devices \ Create Endpoint Analytics Baseline
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
-#### Scheduled deletion of stale devices based on last activity
+#### Scheduled deletion of stale devices based on last activity date and platform
 
 #### Description
-This runbook identifies Intune managed devices that have not been active for a defined number of days.
-It can optionally delete the matching devices and can send an email report.
+
+Identifies Intune managed devices that have not been active for a specified number of days.
+By default the runbook runs in report-only mode (simulation) and lists the devices that would be deleted.
+When deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.
+An email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 #### Where to find
+
 Org \ Devices \ Delete Stale Devices_Scheduled
 
 
@@ -1066,10 +1487,12 @@ Org \ Devices \ Delete Stale Devices_Scheduled
 #### Get the BitLocker recovery key
 
 #### Description
+
 This runbook retrieves a BitLocker recovery key using the recovery key ID from the BitLocker recovery screen.
 It returns key details and related device information.
 
 #### Where to find
+
 Org \ Devices \ Get Bitlocker Recovery Key
 
 
@@ -1084,16 +1507,20 @@ Org \ Devices \ Get Bitlocker Recovery Key
 #### Notify primary users about their stale devices via email
 
 #### Description
+
 Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
 
 #### Where to find
+
 Org \ Devices \ Notify Users About Stale Devices_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 ## Mail Template Language Selection
 
@@ -1150,11 +1577,34 @@ To use a custom mail template (e.g., in Dutch, Spanish, or any other language), 
 #### Remove or outphase multiple devices
 
 #### Description
+
 This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
 It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
+Optionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
+NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
 
 #### Where to find
+
 Org \ Devices \ Outphase Devices
+
+## Microsoft Defender for Endpoint exclusion tag
+
+Microsoft Defender for Endpoint has a native **Exclusion state** (shown in the Device Inventory filter as *Excluded* / *Not Excluded*). This state can only be set through the Defender portal — there is **no API** to set a device's native exclusion state programmatically.
+
+Because the native exclusion state cannot be automated, this runbook instead applies a custom device tag (default `ExcludeFromRemediation`) when *Exclude devices from Defender for Endpoint* is enabled. Each device in the list is looked up by its Entra ID device ID and tagged via `POST /api/machines/{id}/tags`, providing a marker that can be used to filter and target excluded devices.
+
+### One-time setup: make the tag filterable
+
+The portal's **Tags** filter only lists tags that were created through the portal. A tag set purely via the API is attached to the device and visible on the device page, but it does **not** appear in the Tags filter on its own.
+
+To make the exclusion tag visible and usable for filtering in the [Defender Device Inventory](https://security.microsoft.com/machines), one client must be tagged manually once through the portal (select a device > **Manage tags** > "Create new tag", using the exact same tag value). After this one-time step the tag becomes a known, filterable tag, and this runbook can apply it to devices at scale.
+
+> **Note:** This tag is only a label — it does not set the device's native Exclusion state and has no remediation effect on its own. It takes effect only if a Defender device group or automation rule is explicitly configured to match this tag value. Such rules match the tag value directly, independently of the portal **Tags** filter, so the one-time manual step only affects whether the tag is selectable for filtering in the portal UI.
+
+Devices supplied by serial number that are not found in Intune have no Entra ID device ID and are therefore not tagged in Defender.
+
+See [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1162,25 +1612,76 @@ Org \ Devices \ Outphase Devices
  
  
 
-<a name='org-devices-report-devices-without-primary-user'></a>
+<a name='org-devices-report-devices-without-primary-user-(scheduled)'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 #### Reports all managed devices in Intune that do not have a primary user assigned.
 
 #### Description
-This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
 
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
+The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
+The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
+
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing detailed device information.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
-Org \ Devices \ Report Devices Without Primary User
+
+Org \ Devices \ Report Devices Without Primary User_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-primary-user-mismatch-(scheduled)'></a>
+
+### Report Primary User Mismatch (Scheduled)
+#### Compare primary user assignments in Intune against RealmJoin for Windows managed devices
+
+#### Description
+
+For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ Devices \ Report Primary User Mismatch_Scheduled
 
 ## Setup regarding email sending
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+
+## Setup regarding RealmJoin API credentials
+
+This runbook queries the RealmJoin customer API and requires a dedicated credential stored in the Azure Automation Account.
+
+**Step-by-step setup:**
+
+1. **Get API credentials** — If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com
+2. **Open the Automation Account** — In the Azure portal, navigate to the Automation Account used for runbooks
+3. **Go to Shared Resources > Credentials** — In the left menu under *Shared Resources*, click *Credentials*
+4. **Add a new credential** — Click *Add a credential*
+5. **Name it exactly `RJAPI`** — The runbook looks up this name; any deviation will cause the credential lookup to fail
+6. **Enter the RealmJoin API username and password** — Use the credentials from step 1
+7. **Save** — Click *Create* and re-run the runbook
 
 
 
@@ -1195,17 +1696,24 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Scheduled report of stale devices based on last activity date and platform.
 
 #### Description
+
 Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 Org \ Devices \ Report Stale Devices_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -1214,23 +1722,95 @@ This process is described in detail in the [Setup Email Reporting](https://githu
  
  
 
-<a name='org-devices-report-users-with-more-than-5-devices'></a>
+<a name='org-devices-report-users-with-more-than-5-devices-(scheduled)'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 #### Report users with more than five registered devices
 
 #### Description
+
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-It outputs a summary table and can optionally send an email with CSV attachments.
+It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
+The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device and whether it is compliant (both highlighted green/red in the Excel workbook).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
-Org \ Devices \ Report Users With More Than 5-Devices
+
+Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-windows-devices-without-autopilot-(scheduled)'></a>
+
+### Report Windows Devices Without Autopilot (Scheduled)
+#### Reports all Windows Entra devices that have no associated Windows Autopilot object.
+
+#### Description
+
+This runbook lists every Windows device object in Entra ID (Microsoft Entra) and matches it against
+the Windows Autopilot device identities in Intune. Entra devices whose device ID is not referenced by
+any Autopilot object (via the Autopilot object's azureActiveDirectoryDeviceId) are reported as orphans.
+
+Such orphaned Entra device objects are typical leftovers ("Objektleichen") from devices that were
+reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
+these candidates visible so they can be reviewed and - if appropriate - deleted.
+
+Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
+download links) and/or sent via email with the selected report file format(s) attached.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
+
+## Reporting orphaned Windows devices
+
+This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates ("Objektleichen").
+
+Two Yes/No toggles control the output:
+
+- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.
+- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+
+Both can be combined or used independently. If both are disabled, the report is only printed to the runbook output.
+
+## Setup regarding the storage account
+
+The CSV report is uploaded to an Azure Storage Account. The target storage account is taken from the shared **RJReport** tenant settings, so it can be configured once and reused across all report runbooks:
+
+- `RJReport.StorageAccount.ResourceGroup`
+- `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
+
+The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -1245,10 +1825,12 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Sync Intune serial numbers to Entra ID extension attributes
 
 #### Description
+
 This runbook retrieves Intune managed devices and syncs their serial numbers into an Entra ID device extension attribute.
 It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
 
 #### Where to find
+
 Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 
 
@@ -1269,10 +1851,12 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 #### Sync devices of users in a specific group to another device group
 
 #### Description
+
 This runbook reads accounts from a specified users group and adds their devices to a specified device group.
 It can filter devices by operating system and keeps the target group in sync.
 
 #### Where to find
+
 Org \ General \ Add Devices Of Users To Group_Scheduled
 
 
@@ -1287,10 +1871,12 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 #### List or add Management Partner Links (PAL)
 
 #### Description
+
 This runbook lists existing Partner Admin Links (PAL) for the tenant or adds a new PAL.
 It uses the Azure Management Partner API and supports an interactive action selection.
 
 #### Where to find
+
 Org \ General \ Add Management Partner
 
 
@@ -1305,10 +1891,12 @@ Org \ General \ Add Management Partner
 #### Update logos of Microsoft Store Apps (new) in Intune
 
 #### Description
+
 This runbook updates missing logos for Microsoft Store Apps (new) in Intune by fetching the icon from the Microsoft Store.
 It skips apps that already have a logo and reports how many apps were updated.
 
 #### Where to find
+
 Org \ General \ Add Microsoft Store App Logos
 
 
@@ -1323,10 +1911,12 @@ Org \ General \ Add Microsoft Store App Logos
 #### Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
 
 #### Description
+
 This runbook creates a Microsoft 365 group and provisions the related SharePoint site.
 It can optionally promote the group to a Microsoft Teams team after creation.
 
 #### Where to find
+
 Org \ General \ Add Office365 Group
 
 
@@ -1341,9 +1931,11 @@ Org \ General \ Add Office365 Group
 #### Add or remove a SafeLinks URL exclusion from a policy
 
 #### Description
+
 Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
 
 #### Where to find
+
 Org \ General \ Add Or Remove Safelinks Exclusion
 
 
@@ -1358,10 +1950,12 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 #### Add or remove a SmartScreen URL indicator in Microsoft Defender
 
 #### Description
+
 This runbook lists, adds, or removes URL indicators in Microsoft Defender.
 It can allow, audit, warn, or block a given domain by creating an indicator entry.
 
 #### Where to find
+
 Org \ General \ Add Or Remove Smartscreen Exclusion
 
 
@@ -1376,9 +1970,11 @@ Org \ General \ Add Or Remove Smartscreen Exclusion
 #### Add or remove a URL entry in the Intune Trusted Sites policy
 
 #### Description
+
 Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom configuration policy. The runbook can also list all existing Trusted Sites policies and their mappings.
 
 #### Where to find
+
 Org \ General \ Add Or Remove Trusted Site
 
 
@@ -1393,9 +1989,11 @@ Org \ General \ Add Or Remove Trusted Site
 #### Sync primary users of Intune managed devices by platform into an Entra ID group
 
 #### Description
+
 This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.
 
 #### Where to find
+
 Org \ General \ Add Primary Users Of Devices To Group_Scheduled
 
 
@@ -1410,10 +2008,12 @@ Org \ General \ Add Primary Users Of Devices To Group_Scheduled
 #### Create a Microsoft Entra ID security group
 
 #### Description
+
 This runbook creates a Microsoft Entra ID security group with membership type Assigned.
 It validates the group name and optionally sets an owner during creation.
 
 #### Where to find
+
 Org \ General \ Add Security Group
 
 
@@ -1428,10 +2028,12 @@ Org \ General \ Add Security Group
 #### Create a new user account
 
 #### Description
+
 This runbook creates a new cloud user in Microsoft Entra ID and applies standard user properties.
 It can optionally assign a license group, add the user to additional groups, and create an Exchange Online archive mailbox.
 
 #### Where to find
+
 Org \ General \ Add User
 
 
@@ -1446,10 +2048,12 @@ Org \ General \ Add User
 #### Create a Viva Engage (Yammer) community
 
 #### Description
+
 This runbook creates a Viva Engage community via the Yammer REST API using a stored developer token.
 It can optionally assign owners and remove the initial API user from the resulting Microsoft 365 group.
 
 #### Where to find
+
 Org \ General \ Add Viva Engange Community
 
 
@@ -1464,10 +2068,12 @@ Org \ General \ Add Viva Engange Community
 #### Assign cloud-only groups to many users based on a predefined template
 
 #### Description
+
 This runbook adds users from a source group to one or more target groups.
 Target groups are provided via a template-driven string and can be resolved by group ID or display name.
 
 #### Where to find
+
 Org \ General \ Assign Groups By Template_Scheduled
 
 
@@ -1482,10 +2088,12 @@ Org \ General \ Assign Groups By Template_Scheduled
 #### Bulk delete Autopilot objects by serial number
 
 #### Description
+
 This runbook deletes Windows Autopilot device identities based on a comma-separated list of serial numbers.
 It searches for each serial number and deletes the matching Autopilot object if found.
 
 #### Where to find
+
 Org \ General \ Bulk Delete Devices From Autopilot
 
 
@@ -1500,9 +2108,11 @@ Org \ General \ Bulk Delete Devices From Autopilot
 #### Bulk retire devices from Intune using serial numbers
 
 #### Description
+
 Retires multiple Intune devices based on a comma-separated list of serial numbers. Each serial number is looked up in Intune and the device is retired if found.
 
 #### Where to find
+
 Org \ General \ Bulk Retire Devices From Intune
 
 
@@ -1517,10 +2127,12 @@ Org \ General \ Bulk Retire Devices From Intune
 #### Check last Azure AD Connect sync status
 
 #### Description
+
 This runbook checks whether on-premises directory synchronization is enabled and when the last sync happened.
 It can send an email alert if synchronization is not enabled.
 
 #### Where to find
+
 Org \ General \ Check Aad Sync Status_Scheduled
 
 
@@ -1535,10 +2147,12 @@ Org \ General \ Check Aad Sync Status_Scheduled
 #### Check Intune assignments for one or more device names
 
 #### Description
+
 This runbook queries Intune policies and optionally app assignments relevant to the specified device(s).
 It resolves device group memberships and reports matching assignments.
 
 #### Where to find
+
 Org \ General \ Check Assignments Of Devices
 
 
@@ -1553,10 +2167,12 @@ Org \ General \ Check Assignments Of Devices
 #### Check Intune assignments for one or more group names
 
 #### Description
+
 This runbook queries Intune policies and optionally app assignments that target the specified group(s).
 It resolves group IDs and reports matching assignments.
 
 #### Where to find
+
 Org \ General \ Check Assignments Of Groups
 
 
@@ -1571,10 +2187,12 @@ Org \ General \ Check Assignments Of Groups
 #### Check Intune assignments for one or more user principal names
 
 #### Description
+
 This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
 It resolves transitive group membership and reports matching assignments.
 
 #### Where to find
+
 Org \ General \ Check Assignments Of Users
 
 
@@ -1589,10 +2207,12 @@ Org \ General \ Check Assignments Of Users
 #### Check if given serial numbers are present in Autopilot
 
 #### Description
+
 This runbook checks whether Windows Autopilot device identities exist for the provided serial numbers.
 It returns the serial numbers found and lists any missing serial numbers.
 
 #### Where to find
+
 Org \ General \ Check Autopilot Serialnumbers
 
 
@@ -1607,10 +2227,12 @@ Org \ General \ Check Autopilot Serialnumbers
 #### Add unenrolled Autopilot devices to an exclusion group
 
 #### Description
+
 This runbook identifies Windows Autopilot devices that are not yet enrolled in Intune and ensures they are members of a configured exclusion group.
 It also removes devices from the group once they are no longer in scope.
 
 #### Where to find
+
 Org \ General \ Check Device Onboarding Exclusion_Scheduled
 
 
@@ -1625,10 +2247,12 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 #### Show recent first-time device enrollments
 
 #### Description
+
 This runbook reports recent device enrollments based on a configurable time range.
 It can group results by a selected attribute and can optionally export the report as a CSV file.
 
 #### Where to find
+
 Org \ General \ Enrolled Devices Report_Scheduled
 
 
@@ -1643,9 +2267,11 @@ Org \ General \ Enrolled Devices Report_Scheduled
 #### List or export all Windows Autopilot devices
 
 #### Description
+
 Lists all Windows Autopilot devices and optionally exports them to a CSV file in Azure Storage. If exporting is enabled, the runbook uploads the report and returns a time-limited SAS (download) link.
 
 #### Where to find
+
 Org \ General \ Export All Autopilot Devices
 
 
@@ -1660,9 +2286,11 @@ Org \ General \ Export All Autopilot Devices
 #### Export a list of all Intune devices and where they are registered
 
 #### Description
+
 Exports all Intune managed devices and enriches them with selected owner metadata such as usage location. The report is uploaded as a CSV file to an Azure Storage container.
 
 #### Where to find
+
 Org \ General \ Export All Intune Devices
 
 
@@ -1677,9 +2305,11 @@ Org \ General \ Export All Intune Devices
 #### Write daily Windows 365 utilization data to Azure Table Storage
 
 #### Description
+
 Collects Windows 365 Cloud PC remote connection usage for the last full day and writes it to an Azure Table. The runbook creates the table if needed and merges records per tenant and timestamp.
 
 #### Where to find
+
 Org \ General \ Export Cloudpc Usage_Scheduled
 
 
@@ -1694,10 +2324,12 @@ Org \ General \ Export Cloudpc Usage_Scheduled
 #### Export non-compliant Intune devices and settings
 
 #### Description
+
 This runbook queries Intune for non-compliant and in-grace-period devices and retrieves detailed policy and setting compliance data.
 It can export the results to CSV with SAS (download) links.
 
 #### Where to find
+
 Org \ General \ Export Non Compliant Devices
 
 
@@ -1712,10 +2344,12 @@ Org \ General \ Export Non Compliant Devices
 #### Create a report of tenant policies from Intune and Entra ID.
 
 #### Description
+
 This runbook exports configuration policies from Intune and Entra ID and writes the results to a Markdown report.
 It can optionally export raw JSON and create downloadable links for exported artifacts.
 
 #### Where to find
+
 Org \ General \ Export Policy Report
 
 
@@ -1730,10 +2364,13 @@ Org \ General \ Export Policy Report
 #### Invite external guest users to the organization
 
 #### Description
+
 This runbook invites an external user as a guest user in Microsoft Entra ID.
-It can optionally add the invited user to a specified group.
+Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
+The invited user can optionally be added to a specified group.
 
 #### Where to find
+
 Org \ General \ Invite External Guest Users
 
 
@@ -1748,10 +2385,12 @@ Org \ General \ Invite External Guest Users
 #### List all Administrative Template policies and their assignments
 
 #### Description
+
 This runbook retrieves all Administrative Template policies from Intune.
 It lists each policy and shows its current assignments.
 
 #### Where to find
+
 Org \ General \ List All Administrative Template Policies
 
 
@@ -1766,10 +2405,12 @@ Org \ General \ List All Administrative Template Policies
 #### Report groups that have license assignment errors
 
 #### Description
+
 This runbook searches for Entra ID groups that have members with license assignment errors.
 It prints the affected group names and object IDs.
 
 #### Where to find
+
 Org \ General \ List Group License Assignment Errors
 
 
@@ -1784,10 +2425,12 @@ Org \ General \ List Group License Assignment Errors
 #### Generate an Office 365 licensing report
 
 #### Description
+
 This runbook creates a licensing report based on Microsoft 365 subscription SKUs and optionally includes Exchange Online related reports.
 It can export the results to Azure Storage and generate SAS links for downloads.
 
 #### Where to find
+
 Org \ General \ Office365 License Report
 
 
@@ -1802,17 +2445,21 @@ Org \ General \ Office365 License Report
 #### Monitor/Report expiry of Apple device management certificates
 
 #### Description
+
 Monitors expiration dates of Apple Push certificates, VPP tokens, and DEP tokens in Microsoft Intune.
 Sends an email report with alerts for certificates/tokens expiring within the specified threshold.
 
 #### Where to find
+
 Org \ General \ Report Apple MDM Cert Expiry_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -1827,21 +2474,28 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Generate and email a license availability report based on thresholds
 
 #### Description
+
 This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
 Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
 The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
-The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
+The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV and/or Excel (xlsx) files, and sends them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 Org \ General \ Report License Assignment_Scheduled
 
 ## Runbook Customization
 
 ### Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 ### InputJson Configuration
 
@@ -1987,10 +2641,12 @@ Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurati
 #### Scheduled report on PIM activations
 
 #### Description
+
 This runbook queries Microsoft Entra ID audit logs for recent PIM activations.
 It builds an report and sends it via email.
 
 #### Where to find
+
 Org \ General \ Report Pim Activations_Scheduled
 
 
@@ -2005,10 +2661,12 @@ Org \ General \ Report Pim Activations_Scheduled
 #### Sync all Intune Windows devices
 
 #### Description
+
 This runbook triggers a sync operation for all Windows devices managed by Microsoft Intune.
 It forces devices to check in and apply pending policies and configurations.
 
 #### Where to find
+
 Org \ General \ Sync All Devices
 
 
@@ -2023,10 +2681,182 @@ Org \ General \ Sync All Devices
 #### Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
 
 #### Description
+
 This runbook triggers synchronization of Apple tokens in Microsoft Intune. It can sync Apple Enrollment Program (ADE) tokens, Volume Purchase Program (VPP) tokens, or both. The sync ensures that Intune has the latest information from Apple Business Manager regarding device enrollments and app licenses.
 
 #### Where to find
+
 Org \ General \ Sync Apple Tokens
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-sync-channel-or-group-members-(scheduled)'></a>
+
+### Sync Channel Or Group Members (Scheduled)
+#### Sync members between a Teams Shared Channel or a group and an Entra security group
+
+#### Description
+
+This scheduled runbook mirrors the membership of a source object into a target object in one
+direction per run. It supports syncing Teams Shared Channel members into a security group, syncing
+the members of one group into another group (for example a Microsoft 365 group into a security group
+or vice versa) and syncing group members into a Teams Shared Channel. Adding missing members is always
+performed, while removing members that only exist in the target is optional and controlled by a
+parameter. Guest handling and whether channel removals also remove the host team membership are
+configurable, and the runbook can optionally send an email report and upload the results as a
+time-limited download link. The ReportFileFormat parameter controls which report file formats are
+generated and delivered (CSV only, CSV & XLSX, or XLSX only). When the CSV attachment exceeds the
+email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ General \ Sync Channel Or Group Members_Scheduled
+
+## How it works
+
+This scheduled runbook mirrors the membership of a **source** object into a **target** object in a
+single direction per run. On each run it:
+
+1. Resolves the source and target objects for the selected direction.
+2. Reads the current member set of both sides.
+3. Adds every source member that is missing from the target.
+4. Optionally removes every target member that does not exist in the source (mirror mode).
+
+### Directions
+
+The `Direction` parameter selects what is synced into what:
+
+- **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.
+- **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).
+- **`GroupToSharedChannel`** - the members of a source group are copied into a Teams shared channel.
+
+### Adding and removing
+
+Adding missing members is always performed. Removing members that exist only in the target is **opt-in**
+via `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the
+source; with it disabled, the runbook is add-only.
+
+### Group member expansion
+
+Group members on the source side are resolved **transitively**, so users that are members through nested
+groups are included. On the target side only **direct** members are considered, because add and remove
+operations act on direct membership.
+
+### Guest handling
+
+`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests
+are skipped on both sides and are never added or removed. Shared channels frequently reject guests, so
+this is off by default.
+
+### Shared channel specifics
+
+- When a group is synced **into** a shared channel, team membership is a prerequisite for channel
+  membership, so the runbook first ensures the user is a member of the host team and then adds the user
+  to the channel.
+- When members are **removed** from a shared channel, only the channel membership is removed by default.
+  Enable `RemoveFromTeam` to also remove the user from the host team membership.
+
+### Dry run
+
+Set `WhatIfMode` to log what would change without writing anything.
+
+### Reporting (optional, both default off)
+
+- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and
+  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
+  setting.
+- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS
+  download link (also embedded into the email when both options are enabled). The target storage account
+  is taken from the `RJReport.StorageAccount.*` settings.
+
+The storage upload authenticates with the Automation account's managed identity; that identity needs the
+**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC
+assignment, not a Graph application permission).
+
+### Scheduling
+
+Designed to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule
+keeps the target in sync with the source as members come and go.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-sync-shared-channel-owners-(scheduled)'></a>
+
+### Sync Shared Channel Owners (Scheduled)
+#### Ensure a security group's members are owners of mapped Teams and their shared channels.
+
+#### Description
+
+Teams Shared Channels do not inherit ownership from their parent team. This scheduled runbook closes
+that gap: for each team named in a mapping, it ensures the members of a mapped security group are owners
+of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
+maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
+are never removed - so newly created shared channels are simply picked up on the next run. It can
+optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+rules and configuration.
+
+#### Where to find
+
+Org \ General \ Sync Shared Channel Owners_Scheduled
+
+## How it works
+
+On each run the runbook:
+
+1. Reads the team-name-to-owner-group mapping from the org setting `SharedChannelOwners.Mapping`.
+2. For each entry, looks up the team by its **exact display name**.
+3. Expands that entry's owner group to its transitive **user** members (guests are skipped - they cannot belong to a shared channel).
+4. Ensures those users are owners of the team and of every **hosted** shared channel of the team.
+
+The runbook is **add-only**: it never demotes or removes existing owners or members. Newly created shared channels are therefore picked up automatically on the next scheduled run, without disturbing anything already in place.
+
+### Mapping configuration
+
+The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name** (see the *Notes* section for a ready-to-use example). The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+
+### Team matching
+
+Each mapping entry targets one explicitly named team:
+
+- A team is matched by its **exact display name** (case-insensitive, consistent with Microsoft Graph; surrounding whitespace in the configured name is ignored). Only that team is processed - there is no prefix or wildcard behaviour, so naming an entry `EXT Service A` never affects `EXT Service A Backup` or similar.
+- Display names are not guaranteed unique in Entra ID. If several teams share the configured name, the owner group is applied to **all** of them. If no team matches, the entry is reported as *not found* and skipped.
+
+### Team selection
+
+For every configured `TeamName` the runbook runs a Graph `displayName eq '...'` lookup and keeps only Microsoft 365 groups that are provisioned as a **Team**.
+
+### What gets changed
+
+- **Team (optional, `IncludeTeamOwners`, default on):** the owner-group users are added as owners and members of the parent M365 group. Team membership is also the technical prerequisite for becoming a shared-channel owner, so this step enables the channel step.
+- **Shared channels:** for every hosted shared channel (`membershipType eq 'shared'`), each owner-group user is ensured as a channel **owner** - added directly if absent, or promoted if already a member. If a direct owner-add is rejected (e.g. membership replication lag), the runbook falls back to adding the user as a member first and then promoting.
+
+### Dry run
+
+Set **`WhatIfMode`** to log what would change without writing anything. In this mode the runbook prints, up front, the teams it would process (with their owner group) and any configured team names that were not found.
+
+### Reporting (optional, both default off)
+
+- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and two CSV attachments: a per-team summary and a per-change detail list. The sender is taken from the `RJReport.EmailSender` setting.
+- **`CreateDownloadLink`** uploads the same CSVs to a storage account and returns time-limited SAS download links (also embedded into the email when both options are enabled). The target storage account is taken from the `RJReport.StorageAccount.*` settings.
+
+The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+### Scheduling
+
+Designed to run unattended on a schedule. Because configuration is centralized in the org settings and the runbook is add-only and idempotent, a single recurring schedule keeps all mapped teams and their shared channels in sync as people and channels come and go.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2046,9 +2876,11 @@ Org \ General \ Sync Apple Tokens
 #### Create a classic distribution group
 
 #### Description
+
 Creates a classic Exchange Online distribution group with optional owner configuration. If no primary SMTP address is provided, the default verified domain is used.
 
 #### Where to find
+
 Org \ Mail \ Add Distribution List
 
 
@@ -2063,10 +2895,31 @@ Org \ Mail \ Add Distribution List
 #### Create an equipment mailbox
 
 #### Description
+
 Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
 #### Where to find
+
 Org \ Mail \ Add Equipment Mailbox
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-mail-add-mail-contact'></a>
+
+### Add Mail Contact
+#### Create a new Exchange Online mail contact with optional display name and address list settings
+
+#### Description
+
+This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.
+
+#### Where to find
+
+Org \ Mail \ Add Mail Contact
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2080,9 +2933,11 @@ Org \ Mail \ Add Equipment Mailbox
 #### Add or remove a public folder
 
 #### Description
+
 Creates or removes an Exchange Online public folder. The runbook assumes that at least one public folder mailbox already exists and does not provision public folder mailboxes.
 
 #### Where to find
+
 Org \ Mail \ Add Or Remove Public Folder
 
 
@@ -2097,9 +2952,11 @@ Org \ Mail \ Add Or Remove Public Folder
 #### Create/Remove a contact, to allow pretty email addresses for Teams channels.
 
 #### Description
+
 Creates or updates a mail contact so a desired email address relays to the real Teams channel email address. The runbook can also remove the desired relay address again.
 
 #### Where to find
+
 Org \ Mail \ Add Or Remove Teams Mailcontact
 
 
@@ -2114,9 +2971,11 @@ Org \ Mail \ Add Or Remove Teams Mailcontact
 #### Add or remove entries from the Tenant Allow/Block List
 
 #### Description
+
 Adds or removes entries from the Tenant Allow/Block List in Microsoft Defender for Office 365. The runbook supports senders, URLs, and file hashes and sets new entries to expire after 30 days by default.
 
 #### Where to find
+
 Org \ Mail \ Add Or Remove Tenant Allow Block List
 
 
@@ -2131,9 +2990,11 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
 #### Create a room mailbox resource
 
 #### Description
+
 Creates an Exchange Online room mailbox and optionally configures delegation and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
 
 #### Where to find
+
 Org \ Mail \ Add Room Mailbox
 
 
@@ -2148,10 +3009,12 @@ Org \ Mail \ Add Room Mailbox
 #### Create a shared mailbox
 
 #### Description
+
 This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
 Also if specified, it disables the associated EntraID user account.
 
 #### Where to find
+
 Org \ Mail \ Add Shared Mailbox
 
 
@@ -2166,9 +3029,11 @@ Org \ Mail \ Add Shared Mailbox
 #### Hide or unhide special mailboxes in the Global Address List
 
 #### Description
+
 Hides or unhides special mailboxes in the Global Address List, currently intended for Bookings calendars. The runbook updates all scheduling mailboxes accordingly.
 
 #### Where to find
+
 Org \ Mail \ Hide Mailboxes_Scheduled
 
 
@@ -2183,9 +3048,11 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 #### Configure Microsoft Bookings settings for the organization
 
 #### Description
+
 Configures Microsoft Bookings settings at the organization level using Exchange Online organization configuration. The runbook can optionally create an OWA mailbox policy for Bookings creators and disable Bookings in the default OWA policy.
 
 #### Where to find
+
 Org \ Mail \ Set Booking Config
 
 
@@ -2206,9 +3073,11 @@ Org \ Mail \ Set Booking Config
 #### Check whether a phone number is assigned in Microsoft Teams
 
 #### Description
+
 Looks up whether a given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned, information about the user and relevant voice policies is returned.
 
 #### Where to find
+
 Org \ Phone \ Get Teams Phone Number Assignment
 
 ## Additional documentation
@@ -2240,9 +3109,11 @@ If a Teams user is found for the phone number, the following details are display
 #### Create a new Microsoft Defender for Endpoint indicator
 
 #### Description
+
 Creates a new indicator in Microsoft Defender for Endpoint to allow or block a specific file hash, certificate thumbprint, IP, domain, or URL. The indicator action can generate alerts automatically for audit or alert-and-block actions.
 
 #### Where to find
+
 Org \ Security \ Add Defender Indicator
 
 
@@ -2257,9 +3128,11 @@ Org \ Security \ Add Defender Indicator
 #### Export Conditional Access policies to an Azure Storage account
 
 #### Description
+
 Exports the current set of Conditional Access policies via Microsoft Graph and uploads them as a ZIP archive to Azure Storage. If no container name is provided, a date-based name is generated.
 
 #### Where to find
+
 Org \ Security \ Backup Conditional Access Policies
 
 
@@ -2274,9 +3147,11 @@ Org \ Security \ Backup Conditional Access Policies
 #### Find the user associated with a specific SMS-based authentication phone number
 
 #### Description
+
 This runbook searches for which user has a specific phone number registered with SMS Sign-In enabled in Microsoft Entra ID. Unlike regular phone MFA methods, SMS Sign-In numbers must be unique across the tenant. If a number is reserved for SMS Sign-In by one user, assigning it to another user will fail with a "phoneNumberNotUnique" error. Regular phone MFA methods do not enforce uniqueness. This runbook helps administrators identify which user holds a specific SMS Sign-In number for troubleshooting and remediation.
 
 #### Where to find
+
 Org \ Security \ Find SMS Auth Phone Number
 
 
@@ -2291,9 +3166,11 @@ Org \ Security \ Find SMS Auth Phone Number
 #### List Entra ID role holders and optionally evaluate their MFA methods
 
 #### Description
+
 Lists users and service principals holding built-in Entra ID roles and produces an admin-to-role report. Optionally queries each admin for registered authentication methods to assess MFA coverage.
 
 #### Where to find
+
 Org \ Security \ List Admin Users
 
 
@@ -2308,9 +3185,11 @@ Org \ Security \ List Admin Users
 #### List Azure AD role assignments expiring within a given number of days
 
 #### Description
+
 Lists active and PIM-eligible Azure AD role assignments that expire within a specified number of days. The output includes role name, principal, and expiration date.
 
 #### Where to find
+
 Org \ Security \ List Expiring Role Assignments
 
 
@@ -2325,9 +3204,11 @@ Org \ Security \ List Expiring Role Assignments
 #### List or export inactive devices with no recent logon or Intune sync
 
 #### Description
+
 Collects devices based on either last interactive sign-in or last Intune sync date and lists them in the console. Optionally exports the results to a CSV file in Azure Storage.
 
 #### Where to find
+
 Org \ Security \ List Inactive Devices
 
 
@@ -2342,9 +3223,11 @@ Org \ Security \ List Inactive Devices
 #### List users with no recent interactive sign-ins
 
 #### Description
+
 Lists users and guests that have not signed in interactively for a specified number of days. Optionally includes accounts that never signed in and accounts that are blocked.
 
 #### Where to find
+
 Org \ Security \ List Inactive Users
 
 
@@ -2359,9 +3242,11 @@ Org \ Security \ List Inactive Users
 #### List Microsoft Information Protection labels
 
 #### Description
+
 Retrieves all available Microsoft Information Protection labels in the tenant. This can be used to get the label IDs for use in other runbooks, e.g. for auto-labeling based on sensitivity.
 
 #### Where to find
+
 Org \ Security \ List Information Protection Labels
 
 
@@ -2376,9 +3261,11 @@ Org \ Security \ List Information Protection Labels
 #### List role-assignable groups with eligible role assignments but without owners
 
 #### Description
+
 Finds role-assignable groups that have PIM eligible role assignments but no owners assigned. Optionally sends an email alert containing the group names.
 
 #### Where to find
+
 Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
 
@@ -2393,11 +3280,13 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 #### Report users by the count of their registered MFA methods
 
 #### Description
+
 This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
 As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
 The output includes the user display name, user principal name, and the count of registered MFA methods.
 
 #### Where to find
+
 Org \ Security \ List Users By MFA Methods Count
 
 
@@ -2412,9 +3301,11 @@ Org \ Security \ List Users By MFA Methods Count
 #### List app registrations potentially vulnerable to CVE-2021-42306
 
 #### Description
+
 Lists Azure AD app registrations that may be affected by CVE-2021-42306 by inspecting stored key credentials. Optionally exports the findings to a CSV file in Azure Storage.
 
 #### Where to find
+
 Org \ Security \ List Vulnerable App Regs
 
 
@@ -2429,18 +3320,25 @@ Org \ Security \ List Vulnerable App Regs
 #### Monitor and report pending Endpoint Privilege Management (EPM) elevation requests
 
 #### Description
+
 Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
 Email is only sent when there are pending requests.
-Optionally includes detailed information about each request in a table and CSV attachment.
+Optionally includes detailed information about each request in a table and report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 Org \ Security \ Monitor Pending EPM Requests_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -2455,9 +3353,11 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Send notification email if Conditional Access policies have been created or modified in the last 24 hours.
 
 #### Description
+
 Checks Conditional Access policies for changes in the last 24 hours and sends an email with a text attachment listing the changed policies. If no changes are detected, no email is sent.
 
 #### Where to find
+
 Org \ Security \ Notify Changed CA Policies
 
 
@@ -2472,18 +3372,140 @@ Org \ Security \ Notify Changed CA Policies
 #### Generate report for Endpoint Privilege Management (EPM) elevation requests
 
 #### Description
+
 Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
 Supports filtering by multiple status types and time range.
-Sends an email report with summary statistics and detailed CSV attachment.
+Sends an email report with summary statistics and detailed report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 Org \ Security \ Report EPM Elevation Requests_Scheduled
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-sync-mfa-secure-users-to-group-(scheduled)'></a>
+
+### Sync MFA Secure Users To Group (Scheduled)
+#### Sync users with secure MFA methods registered into an Entra ID group
+
+#### Description
+
+This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Guest users and non-user group members are never touched.
+
+Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
+
+#### Where to find
+
+Org \ Security \ Sync MFA Secure Users To Group_Scheduled
+
+## How it works
+
+The runbook reads the Entra ID [authentication methods registration report](https://learn.microsoft.com/en-us/graph/api/authenticationmethodsroot-list-userregistrationdetails) (`userRegistrationDetails`) and mirrors the target group against all **member users** that qualify:
+
+- A user qualifies when at least one of their registered methods is in the configured **secure** set.
+- In **strict mode** (`SecureOnly`), a user additionally must not have any method from the **unsecure** set registered — a passkey user who also keeps an SMS factor does not qualify.
+- Qualifying users that are not yet group members are added; members that no longer qualify are removed (mirror sync).
+- Guest users are never added or removed. Non-user group members (devices, service principals, nested groups) are never touched.
+
+The target group should be managed exclusively by this runbook.
+
+## Secure method groups
+
+Each toggle controls which `methodsRegistered` values count as secure:
+
+| Toggle | Default | Covered values |
+| --- | --- | --- |
+| Passkeys / FIDO2 security keys | on | `fido2SecurityKey`, `passKeyDeviceBound`, `passKeyDeviceBoundAuthenticator` |
+| Platform credentials | on | `windowsHelloForBusiness`, `passKeyDeviceBoundWindowsHello`, `macOsSecureEnclaveKey` |
+| Microsoft Authenticator app | on | `microsoftAuthenticatorPush`, `microsoftAuthenticatorPasswordless` |
+| Software OTP | off | `softwareOneTimePasscode` |
+| Hardware OTP | off | `hardwareOneTimePasscode` |
+| Certificate-based authentication | on | `certificateBasedAuthentication` |
+
+## Strict mode (SecureOnly)
+
+With strict mode enabled, users with any of the following built-in unsecure methods never qualify:
+
+`mobilePhone`, `alternateMobilePhone`, `officePhone`, `email`, `securityQuestion`
+
+If a method ends up in both the secure and the unsecure set (only possible via the override parameters), unsecure wins — such users never qualify in strict mode. The runbook warns about this at startup.
+
+## Method classification reference
+
+Use the exact Graph values from this table when building the comma-separated override strings:
+
+| `methodsRegistered` value | Friendly name | Classification | Covered by toggle (default) |
+| --- | --- | --- | --- |
+| `fido2SecurityKey` | FIDO2 security key | Secure | Passkeys / FIDO2 (on) |
+| `passKeyDeviceBound` | Passkey (device-bound) | Secure | Passkeys / FIDO2 (on) |
+| `passKeyDeviceBoundAuthenticator` | Passkey in Microsoft Authenticator | Secure | Passkeys / FIDO2 (on) |
+| `windowsHelloForBusiness` | Windows Hello for Business | Secure | Platform credentials (on) |
+| `passKeyDeviceBoundWindowsHello` | Passkey in Windows Hello | Secure | Platform credentials (on) |
+| `macOsSecureEnclaveKey` | Platform Credential for macOS | Secure | Platform credentials (on) |
+| `microsoftAuthenticatorPush` | Microsoft Authenticator (push notification) | Secure | Microsoft Authenticator app (on) |
+| `microsoftAuthenticatorPasswordless` | Microsoft Authenticator (passwordless phone sign-in) | Secure | Microsoft Authenticator app (on) |
+| `softwareOneTimePasscode` | Software OATH token (TOTP app) | Secure | Software OTP (off) |
+| `hardwareOneTimePasscode` | Hardware OATH token | Secure | Hardware OTP (off) |
+| `certificateBasedAuthentication` | Certificate-based authentication | Secure | Certificate-based authentication (on) |
+| `mobilePhone` | Phone (SMS / voice call) | Unsecure | built-in unsecure list |
+| `alternateMobilePhone` | Alternate phone (voice call) | Unsecure | built-in unsecure list |
+| `officePhone` | Office phone (voice call) | Unsecure | built-in unsecure list |
+| `email` | Email (SSPR only) | Unsecure | built-in unsecure list |
+| `securityQuestion` | Security questions (SSPR only) | Unsecure | built-in unsecure list |
+| `temporaryAccessPass` | Temporary Access Pass | Neutral | never qualifies, never disqualifies |
+
+Unknown or future Graph values are treated as neutral unless explicitly listed in an override parameter.
+
+## Override parameters
+
+Both override parameters are hidden by default and intended for RealmJoin runbook customization:
+
+- **SecureMethodsOverride** — comma-separated list of `methodsRegistered` values that defines the secure set. When set, **all** method group toggles are ignored. Example: `fido2SecurityKey,passKeyDeviceBound,passKeyDeviceBoundAuthenticator,windowsHelloForBusiness`
+- **UnsecureMethodsOverride** — comma-separated list that replaces the built-in unsecure list. Only evaluated in strict mode. Example: `mobilePhone,alternateMobilePhone,officePhone,email,securityQuestion,softwareOneTimePasscode`
+
+Unknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.
+
+## Email report and download links
+
+Optionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+
+- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [email reporting setup](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md)).
+- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+
+Report files are only generated when at least one of the two options is enabled. The report consists of:
+
+- **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
+- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification and group membership
+- **mfa-secure-users-group-sync-report.xlsx** - the same data as a formatted Excel workbook: an "Info" cover sheet with the chosen parameters and result counts, a "Changes" worksheet (added users highlighted in green, removed in red) and an "All Users" worksheet
+
+In large tenants the raw CSV files can exceed the email attachment size limit (Graph rejects mails at roughly 4 MB total). When the CSV files exceed a 2.5 MB budget, the email is sent with only the Excel workbook attached (which contains the complete data in compressed form) and a note explaining the omission; a failed full-size send is also retried automatically with the workbook only. The download link upload always includes all files regardless of size.
+
+## Notes and limitations
+
+- The registration report requires an **Entra ID P1 or P2** license.
+- The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
+- Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
+- The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
+
+## Scheduling
+
+The sync is idempotent — a single recurring schedule (e.g. daily) keeps the group up to date, and reruns after partial failures self-heal. Recommendation: run once with **Dry run (WhatIf)** enabled and review the job output before scheduling the runbook in live mode.
 
 
 
@@ -2504,10 +3526,12 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Removes (Signs Out) a specific User from their AVD Session.
 
 #### Description
+
 This Runbooks looks for active User Sessions in all AVD Hostpools of a tenant and removes forces a Sign-Out of the user.
 The SubscriptionIds value must be defined in the runbooks customization.
 
 #### Where to find
+
 User \ AVD \ User Signout
 
 
@@ -2528,9 +3552,11 @@ User \ AVD \ User Signout
 #### Assign cloud-only groups to a user based on a template
 
 #### Description
+
 Adds a user to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
 
 #### Where to find
+
 User \ General \ Assign Groups By Template
 
 
@@ -2545,9 +3571,11 @@ User \ General \ Assign Groups By Template
 #### Assign or remove a license for a user via group membership
 
 #### Description
+
 Adds or removes a user to a dedicated license assignment group to control license allocation. The license group must match the configured naming convention.
 
 #### Where to find
+
 User \ General \ Assign Or Unassign License
 
 
@@ -2562,9 +3590,11 @@ User \ General \ Assign Or Unassign License
 #### Assign and provision a Windows 365 Cloud PC for a user
 
 #### Description
+
 Assigns the required groups and license or Frontline provisioning policy to initiate Windows 365 provisioning. Optionally notifies the user when provisioning completes and can create a support ticket when licenses are exhausted.
 
 #### Where to find
+
 User \ General \ Assign Windows365
 
 
@@ -2579,9 +3609,11 @@ User \ General \ Assign Windows365
 #### List group memberships for this user
 
 #### Description
+
 Lists group memberships for this user and supports filtering by group type, membership type, role-assignable status, Teams enablement, source, and writeback status. Outputs the results as CSV-formatted text.
 
 #### Where to find
+
 User \ General \ List Group Memberships
 
 
@@ -2596,9 +3628,13 @@ User \ General \ List Group Memberships
 #### List group ownerships for this user.
 
 #### Description
+
 Lists Entra ID groups where the specified user is an owner. Outputs the group names and IDs.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
+
 User \ General \ List Group Ownerships
 
 
@@ -2613,9 +3649,11 @@ User \ General \ List Group Ownerships
 #### List manager information for this user
 
 #### Description
+
 Retrieves the manager object for a specified user. Outputs common manager attributes such as display name, email, and phone numbers.
 
 #### Where to find
+
 User \ General \ List Manager
 
 
@@ -2630,9 +3668,11 @@ User \ General \ List Manager
 #### Permanently offboard a user
 
 #### Description
+
 Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
 
 #### Where to find
+
 User \ General \ Offboard User Permanently
 
 
@@ -2647,9 +3687,11 @@ User \ General \ Offboard User Permanently
 #### Temporarily offboard a user
 
 #### Description
+
 Temporarily offboards a user for scenarios such as parental leave or sabbatical by disabling access, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
 
 #### Where to find
+
 User \ General \ Offboard User Temporarily
 
 
@@ -2664,9 +3706,11 @@ User \ General \ Offboard User Temporarily
 #### Reprovision a Windows 365 Cloud PC
 
 #### Description
+
 Triggers a reprovision action for an existing Windows 365 Cloud PC without assigning a new instance. Optionally notifies the user when reprovisioning starts.
 
 #### Where to find
+
 User \ General \ Reprovision Windows365
 
 
@@ -2681,10 +3725,12 @@ User \ General \ Reprovision Windows365
 #### Resize an existing Windows 365 Cloud PC for a user
 
 #### Description
+
 Resizes a Windows 365 Cloud PC by removing the current assignment and provisioning a new size using a different license group.
 WARNING: This operation deprovisions and reprovisions the Cloud PC and local data may be lost.
 
 #### Where to find
+
 User \ General \ Resize Windows365
 
 
@@ -2699,9 +3745,11 @@ User \ General \ Resize Windows365
 #### Remove and deprovision a Windows 365 Cloud PC for a user
 
 #### Description
+
 Removes Windows 365 assignments for a user and deprovisions the associated Cloud PC. Optionally ends the grace period immediately to trigger faster removal.
 
 #### Where to find
+
 User \ General \ Unassign Windows365
 
 
@@ -2722,9 +3770,11 @@ User \ General \ Unassign Windows365
 #### Add or remove an email address for a mailbox
 
 #### Description
+
 Adds or removes an alias email address on a mailbox and can optionally set it as the primary address.
 
 #### Where to find
+
 User \ Mail \ Add Or Remove Email Address
 
 
@@ -2739,10 +3789,12 @@ User \ Mail \ Add Or Remove Email Address
 #### Assign an OWA mailbox policy to a user
 
 #### Description
+
 Assigns an OWA mailbox policy to a mailbox in Exchange Online.
 This can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.
 
 #### Where to find
+
 User \ Mail \ Assign Owa Mailbox Policy
 
 
@@ -2757,9 +3809,11 @@ User \ Mail \ Assign Owa Mailbox Policy
 #### Convert a user mailbox to a shared mailbox and back
 
 #### Description
+
 Converts a mailbox to a shared mailbox or reverts it back to a regular user mailbox. Optionally delegates access and adjusts group memberships and license groups.
 
 #### Where to find
+
 User \ Mail \ Convert To Shared Mailbox
 
 
@@ -2774,11 +3828,13 @@ User \ Mail \ Convert To Shared Mailbox
 #### Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
 
 #### Description
+
 Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.
 Also shows the current and new permissions for the mailbox.
 Automapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.
 
 #### Where to find
+
 User \ Mail \ Delegate Full Access
 
 
@@ -2793,10 +3849,12 @@ User \ Mail \ Delegate Full Access
 #### Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation
 
 #### Description
+
 Grants or removes SendAs permissions for a delegate on a mailbox in Exchange Online. The current permissions are shown before and after applying the change.
 This allows the delegate to send emails as if they were the mailbox owner.
 
 #### Where to find
+
 User \ Mail \ Delegate Send As
 
 
@@ -2811,10 +3869,12 @@ User \ Mail \ Delegate Send As
 #### Delegate SendOnBehalf permissions for the user's mailbox
 
 #### Description
+
 Grants or removes SendOnBehalf permissions for a delegate on the user's mailbox. Outputs the resulting SendOnBehalf trustees after applying the change.
 This allows the delegate to send emails on behalf of the mailbox owner.
 
 #### Where to find
+
 User \ Mail \ Delegate Send On Behalf
 
 
@@ -2829,9 +3889,11 @@ User \ Mail \ Delegate Send On Behalf
 #### Hide or unhide a mailbox in the address book
 
 #### Description
+
 Hides or unhides a mailbox from the global address lists. Important: This change can take up to 72 hours until it is reflected in the global address list.
 
 #### Where to find
+
 User \ Mail \ Hide Or Unhide In Addressbook
 
 
@@ -2846,9 +3908,11 @@ User \ Mail \ Hide Or Unhide In Addressbook
 #### List mailbox permissions for a mailbox
 
 #### Description
+
 Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
 
 #### Where to find
+
 User \ Mail \ List Mailbox Permissions
 
 
@@ -2863,10 +3927,31 @@ User \ Mail \ List Mailbox Permissions
 #### List room mailbox configuration
 
 #### Description
+
 Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
 
 #### Where to find
+
 User \ Mail \ List Room Mailbox Configuration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-mail-manage-archive-mailbox'></a>
+
+### Manage Archive Mailbox
+#### Manage the Exchange Online archive mailbox for a user
+
+#### Description
+
+Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user. Before any change the current state is verified so the script exits without making changes if the mailbox is already in the desired state. When enabling, any soft-deleted archive mailbox from within the last 30 days is automatically reconnected instead of creating a new one.
+
+#### Where to find
+
+User \ Mail \ Manage Archive Mailbox
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2880,9 +3965,11 @@ User \ Mail \ List Room Mailbox Configuration
 #### Hard delete a shared mailbox, room or bookings calendar
 
 #### Description
+
 Forces a deletion of a shared mailbox, room mailbox, or bookings calendar. The mailbox type is validated before deletion.
 
 #### Where to find
+
 User \ Mail \ Remove Mailbox
 
 
@@ -2897,9 +3984,11 @@ User \ Mail \ Remove Mailbox
 #### Enable or disable out-of-office notifications for a mailbox
 
 #### Description
+
 Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
 
 #### Where to find
+
 User \ Mail \ Set Out Of Office
 
 
@@ -2914,9 +4003,11 @@ User \ Mail \ Set Out Of Office
 #### Set room mailbox resource policies
 
 #### Description
+
 Updates room mailbox settings such as booking policy, calendar processing, and capacity. The runbook can optionally restrict BookInPolicy to members of a specific mail-enabled security group.
 
 #### Where to find
+
 User \ Mail \ Set Room Mailbox Configuration
 
 
@@ -2937,9 +4028,11 @@ User \ Mail \ Set Room Mailbox Configuration
 #### Microsoft Teams telephony offboarding
 
 #### Description
+
 Removes the assigned phone number and clears selected Teams voice policies for a Teams-enabled user. This fullfills the telephony offboarding scenarios.
 
 #### Where to find
+
 User \ Phone \ Disable Teams Phone
 
 
@@ -2954,9 +4047,11 @@ User \ Phone \ Disable Teams Phone
 #### Get Microsoft Teams voice status for a user
 
 #### Description
+
 Retrieves voice-related status information for a Teams user such as phone number assignment, call forwarding settings, voicemail configuration, and policy assignments. The output is intended for troubleshooting and validation.
 
 #### Where to find
+
 User \ Phone \ Get Teams User Info
 
 
@@ -2971,10 +4066,12 @@ User \ Phone \ Get Teams User Info
 #### Grant Microsoft Teams policies to a Microsoft Teams enabled user
 
 #### Description
+
 Assigns selected Teams policies for a Teams-enabled user. Policies are only changed when a value is provided, and assignments can be cleared by using the value "Global (Org Wide Default)".
 It allows to assign the following policies: Online Voice Routing Policy, Tenant Dial Plan, Teams Calling Policy, Teams IP Phone Policy, Online Voicemail Policy, Teams Meeting Policy and Teams Meeting Broadcast Policy (Live Event Policy).
 
 #### Where to find
+
 User \ Phone \ Grant Teams User Policies
 
 
@@ -2989,9 +4086,11 @@ User \ Phone \ Grant Teams User Policies
 #### Set immediate call forwarding for a Teams user
 
 #### Description
+
 Configures immediate call forwarding for a Teams Enterprise Voice user to a Teams user, a phone number, voicemail, or the user's delegates. The runbook can also disable immediate forwarding.
 
 #### Where to find
+
 User \ Phone \ Set Teams Permanent Call Forwarding
 
 
@@ -3006,10 +4105,12 @@ User \ Phone \ Set Teams Permanent Call Forwarding
 #### Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 
 #### Description
+
 Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
 If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
 
 #### Where to find
+
 User \ Phone \ Set Teams Phone
 
 
@@ -3030,9 +4131,11 @@ User \ Phone \ Set Teams Phone
 #### Confirm compromise or dismiss a risky user
 
 #### Description
+
 Confirms a user compromise or dismisses a risky user entry using Microsoft Entra ID Identity Protection. This helps security teams remediate and track risky sign-in events.
 
 #### Where to find
+
 User \ Security \ Confirm Or Dismiss Risky User
 
 
@@ -3047,9 +4150,11 @@ User \ Security \ Confirm Or Dismiss Risky User
 #### Create a temporary access pass for a user
 
 #### Description
+
 Creates a new Temporary Access Pass (TAP) authentication method for a user in Microsoft Entra ID. Existing TAPs for the user are removed before creating a new one. Optionally sends a notification email to the user's primary email address informing them about the newly created TAP. The email language is automatically determined by the user's usage location.
 
 #### Where to find
+
 User \ Security \ Create Temporary Access Pass
 
 ## Activate user notification
@@ -3080,6 +4185,12 @@ The json configuration for this is as follows:
         "ServiceDeskPhone": {
             "Hide": true
         },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }
@@ -3091,9 +4202,11 @@ For more information on how to customize runbooks, please refer to the [Runbook 
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 
@@ -3108,10 +4221,89 @@ This process is described in detail in the [Setup Email Reporting](https://githu
 #### Enable or disable password expiration for a user
 
 #### Description
+
 Updates the password policy for a user in Microsoft Entra ID. This can be used to disable password expiration or re-enable the default expiration behavior.
 
 #### Where to find
+
 User \ Security \ Enable Or Disable Password Expiration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-security-list-mfa-methods'></a>
+
+### List MFA Methods
+#### List all MFA / authentication methods of a user
+
+#### Description
+
+Retrieves and displays every Microsoft Entra ID authentication method registered for a target user, including phone numbers for phone-based methods. Phone numbers can optionally be masked, showing only the last four digits. Optionally a notification email can be sent to the user informing them that their MFA methods have been retrieved through this runbook.
+
+#### Where to find
+
+User \ Security \ List MFA Methods
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_list-mfa-methods": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "MaskPhoneNumbers": {
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3121,14 +4313,71 @@ User \ Security \ Enable Or Disable Password Expiration
 
 <a name='user-security-reset-mfa'></a>
 
-### Reset Mfa
+### Reset MFA
 #### Remove all App- and Mobilephone auth methods for a user
 
 #### Description
-Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset.
+
+Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset. Optionally a notification email can be sent to the user informing them that their MFA methods have been reset through this runbook.
 
 #### Where to find
-User \ Security \ Reset Mfa
+
+User \ Security \ Reset MFA
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their MFA methods were reset by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_reset-mfa": {
+    "parameters": {
+        "UserName": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3142,9 +4391,11 @@ User \ Security \ Reset Mfa
 #### Reset a user's password
 
 #### Description
+
 Resets the password for a user in Microsoft Entra ID and optionally enables the account first. The user can be forced to change the password at the next sign-in. This runbook is useful for helpdesk scenarios where a technician needs to reset a user's password and ensure that the user updates it upon next login.
 
 #### Where to find
+
 User \ Security \ Reset Password
 
 
@@ -3159,9 +4410,11 @@ User \ Security \ Reset Password
 #### Revoke or restore user access
 
 #### Description
+
 Blocks or re-enables a user account and optionally revokes active sign-in sessions. This can be used during incident response to immediately invalidate user tokens.
 
 #### Where to find
+
 User \ Security \ Revoke Or Restore Access
 
 
@@ -3172,14 +4425,71 @@ User \ Security \ Revoke Or Restore Access
 
 <a name='user-security-set-or-remove-mobile-phone-mfa'></a>
 
-### Set Or Remove Mobile Phone Mfa
+### Set Or Remove Mobile Phone MFA
 #### Set or remove a user's mobile phone MFA method
 
 #### Description
-Adds, updates, or removes the user's mobile phone authentication method. If you need to change a number, remove the existing method first and then add the new number. When adding or updating a number that is reserved for SMS Sign-In by another user, the runbook catches the "phoneNumberNotUnique" error and automatically identifies the user who holds that number. Note that phone numbers used as regular MFA methods (not SMS Sign-In) do not need to be unique and will not cause this error.
+
+Adds, updates, or removes the user's mobile phone authentication method. This runbook manages phone numbers as regular MFA factors (call/text verification). Important: The Microsoft Graph phoneMethods API does not offer a way to add a phone number as "MFA only" without triggering an automatic SMS Sign-In registration attempt. If the user is enabled by the tenant's Authentication Methods Policy for SMS Sign-In, Graph will automatically try to register the number for SMS Sign-In after creating or updating the phone method. If the number is already used by another user for SMS Sign-In, Graph returns a 409 Conflict with error code "phoneNumberNotUnique". However, the phone method itself (for regular MFA) is typically created or updated successfully despite this error. The smsSignInState property is read-only and cannot be controlled via the create/update request. SMS Sign-In can only be explicitly managed via the separate enableSmsSignIn and disableSmsSignIn endpoints. This runbook verifies the actual state after such errors and reports success if the MFA method was assigned, with a warning about the SMS Sign-In conflict. If the assignment truly failed, it searches for the user holding the number.
 
 #### Where to find
-User \ Security \ Set Or Remove Mobile Phone Mfa
+
+User \ Security \ Set Or Remove Mobile Phone MFA
+
+## Activate user notification
+
+This runbook can optionally send a notification email to the target user informing them that their mobile phone MFA method was added, updated, or removed by an administrator. To enable this, you need to activate user notification in the runbook customization.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-user_security_set-or-remove-mobile-phone-mfa": {
+    "parameters": {
+        "UserId": {
+            "Hide": true
+        },
+        "NotifyUser": {
+            "Default": true,
+            "Hide": true
+        },
+        "EmailFrom": {
+            "Hide": true
+        },
+        "ServiceDeskDisplayName": {
+            "Hide": true
+        },
+        "ServiceDeskEmail": {
+            "Hide": true
+        },
+        "ServiceDeskPhone": {
+            "Hide": true
+        },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
+        "LanguageOverride": {
+            "Hide": true
+        },
+        "CallerName": {
+            "Hide": true
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Setup regarding email sending
+
+Sending a notification email is optional and only happens when `NotifyUser` is enabled. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3199,9 +4509,11 @@ User \ Security \ Set Or Remove Mobile Phone Mfa
 #### Rename a user or mailbox
 
 #### Description
+
 Renames a user by changing the user principal name in Microsoft Entra ID and optionally updates mailbox properties in Exchange Online. This does not update user metadata such as display name, given name, or surname.
 
 #### Where to find
+
 User \ Userinfo \ Rename User
 
 
@@ -3216,9 +4528,11 @@ User \ Userinfo \ Rename User
 #### Set the profile photo for a user
 
 #### Description
+
 Downloads a JPEG image from a URL and uploads it as the user's profile photo. This is useful to set or update user avatars in Microsoft 365.
 
 #### Where to find
+
 User \ Userinfo \ Set Photo
 
 
@@ -3233,9 +4547,11 @@ User \ Userinfo \ Set Photo
 #### Update user metadata and memberships
 
 #### Description
+
 Updates user profile properties in Microsoft Entra ID and applies optional group memberships and Exchange Online settings. This runbook is typically used to finalize onboarding or to correct user metadata.
 
 #### Where to find
+
 User \ Userinfo \ Update User
 
 

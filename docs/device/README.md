@@ -6,6 +6,7 @@
   - [Toggle Drain Mode](avd/toggle-drain-mode.md)
 <a name='device-general'></a>
 ## General
+  - [Assign Groups By Template](general/assign-groups-by-template.md)
   - [Change Grouptag](general/change-grouptag.md)
   - [Check Device Compliance](general/check-device-compliance.md)
   - [Check Updatable Assets](general/check-updatable-assets.md)
@@ -16,13 +17,16 @@
   - [Set Primary User](general/set-primary-user.md)
   - [Unenroll Updatable Assets](general/unenroll-updatable-assets.md)
   - [Wipe Device](general/wipe-device.md)
+  - [Wipe Managed App Data](general/wipe-managed-app-data.md)
 <a name='device-security'></a>
 ## Security
+  - [Check Defender Status](security/check-defender-status.md)
   - [Enable Or Disable Device](security/enable-or-disable-device.md)
   - [Isolate Or Release Device](security/isolate-or-release-device.md)
   - [Reset Mobile Device Pin](security/reset-mobile-device-pin.md)
   - [Restrict Or Release Code Execution](security/restrict-or-release-code-execution.md)
   - [Show Bitlocker Recovery Key](security/show-bitlocker-recovery-key.md)
+  - [Show Filevault Recovery Key](security/show-filevault-recovery-key.md)
   - [Show Laps Password](security/show-laps-password.md)
 
 [Back to Table of Content](../../README.md)

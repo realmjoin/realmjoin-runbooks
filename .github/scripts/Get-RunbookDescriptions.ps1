@@ -306,7 +306,13 @@ if ($outputMode -eq "OneFile") {
     Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $includedScope) {
-        Add-Content -Path $ResultFile -Value "- $scope"
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $ResultFile -Value "- $scopeDisplayName"
     }
     Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory."
@@ -365,12 +371,14 @@ if ($outputMode -eq "OneFile") {
             }
             if ($runbook.Description) {
                 Add-Content -Path $ResultFile -Value "#### Description"
+                Add-Content -Path $ResultFile -Value ""
                 Add-Content -Path $ResultFile -Value $runbook.Description
                 Add-Content -Path $ResultFile -Value ""
             }
 
             if ($includeWhereToFind) {
                 Add-Content -Path $ResultFile -Value "#### Where to find"
+                Add-Content -Path $ResultFile -Value ""
                 Add-Content -Path $ResultFile -Value $runbook.RunbookDisplayPath
                 Add-Content -Path $ResultFile -Value ""
             }
@@ -385,6 +393,7 @@ if ($outputMode -eq "OneFile") {
             if ($includeNotes) {
                 if ($runbook.Notes) {
                     Add-Content -Path $ResultFile -Value "#### Notes"
+                    Add-Content -Path $ResultFile -Value ""
                     Add-Content -Path $ResultFile -Value $runbook.Notes
                     Add-Content -Path $ResultFile -Value ""
                 }
@@ -396,6 +405,7 @@ if ($outputMode -eq "OneFile") {
                     # Solange in $RunbookPermissions bzw. in einer der Properties ein Wert vorhanden ist, wird der Abschnitt ausgegeben
                     if (($RunbookPermissions.Permissions) -or ($RunbookPermissions.RBACRoles) -or ($RunbookPermissions.ManualPermissions)) {
                         Add-Content -Path $ResultFile -Value "#### Permissions"
+                        Add-Content -Path $ResultFile -Value ""
                         if ($RunbookPermissions.Permissions) {
                             Add-Content -Path $ResultFile -Value "##### Application permissions"
                             Add-Content -Path $ResultFile -Value $RunbookPermissions.Permissions
@@ -416,6 +426,7 @@ if ($outputMode -eq "OneFile") {
             if ($includeParameters) {
                 if ($runbook.Parameters) {
                     Add-Content -Path $ResultFile -Value "#### Parameters"
+                    Add-Content -Path $ResultFile -Value ""
                     foreach ($parameter in $runbook.Parameters) {
                         Add-Content -Path $ResultFile -Value "##### $($parameter.Name)"
                         # Filter out ValidateScript blocks from description

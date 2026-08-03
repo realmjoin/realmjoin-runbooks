@@ -36,6 +36,12 @@ The json configuration for this is as follows:
         "ServiceDeskPhone": {
             "Hide": true
         },
+        "ServiceDeskPortalUrl": {
+            "Hide": true
+        },
+        "ServiceDeskTicketUrl": {
+            "Hide": true
+        },
         "CallerName": {
             "Hide": true
         }
@@ -47,9 +53,11 @@ For more information on how to customize runbooks, please refer to the [Runbook 
 
 ## Setup regarding email sending
 
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
 
 ## Permissions
@@ -124,6 +132,24 @@ Service Desk email address for user contact information (optional).
 
 ### ServiceDeskPhone
 Service Desk phone number for user contact information (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskPortalUrl
+Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ServiceDeskTicketUrl
+Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
 
 | Property | Value |
 |----------|-------|

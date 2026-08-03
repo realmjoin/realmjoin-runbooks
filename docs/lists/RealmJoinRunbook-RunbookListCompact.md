@@ -5,21 +5,25 @@ This document provides a comprehensive overview of all runbooks currently availa
 |----------|-------------|--------------|----------|
 | Device | AVD | Restart Host | Reboots a specific AVD Session Host. |
 |  |  | Toggle Drain Mode | Sets Drainmode on true or false for a specific AVD Session Host. |
-|  | General | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
+|  | General | Assign Groups By Template | Assign cloud-only groups to a device based on a template |
+|  |  | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 |  |  | Check Device Compliance | Check the compliance status of a device |
 |  |  | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
-|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business. |
+|  |  | Enroll Updatable Assets | Enroll device into Windows Update for Business |
 |  |  | Outphase Device | Remove/Outphase a windows device |
 |  |  | Remove Primary User | Removes the primary user from a device. |
 |  |  | Rename Device | Rename a device. |
 |  |  | Set Primary User | Set a new primary user on a managed Intune device |
 |  |  | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 |  |  | Wipe Device | Wipe a Windows or MacOS device |
-|  | Security | Enable Or Disable Device | Enable or disable a device in Entra ID |
+|  |  | Wipe Managed App Data | App selective wipe - remove company app data from this MAM device |
+|  | Security | Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
+|  |  | Enable Or Disable Device | Enable or disable a device in Entra ID |
 |  |  | Isolate Or Release Device | Isolate this device. |
 |  |  | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 |  |  | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
 |  |  | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
+|  |  | Show Filevault Recovery Key | Display macOS FileVault recovery key |
 |  |  | Show LAPS Password | Show a local admin password for a device. |
 | Group | Devices | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
 |  |  | Unenroll Updatable Assets (Scheduled) | Unenroll devices from Windows Update for Business. |
@@ -36,8 +40,10 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Show Or Hide In Address Book | Show or hide a group in the address book |
 |  | Teams | Archive Team | Archive a team |
 | Organization | Applications | Add Application Registration | Add an application registration to Azure AD |
+|  |  | Add Gsa Application Registration | Add a GSA application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
-|  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+|  |  | Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
+|  |  | Export Enterprise Application Users | Export a report of all (enterprise) application owners and users |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
 |  |  | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
@@ -45,14 +51,18 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Devices | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+|  |  | Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations |
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
-|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
+|  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 |  |  | Outphase Devices | Remove or outphase multiple devices |
-|  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+|  |  | Report Devices Without Primary User (Scheduled) | Reports all managed devices in Intune that do not have a primary user assigned. |
+|  |  | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
-|  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices |
+|  |  | Report Users With More Than 5-Devices (Scheduled) | Report users with more than five registered devices |
+|  |  | Report Windows Devices Without Autopilot (Scheduled) | Reports all Windows Entra devices that have no associated Windows Autopilot object. |
 |  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes |
 |  | General | Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group |
 |  |  | Add Management Partner | List or add Management Partner Links (PAL) |
@@ -89,8 +99,11 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 |  |  | Sync All Devices | Sync all Intune Windows devices |
 |  |  | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
+|  |  | Sync Channel Or Group Members (Scheduled) | Sync members between a Teams Shared Channel or a group and an Entra security group |
+|  |  | Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 |  | Mail | Add Distribution List | Create a classic distribution group |
 |  |  | Add Equipment Mailbox | Create an equipment mailbox |
+|  |  | Add Mail Contact | Create a new Exchange Online mail contact with optional display name and address list settings |
 |  |  | Add Or Remove Public Folder | Add or remove a public folder |
 |  |  | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. |
 |  |  | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List |
@@ -113,6 +126,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests |
 |  |  | Notify Changed CA Policies | Send notification email if Conditional Access policies have been created or modified in the last 24 hours. |
 |  |  | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests |
+|  |  | Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group |
 | User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
 |  |  | Assign Or Unassign License | Assign or remove a license for a user via group membership |
@@ -134,6 +148,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox |
 |  |  | List Room Mailbox Configuration | List room mailbox configuration |
+|  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
 |  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies |
@@ -145,6 +160,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Security | Confirm Or Dismiss Risky User | Confirm compromise or dismiss a risky user |
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user |
+|  |  | List MFA Methods | List all MFA / authentication methods of a user |
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user |
 |  |  | Reset Password | Reset a user's password |
 |  |  | Revoke Or Restore Access | Revoke or restore user access |

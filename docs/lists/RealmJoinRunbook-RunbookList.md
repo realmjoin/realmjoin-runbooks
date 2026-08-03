@@ -1,21 +1,22 @@
 <a name='runbook-overview'></a>
-# Overview
+# Runbook overview
 This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality.
 
 To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:
-- device
-- group
-- org
-- user
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory.
 
-# Table of Contents
+## Table of Contents
 - [Device](#device)
   - [AVD](#device-avd)
     - Restart Host
     - Toggle Drain Mode
   - [General](#device-general)
+    - Assign Groups By Template
     - Change Grouptag
     - Check Device Compliance
     - Check Updatable Assets
@@ -26,12 +27,15 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Set Primary User
     - Unenroll Updatable Assets
     - Wipe Device
+    - Wipe Managed App Data
   - [Security](#device-security)
+    - Check Defender Status
     - Enable Or Disable Device
     - Isolate Or Release Device
     - Reset Mobile Device Pin
     - Restrict Or Release Code Execution
     - Show Bitlocker Recovery Key
+    - Show Filevault Recovery Key
     - Show LAPS Password
 - [Group](#group)
   - [Devices](#group-devices)
@@ -55,7 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - Add Application Registration
+    - Add Gsa Application Registration
     - Delete Application Registration
+    - Delete Gsa Application Registration
     - Export Enterprise Application Users
     - List Inactive Enterprise Applications
     - Report Application Registration
@@ -65,14 +71,18 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
     - Auto Approve Driver Updates (Scheduled)
+    - Cleanup Autopilot Devices (Scheduled)
     - Create Endpoint Analytics Baseline
+    - Dedup Device Names (Scheduled)
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
     - Notify Users About Stale Devices (Scheduled)
     - Outphase Devices
-    - Report Devices Without Primary User
+    - Report Devices Without Primary User (Scheduled)
+    - Report Primary User Mismatch (Scheduled)
     - Report Stale Devices (Scheduled)
-    - Report Users With More Than 5-Devices
+    - Report Users With More Than 5-Devices (Scheduled)
+    - Report Windows Devices Without Autopilot (Scheduled)
     - Sync Device Serialnumbers To Entraid (Scheduled)
   - [General](#organization-general)
     - Add Devices Of Users To Group (Scheduled)
@@ -110,9 +120,12 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report PIM Activations (Scheduled)
     - Sync All Devices
     - Sync Apple Tokens
+    - Sync Channel Or Group Members (Scheduled)
+    - Sync Shared Channel Owners (Scheduled)
   - [Mail](#organization-mail)
     - Add Distribution List
     - Add Equipment Mailbox
+    - Add Mail Contact
     - Add Or Remove Public Folder
     - Add Or Remove Teams Mailcontact
     - Add Or Remove Tenant Allow Block List
@@ -137,6 +150,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Monitor Pending EPM Requests (Scheduled)
     - Notify Changed CA Policies
     - Report EPM Elevation Requests (Scheduled)
+    - Sync MFA Secure Users To Group (Scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - User Signout
@@ -162,6 +176,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Hide Or Unhide In Addressbook
     - List Mailbox Permissions
     - List Room Mailbox Configuration
+    - Manage Archive Mailbox
     - Remove Mailbox
     - Set Out Of Office
     - Set Room Mailbox Configuration
@@ -175,6 +190,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Confirm Or Dismiss Risky User
     - Create Temporary Access Pass
     - Enable Or Disable Password Expiration
+    - List MFA Methods
     - Reset MFA
     - Reset Password
     - Revoke Or Restore Access
@@ -185,9 +201,9 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Update User
 
 <a name='device'></a>
-# Device
+## Device
 <a name='device-avd'></a>
-## AVD
+### AVD
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Restart Host | Reboots a specific AVD Session Host. |
@@ -196,39 +212,43 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='device-general'></a>
-## General
+### General
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Assign Groups By Template | Assign cloud-only groups to a device based on a template |
 | Change Grouptag | Assign a new AutoPilot GroupTag to this device. |
 | Check Device Compliance | Check the compliance status of a device |
 | Check Updatable Assets | Check if a device is onboarded to Windows Update for Business |
-| Enroll Updatable Assets | Enroll device into Windows Update for Business. |
+| Enroll Updatable Assets | Enroll device into Windows Update for Business |
 | Outphase Device | Remove/Outphase a windows device |
 | Remove Primary User | Removes the primary user from a device. |
 | Rename Device | Rename a device. |
 | Set Primary User | Set a new primary user on a managed Intune device |
 | Unenroll Updatable Assets | Unenroll device from Windows Update for Business. |
 | Wipe Device | Wipe a Windows or MacOS device |
+| Wipe Managed App Data | App selective wipe - remove company app data from this MAM device |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='device-security'></a>
-## Security
+### Security
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Check Defender Status | Check a device's presence and risk status in Entra ID and Microsoft Defender for Endpoint |
 | Enable Or Disable Device | Enable or disable a device in Entra ID |
 | Isolate Or Release Device | Isolate this device. |
 | Reset Mobile Device Pin | Reset a mobile device's password/PIN code. |
 | Restrict Or Release Code Execution | Only allow Microsoft-signed code to run on a device, or remove an existing restriction. |
 | Show Bitlocker Recovery Key | Show all BitLocker recovery keys for a device |
+| Show Filevault Recovery Key | Display macOS FileVault recovery key |
 | Show LAPS Password | Show a local admin password for a device. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='group'></a>
-# Group
+## Group
 <a name='group-devices'></a>
-## Devices
+### Devices
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Check Updatable Assets | Check if devices in a group are onboarded to Windows Update for Business. |
@@ -237,7 +257,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='group-general'></a>
-## General
+### General
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Or Remove Nested Group | Add/remove a nested group to/from a group |
@@ -253,7 +273,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='group-mail'></a>
-## Mail
+### Mail
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Enable Or Disable External Mail | Enable or disable external parties to send emails to a Microsoft 365 group |
@@ -262,7 +282,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='group-teams'></a>
-## Teams
+### Teams
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Archive Team | Archive a team |
@@ -270,14 +290,16 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='organization'></a>
-# Organization
+## Organization
 <a name='organization-applications'></a>
-## Applications
+### Applications
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Application Registration | Add an application registration to Azure AD |
+| Add Gsa Application Registration | Add a GSA application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
-| Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+| Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
+| Export Enterprise Application Users | Export a report of all (enterprise) application owners and users |
 | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 | Report Application Registration | Generate and email a comprehensive Application Registration report |
 | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
@@ -286,26 +308,30 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='organization-devices'></a>
-## Devices
+### Devices
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
+| Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations |
 | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
-| Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
+| Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
+| Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 | Outphase Devices | Remove or outphase multiple devices |
-| Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+| Report Devices Without Primary User (Scheduled) | Reports all managed devices in Intune that do not have a primary user assigned. |
+| Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
-| Report Users With More Than 5-Devices | Report users with more than five registered devices |
+| Report Users With More Than 5-Devices (Scheduled) | Report users with more than five registered devices |
+| Report Windows Devices Without Autopilot (Scheduled) | Reports all Windows Entra devices that have no associated Windows Autopilot object. |
 | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='organization-general'></a>
-## General
+### General
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group |
@@ -343,15 +369,18 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
 | Sync Apple Tokens | Sync Apple Enrollment Program Tokens and VPP Tokens with Intune |
+| Sync Channel Or Group Members (Scheduled) | Sync members between a Teams Shared Channel or a group and an Entra security group |
+| Sync Shared Channel Owners (Scheduled) | Ensure a security group's members are owners of mapped Teams and their shared channels. |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='organization-mail'></a>
-## Mail
+### Mail
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Distribution List | Create a classic distribution group |
 | Add Equipment Mailbox | Create an equipment mailbox |
+| Add Mail Contact | Create a new Exchange Online mail contact with optional display name and address list settings |
 | Add Or Remove Public Folder | Add or remove a public folder |
 | Add Or Remove Teams Mailcontact | Create/Remove a contact, to allow pretty email addresses for Teams channels. |
 | Add Or Remove Tenant Allow Block List | Add or remove entries from the Tenant Allow/Block List |
@@ -363,7 +392,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='organization-phone'></a>
-## Phone
+### Phone
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
@@ -371,7 +400,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='organization-security'></a>
-## Security
+### Security
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Defender Indicator | Create a new Microsoft Defender for Endpoint indicator |
@@ -388,13 +417,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests |
 | Notify Changed CA Policies | Send notification email if Conditional Access policies have been created or modified in the last 24 hours. |
 | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests |
+| Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='user'></a>
-# User
+## User
 <a name='user-avd'></a>
-## AVD
+### AVD
 | Runbook Name | Synopsis |
 |--------------|----------|
 | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
@@ -402,7 +432,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='user-general'></a>
-## General
+### General
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
@@ -420,7 +450,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='user-mail'></a>
-## Mail
+### Mail
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Or Remove Email Address | Add or remove an email address for a mailbox |
@@ -432,6 +462,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
 | List Mailbox Permissions | List mailbox permissions for a mailbox |
 | List Room Mailbox Configuration | List room mailbox configuration |
+| Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
 | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
 | Set Room Mailbox Configuration | Set room mailbox resource policies |
@@ -439,7 +470,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='user-phone'></a>
-## Phone
+### Phone
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Disable Teams Phone | Microsoft Teams telephony offboarding |
@@ -451,12 +482,13 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='user-security'></a>
-## Security
+### Security
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Confirm Or Dismiss Risky User | Confirm compromise or dismiss a risky user |
 | Create Temporary Access Pass | Create a temporary access pass for a user |
 | Enable Or Disable Password Expiration | Enable or disable password expiration for a user |
+| List MFA Methods | List all MFA / authentication methods of a user |
 | Reset MFA | Remove all App- and Mobilephone auth methods for a user |
 | Reset Password | Reset a user's password |
 | Revoke Or Restore Access | Revoke or restore user access |
@@ -465,7 +497,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
 <a name='user-userinfo'></a>
-## Userinfo
+### Userinfo
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Rename User | Rename a user or mailbox |

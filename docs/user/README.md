@@ -27,6 +27,7 @@
   - [Hide Or Unhide In Addressbook](mail/hide-or-unhide-in-addressbook.md)
   - [List Mailbox Permissions](mail/list-mailbox-permissions.md)
   - [List Room Mailbox Configuration](mail/list-room-mailbox-configuration.md)
+  - [Manage Archive Mailbox](mail/manage-archive-mailbox.md)
   - [Remove Mailbox](mail/remove-mailbox.md)
   - [Set Out Of Office](mail/set-out-of-office.md)
   - [Set Room Mailbox Configuration](mail/set-room-mailbox-configuration.md)
@@ -42,10 +43,11 @@
   - [Confirm Or Dismiss Risky User](security/confirm-or-dismiss-risky-user.md)
   - [Create Temporary Access Pass](security/create-temporary-access-pass.md)
   - [Enable Or Disable Password Expiration](security/enable-or-disable-password-expiration.md)
-  - [Reset Mfa](security/reset-mfa.md)
+  - [List MFA Methods](security/list-mfa-methods.md)
+  - [Reset MFA](security/reset-mfa.md)
   - [Reset Password](security/reset-password.md)
   - [Revoke Or Restore Access](security/revoke-or-restore-access.md)
-  - [Set Or Remove Mobile Phone Mfa](security/set-or-remove-mobile-phone-mfa.md)
+  - [Set Or Remove Mobile Phone MFA](security/set-or-remove-mobile-phone-mfa.md)
 <a name='user-userinfo'></a>
 ## Userinfo
   - [Rename User](userinfo/rename-user.md)

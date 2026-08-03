@@ -43,8 +43,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.35.1" }
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
 
 # Suppress false positive from PSScriptAnalyzer - $blob is used to suppress unwanted output from Set-AzStorageBlobContent
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "blob")]
@@ -70,10 +70,56 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
+$VerbosePreference = "SilentlyContinue"
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+#endregion
+
+########################################################
+#region     Function Definitions
+########################################################
+
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/applications".
+
+        .EXAMPLE
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = @()
+    $nextLink = $Uri
+
+    do {
+        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
+        if ($response.value) {
+            $allResults += $response.value
+        }
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    return $allResults
+}
 
 function ConvertTo-MarkdownPolicyAssignment {
     param(
@@ -88,7 +134,10 @@ function ConvertTo-MarkdownPolicyAssignment {
             try {
                 $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
             }
-            catch {}
+            catch {
+                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
+                $null = $_
+            }
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
                 "| Included Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
@@ -121,7 +170,10 @@ function ConvertTo-MarkdownPolicyAssignment {
             try {
                 $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
             }
-            catch {}
+            catch {
+                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
+                $null = $_
+            }
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
                 "| Excluded Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
@@ -738,8 +790,8 @@ function ConvertTo-MarkdownConfigurationPolicy {
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
 
-    $settings = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings`?`$expand=settingDefinitions`&top=1000"
-    foreach ($setting in $settings.value) {
+    $settings = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
+    foreach ($setting in $settings) {
         if ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance") {
             $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
             $displayValue = ($definition.options | Where-Object { $_.itemId -eq $setting.settingInstance.choiceSettingValue.value }).displayName
@@ -891,7 +943,7 @@ function ConvertTo-MarkdownConfigurationPolicy {
 
     # "#### Assignments"
     # get the policy's assignments
-    $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
+    $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
 
     ConvertTo-MarkdownPolicyAssignment -assignments $assignments
 }
@@ -914,7 +966,7 @@ function ConvertTo-MarkdownDeviceConfiguration {
                     if (($value -is [System.Collections.Hashtable])) {
                         # Handle encryption of SiteToZone Assignments
                         if ($value.omaUri -eq "./User/Vendor/MSFT/Policy/Config/InternetExplorer/AllowSiteToZoneAssignmentList") {
-                            $decryptedValue = invoke-mggraphrequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($value.secretReferenceValueId)')"
+                            $decryptedValue = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($value.secretReferenceValueId)')"
                             $decryptedValue = ($decryptedValue.value.split('"')[3]) -replace '&#xF000;', ';'
                             [array]$pairs = $decryptedValue.Split(';')
                             if (($pairs.Count % 2) -eq 0) {
@@ -926,7 +978,7 @@ function ConvertTo-MarkdownDeviceConfiguration {
                                         2 { $value = "Trusted sites Zone (2)" }
                                         3 { $value = "Internet Zone (3)" }
                                         4 { $value = "Restricted Sites Zone (4)" }
-                                        Default { $value = $pairs[$i + 1] }
+                                        default { $value = $pairs[$i + 1] }
                                     }
                                     "| SiteToZone Assignments | $($pairs[$i]): $value |"
                                     $i = $i + 2
@@ -1023,16 +1075,22 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
 
     $definitionValues = $null
     try {
-        $definitionValues = (Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues").value
+        $definitionValues = (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues").value
     }
-    catch {}
+    catch {
+        # Suppress PSAvoidUsingEmptyCatchBlock — policy may have no definition values, continue report rendering
+        $null = $_
+    }
     foreach ($definitionValue in $definitionValues) {
         $definition = $null
         try {
-            $definition = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
+            $definition = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/definition"
             "#### $($definition.displayName)"
         }
-        catch {}
+        catch {
+            # Suppress PSAvoidUsingEmptyCatchBlock — definition may not be accessible, continue report rendering
+            $null = $_
+        }
         ""
         #"$($definition.explainText)"
         #""
@@ -1049,15 +1107,21 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
         "| Enabled | $($definitionValue.enabled) | $explainText |"
         $presentationValues = $null
         try {
-            $presentationValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
+            $presentationValues = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues"
         }
-        catch {}
+        catch {
+            # Suppress PSAvoidUsingEmptyCatchBlock — presentation values may not exist, continue report rendering
+            $null = $_
+        }
         foreach ($presentationValue in $presentationValues.value) {
             $presentation = $null
             try {
-                $presentation = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues/$($presentationValue.id)/presentation"
+                $presentation = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues/$($definitionValue.id)/presentationValues/$($presentationValue.id)/presentation"
             }
-            catch {}
+            catch {
+                # Suppress PSAvoidUsingEmptyCatchBlock — presentation may not be accessible, continue report rendering
+                $null = $_
+            }
             if ($null -ne $presentation) {
                 # "Label: " + $($presentation.label)
                 $item = ($presentation.items | Where-Object { $_.value -eq $presentationValue.value })
@@ -1096,11 +1160,17 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
         ConvertTo-MarkdownPolicyAssignment -assignments $assignments
     }
-    catch {}
+    catch {
+        # Suppress PSAvoidUsingEmptyCatchBlock — assignments may not be accessible, continue report rendering
+        $null = $_
+    }
 }
 
-# Suppress verbose messages from the Microsoft Graph PowerShell SDK an Azure PowerShell
-$VerbosePreference = "SilentlyContinue"
+#endregion
+
+########################################################
+#region     Sanity Checks
+########################################################
 
 # Sanity checks
 if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
@@ -1117,8 +1187,14 @@ if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocat
     ""
 }
 
+#endregion
+
+########################################################
+#region     Main Logic
+########################################################
+
 try {
-    Connect-MgGraph -Identity | Out-Null
+    Connect-MgGraph -Identity -NoWelcome
 }
 catch {
     "## Error connecting to Microsoft Graph."
@@ -1143,22 +1219,17 @@ $outputFileMarkdown = ".\report.md"
 ---
 title: 2 Modern Workplace Blueprint
 subtitle: Report - v1.0.0
-header-center: v1.0.0
-description: v1.0.0
-author: glueckkanja-gab AG
+version: 1.0.0
+author: glueckkanja AG
 '@ > $outputFileMarkdown
 
-"date: $(get-date -Format 'MMMM yyyy')" >> $outputFileMarkdown
+"date: $(Get-Date -Format 'MMMM yyyy')" >> $outputFileMarkdown
 
 @'
 keywords: [sla, services]
 geometry: landscape
 collapse: true
 titlepage: true
-titlepage-text-color: "000000"
-titlepage-rule-color: "360049"
-titlepage-rule-height: 0
-titlepage-background: "template/latex/gkgab-landscape.pdf"
 toc-own-page: true
 ---
 
@@ -1171,15 +1242,16 @@ toc-own-page: true
 "## Configuration Policies (Settings Catalog)" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$policies = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies`?`$top=1000"
+$policies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+"Found $($policies.Count) Configuration Policies"
 
-foreach ($policy in $policies.value) {
+foreach ($policy in $policies) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8
-        $settings = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings`?`$expand=settingDefinitions`&top=1000"
-        $settings | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-settings.json" -Encoding UTF8
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
-        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8
+        $settings = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
+        $settings | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id)-settings.json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     (ConvertTo-MarkdownConfigurationPolicy -policy $policy) >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
@@ -1195,13 +1267,14 @@ foreach ($policy in $policies.value) {
 "## Device Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$deviceConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations`?`$top=1000"
+$deviceConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations"
+"Found $($deviceConfigurations.Count) Device Configurations"
 
-foreach ($policy in $deviceConfigurations.value) {
+foreach ($policy in $deviceConfigurations) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id).json" -Encoding UTF8
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
-        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-devConf-$($policy.id).json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($policy.id)/assignments"
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-devConf-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertTo-MarkdownDeviceConfiguration -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
@@ -1217,15 +1290,16 @@ foreach ($policy in $deviceConfigurations.value) {
 "## Group Policy Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$groupPolicyConfigurations = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations`?`$top=1000"
+$groupPolicyConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations"
+"Found $($groupPolicyConfigurations.Count) Group Policy Configurations"
 
-foreach ($policy in $groupPolicyConfigurations.value) {
+foreach ($policy in $groupPolicyConfigurations) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id).json" -Encoding UTF8
-        $definitionValues = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues?`$expand=definition,presentationValues"
-        $definitionValues | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-definitionValues.json" -Encoding UTF8
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
-        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-grpPol-$($policy.id).json" -Encoding UTF8
+        $definitionValues = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/definitionValues?`$expand=definition,presentationValues"
+        $definitionValues | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-definitionValues.json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations/$($policy.id)/assignments"
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-grpPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertTo-MarkdownGroupPolicyConfiguration -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
@@ -1241,13 +1315,14 @@ foreach ($policy in $groupPolicyConfigurations.value) {
 "## Compliance Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$compliancePolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies`?`$top=1000"
+$compliancePolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies"
+"Found $($compliancePolicies.Count) Compliance Policies"
 
-foreach ($policy in $compliancePolicies.value) {
+foreach ($policy in $compliancePolicies) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id).json" -Encoding UTF8
-        $assignments = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"
-        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-comPol-$($policy.id).json" -Encoding UTF8
+        $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($policy.id)/assignments"
+        $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-comPol-$($policy.id)-assignments.json" -Encoding UTF8
     }
     ConvertTo-MarkdownCompliancePolicy -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
@@ -1263,11 +1338,12 @@ foreach ($policy in $compliancePolicies.value) {
 "## Conditional Access Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$conditionalAccessPolicies = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies`?`$top=1000"
+$conditionalAccessPolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
+"Found $($conditionalAccessPolicies.Count) Conditional Access Policies"
 
-foreach ($policy in $conditionalAccessPolicies.value) {
+foreach ($policy in $conditionalAccessPolicies) {
     if ($exportJson) {
-        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8
+        $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-condAcc-$($policy.id).json" -Encoding UTF8
     }
     ConvertTo-MarkdownConditionalAccessPolicy -policy $policy >> $outputFileMarkdown
     if ($renderLatexPagebreaks) {
@@ -1287,7 +1363,7 @@ foreach ($policy in $conditionalAccessPolicies.value) {
 Connect-AzAccount -Identity | Out-Null
 
 if (-not $ContainerName) {
-    $ContainerName = "tenant-policy-report-" + (get-date -Format "yyyy-MM-dd")
+    $ContainerName = "tenant-policy-report-" + (Get-Date -Format "yyyy-MM-dd")
 }
 
 # Make sure storage account exists
@@ -1313,14 +1389,14 @@ $EndTime = (Get-Date).AddDays(6)
 # Create a ZIP file of the JSON export
 if ($exportJson) {
     "## Creating ZIP file of JSON export"
-    $zipFile = "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-policy-report.zip"
+    $zipFile = "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip"
     Compress-Archive -Path "$($env:TEMP)\json-export\*.json" -DestinationPath $zipFile
 }
 
 # Upload JSON archive
 if ($exportJson) {
-    $blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.zip"
-    $blob = Set-AzStorageBlobContent -File "$($env:TEMP)\json-export\$(get-date -Format "yyyy-MM-dd")-policy-report.zip" -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
+    $blobname = "$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip"
+    $blob = Set-AzStorageBlobContent -File "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip" -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
     if ($produceLinks) {
         #Create signed (SAS) link
         $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
@@ -1343,7 +1419,7 @@ $content = $content -replace '[\u0400-\u04FF]', '.'
 $content | Set-Content -Path $outputFileMarkdown -Encoding UTF8
 
 # Upload markdown file
-$blobname = "$(get-date -Format "yyyy-MM-dd")-policy-report.md"
+$blobname = "$(Get-Date -Format "yyyy-MM-dd")-policy-report.md"
 $blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
 if ($produceLinks) {
     #Create signed (SAS) link
@@ -1356,3 +1432,5 @@ if ($produceLinks) {
 
 Disconnect-AzAccount | Out-Null
 Disconnect-MgGraph | Out-Null
+
+#endregion

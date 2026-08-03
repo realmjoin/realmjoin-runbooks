@@ -55,6 +55,15 @@ The language/locale for the shared mailbox. This setting affects folder names li
 | Required | false |
 | Type | String |
 
+### TimeZone
+The time zone for the shared mailbox. Default is "W. Europe Standard Time".
+
+| Property | Value |
+|----------|-------|
+| Default Value | W. Europe Standard Time |
+| Required | false |
+| Type | String |
+
 ### DelegateTo
 Optional user who receives delegated access to the mailbox.
 
