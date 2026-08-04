@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-04
+
+- Update **Set Out Of Office** Runbook in User/Mail
+  - Add optional `ExternalAudience` parameter (`None`, `Known` or `All`, default `All`) to control who receives the external automatic reply; the parameter is hidden when "Disable Out-of-Office" is selected
+  - Show the current auto-reply configuration (state, external audience, internal and external message) as a status quo before applying any changes
+  - Improve error handling and output: clear per-step sections (connect, status quo, enable/disable) with descriptive error messages when a step fails
+
 ## 2026-07-17
 
 - Update **Report Users With More Than 5 Devices (Scheduled)** Runbook in Org/Devices
