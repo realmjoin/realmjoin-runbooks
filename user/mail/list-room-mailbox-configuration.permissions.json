@@ -1,7 +1,7 @@
 {
     "Permissions": [
         {
-            "Name": "MG Graph",
+            "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 "Place.Read.All"
