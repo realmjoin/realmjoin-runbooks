@@ -147,7 +147,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
-|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  |
+|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: Microsoft Graph<br>&emsp;- Place.Read.All<br> |  |
 |  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> |
 |  |  | Set Out Of Office | Enable or disable mailbox out-of-office notifications | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |

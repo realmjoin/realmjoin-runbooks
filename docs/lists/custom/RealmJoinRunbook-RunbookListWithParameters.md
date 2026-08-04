@@ -992,7 +992,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: Microsoft Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user whose archive mailbox should be managed. |
 |  |  |  |  |  |  | Action |  | String | Action to perform: Enable, Disable, or GetStatus. |
