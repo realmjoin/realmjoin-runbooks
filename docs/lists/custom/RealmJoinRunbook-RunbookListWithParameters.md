@@ -997,12 +997,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
-|  |  |  |  |  |  | Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
+|  |  | Set Out Of Office | Enable or disable mailbox out-of-office notifications | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. This value is auto-filled by the portal. |
+|  |  |  |  |  |  | Disable |  | Boolean | Select whether to enable out-of-office notifications or disable existing out-of-office settings. |
 |  |  |  |  |  |  | Start |  | DateTime | Start time for scheduled out-of-office replies. |
-|  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
+|  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date. |
 |  |  |  |  |  |  | MessageInternal |  | String | Internal automatic reply message. |
 |  |  |  |  |  |  | MessageExternal |  | String | External automatic reply message. |
+|  |  |  |  |  |  | ExternalAudience |  | String | Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders. |
 |  |  |  |  |  |  | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 |  |  |  |  |  |  | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

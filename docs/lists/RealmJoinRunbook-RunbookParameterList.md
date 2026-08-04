@@ -2459,16 +2459,17 @@ Hard delete a shared mailbox, room or bookings calendar
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-Enable or disable out-of-office notifications for a mailbox
+Enable or disable mailbox out-of-office notifications
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the mailbox. |
-| Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
+| UserName | ✓ | String | User principal name of the mailbox. This value is auto-filled by the portal. |
+| Disable |  | Boolean | Select whether to enable out-of-office notifications or disable existing out-of-office settings. |
 | Start |  | DateTime | Start time for scheduled out-of-office replies. |
-| End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
+| End |  | DateTime | End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date. |
 | MessageInternal |  | String | Internal automatic reply message. |
 | MessageExternal |  | String | External automatic reply message. |
+| ExternalAudience |  | String | Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders. |
 | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

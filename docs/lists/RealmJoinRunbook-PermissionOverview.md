@@ -150,7 +150,7 @@ This document provides an overview of the permissions and RBAC roles required fo
 |  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  |
 |  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
+|  |  | Set Out Of Office | Enable or disable mailbox out-of-office notifications | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> |
 |  | Phone | Disable Teams Phone | Microsoft Teams telephony offboarding | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br> | - Teams Administrator<br> |
 |  |  | Get Teams User Info | Get Microsoft Teams voice status for a user | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br> | - Teams Administrator<br> |

@@ -3981,11 +3981,11 @@ User \ Mail \ Remove Mailbox
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-#### Enable or disable out-of-office notifications for a mailbox
+#### Enable or disable mailbox out-of-office notifications
 
 #### Description
 
-Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
+Configures automatic replies for a mailbox and can optionally create an out-of-office calendar event. The runbook can either enable scheduled replies with internal and external messages or disable existing out-of-office settings.
 
 #### Where to find
 

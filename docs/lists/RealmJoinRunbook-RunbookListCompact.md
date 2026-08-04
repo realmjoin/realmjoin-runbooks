@@ -150,7 +150,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Room Mailbox Configuration | List room mailbox configuration |
 |  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
+|  |  | Set Out Of Office | Enable or disable mailbox out-of-office notifications |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies |
 |  | Phone | Disable Teams Phone | Microsoft Teams telephony offboarding |
 |  |  | Get Teams User Info | Get Microsoft Teams voice status for a user |

@@ -21430,8 +21430,8 @@
     "RelativeRunbookPath_PathOnly": "user/mail",
     "PrimaryFolder": "User",
     "SubFolder": "Mail",
-    "Synopsis": "Enable or disable out-of-office notifications for a mailbox",
-    "Description": "Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.",
+    "Synopsis": "Enable or disable mailbox out-of-office notifications",
+    "Description": "Configures automatic replies for a mailbox and can optionally create an out-of-office calendar event. The runbook can either enable scheduled replies with internal and external messages or disable existing out-of-office settings.",
     "Notes": null,
     "Parameters": [
       {
@@ -21445,7 +21445,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "true",
         "type": {
           "name": "String"
@@ -21462,7 +21462,7 @@
         "name": "CreateEvent",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -21472,7 +21472,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "\"Enable Out-of-Office\" (final value: $false) or \"Disable Out-of-Office\" (final value: $true) can be selected as action to perform."
+            "Text": "Select whether to enable out-of-office notifications or disable existing out-of-office settings."
           }
         ],
         "globbing": "false",
@@ -21486,10 +21486,10 @@
         }
       },
       {
-        "defaultValue": "((get-date) + (new-timespan -Days 3650))",
+        "defaultValue": "((Get-Date) + (New-TimeSpan -Days 3650))",
         "description": [
           {
-            "Text": "End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date."
+            "Text": "End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date."
           }
         ],
         "globbing": "false",
@@ -21513,7 +21513,24 @@
         "name": "EventSubject",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "All",
+        "description": [
+          {
+            "Text": "Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExternalAudience",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -21554,7 +21571,7 @@
         }
       },
       {
-        "defaultValue": "(get-date)",
+        "defaultValue": "(Get-Date)",
         "description": [
           {
             "Text": "Start time for scheduled out-of-office replies."
@@ -21574,7 +21591,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the mailbox."
+            "Text": "User principal name of the mailbox. This value is auto-filled by the portal."
           }
         ],
         "globbing": "false",
