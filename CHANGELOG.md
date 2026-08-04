@@ -2,6 +2,11 @@
 
 ## 2026-08-04
 
+- Update **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
+  - Add the `ExcludeAdmins` option (enabled by default): users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) are never synced into the target group and are removed if already members — avoids forcing a second factor on admins when the target group drives SSPR
+  - Add an optional exclusion group (`ExcludeGroupId`): transitive user members (e.g. break glass or service accounts) are never synced into the target group and are removed if already members
+  - Extend the report with an `ExclusionReason` column and the exclusion configuration and counts on the Excel cover sheet, in the email summary and in the job output
+  - Note: the managed identity requires the additional Graph permission `RoleManagement.Read.Directory`; with `ExcludeAdmins` enabled by default, admins are removed from the target group on the next run — review existing schedules if this is not desired
 - Update **Set Out Of Office** Runbook in User/Mail
   - Add optional `ExternalAudience` parameter (`None`, `Known` or `All`, default `All`) to control who receives the external automatic reply; the parameter is hidden when "Disable Out-of-Office" is selected
   - Show the current auto-reply configuration (state, external audience, internal and external message) as a status quo before applying any changes
