@@ -2,6 +2,10 @@
 
 ## 2026-08-04
 
+- Update **Notify Users About Stale Devices (Scheduled)** Runbook in Org/Devices
+  - Add optional override routing (`SendNoPrimaryUserDevicesToOverride`, default off): stale devices without a primary user are collected into a single summary email to the `OverrideEmailRecipient` instead of being skipped, while all other notifications are sent directly to the end users
+  - Add optional `OverrideUserNamePattern` (comma-separated wildcards, e.g. `DEM-*`): notifications for primary users matching the pattern (such as Device Enrollment Manager accounts) are also redirected to the override recipient
+  - Note: enabling the routing option requires `OverrideEmailRecipient`; devices without a primary user bypass the user scope filtering
 - Update **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
   - Add the `ExcludeAdmins` option (enabled by default): users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) are never synced into the target group and are removed if already members — avoids forcing a second factor on admins when the target group drives SSPR
   - Add an optional exclusion group (`ExcludeGroupId`): transitive user members (e.g. break glass or service accounts) are never synced into the target group and are removed if already members
