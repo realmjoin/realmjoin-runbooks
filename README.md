@@ -83,9 +83,9 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [Applications](docs/org/README.md#org-applications)
 
     - [Add Application Registration](docs/org/applications/add-application-registration.md)
-    - [Add Gsa Application Registration](docs/org/applications/add-gsa-application-registration.md)
+    - [Add GSA Application Registration](docs/org/applications/add-gsa-application-registration.md)
     - [Delete Application Registration](docs/org/applications/delete-application-registration.md)
-    - [Delete Gsa Application Registration](docs/org/applications/delete-gsa-application-registration.md)
+    - [Delete GSA Application Registration](docs/org/applications/delete-gsa-application-registration.md)
     - [Export Enterprise Application Users](docs/org/applications/export-enterprise-application-users.md)
     - [List Inactive Enterprise Applications](docs/org/applications/list-inactive-enterprise-applications.md)
     - [Report Application Registration](docs/org/applications/report-application-registration.md)

@@ -1,4 +1,4 @@
-# Delete Gsa Application Registration
+# Delete GSA Application Registration
 
 Delete a GSA application registration from Azure AD including associated objects
 
@@ -20,7 +20,7 @@ Safety measures:
   shared with other applications. Set deleteAllAssignedGroups to change this.
 
 ## Where to find
-Org \ Applications \ Delete Gsa Application Registration
+Org \ Applications \ Delete GSA Application Registration
 
 ## Permissions
 ### Application permissions

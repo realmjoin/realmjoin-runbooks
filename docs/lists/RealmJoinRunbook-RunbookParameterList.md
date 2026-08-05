@@ -59,9 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
-    - [Add Gsa Application Registration](#organization-applications-add-gsa-application-registration)
+    - [Add GSA Application Registration](#organization-applications-add-gsa-application-registration)
     - [Delete Application Registration](#organization-applications-delete-application-registration)
-    - [Delete Gsa Application Registration](#organization-applications-delete-gsa-application-registration)
+    - [Delete GSA Application Registration](#organization-applications-delete-gsa-application-registration)
     - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
     - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
     - [Report Application Registration](#organization-applications-report-application-registration)
@@ -691,7 +691,7 @@ Add an application registration to Azure AD
 
 <a name='organization-applications-add-gsa-application-registration'></a>
 
-### Add Gsa Application Registration
+### Add GSA Application Registration
 Add a GSA application registration to Azure AD
 
 | Parameter | Required | Type | Description |
@@ -720,7 +720,7 @@ Delete an application registration from Azure AD
 
 <a name='organization-applications-delete-gsa-application-registration'></a>
 
-### Delete Gsa Application Registration
+### Delete GSA Application Registration
 Delete a GSA application registration from Azure AD including associated objects
 
 | Parameter | Required | Type | Description |

@@ -60,9 +60,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
-      - [Add Gsa Application Registration](#add-gsa-application-registration)
+      - [Add GSA Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
-      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
+      - [Delete GSA Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -1095,7 +1095,7 @@ Org \ Applications \ Add Application Registration
 
 <a name='org-applications-add-gsa-application-registration'></a>
 
-### Add Gsa Application Registration
+### Add GSA Application Registration
 #### Add a GSA application registration to Azure AD
 
 #### Description
@@ -1112,7 +1112,7 @@ Pre-existing objects (update mode) are never removed.
 
 #### Where to find
 
-Org \ Applications \ Add Gsa Application Registration
+Org \ Applications \ Add GSA Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1142,7 +1142,7 @@ Org \ Applications \ Delete Application Registration
 
 <a name='org-applications-delete-gsa-application-registration'></a>
 
-### Delete Gsa Application Registration
+### Delete GSA Application Registration
 #### Delete a GSA application registration from Azure AD including associated objects
 
 #### Description
@@ -1165,7 +1165,7 @@ Safety measures:
 
 #### Where to find
 
-Org \ Applications \ Delete Gsa Application Registration
+Org \ Applications \ Delete GSA Application Registration
 
 
 [Back to Table of Content](#table-of-contents)

@@ -59,9 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - Add Application Registration
-    - Add Gsa Application Registration
+    - Add GSA Application Registration
     - Delete Application Registration
-    - Delete Gsa Application Registration
+    - Delete GSA Application Registration
     - Export Enterprise Application Users
     - List Inactive Enterprise Applications
     - Report Application Registration
@@ -296,9 +296,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Application Registration | Add an application registration to Azure AD |
-| Add Gsa Application Registration | Add a GSA application registration to Azure AD |
+| Add GSA Application Registration | Add a GSA application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
-| Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
+| Delete GSA Application Registration | Delete a GSA application registration from Azure AD including associated objects |
 | Export Enterprise Application Users | Export a report of all (enterprise) application owners and users |
 | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 | Report Application Registration | Generate and email a comprehensive Application Registration report |

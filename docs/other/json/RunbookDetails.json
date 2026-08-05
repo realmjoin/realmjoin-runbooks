@@ -3674,9 +3674,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Add Gsa Application Registration",
-    "RunbookDisplayPath": "Org \\ Applications \\ Add Gsa Application Registration",
-    "RelativeRunbookPath": "org/applications/add-gsa-application-registration.ps1",
+    "RunbookDisplayName": "Add GSA Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Add GSA Application Registration",
+    "RelativeRunbookPath": "org/applications/add-GSA-application-registration.ps1",
     "RelativeRunbookPath_PathOnly": "org/applications",
     "PrimaryFolder": "Org",
     "SubFolder": "Applications",
@@ -3959,9 +3959,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Delete Gsa Application Registration",
-    "RunbookDisplayPath": "Org \\ Applications \\ Delete Gsa Application Registration",
-    "RelativeRunbookPath": "org/applications/delete-gsa-application-registration.ps1",
+    "RunbookDisplayName": "Delete GSA Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Delete GSA Application Registration",
+    "RelativeRunbookPath": "org/applications/delete-GSA-application-registration.ps1",
     "RelativeRunbookPath_PathOnly": "org/applications",
     "PrimaryFolder": "Org",
     "SubFolder": "Applications",
