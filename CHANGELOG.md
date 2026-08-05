@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-05
+
+- Update the required `Microsoft.Graph.Authentication` module version to 2.39.0 in all runbooks using the Microsoft Graph PowerShell modules (40 runbooks) to address S360 open-source vulnerability findings (SFI-ES5.2)
+
 ## 2026-08-04
 
 - Update **Notify Users About Stale Devices (Scheduled)** Runbook in Org/Devices
