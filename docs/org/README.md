@@ -60,6 +60,7 @@
   - [Invite External Guest Users](general/invite-external-guest-users.md)
   - [List All Administrative Template Policies](general/list-all-administrative-template-policies.md)
   - [List Group License Assignment Errors](general/list-group-license-assignment-errors.md)
+  - [Monitor Service Health (Scheduled)](general/monitor-service-health_scheduled.md)
   - [Office365 License Report](general/office365-license-report.md)
   - [Report Apple MDM Cert Expiry (Scheduled)](general/report-apple-mdm-cert-expiry_scheduled.md)
   - [Report License Assignment (Scheduled)](general/report-license-assignment_scheduled.md)

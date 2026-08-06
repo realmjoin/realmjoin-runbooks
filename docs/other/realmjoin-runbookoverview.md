@@ -115,6 +115,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Invite External Guest Users](#invite-external-guest-users)
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
+      - [Monitor Service Health (Scheduled)](#monitor-service-health-(scheduled))
       - [Office365 License Report](#office365-license-report)
       - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
@@ -2434,6 +2435,34 @@ It prints the affected group names and object IDs.
 #### Where to find
 
 Org \ General \ List Group License Assignment Errors
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-monitor-service-health-(scheduled)'></a>
+
+### Monitor Service Health (Scheduled)
+#### Alert by email on newly announced Microsoft 365 Service Health issues
+
+#### Description
+
+Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.
+
+#### Where to find
+
+Org \ General \ Monitor Service Health_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)

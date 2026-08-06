@@ -33,6 +33,7 @@
       "RoleAssignmentSchedule.Read.Directory",
       "RoleManagement.Read.All",
       "RoleManagement.Read.Directory",
+      "ServiceHealth.Read.All",
       "Team.Create",
       "TeamMember.ReadWrite.All",
       "TeamSettings.ReadWrite.All",

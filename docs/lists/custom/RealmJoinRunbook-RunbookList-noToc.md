@@ -155,6 +155,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Invite External Guest Users | Invite external guest users to the organization |
 | List All Administrative Template Policies | List all Administrative Template policies and their assignments |
 | List Group License Assignment Errors | Report groups that have license assignment errors |
+| Monitor Service Health (Scheduled) | Alert by email on newly announced Microsoft 365 Service Health issues |
 | Office365 License Report | Generate an Office 365 licensing report |
 | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates |
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |

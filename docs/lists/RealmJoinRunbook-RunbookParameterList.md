@@ -114,6 +114,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Invite External Guest Users](#organization-general-invite-external-guest-users)
     - [List All Administrative Template Policies](#organization-general-list-all-administrative-template-policies)
     - [List Group License Assignment Errors](#organization-general-list-group-license-assignment-errors)
+    - [Monitor Service Health (Scheduled)](#organization-general-monitor-service-health-scheduled)
     - [Office365 License Report](#organization-general-office365-license-report)
     - [Report Apple MDM Cert Expiry (Scheduled)](#organization-general-report-apple-mdm-cert-expiry-scheduled)
     - [Report License Assignment (Scheduled)](#organization-general-report-license-assignment-scheduled)
@@ -1559,6 +1560,21 @@ Report groups that have license assignment errors
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-general-monitor-service-health-scheduled'></a>
+
+### Monitor Service Health (Scheduled)
+Alert by email on newly announced Microsoft 365 Service Health issues
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Services |  | String | Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page. |
+| LookbackHours |  | Int32 | How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice. |
+| IncludeAdvisories |  | Boolean | If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well. |
+| IncludeResolvedIssues |  | Boolean | If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported. |
+| EmailFrom |  | String | The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization. |
+| EmailTo | ✓ | String | Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='organization-general-office365-license-report'></a>
 

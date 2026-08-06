@@ -12740,6 +12740,156 @@
     }
   },
   {
+    "RunbookDisplayName": "Monitor Service Health_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Monitor Service Health_Scheduled",
+    "RelativeRunbookPath": "org/general/monitor-service-health_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Alert by email on newly announced Microsoft 365 Service Health issues",
+    "Description": "Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.",
+    "Notes": "Common Use Cases:\n- Schedule the runbook to run at or slightly more often than LookbackHours to catch every new Service Health issue exactly once.\n- Set Services to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.\n- Leave IncludeAdvisories and IncludeResolvedIssues at their default of $false for the lowest-noise setup, which alerts only on unresolved incidents; set either to $true to also surface advisories or issues Microsoft has already marked resolved.\n\nParameter Interactions:\n- An issue counts as newly announced when its first Service Health post falls inside the LookbackHours window (falling back to startDateTime if the issue has no posts) - not by lastModifiedDateTime alone. This avoids missing back-dated issues while preventing re-alerts on every status update of an ongoing incident.\n- The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless LookbackHours is temporarily widened for a catch-up run.\n- One email is sent per new issue, so a busy Service Health day can produce several emails per run.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeAdvisories",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeResolvedIssues",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "24",
+        "description": [
+          {
+            "Text": "How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice."
+          }
+        ],
+        "globbing": "false",
+        "name": "LookbackHours",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page."
+          }
+        ],
+        "globbing": "false",
+        "name": "Services",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Mail.Send\",\n                \"Organization.Read.All\",\n                \"ServiceHealth.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Mail.Send",
+            "Organization.Read.All",
+            "ServiceHealth.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Office365 License Report",
     "RunbookDisplayPath": "Org \\ General \\ Office365 License Report",
     "RelativeRunbookPath": "org/general/office365-license-report.ps1",
