@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-06
+
+- Update **Monitor Service Health (Scheduled)** Runbook in Org/General
+  - Add optional `EmailTo` parameter to send a summary email report of the service health status; the sender address is taken from the `RJReport.EmailSender` tenant setting
+  - Add optional `ServiceHealthScope` parameter to filter the report to specific services (comma-separated list of service names, e.g. `Exchange,SharePoint,Teams`); by default, all services are included
+  - Add optional `IncludeHistoricalData` switch to include historical service health data in the report (default off)
+
 ## 2026-08-05
 
 - Update the required `Microsoft.Graph.Authentication` module version to 2.39.0 in all runbooks using the Microsoft Graph PowerShell modules (40 runbooks) to address S360 open-source vulnerability findings (SFI-ES5.2)
