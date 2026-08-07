@@ -3674,9 +3674,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Add Gsa Application Registration",
-    "RunbookDisplayPath": "Org \\ Applications \\ Add Gsa Application Registration",
-    "RelativeRunbookPath": "org/applications/add-gsa-application-registration.ps1",
+    "RunbookDisplayName": "Add GSA Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Add GSA Application Registration",
+    "RelativeRunbookPath": "org/applications/add-GSA-application-registration.ps1",
     "RelativeRunbookPath_PathOnly": "org/applications",
     "PrimaryFolder": "Org",
     "SubFolder": "Applications",
@@ -3959,9 +3959,9 @@
     }
   },
   {
-    "RunbookDisplayName": "Delete Gsa Application Registration",
-    "RunbookDisplayPath": "Org \\ Applications \\ Delete Gsa Application Registration",
-    "RelativeRunbookPath": "org/applications/delete-gsa-application-registration.ps1",
+    "RunbookDisplayName": "Delete GSA Application Registration",
+    "RunbookDisplayPath": "Org \\ Applications \\ Delete GSA Application Registration",
+    "RelativeRunbookPath": "org/applications/delete-GSA-application-registration.ps1",
     "RelativeRunbookPath_PathOnly": "org/applications",
     "PrimaryFolder": "Org",
     "SubFolder": "Applications",
@@ -6776,8 +6776,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Notify primary users about their stale devices via email",
-    "Description": "Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.",
-    "Notes": "This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.\nThe email is sent directly to the primary user's email address and includes detailed information about each inactive device.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)\n\nCommon Use Cases:\n- Automated user reminders about inactive devices to encourage regular device check-ins\n- Proactive device lifecycle management by alerting users before devices are retired\n- Security and compliance by ensuring users are aware of all devices registered to them\n- Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)\n- User scope filtering to target specific departments or exclude service accounts\n\nPilot and Testing Options:\n- Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users\n- Perfect for validating email content and testing filters before rolling out to production\n- Send notifications to ticket systems or shared mailboxes for centralized handling",
+    "Description": "Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Devices without a primary user (and devices whose primary user matches a configurable name pattern, e.g. Device Enrollment Manager accounts) can optionally be routed to the override email recipient while all other notifications are sent directly to the end users.",
+    "Notes": "This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.\nThe email is sent directly to the primary user's email address and includes detailed information about each inactive device.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)\n\nCommon Use Cases:\n- Automated user reminders about inactive devices to encourage regular device check-ins\n- Proactive device lifecycle management by alerting users before devices are retired\n- Security and compliance by ensuring users are aware of all devices registered to them\n- Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)\n- User scope filtering to target specific departments or exclude service accounts\n- Centrally handling devices without a primary user or owned by Device Enrollment Manager (e.g. DEM-*) accounts via the override recipient\n\nPilot and Testing Options:\n- Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users\n- Perfect for validating email content and testing filters before rolling out to production\n- Send notifications to ticket systems or shared mailboxes for centralized handling",
     "Parameters": [
       {
         "defaultValue": "True",
@@ -6807,7 +6807,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "23",
         "required": "true",
         "type": {
           "name": "String"
@@ -6824,7 +6824,7 @@
         "name": "CustomMailTemplateAfterDeviceDetails",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "22",
         "required": "false",
         "type": {
           "name": "String"
@@ -6841,7 +6841,7 @@
         "name": "CustomMailTemplateBeforeDeviceDetails",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "21",
         "required": "false",
         "type": {
           "name": "String"
@@ -6858,7 +6858,7 @@
         "name": "CustomMailTemplateSubject",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "String"
@@ -6977,7 +6977,7 @@
         "name": "MailTemplateLanguage",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"
@@ -7015,6 +7015,40 @@
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Matching users' notifications are redirected to OverrideEmailRecipient. Only used when SendNoPrimaryUserDevicesToOverride is enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "OverrideUserNamePattern",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, stale devices without a primary user (and devices whose primary user matches OverrideUserNamePattern) are sent to OverrideEmailRecipient, while all other notifications go directly to the end users. Requires OverrideEmailRecipient to be set. Devices without a primary user bypass user scope filtering."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendNoPrimaryUserDevicesToOverride",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -7137,8 +7171,8 @@
         }
       }
     ],
-    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\n## Mail Template Language Selection\n\nThis runbook supports three email template options:\n\n1. **EN (English - Default)**: Uses the built-in English template\n2. **DE (German)**: Uses the built-in German template\n3. **Custom**: Uses a custom template from Runbook Customizations\n\n### Using Custom Mail Templates\n\nTo use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.\n\n#### Example: Custom Template\n\n```json\n{\n    \"Runbooks\": {\n        \"rjgit-org_devices_notify-users-about-stale-devices_scheduled\": {\n            \"Parameters\": {\n                \"CustomMailTemplateSubject\": {\n                    \"Default\": \"This is a custom subject - Action Required: Inactive Devices\"\n                },\n                \"CustomMailTemplateBeforeDeviceDetails\": {\n                    \"Default\": \"**This is above the Device Details.** \\n\\nDear user ...\"\n                },\n                \"CustomMailTemplateAfterDeviceDetails\": {\n                    \"Default\": \"**This is below the Device Details.** \\n\\n## What you should do...\"\n                }\n            }\n        }\n    }\n}\n```\n\n**Important Notes:**\n- Use `\\n` for line breaks in the JSON configuration\n- Markdown formatting (##, ###, **, -) is supported in the template text\n- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured\n- If any parameter is missing, the runbook automatically falls back to the English (EN) template\n- When using the custom template, select \"Custom - Use Template from Runbook Customizations\" in the Mail Template dropdown\n\n",
-    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4KCiMjIE1haWwgVGVtcGxhdGUgTGFuZ3VhZ2UgU2VsZWN0aW9uCgpUaGlzIHJ1bmJvb2sgc3VwcG9ydHMgdGhyZWUgZW1haWwgdGVtcGxhdGUgb3B0aW9uczoKCjEuICoqRU4gKEVuZ2xpc2ggLSBEZWZhdWx0KSoqOiBVc2VzIHRoZSBidWlsdC1pbiBFbmdsaXNoIHRlbXBsYXRlCjIuICoqREUgKEdlcm1hbikqKjogVXNlcyB0aGUgYnVpbHQtaW4gR2VybWFuIHRlbXBsYXRlCjMuICoqQ3VzdG9tKio6IFVzZXMgYSBjdXN0b20gdGVtcGxhdGUgZnJvbSBSdW5ib29rIEN1c3RvbWl6YXRpb25zCgojIyMgVXNpbmcgQ3VzdG9tIE1haWwgVGVtcGxhdGVzCgpUbyB1c2UgYSBjdXN0b20gbWFpbCB0ZW1wbGF0ZSAoZS5nLiwgaW4gRHV0Y2gsIFNwYW5pc2gsIG9yIGFueSBvdGhlciBsYW5ndWFnZSksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSB0aGUgdGVtcGxhdGUgdGV4dCBpbiB0aGUgUnVuYm9vayBDdXN0b21pemF0aW9ucy4gSWYgYW55IGN1c3RvbSB0ZW1wbGF0ZSBwYXJhbWV0ZXIgaXMgbWlzc2luZywgdGhlIHJ1bmJvb2sgd2lsbCBhdXRvbWF0aWNhbGx5IGZhbGwgYmFjayB0byB0aGUgRW5nbGlzaCB0ZW1wbGF0ZS4KCiMjIyMgRXhhbXBsZTogQ3VzdG9tIFRlbXBsYXRlCgpgYGBqc29uCnsKICAgICJSdW5ib29rcyI6IHsKICAgICAgICAicmpnaXQtb3JnX2RldmljZXNfbm90aWZ5LXVzZXJzLWFib3V0LXN0YWxlLWRldmljZXNfc2NoZWR1bGVkIjogewogICAgICAgICAgICAiUGFyYW1ldGVycyI6IHsKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVTdWJqZWN0IjogewogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0IjogIlRoaXMgaXMgYSBjdXN0b20gc3ViamVjdCAtIEFjdGlvbiBSZXF1aXJlZDogSW5hY3RpdmUgRGV2aWNlcyIKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAiQ3VzdG9tTWFpbFRlbXBsYXRlQmVmb3JlRGV2aWNlRGV0YWlscyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGVmYXVsdCI6ICIqKlRoaXMgaXMgYWJvdmUgdGhlIERldmljZSBEZXRhaWxzLioqIFxuXG5EZWFyIHVzZXIgLi4uIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVBZnRlckRldmljZURldGFpbHMiOiB7CiAgICAgICAgICAgICAgICAgICAgIkRlZmF1bHQiOiAiKipUaGlzIGlzIGJlbG93IHRoZSBEZXZpY2UgRGV0YWlscy4qKiBcblxuIyMgV2hhdCB5b3Ugc2hvdWxkIGRvLi4uIgogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9CmBgYAoKKipJbXBvcnRhbnQgTm90ZXM6KioKLSBVc2UgYFxuYCBmb3IgbGluZSBicmVha3MgaW4gdGhlIEpTT04gY29uZmlndXJhdGlvbgotIE1hcmtkb3duIGZvcm1hdHRpbmcgKCMjLCAjIyMsICoqLCAtKSBpcyBzdXBwb3J0ZWQgaW4gdGhlIHRlbXBsYXRlIHRleHQKLSBBbGwgdGhyZWUgY3VzdG9tIHRlbXBsYXRlIHBhcmFtZXRlcnMgKFN1YmplY3QsIEJlZm9yZURldmljZURldGFpbHMsIEFmdGVyRGV2aWNlRGV0YWlscykgc2hvdWxkIGJlIGNvbmZpZ3VyZWQKLSBJZiBhbnkgcGFyYW1ldGVyIGlzIG1pc3NpbmcsIHRoZSBydW5ib29rIGF1dG9tYXRpY2FsbHkgZmFsbHMgYmFjayB0byB0aGUgRW5nbGlzaCAoRU4pIHRlbXBsYXRlCi0gV2hlbiB1c2luZyB0aGUgY3VzdG9tIHRlbXBsYXRlLCBzZWxlY3QgIkN1c3RvbSAtIFVzZSBUZW1wbGF0ZSBmcm9tIFJ1bmJvb2sgQ3VzdG9taXphdGlvbnMiIGluIHRoZSBNYWlsIFRlbXBsYXRlIGRyb3Bkb3duCgo=",
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\n## Mail Template Language Selection\n\nThis runbook supports three email template options:\n\n1. **EN (English - Default)**: Uses the built-in English template\n2. **DE (German)**: Uses the built-in German template\n3. **Custom**: Uses a custom template from Runbook Customizations\n\n### Using Custom Mail Templates\n\nTo use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.\n\n#### Example: Custom Template\n\n```json\n{\n    \"Runbooks\": {\n        \"rjgit-org_devices_notify-users-about-stale-devices_scheduled\": {\n            \"Parameters\": {\n                \"CustomMailTemplateSubject\": {\n                    \"Default\": \"This is a custom subject - Action Required: Inactive Devices\"\n                },\n                \"CustomMailTemplateBeforeDeviceDetails\": {\n                    \"Default\": \"**This is above the Device Details.** \\n\\nDear user ...\"\n                },\n                \"CustomMailTemplateAfterDeviceDetails\": {\n                    \"Default\": \"**This is below the Device Details.** \\n\\n## What you should do...\"\n                }\n            }\n        }\n    }\n}\n```\n\n**Important Notes:**\n- Use `\\n` for line breaks in the JSON configuration\n- Markdown formatting (##, ###, **, -) is supported in the template text\n- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured\n- If any parameter is missing, the runbook automatically falls back to the English (EN) template\n- When using the custom template, select \"Custom - Use Template from Runbook Customizations\" in the Mail Template dropdown\n\n## Routing Devices Without a Primary User to the Override Recipient\n\nBy default, stale devices without a primary user are skipped, and a filled `OverrideEmailRecipient` redirects **all** notifications. Enabling `SendNoPrimaryUserDevicesToOverride` changes this: devices without a primary user (and devices whose primary user matches `OverrideUserNamePattern`) are sent to the `OverrideEmailRecipient`, while all other notifications go directly to the end users.\n\n| `SendNoPrimaryUserDevicesToOverride` | `OverrideEmailRecipient` | Behavior |\n| --- | --- | --- |\n| Off | empty | Devices without a primary user are skipped; users are mailed directly. |\n| Off | set | All notifications are redirected to the override recipient. |\n| On | set | Devices without a primary user are collected into **one** combined email to the override recipient. Users matching the pattern are redirected to the override recipient. All other users receive their notification directly. |\n| On | empty | Invalid configuration - the runbook stops with an error. |\n\n### User Name Pattern\n\n`OverrideUserNamePattern` accepts one or more wildcard patterns (comma-separated) matched against the primary user's UPN, e.g. `DEM-*` for Device Enrollment Manager accounts or `DEM-*,KIOSK-*` for multiple patterns. Matching is case-insensitive and uses PowerShell wildcard syntax (`*`, `?`). The pattern is only evaluated when `SendNoPrimaryUserDevicesToOverride` is enabled.\n\n**Important Notes:**\n\n- Enabling `SendNoPrimaryUserDevicesToOverride` requires `OverrideEmailRecipient` to be set\n- Devices without a primary user bypass the user scope filtering (they have no user to match against groups)\n- Pattern-matched users are still subject to user scope filtering first; users excluded by scope produce no notification at all\n- The combined email for devices without a primary user uses an administrative wording (no end-user action steps), independent of custom templates\n\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4KCiMjIE1haWwgVGVtcGxhdGUgTGFuZ3VhZ2UgU2VsZWN0aW9uCgpUaGlzIHJ1bmJvb2sgc3VwcG9ydHMgdGhyZWUgZW1haWwgdGVtcGxhdGUgb3B0aW9uczoKCjEuICoqRU4gKEVuZ2xpc2ggLSBEZWZhdWx0KSoqOiBVc2VzIHRoZSBidWlsdC1pbiBFbmdsaXNoIHRlbXBsYXRlCjIuICoqREUgKEdlcm1hbikqKjogVXNlcyB0aGUgYnVpbHQtaW4gR2VybWFuIHRlbXBsYXRlCjMuICoqQ3VzdG9tKio6IFVzZXMgYSBjdXN0b20gdGVtcGxhdGUgZnJvbSBSdW5ib29rIEN1c3RvbWl6YXRpb25zCgojIyMgVXNpbmcgQ3VzdG9tIE1haWwgVGVtcGxhdGVzCgpUbyB1c2UgYSBjdXN0b20gbWFpbCB0ZW1wbGF0ZSAoZS5nLiwgaW4gRHV0Y2gsIFNwYW5pc2gsIG9yIGFueSBvdGhlciBsYW5ndWFnZSksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSB0aGUgdGVtcGxhdGUgdGV4dCBpbiB0aGUgUnVuYm9vayBDdXN0b21pemF0aW9ucy4gSWYgYW55IGN1c3RvbSB0ZW1wbGF0ZSBwYXJhbWV0ZXIgaXMgbWlzc2luZywgdGhlIHJ1bmJvb2sgd2lsbCBhdXRvbWF0aWNhbGx5IGZhbGwgYmFjayB0byB0aGUgRW5nbGlzaCB0ZW1wbGF0ZS4KCiMjIyMgRXhhbXBsZTogQ3VzdG9tIFRlbXBsYXRlCgpgYGBqc29uCnsKICAgICJSdW5ib29rcyI6IHsKICAgICAgICAicmpnaXQtb3JnX2RldmljZXNfbm90aWZ5LXVzZXJzLWFib3V0LXN0YWxlLWRldmljZXNfc2NoZWR1bGVkIjogewogICAgICAgICAgICAiUGFyYW1ldGVycyI6IHsKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVTdWJqZWN0IjogewogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0IjogIlRoaXMgaXMgYSBjdXN0b20gc3ViamVjdCAtIEFjdGlvbiBSZXF1aXJlZDogSW5hY3RpdmUgRGV2aWNlcyIKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAiQ3VzdG9tTWFpbFRlbXBsYXRlQmVmb3JlRGV2aWNlRGV0YWlscyI6IHsKICAgICAgICAgICAgICAgICAgICAiRGVmYXVsdCI6ICIqKlRoaXMgaXMgYWJvdmUgdGhlIERldmljZSBEZXRhaWxzLioqIFxuXG5EZWFyIHVzZXIgLi4uIgogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICJDdXN0b21NYWlsVGVtcGxhdGVBZnRlckRldmljZURldGFpbHMiOiB7CiAgICAgICAgICAgICAgICAgICAgIkRlZmF1bHQiOiAiKipUaGlzIGlzIGJlbG93IHRoZSBEZXZpY2UgRGV0YWlscy4qKiBcblxuIyMgV2hhdCB5b3Ugc2hvdWxkIGRvLi4uIgogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9CmBgYAoKKipJbXBvcnRhbnQgTm90ZXM6KioKLSBVc2UgYFxuYCBmb3IgbGluZSBicmVha3MgaW4gdGhlIEpTT04gY29uZmlndXJhdGlvbgotIE1hcmtkb3duIGZvcm1hdHRpbmcgKCMjLCAjIyMsICoqLCAtKSBpcyBzdXBwb3J0ZWQgaW4gdGhlIHRlbXBsYXRlIHRleHQKLSBBbGwgdGhyZWUgY3VzdG9tIHRlbXBsYXRlIHBhcmFtZXRlcnMgKFN1YmplY3QsIEJlZm9yZURldmljZURldGFpbHMsIEFmdGVyRGV2aWNlRGV0YWlscykgc2hvdWxkIGJlIGNvbmZpZ3VyZWQKLSBJZiBhbnkgcGFyYW1ldGVyIGlzIG1pc3NpbmcsIHRoZSBydW5ib29rIGF1dG9tYXRpY2FsbHkgZmFsbHMgYmFjayB0byB0aGUgRW5nbGlzaCAoRU4pIHRlbXBsYXRlCi0gV2hlbiB1c2luZyB0aGUgY3VzdG9tIHRlbXBsYXRlLCBzZWxlY3QgIkN1c3RvbSAtIFVzZSBUZW1wbGF0ZSBmcm9tIFJ1bmJvb2sgQ3VzdG9taXphdGlvbnMiIGluIHRoZSBNYWlsIFRlbXBsYXRlIGRyb3Bkb3duCgojIyBSb3V0aW5nIERldmljZXMgV2l0aG91dCBhIFByaW1hcnkgVXNlciB0byB0aGUgT3ZlcnJpZGUgUmVjaXBpZW50CgpCeSBkZWZhdWx0LCBzdGFsZSBkZXZpY2VzIHdpdGhvdXQgYSBwcmltYXJ5IHVzZXIgYXJlIHNraXBwZWQsIGFuZCBhIGZpbGxlZCBgT3ZlcnJpZGVFbWFpbFJlY2lwaWVudGAgcmVkaXJlY3RzICoqYWxsKiogbm90aWZpY2F0aW9ucy4gRW5hYmxpbmcgYFNlbmROb1ByaW1hcnlVc2VyRGV2aWNlc1RvT3ZlcnJpZGVgIGNoYW5nZXMgdGhpczogZGV2aWNlcyB3aXRob3V0IGEgcHJpbWFyeSB1c2VyIChhbmQgZGV2aWNlcyB3aG9zZSBwcmltYXJ5IHVzZXIgbWF0Y2hlcyBgT3ZlcnJpZGVVc2VyTmFtZVBhdHRlcm5gKSBhcmUgc2VudCB0byB0aGUgYE92ZXJyaWRlRW1haWxSZWNpcGllbnRgLCB3aGlsZSBhbGwgb3RoZXIgbm90aWZpY2F0aW9ucyBnbyBkaXJlY3RseSB0byB0aGUgZW5kIHVzZXJzLgoKfCBgU2VuZE5vUHJpbWFyeVVzZXJEZXZpY2VzVG9PdmVycmlkZWAgfCBgT3ZlcnJpZGVFbWFpbFJlY2lwaWVudGAgfCBCZWhhdmlvciB8CnwgLS0tIHwgLS0tIHwgLS0tIHwKfCBPZmYgfCBlbXB0eSB8IERldmljZXMgd2l0aG91dCBhIHByaW1hcnkgdXNlciBhcmUgc2tpcHBlZDsgdXNlcnMgYXJlIG1haWxlZCBkaXJlY3RseS4gfAp8IE9mZiB8IHNldCB8IEFsbCBub3RpZmljYXRpb25zIGFyZSByZWRpcmVjdGVkIHRvIHRoZSBvdmVycmlkZSByZWNpcGllbnQuIHwKfCBPbiB8IHNldCB8IERldmljZXMgd2l0aG91dCBhIHByaW1hcnkgdXNlciBhcmUgY29sbGVjdGVkIGludG8gKipvbmUqKiBjb21iaW5lZCBlbWFpbCB0byB0aGUgb3ZlcnJpZGUgcmVjaXBpZW50LiBVc2VycyBtYXRjaGluZyB0aGUgcGF0dGVybiBhcmUgcmVkaXJlY3RlZCB0byB0aGUgb3ZlcnJpZGUgcmVjaXBpZW50LiBBbGwgb3RoZXIgdXNlcnMgcmVjZWl2ZSB0aGVpciBub3RpZmljYXRpb24gZGlyZWN0bHkuIHwKfCBPbiB8IGVtcHR5IHwgSW52YWxpZCBjb25maWd1cmF0aW9uIC0gdGhlIHJ1bmJvb2sgc3RvcHMgd2l0aCBhbiBlcnJvci4gfAoKIyMjIFVzZXIgTmFtZSBQYXR0ZXJuCgpgT3ZlcnJpZGVVc2VyTmFtZVBhdHRlcm5gIGFjY2VwdHMgb25lIG9yIG1vcmUgd2lsZGNhcmQgcGF0dGVybnMgKGNvbW1hLXNlcGFyYXRlZCkgbWF0Y2hlZCBhZ2FpbnN0IHRoZSBwcmltYXJ5IHVzZXIncyBVUE4sIGUuZy4gYERFTS0qYCBmb3IgRGV2aWNlIEVucm9sbG1lbnQgTWFuYWdlciBhY2NvdW50cyBvciBgREVNLSosS0lPU0stKmAgZm9yIG11bHRpcGxlIHBhdHRlcm5zLiBNYXRjaGluZyBpcyBjYXNlLWluc2Vuc2l0aXZlIGFuZCB1c2VzIFBvd2VyU2hlbGwgd2lsZGNhcmQgc3ludGF4IChgKmAsIGA/YCkuIFRoZSBwYXR0ZXJuIGlzIG9ubHkgZXZhbHVhdGVkIHdoZW4gYFNlbmROb1ByaW1hcnlVc2VyRGV2aWNlc1RvT3ZlcnJpZGVgIGlzIGVuYWJsZWQuCgoqKkltcG9ydGFudCBOb3RlczoqKgoKLSBFbmFibGluZyBgU2VuZE5vUHJpbWFyeVVzZXJEZXZpY2VzVG9PdmVycmlkZWAgcmVxdWlyZXMgYE92ZXJyaWRlRW1haWxSZWNpcGllbnRgIHRvIGJlIHNldAotIERldmljZXMgd2l0aG91dCBhIHByaW1hcnkgdXNlciBieXBhc3MgdGhlIHVzZXIgc2NvcGUgZmlsdGVyaW5nICh0aGV5IGhhdmUgbm8gdXNlciB0byBtYXRjaCBhZ2FpbnN0IGdyb3VwcykKLSBQYXR0ZXJuLW1hdGNoZWQgdXNlcnMgYXJlIHN0aWxsIHN1YmplY3QgdG8gdXNlciBzY29wZSBmaWx0ZXJpbmcgZmlyc3Q7IHVzZXJzIGV4Y2x1ZGVkIGJ5IHNjb3BlIHByb2R1Y2Ugbm8gbm90aWZpY2F0aW9uIGF0IGFsbAotIFRoZSBjb21iaW5lZCBlbWFpbCBmb3IgZGV2aWNlcyB3aXRob3V0IGEgcHJpbWFyeSB1c2VyIHVzZXMgYW4gYWRtaW5pc3RyYXRpdmUgd29yZGluZyAobm8gZW5kLXVzZXIgYWN0aW9uIHN0ZXBzKSwgaW5kZXBlbmRlbnQgb2YgY3VzdG9tIHRlbXBsYXRlcwoK",
     "PermissionsContent": "{\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        \"DeviceManagementManagedDevices.Read.All\",\n        \"Directory.Read.All\",\n        \"Device.Read.All\",\n        \"Group.Read.All\",\n        \"Mail.Send\"\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
@@ -12706,6 +12740,156 @@
     }
   },
   {
+    "RunbookDisplayName": "Monitor Service Health_Scheduled",
+    "RunbookDisplayPath": "Org \\ General \\ Monitor Service Health_Scheduled",
+    "RelativeRunbookPath": "org/general/monitor-service-health_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Alert by email on newly announced Microsoft 365 Service Health issues",
+    "Description": "Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.",
+    "Notes": "Common Use Cases:\n- Schedule the runbook to run at or slightly more often than LookbackHours to catch every new Service Health issue exactly once.\n- Set Services to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.\n- Leave IncludeAdvisories and IncludeResolvedIssues at their default of $false for the lowest-noise setup, which alerts only on unresolved incidents; set either to $true to also surface advisories or issues Microsoft has already marked resolved.\n\nParameter Interactions:\n- An issue counts as newly announced when its first Service Health post falls inside the LookbackHours window (falling back to startDateTime if the issue has no posts) - not by lastModifiedDateTime alone. This avoids missing back-dated issues while preventing re-alerts on every status update of an ongoing incident.\n- The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless LookbackHours is temporarily widened for a catch-up run.\n- One email is sent per new issue, so a busy Service Health day can produce several emails per run.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeAdvisories",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeResolvedIssues",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "24",
+        "description": [
+          {
+            "Text": "How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice."
+          }
+        ],
+        "globbing": "false",
+        "name": "LookbackHours",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page."
+          }
+        ],
+        "globbing": "false",
+        "name": "Services",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscy4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Mail.Send\",\n                \"Organization.Read.All\",\n                \"ServiceHealth.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Mail.Send",
+            "Organization.Read.All",
+            "ServiceHealth.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Office365 License Report",
     "RunbookDisplayPath": "Org \\ General \\ Office365 License Report",
     "RelativeRunbookPath": "org/general/office365-license-report.ps1",
@@ -17636,7 +17820,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Security",
     "Synopsis": "Sync users with secure MFA methods registered into an Entra ID group",
-    "Description": "This runbook synchronizes an Entra ID group with all member users that have at least one \"secure\" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode (\"SecureOnly\") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Guest users and non-user group members are never touched.\n\nOptionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.",
+    "Description": "This runbook synchronizes an Entra ID group with all member users that have at least one \"secure\" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode (\"SecureOnly\") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default (\"ExcludeAdmins\") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker (\"ExcludeUserIds\"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.\n\nOptionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.",
     "Notes": null,
     "Parameters": [
       {
@@ -17650,7 +17834,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "24",
         "required": "true",
         "type": {
           "name": "String"
@@ -17667,7 +17851,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "String"
@@ -17684,7 +17868,7 @@
         "name": "CreateDownloadLink",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -17701,7 +17885,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -17718,10 +17902,61 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeAdmins",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeGroupId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "@()",
+        "description": [
+          {
+            "Text": "Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeUserIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String[]"
         }
       },
       {
@@ -17837,7 +18072,7 @@
         "name": "LinkExpiryDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "23",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -17854,7 +18089,7 @@
         "name": "ReportFileFormat",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -17871,7 +18106,7 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "21",
         "required": "false",
         "type": {
           "name": "String"
@@ -17922,7 +18157,7 @@
         "name": "SendEmail",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -17939,7 +18174,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "22",
         "required": "false",
         "type": {
           "name": "String"
@@ -17990,16 +18225,16 @@
         "name": "WhatIfMode",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "Boolean"
         }
       }
     ],
-    "DocsContent": "## How it works\n\nThe runbook reads the Entra ID [authentication methods registration report](https://learn.microsoft.com/en-us/graph/api/authenticationmethodsroot-list-userregistrationdetails) (`userRegistrationDetails`) and mirrors the target group against all **member users** that qualify:\n\n- A user qualifies when at least one of their registered methods is in the configured **secure** set.\n- In **strict mode** (`SecureOnly`), a user additionally must not have any method from the **unsecure** set registered — a passkey user who also keeps an SMS factor does not qualify.\n- Qualifying users that are not yet group members are added; members that no longer qualify are removed (mirror sync).\n- Guest users are never added or removed. Non-user group members (devices, service principals, nested groups) are never touched.\n\nThe target group should be managed exclusively by this runbook.\n\n## Secure method groups\n\nEach toggle controls which `methodsRegistered` values count as secure:\n\n| Toggle | Default | Covered values |\n| --- | --- | --- |\n| Passkeys / FIDO2 security keys | on | `fido2SecurityKey`, `passKeyDeviceBound`, `passKeyDeviceBoundAuthenticator` |\n| Platform credentials | on | `windowsHelloForBusiness`, `passKeyDeviceBoundWindowsHello`, `macOsSecureEnclaveKey` |\n| Microsoft Authenticator app | on | `microsoftAuthenticatorPush`, `microsoftAuthenticatorPasswordless` |\n| Software OTP | off | `softwareOneTimePasscode` |\n| Hardware OTP | off | `hardwareOneTimePasscode` |\n| Certificate-based authentication | on | `certificateBasedAuthentication` |\n\n## Strict mode (SecureOnly)\n\nWith strict mode enabled, users with any of the following built-in unsecure methods never qualify:\n\n`mobilePhone`, `alternateMobilePhone`, `officePhone`, `email`, `securityQuestion`\n\nIf a method ends up in both the secure and the unsecure set (only possible via the override parameters), unsecure wins — such users never qualify in strict mode. The runbook warns about this at startup.\n\n## Method classification reference\n\nUse the exact Graph values from this table when building the comma-separated override strings:\n\n| `methodsRegistered` value | Friendly name | Classification | Covered by toggle (default) |\n| --- | --- | --- | --- |\n| `fido2SecurityKey` | FIDO2 security key | Secure | Passkeys / FIDO2 (on) |\n| `passKeyDeviceBound` | Passkey (device-bound) | Secure | Passkeys / FIDO2 (on) |\n| `passKeyDeviceBoundAuthenticator` | Passkey in Microsoft Authenticator | Secure | Passkeys / FIDO2 (on) |\n| `windowsHelloForBusiness` | Windows Hello for Business | Secure | Platform credentials (on) |\n| `passKeyDeviceBoundWindowsHello` | Passkey in Windows Hello | Secure | Platform credentials (on) |\n| `macOsSecureEnclaveKey` | Platform Credential for macOS | Secure | Platform credentials (on) |\n| `microsoftAuthenticatorPush` | Microsoft Authenticator (push notification) | Secure | Microsoft Authenticator app (on) |\n| `microsoftAuthenticatorPasswordless` | Microsoft Authenticator (passwordless phone sign-in) | Secure | Microsoft Authenticator app (on) |\n| `softwareOneTimePasscode` | Software OATH token (TOTP app) | Secure | Software OTP (off) |\n| `hardwareOneTimePasscode` | Hardware OATH token | Secure | Hardware OTP (off) |\n| `certificateBasedAuthentication` | Certificate-based authentication | Secure | Certificate-based authentication (on) |\n| `mobilePhone` | Phone (SMS / voice call) | Unsecure | built-in unsecure list |\n| `alternateMobilePhone` | Alternate phone (voice call) | Unsecure | built-in unsecure list |\n| `officePhone` | Office phone (voice call) | Unsecure | built-in unsecure list |\n| `email` | Email (SSPR only) | Unsecure | built-in unsecure list |\n| `securityQuestion` | Security questions (SSPR only) | Unsecure | built-in unsecure list |\n| `temporaryAccessPass` | Temporary Access Pass | Neutral | never qualifies, never disqualifies |\n\nUnknown or future Graph values are treated as neutral unless explicitly listed in an override parameter.\n\n## Override parameters\n\nBoth override parameters are hidden by default and intended for RealmJoin runbook customization:\n\n- **SecureMethodsOverride** — comma-separated list of `methodsRegistered` values that defines the secure set. When set, **all** method group toggles are ignored. Example: `fido2SecurityKey,passKeyDeviceBound,passKeyDeviceBoundAuthenticator,windowsHelloForBusiness`\n- **UnsecureMethodsOverride** — comma-separated list that replaces the built-in unsecure list. Only evaluated in strict mode. Example: `mobilePhone,alternateMobilePhone,officePhone,email,securityQuestion,softwareOneTimePasscode`\n\nUnknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.\n\n## Email report and download links\n\nOptionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):\n\n- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [email reporting setup](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md)).\n- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).\n\nReport files are only generated when at least one of the two options is enabled. The report consists of:\n\n- **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details\n- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification and group membership\n- **mfa-secure-users-group-sync-report.xlsx** - the same data as a formatted Excel workbook: an \"Info\" cover sheet with the chosen parameters and result counts, a \"Changes\" worksheet (added users highlighted in green, removed in red) and an \"All Users\" worksheet\n\nIn large tenants the raw CSV files can exceed the email attachment size limit (Graph rejects mails at roughly 4 MB total). When the CSV files exceed a 2.5 MB budget, the email is sent with only the Excel workbook attached (which contains the complete data in compressed form) and a note explaining the omission; a failed full-size send is also retried automatically with the workbook only. The download link upload always includes all files regardless of size.\n\n## Notes and limitations\n\n- The registration report requires an **Entra ID P1 or P2** license.\n- The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.\n- Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.\n- The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.\n\n## Scheduling\n\nThe sync is idempotent — a single recurring schedule (e.g. daily) keeps the group up to date, and reruns after partial failures self-heal. Recommendation: run once with **Dry run (WhatIf)** enabled and review the job output before scheduling the runbook in live mode.\n",
-    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayByZWFkcyB0aGUgRW50cmEgSUQgW2F1dGhlbnRpY2F0aW9uIG1ldGhvZHMgcmVnaXN0cmF0aW9uIHJlcG9ydF0oaHR0cHM6Ly9sZWFybi5taWNyb3NvZnQuY29tL2VuLXVzL2dyYXBoL2FwaS9hdXRoZW50aWNhdGlvbm1ldGhvZHNyb290LWxpc3QtdXNlcnJlZ2lzdHJhdGlvbmRldGFpbHMpIChgdXNlclJlZ2lzdHJhdGlvbkRldGFpbHNgKSBhbmQgbWlycm9ycyB0aGUgdGFyZ2V0IGdyb3VwIGFnYWluc3QgYWxsICoqbWVtYmVyIHVzZXJzKiogdGhhdCBxdWFsaWZ5OgoKLSBBIHVzZXIgcXVhbGlmaWVzIHdoZW4gYXQgbGVhc3Qgb25lIG9mIHRoZWlyIHJlZ2lzdGVyZWQgbWV0aG9kcyBpcyBpbiB0aGUgY29uZmlndXJlZCAqKnNlY3VyZSoqIHNldC4KLSBJbiAqKnN0cmljdCBtb2RlKiogKGBTZWN1cmVPbmx5YCksIGEgdXNlciBhZGRpdGlvbmFsbHkgbXVzdCBub3QgaGF2ZSBhbnkgbWV0aG9kIGZyb20gdGhlICoqdW5zZWN1cmUqKiBzZXQgcmVnaXN0ZXJlZCDigJQgYSBwYXNza2V5IHVzZXIgd2hvIGFsc28ga2VlcHMgYW4gU01TIGZhY3RvciBkb2VzIG5vdCBxdWFsaWZ5LgotIFF1YWxpZnlpbmcgdXNlcnMgdGhhdCBhcmUgbm90IHlldCBncm91cCBtZW1iZXJzIGFyZSBhZGRlZDsgbWVtYmVycyB0aGF0IG5vIGxvbmdlciBxdWFsaWZ5IGFyZSByZW1vdmVkIChtaXJyb3Igc3luYykuCi0gR3Vlc3QgdXNlcnMgYXJlIG5ldmVyIGFkZGVkIG9yIHJlbW92ZWQuIE5vbi11c2VyIGdyb3VwIG1lbWJlcnMgKGRldmljZXMsIHNlcnZpY2UgcHJpbmNpcGFscywgbmVzdGVkIGdyb3VwcykgYXJlIG5ldmVyIHRvdWNoZWQuCgpUaGUgdGFyZ2V0IGdyb3VwIHNob3VsZCBiZSBtYW5hZ2VkIGV4Y2x1c2l2ZWx5IGJ5IHRoaXMgcnVuYm9vay4KCiMjIFNlY3VyZSBtZXRob2QgZ3JvdXBzCgpFYWNoIHRvZ2dsZSBjb250cm9scyB3aGljaCBgbWV0aG9kc1JlZ2lzdGVyZWRgIHZhbHVlcyBjb3VudCBhcyBzZWN1cmU6Cgp8IFRvZ2dsZSB8IERlZmF1bHQgfCBDb3ZlcmVkIHZhbHVlcyB8CnwgLS0tIHwgLS0tIHwgLS0tIHwKfCBQYXNza2V5cyAvIEZJRE8yIHNlY3VyaXR5IGtleXMgfCBvbiB8IGBmaWRvMlNlY3VyaXR5S2V5YCwgYHBhc3NLZXlEZXZpY2VCb3VuZGAsIGBwYXNzS2V5RGV2aWNlQm91bmRBdXRoZW50aWNhdG9yYCB8CnwgUGxhdGZvcm0gY3JlZGVudGlhbHMgfCBvbiB8IGB3aW5kb3dzSGVsbG9Gb3JCdXNpbmVzc2AsIGBwYXNzS2V5RGV2aWNlQm91bmRXaW5kb3dzSGVsbG9gLCBgbWFjT3NTZWN1cmVFbmNsYXZlS2V5YCB8CnwgTWljcm9zb2Z0IEF1dGhlbnRpY2F0b3IgYXBwIHwgb24gfCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclB1c2hgLCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclBhc3N3b3JkbGVzc2AgfAp8IFNvZnR3YXJlIE9UUCB8IG9mZiB8IGBzb2Z0d2FyZU9uZVRpbWVQYXNzY29kZWAgfAp8IEhhcmR3YXJlIE9UUCB8IG9mZiB8IGBoYXJkd2FyZU9uZVRpbWVQYXNzY29kZWAgfAp8IENlcnRpZmljYXRlLWJhc2VkIGF1dGhlbnRpY2F0aW9uIHwgb24gfCBgY2VydGlmaWNhdGVCYXNlZEF1dGhlbnRpY2F0aW9uYCB8CgojIyBTdHJpY3QgbW9kZSAoU2VjdXJlT25seSkKCldpdGggc3RyaWN0IG1vZGUgZW5hYmxlZCwgdXNlcnMgd2l0aCBhbnkgb2YgdGhlIGZvbGxvd2luZyBidWlsdC1pbiB1bnNlY3VyZSBtZXRob2RzIG5ldmVyIHF1YWxpZnk6CgpgbW9iaWxlUGhvbmVgLCBgYWx0ZXJuYXRlTW9iaWxlUGhvbmVgLCBgb2ZmaWNlUGhvbmVgLCBgZW1haWxgLCBgc2VjdXJpdHlRdWVzdGlvbmAKCklmIGEgbWV0aG9kIGVuZHMgdXAgaW4gYm90aCB0aGUgc2VjdXJlIGFuZCB0aGUgdW5zZWN1cmUgc2V0IChvbmx5IHBvc3NpYmxlIHZpYSB0aGUgb3ZlcnJpZGUgcGFyYW1ldGVycyksIHVuc2VjdXJlIHdpbnMg4oCUIHN1Y2ggdXNlcnMgbmV2ZXIgcXVhbGlmeSBpbiBzdHJpY3QgbW9kZS4gVGhlIHJ1bmJvb2sgd2FybnMgYWJvdXQgdGhpcyBhdCBzdGFydHVwLgoKIyMgTWV0aG9kIGNsYXNzaWZpY2F0aW9uIHJlZmVyZW5jZQoKVXNlIHRoZSBleGFjdCBHcmFwaCB2YWx1ZXMgZnJvbSB0aGlzIHRhYmxlIHdoZW4gYnVpbGRpbmcgdGhlIGNvbW1hLXNlcGFyYXRlZCBvdmVycmlkZSBzdHJpbmdzOgoKfCBgbWV0aG9kc1JlZ2lzdGVyZWRgIHZhbHVlIHwgRnJpZW5kbHkgbmFtZSB8IENsYXNzaWZpY2F0aW9uIHwgQ292ZXJlZCBieSB0b2dnbGUgKGRlZmF1bHQpIHwKfCAtLS0gfCAtLS0gfCAtLS0gfCAtLS0gfAp8IGBmaWRvMlNlY3VyaXR5S2V5YCB8IEZJRE8yIHNlY3VyaXR5IGtleSB8IFNlY3VyZSB8IFBhc3NrZXlzIC8gRklETzIgKG9uKSB8CnwgYHBhc3NLZXlEZXZpY2VCb3VuZGAgfCBQYXNza2V5IChkZXZpY2UtYm91bmQpIHwgU2VjdXJlIHwgUGFzc2tleXMgLyBGSURPMiAob24pIHwKfCBgcGFzc0tleURldmljZUJvdW5kQXV0aGVudGljYXRvcmAgfCBQYXNza2V5IGluIE1pY3Jvc29mdCBBdXRoZW50aWNhdG9yIHwgU2VjdXJlIHwgUGFzc2tleXMgLyBGSURPMiAob24pIHwKfCBgd2luZG93c0hlbGxvRm9yQnVzaW5lc3NgIHwgV2luZG93cyBIZWxsbyBmb3IgQnVzaW5lc3MgfCBTZWN1cmUgfCBQbGF0Zm9ybSBjcmVkZW50aWFscyAob24pIHwKfCBgcGFzc0tleURldmljZUJvdW5kV2luZG93c0hlbGxvYCB8IFBhc3NrZXkgaW4gV2luZG93cyBIZWxsbyB8IFNlY3VyZSB8IFBsYXRmb3JtIGNyZWRlbnRpYWxzIChvbikgfAp8IGBtYWNPc1NlY3VyZUVuY2xhdmVLZXlgIHwgUGxhdGZvcm0gQ3JlZGVudGlhbCBmb3IgbWFjT1MgfCBTZWN1cmUgfCBQbGF0Zm9ybSBjcmVkZW50aWFscyAob24pIHwKfCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclB1c2hgIHwgTWljcm9zb2Z0IEF1dGhlbnRpY2F0b3IgKHB1c2ggbm90aWZpY2F0aW9uKSB8IFNlY3VyZSB8IE1pY3Jvc29mdCBBdXRoZW50aWNhdG9yIGFwcCAob24pIHwKfCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclBhc3N3b3JkbGVzc2AgfCBNaWNyb3NvZnQgQXV0aGVudGljYXRvciAocGFzc3dvcmRsZXNzIHBob25lIHNpZ24taW4pIHwgU2VjdXJlIHwgTWljcm9zb2Z0IEF1dGhlbnRpY2F0b3IgYXBwIChvbikgfAp8IGBzb2Z0d2FyZU9uZVRpbWVQYXNzY29kZWAgfCBTb2Z0d2FyZSBPQVRIIHRva2VuIChUT1RQIGFwcCkgfCBTZWN1cmUgfCBTb2Z0d2FyZSBPVFAgKG9mZikgfAp8IGBoYXJkd2FyZU9uZVRpbWVQYXNzY29kZWAgfCBIYXJkd2FyZSBPQVRIIHRva2VuIHwgU2VjdXJlIHwgSGFyZHdhcmUgT1RQIChvZmYpIHwKfCBgY2VydGlmaWNhdGVCYXNlZEF1dGhlbnRpY2F0aW9uYCB8IENlcnRpZmljYXRlLWJhc2VkIGF1dGhlbnRpY2F0aW9uIHwgU2VjdXJlIHwgQ2VydGlmaWNhdGUtYmFzZWQgYXV0aGVudGljYXRpb24gKG9uKSB8CnwgYG1vYmlsZVBob25lYCB8IFBob25lIChTTVMgLyB2b2ljZSBjYWxsKSB8IFVuc2VjdXJlIHwgYnVpbHQtaW4gdW5zZWN1cmUgbGlzdCB8CnwgYGFsdGVybmF0ZU1vYmlsZVBob25lYCB8IEFsdGVybmF0ZSBwaG9uZSAodm9pY2UgY2FsbCkgfCBVbnNlY3VyZSB8IGJ1aWx0LWluIHVuc2VjdXJlIGxpc3QgfAp8IGBvZmZpY2VQaG9uZWAgfCBPZmZpY2UgcGhvbmUgKHZvaWNlIGNhbGwpIHwgVW5zZWN1cmUgfCBidWlsdC1pbiB1bnNlY3VyZSBsaXN0IHwKfCBgZW1haWxgIHwgRW1haWwgKFNTUFIgb25seSkgfCBVbnNlY3VyZSB8IGJ1aWx0LWluIHVuc2VjdXJlIGxpc3QgfAp8IGBzZWN1cml0eVF1ZXN0aW9uYCB8IFNlY3VyaXR5IHF1ZXN0aW9ucyAoU1NQUiBvbmx5KSB8IFVuc2VjdXJlIHwgYnVpbHQtaW4gdW5zZWN1cmUgbGlzdCB8CnwgYHRlbXBvcmFyeUFjY2Vzc1Bhc3NgIHwgVGVtcG9yYXJ5IEFjY2VzcyBQYXNzIHwgTmV1dHJhbCB8IG5ldmVyIHF1YWxpZmllcywgbmV2ZXIgZGlzcXVhbGlmaWVzIHwKClVua25vd24gb3IgZnV0dXJlIEdyYXBoIHZhbHVlcyBhcmUgdHJlYXRlZCBhcyBuZXV0cmFsIHVubGVzcyBleHBsaWNpdGx5IGxpc3RlZCBpbiBhbiBvdmVycmlkZSBwYXJhbWV0ZXIuCgojIyBPdmVycmlkZSBwYXJhbWV0ZXJzCgpCb3RoIG92ZXJyaWRlIHBhcmFtZXRlcnMgYXJlIGhpZGRlbiBieSBkZWZhdWx0IGFuZCBpbnRlbmRlZCBmb3IgUmVhbG1Kb2luIHJ1bmJvb2sgY3VzdG9taXphdGlvbjoKCi0gKipTZWN1cmVNZXRob2RzT3ZlcnJpZGUqKiDigJQgY29tbWEtc2VwYXJhdGVkIGxpc3Qgb2YgYG1ldGhvZHNSZWdpc3RlcmVkYCB2YWx1ZXMgdGhhdCBkZWZpbmVzIHRoZSBzZWN1cmUgc2V0LiBXaGVuIHNldCwgKiphbGwqKiBtZXRob2QgZ3JvdXAgdG9nZ2xlcyBhcmUgaWdub3JlZC4gRXhhbXBsZTogYGZpZG8yU2VjdXJpdHlLZXkscGFzc0tleURldmljZUJvdW5kLHBhc3NLZXlEZXZpY2VCb3VuZEF1dGhlbnRpY2F0b3Isd2luZG93c0hlbGxvRm9yQnVzaW5lc3NgCi0gKipVbnNlY3VyZU1ldGhvZHNPdmVycmlkZSoqIOKAlCBjb21tYS1zZXBhcmF0ZWQgbGlzdCB0aGF0IHJlcGxhY2VzIHRoZSBidWlsdC1pbiB1bnNlY3VyZSBsaXN0LiBPbmx5IGV2YWx1YXRlZCBpbiBzdHJpY3QgbW9kZS4gRXhhbXBsZTogYG1vYmlsZVBob25lLGFsdGVybmF0ZU1vYmlsZVBob25lLG9mZmljZVBob25lLGVtYWlsLHNlY3VyaXR5UXVlc3Rpb24sc29mdHdhcmVPbmVUaW1lUGFzc2NvZGVgCgpVbmtub3duIHZhbHVlcyBwcm9kdWNlIGEgd2FybmluZyBidXQgYXJlIHN0aWxsIGV2YWx1YXRlZCwgc28gZnV0dXJlIEdyYXBoIHZhbHVlcyBjYW4gYmUgdXNlZCBiZWZvcmUgdGhpcyBkb2N1bWVudGF0aW9uIGNhdGNoZXMgdXAuCgojIyBFbWFpbCByZXBvcnQgYW5kIGRvd25sb2FkIGxpbmtzCgpPcHRpb25hbGx5LCBhIGRldGFpbGVkIHJlcG9ydCBjYW4gYmUgZGVsaXZlcmVkIC0gZXNwZWNpYWxseSB1c2VmdWwgZm9yIHJldmlld2luZyB0aGUgdmVyeSBmaXJzdCBydW4gKGlkZWFsbHkgY29tYmluZWQgd2l0aCB0aGUgZHJ5IHJ1biBtb2RlKToKCi0gKipTZW5kIHJlcG9ydCB2aWEgZW1haWwqKiAoYFNlbmRFbWFpbGAsIG9mZiBieSBkZWZhdWx0KTogc2VuZHMgdGhlIHJlcG9ydCB0byB0aGUgY29uZmlndXJlZCByZWNpcGllbnQocykuIFRoZSByZWNpcGllbnQgZmllbGQgb25seSBhcHBlYXJzIHdoZW4gZW1haWwgaXMgZW5hYmxlZC4gUmVxdWlyZXMgdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcgKHNlZSB0aGUgW2VtYWlsIHJlcG9ydGluZyBzZXR1cF0oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkpLgotICoqQ3JlYXRlIGZpbGUgZG93bmxvYWQgbGlua3MqKiAoYENyZWF0ZURvd25sb2FkTGlua2AsIG9mZiBieSBkZWZhdWx0KTogdXBsb2FkcyB0aGUgcmVwb3J0IGZpbGVzIHRvIGFuIEF6dXJlIFN0b3JhZ2UgQWNjb3VudCBhbmQgcmV0dXJucyB0aW1lLWxpbWl0ZWQgZG93bmxvYWQgbGlua3MgKHVzZXMgdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCB0ZW5hbnQgc2V0dGluZ3MpLgoKUmVwb3J0IGZpbGVzIGFyZSBvbmx5IGdlbmVyYXRlZCB3aGVuIGF0IGxlYXN0IG9uZSBvZiB0aGUgdHdvIG9wdGlvbnMgaXMgZW5hYmxlZC4gVGhlIHJlcG9ydCBjb25zaXN0cyBvZjoKCi0gKiptZmEtc2VjdXJlLXVzZXJzLWdyb3VwLXN5bmMtY2hhbmdlcy5jc3YqKiAtIGFsbCBwZXJmb3JtZWQgKG9yLCBpbiBkcnkgcnVuLCBwZW5kaW5nKSBjaGFuZ2VzIHdpdGggcGVyLXVzZXIgbWV0aG9kIGRldGFpbHMKLSAqKm1mYS1zZWN1cmUtdXNlcnMtZ3JvdXAtc3luYy1hbGwtdXNlcnMuY3N2KiogLSB0aGUgZXZhbHVhdGlvbiBvZiBldmVyeSBtZW1iZXIgdXNlcjogcmVnaXN0ZXJlZCBtZXRob2RzLCBzZWN1cmUvdW5zZWN1cmUgY2xhc3NpZmljYXRpb24sIHF1YWxpZmljYXRpb24gYW5kIGdyb3VwIG1lbWJlcnNoaXAKLSAqKm1mYS1zZWN1cmUtdXNlcnMtZ3JvdXAtc3luYy1yZXBvcnQueGxzeCoqIC0gdGhlIHNhbWUgZGF0YSBhcyBhIGZvcm1hdHRlZCBFeGNlbCB3b3JrYm9vazogYW4gIkluZm8iIGNvdmVyIHNoZWV0IHdpdGggdGhlIGNob3NlbiBwYXJhbWV0ZXJzIGFuZCByZXN1bHQgY291bnRzLCBhICJDaGFuZ2VzIiB3b3Jrc2hlZXQgKGFkZGVkIHVzZXJzIGhpZ2hsaWdodGVkIGluIGdyZWVuLCByZW1vdmVkIGluIHJlZCkgYW5kIGFuICJBbGwgVXNlcnMiIHdvcmtzaGVldAoKSW4gbGFyZ2UgdGVuYW50cyB0aGUgcmF3IENTViBmaWxlcyBjYW4gZXhjZWVkIHRoZSBlbWFpbCBhdHRhY2htZW50IHNpemUgbGltaXQgKEdyYXBoIHJlamVjdHMgbWFpbHMgYXQgcm91Z2hseSA0IE1CIHRvdGFsKS4gV2hlbiB0aGUgQ1NWIGZpbGVzIGV4Y2VlZCBhIDIuNSBNQiBidWRnZXQsIHRoZSBlbWFpbCBpcyBzZW50IHdpdGggb25seSB0aGUgRXhjZWwgd29ya2Jvb2sgYXR0YWNoZWQgKHdoaWNoIGNvbnRhaW5zIHRoZSBjb21wbGV0ZSBkYXRhIGluIGNvbXByZXNzZWQgZm9ybSkgYW5kIGEgbm90ZSBleHBsYWluaW5nIHRoZSBvbWlzc2lvbjsgYSBmYWlsZWQgZnVsbC1zaXplIHNlbmQgaXMgYWxzbyByZXRyaWVkIGF1dG9tYXRpY2FsbHkgd2l0aCB0aGUgd29ya2Jvb2sgb25seS4gVGhlIGRvd25sb2FkIGxpbmsgdXBsb2FkIGFsd2F5cyBpbmNsdWRlcyBhbGwgZmlsZXMgcmVnYXJkbGVzcyBvZiBzaXplLgoKIyMgTm90ZXMgYW5kIGxpbWl0YXRpb25zCgotIFRoZSByZWdpc3RyYXRpb24gcmVwb3J0IHJlcXVpcmVzIGFuICoqRW50cmEgSUQgUDEgb3IgUDIqKiBsaWNlbnNlLgotIFRoZSByZXBvcnQgZG9lcyBub3QgaW5jbHVkZSAqKmRpc2FibGVkKiogb3Igc29mdC1kZWxldGVkIHVzZXJzIOKAlCBzdWNoIGFjY291bnRzIGFyZSByZW1vdmVkIGZyb20gdGhlIGdyb3VwIG9uIHRoZSBuZXh0IHJ1bi4KLSBSZXBvcnQgZGF0YSBjYW4gbGFnIGJlaGluZCByZWNlbnQgcmVnaXN0cmF0aW9uIGNoYW5nZXM7IGEgbmV3bHkgcmVnaXN0ZXJlZCBtZXRob2QgbWF5IHRha2Ugb25lIHN5bmMgY3ljbGUgdG8gYmUgcmVmbGVjdGVkLgotIFRoZSBydW5ib29rIHByb2Nlc3NlcyBsYXJnZSB0ZW5hbnRzICgyMGsrIHVzZXJzKSB2aWEgcGFnZWQgcmVwb3J0IHJlYWRzIGFuZCBiYXRjaGVkIGdyb3VwIHdyaXRlcyB3aXRoIGF1dG9tYXRpYyB0aHJvdHRsaW5nIHJldHJpZXMuCgojIyBTY2hlZHVsaW5nCgpUaGUgc3luYyBpcyBpZGVtcG90ZW50IOKAlCBhIHNpbmdsZSByZWN1cnJpbmcgc2NoZWR1bGUgKGUuZy4gZGFpbHkpIGtlZXBzIHRoZSBncm91cCB1cCB0byBkYXRlLCBhbmQgcmVydW5zIGFmdGVyIHBhcnRpYWwgZmFpbHVyZXMgc2VsZi1oZWFsLiBSZWNvbW1lbmRhdGlvbjogcnVuIG9uY2Ugd2l0aCAqKkRyeSBydW4gKFdoYXRJZikqKiBlbmFibGVkIGFuZCByZXZpZXcgdGhlIGpvYiBvdXRwdXQgYmVmb3JlIHNjaGVkdWxpbmcgdGhlIHJ1bmJvb2sgaW4gbGl2ZSBtb2RlLgo=",
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"Group.Read.All\",\n                \"GroupMember.ReadWrite.All\",\n                \"User.Read.All\",\n                \"Organization.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "DocsContent": "## How it works\n\nThe runbook reads the Entra ID [authentication methods registration report](https://learn.microsoft.com/en-us/graph/api/authenticationmethodsroot-list-userregistrationdetails) (`userRegistrationDetails`) and mirrors the target group against all **member users** that qualify:\n\n- A user qualifies when at least one of their registered methods is in the configured **secure** set.\n- In **strict mode** (`SecureOnly`), a user additionally must not have any method from the **unsecure** set registered — a passkey user who also keeps an SMS factor does not qualify.\n- Qualifying users that are not yet group members are added; members that no longer qualify are removed (mirror sync).\n- Guest users are never added or removed. Non-user group members (devices, service principals, nested groups) are never touched.\n\nThe target group should be managed exclusively by this runbook.\n\n## Secure method groups\n\nEach toggle controls which `methodsRegistered` values count as secure:\n\n| Toggle | Default | Covered values |\n| --- | --- | --- |\n| Passkeys / FIDO2 security keys | on | `fido2SecurityKey`, `passKeyDeviceBound`, `passKeyDeviceBoundAuthenticator` |\n| Platform credentials | on | `windowsHelloForBusiness`, `passKeyDeviceBoundWindowsHello`, `macOsSecureEnclaveKey` |\n| Microsoft Authenticator app | on | `microsoftAuthenticatorPush`, `microsoftAuthenticatorPasswordless` |\n| Software OTP | off | `softwareOneTimePasscode` |\n| Hardware OTP | off | `hardwareOneTimePasscode` |\n| Certificate-based authentication | on | `certificateBasedAuthentication` |\n\n## Strict mode (SecureOnly)\n\nWith strict mode enabled, users with any of the following built-in unsecure methods never qualify:\n\n`mobilePhone`, `alternateMobilePhone`, `officePhone`, `email`, `securityQuestion`\n\nIf a method ends up in both the secure and the unsecure set (only possible via the override parameters), unsecure wins — such users never qualify in strict mode. The runbook warns about this at startup.\n\n## Exclusions\n\nExcluded users never qualify regardless of their registered methods: they are never added to the target group and are removed if they are already members. The per-user report shows the reason in the `ExclusionReason` column.\n\n### Exclude admin users (`ExcludeAdmins`, on by default)\n\nUsers holding an Entra ID directory role are excluded. This covers:\n\n- **Active role assignments** (`roleManagement/directory/roleAssignments`)\n- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — without P2 the runbook falls back to active assignments and logs a warning)\n- **Role-assignable groups**: groups holding a role are expanded to their transitive user members\n\nBackground: when the target group drives **SSPR** and the SSPR administrator policy is disabled, admins in the group would still be forced to register a second factor once two SSPR methods are required. Keeping admins out of the group avoids this.\n\nThis option requires the additional Graph permission `RoleManagement.Read.Directory` for the managed identity.\n\n### Exclusion group (`ExcludeGroupId`, optional)\n\nTransitive user members of the configured group are excluded — intended for accounts that must never be managed by this sync, such as **break glass accounts** or **service accounts**. Nested groups are honored. The exclusion group must not be the target group itself.\n\n### Individually excluded users (`ExcludeUserIds`, optional)\n\nIndividual users can be excluded directly via the multi-user picker — for one-off exclusions where a dedicated exclusion group is not worth maintaining. The list accepts user **object IDs** and **user principal names** (UPNs). Unresolvable entries (e.g. a deleted account) log a warning and are ignored, so a stale entry never breaks a scheduled sync.\n\n### Maintaining exclusions via Runbook Customization (without the pickers)\n\nBoth exclusion parameters can be pre-set centrally via [JSON-based Runbook Customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization#json-based-customizing) (RealmJoin portal: **Settings** → **Runbook Customizations**) — useful when the exclusions are fixed for the tenant and should not be picked manually each time the runbook is started or scheduled:\n\n```json\n{\n    \"Runbooks\": {\n        \"rjgit-org_security_sync-mfa-secure-users-to-group_scheduled\": {\n            \"Parameters\": {\n                \"ExcludeGroupId\": {\n                    \"DefaultValue\": \"00000000-0000-0000-0000-000000000000\",\n                    \"Hide\": true\n                },\n                \"ExcludeUserIds\": {\n                    \"DefaultValue\": [\n                        \"11111111-1111-1111-1111-111111111111\",\n                        \"breakglass@contoso.com\"\n                    ],\n                    \"Hide\": true\n                }\n            }\n        }\n    }\n}\n```\n\n- **ExcludeGroupId** takes a single group **object ID** (GUID) as a plain string — copy it from the group's overview page in the Entra admin center or the RealmJoin portal.\n- **ExcludeUserIds** takes a JSON **array of strings**; each entry can be a user **object ID** or a **UPN**. Entries are trimmed and deduplicated; the runbook resolves them at startup.\n- **Recommended:** when the exclusions are maintained via Runbook Customization, also set `\"Hide\": true` on the parameter (as in the example above). This removes it from the start form entirely, so the centrally configured exclusions cannot be overridden in the UI when starting or scheduling the runbook. Without `Hide`, the configured values only appear pre-filled and can still be changed there.\n\n## Method classification reference\n\nUse the exact Graph values from this table when building the comma-separated override strings:\n\n| `methodsRegistered` value | Friendly name | Classification | Covered by toggle (default) |\n| --- | --- | --- | --- |\n| `fido2SecurityKey` | FIDO2 security key | Secure | Passkeys / FIDO2 (on) |\n| `passKeyDeviceBound` | Passkey (device-bound) | Secure | Passkeys / FIDO2 (on) |\n| `passKeyDeviceBoundAuthenticator` | Passkey in Microsoft Authenticator | Secure | Passkeys / FIDO2 (on) |\n| `windowsHelloForBusiness` | Windows Hello for Business | Secure | Platform credentials (on) |\n| `passKeyDeviceBoundWindowsHello` | Passkey in Windows Hello | Secure | Platform credentials (on) |\n| `macOsSecureEnclaveKey` | Platform Credential for macOS | Secure | Platform credentials (on) |\n| `microsoftAuthenticatorPush` | Microsoft Authenticator (push notification) | Secure | Microsoft Authenticator app (on) |\n| `microsoftAuthenticatorPasswordless` | Microsoft Authenticator (passwordless phone sign-in) | Secure | Microsoft Authenticator app (on) |\n| `softwareOneTimePasscode` | Software OATH token (TOTP app) | Secure | Software OTP (off) |\n| `hardwareOneTimePasscode` | Hardware OATH token | Secure | Hardware OTP (off) |\n| `certificateBasedAuthentication` | Certificate-based authentication | Secure | Certificate-based authentication (on) |\n| `mobilePhone` | Phone (SMS / voice call) | Unsecure | built-in unsecure list |\n| `alternateMobilePhone` | Alternate phone (voice call) | Unsecure | built-in unsecure list |\n| `officePhone` | Office phone (voice call) | Unsecure | built-in unsecure list |\n| `email` | Email (SSPR only) | Unsecure | built-in unsecure list |\n| `securityQuestion` | Security questions (SSPR only) | Unsecure | built-in unsecure list |\n| `temporaryAccessPass` | Temporary Access Pass | Neutral | never qualifies, never disqualifies |\n\nUnknown or future Graph values are treated as neutral unless explicitly listed in an override parameter.\n\n## Override parameters\n\nBoth override parameters are hidden by default and intended for RealmJoin runbook customization:\n\n- **SecureMethodsOverride** — comma-separated list of `methodsRegistered` values that defines the secure set. When set, **all** method group toggles are ignored. Example: `fido2SecurityKey,passKeyDeviceBound,passKeyDeviceBoundAuthenticator,windowsHelloForBusiness`\n- **UnsecureMethodsOverride** — comma-separated list that replaces the built-in unsecure list. Only evaluated in strict mode. Example: `mobilePhone,alternateMobilePhone,officePhone,email,securityQuestion,softwareOneTimePasscode`\n\nUnknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.\n\n## Email report and download links\n\nOptionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):\n\n- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [email reporting setup](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md)).\n- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).\n\nReport files are only generated when at least one of the two options is enabled. The report consists of:\n\n- **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details\n- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification, exclusion reason and group membership\n- **mfa-secure-users-group-sync-report.xlsx** - the same data as a formatted Excel workbook: an \"Info\" cover sheet with the chosen parameters and result counts, a \"Changes\" worksheet (added users highlighted in green, removed in red) and an \"All Users\" worksheet\n\nIn large tenants the raw CSV files can exceed the email attachment size limit (Graph rejects mails at roughly 4 MB total). When the CSV files exceed a 2.5 MB budget, the email is sent with only the Excel workbook attached (which contains the complete data in compressed form) and a note explaining the omission; a failed full-size send is also retried automatically with the workbook only. The download link upload always includes all files regardless of size.\n\n## Notes and limitations\n\n- The registration report requires an **Entra ID P1 or P2** license.\n- PIM-eligible role assignments (admin exclusion) require an **Entra ID P2** license — without it, only active role assignments are excluded.\n- The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.\n- Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.\n- The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.\n\n## Scheduling\n\nThe sync is idempotent — a single recurring schedule (e.g. daily) keeps the group up to date, and reruns after partial failures self-heal. Recommendation: run once with **Dry run (WhatIf)** enabled and review the job output before scheduling the runbook in live mode.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayByZWFkcyB0aGUgRW50cmEgSUQgW2F1dGhlbnRpY2F0aW9uIG1ldGhvZHMgcmVnaXN0cmF0aW9uIHJlcG9ydF0oaHR0cHM6Ly9sZWFybi5taWNyb3NvZnQuY29tL2VuLXVzL2dyYXBoL2FwaS9hdXRoZW50aWNhdGlvbm1ldGhvZHNyb290LWxpc3QtdXNlcnJlZ2lzdHJhdGlvbmRldGFpbHMpIChgdXNlclJlZ2lzdHJhdGlvbkRldGFpbHNgKSBhbmQgbWlycm9ycyB0aGUgdGFyZ2V0IGdyb3VwIGFnYWluc3QgYWxsICoqbWVtYmVyIHVzZXJzKiogdGhhdCBxdWFsaWZ5OgoKLSBBIHVzZXIgcXVhbGlmaWVzIHdoZW4gYXQgbGVhc3Qgb25lIG9mIHRoZWlyIHJlZ2lzdGVyZWQgbWV0aG9kcyBpcyBpbiB0aGUgY29uZmlndXJlZCAqKnNlY3VyZSoqIHNldC4KLSBJbiAqKnN0cmljdCBtb2RlKiogKGBTZWN1cmVPbmx5YCksIGEgdXNlciBhZGRpdGlvbmFsbHkgbXVzdCBub3QgaGF2ZSBhbnkgbWV0aG9kIGZyb20gdGhlICoqdW5zZWN1cmUqKiBzZXQgcmVnaXN0ZXJlZCDigJQgYSBwYXNza2V5IHVzZXIgd2hvIGFsc28ga2VlcHMgYW4gU01TIGZhY3RvciBkb2VzIG5vdCBxdWFsaWZ5LgotIFF1YWxpZnlpbmcgdXNlcnMgdGhhdCBhcmUgbm90IHlldCBncm91cCBtZW1iZXJzIGFyZSBhZGRlZDsgbWVtYmVycyB0aGF0IG5vIGxvbmdlciBxdWFsaWZ5IGFyZSByZW1vdmVkIChtaXJyb3Igc3luYykuCi0gR3Vlc3QgdXNlcnMgYXJlIG5ldmVyIGFkZGVkIG9yIHJlbW92ZWQuIE5vbi11c2VyIGdyb3VwIG1lbWJlcnMgKGRldmljZXMsIHNlcnZpY2UgcHJpbmNpcGFscywgbmVzdGVkIGdyb3VwcykgYXJlIG5ldmVyIHRvdWNoZWQuCgpUaGUgdGFyZ2V0IGdyb3VwIHNob3VsZCBiZSBtYW5hZ2VkIGV4Y2x1c2l2ZWx5IGJ5IHRoaXMgcnVuYm9vay4KCiMjIFNlY3VyZSBtZXRob2QgZ3JvdXBzCgpFYWNoIHRvZ2dsZSBjb250cm9scyB3aGljaCBgbWV0aG9kc1JlZ2lzdGVyZWRgIHZhbHVlcyBjb3VudCBhcyBzZWN1cmU6Cgp8IFRvZ2dsZSB8IERlZmF1bHQgfCBDb3ZlcmVkIHZhbHVlcyB8CnwgLS0tIHwgLS0tIHwgLS0tIHwKfCBQYXNza2V5cyAvIEZJRE8yIHNlY3VyaXR5IGtleXMgfCBvbiB8IGBmaWRvMlNlY3VyaXR5S2V5YCwgYHBhc3NLZXlEZXZpY2VCb3VuZGAsIGBwYXNzS2V5RGV2aWNlQm91bmRBdXRoZW50aWNhdG9yYCB8CnwgUGxhdGZvcm0gY3JlZGVudGlhbHMgfCBvbiB8IGB3aW5kb3dzSGVsbG9Gb3JCdXNpbmVzc2AsIGBwYXNzS2V5RGV2aWNlQm91bmRXaW5kb3dzSGVsbG9gLCBgbWFjT3NTZWN1cmVFbmNsYXZlS2V5YCB8CnwgTWljcm9zb2Z0IEF1dGhlbnRpY2F0b3IgYXBwIHwgb24gfCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclB1c2hgLCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclBhc3N3b3JkbGVzc2AgfAp8IFNvZnR3YXJlIE9UUCB8IG9mZiB8IGBzb2Z0d2FyZU9uZVRpbWVQYXNzY29kZWAgfAp8IEhhcmR3YXJlIE9UUCB8IG9mZiB8IGBoYXJkd2FyZU9uZVRpbWVQYXNzY29kZWAgfAp8IENlcnRpZmljYXRlLWJhc2VkIGF1dGhlbnRpY2F0aW9uIHwgb24gfCBgY2VydGlmaWNhdGVCYXNlZEF1dGhlbnRpY2F0aW9uYCB8CgojIyBTdHJpY3QgbW9kZSAoU2VjdXJlT25seSkKCldpdGggc3RyaWN0IG1vZGUgZW5hYmxlZCwgdXNlcnMgd2l0aCBhbnkgb2YgdGhlIGZvbGxvd2luZyBidWlsdC1pbiB1bnNlY3VyZSBtZXRob2RzIG5ldmVyIHF1YWxpZnk6CgpgbW9iaWxlUGhvbmVgLCBgYWx0ZXJuYXRlTW9iaWxlUGhvbmVgLCBgb2ZmaWNlUGhvbmVgLCBgZW1haWxgLCBgc2VjdXJpdHlRdWVzdGlvbmAKCklmIGEgbWV0aG9kIGVuZHMgdXAgaW4gYm90aCB0aGUgc2VjdXJlIGFuZCB0aGUgdW5zZWN1cmUgc2V0IChvbmx5IHBvc3NpYmxlIHZpYSB0aGUgb3ZlcnJpZGUgcGFyYW1ldGVycyksIHVuc2VjdXJlIHdpbnMg4oCUIHN1Y2ggdXNlcnMgbmV2ZXIgcXVhbGlmeSBpbiBzdHJpY3QgbW9kZS4gVGhlIHJ1bmJvb2sgd2FybnMgYWJvdXQgdGhpcyBhdCBzdGFydHVwLgoKIyMgRXhjbHVzaW9ucwoKRXhjbHVkZWQgdXNlcnMgbmV2ZXIgcXVhbGlmeSByZWdhcmRsZXNzIG9mIHRoZWlyIHJlZ2lzdGVyZWQgbWV0aG9kczogdGhleSBhcmUgbmV2ZXIgYWRkZWQgdG8gdGhlIHRhcmdldCBncm91cCBhbmQgYXJlIHJlbW92ZWQgaWYgdGhleSBhcmUgYWxyZWFkeSBtZW1iZXJzLiBUaGUgcGVyLXVzZXIgcmVwb3J0IHNob3dzIHRoZSByZWFzb24gaW4gdGhlIGBFeGNsdXNpb25SZWFzb25gIGNvbHVtbi4KCiMjIyBFeGNsdWRlIGFkbWluIHVzZXJzIChgRXhjbHVkZUFkbWluc2AsIG9uIGJ5IGRlZmF1bHQpCgpVc2VycyBob2xkaW5nIGFuIEVudHJhIElEIGRpcmVjdG9yeSByb2xlIGFyZSBleGNsdWRlZC4gVGhpcyBjb3ZlcnM6CgotICoqQWN0aXZlIHJvbGUgYXNzaWdubWVudHMqKiAoYHJvbGVNYW5hZ2VtZW50L2RpcmVjdG9yeS9yb2xlQXNzaWdubWVudHNgKQotICoqUElNLWVsaWdpYmxlIGFzc2lnbm1lbnRzKiogKGByb2xlTWFuYWdlbWVudC9kaXJlY3Rvcnkvcm9sZUVsaWdpYmlsaXR5U2NoZWR1bGVzYCwgcmVxdWlyZXMgRW50cmEgSUQgUDIg4oCUIHdpdGhvdXQgUDIgdGhlIHJ1bmJvb2sgZmFsbHMgYmFjayB0byBhY3RpdmUgYXNzaWdubWVudHMgYW5kIGxvZ3MgYSB3YXJuaW5nKQotICoqUm9sZS1hc3NpZ25hYmxlIGdyb3VwcyoqOiBncm91cHMgaG9sZGluZyBhIHJvbGUgYXJlIGV4cGFuZGVkIHRvIHRoZWlyIHRyYW5zaXRpdmUgdXNlciBtZW1iZXJzCgpCYWNrZ3JvdW5kOiB3aGVuIHRoZSB0YXJnZXQgZ3JvdXAgZHJpdmVzICoqU1NQUioqIGFuZCB0aGUgU1NQUiBhZG1pbmlzdHJhdG9yIHBvbGljeSBpcyBkaXNhYmxlZCwgYWRtaW5zIGluIHRoZSBncm91cCB3b3VsZCBzdGlsbCBiZSBmb3JjZWQgdG8gcmVnaXN0ZXIgYSBzZWNvbmQgZmFjdG9yIG9uY2UgdHdvIFNTUFIgbWV0aG9kcyBhcmUgcmVxdWlyZWQuIEtlZXBpbmcgYWRtaW5zIG91dCBvZiB0aGUgZ3JvdXAgYXZvaWRzIHRoaXMuCgpUaGlzIG9wdGlvbiByZXF1aXJlcyB0aGUgYWRkaXRpb25hbCBHcmFwaCBwZXJtaXNzaW9uIGBSb2xlTWFuYWdlbWVudC5SZWFkLkRpcmVjdG9yeWAgZm9yIHRoZSBtYW5hZ2VkIGlkZW50aXR5LgoKIyMjIEV4Y2x1c2lvbiBncm91cCAoYEV4Y2x1ZGVHcm91cElkYCwgb3B0aW9uYWwpCgpUcmFuc2l0aXZlIHVzZXIgbWVtYmVycyBvZiB0aGUgY29uZmlndXJlZCBncm91cCBhcmUgZXhjbHVkZWQg4oCUIGludGVuZGVkIGZvciBhY2NvdW50cyB0aGF0IG11c3QgbmV2ZXIgYmUgbWFuYWdlZCBieSB0aGlzIHN5bmMsIHN1Y2ggYXMgKipicmVhayBnbGFzcyBhY2NvdW50cyoqIG9yICoqc2VydmljZSBhY2NvdW50cyoqLiBOZXN0ZWQgZ3JvdXBzIGFyZSBob25vcmVkLiBUaGUgZXhjbHVzaW9uIGdyb3VwIG11c3Qgbm90IGJlIHRoZSB0YXJnZXQgZ3JvdXAgaXRzZWxmLgoKIyMjIEluZGl2aWR1YWxseSBleGNsdWRlZCB1c2VycyAoYEV4Y2x1ZGVVc2VySWRzYCwgb3B0aW9uYWwpCgpJbmRpdmlkdWFsIHVzZXJzIGNhbiBiZSBleGNsdWRlZCBkaXJlY3RseSB2aWEgdGhlIG11bHRpLXVzZXIgcGlja2VyIOKAlCBmb3Igb25lLW9mZiBleGNsdXNpb25zIHdoZXJlIGEgZGVkaWNhdGVkIGV4Y2x1c2lvbiBncm91cCBpcyBub3Qgd29ydGggbWFpbnRhaW5pbmcuIFRoZSBsaXN0IGFjY2VwdHMgdXNlciAqKm9iamVjdCBJRHMqKiBhbmQgKip1c2VyIHByaW5jaXBhbCBuYW1lcyoqIChVUE5zKS4gVW5yZXNvbHZhYmxlIGVudHJpZXMgKGUuZy4gYSBkZWxldGVkIGFjY291bnQpIGxvZyBhIHdhcm5pbmcgYW5kIGFyZSBpZ25vcmVkLCBzbyBhIHN0YWxlIGVudHJ5IG5ldmVyIGJyZWFrcyBhIHNjaGVkdWxlZCBzeW5jLgoKIyMjIE1haW50YWluaW5nIGV4Y2x1c2lvbnMgdmlhIFJ1bmJvb2sgQ3VzdG9taXphdGlvbiAod2l0aG91dCB0aGUgcGlja2VycykKCkJvdGggZXhjbHVzaW9uIHBhcmFtZXRlcnMgY2FuIGJlIHByZS1zZXQgY2VudHJhbGx5IHZpYSBbSlNPTi1iYXNlZCBSdW5ib29rIEN1c3RvbWl6YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1jdXN0b21pemF0aW9uI2pzb24tYmFzZWQtY3VzdG9taXppbmcpIChSZWFsbUpvaW4gcG9ydGFsOiAqKlNldHRpbmdzKiog4oaSICoqUnVuYm9vayBDdXN0b21pemF0aW9ucyoqKSDigJQgdXNlZnVsIHdoZW4gdGhlIGV4Y2x1c2lvbnMgYXJlIGZpeGVkIGZvciB0aGUgdGVuYW50IGFuZCBzaG91bGQgbm90IGJlIHBpY2tlZCBtYW51YWxseSBlYWNoIHRpbWUgdGhlIHJ1bmJvb2sgaXMgc3RhcnRlZCBvciBzY2hlZHVsZWQ6CgpgYGBqc29uCnsKICAgICJSdW5ib29rcyI6IHsKICAgICAgICAicmpnaXQtb3JnX3NlY3VyaXR5X3N5bmMtbWZhLXNlY3VyZS11c2Vycy10by1ncm91cF9zY2hlZHVsZWQiOiB7CiAgICAgICAgICAgICJQYXJhbWV0ZXJzIjogewogICAgICAgICAgICAgICAgIkV4Y2x1ZGVHcm91cElkIjogewogICAgICAgICAgICAgICAgICAgICJEZWZhdWx0VmFsdWUiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwKICAgICAgICAgICAgICAgICAgICAiSGlkZSI6IHRydWUKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICAiRXhjbHVkZVVzZXJJZHMiOiB7CiAgICAgICAgICAgICAgICAgICAgIkRlZmF1bHRWYWx1ZSI6IFsKICAgICAgICAgICAgICAgICAgICAgICAgIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsCiAgICAgICAgICAgICAgICAgICAgICAgICJicmVha2dsYXNzQGNvbnRvc28uY29tIgogICAgICAgICAgICAgICAgICAgIF0sCiAgICAgICAgICAgICAgICAgICAgIkhpZGUiOiB0cnVlCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cn0KYGBgCgotICoqRXhjbHVkZUdyb3VwSWQqKiB0YWtlcyBhIHNpbmdsZSBncm91cCAqKm9iamVjdCBJRCoqIChHVUlEKSBhcyBhIHBsYWluIHN0cmluZyDigJQgY29weSBpdCBmcm9tIHRoZSBncm91cCdzIG92ZXJ2aWV3IHBhZ2UgaW4gdGhlIEVudHJhIGFkbWluIGNlbnRlciBvciB0aGUgUmVhbG1Kb2luIHBvcnRhbC4KLSAqKkV4Y2x1ZGVVc2VySWRzKiogdGFrZXMgYSBKU09OICoqYXJyYXkgb2Ygc3RyaW5ncyoqOyBlYWNoIGVudHJ5IGNhbiBiZSBhIHVzZXIgKipvYmplY3QgSUQqKiBvciBhICoqVVBOKiouIEVudHJpZXMgYXJlIHRyaW1tZWQgYW5kIGRlZHVwbGljYXRlZDsgdGhlIHJ1bmJvb2sgcmVzb2x2ZXMgdGhlbSBhdCBzdGFydHVwLgotICoqUmVjb21tZW5kZWQ6Kiogd2hlbiB0aGUgZXhjbHVzaW9ucyBhcmUgbWFpbnRhaW5lZCB2aWEgUnVuYm9vayBDdXN0b21pemF0aW9uLCBhbHNvIHNldCBgIkhpZGUiOiB0cnVlYCBvbiB0aGUgcGFyYW1ldGVyIChhcyBpbiB0aGUgZXhhbXBsZSBhYm92ZSkuIFRoaXMgcmVtb3ZlcyBpdCBmcm9tIHRoZSBzdGFydCBmb3JtIGVudGlyZWx5LCBzbyB0aGUgY2VudHJhbGx5IGNvbmZpZ3VyZWQgZXhjbHVzaW9ucyBjYW5ub3QgYmUgb3ZlcnJpZGRlbiBpbiB0aGUgVUkgd2hlbiBzdGFydGluZyBvciBzY2hlZHVsaW5nIHRoZSBydW5ib29rLiBXaXRob3V0IGBIaWRlYCwgdGhlIGNvbmZpZ3VyZWQgdmFsdWVzIG9ubHkgYXBwZWFyIHByZS1maWxsZWQgYW5kIGNhbiBzdGlsbCBiZSBjaGFuZ2VkIHRoZXJlLgoKIyMgTWV0aG9kIGNsYXNzaWZpY2F0aW9uIHJlZmVyZW5jZQoKVXNlIHRoZSBleGFjdCBHcmFwaCB2YWx1ZXMgZnJvbSB0aGlzIHRhYmxlIHdoZW4gYnVpbGRpbmcgdGhlIGNvbW1hLXNlcGFyYXRlZCBvdmVycmlkZSBzdHJpbmdzOgoKfCBgbWV0aG9kc1JlZ2lzdGVyZWRgIHZhbHVlIHwgRnJpZW5kbHkgbmFtZSB8IENsYXNzaWZpY2F0aW9uIHwgQ292ZXJlZCBieSB0b2dnbGUgKGRlZmF1bHQpIHwKfCAtLS0gfCAtLS0gfCAtLS0gfCAtLS0gfAp8IGBmaWRvMlNlY3VyaXR5S2V5YCB8IEZJRE8yIHNlY3VyaXR5IGtleSB8IFNlY3VyZSB8IFBhc3NrZXlzIC8gRklETzIgKG9uKSB8CnwgYHBhc3NLZXlEZXZpY2VCb3VuZGAgfCBQYXNza2V5IChkZXZpY2UtYm91bmQpIHwgU2VjdXJlIHwgUGFzc2tleXMgLyBGSURPMiAob24pIHwKfCBgcGFzc0tleURldmljZUJvdW5kQXV0aGVudGljYXRvcmAgfCBQYXNza2V5IGluIE1pY3Jvc29mdCBBdXRoZW50aWNhdG9yIHwgU2VjdXJlIHwgUGFzc2tleXMgLyBGSURPMiAob24pIHwKfCBgd2luZG93c0hlbGxvRm9yQnVzaW5lc3NgIHwgV2luZG93cyBIZWxsbyBmb3IgQnVzaW5lc3MgfCBTZWN1cmUgfCBQbGF0Zm9ybSBjcmVkZW50aWFscyAob24pIHwKfCBgcGFzc0tleURldmljZUJvdW5kV2luZG93c0hlbGxvYCB8IFBhc3NrZXkgaW4gV2luZG93cyBIZWxsbyB8IFNlY3VyZSB8IFBsYXRmb3JtIGNyZWRlbnRpYWxzIChvbikgfAp8IGBtYWNPc1NlY3VyZUVuY2xhdmVLZXlgIHwgUGxhdGZvcm0gQ3JlZGVudGlhbCBmb3IgbWFjT1MgfCBTZWN1cmUgfCBQbGF0Zm9ybSBjcmVkZW50aWFscyAob24pIHwKfCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclB1c2hgIHwgTWljcm9zb2Z0IEF1dGhlbnRpY2F0b3IgKHB1c2ggbm90aWZpY2F0aW9uKSB8IFNlY3VyZSB8IE1pY3Jvc29mdCBBdXRoZW50aWNhdG9yIGFwcCAob24pIHwKfCBgbWljcm9zb2Z0QXV0aGVudGljYXRvclBhc3N3b3JkbGVzc2AgfCBNaWNyb3NvZnQgQXV0aGVudGljYXRvciAocGFzc3dvcmRsZXNzIHBob25lIHNpZ24taW4pIHwgU2VjdXJlIHwgTWljcm9zb2Z0IEF1dGhlbnRpY2F0b3IgYXBwIChvbikgfAp8IGBzb2Z0d2FyZU9uZVRpbWVQYXNzY29kZWAgfCBTb2Z0d2FyZSBPQVRIIHRva2VuIChUT1RQIGFwcCkgfCBTZWN1cmUgfCBTb2Z0d2FyZSBPVFAgKG9mZikgfAp8IGBoYXJkd2FyZU9uZVRpbWVQYXNzY29kZWAgfCBIYXJkd2FyZSBPQVRIIHRva2VuIHwgU2VjdXJlIHwgSGFyZHdhcmUgT1RQIChvZmYpIHwKfCBgY2VydGlmaWNhdGVCYXNlZEF1dGhlbnRpY2F0aW9uYCB8IENlcnRpZmljYXRlLWJhc2VkIGF1dGhlbnRpY2F0aW9uIHwgU2VjdXJlIHwgQ2VydGlmaWNhdGUtYmFzZWQgYXV0aGVudGljYXRpb24gKG9uKSB8CnwgYG1vYmlsZVBob25lYCB8IFBob25lIChTTVMgLyB2b2ljZSBjYWxsKSB8IFVuc2VjdXJlIHwgYnVpbHQtaW4gdW5zZWN1cmUgbGlzdCB8CnwgYGFsdGVybmF0ZU1vYmlsZVBob25lYCB8IEFsdGVybmF0ZSBwaG9uZSAodm9pY2UgY2FsbCkgfCBVbnNlY3VyZSB8IGJ1aWx0LWluIHVuc2VjdXJlIGxpc3QgfAp8IGBvZmZpY2VQaG9uZWAgfCBPZmZpY2UgcGhvbmUgKHZvaWNlIGNhbGwpIHwgVW5zZWN1cmUgfCBidWlsdC1pbiB1bnNlY3VyZSBsaXN0IHwKfCBgZW1haWxgIHwgRW1haWwgKFNTUFIgb25seSkgfCBVbnNlY3VyZSB8IGJ1aWx0LWluIHVuc2VjdXJlIGxpc3QgfAp8IGBzZWN1cml0eVF1ZXN0aW9uYCB8IFNlY3VyaXR5IHF1ZXN0aW9ucyAoU1NQUiBvbmx5KSB8IFVuc2VjdXJlIHwgYnVpbHQtaW4gdW5zZWN1cmUgbGlzdCB8CnwgYHRlbXBvcmFyeUFjY2Vzc1Bhc3NgIHwgVGVtcG9yYXJ5IEFjY2VzcyBQYXNzIHwgTmV1dHJhbCB8IG5ldmVyIHF1YWxpZmllcywgbmV2ZXIgZGlzcXVhbGlmaWVzIHwKClVua25vd24gb3IgZnV0dXJlIEdyYXBoIHZhbHVlcyBhcmUgdHJlYXRlZCBhcyBuZXV0cmFsIHVubGVzcyBleHBsaWNpdGx5IGxpc3RlZCBpbiBhbiBvdmVycmlkZSBwYXJhbWV0ZXIuCgojIyBPdmVycmlkZSBwYXJhbWV0ZXJzCgpCb3RoIG92ZXJyaWRlIHBhcmFtZXRlcnMgYXJlIGhpZGRlbiBieSBkZWZhdWx0IGFuZCBpbnRlbmRlZCBmb3IgUmVhbG1Kb2luIHJ1bmJvb2sgY3VzdG9taXphdGlvbjoKCi0gKipTZWN1cmVNZXRob2RzT3ZlcnJpZGUqKiDigJQgY29tbWEtc2VwYXJhdGVkIGxpc3Qgb2YgYG1ldGhvZHNSZWdpc3RlcmVkYCB2YWx1ZXMgdGhhdCBkZWZpbmVzIHRoZSBzZWN1cmUgc2V0LiBXaGVuIHNldCwgKiphbGwqKiBtZXRob2QgZ3JvdXAgdG9nZ2xlcyBhcmUgaWdub3JlZC4gRXhhbXBsZTogYGZpZG8yU2VjdXJpdHlLZXkscGFzc0tleURldmljZUJvdW5kLHBhc3NLZXlEZXZpY2VCb3VuZEF1dGhlbnRpY2F0b3Isd2luZG93c0hlbGxvRm9yQnVzaW5lc3NgCi0gKipVbnNlY3VyZU1ldGhvZHNPdmVycmlkZSoqIOKAlCBjb21tYS1zZXBhcmF0ZWQgbGlzdCB0aGF0IHJlcGxhY2VzIHRoZSBidWlsdC1pbiB1bnNlY3VyZSBsaXN0LiBPbmx5IGV2YWx1YXRlZCBpbiBzdHJpY3QgbW9kZS4gRXhhbXBsZTogYG1vYmlsZVBob25lLGFsdGVybmF0ZU1vYmlsZVBob25lLG9mZmljZVBob25lLGVtYWlsLHNlY3VyaXR5UXVlc3Rpb24sc29mdHdhcmVPbmVUaW1lUGFzc2NvZGVgCgpVbmtub3duIHZhbHVlcyBwcm9kdWNlIGEgd2FybmluZyBidXQgYXJlIHN0aWxsIGV2YWx1YXRlZCwgc28gZnV0dXJlIEdyYXBoIHZhbHVlcyBjYW4gYmUgdXNlZCBiZWZvcmUgdGhpcyBkb2N1bWVudGF0aW9uIGNhdGNoZXMgdXAuCgojIyBFbWFpbCByZXBvcnQgYW5kIGRvd25sb2FkIGxpbmtzCgpPcHRpb25hbGx5LCBhIGRldGFpbGVkIHJlcG9ydCBjYW4gYmUgZGVsaXZlcmVkIC0gZXNwZWNpYWxseSB1c2VmdWwgZm9yIHJldmlld2luZyB0aGUgdmVyeSBmaXJzdCBydW4gKGlkZWFsbHkgY29tYmluZWQgd2l0aCB0aGUgZHJ5IHJ1biBtb2RlKToKCi0gKipTZW5kIHJlcG9ydCB2aWEgZW1haWwqKiAoYFNlbmRFbWFpbGAsIG9mZiBieSBkZWZhdWx0KTogc2VuZHMgdGhlIHJlcG9ydCB0byB0aGUgY29uZmlndXJlZCByZWNpcGllbnQocykuIFRoZSByZWNpcGllbnQgZmllbGQgb25seSBhcHBlYXJzIHdoZW4gZW1haWwgaXMgZW5hYmxlZC4gUmVxdWlyZXMgdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcgKHNlZSB0aGUgW2VtYWlsIHJlcG9ydGluZyBzZXR1cF0oaHR0cHM6Ly9naXRodWIuY29tL3JlYWxtam9pbi9yZWFsbWpvaW4tcnVuYm9va3MvdHJlZS9tYXN0ZXIvZG9jcy9nZW5lcmFsL3NldHVwLWVtYWlsLXJlcG9ydGluZy5tZCkpLgotICoqQ3JlYXRlIGZpbGUgZG93bmxvYWQgbGlua3MqKiAoYENyZWF0ZURvd25sb2FkTGlua2AsIG9mZiBieSBkZWZhdWx0KTogdXBsb2FkcyB0aGUgcmVwb3J0IGZpbGVzIHRvIGFuIEF6dXJlIFN0b3JhZ2UgQWNjb3VudCBhbmQgcmV0dXJucyB0aW1lLWxpbWl0ZWQgZG93bmxvYWQgbGlua3MgKHVzZXMgdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCB0ZW5hbnQgc2V0dGluZ3MpLgoKUmVwb3J0IGZpbGVzIGFyZSBvbmx5IGdlbmVyYXRlZCB3aGVuIGF0IGxlYXN0IG9uZSBvZiB0aGUgdHdvIG9wdGlvbnMgaXMgZW5hYmxlZC4gVGhlIHJlcG9ydCBjb25zaXN0cyBvZjoKCi0gKiptZmEtc2VjdXJlLXVzZXJzLWdyb3VwLXN5bmMtY2hhbmdlcy5jc3YqKiAtIGFsbCBwZXJmb3JtZWQgKG9yLCBpbiBkcnkgcnVuLCBwZW5kaW5nKSBjaGFuZ2VzIHdpdGggcGVyLXVzZXIgbWV0aG9kIGRldGFpbHMKLSAqKm1mYS1zZWN1cmUtdXNlcnMtZ3JvdXAtc3luYy1hbGwtdXNlcnMuY3N2KiogLSB0aGUgZXZhbHVhdGlvbiBvZiBldmVyeSBtZW1iZXIgdXNlcjogcmVnaXN0ZXJlZCBtZXRob2RzLCBzZWN1cmUvdW5zZWN1cmUgY2xhc3NpZmljYXRpb24sIHF1YWxpZmljYXRpb24sIGV4Y2x1c2lvbiByZWFzb24gYW5kIGdyb3VwIG1lbWJlcnNoaXAKLSAqKm1mYS1zZWN1cmUtdXNlcnMtZ3JvdXAtc3luYy1yZXBvcnQueGxzeCoqIC0gdGhlIHNhbWUgZGF0YSBhcyBhIGZvcm1hdHRlZCBFeGNlbCB3b3JrYm9vazogYW4gIkluZm8iIGNvdmVyIHNoZWV0IHdpdGggdGhlIGNob3NlbiBwYXJhbWV0ZXJzIGFuZCByZXN1bHQgY291bnRzLCBhICJDaGFuZ2VzIiB3b3Jrc2hlZXQgKGFkZGVkIHVzZXJzIGhpZ2hsaWdodGVkIGluIGdyZWVuLCByZW1vdmVkIGluIHJlZCkgYW5kIGFuICJBbGwgVXNlcnMiIHdvcmtzaGVldAoKSW4gbGFyZ2UgdGVuYW50cyB0aGUgcmF3IENTViBmaWxlcyBjYW4gZXhjZWVkIHRoZSBlbWFpbCBhdHRhY2htZW50IHNpemUgbGltaXQgKEdyYXBoIHJlamVjdHMgbWFpbHMgYXQgcm91Z2hseSA0IE1CIHRvdGFsKS4gV2hlbiB0aGUgQ1NWIGZpbGVzIGV4Y2VlZCBhIDIuNSBNQiBidWRnZXQsIHRoZSBlbWFpbCBpcyBzZW50IHdpdGggb25seSB0aGUgRXhjZWwgd29ya2Jvb2sgYXR0YWNoZWQgKHdoaWNoIGNvbnRhaW5zIHRoZSBjb21wbGV0ZSBkYXRhIGluIGNvbXByZXNzZWQgZm9ybSkgYW5kIGEgbm90ZSBleHBsYWluaW5nIHRoZSBvbWlzc2lvbjsgYSBmYWlsZWQgZnVsbC1zaXplIHNlbmQgaXMgYWxzbyByZXRyaWVkIGF1dG9tYXRpY2FsbHkgd2l0aCB0aGUgd29ya2Jvb2sgb25seS4gVGhlIGRvd25sb2FkIGxpbmsgdXBsb2FkIGFsd2F5cyBpbmNsdWRlcyBhbGwgZmlsZXMgcmVnYXJkbGVzcyBvZiBzaXplLgoKIyMgTm90ZXMgYW5kIGxpbWl0YXRpb25zCgotIFRoZSByZWdpc3RyYXRpb24gcmVwb3J0IHJlcXVpcmVzIGFuICoqRW50cmEgSUQgUDEgb3IgUDIqKiBsaWNlbnNlLgotIFBJTS1lbGlnaWJsZSByb2xlIGFzc2lnbm1lbnRzIChhZG1pbiBleGNsdXNpb24pIHJlcXVpcmUgYW4gKipFbnRyYSBJRCBQMioqIGxpY2Vuc2Ug4oCUIHdpdGhvdXQgaXQsIG9ubHkgYWN0aXZlIHJvbGUgYXNzaWdubWVudHMgYXJlIGV4Y2x1ZGVkLgotIFRoZSByZXBvcnQgZG9lcyBub3QgaW5jbHVkZSAqKmRpc2FibGVkKiogb3Igc29mdC1kZWxldGVkIHVzZXJzIOKAlCBzdWNoIGFjY291bnRzIGFyZSByZW1vdmVkIGZyb20gdGhlIGdyb3VwIG9uIHRoZSBuZXh0IHJ1bi4KLSBSZXBvcnQgZGF0YSBjYW4gbGFnIGJlaGluZCByZWNlbnQgcmVnaXN0cmF0aW9uIGNoYW5nZXM7IGEgbmV3bHkgcmVnaXN0ZXJlZCBtZXRob2QgbWF5IHRha2Ugb25lIHN5bmMgY3ljbGUgdG8gYmUgcmVmbGVjdGVkLgotIFRoZSBydW5ib29rIHByb2Nlc3NlcyBsYXJnZSB0ZW5hbnRzICgyMGsrIHVzZXJzKSB2aWEgcGFnZWQgcmVwb3J0IHJlYWRzIGFuZCBiYXRjaGVkIGdyb3VwIHdyaXRlcyB3aXRoIGF1dG9tYXRpYyB0aHJvdHRsaW5nIHJldHJpZXMuCgojIyBTY2hlZHVsaW5nCgpUaGUgc3luYyBpcyBpZGVtcG90ZW50IOKAlCBhIHNpbmdsZSByZWN1cnJpbmcgc2NoZWR1bGUgKGUuZy4gZGFpbHkpIGtlZXBzIHRoZSBncm91cCB1cCB0byBkYXRlLCBhbmQgcmVydW5zIGFmdGVyIHBhcnRpYWwgZmFpbHVyZXMgc2VsZi1oZWFsLiBSZWNvbW1lbmRhdGlvbjogcnVuIG9uY2Ugd2l0aCAqKkRyeSBydW4gKFdoYXRJZikqKiBlbmFibGVkIGFuZCByZXZpZXcgdGhlIGpvYiBvdXRwdXQgYmVmb3JlIHNjaGVkdWxpbmcgdGhlIHJ1bmJvb2sgaW4gbGl2ZSBtb2RlLgo=",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"AuditLog.Read.All\",\n                \"Group.Read.All\",\n                \"RoleManagement.Read.Directory\",\n                \"GroupMember.ReadWrite.All\",\n                \"User.Read.All\",\n                \"Organization.Read.All\",\n                \"Mail.Send\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -18011,6 +18246,7 @@
             "GroupMember.ReadWrite.All",
             "Mail.Send",
             "Organization.Read.All",
+            "RoleManagement.Read.Directory",
             "User.Read.All"
           ]
         }
@@ -20767,15 +21003,15 @@
     "RelativeRunbookPath_PathOnly": "user/mail",
     "PrimaryFolder": "User",
     "SubFolder": "Mail",
-    "Synopsis": "Delegate FullAccess permissions to another user on a mailbox or remove existing delegation",
-    "Description": "Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.\nAlso shows the current and new permissions for the mailbox.\nAutomapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.",
+    "Synopsis": "Grant or revoke Exchange Online FullAccess mailbox permission for one or more users",
+    "Description": "Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.",
     "Notes": null,
     "Parameters": [
       {
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, enables Outlook automapping when granting FullAccess."
+            "Text": "If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false)."
           }
         ],
         "globbing": "false",
@@ -20792,7 +21028,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Caller name is tracked purely for auditing purposes."
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
           }
         ],
         "globbing": "false",
@@ -20809,24 +21045,24 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the delegate."
+            "Text": "One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously."
           }
         ],
         "globbing": "false",
         "name": "delegateTo",
-        "parameterValue": "String",
+        "parameterValue": "String[]",
         "pipelineInput": "false",
         "position": "2",
         "required": "true",
         "type": {
-          "name": "String"
+          "name": "String[]"
         }
       },
       {
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, removes the delegation instead of granting it."
+            "Text": "If set to true, the script will remove the FullAccess permission. If false, it will grant the permission."
           }
         ],
         "globbing": "false",
@@ -20843,7 +21079,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the mailbox."
+            "Text": "User principal name of the mailbox owner."
           }
         ],
         "globbing": "false",
@@ -20857,9 +21093,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## How it works\n\nOn each run the runbook:\n\n1. Connects to Exchange Online with the Automation account's managed identity.\n2. Verifies that the selected mailbox owner (`UserName`) actually has a mailbox - if not, the run stops before anything is changed.\n3. Resolves every selected delegate to its primary SMTP address and drops duplicates and the mailbox owner itself.\n4. Reads and prints the current **FullAccess** delegations on the mailbox (the *status quo*).\n5. Grants or removes FullAccess for each remaining delegate, one at a time.\n6. Re-reads the mailbox permissions and prints the resulting state plus a per-run summary.\n\nThe runbook only ever touches the **FullAccess** right on the one selected mailbox. Send As, Send on Behalf and folder-level permissions are not affected.\n\n### Selecting delegates\n\nThe **Delegate access to** field is a **multi-select** user picker. Select as many delegates as needed - all of them receive the same action (*Grant access* or *Remove access*) and the same AutoMapping setting from the form in a single run.\n\nThe picker is restricted to member accounts (`userType eq 'Member'`), so guest accounts are not offered. It hands over each selected delegate as a **user principal name**, so the very first log line already reads as a list of UPNs instead of raw object IDs. Each value is then resolved against Exchange Online, and from the preflight step onward all output shows the delegate's primary SMTP address.\n\nTwo picker entries that resolve to the same mailbox are de-duplicated, and a delegate that resolves to the mailbox owner is dropped with a warning - a mailbox cannot be delegated to itself.\n\n### What gets changed\n\n- **Grant access (`Remove` = false):** `Add-MailboxPermission` with `-AccessRights FullAccess` for each delegate.\n- **Remove access (`Remove` = true):** `Remove-MailboxPermission` with `-AccessRights FullAccess -InheritanceType All` for each delegate.\n\n### AutoMapping\n\n**`AutoMapping`** is only evaluated when granting access; the portal hides the field when *Remove access* is selected. With AutoMapping enabled, Outlook adds the delegated mailbox to the delegate's profile automatically - but only after the client re-creates the mapping, which can take a while. Existing grants are not re-written to change their AutoMapping value; remove the delegation and grant it again if the mapping behaviour must change.\n\n### Idempotent by design\n\nNothing is done twice and nothing fails just because it was already true:\n\n- Granting access to a delegate who already holds FullAccess is reported as *unchanged*, not as an error.\n- Removing access from a delegate who has no FullAccess entry is reported as *unchanged*, not as an error.\n- When the pre-change snapshot cannot classify an existing permission entry, the runbook does **not** take the shortcut - it calls Exchange Online and lets its response decide, so a removable delegation is never silently skipped.\n\n### Partial results\n\nDelegates are processed independently:\n\n- A delegate **without a mailbox** is skipped during the preflight check and counted as *skipped*; the remaining delegates are still processed. If none of the selected delegates has a mailbox, the run stops.\n- A delegate whose change **fails** is reported with a targeted reason (directory-replication delay, insufficient Exchange Online permissions on the managed identity, a permission inherited from a group, or a shared/unlicensed mailbox) and the loop continues with the rest.\n\nEvery run ends with a summary line in the form `Summary: <changed>, <unchanged>, <failed>, <skipped (no mailbox)>`, followed by the resulting FullAccess delegations on the mailbox.\n\nIf **any** delegate failed, the runbook itself reports a failure. This is deliberate: with a multi-select picker, a partial success reported as a clean run would hide delegates that never received access.\n\n### Limitations\n\n- **Inherited permissions cannot be removed.** A FullAccess right that comes from a role group or security group membership is shown as *inherited* but cannot be revoked here - adjust the group membership or role assignment instead.\n- **Only explicit Allow grants are managed.** An explicit **Deny** entry on the mailbox is displayed for transparency, but the runbook never adds or removes one.\n\n### Prerequisites\n\nThe Automation account's managed identity connects to Exchange Online via `Connect-RjRbExchangeOnline` and needs:\n\n- the `Exchange.ManageAsApp` application permission on *Office 365 Exchange Online*, and\n- the **Exchange Administrator** role (or an equivalent Exchange Online RBAC role that includes `Add-MailboxPermission` and `Remove-MailboxPermission`).\n\nThe runbook makes no Microsoft Graph calls - the user picker is a portal-side annotation only, so no Graph application permissions are required.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpPbiBlYWNoIHJ1biB0aGUgcnVuYm9vazoKCjEuIENvbm5lY3RzIHRvIEV4Y2hhbmdlIE9ubGluZSB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5LgoyLiBWZXJpZmllcyB0aGF0IHRoZSBzZWxlY3RlZCBtYWlsYm94IG93bmVyIChgVXNlck5hbWVgKSBhY3R1YWxseSBoYXMgYSBtYWlsYm94IC0gaWYgbm90LCB0aGUgcnVuIHN0b3BzIGJlZm9yZSBhbnl0aGluZyBpcyBjaGFuZ2VkLgozLiBSZXNvbHZlcyBldmVyeSBzZWxlY3RlZCBkZWxlZ2F0ZSB0byBpdHMgcHJpbWFyeSBTTVRQIGFkZHJlc3MgYW5kIGRyb3BzIGR1cGxpY2F0ZXMgYW5kIHRoZSBtYWlsYm94IG93bmVyIGl0c2VsZi4KNC4gUmVhZHMgYW5kIHByaW50cyB0aGUgY3VycmVudCAqKkZ1bGxBY2Nlc3MqKiBkZWxlZ2F0aW9ucyBvbiB0aGUgbWFpbGJveCAodGhlICpzdGF0dXMgcXVvKikuCjUuIEdyYW50cyBvciByZW1vdmVzIEZ1bGxBY2Nlc3MgZm9yIGVhY2ggcmVtYWluaW5nIGRlbGVnYXRlLCBvbmUgYXQgYSB0aW1lLgo2LiBSZS1yZWFkcyB0aGUgbWFpbGJveCBwZXJtaXNzaW9ucyBhbmQgcHJpbnRzIHRoZSByZXN1bHRpbmcgc3RhdGUgcGx1cyBhIHBlci1ydW4gc3VtbWFyeS4KClRoZSBydW5ib29rIG9ubHkgZXZlciB0b3VjaGVzIHRoZSAqKkZ1bGxBY2Nlc3MqKiByaWdodCBvbiB0aGUgb25lIHNlbGVjdGVkIG1haWxib3guIFNlbmQgQXMsIFNlbmQgb24gQmVoYWxmIGFuZCBmb2xkZXItbGV2ZWwgcGVybWlzc2lvbnMgYXJlIG5vdCBhZmZlY3RlZC4KCiMjIyBTZWxlY3RpbmcgZGVsZWdhdGVzCgpUaGUgKipEZWxlZ2F0ZSBhY2Nlc3MgdG8qKiBmaWVsZCBpcyBhICoqbXVsdGktc2VsZWN0KiogdXNlciBwaWNrZXIuIFNlbGVjdCBhcyBtYW55IGRlbGVnYXRlcyBhcyBuZWVkZWQgLSBhbGwgb2YgdGhlbSByZWNlaXZlIHRoZSBzYW1lIGFjdGlvbiAoKkdyYW50IGFjY2Vzcyogb3IgKlJlbW92ZSBhY2Nlc3MqKSBhbmQgdGhlIHNhbWUgQXV0b01hcHBpbmcgc2V0dGluZyBmcm9tIHRoZSBmb3JtIGluIGEgc2luZ2xlIHJ1bi4KClRoZSBwaWNrZXIgaXMgcmVzdHJpY3RlZCB0byBtZW1iZXIgYWNjb3VudHMgKGB1c2VyVHlwZSBlcSAnTWVtYmVyJ2ApLCBzbyBndWVzdCBhY2NvdW50cyBhcmUgbm90IG9mZmVyZWQuIEl0IGhhbmRzIG92ZXIgZWFjaCBzZWxlY3RlZCBkZWxlZ2F0ZSBhcyBhICoqdXNlciBwcmluY2lwYWwgbmFtZSoqLCBzbyB0aGUgdmVyeSBmaXJzdCBsb2cgbGluZSBhbHJlYWR5IHJlYWRzIGFzIGEgbGlzdCBvZiBVUE5zIGluc3RlYWQgb2YgcmF3IG9iamVjdCBJRHMuIEVhY2ggdmFsdWUgaXMgdGhlbiByZXNvbHZlZCBhZ2FpbnN0IEV4Y2hhbmdlIE9ubGluZSwgYW5kIGZyb20gdGhlIHByZWZsaWdodCBzdGVwIG9ud2FyZCBhbGwgb3V0cHV0IHNob3dzIHRoZSBkZWxlZ2F0ZSdzIHByaW1hcnkgU01UUCBhZGRyZXNzLgoKVHdvIHBpY2tlciBlbnRyaWVzIHRoYXQgcmVzb2x2ZSB0byB0aGUgc2FtZSBtYWlsYm94IGFyZSBkZS1kdXBsaWNhdGVkLCBhbmQgYSBkZWxlZ2F0ZSB0aGF0IHJlc29sdmVzIHRvIHRoZSBtYWlsYm94IG93bmVyIGlzIGRyb3BwZWQgd2l0aCBhIHdhcm5pbmcgLSBhIG1haWxib3ggY2Fubm90IGJlIGRlbGVnYXRlZCB0byBpdHNlbGYuCgojIyMgV2hhdCBnZXRzIGNoYW5nZWQKCi0gKipHcmFudCBhY2Nlc3MgKGBSZW1vdmVgID0gZmFsc2UpOioqIGBBZGQtTWFpbGJveFBlcm1pc3Npb25gIHdpdGggYC1BY2Nlc3NSaWdodHMgRnVsbEFjY2Vzc2AgZm9yIGVhY2ggZGVsZWdhdGUuCi0gKipSZW1vdmUgYWNjZXNzIChgUmVtb3ZlYCA9IHRydWUpOioqIGBSZW1vdmUtTWFpbGJveFBlcm1pc3Npb25gIHdpdGggYC1BY2Nlc3NSaWdodHMgRnVsbEFjY2VzcyAtSW5oZXJpdGFuY2VUeXBlIEFsbGAgZm9yIGVhY2ggZGVsZWdhdGUuCgojIyMgQXV0b01hcHBpbmcKCioqYEF1dG9NYXBwaW5nYCoqIGlzIG9ubHkgZXZhbHVhdGVkIHdoZW4gZ3JhbnRpbmcgYWNjZXNzOyB0aGUgcG9ydGFsIGhpZGVzIHRoZSBmaWVsZCB3aGVuICpSZW1vdmUgYWNjZXNzKiBpcyBzZWxlY3RlZC4gV2l0aCBBdXRvTWFwcGluZyBlbmFibGVkLCBPdXRsb29rIGFkZHMgdGhlIGRlbGVnYXRlZCBtYWlsYm94IHRvIHRoZSBkZWxlZ2F0ZSdzIHByb2ZpbGUgYXV0b21hdGljYWxseSAtIGJ1dCBvbmx5IGFmdGVyIHRoZSBjbGllbnQgcmUtY3JlYXRlcyB0aGUgbWFwcGluZywgd2hpY2ggY2FuIHRha2UgYSB3aGlsZS4gRXhpc3RpbmcgZ3JhbnRzIGFyZSBub3QgcmUtd3JpdHRlbiB0byBjaGFuZ2UgdGhlaXIgQXV0b01hcHBpbmcgdmFsdWU7IHJlbW92ZSB0aGUgZGVsZWdhdGlvbiBhbmQgZ3JhbnQgaXQgYWdhaW4gaWYgdGhlIG1hcHBpbmcgYmVoYXZpb3VyIG11c3QgY2hhbmdlLgoKIyMjIElkZW1wb3RlbnQgYnkgZGVzaWduCgpOb3RoaW5nIGlzIGRvbmUgdHdpY2UgYW5kIG5vdGhpbmcgZmFpbHMganVzdCBiZWNhdXNlIGl0IHdhcyBhbHJlYWR5IHRydWU6CgotIEdyYW50aW5nIGFjY2VzcyB0byBhIGRlbGVnYXRlIHdobyBhbHJlYWR5IGhvbGRzIEZ1bGxBY2Nlc3MgaXMgcmVwb3J0ZWQgYXMgKnVuY2hhbmdlZCosIG5vdCBhcyBhbiBlcnJvci4KLSBSZW1vdmluZyBhY2Nlc3MgZnJvbSBhIGRlbGVnYXRlIHdobyBoYXMgbm8gRnVsbEFjY2VzcyBlbnRyeSBpcyByZXBvcnRlZCBhcyAqdW5jaGFuZ2VkKiwgbm90IGFzIGFuIGVycm9yLgotIFdoZW4gdGhlIHByZS1jaGFuZ2Ugc25hcHNob3QgY2Fubm90IGNsYXNzaWZ5IGFuIGV4aXN0aW5nIHBlcm1pc3Npb24gZW50cnksIHRoZSBydW5ib29rIGRvZXMgKipub3QqKiB0YWtlIHRoZSBzaG9ydGN1dCAtIGl0IGNhbGxzIEV4Y2hhbmdlIE9ubGluZSBhbmQgbGV0cyBpdHMgcmVzcG9uc2UgZGVjaWRlLCBzbyBhIHJlbW92YWJsZSBkZWxlZ2F0aW9uIGlzIG5ldmVyIHNpbGVudGx5IHNraXBwZWQuCgojIyMgUGFydGlhbCByZXN1bHRzCgpEZWxlZ2F0ZXMgYXJlIHByb2Nlc3NlZCBpbmRlcGVuZGVudGx5OgoKLSBBIGRlbGVnYXRlICoqd2l0aG91dCBhIG1haWxib3gqKiBpcyBza2lwcGVkIGR1cmluZyB0aGUgcHJlZmxpZ2h0IGNoZWNrIGFuZCBjb3VudGVkIGFzICpza2lwcGVkKjsgdGhlIHJlbWFpbmluZyBkZWxlZ2F0ZXMgYXJlIHN0aWxsIHByb2Nlc3NlZC4gSWYgbm9uZSBvZiB0aGUgc2VsZWN0ZWQgZGVsZWdhdGVzIGhhcyBhIG1haWxib3gsIHRoZSBydW4gc3RvcHMuCi0gQSBkZWxlZ2F0ZSB3aG9zZSBjaGFuZ2UgKipmYWlscyoqIGlzIHJlcG9ydGVkIHdpdGggYSB0YXJnZXRlZCByZWFzb24gKGRpcmVjdG9yeS1yZXBsaWNhdGlvbiBkZWxheSwgaW5zdWZmaWNpZW50IEV4Y2hhbmdlIE9ubGluZSBwZXJtaXNzaW9ucyBvbiB0aGUgbWFuYWdlZCBpZGVudGl0eSwgYSBwZXJtaXNzaW9uIGluaGVyaXRlZCBmcm9tIGEgZ3JvdXAsIG9yIGEgc2hhcmVkL3VubGljZW5zZWQgbWFpbGJveCkgYW5kIHRoZSBsb29wIGNvbnRpbnVlcyB3aXRoIHRoZSByZXN0LgoKRXZlcnkgcnVuIGVuZHMgd2l0aCBhIHN1bW1hcnkgbGluZSBpbiB0aGUgZm9ybSBgU3VtbWFyeTogPGNoYW5nZWQ+LCA8dW5jaGFuZ2VkPiwgPGZhaWxlZD4sIDxza2lwcGVkIChubyBtYWlsYm94KT5gLCBmb2xsb3dlZCBieSB0aGUgcmVzdWx0aW5nIEZ1bGxBY2Nlc3MgZGVsZWdhdGlvbnMgb24gdGhlIG1haWxib3guCgpJZiAqKmFueSoqIGRlbGVnYXRlIGZhaWxlZCwgdGhlIHJ1bmJvb2sgaXRzZWxmIHJlcG9ydHMgYSBmYWlsdXJlLiBUaGlzIGlzIGRlbGliZXJhdGU6IHdpdGggYSBtdWx0aS1zZWxlY3QgcGlja2VyLCBhIHBhcnRpYWwgc3VjY2VzcyByZXBvcnRlZCBhcyBhIGNsZWFuIHJ1biB3b3VsZCBoaWRlIGRlbGVnYXRlcyB0aGF0IG5ldmVyIHJlY2VpdmVkIGFjY2Vzcy4KCiMjIyBMaW1pdGF0aW9ucwoKLSAqKkluaGVyaXRlZCBwZXJtaXNzaW9ucyBjYW5ub3QgYmUgcmVtb3ZlZC4qKiBBIEZ1bGxBY2Nlc3MgcmlnaHQgdGhhdCBjb21lcyBmcm9tIGEgcm9sZSBncm91cCBvciBzZWN1cml0eSBncm91cCBtZW1iZXJzaGlwIGlzIHNob3duIGFzICppbmhlcml0ZWQqIGJ1dCBjYW5ub3QgYmUgcmV2b2tlZCBoZXJlIC0gYWRqdXN0IHRoZSBncm91cCBtZW1iZXJzaGlwIG9yIHJvbGUgYXNzaWdubWVudCBpbnN0ZWFkLgotICoqT25seSBleHBsaWNpdCBBbGxvdyBncmFudHMgYXJlIG1hbmFnZWQuKiogQW4gZXhwbGljaXQgKipEZW55KiogZW50cnkgb24gdGhlIG1haWxib3ggaXMgZGlzcGxheWVkIGZvciB0cmFuc3BhcmVuY3ksIGJ1dCB0aGUgcnVuYm9vayBuZXZlciBhZGRzIG9yIHJlbW92ZXMgb25lLgoKIyMjIFByZXJlcXVpc2l0ZXMKClRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5IGNvbm5lY3RzIHRvIEV4Y2hhbmdlIE9ubGluZSB2aWEgYENvbm5lY3QtUmpSYkV4Y2hhbmdlT25saW5lYCBhbmQgbmVlZHM6CgotIHRoZSBgRXhjaGFuZ2UuTWFuYWdlQXNBcHBgIGFwcGxpY2F0aW9uIHBlcm1pc3Npb24gb24gKk9mZmljZSAzNjUgRXhjaGFuZ2UgT25saW5lKiwgYW5kCi0gdGhlICoqRXhjaGFuZ2UgQWRtaW5pc3RyYXRvcioqIHJvbGUgKG9yIGFuIGVxdWl2YWxlbnQgRXhjaGFuZ2UgT25saW5lIFJCQUMgcm9sZSB0aGF0IGluY2x1ZGVzIGBBZGQtTWFpbGJveFBlcm1pc3Npb25gIGFuZCBgUmVtb3ZlLU1haWxib3hQZXJtaXNzaW9uYCkuCgpUaGUgcnVuYm9vayBtYWtlcyBubyBNaWNyb3NvZnQgR3JhcGggY2FsbHMgLSB0aGUgdXNlciBwaWNrZXIgaXMgYSBwb3J0YWwtc2lkZSBhbm5vdGF0aW9uIG9ubHksIHNvIG5vIEdyYXBoIGFwcGxpY2F0aW9uIHBlcm1pc3Npb25zIGFyZSByZXF1aXJlZC4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange Administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -20871,7 +21107,7 @@
         }
       ],
       "Roles": [
-        "Exchange administrator"
+        "Exchange Administrator"
       ],
       "ManualPermissions": []
     }
@@ -21269,11 +21505,11 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"MG Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Place.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Place.Read.All\"\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}",
     "PermissionsJson": {
       "Permissions": [
         {
-          "Name": "MG Graph",
+          "Name": "Microsoft Graph",
           "Id": "00000003-0000-0000-c000-000000000000",
           "AppRoleAssignments": [
             "Place.Read.All"
@@ -21430,8 +21666,8 @@
     "RelativeRunbookPath_PathOnly": "user/mail",
     "PrimaryFolder": "User",
     "SubFolder": "Mail",
-    "Synopsis": "Enable or disable out-of-office notifications for a mailbox",
-    "Description": "Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.",
+    "Synopsis": "Enable or disable mailbox out-of-office notifications",
+    "Description": "Configures automatic replies for a mailbox and can optionally create an out-of-office calendar event. The runbook can either enable scheduled replies with internal and external messages or disable existing out-of-office settings.",
     "Notes": null,
     "Parameters": [
       {
@@ -21445,7 +21681,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "true",
         "type": {
           "name": "String"
@@ -21462,7 +21698,7 @@
         "name": "CreateEvent",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -21472,7 +21708,7 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "\"Enable Out-of-Office\" (final value: $false) or \"Disable Out-of-Office\" (final value: $true) can be selected as action to perform."
+            "Text": "Select whether to enable out-of-office notifications or disable existing out-of-office settings."
           }
         ],
         "globbing": "false",
@@ -21486,10 +21722,10 @@
         }
       },
       {
-        "defaultValue": "((get-date) + (new-timespan -Days 3650))",
+        "defaultValue": "((Get-Date) + (New-TimeSpan -Days 3650))",
         "description": [
           {
-            "Text": "End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date."
+            "Text": "End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date."
           }
         ],
         "globbing": "false",
@@ -21513,7 +21749,24 @@
         "name": "EventSubject",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "All",
+        "description": [
+          {
+            "Text": "Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExternalAudience",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -21554,7 +21807,7 @@
         }
       },
       {
-        "defaultValue": "(get-date)",
+        "defaultValue": "(Get-Date)",
         "description": [
           {
             "Text": "Start time for scheduled out-of-office replies."
@@ -21574,7 +21827,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the mailbox."
+            "Text": "User principal name of the mailbox. This value is auto-filled by the portal."
           }
         ],
         "globbing": "false",

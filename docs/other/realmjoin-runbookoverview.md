@@ -60,9 +60,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
-      - [Add Gsa Application Registration](#add-gsa-application-registration)
+      - [Add GSA Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
-      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
+      - [Delete GSA Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -115,6 +115,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Invite External Guest Users](#invite-external-guest-users)
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
+      - [Monitor Service Health (Scheduled)](#monitor-service-health-(scheduled))
       - [Office365 License Report](#office365-license-report)
       - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
@@ -1095,7 +1096,7 @@ Org \ Applications \ Add Application Registration
 
 <a name='org-applications-add-gsa-application-registration'></a>
 
-### Add Gsa Application Registration
+### Add GSA Application Registration
 #### Add a GSA application registration to Azure AD
 
 #### Description
@@ -1112,7 +1113,7 @@ Pre-existing objects (update mode) are never removed.
 
 #### Where to find
 
-Org \ Applications \ Add Gsa Application Registration
+Org \ Applications \ Add GSA Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1142,7 +1143,7 @@ Org \ Applications \ Delete Application Registration
 
 <a name='org-applications-delete-gsa-application-registration'></a>
 
-### Delete Gsa Application Registration
+### Delete GSA Application Registration
 #### Delete a GSA application registration from Azure AD including associated objects
 
 #### Description
@@ -1165,7 +1166,7 @@ Safety measures:
 
 #### Where to find
 
-Org \ Applications \ Delete Gsa Application Registration
+Org \ Applications \ Delete GSA Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1508,7 +1509,7 @@ Org \ Devices \ Get Bitlocker Recovery Key
 
 #### Description
 
-Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
+Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Devices without a primary user (and devices whose primary user matches a configurable name pattern, e.g. Device Enrollment Manager accounts) can optionally be routed to the override email recipient while all other notifications are sent directly to the end users.
 
 #### Where to find
 
@@ -1562,6 +1563,28 @@ To use a custom mail template (e.g., in Dutch, Spanish, or any other language), 
 - All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
 - When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+
+## Routing Devices Without a Primary User to the Override Recipient
+
+By default, stale devices without a primary user are skipped, and a filled `OverrideEmailRecipient` redirects **all** notifications. Enabling `SendNoPrimaryUserDevicesToOverride` changes this: devices without a primary user (and devices whose primary user matches `OverrideUserNamePattern`) are sent to the `OverrideEmailRecipient`, while all other notifications go directly to the end users.
+
+| `SendNoPrimaryUserDevicesToOverride` | `OverrideEmailRecipient` | Behavior |
+| --- | --- | --- |
+| Off | empty | Devices without a primary user are skipped; users are mailed directly. |
+| Off | set | All notifications are redirected to the override recipient. |
+| On | set | Devices without a primary user are collected into **one** combined email to the override recipient. Users matching the pattern are redirected to the override recipient. All other users receive their notification directly. |
+| On | empty | Invalid configuration - the runbook stops with an error. |
+
+### User Name Pattern
+
+`OverrideUserNamePattern` accepts one or more wildcard patterns (comma-separated) matched against the primary user's UPN, e.g. `DEM-*` for Device Enrollment Manager accounts or `DEM-*,KIOSK-*` for multiple patterns. Matching is case-insensitive and uses PowerShell wildcard syntax (`*`, `?`). The pattern is only evaluated when `SendNoPrimaryUserDevicesToOverride` is enabled.
+
+**Important Notes:**
+
+- Enabling `SendNoPrimaryUserDevicesToOverride` requires `OverrideEmailRecipient` to be set
+- Devices without a primary user bypass the user scope filtering (they have no user to match against groups)
+- Pattern-matched users are still subject to user scope filtering first; users excluded by scope produce no notification at all
+- The combined email for devices without a primary user uses an administrative wording (no end-user action steps), independent of custom templates
 
 
 
@@ -2412,6 +2435,34 @@ It prints the affected group names and object IDs.
 #### Where to find
 
 Org \ General \ List Group License Assignment Errors
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-monitor-service-health-(scheduled)'></a>
+
+### Monitor Service Health (Scheduled)
+#### Alert by email on newly announced Microsoft 365 Service Health issues
+
+#### Description
+
+Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.
+
+#### Where to find
+
+Org \ General \ Monitor Service Health_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3406,7 +3457,7 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Guest users and non-user group members are never touched.
+This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
 
 Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
 
@@ -3445,6 +3496,60 @@ With strict mode enabled, users with any of the following built-in unsecure meth
 `mobilePhone`, `alternateMobilePhone`, `officePhone`, `email`, `securityQuestion`
 
 If a method ends up in both the secure and the unsecure set (only possible via the override parameters), unsecure wins — such users never qualify in strict mode. The runbook warns about this at startup.
+
+## Exclusions
+
+Excluded users never qualify regardless of their registered methods: they are never added to the target group and are removed if they are already members. The per-user report shows the reason in the `ExclusionReason` column.
+
+### Exclude admin users (`ExcludeAdmins`, on by default)
+
+Users holding an Entra ID directory role are excluded. This covers:
+
+- **Active role assignments** (`roleManagement/directory/roleAssignments`)
+- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — without P2 the runbook falls back to active assignments and logs a warning)
+- **Role-assignable groups**: groups holding a role are expanded to their transitive user members
+
+Background: when the target group drives **SSPR** and the SSPR administrator policy is disabled, admins in the group would still be forced to register a second factor once two SSPR methods are required. Keeping admins out of the group avoids this.
+
+This option requires the additional Graph permission `RoleManagement.Read.Directory` for the managed identity.
+
+### Exclusion group (`ExcludeGroupId`, optional)
+
+Transitive user members of the configured group are excluded — intended for accounts that must never be managed by this sync, such as **break glass accounts** or **service accounts**. Nested groups are honored. The exclusion group must not be the target group itself.
+
+### Individually excluded users (`ExcludeUserIds`, optional)
+
+Individual users can be excluded directly via the multi-user picker — for one-off exclusions where a dedicated exclusion group is not worth maintaining. The list accepts user **object IDs** and **user principal names** (UPNs). Unresolvable entries (e.g. a deleted account) log a warning and are ignored, so a stale entry never breaks a scheduled sync.
+
+### Maintaining exclusions via Runbook Customization (without the pickers)
+
+Both exclusion parameters can be pre-set centrally via [JSON-based Runbook Customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization#json-based-customizing) (RealmJoin portal: **Settings** → **Runbook Customizations**) — useful when the exclusions are fixed for the tenant and should not be picked manually each time the runbook is started or scheduled:
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_security_sync-mfa-secure-users-to-group_scheduled": {
+            "Parameters": {
+                "ExcludeGroupId": {
+                    "DefaultValue": "00000000-0000-0000-0000-000000000000",
+                    "Hide": true
+                },
+                "ExcludeUserIds": {
+                    "DefaultValue": [
+                        "11111111-1111-1111-1111-111111111111",
+                        "breakglass@contoso.com"
+                    ],
+                    "Hide": true
+                }
+            }
+        }
+    }
+}
+```
+
+- **ExcludeGroupId** takes a single group **object ID** (GUID) as a plain string — copy it from the group's overview page in the Entra admin center or the RealmJoin portal.
+- **ExcludeUserIds** takes a JSON **array of strings**; each entry can be a user **object ID** or a **UPN**. Entries are trimmed and deduplicated; the runbook resolves them at startup.
+- **Recommended:** when the exclusions are maintained via Runbook Customization, also set `"Hide": true` on the parameter (as in the example above). This removes it from the start form entirely, so the centrally configured exclusions cannot be overridden in the UI when starting or scheduling the runbook. Without `Hide`, the configured values only appear pre-filled and can still be changed there.
 
 ## Method classification reference
 
@@ -3491,7 +3596,7 @@ Optionally, a detailed report can be delivered - especially useful for reviewing
 Report files are only generated when at least one of the two options is enabled. The report consists of:
 
 - **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
-- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification and group membership
+- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification, exclusion reason and group membership
 - **mfa-secure-users-group-sync-report.xlsx** - the same data as a formatted Excel workbook: an "Info" cover sheet with the chosen parameters and result counts, a "Changes" worksheet (added users highlighted in green, removed in red) and an "All Users" worksheet
 
 In large tenants the raw CSV files can exceed the email attachment size limit (Graph rejects mails at roughly 4 MB total). When the CSV files exceed a 2.5 MB budget, the email is sent with only the Excel workbook attached (which contains the complete data in compressed form) and a note explaining the omission; a failed full-size send is also retried automatically with the workbook only. The download link upload always includes all files regardless of size.
@@ -3499,6 +3604,7 @@ In large tenants the raw CSV files can exceed the email attachment size limit (G
 ## Notes and limitations
 
 - The registration report requires an **Entra ID P1 or P2** license.
+- PIM-eligible role assignments (admin exclusion) require an **Entra ID P2** license — without it, only active role assignments are excluded.
 - The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
 - Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
 - The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
@@ -3825,17 +3931,79 @@ User \ Mail \ Convert To Shared Mailbox
 <a name='user-mail-delegate-full-access'></a>
 
 ### Delegate Full Access
-#### Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
+#### Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
 
 #### Description
 
-Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.
-Also shows the current and new permissions for the mailbox.
-Automapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.
+Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.
 
 #### Where to find
 
 User \ Mail \ Delegate Full Access
+
+## How it works
+
+On each run the runbook:
+
+1. Connects to Exchange Online with the Automation account's managed identity.
+2. Verifies that the selected mailbox owner (`UserName`) actually has a mailbox - if not, the run stops before anything is changed.
+3. Resolves every selected delegate to its primary SMTP address and drops duplicates and the mailbox owner itself.
+4. Reads and prints the current **FullAccess** delegations on the mailbox (the *status quo*).
+5. Grants or removes FullAccess for each remaining delegate, one at a time.
+6. Re-reads the mailbox permissions and prints the resulting state plus a per-run summary.
+
+The runbook only ever touches the **FullAccess** right on the one selected mailbox. Send As, Send on Behalf and folder-level permissions are not affected.
+
+### Selecting delegates
+
+The **Delegate access to** field is a **multi-select** user picker. Select as many delegates as needed - all of them receive the same action (*Grant access* or *Remove access*) and the same AutoMapping setting from the form in a single run.
+
+The picker is restricted to member accounts (`userType eq 'Member'`), so guest accounts are not offered. It hands over each selected delegate as a **user principal name**, so the very first log line already reads as a list of UPNs instead of raw object IDs. Each value is then resolved against Exchange Online, and from the preflight step onward all output shows the delegate's primary SMTP address.
+
+Two picker entries that resolve to the same mailbox are de-duplicated, and a delegate that resolves to the mailbox owner is dropped with a warning - a mailbox cannot be delegated to itself.
+
+### What gets changed
+
+- **Grant access (`Remove` = false):** `Add-MailboxPermission` with `-AccessRights FullAccess` for each delegate.
+- **Remove access (`Remove` = true):** `Remove-MailboxPermission` with `-AccessRights FullAccess -InheritanceType All` for each delegate.
+
+### AutoMapping
+
+**`AutoMapping`** is only evaluated when granting access; the portal hides the field when *Remove access* is selected. With AutoMapping enabled, Outlook adds the delegated mailbox to the delegate's profile automatically - but only after the client re-creates the mapping, which can take a while. Existing grants are not re-written to change their AutoMapping value; remove the delegation and grant it again if the mapping behaviour must change.
+
+### Idempotent by design
+
+Nothing is done twice and nothing fails just because it was already true:
+
+- Granting access to a delegate who already holds FullAccess is reported as *unchanged*, not as an error.
+- Removing access from a delegate who has no FullAccess entry is reported as *unchanged*, not as an error.
+- When the pre-change snapshot cannot classify an existing permission entry, the runbook does **not** take the shortcut - it calls Exchange Online and lets its response decide, so a removable delegation is never silently skipped.
+
+### Partial results
+
+Delegates are processed independently:
+
+- A delegate **without a mailbox** is skipped during the preflight check and counted as *skipped*; the remaining delegates are still processed. If none of the selected delegates has a mailbox, the run stops.
+- A delegate whose change **fails** is reported with a targeted reason (directory-replication delay, insufficient Exchange Online permissions on the managed identity, a permission inherited from a group, or a shared/unlicensed mailbox) and the loop continues with the rest.
+
+Every run ends with a summary line in the form `Summary: <changed>, <unchanged>, <failed>, <skipped (no mailbox)>`, followed by the resulting FullAccess delegations on the mailbox.
+
+If **any** delegate failed, the runbook itself reports a failure. This is deliberate: with a multi-select picker, a partial success reported as a clean run would hide delegates that never received access.
+
+### Limitations
+
+- **Inherited permissions cannot be removed.** A FullAccess right that comes from a role group or security group membership is shown as *inherited* but cannot be revoked here - adjust the group membership or role assignment instead.
+- **Only explicit Allow grants are managed.** An explicit **Deny** entry on the mailbox is displayed for transparency, but the runbook never adds or removes one.
+
+### Prerequisites
+
+The Automation account's managed identity connects to Exchange Online via `Connect-RjRbExchangeOnline` and needs:
+
+- the `Exchange.ManageAsApp` application permission on *Office 365 Exchange Online*, and
+- the **Exchange Administrator** role (or an equivalent Exchange Online RBAC role that includes `Add-MailboxPermission` and `Remove-MailboxPermission`).
+
+The runbook makes no Microsoft Graph calls - the user picker is a portal-side annotation only, so no Graph application permissions are required.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3981,11 +4149,11 @@ User \ Mail \ Remove Mailbox
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-#### Enable or disable out-of-office notifications for a mailbox
+#### Enable or disable mailbox out-of-office notifications
 
 #### Description
 
-Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
+Configures automatic replies for a mailbox and can optionally create an out-of-office calendar event. The runbook can either enable scheduled replies with internal and external messages or disable existing out-of-office settings.
 
 #### Where to find
 

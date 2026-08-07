@@ -59,9 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
-    - [Add Gsa Application Registration](#organization-applications-add-gsa-application-registration)
+    - [Add GSA Application Registration](#organization-applications-add-gsa-application-registration)
     - [Delete Application Registration](#organization-applications-delete-application-registration)
-    - [Delete Gsa Application Registration](#organization-applications-delete-gsa-application-registration)
+    - [Delete GSA Application Registration](#organization-applications-delete-gsa-application-registration)
     - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
     - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
     - [Report Application Registration](#organization-applications-report-application-registration)
@@ -114,6 +114,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Invite External Guest Users](#organization-general-invite-external-guest-users)
     - [List All Administrative Template Policies](#organization-general-list-all-administrative-template-policies)
     - [List Group License Assignment Errors](#organization-general-list-group-license-assignment-errors)
+    - [Monitor Service Health (Scheduled)](#organization-general-monitor-service-health-scheduled)
     - [Office365 License Report](#organization-general-office365-license-report)
     - [Report Apple MDM Cert Expiry (Scheduled)](#organization-general-report-apple-mdm-cert-expiry-scheduled)
     - [Report License Assignment (Scheduled)](#organization-general-report-license-assignment-scheduled)
@@ -691,7 +692,7 @@ Add an application registration to Azure AD
 
 <a name='organization-applications-add-gsa-application-registration'></a>
 
-### Add Gsa Application Registration
+### Add GSA Application Registration
 Add a GSA application registration to Azure AD
 
 | Parameter | Required | Type | Description |
@@ -720,7 +721,7 @@ Delete an application registration from Azure AD
 
 <a name='organization-applications-delete-gsa-application-registration'></a>
 
-### Delete Gsa Application Registration
+### Delete GSA Application Registration
 Delete a GSA application registration from Azure AD including associated objects
 
 | Parameter | Required | Type | Description |
@@ -998,6 +999,8 @@ Notify primary users about their stale devices via email
 | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 | OverrideEmailRecipient |  | String | Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users. |
+| SendNoPrimaryUserDevicesToOverride |  | Boolean | If enabled, stale devices without a primary user (and devices whose primary user matches OverrideUserNamePattern) are sent to OverrideEmailRecipient, while all other notifications go directly to the end users. Requires OverrideEmailRecipient to be set. Devices without a primary user bypass user scope filtering. |
+| OverrideUserNamePattern |  | String | Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Matching users' notifications are redirected to OverrideEmailRecipient. Only used when SendNoPrimaryUserDevicesToOverride is enabled. |
 | MailTemplateLanguage |  | String | Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations). |
 | CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). |
 | CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
@@ -1558,6 +1561,21 @@ Report groups that have license assignment errors
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-general-monitor-service-health-scheduled'></a>
+
+### Monitor Service Health (Scheduled)
+Alert by email on newly announced Microsoft 365 Service Health issues
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Services |  | String | Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page. |
+| LookbackHours |  | Int32 | How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice. |
+| IncludeAdvisories |  | Boolean | If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well. |
+| IncludeResolvedIssues |  | Boolean | If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported. |
+| EmailFrom |  | String | The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization. |
+| EmailTo | ✓ | String | Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
+
 <a name='organization-general-office365-license-report'></a>
 
 ### Office365 License Report
@@ -2084,6 +2102,9 @@ Sync users with secure MFA methods registered into an Entra ID group
 | SecureOnly |  | Boolean | Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member. |
 | SecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values. |
 | UnsecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly). |
+| ExcludeAdmins |  | Boolean | Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor. |
+| ExcludeGroupId |  | String | Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members. |
+| ExcludeUserIds |  | String Array | Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning. |
 | WhatIfMode |  | Boolean | Dry run: log which users would be added or removed without changing the group. |
 | SendEmail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default. |
 | EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled. |
@@ -2370,15 +2391,15 @@ Convert a user mailbox to a shared mailbox and back
 <a name='user-mail-delegate-full-access'></a>
 
 ### Delegate Full Access
-Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
+Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the mailbox. |
-| delegateTo | ✓ | String | User principal name of the delegate. |
-| Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
-| AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
-| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+| UserName | ✓ | String | User principal name of the mailbox owner. |
+| delegateTo | ✓ | String Array | One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously. |
+| Remove |  | Boolean | If set to true, the script will remove the FullAccess permission. If false, it will grant the permission. |
+| AutoMapping |  | Boolean | If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false). |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='user-mail-delegate-send-as'></a>
 
@@ -2459,16 +2480,17 @@ Hard delete a shared mailbox, room or bookings calendar
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-Enable or disable out-of-office notifications for a mailbox
+Enable or disable mailbox out-of-office notifications
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the mailbox. |
-| Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
+| UserName | ✓ | String | User principal name of the mailbox. This value is auto-filled by the portal. |
+| Disable |  | Boolean | Select whether to enable out-of-office notifications or disable existing out-of-office settings. |
 | Start |  | DateTime | Start time for scheduled out-of-office replies. |
-| End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
+| End |  | DateTime | End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date. |
 | MessageInternal |  | String | Internal automatic reply message. |
 | MessageExternal |  | String | External automatic reply message. |
+| ExternalAudience |  | String | Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders. |
 | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |

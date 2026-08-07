@@ -6,6 +6,7 @@
             "AppRoleAssignments": [
                 "AuditLog.Read.All",
                 "Group.Read.All",
+                "RoleManagement.Read.Directory",
                 "GroupMember.ReadWrite.All",
                 "User.Read.All",
                 "Organization.Read.All",

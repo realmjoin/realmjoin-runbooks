@@ -1,13 +1,3 @@
-# Delegate Full Access
-
-Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
-
-## Detailed description
-Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.
-
-## Where to find
-User \ Mail \ Delegate Full Access
-
 ## How it works
 
 On each run the runbook:
@@ -70,54 +60,3 @@ The Automation account's managed identity connects to Exchange Online via `Conne
 - the **Exchange Administrator** role (or an equivalent Exchange Online RBAC role that includes `Add-MailboxPermission` and `Remove-MailboxPermission`).
 
 The runbook makes no Microsoft Graph calls - the user picker is a portal-side annotation only, so no Graph application permissions are required.
-
-
-## Permissions
-### Application permissions
-- **Type**: Office 365 Exchange Online
-  - Exchange.ManageAsApp
-
-### RBAC roles
-- Exchange Administrator
-
-
-## Parameters
-### UserName
-User principal name of the mailbox owner.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | true |
-| Type | String |
-
-### delegateTo
-One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | true |
-| Type | String Array |
-
-### Remove
-If set to true, the script will remove the FullAccess permission. If false, it will grant the permission.
-
-| Property | Value |
-|----------|-------|
-| Default Value | False |
-| Required | false |
-| Type | Boolean |
-
-### AutoMapping
-If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false).
-
-| Property | Value |
-|----------|-------|
-| Default Value | False |
-| Required | false |
-| Type | Boolean |
-
-
-[Back to Table of Content](../../../README.md)
-

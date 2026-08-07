@@ -3,7 +3,7 @@
 Notify primary users about their stale devices via email
 
 ## Detailed description
-Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
+Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Devices without a primary user (and devices whose primary user matches a configurable name pattern, e.g. Device Enrollment Manager accounts) can optionally be routed to the override email recipient while all other notifications are sent directly to the end users.
 
 ## Where to find
 Org \ Devices \ Notify Users About Stale Devices_Scheduled
@@ -57,6 +57,28 @@ To use a custom mail template (e.g., in Dutch, Spanish, or any other language), 
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
 - When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
 
+## Routing Devices Without a Primary User to the Override Recipient
+
+By default, stale devices without a primary user are skipped, and a filled `OverrideEmailRecipient` redirects **all** notifications. Enabling `SendNoPrimaryUserDevicesToOverride` changes this: devices without a primary user (and devices whose primary user matches `OverrideUserNamePattern`) are sent to the `OverrideEmailRecipient`, while all other notifications go directly to the end users.
+
+| `SendNoPrimaryUserDevicesToOverride` | `OverrideEmailRecipient` | Behavior |
+| --- | --- | --- |
+| Off | empty | Devices without a primary user are skipped; users are mailed directly. |
+| Off | set | All notifications are redirected to the override recipient. |
+| On | set | Devices without a primary user are collected into **one** combined email to the override recipient. Users matching the pattern are redirected to the override recipient. All other users receive their notification directly. |
+| On | empty | Invalid configuration - the runbook stops with an error. |
+
+### User Name Pattern
+
+`OverrideUserNamePattern` accepts one or more wildcard patterns (comma-separated) matched against the primary user's UPN, e.g. `DEM-*` for Device Enrollment Manager accounts or `DEM-*,KIOSK-*` for multiple patterns. Matching is case-insensitive and uses PowerShell wildcard syntax (`*`, `?`). The pattern is only evaluated when `SendNoPrimaryUserDevicesToOverride` is enabled.
+
+**Important Notes:**
+
+- Enabling `SendNoPrimaryUserDevicesToOverride` requires `OverrideEmailRecipient` to be set
+- Devices without a primary user bypass the user scope filtering (they have no user to match against groups)
+- Pattern-matched users are still subject to user scope filtering first; users excluded by scope produce no notification at all
+- The combined email for devices without a primary user uses an administrative wording (no end-user action steps), independent of custom templates
+
 
 
 ## Notes
@@ -73,6 +95,7 @@ Common Use Cases:
 - Security and compliance by ensuring users are aware of all devices registered to them
 - Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)
 - User scope filtering to target specific departments or exclude service accounts
+- Centrally handling devices without a primary user or owned by Device Enrollment Manager (e.g. DEM-*) accounts via the override recipient
 
 Pilot and Testing Options:
 - Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users
@@ -227,6 +250,24 @@ Do not send emails to users who are members of this group. Requires UseUserScope
 
 ### OverrideEmailRecipient
 Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SendNoPrimaryUserDevicesToOverride
+If enabled, stale devices without a primary user (and devices whose primary user matches OverrideUserNamePattern) are sent to OverrideEmailRecipient, while all other notifications go directly to the end users. Requires OverrideEmailRecipient to be set. Devices without a primary user bypass user scope filtering.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### OverrideUserNamePattern
+Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Matching users' notifications are redirected to OverrideEmailRecipient. Only used when SendNoPrimaryUserDevicesToOverride is enabled.
 
 | Property | Value |
 |----------|-------|

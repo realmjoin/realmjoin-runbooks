@@ -1,5 +1,41 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-07
+
+- Update **Delegate Full Access Runbook** in User/Mail
+  - Add support for granting or removing Exchange Online FullAccess for multiple delegates in a single run via a multi user picker, applying the same action and AutoMapping setting to all of them. The picker returns user principal names, so selected delegates are readable in the runbook log from the first line on.
+  - Skip delegates without a mailbox instead of aborting the run, and treat already-granted or already-absent delegations as no-ops.
+  - Print a per-delegate summary of changed, unchanged, failed, and skipped delegations; the run reports a failure if any delegate could not be processed, so a partial success is visible instead of being reported as a clean run.
+
+## 2026-08-06
+
+- Update **Monitor Service Health (Scheduled)** Runbook in Org/General
+  - Add optional `EmailTo` parameter to send a summary email report of the service health status; the sender address is taken from the `RJReport.EmailSender` tenant setting
+  - Add optional `ServiceHealthScope` parameter to filter the report to specific services (comma-separated list of service names, e.g. `Exchange,SharePoint,Teams`); by default, all services are included
+  - Add optional `IncludeHistoricalData` switch to include historical service health data in the report (default off)
+
+## 2026-08-05
+
+- Update the required `Microsoft.Graph.Authentication` module version to 2.39.0 in all runbooks using the Microsoft Graph PowerShell modules (40 runbooks) to address S360 open-source vulnerability findings (SFI-ES5.2)
+
+## 2026-08-04
+
+- Update **Notify Users About Stale Devices (Scheduled)** Runbook in Org/Devices
+  - Add optional override routing (`SendNoPrimaryUserDevicesToOverride`, default off): stale devices without a primary user are collected into a single summary email to the `OverrideEmailRecipient` instead of being skipped, while all other notifications are sent directly to the end users
+  - Add optional `OverrideUserNamePattern` (comma-separated wildcards, e.g. `DEM-*`): notifications for primary users matching the pattern (such as Device Enrollment Manager accounts) are also redirected to the override recipient
+  - Note: enabling the routing option requires `OverrideEmailRecipient`; devices without a primary user bypass the user scope filtering
+- Update **Sync MFA Secure Users To Group (Scheduled)** Runbook in Org/Security
+  - Add the `ExcludeAdmins` option (enabled by default): users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) are never synced into the target group and are removed if already members — avoids forcing a second factor on admins when the target group drives SSPR
+  - Add an optional exclusion group (`ExcludeGroupId`): transitive user members (e.g. break glass or service accounts) are never synced into the target group and are removed if already members
+  - Add optional individually excluded users (`ExcludeUserIds`, multi-user picker) for one-off exclusions without maintaining a dedicated group; the list accepts user object IDs and UPNs, unresolvable entries (e.g. deleted accounts) log a warning and are ignored so a stale entry never breaks a scheduled sync
+  - Extend the report with an `ExclusionReason` column and the exclusion configuration and counts on the Excel cover sheet, in the email summary and in the job output
+  - Document how to maintain both the excluded users and the exclusion group centrally via JSON-based Runbook Customization (without the portal pickers)
+  - Note: the managed identity requires the additional Graph permission `RoleManagement.Read.Directory`; with `ExcludeAdmins` enabled by default, admins are removed from the target group on the next run — review existing schedules if this is not desired
+- Update **Set Out Of Office** Runbook in User/Mail
+  - Add optional `ExternalAudience` parameter (`None`, `Known` or `All`, default `All`) to control who receives the external automatic reply; the parameter is hidden when "Disable Out-of-Office" is selected
+  - Show the current auto-reply configuration (state, external audience, internal and external message) as a status quo before applying any changes
+  - Improve error handling and output: clear per-step sections (connect, status quo, enable/disable) with descriptive error messages when a step fails
+
 ## 2026-07-17
 
 - Update **Report Users With More Than 5 Devices (Scheduled)** Runbook in Org/Devices

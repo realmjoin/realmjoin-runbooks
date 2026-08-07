@@ -3,9 +3,9 @@
 <a name='org-applications'></a>
 ## Applications
   - [Add Application Registration](applications/add-application-registration.md)
-  - [Add Gsa Application Registration](applications/add-gsa-application-registration.md)
+  - [Add GSA Application Registration](applications/add-gsa-application-registration.md)
   - [Delete Application Registration](applications/delete-application-registration.md)
-  - [Delete Gsa Application Registration](applications/delete-gsa-application-registration.md)
+  - [Delete GSA Application Registration](applications/delete-gsa-application-registration.md)
   - [Export Enterprise Application Users](applications/export-enterprise-application-users.md)
   - [List Inactive Enterprise Applications](applications/list-inactive-enterprise-applications.md)
   - [Report Application Registration](applications/report-application-registration.md)
@@ -60,6 +60,7 @@
   - [Invite External Guest Users](general/invite-external-guest-users.md)
   - [List All Administrative Template Policies](general/list-all-administrative-template-policies.md)
   - [List Group License Assignment Errors](general/list-group-license-assignment-errors.md)
+  - [Monitor Service Health (Scheduled)](general/monitor-service-health_scheduled.md)
   - [Office365 License Report](general/office365-license-report.md)
   - [Report Apple MDM Cert Expiry (Scheduled)](general/report-apple-mdm-cert-expiry_scheduled.md)
   - [Report License Assignment (Scheduled)](general/report-license-assignment_scheduled.md)

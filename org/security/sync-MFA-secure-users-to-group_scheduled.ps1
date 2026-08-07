@@ -3,7 +3,7 @@
     Sync users with secure MFA methods registered into an Entra ID group
 
     .DESCRIPTION
-    This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Guest users and non-user group members are never touched.
+    This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
 
     Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
 
@@ -36,6 +36,15 @@
 
     .PARAMETER UnsecureMethodsOverride
     Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly).
+
+    .PARAMETER ExcludeAdmins
+    Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor.
+
+    .PARAMETER ExcludeGroupId
+    Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members.
+
+    .PARAMETER ExcludeUserIds
+    Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning.
 
     .PARAMETER WhatIfMode
     Dry run: log which users would be added or removed without changing the group.
@@ -104,6 +113,15 @@
             "UnsecureMethodsOverride": {
                 "DisplayName": "Expert: custom unsecure methods list (comma-separated, replaces built-in list)",
                 "Hide": true
+            },
+            "ExcludeAdmins": {
+                "DisplayName": "Exclude admin users (directory role holders, incl. PIM-eligible)"
+            },
+            "ExcludeGroupId": {
+                "DisplayName": "Exclusion group (members are never synced into the target group)"
+            },
+            "ExcludeUserIds": {
+                "DisplayName": "Excluded users (never synced into the target group)"
             },
             "WhatIfMode": {
                 "DisplayName": "Dry run (log only, no changes)"
@@ -201,7 +219,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.0" }
 
 # Suppress false positive from PSScriptAnalyzer - $idx is assigned in ForEach-Object -Begin and used in -Process block
@@ -223,6 +241,14 @@ param (
     [string]$SecureMethodsOverride = "",
 
     [string]$UnsecureMethodsOverride = "",
+
+    [bool]$ExcludeAdmins = $true,
+
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclusion group (optional)" } )]
+    [string]$ExcludeGroupId = "",
+
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Excluded users (optional)" -Filter "userType eq 'Member'" } )]
+    [string[]]$ExcludeUserIds = @(),
 
     [bool]$WhatIfMode = $false,
 
@@ -264,7 +290,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.0"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "TargetGroupId: $TargetGroupId" -Verbose
@@ -277,6 +303,9 @@ Write-RjRbLog -Message "IncludeCertificateBasedAuth: $IncludeCertificateBasedAut
 Write-RjRbLog -Message "SecureOnly: $SecureOnly" -Verbose
 Write-RjRbLog -Message "SecureMethodsOverride: $SecureMethodsOverride" -Verbose
 Write-RjRbLog -Message "UnsecureMethodsOverride: $UnsecureMethodsOverride" -Verbose
+Write-RjRbLog -Message "ExcludeAdmins: $ExcludeAdmins" -Verbose
+Write-RjRbLog -Message "ExcludeGroupId: $ExcludeGroupId" -Verbose
+Write-RjRbLog -Message "ExcludeUserIds: $($ExcludeUserIds -join ', ')" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "SendEmail: $SendEmail" -Verbose
 if ($SendEmail) {
@@ -1277,6 +1306,53 @@ catch {
     throw "Target group '$TargetGroupId' not found."
 }
 
+# Validate the exclusion group (optional) - it must exist and must not be the target group itself
+$excludeGroup = $null
+if (-not [string]::IsNullOrWhiteSpace($ExcludeGroupId)) {
+    if ($ExcludeGroupId -eq $TargetGroupId) {
+        Write-Error "The exclusion group must not be the target group itself - all members would be removed on every run." -ErrorAction Continue
+        throw "Exclusion group equals target group."
+    }
+    try {
+        $excludeGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$ExcludeGroupId`?`$select=id,displayName" -Method GET -ErrorAction Stop
+        Write-RjRbLog -Message "Exclusion Group: $($excludeGroup.displayName)" -Verbose
+    }
+    catch {
+        Write-Error "Exclusion group with ID '$ExcludeGroupId' was not found in Entra ID. Please verify the group exists." -ErrorAction Continue
+        throw "Exclusion group '$ExcludeGroupId' not found."
+    }
+}
+
+# Resolve the individually excluded users (optional) - accepts object IDs and UPNs. Unresolvable
+# entries only produce a warning so a deleted account never breaks a scheduled sync.
+$excludeUsers = @()
+$excludeUserInputs = @($ExcludeUserIds | ForEach-Object { "$_".Trim() } | Where-Object { $_ } | Select-Object -Unique)
+if ($excludeUserInputs.Count -gt 0) {
+    $excludeUserProbeRequests = @($excludeUserInputs | ForEach-Object -Begin { $idx = 1 } -Process {
+            @{
+                id     = "$idx"
+                method = "GET"
+                url    = "/users/$([uri]::EscapeDataString($_))?`$select=id,userPrincipalName"
+            }
+            $idx++
+        })
+    $excludeUserProbeResponses = Invoke-GraphBatch -Requests $excludeUserProbeRequests -ProgressLabel "excluded user lookups"
+
+    $resolvedExcludeUsers = [System.Collections.Generic.List[object]]::new()
+    foreach ($response in $excludeUserProbeResponses) {
+        if ($response.status -eq 200 -and $response.body.id) {
+            $resolvedExcludeUsers.Add([PSCustomObject]@{ id = $response.body.id; userPrincipalName = $response.body.userPrincipalName })
+        }
+        else {
+            $reqIdx = [int]$response.id - 1
+            $inputValue = if ($reqIdx -ge 0 -and $reqIdx -lt $excludeUserInputs.Count) { $excludeUserInputs[$reqIdx] } else { "unknown" }
+            Write-Output "Warning: Excluded user '$inputValue' could not be resolved (status $($response.status)) - the entry is ignored. Please verify the user ID / UPN."
+        }
+    }
+    # Sort for stable output and deduplicate (the same user could be listed by ID and by UPN)
+    $excludeUsers = @($resolvedExcludeUsers | Sort-Object userPrincipalName -Unique)
+}
+
 Write-Output ""
 Write-Output "Configuration"
 Write-Output "---------------------"
@@ -1286,6 +1362,9 @@ Write-Output "Strict mode:      $SecureOnly"
 if ($SecureOnly) {
     Write-Output "Unsecure methods: $($unsecureMethods -join ', ')"
 }
+Write-Output "Exclude admins:   $ExcludeAdmins"
+Write-Output "Exclusion group:  $(if ($excludeGroup) { $excludeGroup.displayName } else { "(none)" })"
+Write-Output "Excluded users:   $(if ($excludeUsers.Count -gt 0) { @($excludeUsers.userPrincipalName) -join ', ' } else { "(none)" })"
 Write-Output "Mode:             $(if ($WhatIfMode) { "WhatIf (no changes will be made)" } else { "Live" })"
 
 #endregion
@@ -1339,8 +1418,123 @@ foreach ($row in $memberRows) {
 }
 $desiredUserIds = @($desiredUsers | Select-Object -ExpandProperty id)
 
+# Methods-based evaluation before exclusions - kept for the report "Qualifies" column
+$qualifyingUserIds = $desiredUserIds
+
+# Exclusions: admin users and exclusion group members never qualify and are removed if already members
+$exclusionReasons = @{}
+
+if ($ExcludeAdmins) {
+    Write-Output ""
+    Write-Output "Determining admin users (directory role holders)..."
+
+    try {
+        $roleAssignments = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments?`$select=principalId")
+    }
+    catch {
+        Write-Error "Failed to retrieve directory role assignments: $($_.Exception.Message). Please verify the managed identity holds the RoleManagement.Read.Directory permission." -ErrorAction Continue
+        throw "Directory role assignment query failed."
+    }
+    $adminPrincipalIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($assignment in $roleAssignments) {
+        if ($assignment.principalId) { [void]$adminPrincipalIds.Add($assignment.principalId) }
+    }
+
+    # PIM-eligible assignments require Entra ID P2 - degrade to active assignments only if unavailable
+    try {
+        $eligibleSchedules = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules?`$select=principalId")
+        foreach ($schedule in $eligibleSchedules) {
+            if ($schedule.principalId) { [void]$adminPrincipalIds.Add($schedule.principalId) }
+        }
+    }
+    catch {
+        Write-Output "Warning: PIM-eligible role assignments could not be queried (requires Entra ID P2) - only active role assignments are excluded. Error: $($_.Exception.Message)"
+    }
+
+    # Resolve principal types via batched lookups: users count directly, role-assignable groups are
+    # expanded to their transitive user members, other principals (service principals) are ignored
+    $adminUserIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $principalIdList = @($adminPrincipalIds)
+    if ($principalIdList.Count -gt 0) {
+        $userProbeRequests = @($principalIdList | ForEach-Object -Begin { $idx = 1 } -Process {
+                @{
+                    id     = "$idx"
+                    method = "GET"
+                    url    = "/users/$($_)?`$select=id"
+                }
+                $idx++
+            })
+        $userProbeResponses = Invoke-GraphBatch -Requests $userProbeRequests -ProgressLabel "admin principal lookups"
+
+        $adminGroupCandidateIds = [System.Collections.Generic.List[string]]::new()
+        foreach ($response in $userProbeResponses) {
+            if ($response.status -eq 200 -and $response.body.id) {
+                [void]$adminUserIds.Add($response.body.id)
+            }
+            elseif ($response.status -eq 404) {
+                $reqIdx = [int]$response.id - 1
+                if ($reqIdx -ge 0 -and $reqIdx -lt $principalIdList.Count) {
+                    $adminGroupCandidateIds.Add($principalIdList[$reqIdx])
+                }
+            }
+        }
+
+        if ($adminGroupCandidateIds.Count -gt 0) {
+            $groupProbeRequests = @($adminGroupCandidateIds | ForEach-Object -Begin { $idx = 1 } -Process {
+                    @{
+                        id     = "$idx"
+                        method = "GET"
+                        url    = "/groups/$($_)?`$select=id"
+                    }
+                    $idx++
+                })
+            $groupProbeResponses = Invoke-GraphBatch -Requests $groupProbeRequests -ProgressLabel "admin group lookups"
+            foreach ($response in $groupProbeResponses) {
+                if ($response.status -ne 200 -or -not $response.body.id) { continue }
+                $groupMembers = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$($response.body.id)/transitiveMembers/microsoft.graph.user?`$top=999&`$select=id")
+                foreach ($member in $groupMembers) { [void]$adminUserIds.Add($member.id) }
+            }
+        }
+    }
+
+    foreach ($adminUserId in $adminUserIds) {
+        if (-not $exclusionReasons.ContainsKey($adminUserId)) { $exclusionReasons[$adminUserId] = "admin role" }
+    }
+    Write-Output "Admin users found:   $($adminUserIds.Count)"
+}
+
+if ($excludeGroup) {
+    Write-Output ""
+    Write-Output "Getting members of exclusion group '$($excludeGroup.displayName)'..."
+    $excludeGroupMembers = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$ExcludeGroupId/transitiveMembers/microsoft.graph.user?`$top=999&`$select=id")
+    foreach ($member in $excludeGroupMembers) {
+        if (-not $exclusionReasons.ContainsKey($member.id)) { $exclusionReasons[$member.id] = "exclusion group" }
+    }
+    Write-Output "Exclusion group members: $($excludeGroupMembers.Count)"
+}
+
+if ($excludeUsers.Count -gt 0) {
+    foreach ($excludeUser in $excludeUsers) {
+        if (-not $exclusionReasons.ContainsKey($excludeUser.id)) { $exclusionReasons[$excludeUser.id] = "user exclusion list" }
+    }
+    Write-Output ""
+    Write-Output "Individually excluded users: $($excludeUsers.Count)"
+}
+
+# Excluded users are dropped from the desired set - the regular diff then also removes
+# excluded users that are already group members
+$excludedQualifyingCount = 0
+if ($exclusionReasons.Count -gt 0) {
+    $excludedQualifyingCount = @($desiredUserIds | Where-Object { $exclusionReasons.ContainsKey($_) }).Count
+    $desiredUserIds = @($desiredUserIds | Where-Object { -not $exclusionReasons.ContainsKey($_) })
+}
+
+Write-Output ""
 Write-Output "Report entries:      $($registrationDetails.Count)"
 Write-Output "Member users:        $($memberRows.Count) (guests are skipped)"
+if ($exclusionReasons.Count -gt 0) {
+    Write-Output "Excluded users:      $excludedQualifyingCount (qualifying users blocked by exclusions)"
+}
 Write-Output "Qualifying users:    $($desiredUserIds.Count)"
 
 if ($desiredUserIds.Count -eq 0) {
@@ -1494,17 +1688,22 @@ if ($SendEmail -or $CreateDownloadLink) {
         [System.Collections.Generic.HashSet[string]]::new([string[]]$builtInUnsecureMethods, [System.StringComparer]::OrdinalIgnoreCase)
     }
 
-    # Per-user evaluation of all member users from the registration report
+    # Per-user evaluation of all member users from the registration report.
+    # "Qualifies" reflects the pure methods evaluation; exclusions are shown separately,
+    # the effective add/remove decision ("Action") comes from the exclusion-filtered desired set.
+    $qualifiesSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$qualifyingUserIds, [System.StringComparer]::OrdinalIgnoreCase)
     $allUserRows = [System.Collections.Generic.List[object]]::new()
     foreach ($row in $memberRows) {
         $methods = [string[]]@($row.methodsRegistered | Where-Object { $_ })
-        $qualifies = $desiredSet.Contains($row.id)
+        $qualifies = $qualifiesSet.Contains($row.id)
+        $isDesired = $desiredSet.Contains($row.id)
         $isMember = $currentSet.Contains($row.id)
-        $action = if ($qualifies -and -not $isMember) { $actionAddLabel } elseif (-not $qualifies -and $isMember) { $actionRemoveLabel } else { "" }
+        $action = if ($isDesired -and -not $isMember) { $actionAddLabel } elseif (-not $isDesired -and $isMember) { $actionRemoveLabel } else { "" }
         $allUserRows.Add([PSCustomObject]@{
                 UserPrincipalName    = $row.userPrincipalName
                 DisplayName          = $row.userDisplayName
                 Qualifies            = if ($qualifies) { "yes" } else { "no" }
+                ExclusionReason      = if ($exclusionReasons.ContainsKey($row.id)) { $exclusionReasons[$row.id] } else { "" }
                 GroupMemberBefore    = if ($isMember) { "yes" } else { "no" }
                 Action               = $action
                 SecureMethods        = @($methods | Where-Object { $secureSet.Contains($_) }) -join ', '
@@ -1521,6 +1720,7 @@ if ($SendEmail -or $CreateDownloadLink) {
                     UserPrincipalName    = $member.userPrincipalName
                     DisplayName          = ""
                     Qualifies            = "no"
+                    ExclusionReason      = if ($exclusionReasons.ContainsKey($member.id)) { $exclusionReasons[$member.id] } else { "" }
                     GroupMemberBefore    = "yes"
                     Action               = $actionRemoveLabel
                     SecureMethods        = ""
@@ -1563,6 +1763,13 @@ if ($SendEmail -or $CreateDownloadLink) {
     if ($SecureOnly) {
         $coverSheet["Unsecure methods"] = ($unsecureMethods -join ', ')
     }
+    $coverSheet["Exclude admins"] = "$ExcludeAdmins"
+    if ($excludeGroup) {
+        $coverSheet["Exclusion group"] = $excludeGroup.displayName
+    }
+    if ($excludeUsers.Count -gt 0) {
+        $coverSheet["Excluded users (individual)"] = (@($excludeUsers.userPrincipalName) -join ', ')
+    }
     if ([string]::IsNullOrWhiteSpace($SecureMethodsOverride)) {
         $coverSheet["Method group toggles"] = "Passkeys/FIDO2: $(if ($IncludePasskeys) { 'on' } else { 'off' }), Platform credentials: $(if ($IncludePlatformCredentials) { 'on' } else { 'off' }), Microsoft Authenticator: $(if ($IncludeMicrosoftAuthenticator) { 'on' } else { 'off' }), Software OTP: $(if ($IncludeSoftwareOtp) { 'on' } else { 'off' }), Hardware OTP: $(if ($IncludeHardwareOtp) { 'on' } else { 'off' }), Certificate-based: $(if ($IncludeCertificateBasedAuth) { 'on' } else { 'off' })"
     }
@@ -1571,6 +1778,9 @@ if ($SendEmail -or $CreateDownloadLink) {
     }
     $coverSheet["Report entries"] = "$($registrationDetails.Count)"
     $coverSheet["Member users evaluated"] = "$($memberRows.Count)"
+    if ($exclusionReasons.Count -gt 0) {
+        $coverSheet["Excluded users"] = "$excludedQualifyingCount"
+    }
     $coverSheet["Qualifying users"] = "$($desiredUserIds.Count)"
     $coverSheet["Previous members"] = "$($currentMemberIds.Count)"
     $coverSheet[$actionAddLabel] = "$($toAdd.Count)"
@@ -1657,8 +1867,9 @@ $changesSummary
 | **Mode** | $(if ($WhatIfMode) { "WhatIf (no changes were made)" } else { "Live" }) |
 | **Secure methods** | $($secureMethods -join ', ') |
 | **Strict mode (SecureOnly)** | $SecureOnly |$(if ($SecureOnly) { "`n| **Unsecure methods** | $($unsecureMethods -join ', ') |" })
+| **Exclude admins** | $ExcludeAdmins |$(if ($excludeGroup) { "`n| **Exclusion group** | $($excludeGroup.displayName) |" })$(if ($excludeUsers.Count -gt 0) { "`n| **Excluded users (individual)** | $($excludeUsers.Count) |" })
 | **Report entries** | $($registrationDetails.Count) |
-| **Member users evaluated** | $($memberRows.Count) |
+| **Member users evaluated** | $($memberRows.Count) |$(if ($exclusionReasons.Count -gt 0) { "`n| **Excluded users** | $excludedQualifyingCount |" })
 | **Qualifying users** | $($desiredUserIds.Count) |
 | **Previous members** | $($currentMemberIds.Count) |
 | **$actionAddLabel** | $($toAdd.Count) |
@@ -1737,8 +1948,14 @@ Write-Output "Strict mode:          $SecureOnly"
 if ($SecureOnly) {
     Write-Output "Unsecure methods:     $($unsecureMethods -join ', ')"
 }
+Write-Output "Exclude admins:       $ExcludeAdmins"
+Write-Output "Exclusion group:      $(if ($excludeGroup) { $excludeGroup.displayName } else { "(none)" })"
+Write-Output "User exclusion list:  $(if ($excludeUsers.Count -gt 0) { "$($excludeUsers.Count) user(s)" } else { "(none)" })"
 Write-Output "Report entries:       $($registrationDetails.Count)"
 Write-Output "Member users:         $($memberRows.Count)"
+if ($exclusionReasons.Count -gt 0) {
+    Write-Output "Excluded users:       $excludedQualifyingCount"
+}
 Write-Output "Qualifying users:     $($desiredUserIds.Count)"
 Write-Output "Previous members:     $($currentMemberIds.Count)"
 if ($WhatIfMode) {

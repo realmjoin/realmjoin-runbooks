@@ -59,9 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - Add Application Registration
-    - Add Gsa Application Registration
+    - Add GSA Application Registration
     - Delete Application Registration
-    - Delete Gsa Application Registration
+    - Delete GSA Application Registration
     - Export Enterprise Application Users
     - List Inactive Enterprise Applications
     - Report Application Registration
@@ -114,6 +114,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Invite External Guest Users
     - List All Administrative Template Policies
     - List Group License Assignment Errors
+    - Monitor Service Health (Scheduled)
     - Office365 License Report
     - Report Apple MDM Cert Expiry (Scheduled)
     - Report License Assignment (Scheduled)
@@ -296,9 +297,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Application Registration | Add an application registration to Azure AD |
-| Add Gsa Application Registration | Add a GSA application registration to Azure AD |
+| Add GSA Application Registration | Add a GSA application registration to Azure AD |
 | Delete Application Registration | Delete an application registration from Azure AD |
-| Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
+| Delete GSA Application Registration | Delete a GSA application registration from Azure AD including associated objects |
 | Export Enterprise Application Users | Export a report of all (enterprise) application owners and users |
 | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 | Report Application Registration | Generate and email a comprehensive Application Registration report |
@@ -363,6 +364,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Invite External Guest Users | Invite external guest users to the organization |
 | List All Administrative Template Policies | List all Administrative Template policies and their assignments |
 | List Group License Assignment Errors | Report groups that have license assignment errors |
+| Monitor Service Health (Scheduled) | Alert by email on newly announced Microsoft 365 Service Health issues |
 | Office365 License Report | Generate an Office 365 licensing report |
 | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates |
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
@@ -456,7 +458,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Email Address | Add or remove an email address for a mailbox |
 | Assign OWA Mailbox Policy | Assign an OWA mailbox policy to a user |
 | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back |
-| Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation |
+| Delegate Full Access | Grant or revoke Exchange Online FullAccess mailbox permission for one or more users |
 | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation |
 | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox |
 | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
@@ -464,7 +466,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Room Mailbox Configuration | List room mailbox configuration |
 | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
-| Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
+| Set Out Of Office | Enable or disable mailbox out-of-office notifications |
 | Set Room Mailbox Configuration | Set room mailbox resource policies |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)

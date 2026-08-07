@@ -152,7 +152,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | implicitGrantAccessTokens |  | Boolean | Enable implicit grant flow for access tokens. Default is false. |
 |  |  |  |  |  |  | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. Default is false. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Add Gsa Application Registration | Add a GSA application registration to Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- AppRoleAssignment.ReadWrite.All<br> |  | name | ✓ | String | The base name of the Global Secure Access application to create. The final application name is built as "<prefix> <name>". |
+|  |  | Add GSA Application Registration | Add a GSA application registration to Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Directory.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- AppRoleAssignment.ReadWrite.All<br> |  | name | ✓ | String | The base name of the Global Secure Access application to create. The final application name is built as "<prefix> <name>". |
 |  |  |  |  |  |  | prefix | ✓ | String | Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends<br>with "-", "_" or a space. Example: prefix "GSA-" + name "MyApp" results in application "GSA-MyApp". |
 |  |  |  |  |  |  | groupPrefix |  | String | Prefix for the security group name. The group name is built as "<groupPrefix><name><groupSuffix>" -<br>independent of the application prefix. Example: groupPrefix "App - Entra - GSA - " + name "MyApp"<br>results in group "App - Entra - GSA - MyApp". Default: "App - Entra - GSA - ". |
 |  |  |  |  |  |  | groupSuffix |  | String | Optional suffix for the security group name, e.g. " (users)". Default: empty. |
@@ -165,7 +165,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | The name of the user executing the runbook. Used for auditing purposes. Hidden in UI. |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.OwnedBy<br>&emsp;- Group.ReadWrite.All<br> | - Application Developer<br> | ClientId | ✓ | String | The application client ID (appId) of the application registration to delete. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
-|  |  | Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  | applicationName | ✓ | String | The full display name of the GSA application to delete, e.g. "GSA-MyApp". |
+|  |  | Delete GSA Application Registration | Delete a GSA application registration from Azure AD including associated objects | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br> |  | applicationName | ✓ | String | The full display name of the GSA application to delete, e.g. "GSA-MyApp". |
 |  |  |  |  |  |  | groupPrefix |  | String | Prefix of the security group naming scheme, used to identify the group(s) to delete.<br>Must match the groupPrefix of the add-gsa-application-registration runbook.<br>Default: "App - Entra - GSA - ". |
 |  |  |  |  |  |  | groupSuffix |  | String | Optional suffix of the security group naming scheme. Default: empty. |
 |  |  |  |  |  |  | deleteAllAssignedGroups |  | Boolean | If true, ALL groups assigned to the application are deleted, not only the naming scheme group(s).<br>Use with care - assigned groups may be shared with other applications. Default: false. |
@@ -321,6 +321,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 |  |  |  |  |  |  | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 |  |  |  |  |  |  | OverrideEmailRecipient |  | String | Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users. |
+|  |  |  |  |  |  | SendNoPrimaryUserDevicesToOverride |  | Boolean | If enabled, stale devices without a primary user (and devices whose primary user matches OverrideUserNamePattern) are sent to OverrideEmailRecipient, while all other notifications go directly to the end users. Requires OverrideEmailRecipient to be set. Devices without a primary user bypass user scope filtering. |
+|  |  |  |  |  |  | OverrideUserNamePattern |  | String | Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Matching users' notifications are redirected to OverrideEmailRecipient. Only used when SendNoPrimaryUserDevicesToOverride is enabled. |
 |  |  |  |  |  |  | MailTemplateLanguage |  | String | Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations). |
 |  |  |  |  |  |  | CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). |
 |  |  |  |  |  |  | CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
@@ -587,6 +589,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors | - **Type**: Microsoft Graph<br>&emsp;- GroupMember.Read.All<br>&emsp;- Group.Read.All<br> |  | CallerName | ✓ | String | Caller name for auditing purposes. |
+|  |  | Monitor Service Health (Scheduled) | Alert by email on newly announced Microsoft 365 Service Health issues | - **Type**: Microsoft Graph<br>&emsp;- Mail.Send<br>&emsp;- Organization.Read.All<br>&emsp;- ServiceHealth.Read.All<br> |  | Services |  | String | Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page. |
+|  |  |  |  |  |  | LookbackHours |  | Int32 | How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice. |
+|  |  |  |  |  |  | IncludeAdvisories |  | Boolean | If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well. |
+|  |  |  |  |  |  | IncludeResolvedIssues |  | Boolean | If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported. |
+|  |  |  |  |  |  | EmailFrom |  | String | The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization. |
+|  |  |  |  |  |  | EmailTo | ✓ | String | Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 |  |  | Office365 License Report | Generate an Office 365 licensing report | - **Type**: Microsoft Graph<br>&emsp;- Reports.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- User.Read.All<br>&emsp;- ReportSettings.ReadWrite.All<br> |  | printOverview |  | Boolean | If set to true, prints a short license usage overview. |
 |  |  |  |  |  |  | includeExchange |  | Boolean | If set to true, includes Exchange Online related reports (Shared Mailbox licensing). |
 |  |  |  |  |  |  | includeUserData |  | Boolean | If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use. |
@@ -817,7 +826,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
 |  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
-|  |  | Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send<br> |  | TargetGroupId | ✓ | String | The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook. |
+|  |  | Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send<br> |  | TargetGroupId | ✓ | String | The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook. |
 |  |  |  |  |  |  | IncludePasskeys |  | Boolean | Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDeviceBound, passKeyDeviceBoundAuthenticator). |
 |  |  |  |  |  |  | IncludePlatformCredentials |  | Boolean | Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoundWindowsHello, macOsSecureEnclaveKey). |
 |  |  |  |  |  |  | IncludeMicrosoftAuthenticator |  | Boolean | Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, microsoftAuthenticatorPasswordless). |
@@ -827,6 +836,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | SecureOnly |  | Boolean | Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member. |
 |  |  |  |  |  |  | SecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values. |
 |  |  |  |  |  |  | UnsecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly). |
+|  |  |  |  |  |  | ExcludeAdmins |  | Boolean | Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor. |
+|  |  |  |  |  |  | ExcludeGroupId |  | String | Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members. |
+|  |  |  |  |  |  | ExcludeUserIds |  | String Array | Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning. |
 |  |  |  |  |  |  | WhatIfMode |  | Boolean | Dry run: log which users would be added or removed without changing the group. |
 |  |  |  |  |  |  | SendEmail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default. |
 |  |  |  |  |  |  | EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled. |
@@ -972,11 +984,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ArchivalLicenseGroup |  | String | Display name of a license group to assign when an archive or larger mailbox requires it. |
 |  |  |  |  |  |  | RegularLicenseGroup |  | String | Display name of a license group to assign when converting back to a regular mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
-|  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
-|  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
-|  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
-|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Delegate Full Access | Grant or revoke Exchange Online FullAccess mailbox permission for one or more users | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the mailbox owner. |
+|  |  |  |  |  |  | delegateTo | ✓ | String Array | One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously. |
+|  |  |  |  |  |  | Remove |  | Boolean | If set to true, the script will remove the FullAccess permission. If false, it will grant the permission. |
+|  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false). |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 |  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
@@ -990,19 +1002,20 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | List Mailbox Permissions | List mailbox permissions for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: MG Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
+|  |  | List Room Mailbox Configuration | List room mailbox configuration | - **Type**: Microsoft Graph<br>&emsp;- Place.Read.All<br> |  | UserName | ✓ | String | User principal name of the room mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the user whose archive mailbox should be managed. |
 |  |  |  |  |  |  | Action |  | String | Action to perform: Enable, Disable, or GetStatus. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |  | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
-|  |  |  |  |  |  | Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
+|  |  | Set Out Of Office | Enable or disable mailbox out-of-office notifications | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. This value is auto-filled by the portal. |
+|  |  |  |  |  |  | Disable |  | Boolean | Select whether to enable out-of-office notifications or disable existing out-of-office settings. |
 |  |  |  |  |  |  | Start |  | DateTime | Start time for scheduled out-of-office replies. |
-|  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
+|  |  |  |  |  |  | End |  | DateTime | End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date. |
 |  |  |  |  |  |  | MessageInternal |  | String | Internal automatic reply message. |
 |  |  |  |  |  |  | MessageExternal |  | String | External automatic reply message. |
+|  |  |  |  |  |  | ExternalAudience |  | String | Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders. |
 |  |  |  |  |  |  | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 |  |  |  |  |  |  | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
