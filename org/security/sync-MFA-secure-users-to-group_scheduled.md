@@ -50,6 +50,40 @@ This option requires the additional Graph permission `RoleManagement.Read.Direct
 
 Transitive user members of the configured group are excluded — intended for accounts that must never be managed by this sync, such as **break glass accounts** or **service accounts**. Nested groups are honored. The exclusion group must not be the target group itself.
 
+### Individually excluded users (`ExcludeUserIds`, optional)
+
+Individual users can be excluded directly via the multi-user picker — for one-off exclusions where a dedicated exclusion group is not worth maintaining. The list accepts user **object IDs** and **user principal names** (UPNs). Unresolvable entries (e.g. a deleted account) log a warning and are ignored, so a stale entry never breaks a scheduled sync.
+
+### Maintaining exclusions via Runbook Customization (without the pickers)
+
+Both exclusion parameters can be pre-set centrally via [JSON-based Runbook Customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization#json-based-customizing) (RealmJoin portal: **Settings** → **Runbook Customizations**) — useful when the exclusions are fixed for the tenant and should not be picked manually each time the runbook is started or scheduled:
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_security_sync-mfa-secure-users-to-group_scheduled": {
+            "Parameters": {
+                "ExcludeGroupId": {
+                    "DefaultValue": "00000000-0000-0000-0000-000000000000",
+                    "Hide": true
+                },
+                "ExcludeUserIds": {
+                    "DefaultValue": [
+                        "11111111-1111-1111-1111-111111111111",
+                        "breakglass@contoso.com"
+                    ],
+                    "Hide": true
+                }
+            }
+        }
+    }
+}
+```
+
+- **ExcludeGroupId** takes a single group **object ID** (GUID) as a plain string — copy it from the group's overview page in the Entra admin center or the RealmJoin portal.
+- **ExcludeUserIds** takes a JSON **array of strings**; each entry can be a user **object ID** or a **UPN**. Entries are trimmed and deduplicated; the runbook resolves them at startup.
+- **Recommended:** when the exclusions are maintained via Runbook Customization, also set `"Hide": true` on the parameter (as in the example above). This removes it from the start form entirely, so the centrally configured exclusions cannot be overridden in the UI when starting or scheduling the runbook. Without `Hide`, the configured values only appear pre-filled and can still be changed there.
+
 ## Method classification reference
 
 Use the exact Graph values from this table when building the comma-separated override strings:

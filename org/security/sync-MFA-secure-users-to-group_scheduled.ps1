@@ -3,7 +3,7 @@
     Sync users with secure MFA methods registered into an Entra ID group
 
     .DESCRIPTION
-    This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group. Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
+    This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
 
     Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
 
@@ -42,6 +42,9 @@
 
     .PARAMETER ExcludeGroupId
     Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members.
+
+    .PARAMETER ExcludeUserIds
+    Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning.
 
     .PARAMETER WhatIfMode
     Dry run: log which users would be added or removed without changing the group.
@@ -116,6 +119,9 @@
             },
             "ExcludeGroupId": {
                 "DisplayName": "Exclusion group (members are never synced into the target group)"
+            },
+            "ExcludeUserIds": {
+                "DisplayName": "Excluded users (never synced into the target group)"
             },
             "WhatIfMode": {
                 "DisplayName": "Dry run (log only, no changes)"
@@ -241,6 +247,9 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclusion group (optional)" } )]
     [string]$ExcludeGroupId = "",
 
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Excluded users (optional)" -Filter "userType eq 'Member'" } )]
+    [string[]]$ExcludeUserIds = @(),
+
     [bool]$WhatIfMode = $false,
 
     [bool]$SendEmail = $false,
@@ -281,7 +290,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.0"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "TargetGroupId: $TargetGroupId" -Verbose
@@ -296,6 +305,7 @@ Write-RjRbLog -Message "SecureMethodsOverride: $SecureMethodsOverride" -Verbose
 Write-RjRbLog -Message "UnsecureMethodsOverride: $UnsecureMethodsOverride" -Verbose
 Write-RjRbLog -Message "ExcludeAdmins: $ExcludeAdmins" -Verbose
 Write-RjRbLog -Message "ExcludeGroupId: $ExcludeGroupId" -Verbose
+Write-RjRbLog -Message "ExcludeUserIds: $($ExcludeUserIds -join ', ')" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "SendEmail: $SendEmail" -Verbose
 if ($SendEmail) {
@@ -1313,6 +1323,36 @@ if (-not [string]::IsNullOrWhiteSpace($ExcludeGroupId)) {
     }
 }
 
+# Resolve the individually excluded users (optional) - accepts object IDs and UPNs. Unresolvable
+# entries only produce a warning so a deleted account never breaks a scheduled sync.
+$excludeUsers = @()
+$excludeUserInputs = @($ExcludeUserIds | ForEach-Object { "$_".Trim() } | Where-Object { $_ } | Select-Object -Unique)
+if ($excludeUserInputs.Count -gt 0) {
+    $excludeUserProbeRequests = @($excludeUserInputs | ForEach-Object -Begin { $idx = 1 } -Process {
+            @{
+                id     = "$idx"
+                method = "GET"
+                url    = "/users/$([uri]::EscapeDataString($_))?`$select=id,userPrincipalName"
+            }
+            $idx++
+        })
+    $excludeUserProbeResponses = Invoke-GraphBatch -Requests $excludeUserProbeRequests -ProgressLabel "excluded user lookups"
+
+    $resolvedExcludeUsers = [System.Collections.Generic.List[object]]::new()
+    foreach ($response in $excludeUserProbeResponses) {
+        if ($response.status -eq 200 -and $response.body.id) {
+            $resolvedExcludeUsers.Add([PSCustomObject]@{ id = $response.body.id; userPrincipalName = $response.body.userPrincipalName })
+        }
+        else {
+            $reqIdx = [int]$response.id - 1
+            $inputValue = if ($reqIdx -ge 0 -and $reqIdx -lt $excludeUserInputs.Count) { $excludeUserInputs[$reqIdx] } else { "unknown" }
+            Write-Output "Warning: Excluded user '$inputValue' could not be resolved (status $($response.status)) - the entry is ignored. Please verify the user ID / UPN."
+        }
+    }
+    # Sort for stable output and deduplicate (the same user could be listed by ID and by UPN)
+    $excludeUsers = @($resolvedExcludeUsers | Sort-Object userPrincipalName -Unique)
+}
+
 Write-Output ""
 Write-Output "Configuration"
 Write-Output "---------------------"
@@ -1324,6 +1364,7 @@ if ($SecureOnly) {
 }
 Write-Output "Exclude admins:   $ExcludeAdmins"
 Write-Output "Exclusion group:  $(if ($excludeGroup) { $excludeGroup.displayName } else { "(none)" })"
+Write-Output "Excluded users:   $(if ($excludeUsers.Count -gt 0) { @($excludeUsers.userPrincipalName) -join ', ' } else { "(none)" })"
 Write-Output "Mode:             $(if ($WhatIfMode) { "WhatIf (no changes will be made)" } else { "Live" })"
 
 #endregion
@@ -1470,6 +1511,14 @@ if ($excludeGroup) {
         if (-not $exclusionReasons.ContainsKey($member.id)) { $exclusionReasons[$member.id] = "exclusion group" }
     }
     Write-Output "Exclusion group members: $($excludeGroupMembers.Count)"
+}
+
+if ($excludeUsers.Count -gt 0) {
+    foreach ($excludeUser in $excludeUsers) {
+        if (-not $exclusionReasons.ContainsKey($excludeUser.id)) { $exclusionReasons[$excludeUser.id] = "user exclusion list" }
+    }
+    Write-Output ""
+    Write-Output "Individually excluded users: $($excludeUsers.Count)"
 }
 
 # Excluded users are dropped from the desired set - the regular diff then also removes
@@ -1718,6 +1767,9 @@ if ($SendEmail -or $CreateDownloadLink) {
     if ($excludeGroup) {
         $coverSheet["Exclusion group"] = $excludeGroup.displayName
     }
+    if ($excludeUsers.Count -gt 0) {
+        $coverSheet["Excluded users (individual)"] = (@($excludeUsers.userPrincipalName) -join ', ')
+    }
     if ([string]::IsNullOrWhiteSpace($SecureMethodsOverride)) {
         $coverSheet["Method group toggles"] = "Passkeys/FIDO2: $(if ($IncludePasskeys) { 'on' } else { 'off' }), Platform credentials: $(if ($IncludePlatformCredentials) { 'on' } else { 'off' }), Microsoft Authenticator: $(if ($IncludeMicrosoftAuthenticator) { 'on' } else { 'off' }), Software OTP: $(if ($IncludeSoftwareOtp) { 'on' } else { 'off' }), Hardware OTP: $(if ($IncludeHardwareOtp) { 'on' } else { 'off' }), Certificate-based: $(if ($IncludeCertificateBasedAuth) { 'on' } else { 'off' })"
     }
@@ -1815,7 +1867,7 @@ $changesSummary
 | **Mode** | $(if ($WhatIfMode) { "WhatIf (no changes were made)" } else { "Live" }) |
 | **Secure methods** | $($secureMethods -join ', ') |
 | **Strict mode (SecureOnly)** | $SecureOnly |$(if ($SecureOnly) { "`n| **Unsecure methods** | $($unsecureMethods -join ', ') |" })
-| **Exclude admins** | $ExcludeAdmins |$(if ($excludeGroup) { "`n| **Exclusion group** | $($excludeGroup.displayName) |" })
+| **Exclude admins** | $ExcludeAdmins |$(if ($excludeGroup) { "`n| **Exclusion group** | $($excludeGroup.displayName) |" })$(if ($excludeUsers.Count -gt 0) { "`n| **Excluded users (individual)** | $($excludeUsers.Count) |" })
 | **Report entries** | $($registrationDetails.Count) |
 | **Member users evaluated** | $($memberRows.Count) |$(if ($exclusionReasons.Count -gt 0) { "`n| **Excluded users** | $excludedQualifyingCount |" })
 | **Qualifying users** | $($desiredUserIds.Count) |
@@ -1898,6 +1950,7 @@ if ($SecureOnly) {
 }
 Write-Output "Exclude admins:       $ExcludeAdmins"
 Write-Output "Exclusion group:      $(if ($excludeGroup) { $excludeGroup.displayName } else { "(none)" })"
+Write-Output "User exclusion list:  $(if ($excludeUsers.Count -gt 0) { "$($excludeUsers.Count) user(s)" } else { "(none)" })"
 Write-Output "Report entries:       $($registrationDetails.Count)"
 Write-Output "Member users:         $($memberRows.Count)"
 if ($exclusionReasons.Count -gt 0) {
