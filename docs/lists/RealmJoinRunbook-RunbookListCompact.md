@@ -143,7 +143,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox |
 |  |  | Assign OWA Mailbox Policy | Assign an OWA mailbox policy to a user |
 |  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation |
+|  |  | Delegate Full Access | Grant or revoke Exchange Online FullAccess mailbox permission for one or more users |
 |  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation |
 |  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox |
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |

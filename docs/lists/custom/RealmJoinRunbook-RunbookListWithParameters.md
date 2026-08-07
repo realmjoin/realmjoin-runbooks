@@ -984,11 +984,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ArchivalLicenseGroup |  | String | Display name of a license group to assign when an archive or larger mailbox requires it. |
 |  |  |  |  |  |  | RegularLicenseGroup |  | String | Display name of a license group to assign when converting back to a regular mailbox. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
-|  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
-|  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
-|  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
-|  |  |  |  |  |  | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+|  |  | Delegate Full Access | Grant or revoke Exchange Online FullAccess mailbox permission for one or more users | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the mailbox owner. |
+|  |  |  |  |  |  | delegateTo | ✓ | String Array | One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously. |
+|  |  |  |  |  |  | Remove |  | Boolean | If set to true, the script will remove the FullAccess permission. If false, it will grant the permission. |
+|  |  |  |  |  |  | AutoMapping |  | Boolean | If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false). |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 |  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange administrator<br> | UserName | ✓ | String | User principal name of the mailbox. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | User principal name of the delegate. |
 |  |  |  |  |  |  | Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |

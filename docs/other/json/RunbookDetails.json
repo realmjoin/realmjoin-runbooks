@@ -21003,15 +21003,15 @@
     "RelativeRunbookPath_PathOnly": "user/mail",
     "PrimaryFolder": "User",
     "SubFolder": "Mail",
-    "Synopsis": "Delegate FullAccess permissions to another user on a mailbox or remove existing delegation",
-    "Description": "Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.\nAlso shows the current and new permissions for the mailbox.\nAutomapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.",
+    "Synopsis": "Grant or revoke Exchange Online FullAccess mailbox permission for one or more users",
+    "Description": "Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.",
     "Notes": null,
     "Parameters": [
       {
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, enables Outlook automapping when granting FullAccess."
+            "Text": "If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false)."
           }
         ],
         "globbing": "false",
@@ -21028,7 +21028,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Caller name is tracked purely for auditing purposes."
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
           }
         ],
         "globbing": "false",
@@ -21045,24 +21045,24 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the delegate."
+            "Text": "One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously."
           }
         ],
         "globbing": "false",
         "name": "delegateTo",
-        "parameterValue": "String",
+        "parameterValue": "String[]",
         "pipelineInput": "false",
         "position": "2",
         "required": "true",
         "type": {
-          "name": "String"
+          "name": "String[]"
         }
       },
       {
         "defaultValue": "False",
         "description": [
           {
-            "Text": "If set to true, removes the delegation instead of granting it."
+            "Text": "If set to true, the script will remove the FullAccess permission. If false, it will grant the permission."
           }
         ],
         "globbing": "false",
@@ -21079,7 +21079,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User principal name of the mailbox."
+            "Text": "User principal name of the mailbox owner."
           }
         ],
         "globbing": "false",
@@ -21093,9 +21093,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange administrator\"\n    ],\n    \"ManualPermissions\": []\n}",
+    "DocsContent": "## How it works\n\nOn each run the runbook:\n\n1. Connects to Exchange Online with the Automation account's managed identity.\n2. Verifies that the selected mailbox owner (`UserName`) actually has a mailbox - if not, the run stops before anything is changed.\n3. Resolves every selected delegate to its primary SMTP address and drops duplicates and the mailbox owner itself.\n4. Reads and prints the current **FullAccess** delegations on the mailbox (the *status quo*).\n5. Grants or removes FullAccess for each remaining delegate, one at a time.\n6. Re-reads the mailbox permissions and prints the resulting state plus a per-run summary.\n\nThe runbook only ever touches the **FullAccess** right on the one selected mailbox. Send As, Send on Behalf and folder-level permissions are not affected.\n\n### Selecting delegates\n\nThe **Delegate access to** field is a **multi-select** user picker. Select as many delegates as needed - all of them receive the same action (*Grant access* or *Remove access*) and the same AutoMapping setting from the form in a single run.\n\nThe picker is restricted to member accounts (`userType eq 'Member'`), so guest accounts are not offered. It hands over each selected delegate as a **user principal name**, so the very first log line already reads as a list of UPNs instead of raw object IDs. Each value is then resolved against Exchange Online, and from the preflight step onward all output shows the delegate's primary SMTP address.\n\nTwo picker entries that resolve to the same mailbox are de-duplicated, and a delegate that resolves to the mailbox owner is dropped with a warning - a mailbox cannot be delegated to itself.\n\n### What gets changed\n\n- **Grant access (`Remove` = false):** `Add-MailboxPermission` with `-AccessRights FullAccess` for each delegate.\n- **Remove access (`Remove` = true):** `Remove-MailboxPermission` with `-AccessRights FullAccess -InheritanceType All` for each delegate.\n\n### AutoMapping\n\n**`AutoMapping`** is only evaluated when granting access; the portal hides the field when *Remove access* is selected. With AutoMapping enabled, Outlook adds the delegated mailbox to the delegate's profile automatically - but only after the client re-creates the mapping, which can take a while. Existing grants are not re-written to change their AutoMapping value; remove the delegation and grant it again if the mapping behaviour must change.\n\n### Idempotent by design\n\nNothing is done twice and nothing fails just because it was already true:\n\n- Granting access to a delegate who already holds FullAccess is reported as *unchanged*, not as an error.\n- Removing access from a delegate who has no FullAccess entry is reported as *unchanged*, not as an error.\n- When the pre-change snapshot cannot classify an existing permission entry, the runbook does **not** take the shortcut - it calls Exchange Online and lets its response decide, so a removable delegation is never silently skipped.\n\n### Partial results\n\nDelegates are processed independently:\n\n- A delegate **without a mailbox** is skipped during the preflight check and counted as *skipped*; the remaining delegates are still processed. If none of the selected delegates has a mailbox, the run stops.\n- A delegate whose change **fails** is reported with a targeted reason (directory-replication delay, insufficient Exchange Online permissions on the managed identity, a permission inherited from a group, or a shared/unlicensed mailbox) and the loop continues with the rest.\n\nEvery run ends with a summary line in the form `Summary: <changed>, <unchanged>, <failed>, <skipped (no mailbox)>`, followed by the resulting FullAccess delegations on the mailbox.\n\nIf **any** delegate failed, the runbook itself reports a failure. This is deliberate: with a multi-select picker, a partial success reported as a clean run would hide delegates that never received access.\n\n### Limitations\n\n- **Inherited permissions cannot be removed.** A FullAccess right that comes from a role group or security group membership is shown as *inherited* but cannot be revoked here - adjust the group membership or role assignment instead.\n- **Only explicit Allow grants are managed.** An explicit **Deny** entry on the mailbox is displayed for transparency, but the runbook never adds or removes one.\n\n### Prerequisites\n\nThe Automation account's managed identity connects to Exchange Online via `Connect-RjRbExchangeOnline` and needs:\n\n- the `Exchange.ManageAsApp` application permission on *Office 365 Exchange Online*, and\n- the **Exchange Administrator** role (or an equivalent Exchange Online RBAC role that includes `Add-MailboxPermission` and `Remove-MailboxPermission`).\n\nThe runbook makes no Microsoft Graph calls - the user picker is a portal-side annotation only, so no Graph application permissions are required.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpPbiBlYWNoIHJ1biB0aGUgcnVuYm9vazoKCjEuIENvbm5lY3RzIHRvIEV4Y2hhbmdlIE9ubGluZSB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5LgoyLiBWZXJpZmllcyB0aGF0IHRoZSBzZWxlY3RlZCBtYWlsYm94IG93bmVyIChgVXNlck5hbWVgKSBhY3R1YWxseSBoYXMgYSBtYWlsYm94IC0gaWYgbm90LCB0aGUgcnVuIHN0b3BzIGJlZm9yZSBhbnl0aGluZyBpcyBjaGFuZ2VkLgozLiBSZXNvbHZlcyBldmVyeSBzZWxlY3RlZCBkZWxlZ2F0ZSB0byBpdHMgcHJpbWFyeSBTTVRQIGFkZHJlc3MgYW5kIGRyb3BzIGR1cGxpY2F0ZXMgYW5kIHRoZSBtYWlsYm94IG93bmVyIGl0c2VsZi4KNC4gUmVhZHMgYW5kIHByaW50cyB0aGUgY3VycmVudCAqKkZ1bGxBY2Nlc3MqKiBkZWxlZ2F0aW9ucyBvbiB0aGUgbWFpbGJveCAodGhlICpzdGF0dXMgcXVvKikuCjUuIEdyYW50cyBvciByZW1vdmVzIEZ1bGxBY2Nlc3MgZm9yIGVhY2ggcmVtYWluaW5nIGRlbGVnYXRlLCBvbmUgYXQgYSB0aW1lLgo2LiBSZS1yZWFkcyB0aGUgbWFpbGJveCBwZXJtaXNzaW9ucyBhbmQgcHJpbnRzIHRoZSByZXN1bHRpbmcgc3RhdGUgcGx1cyBhIHBlci1ydW4gc3VtbWFyeS4KClRoZSBydW5ib29rIG9ubHkgZXZlciB0b3VjaGVzIHRoZSAqKkZ1bGxBY2Nlc3MqKiByaWdodCBvbiB0aGUgb25lIHNlbGVjdGVkIG1haWxib3guIFNlbmQgQXMsIFNlbmQgb24gQmVoYWxmIGFuZCBmb2xkZXItbGV2ZWwgcGVybWlzc2lvbnMgYXJlIG5vdCBhZmZlY3RlZC4KCiMjIyBTZWxlY3RpbmcgZGVsZWdhdGVzCgpUaGUgKipEZWxlZ2F0ZSBhY2Nlc3MgdG8qKiBmaWVsZCBpcyBhICoqbXVsdGktc2VsZWN0KiogdXNlciBwaWNrZXIuIFNlbGVjdCBhcyBtYW55IGRlbGVnYXRlcyBhcyBuZWVkZWQgLSBhbGwgb2YgdGhlbSByZWNlaXZlIHRoZSBzYW1lIGFjdGlvbiAoKkdyYW50IGFjY2Vzcyogb3IgKlJlbW92ZSBhY2Nlc3MqKSBhbmQgdGhlIHNhbWUgQXV0b01hcHBpbmcgc2V0dGluZyBmcm9tIHRoZSBmb3JtIGluIGEgc2luZ2xlIHJ1bi4KClRoZSBwaWNrZXIgaXMgcmVzdHJpY3RlZCB0byBtZW1iZXIgYWNjb3VudHMgKGB1c2VyVHlwZSBlcSAnTWVtYmVyJ2ApLCBzbyBndWVzdCBhY2NvdW50cyBhcmUgbm90IG9mZmVyZWQuIEl0IGhhbmRzIG92ZXIgZWFjaCBzZWxlY3RlZCBkZWxlZ2F0ZSBhcyBhICoqdXNlciBwcmluY2lwYWwgbmFtZSoqLCBzbyB0aGUgdmVyeSBmaXJzdCBsb2cgbGluZSBhbHJlYWR5IHJlYWRzIGFzIGEgbGlzdCBvZiBVUE5zIGluc3RlYWQgb2YgcmF3IG9iamVjdCBJRHMuIEVhY2ggdmFsdWUgaXMgdGhlbiByZXNvbHZlZCBhZ2FpbnN0IEV4Y2hhbmdlIE9ubGluZSwgYW5kIGZyb20gdGhlIHByZWZsaWdodCBzdGVwIG9ud2FyZCBhbGwgb3V0cHV0IHNob3dzIHRoZSBkZWxlZ2F0ZSdzIHByaW1hcnkgU01UUCBhZGRyZXNzLgoKVHdvIHBpY2tlciBlbnRyaWVzIHRoYXQgcmVzb2x2ZSB0byB0aGUgc2FtZSBtYWlsYm94IGFyZSBkZS1kdXBsaWNhdGVkLCBhbmQgYSBkZWxlZ2F0ZSB0aGF0IHJlc29sdmVzIHRvIHRoZSBtYWlsYm94IG93bmVyIGlzIGRyb3BwZWQgd2l0aCBhIHdhcm5pbmcgLSBhIG1haWxib3ggY2Fubm90IGJlIGRlbGVnYXRlZCB0byBpdHNlbGYuCgojIyMgV2hhdCBnZXRzIGNoYW5nZWQKCi0gKipHcmFudCBhY2Nlc3MgKGBSZW1vdmVgID0gZmFsc2UpOioqIGBBZGQtTWFpbGJveFBlcm1pc3Npb25gIHdpdGggYC1BY2Nlc3NSaWdodHMgRnVsbEFjY2Vzc2AgZm9yIGVhY2ggZGVsZWdhdGUuCi0gKipSZW1vdmUgYWNjZXNzIChgUmVtb3ZlYCA9IHRydWUpOioqIGBSZW1vdmUtTWFpbGJveFBlcm1pc3Npb25gIHdpdGggYC1BY2Nlc3NSaWdodHMgRnVsbEFjY2VzcyAtSW5oZXJpdGFuY2VUeXBlIEFsbGAgZm9yIGVhY2ggZGVsZWdhdGUuCgojIyMgQXV0b01hcHBpbmcKCioqYEF1dG9NYXBwaW5nYCoqIGlzIG9ubHkgZXZhbHVhdGVkIHdoZW4gZ3JhbnRpbmcgYWNjZXNzOyB0aGUgcG9ydGFsIGhpZGVzIHRoZSBmaWVsZCB3aGVuICpSZW1vdmUgYWNjZXNzKiBpcyBzZWxlY3RlZC4gV2l0aCBBdXRvTWFwcGluZyBlbmFibGVkLCBPdXRsb29rIGFkZHMgdGhlIGRlbGVnYXRlZCBtYWlsYm94IHRvIHRoZSBkZWxlZ2F0ZSdzIHByb2ZpbGUgYXV0b21hdGljYWxseSAtIGJ1dCBvbmx5IGFmdGVyIHRoZSBjbGllbnQgcmUtY3JlYXRlcyB0aGUgbWFwcGluZywgd2hpY2ggY2FuIHRha2UgYSB3aGlsZS4gRXhpc3RpbmcgZ3JhbnRzIGFyZSBub3QgcmUtd3JpdHRlbiB0byBjaGFuZ2UgdGhlaXIgQXV0b01hcHBpbmcgdmFsdWU7IHJlbW92ZSB0aGUgZGVsZWdhdGlvbiBhbmQgZ3JhbnQgaXQgYWdhaW4gaWYgdGhlIG1hcHBpbmcgYmVoYXZpb3VyIG11c3QgY2hhbmdlLgoKIyMjIElkZW1wb3RlbnQgYnkgZGVzaWduCgpOb3RoaW5nIGlzIGRvbmUgdHdpY2UgYW5kIG5vdGhpbmcgZmFpbHMganVzdCBiZWNhdXNlIGl0IHdhcyBhbHJlYWR5IHRydWU6CgotIEdyYW50aW5nIGFjY2VzcyB0byBhIGRlbGVnYXRlIHdobyBhbHJlYWR5IGhvbGRzIEZ1bGxBY2Nlc3MgaXMgcmVwb3J0ZWQgYXMgKnVuY2hhbmdlZCosIG5vdCBhcyBhbiBlcnJvci4KLSBSZW1vdmluZyBhY2Nlc3MgZnJvbSBhIGRlbGVnYXRlIHdobyBoYXMgbm8gRnVsbEFjY2VzcyBlbnRyeSBpcyByZXBvcnRlZCBhcyAqdW5jaGFuZ2VkKiwgbm90IGFzIGFuIGVycm9yLgotIFdoZW4gdGhlIHByZS1jaGFuZ2Ugc25hcHNob3QgY2Fubm90IGNsYXNzaWZ5IGFuIGV4aXN0aW5nIHBlcm1pc3Npb24gZW50cnksIHRoZSBydW5ib29rIGRvZXMgKipub3QqKiB0YWtlIHRoZSBzaG9ydGN1dCAtIGl0IGNhbGxzIEV4Y2hhbmdlIE9ubGluZSBhbmQgbGV0cyBpdHMgcmVzcG9uc2UgZGVjaWRlLCBzbyBhIHJlbW92YWJsZSBkZWxlZ2F0aW9uIGlzIG5ldmVyIHNpbGVudGx5IHNraXBwZWQuCgojIyMgUGFydGlhbCByZXN1bHRzCgpEZWxlZ2F0ZXMgYXJlIHByb2Nlc3NlZCBpbmRlcGVuZGVudGx5OgoKLSBBIGRlbGVnYXRlICoqd2l0aG91dCBhIG1haWxib3gqKiBpcyBza2lwcGVkIGR1cmluZyB0aGUgcHJlZmxpZ2h0IGNoZWNrIGFuZCBjb3VudGVkIGFzICpza2lwcGVkKjsgdGhlIHJlbWFpbmluZyBkZWxlZ2F0ZXMgYXJlIHN0aWxsIHByb2Nlc3NlZC4gSWYgbm9uZSBvZiB0aGUgc2VsZWN0ZWQgZGVsZWdhdGVzIGhhcyBhIG1haWxib3gsIHRoZSBydW4gc3RvcHMuCi0gQSBkZWxlZ2F0ZSB3aG9zZSBjaGFuZ2UgKipmYWlscyoqIGlzIHJlcG9ydGVkIHdpdGggYSB0YXJnZXRlZCByZWFzb24gKGRpcmVjdG9yeS1yZXBsaWNhdGlvbiBkZWxheSwgaW5zdWZmaWNpZW50IEV4Y2hhbmdlIE9ubGluZSBwZXJtaXNzaW9ucyBvbiB0aGUgbWFuYWdlZCBpZGVudGl0eSwgYSBwZXJtaXNzaW9uIGluaGVyaXRlZCBmcm9tIGEgZ3JvdXAsIG9yIGEgc2hhcmVkL3VubGljZW5zZWQgbWFpbGJveCkgYW5kIHRoZSBsb29wIGNvbnRpbnVlcyB3aXRoIHRoZSByZXN0LgoKRXZlcnkgcnVuIGVuZHMgd2l0aCBhIHN1bW1hcnkgbGluZSBpbiB0aGUgZm9ybSBgU3VtbWFyeTogPGNoYW5nZWQ+LCA8dW5jaGFuZ2VkPiwgPGZhaWxlZD4sIDxza2lwcGVkIChubyBtYWlsYm94KT5gLCBmb2xsb3dlZCBieSB0aGUgcmVzdWx0aW5nIEZ1bGxBY2Nlc3MgZGVsZWdhdGlvbnMgb24gdGhlIG1haWxib3guCgpJZiAqKmFueSoqIGRlbGVnYXRlIGZhaWxlZCwgdGhlIHJ1bmJvb2sgaXRzZWxmIHJlcG9ydHMgYSBmYWlsdXJlLiBUaGlzIGlzIGRlbGliZXJhdGU6IHdpdGggYSBtdWx0aS1zZWxlY3QgcGlja2VyLCBhIHBhcnRpYWwgc3VjY2VzcyByZXBvcnRlZCBhcyBhIGNsZWFuIHJ1biB3b3VsZCBoaWRlIGRlbGVnYXRlcyB0aGF0IG5ldmVyIHJlY2VpdmVkIGFjY2Vzcy4KCiMjIyBMaW1pdGF0aW9ucwoKLSAqKkluaGVyaXRlZCBwZXJtaXNzaW9ucyBjYW5ub3QgYmUgcmVtb3ZlZC4qKiBBIEZ1bGxBY2Nlc3MgcmlnaHQgdGhhdCBjb21lcyBmcm9tIGEgcm9sZSBncm91cCBvciBzZWN1cml0eSBncm91cCBtZW1iZXJzaGlwIGlzIHNob3duIGFzICppbmhlcml0ZWQqIGJ1dCBjYW5ub3QgYmUgcmV2b2tlZCBoZXJlIC0gYWRqdXN0IHRoZSBncm91cCBtZW1iZXJzaGlwIG9yIHJvbGUgYXNzaWdubWVudCBpbnN0ZWFkLgotICoqT25seSBleHBsaWNpdCBBbGxvdyBncmFudHMgYXJlIG1hbmFnZWQuKiogQW4gZXhwbGljaXQgKipEZW55KiogZW50cnkgb24gdGhlIG1haWxib3ggaXMgZGlzcGxheWVkIGZvciB0cmFuc3BhcmVuY3ksIGJ1dCB0aGUgcnVuYm9vayBuZXZlciBhZGRzIG9yIHJlbW92ZXMgb25lLgoKIyMjIFByZXJlcXVpc2l0ZXMKClRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5IGNvbm5lY3RzIHRvIEV4Y2hhbmdlIE9ubGluZSB2aWEgYENvbm5lY3QtUmpSYkV4Y2hhbmdlT25saW5lYCBhbmQgbmVlZHM6CgotIHRoZSBgRXhjaGFuZ2UuTWFuYWdlQXNBcHBgIGFwcGxpY2F0aW9uIHBlcm1pc3Npb24gb24gKk9mZmljZSAzNjUgRXhjaGFuZ2UgT25saW5lKiwgYW5kCi0gdGhlICoqRXhjaGFuZ2UgQWRtaW5pc3RyYXRvcioqIHJvbGUgKG9yIGFuIGVxdWl2YWxlbnQgRXhjaGFuZ2UgT25saW5lIFJCQUMgcm9sZSB0aGF0IGluY2x1ZGVzIGBBZGQtTWFpbGJveFBlcm1pc3Npb25gIGFuZCBgUmVtb3ZlLU1haWxib3hQZXJtaXNzaW9uYCkuCgpUaGUgcnVuYm9vayBtYWtlcyBubyBNaWNyb3NvZnQgR3JhcGggY2FsbHMgLSB0aGUgdXNlciBwaWNrZXIgaXMgYSBwb3J0YWwtc2lkZSBhbm5vdGF0aW9uIG9ubHksIHNvIG5vIEdyYXBoIGFwcGxpY2F0aW9uIHBlcm1pc3Npb25zIGFyZSByZXF1aXJlZC4K",
+    "PermissionsContent": "{\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                \"Exchange.ManageAsApp\"\n            ]\n        }\n    ],\n    \"Roles\": [\n        \"Exchange Administrator\"\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -21107,7 +21107,7 @@
         }
       ],
       "Roles": [
-        "Exchange administrator"
+        "Exchange Administrator"
       ],
       "ManualPermissions": []
     }
