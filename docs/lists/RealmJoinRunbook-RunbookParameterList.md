@@ -2104,6 +2104,7 @@ Sync users with secure MFA methods registered into an Entra ID group
 | UnsecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly). |
 | ExcludeAdmins |  | Boolean | Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor. |
 | ExcludeGroupId |  | String | Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members. |
+| ExcludeUserIds |  | String Array | Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning. |
 | WhatIfMode |  | Boolean | Dry run: log which users would be added or removed without changing the group. |
 | SendEmail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default. |
 | EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled. |

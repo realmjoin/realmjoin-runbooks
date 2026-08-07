@@ -3,7 +3,7 @@
 Sync users with secure MFA methods registered into an Entra ID group
 
 ## Detailed description
-This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group. Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
+This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
 
 Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
 
@@ -61,6 +61,40 @@ This option requires the additional Graph permission `RoleManagement.Read.Direct
 ### Exclusion group (`ExcludeGroupId`, optional)
 
 Transitive user members of the configured group are excluded — intended for accounts that must never be managed by this sync, such as **break glass accounts** or **service accounts**. Nested groups are honored. The exclusion group must not be the target group itself.
+
+### Individually excluded users (`ExcludeUserIds`, optional)
+
+Individual users can be excluded directly via the multi-user picker — for one-off exclusions where a dedicated exclusion group is not worth maintaining. The list accepts user **object IDs** and **user principal names** (UPNs). Unresolvable entries (e.g. a deleted account) log a warning and are ignored, so a stale entry never breaks a scheduled sync.
+
+### Maintaining exclusions via Runbook Customization (without the pickers)
+
+Both exclusion parameters can be pre-set centrally via [JSON-based Runbook Customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization#json-based-customizing) (RealmJoin portal: **Settings** → **Runbook Customizations**) — useful when the exclusions are fixed for the tenant and should not be picked manually each time the runbook is started or scheduled:
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_security_sync-mfa-secure-users-to-group_scheduled": {
+            "Parameters": {
+                "ExcludeGroupId": {
+                    "DefaultValue": "00000000-0000-0000-0000-000000000000",
+                    "Hide": true
+                },
+                "ExcludeUserIds": {
+                    "DefaultValue": [
+                        "11111111-1111-1111-1111-111111111111",
+                        "breakglass@contoso.com"
+                    ],
+                    "Hide": true
+                }
+            }
+        }
+    }
+}
+```
+
+- **ExcludeGroupId** takes a single group **object ID** (GUID) as a plain string — copy it from the group's overview page in the Entra admin center or the RealmJoin portal.
+- **ExcludeUserIds** takes a JSON **array of strings**; each entry can be a user **object ID** or a **UPN**. Entries are trimmed and deduplicated; the runbook resolves them at startup.
+- **Recommended:** when the exclusions are maintained via Runbook Customization, also set `"Hide": true` on the parameter (as in the example above). This removes it from the start form entirely, so the centrally configured exclusions cannot be overridden in the UI when starting or scheduling the runbook. Without `Hide`, the configured values only appear pre-filled and can still be changed there.
 
 ## Method classification reference
 
@@ -245,6 +279,15 @@ Optional exclusion group: transitive user members of this group (e.g. break glas
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### ExcludeUserIds
+Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning.
+
+| Property | Value |
+|----------|-------|
+| Default Value | @() |
+| Required | false |
+| Type | String Array |
 
 ### WhatIfMode
 Dry run: log which users would be added or removed without changing the group.
