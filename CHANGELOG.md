@@ -2,7 +2,7 @@
 
 ## 2026-08-07
 
-- Update **Delegate Full Access Runbook in User/Mail**
+- Update **Delegate Full Access Runbook** in User/Mail
   - Add support for granting or removing Exchange Online FullAccess for multiple delegates in a single run via a multi user picker, applying the same action and AutoMapping setting to all of them. The picker returns user principal names, so selected delegates are readable in the runbook log from the first line on.
   - Skip delegates without a mailbox instead of aborting the run, and treat already-granted or already-absent delegations as no-ops.
   - Print a per-delegate summary of changed, unchanged, failed, and skipped delegations; the run reports a failure if any delegate could not be processed, so a partial success is visible instead of being reported as a clean run.
