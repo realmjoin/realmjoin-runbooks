@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.Read.All",
-                "User.Read.All"
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the group and pages through its members to resolve nested group membership"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the user members' UPNs to build the membership report"
+                }
             ]
         }
     ],

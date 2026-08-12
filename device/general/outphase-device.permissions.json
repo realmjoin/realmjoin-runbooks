@@ -1,26 +1,49 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.PrivilegedOperations.All",
-                "DeviceManagementManagedDevices.ReadWrite.All",
-                "DeviceManagementServiceConfig.ReadWrite.All",
-                "Device.Read.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Triggers the Intune wipe action when the wipe option is selected"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.ReadWrite.All",
+                    "Reason": "Finds the Intune device by azureADDeviceId and deletes it when removeIntuneDevice is set"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Finds and deletes the Autopilot identity when removeAutopilotDevice is set"
+                },
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Resolves the Entra device and reads its registered owners for the status output"
+                }
             ]
         },
         {
             "Name": "WindowsDefenderATP",
             "Id": "fc780465-2017-40d4-a0c5-307022471b92",
             "AppRoleAssignments": [
-                "Machine.Read.All",
-                "Machine.ReadWrite.All"
+                {
+                    "Value": "Machine.Read.All",
+                    "Reason": "Looks up the device in Defender for Endpoint when excludeFromDefender is enabled"
+                },
+                {
+                    "Value": "Machine.ReadWrite.All",
+                    "Reason": "Adds the exclusion tag via /machines/{id}/tags when excludeFromDefender is enabled"
+                }
             ]
         }
     ],
     "Roles": [
-        "Cloud device administrator"
+        {
+            "Name": "Cloud Device Administrator",
+            "TemplateId": "7698a772-787b-4ac8-901f-60d6b08affd2",
+            "Reason": "Required to disable and delete the Entra device object via /devices/{id}"
+        }
     ],
     "ManualPermissions": []
 }

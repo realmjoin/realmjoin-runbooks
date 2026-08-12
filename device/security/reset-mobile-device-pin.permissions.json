@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementManagedDevices.PrivilegedOperations.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Looks up the Intune device to check its ownership type before the reset"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Executes the privileged resetPasscode action on the device"
+                }
             ]
         }
     ],

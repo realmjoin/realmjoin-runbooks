@@ -1,17 +1,31 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementApps.ReadWrite.All",
-                "Device.Read.All",
-                "User.Read.All"
+                {
+                    "Value": "DeviceManagementApps.ReadWrite.All",
+                    "Reason": "Reads the user's managedAppRegistrations and creates MAM wipes via wipeManagedAppRegistrationsByDeviceTag"
+                },
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Resolves the target device via /devices and lists its registered users and owners"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the registered users' id and UPN to build the per-user MAM registration queries"
+                }
             ]
         }
     ],
     "Roles": [
-        "Intune Administrator"
+        {
+            "Name": "Intune Administrator",
+            "TemplateId": "3a2c62db-5318-420d-8d74-23affee5d9d5",
+            "Reason": "Grants Intune RBAC for reading managedAppRegistrations and posting the app-only MAM wipe"
+        }
     ],
     "ManualPermissions": []
 }

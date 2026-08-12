@@ -1,15 +1,36 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "GroupMember.ReadWrite.All",
-                "Group.ReadWrite.All",
-                "Directory.Read.All",
-                "CloudPC.ReadWrite.All",
-                "User.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Reads license/config group members; the started unassign/assign child runbooks modify membership"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Finds license and config groups; group writes happen in the started child runbooks"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads /subscribedSkus and group license assignments to verify a free Windows 365 license"
+                },
+                {
+                    "Value": "CloudPC.ReadWrite.All",
+                    "Reason": "Backs the started child runbooks reading Cloud PCs and ending the grace period"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user by UPN before resizing"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "The started assign child runbook notifies the user when sendMailWhenDoneResizing is enabled"
+                }
             ]
         }
     ],

@@ -1,10 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "TeamSettings.ReadWrite.All"
+                {
+                    "Value": "TeamSettings.ReadWrite.All",
+                    "Reason": "Reads the team's archive state and calls /teams/{id}/archive"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the group via /groups/{id} to verify it is a Teams-provisioned group"
+                }
             ]
         }
     ],

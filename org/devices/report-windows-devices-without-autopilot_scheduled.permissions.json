@@ -1,13 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All",
-                "DeviceManagementServiceConfig.Read.All",
-                "Organization.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Lists Entra devices filtered to Windows to enumerate all registered Windows devices"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Lists windowsAutopilotDeviceIdentities to detect devices lacking an Autopilot registration"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant name in the report"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report via Send-RjReportEmail when email reporting is enabled"
+                }
             ]
         }
     ],

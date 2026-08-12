@@ -1,10 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "CloudPC.Read.All"
+                {
+                    "Value": "CloudPC.Read.All",
+                    "Reason": "Lists all Cloud PCs and pulls their remote connection historical reports"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to use the tenant id as storage table partition key"
+                }
             ]
         }
     ],

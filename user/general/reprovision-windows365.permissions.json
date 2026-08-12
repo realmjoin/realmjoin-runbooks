@@ -1,15 +1,36 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "GroupMember.ReadWrite.All",
-                "Group.ReadWrite.All",
-                "Directory.Read.All",
-                "CloudPC.ReadWrite.All",
-                "User.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Reads the license group members to confirm the user holds the Windows 365 license"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Finds the license group by display name and reads its assigned licenses"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads /subscribedSkus to map the group's SKU to service plans and match the Cloud PC"
+                },
+                {
+                    "Value": "CloudPC.ReadWrite.All",
+                    "Reason": "Lists the user's Cloud PCs and triggers the reprovision action"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the user by UPN and checks mailbox presence before mailing"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Notifies the user via /users/{from}/sendMail when sendMailWhenReprovisioning is enabled"
+                }
             ]
         }
     ],

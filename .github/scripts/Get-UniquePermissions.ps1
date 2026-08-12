@@ -106,6 +106,80 @@ function ConvertTo-StringArray {
     return @([string]$Value)
 }
 
+function ConvertTo-AssignmentValueArray {
+    <#
+        App role assignments may be plain strings (schema v1) or objects with a
+        'Value' property plus metadata like 'Optional' (schema v2). The aggregate
+        output intentionally stays a flat string list covering the worst case, so
+        optional assignments are included like required ones.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return @()
+    }
+
+    $items = if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string])) { $Value } else { @($Value) }
+
+    return @(
+        $items | ForEach-Object {
+            if ($null -eq $_) {
+                return
+            }
+
+            if ($_ -is [string]) {
+                $_
+            }
+            elseif ($_.PSObject.Properties['Value']) {
+                [string]$_.Value
+            }
+            else {
+                [string]$_
+            }
+        }
+    )
+}
+
+function ConvertTo-RoleNameArray {
+    <#
+        Roles may be plain strings (schema v1) or objects with 'Name' and
+        'TemplateId' properties (schema v2).
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return @()
+    }
+
+    $items = if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string])) { $Value } else { @($Value) }
+
+    return @(
+        $items | ForEach-Object {
+            if ($null -eq $_) {
+                return
+            }
+
+            if ($_ -is [string]) {
+                $_
+            }
+            elseif ($_.PSObject.Properties['Name']) {
+                [string]$_.Name
+            }
+            else {
+                [string]$_
+            }
+        }
+    )
+}
+
 function Get-SortedUniqueStringList {
     [CmdletBinding()]
     param(
@@ -235,7 +309,7 @@ foreach ($JsonFile in $JsonFiles) {
         }
 
         if ($null -ne $PermissionsContent.Roles) {
-            $CollectedRoles += ConvertTo-StringArray -Value $PermissionsContent.Roles
+            $CollectedRoles += ConvertTo-RoleNameArray -Value $PermissionsContent.Roles
         }
     }
 }
@@ -254,7 +328,11 @@ foreach ($Permission in $RawPermissions) {
     $permissionId = ([string]$Permission.Id).Trim()
     $Key = "$permissionId-$permissionName"
 
-    $currentAssignments = ConvertTo-StringArray -Value $Permission.AppRoleAssignments
+    $currentAssignments = @(ConvertTo-AssignmentValueArray -Value $Permission.AppRoleAssignments)
+    if ($currentAssignments.Count -eq 0) {
+        # Resource entries without any app role assignments contribute nothing to the aggregate
+        continue
+    }
     $normalizedAssignments = Get-SortedUniqueStringList -Values $currentAssignments
     $normalizedAssignments = Remove-RedundantReadAllAssignments -Assignments @($normalizedAssignments)
 

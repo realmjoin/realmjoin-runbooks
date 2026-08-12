@@ -1,17 +1,46 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.ReadWrite.All",
-                "Group.ReadWrite.All",
-                "GroupMember.ReadWrite.All"
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Disables sign-in, revokes sessions, removes licenses and deletes the user object"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Reads groups and transfers or removes the user's group ownerships"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Adds and removes group memberships during the group cleanup"
+                }
+            ]
+        },
+        {
+            "Name": "Office 365 Exchange Online",
+            "Id": "00000002-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Reason": "Opens the app-only Exchange Online session used to remove the user from distribution groups"
+                }
             ]
         }
     ],
     "Roles": [
-        "User administrator"
+        {
+            "Name": "User Administrator",
+            "TemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
+            "Reason": "Required so the app-only identity can block sign-in, revoke sessions and delete the user"
+        },
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Reason": "Required for the app-only Exchange Online session removing distribution group memberships"
+        }
     ],
     "ManualPermissions": [
         "Azure IaaS: Contributor access on subscription or resource group used for the export"

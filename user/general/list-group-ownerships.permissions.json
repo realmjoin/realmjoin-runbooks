@@ -1,13 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.Read.All",
-                "Mail.Send",
-                "Organization.Read.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user's id and UPN before listing owned groups"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads /users/{id}/ownedObjects to report each owned group"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the ownership report via Send-RjReportEmail when SendMail is enabled"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant name in the email report"
+                }
             ]
         }
     ],

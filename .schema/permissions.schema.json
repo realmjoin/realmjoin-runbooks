@@ -1,0 +1,153 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "RealmJoin Runbook Permissions",
+    "description": "Describes the permissions a RealmJoin runbook requires: API permissions (app role assignments) for the Automation Account's managed identity, Microsoft Entra directory roles, and permissions that have to be assigned manually.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "SchemaVersion",
+        "Permissions",
+        "Roles",
+        "ManualPermissions"
+    ],
+    "properties": {
+        "SchemaVersion": {
+            "description": "Version of the permissions file schema. Current version: 2.",
+            "const": 2
+        },
+        "Permissions": {
+            "description": "API permissions (app role assignments) per resource application.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/resourcePermission"
+            }
+        },
+        "Roles": {
+            "description": "Microsoft Entra directory roles required by the runbook.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/directoryRole"
+            }
+        },
+        "ManualPermissions": {
+            "description": "Permissions that cannot be assigned automatically and have to be set up manually. Free text, one entry per permission.",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "minLength": 1
+            }
+        }
+    },
+    "$defs": {
+        "guid": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "resourcePermission": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "Name",
+                "Id",
+                "AppRoleAssignments"
+            ],
+            "properties": {
+                "Name": {
+                    "description": "Display name of the resource application, e.g. 'Microsoft Graph'.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "Id": {
+                    "description": "Well-known application ID of the resource application, e.g. '00000003-0000-0000-c000-000000000000' for Microsoft Graph.",
+                    "$ref": "#/$defs/guid"
+                },
+                "AppRoleAssignments": {
+                    "description": "App roles (application permissions) to assign on this resource. Use a plain string for a required permission, or the object form to mark a permission as optional or to document a reason.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/appRoleAssignment"
+                    }
+                }
+            }
+        },
+        "appRoleAssignment": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "minLength": 1
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "Value"
+                    ],
+                    "properties": {
+                        "Value": {
+                            "description": "App role value, e.g. 'Mail.Send'.",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "Optional": {
+                            "description": "True if this permission is only needed when an optional feature of the runbook is used. Defaults to false.",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "Feature": {
+                            "description": "Short name of the optional feature that needs this permission, e.g. 'Email report'.",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "Reason": {
+                            "description": "Why the runbook needs this permission.",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                }
+            ]
+        },
+        "directoryRole": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "minLength": 1
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "Name",
+                        "TemplateId"
+                    ],
+                    "properties": {
+                        "Name": {
+                            "description": "Display name of the Microsoft Entra directory role, e.g. 'User Administrator'.",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "TemplateId": {
+                            "description": "roleTemplateId of the directory role. Stable across tenants, unlike the display name.",
+                            "$ref": "#/$defs/guid"
+                        },
+                        "Optional": {
+                            "description": "True if this role is only needed when an optional feature of the runbook is used. Defaults to false.",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "Feature": {
+                            "description": "Short name of the optional feature that needs this role.",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "Reason": {
+                            "description": "Why the runbook needs this role.",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

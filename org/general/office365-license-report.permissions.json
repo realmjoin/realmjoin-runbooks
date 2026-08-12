@@ -1,16 +1,55 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Reports.Read.All",
-                "Directory.Read.All",
-                "User.Read.All",
-                "ReportSettings.ReadWrite.All"
+                {
+                    "Value": "Reports.Read.All",
+                    "Reason": "Pulls the Office 365 usage and activity report CSVs from /reports"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads /subscribedSkus and group license assignments for the SKU overview"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Lists users and reads their license details for the per-user reports"
+                },
+                {
+                    "Value": "ReportSettings.ReadWrite.All",
+                    "Reason": "Temporarily disables concealed report names when includeUserData is enabled, then restores the setting"
+                },
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Optional": true,
+                    "Feature": "Sign-in export",
+                    "Reason": "Reads /auditLogs/signIns for the per-application sign-in export when exportToFile is enabled (default on)"
+                }
+            ]
+        },
+        {
+            "Name": "Office 365 Exchange Online",
+            "Id": "00000002-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Optional": true,
+                    "Feature": "Exchange licensing report",
+                    "Reason": "Runs Get-EXOMailbox for the shared mailbox licensing report when includeExchange is enabled"
+                }
             ]
         }
     ],
-    "Roles": [],
+    "Roles": [
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Optional": true,
+            "Feature": "Exchange licensing report",
+            "Reason": "Required for the app-only Exchange Online session when includeExchange is enabled"
+        }
+    ],
     "ManualPermissions": []
 }

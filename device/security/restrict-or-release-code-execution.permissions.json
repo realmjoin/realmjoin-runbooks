@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "WindowsDefenderATP",
             "Id": "fc780465-2017-40d4-a0c5-307022471b92",
             "AppRoleAssignments": [
-                "Machine.Read.All",
-                "Machine.RestrictExecution"
+                {
+                    "Value": "Machine.Read.All",
+                    "Reason": "Finds the Defender for Endpoint machine via /machines filtered by aadDeviceId"
+                },
+                {
+                    "Value": "Machine.RestrictExecution",
+                    "Reason": "Triggers restrictCodeExecution or unrestrictCodeExecution on the machine"
+                }
             ]
         }
     ],

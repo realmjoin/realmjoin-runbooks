@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "GroupMember.Read.All",
-                "Group.Read.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads all Intune devices for the CSV export"
+                },
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Reads the filter group's transitive user members to limit the export"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Covers the same transitive member read for the optional group filter"
+                }
             ]
         }
     ],

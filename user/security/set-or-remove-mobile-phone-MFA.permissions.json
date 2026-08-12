@@ -1,13 +1,34 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "AuditLog.Read.All",
-                "User.Read.All",
-                "UserAuthenticationMethod.ReadWrite.All",
-                "Mail.Send"
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Queries userRegistrationDetails to find which user holds a conflicting SMS sign-in number"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user and batch-reads other users' phone methods for conflict checks"
+                },
+                {
+                    "Value": "UserAuthenticationMethod.ReadWrite.All",
+                    "Reason": "Sets, updates or removes the user's mobile phone authentication method"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Mails the user that an admin changed their MFA phone when NotifyUser is enabled"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email notification",
+                    "Reason": "Reads the tenant display name for the notification email when NotifyUser is enabled"
+                }
             ]
         }
     ],

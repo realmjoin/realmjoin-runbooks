@@ -1,12 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Mail.Send",
-                "Organization.Read.All",
-                "ServiceHealth.Read.All"
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends one alert email per newly detected issue via Send-RjReportEmail when EmailTo is configured"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to put the tenant name into the alert email subject and footer"
+                },
+                {
+                    "Value": "ServiceHealth.Read.All",
+                    "Reason": "Reads /admin/serviceAnnouncement healthOverviews and issues to detect newly announced service health issues"
+                }
             ]
         }
     ],

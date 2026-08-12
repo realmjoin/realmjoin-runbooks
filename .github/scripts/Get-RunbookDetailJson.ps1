@@ -125,7 +125,12 @@ function Normalize-PermissionsJsonObject {
             }
 
             $assignments = @($permission.AppRoleAssignments) | ForEach-Object {
-                if ($null -ne $_) { ([string]$_).Trim() }
+                # Schema v2 entries may be objects with a 'Value' property; the detail JSON
+                # intentionally flattens them to the plain value (worst-case permission set).
+                if ($null -eq $_) { return }
+                if ($_ -is [string]) { $_.Trim() }
+                elseif ($_.PSObject.Properties['Value']) { ([string]$_.Value).Trim() }
+                else { ([string]$_).Trim() }
             } | Where-Object { $_ }
 
             $sortedAssignments = @($assignments | Sort-Object -Unique)
@@ -149,7 +154,13 @@ function Normalize-PermissionsJsonObject {
 
     $sortedRoles = @(
         @($PermissionsJson.Roles) |
-            ForEach-Object { if ($null -ne $_) { ([string]$_).Trim() } } |
+            ForEach-Object {
+                # Schema v2 roles are objects with 'Name' and 'TemplateId'
+                if ($null -eq $_) { return }
+                if ($_ -is [string]) { $_.Trim() }
+                elseif ($_.PSObject.Properties['Name']) { ([string]$_.Name).Trim() }
+                else { ([string]$_).Trim() }
+            } |
             Where-Object { $_ } |
             Sort-Object -Unique
     )
@@ -182,12 +193,41 @@ function Convert-PermissionJsonToMarkdown {
     foreach ($permission in $jsonObject.Permissions) {
         $permissionsMarkdown += "- **Type**: $($permission.Name)`n"
         foreach ($assignment in $permission.AppRoleAssignments) {
-            $permissionsMarkdown += "  - $assignment`n"
+            # Schema v1 entries are plain strings, schema v2 entries may be objects
+            if ($assignment -is [string]) {
+                $permissionsMarkdown += "  - $assignment`n"
+                continue
+            }
+
+            $entry = [string]$assignment.Value
+            if ($assignment.PSObject.Properties['Optional'] -and $assignment.Optional) {
+                if ($assignment.PSObject.Properties['Feature'] -and $assignment.Feature) {
+                    $entry += " *(optional: $($assignment.Feature))*"
+                }
+                else {
+                    $entry += " *(optional)*"
+                }
+            }
+            $permissionsMarkdown += "  - $entry`n"
         }
     }
 
     foreach ($role in $jsonObject.Roles) {
-        $rbacRolesMarkdown += "- $role`n"
+        if ($role -is [string]) {
+            $rbacRolesMarkdown += "- $role`n"
+            continue
+        }
+
+        $entry = [string]$role.Name
+        if ($role.PSObject.Properties['Optional'] -and $role.Optional) {
+            if ($role.PSObject.Properties['Feature'] -and $role.Feature) {
+                $entry += " *(optional: $($role.Feature))*"
+            }
+            else {
+                $entry += " *(optional)*"
+            }
+        }
+        $rbacRolesMarkdown += "- $entry`n"
     }
 
     foreach ($manualPermission in $jsonObject.ManualPermissions) {

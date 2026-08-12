@@ -1,10 +1,20 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementServiceConfig.ReadWrite.All"
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Imports the serial number and hardware hash as Autopilot device and polls the import job"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Optional": true,
+                    "Feature": "User assignment",
+                    "Reason": "Resolves the assigned user's UPN when AssignedUser is provided"
+                }
             ]
         }
     ],

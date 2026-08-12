@@ -1,5 +1,8 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [],
     "Roles": [],
-    "ManualPermissions": [ "Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool" ]
+    "ManualPermissions": [
+        "Azure: Desktop Virtualization Host Pool Contributor on Subscription which contains the Hostpool"
+    ]
 }

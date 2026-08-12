@@ -1,16 +1,31 @@
 {
-  "Permissions": [
-    {
-      "Name": "Microsoft Graph",
-      "Id": "00000003-0000-0000-c000-000000000000",
-      "AppRoleAssignments": [
-        "Organization.Read.All",
-        "Device.ReadWrite.All",
-        "DeviceManagementManagedDevices.Read.All",
-        "Mail.Send"
-      ]
-    }
-  ],
-  "Roles": [],
-  "ManualPermissions": []
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant display name in the email report"
+                },
+                {
+                    "Value": "Device.ReadWrite.All",
+                    "Reason": "Lists Entra devices and patches their extensionAttributes with the Intune serial number"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads Intune managed devices to obtain serialNumber and azureADDeviceId"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the HTML sync report via /users/{sendReportFrom}/sendMail when sendReportTo is configured"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
 }

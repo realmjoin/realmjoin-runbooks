@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-11
+
+- Introduce schema version 2 for the runbook `*.permissions.json` files
+  - Add a JSON Schema (`.schema/permissions.schema.json`) with editor support and PR content validation
+  - Permissions and directory roles can be marked as `Optional` with `Feature` and `Reason`; `Mail.Send` is now optional in the 28 runbooks where the email report is configuration-driven
+  - Store directory roles with their tenant-stable `roleTemplateId` and canonical display name
+  - The aggregated permission export and manual permissions are unchanged
+  - Document permission reasons for all runbooks: each permission entry now carries a `Reason` describing what the runbook uses it for
+  - Permission housekeeping: reconcile every permission file with the calls its runbook actually makes (least privilege per runbook); the aggregated permission set stays the same
+
 ## 2026-08-07
 
 - Update **Delegate Full Access Runbook** in User/Mail

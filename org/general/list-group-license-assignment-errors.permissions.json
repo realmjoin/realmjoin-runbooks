@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "GroupMember.Read.All",
-                "Group.Read.All"
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Least-privileged option for listing groups with license errors"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the groups filtered on hasMembersWithLicenseErrors for the report"
+                }
             ]
         }
     ],

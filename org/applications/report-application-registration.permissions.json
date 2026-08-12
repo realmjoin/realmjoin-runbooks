@@ -1,15 +1,30 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Application.Read.All",
-                "Directory.Read.All",
-                "Mail.Send",
-                "Organization.Read.All"
+                {
+                    "Value": "Application.Read.All",
+                    "Reason": "Lists all app registrations and their service principals for the report"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads deleted app registrations via /directory/deletedItems when IncludeDeletedApps is set"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant name in the report header and email footer"
+                }
             ]
-        }  
+        }
     ],
     "Roles": [],
     "ManualPermissions": []

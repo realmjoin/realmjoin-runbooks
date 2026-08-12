@@ -1,11 +1,20 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementConfiguration.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Queries Endpoint Privilege Management elevationRequests by status and creation date to build the report"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email with CSV/XLSX attachments via Send-RjReportEmail when EmailTo is configured"
+                }
             ]
         }
     ],

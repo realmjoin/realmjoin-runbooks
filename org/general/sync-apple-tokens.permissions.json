@@ -1,14 +1,21 @@
 {
-	"Permissions": [
-		{
-			"Name": "Microsoft Graph",
-			"Id": "00000003-0000-0000-c000-000000000000",
-			"AppRoleAssignments": [
-				"DeviceManagementApps.ReadWrite.All",
-				"DeviceManagementServiceConfig.ReadWrite.All"
-			]
-		}
-	],
-	"Roles": [],
-	"ManualPermissions": []
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementApps.ReadWrite.All",
+                    "Reason": "Reads Apple VPP tokens and triggers syncLicenses for each of them"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Reads DEP onboarding settings and triggers syncWithAppleDeviceEnrollmentProgram for ADE tokens"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
 }

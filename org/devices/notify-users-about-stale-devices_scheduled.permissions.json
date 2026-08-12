@@ -1,17 +1,29 @@
 {
-  "Permissions": [
-    {
-      "Name": "Microsoft Graph",
-      "Id": "00000003-0000-0000-c000-000000000000",
-      "AppRoleAssignments": [
-        "DeviceManagementManagedDevices.Read.All",
-        "Directory.Read.All",
-        "Device.Read.All",
-        "Group.Read.All",
-        "Mail.Send"
-      ]
-    }
-  ],
-  "Roles": [],
-  "ManualPermissions": []
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads Intune managed devices filtered by lastSyncDateTime to find stale devices and their primary users"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads the tenant name for the mail footer and resolves user ids for the group scope filtering"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Lists the include/exclude group members to filter which primary users get notified"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Reason": "Sends the stale-device notification mails to each primary user or the override recipient"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
 }

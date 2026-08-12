@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Application.ReadWrite.All",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "Application.ReadWrite.All",
+                    "Reason": "Finds the Global Secure Access app, verifies onPremisesPublishing and deletes it via DELETE /applications/{id}"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Finds the app's naming-scheme access groups and deletes assigned or orphaned groups"
+                }
             ]
         }
     ],

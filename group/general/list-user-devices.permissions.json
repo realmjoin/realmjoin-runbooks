@@ -1,10 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.Read.All"
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Enumerates the group's user members to know whose devices to list"
+                },
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Reads each member's registered devices via /users/{id}/registeredDevices"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Optional": true,
+                    "Feature": "Move devices to group",
+                    "Reason": "Adds the found devices to the target group"
+                }
             ]
         }
     ],

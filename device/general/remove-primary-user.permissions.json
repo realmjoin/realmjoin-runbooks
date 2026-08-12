@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.ReadWrite.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.ReadWrite.All",
+                    "Reason": "Removes the device's primary user via DELETE managedDevices('{id}')/users/$ref"
+                }
             ]
         }
     ],

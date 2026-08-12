@@ -1,5 +1,8 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [],
     "Roles": [],
-    "ManualPermissions": [ "Owner or Contributor role on the Azure Subscription"]
+    "ManualPermissions": [
+        "Owner or Contributor role on the Azure Subscription"
+    ]
 }

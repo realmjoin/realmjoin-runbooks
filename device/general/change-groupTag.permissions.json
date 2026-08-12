@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All",
-                "DeviceManagementServiceConfig.ReadWrite.All"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Resolves the Entra device via /devices to get its display name"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Reads the Autopilot identity and sets the new group tag via updateDeviceProperties"
+                }
             ]
         }
     ],

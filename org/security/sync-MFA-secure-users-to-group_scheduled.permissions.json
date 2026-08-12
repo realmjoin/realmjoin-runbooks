@@ -1,16 +1,40 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "AuditLog.Read.All",
-                "Group.Read.All",
-                "RoleManagement.Read.Directory",
-                "GroupMember.ReadWrite.All",
-                "User.Read.All",
-                "Organization.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Reads userRegistrationDetails to evaluate each user's registered MFA methods"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the target and exclusion groups and their transitive user members"
+                },
+                {
+                    "Value": "RoleManagement.Read.Directory",
+                    "Reason": "Reads role assignments and eligibility schedules to exclude admin users when ExcludeAdmins is enabled"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Adds and removes users in the target group via batched /groups/{id}/members/$ref calls"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves admin-role principals and ExcludeUserIds entries to user objects"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant name on the report cover sheet and in the email"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when email reporting is enabled"
+                }
             ]
         }
     ],

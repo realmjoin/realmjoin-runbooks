@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "WindowsUpdates.ReadWrite.All"
+                {
+                    "Value": "WindowsUpdates.ReadWrite.All",
+                    "Reason": "Enrolls the device per update category via updatableAssets/enrollAssets"
+                }
             ]
         }
     ],

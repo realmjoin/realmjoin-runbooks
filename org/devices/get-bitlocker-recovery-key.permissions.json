@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All",
-                "BitlockerKey.Read.All"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Reads the key's device details (display name, trust type, compliance) via /devices"
+                },
+                {
+                    "Value": "BitlockerKey.Read.All",
+                    "Reason": "Retrieves the recovery key value via /informationProtection/bitlocker/recoveryKeys/{id}"
+                }
             ]
         }
     ],
