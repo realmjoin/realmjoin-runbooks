@@ -60,7 +60,7 @@
                 "Hide": true
             },
             "exportGroupMemberships": {
-                "Hide": true,
+                "Hide": true
             },
             "exportResourceGroupName": {
                 "Hide": true
@@ -98,7 +98,7 @@
                     "Options": [
                         {
                             "Display": "Do not change assigned groups",
-                            "Value": 0,
+                            "Value": 0
                         },
                         {
                             "Display": "Change the user's groups",
