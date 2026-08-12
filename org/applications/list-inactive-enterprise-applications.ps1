@@ -103,7 +103,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.8" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
 
 param(

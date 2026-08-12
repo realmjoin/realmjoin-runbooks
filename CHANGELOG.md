@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-12
+
+- Update the required `RealmJoin.RunbookHelper` module version to 0.8.8 in all runbooks (167 runbooks)
+- Update the required `MicrosoftTeams` module version to 7.9.0 (latest GA) in all 6 Teams phone runbooks
+  - Switch `Set-CsPhoneNumberAssignment` in **Set Teams Phone** (User/Phone) to the current parameter names `-TelephoneNumber` and `-NumberType` (the former `-PhoneNumber`/`-PhoneNumberType` remain as aliases only)
+  - No further changes required: the runbooks use none of the cmdlets affected by the 7.7.0–7.9.0 breaking changes (Teams Shifts Connection, tenant federation settings, Mainline Attendant), and the WAM authentication default only affects interactive sign-ins, not the managed identity connection used by the runbooks
+
 ## 2026-08-11
 
 - Introduce schema version 2 for the runbook `*.permissions.json` files
