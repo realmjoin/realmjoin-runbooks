@@ -13,7 +13,8 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 - **Type**: Microsoft Graph
   - Group.Read.All
   - RoleManagement.Read.Directory
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
 
 
 ## Parameters

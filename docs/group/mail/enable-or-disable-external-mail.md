@@ -21,7 +21,7 @@ See https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexterna
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

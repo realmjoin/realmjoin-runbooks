@@ -13,7 +13,7 @@ User \ General \ List Group Memberships
 - **Type**: Microsoft Graph
   - User.Read.All
   - Group.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 

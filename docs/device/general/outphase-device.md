@@ -39,7 +39,7 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
   - Machine.ReadWrite.All
 
 ### RBAC roles
-- Cloud device administrator
+- Cloud Device Administrator
 
 
 ## Parameters

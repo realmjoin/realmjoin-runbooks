@@ -59,7 +59,7 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
   - Device.Read.All
   - DeviceManagementServiceConfig.Read.All
   - Organization.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 ### Permission notes
 Azure IaaS: - Contributor - access on subscription or resource group used for the export

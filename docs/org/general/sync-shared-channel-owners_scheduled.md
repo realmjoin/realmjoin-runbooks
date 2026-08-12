@@ -86,7 +86,9 @@ TeamOwnerGroupMapping parameter is injected from it at runtime.
   - GroupMember.ReadWrite.All
   - Channel.ReadBasic.All
   - ChannelMember.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
+  - User.Read.All
+  - Organization.Read.All *(optional: Email report)*
 
 
 ## Parameters

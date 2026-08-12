@@ -44,7 +44,7 @@ Parameter Interactions:
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 

@@ -14,7 +14,7 @@ User \ Mail \ Add Or Remove Email Address
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

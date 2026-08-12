@@ -13,6 +13,7 @@ Org \ Security \ Notify Changed CA Policies
 - **Type**: Microsoft Graph
   - Policy.Read.All
   - Mail.Send
+  - User.Read.All
 
 
 ## Parameters

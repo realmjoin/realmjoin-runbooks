@@ -76,7 +76,8 @@ Permissions (managed identity, application):
   - AuditLog.Read.All
   - User.Read.All
   - UserAuthenticationMethod.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email notification)*
 
 
 ## Parameters

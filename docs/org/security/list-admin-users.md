@@ -15,6 +15,7 @@ Org \ Security \ List Admin Users
   - Directory.Read.All
   - RoleManagement.Read.All
   - RoleAssignmentSchedule.Read.Directory
+  - UserAuthenticationMethod.Read.All *(optional: MFA state)*
 
 
 ## Parameters

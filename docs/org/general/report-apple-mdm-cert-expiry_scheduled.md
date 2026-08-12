@@ -21,10 +21,9 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - DeviceManagementManagedDevices.Read.All
   - DeviceManagementServiceConfig.Read.All
   - DeviceManagementConfiguration.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

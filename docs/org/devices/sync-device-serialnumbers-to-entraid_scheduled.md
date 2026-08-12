@@ -15,7 +15,7 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
   - Organization.Read.All
   - Device.ReadWrite.All
   - DeviceManagementManagedDevices.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

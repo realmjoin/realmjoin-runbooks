@@ -40,7 +40,7 @@ Email Behavior:
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

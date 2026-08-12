@@ -84,7 +84,7 @@ Privacy / audit:
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
   - User.Read.All
   - UserAuthenticationMethod.Read.All

@@ -14,12 +14,15 @@ User \ General \ Offboard User Temporarily
   - User.ReadWrite.All
   - Group.ReadWrite.All
   - GroupMember.ReadWrite.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
 
 ### Permission notes
 Azure IaaS: Contributor access on subscription or resource group used for the export
 
 ### RBAC roles
-- User administrator
+- User Administrator
+- Exchange Administrator
 
 
 ## Parameters

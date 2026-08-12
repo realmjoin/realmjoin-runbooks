@@ -107,7 +107,6 @@ Pilot and Testing Options:
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
-  - Device.Read.All
   - Group.Read.All
   - Mail.Send
 

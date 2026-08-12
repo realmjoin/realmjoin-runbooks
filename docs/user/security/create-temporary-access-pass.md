@@ -64,6 +64,8 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 ### Application permissions
 - **Type**: Microsoft Graph
   - UserAuthenticationMethod.ReadWrite.All
+  - User.Read.All
+  - Mail.Send *(optional: Email notification)*
 
 
 ## Parameters

@@ -94,7 +94,7 @@ keeps the target in sync with the source as members come and go.
   - TeamMember.ReadWrite.All
   - User.Read.All
   - Organization.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

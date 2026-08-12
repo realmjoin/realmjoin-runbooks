@@ -15,7 +15,7 @@ User \ General \ List Group Ownerships
 - **Type**: Microsoft Graph
   - User.Read.All
   - Group.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 

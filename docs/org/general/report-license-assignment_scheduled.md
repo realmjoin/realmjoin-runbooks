@@ -160,8 +160,7 @@ Legacy `WarningThreshold` automatically maps to `MinThreshold` - old configurati
 ### Application permissions
 - **Type**: Microsoft Graph
   - Organization.Read.All
-  - User.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

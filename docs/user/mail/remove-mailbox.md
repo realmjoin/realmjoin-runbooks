@@ -9,8 +9,12 @@ Forces a deletion of a shared mailbox, room mailbox, or bookings calendar. The m
 User \ Mail \ Remove Mailbox
 
 ## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

@@ -31,7 +31,7 @@ Parameter Interactions:
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
   - ServiceHealth.Read.All
 

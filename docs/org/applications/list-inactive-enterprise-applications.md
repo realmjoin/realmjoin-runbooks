@@ -19,7 +19,6 @@ Org \ Applications \ List Inactive Enterprise Applications
 ### Application permissions
 - **Type**: Microsoft Graph
   - Directory.Read.All
-  - Device.Read.All
 
 
 ## Parameters

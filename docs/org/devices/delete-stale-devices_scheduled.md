@@ -30,8 +30,7 @@ This acts as an additional safety net when deletion is enabled.
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.ReadWrite.All
   - Directory.Read.All
-  - Device.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

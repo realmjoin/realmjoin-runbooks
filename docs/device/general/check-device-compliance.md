@@ -13,9 +13,9 @@ Device \ General \ Check Device Compliance
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Device.Read.All
   - DeviceManagementManagedDevices.Read.All
   - Organization.Read.All
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

@@ -12,6 +12,7 @@ Org \ General \ Export Cloudpc Usage_Scheduled
 ### Application permissions
 - **Type**: Microsoft Graph
   - CloudPC.Read.All
+  - Organization.Read.All
 
 ### Permission notes
 Azure IaaS: `Contributor` role on the Azure Storage Account used for storing CloudPC usage data

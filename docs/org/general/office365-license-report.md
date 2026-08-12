@@ -16,6 +16,12 @@ Org \ General \ Office365 License Report
   - Directory.Read.All
   - User.Read.All
   - ReportSettings.ReadWrite.All
+  - AuditLog.Read.All *(optional: Sign-in export)*
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp *(optional: Exchange licensing report)*
+
+### RBAC roles
+- Exchange Administrator *(optional: Exchange licensing report)*
 
 
 ## Parameters

@@ -168,7 +168,7 @@ The sync is idempotent — a single recurring schedule (e.g. daily) keeps the gr
   - GroupMember.ReadWrite.All
   - User.Read.All
   - Organization.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

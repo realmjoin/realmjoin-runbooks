@@ -17,6 +17,7 @@ Org \ Applications \ Export Enterprise Application Users
 - **Type**: Microsoft Graph
   - Directory.Read.All
   - Application.Read.All
+  - Mail.Send *(optional: Email report)*
 
 ### Permission notes
 Azure IaaS: - Contributor - access on subscription or resource group used for the export

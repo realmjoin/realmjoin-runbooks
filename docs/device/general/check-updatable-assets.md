@@ -12,6 +12,7 @@ Device \ General \ Check Updatable Assets
 ### Application permissions
 - **Type**: Microsoft Graph
   - WindowsUpdates.ReadWrite.All
+  - Device.Read.All
 
 
 ## Parameters

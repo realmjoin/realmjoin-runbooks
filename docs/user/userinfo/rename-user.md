@@ -11,13 +11,12 @@ User \ Userinfo \ Rename User
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Directory.Read.All
   - User.ReadWrite.All
 - **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

@@ -47,7 +47,7 @@ Prerequisites:
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 

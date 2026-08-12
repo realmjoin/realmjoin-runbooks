@@ -43,8 +43,7 @@ The runbook supports optional user scope filtering to include or exclude devices
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
-  - Device.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

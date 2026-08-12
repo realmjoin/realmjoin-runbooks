@@ -17,7 +17,7 @@ User \ General \ Resize Windows365
   - Directory.Read.All
   - CloudPC.ReadWrite.All
   - User.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

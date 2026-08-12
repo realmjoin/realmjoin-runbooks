@@ -14,6 +14,8 @@ Org \ General \ Add Office365 Group
 - **Type**: Microsoft Graph
   - Group.Create
   - Team.Create
+  - Group.Read.All
+  - User.Read.All *(optional: Owner assignment)*
 
 
 ## Parameters

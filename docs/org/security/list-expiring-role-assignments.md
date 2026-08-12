@@ -11,8 +11,8 @@ Org \ Security \ List Expiring Role Assignments
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Organization.Read.All
   - RoleManagement.Read.All
+  - User.Read.All
 
 
 ## Parameters

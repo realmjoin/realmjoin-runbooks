@@ -13,6 +13,7 @@ Org \ General \ Check Aad Sync Status_Scheduled
 ### Application permissions
 - **Type**: Microsoft Graph
   - Directory.Read.All
+  - Mail.Send
 
 
 ## Parameters

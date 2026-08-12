@@ -13,9 +13,13 @@ Group \ General \ Add Or Remove Nested Group
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - User.Read.All
   - Group.ReadWrite.All
   - GroupMember.ReadWrite.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp *(optional: Mail-enabled groups)*
+
+### RBAC roles
+- Exchange Administrator *(optional: Mail-enabled groups)*
 
 
 ## Parameters

@@ -63,7 +63,7 @@ Parameter interactions:
   - Device.ReadWrite.All
   - DeviceManagementManagedDevices.Read.All
   - DeviceManagementServiceConfig.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 
