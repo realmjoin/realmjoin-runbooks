@@ -54,3 +54,40 @@ To include Service Desk contact information in the notification emails, you can 
 - `ServiceDesk_PortalUrl` - URL of your Service Desk portal (will be shown as clickable link)
 
 All parameters are optional. If configured, they will be displayed in the email footer as clickable links, making it easy for users to contact support.
+
+## Customize email branding (optional)
+
+By default, all report emails use the RealmJoin header and footer graphics. You can replace them with your own branding and change the link behind the footer image by adding a `Branding` block to the `RJReport` section:
+
+```json
+"Settings": {
+  "RJReport": {
+    "Branding": {
+      "HeaderImageUrl": "https://cdn.contoso.com/branding/email-header.png",
+      "FooterImageUrl": "https://cdn.contoso.com/branding/email-footer.png",
+      "FooterLink": "https://intranet.contoso.com"
+    }
+  }
+}
+```
+
+**Parameters:**
+
+- `HeaderImageUrl` - Public HTTPS URL of a custom header image, replacing the default RealmJoin header graphic
+- `FooterImageUrl` - Public HTTPS URL of a custom footer image, replacing the default RealmJoin footer graphic
+- `FooterLink` - URL the footer image links to (default: `https://www.realmjoin.com`)
+
+All parameters are optional and apply to every runbook that sends report emails.
+
+**Image requirements:**
+
+- Publicly reachable **HTTPS** URL, e.g. an Azure Blob Storage container with anonymous read access, a CDN, or your company website
+- PNG, JPEG or GIF (validated by file signature, not by URL extension)
+- Rendered at 750 px width - recommended **750 × 200 px** (matches the default banners) or **1500 × 400 px** for high-DPI displays
+- Maximum **200 KB** per image, recommended **≤ 100 KB**: the branding images share the ~4 MB email size limit with the report attachments (for reference, the default RealmJoin graphics are 52 KB and 15 KB)
+
+**Behavior:**
+
+- The images are downloaded and validated by the runbook on each run - no caching between runs
+- An empty or missing setting means the default RealmJoin graphic (and default footer link) is used
+- If a download or validation fails, the runbook logs a warning and sends the report with the default graphic - a broken branding configuration never prevents a report email from being sent

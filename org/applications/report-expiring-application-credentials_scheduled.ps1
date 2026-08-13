@@ -50,6 +50,18 @@
     .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization.
 
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
@@ -145,6 +157,15 @@
             "EmailTo": {
                 "DisplayName": "Recipient Email Address(es)"
             },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
             "EmailFrom": {
                 "Hide": true
             }
@@ -191,6 +212,15 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string]$BrandingHeaderImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string]$BrandingFooterImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string]$BrandingFooterLink,
+
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -206,7 +236,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.0"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
@@ -217,6 +247,9 @@ Write-RjRbLog -Message "Application IDs: $ApplicationIds" -Verbose
 if ($EmailTo) {
     Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
     Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
 }
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
@@ -930,6 +963,15 @@ function Send-RjRbGuardedReportEmail {
         .PARAMETER ReportVersion
         Runbook version for the report footer, passed through to Send-RjReportEmail.
 
+        .PARAMETER HeaderImage
+        Optional local path of a custom header image, passed through to Send-RjReportEmail.
+
+        .PARAMETER FooterImage
+        Optional local path of a custom footer image, passed through to Send-RjReportEmail.
+
+        .PARAMETER FooterLink
+        Optional URL the footer image links to, passed through to Send-RjReportEmail.
+
         .PARAMETER UseNativeGraphRequest
         Passed through to Send-RjReportEmail.
 
@@ -965,6 +1007,12 @@ function Send-RjRbGuardedReportEmail {
 
         [string]$ReportVersion,
 
+        [string]$HeaderImage,
+
+        [string]$FooterImage,
+
+        [string]$FooterLink,
+
         [switch]$UseNativeGraphRequest
     )
 
@@ -976,6 +1024,9 @@ function Send-RjRbGuardedReportEmail {
     if ($TenantDisplayName) { $baseParams.TenantDisplayName = $TenantDisplayName }
     if ($ReportVersion) { $baseParams.ReportVersion = $ReportVersion }
     if ($UseNativeGraphRequest) { $baseParams.UseNativeGraphRequest = $true }
+    if ($HeaderImage) { $baseParams.HeaderImage = $HeaderImage }
+    if ($FooterImage) { $baseParams.FooterImage = $FooterImage }
+    if ($FooterLink) { $baseParams.FooterLink = $FooterLink }
 
     $sizeLimitHint = "If the attachments exceed the email size limit, choose a different report file format or enable the download link option (CreateDownloadLink) to deliver the files."
 
@@ -1026,6 +1077,134 @@ function Send-RjRbGuardedReportEmail {
             throw
         }
     }
+}
+
+function Get-RjRbBrandingMailParams {
+    <#
+        .SYNOPSIS
+        Resolves the tenant email branding settings into Send-RjReportEmail parameters.
+
+        .DESCRIPTION
+        Downloads the custom header/footer image configured via the RJReport.Branding.*
+        tenant settings to a temp file, validates it (HTTPS only, PNG/JPEG/GIF by file
+        signature, size cap) and returns a hashtable ready to splat into
+        Send-RjReportEmail / Send-RjRbGuardedReportEmail.
+
+        A missing setting, a broken URL or an invalid image NEVER fails the report send:
+        the affected key is simply omitted (warning logged) and the module falls back to
+        the bundled default graphics. Images are downloaded once per run - reuse the
+        returned hashtable for every email sent by this job.
+
+        NOTE: This logic is planned to move into the RealmJoin.RunbookHelper module.
+        Until then it is duplicated inline in the runbooks.
+
+        .PARAMETER HeaderImageUrl
+        Public HTTPS URL of the custom header image (RJReport.Branding.HeaderImageUrl).
+
+        .PARAMETER FooterImageUrl
+        Public HTTPS URL of the custom footer image (RJReport.Branding.FooterImageUrl).
+
+        .PARAMETER FooterLink
+        URL the footer image links to (RJReport.Branding.FooterLink).
+
+        .PARAMETER TimeoutSec
+        Download timeout per image in seconds.
+
+        .PARAMETER MaxImageBytes
+        Maximum accepted image file size. Branding images count against the ~4 MB Graph
+        sendMail request limit together with the report attachments, so they must stay small.
+    #>
+    param(
+        [string]$HeaderImageUrl,
+        [string]$FooterImageUrl,
+        [string]$FooterLink,
+        [int]$TimeoutSec = 30,
+        [long]$MaxImageBytes = 200KB
+    )
+
+    $brandingParams = @{}
+    if (-not [string]::IsNullOrWhiteSpace($FooterLink)) {
+        $brandingParams.FooterLink = $FooterLink.Trim()
+    }
+
+    $images = @(
+        @{ Kind = 'header'; Url = $HeaderImageUrl; ParamName = 'HeaderImage' },
+        @{ Kind = 'footer'; Url = $FooterImageUrl; ParamName = 'FooterImage' }
+    )
+
+    foreach ($image in $images) {
+        if ([string]::IsNullOrWhiteSpace($image.Url)) { continue }
+        $url = $image.Url.Trim()
+        $tempFile = $null
+        try {
+            $uri = [System.Uri]$url
+            if ($uri.Scheme -ne 'https') {
+                throw "Only HTTPS URLs are supported (got '$url')."
+            }
+
+            $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) `
+                ("RjRbBranding-$($image.Kind)-" + [System.Guid]::NewGuid().ToString('N') + '.tmp')
+
+            # Ensure TLS 1.2 on Windows PowerShell 5.1 (no-op on PowerShell 7)
+            [System.Net.ServicePointManager]::SecurityProtocol = `
+                [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
+
+            $previousProgressPreference = $ProgressPreference
+            $ProgressPreference = 'SilentlyContinue'
+            try {
+                Invoke-WebRequest -Uri $url -OutFile $tempFile -UseBasicParsing -TimeoutSec $TimeoutSec -ErrorAction Stop | Out-Null
+            }
+            finally {
+                $ProgressPreference = $previousProgressPreference
+            }
+
+            $fileItem = Get-Item -LiteralPath $tempFile -ErrorAction Stop
+            if ($fileItem.Length -eq 0) { throw "The downloaded file is empty." }
+            if ($fileItem.Length -gt $MaxImageBytes) {
+                throw "The image is $([math]::Round($fileItem.Length / 1KB, 1)) KB and exceeds the $([math]::Round($MaxImageBytes / 1KB, 0)) KB limit for inline email images."
+            }
+
+            # Determine the actual image format from the file signature - the URL may have a
+            # wrong extension or none at all, and Send-RjReportEmail validates by extension.
+            $magic = New-Object byte[] 8
+            $stream = [System.IO.File]::OpenRead($tempFile)
+            try { [void]$stream.Read($magic, 0, 8) } finally { $stream.Dispose() }
+
+            $extension = $null
+            if ($magic[0] -eq 0x89 -and $magic[1] -eq 0x50 -and $magic[2] -eq 0x4E -and $magic[3] -eq 0x47 -and
+                $magic[4] -eq 0x0D -and $magic[5] -eq 0x0A -and $magic[6] -eq 0x1A -and $magic[7] -eq 0x0A) {
+                $extension = '.png'
+            }
+            elseif ($magic[0] -eq 0xFF -and $magic[1] -eq 0xD8 -and $magic[2] -eq 0xFF) {
+                $extension = '.jpg'
+            }
+            elseif ($magic[0] -eq 0x47 -and $magic[1] -eq 0x49 -and $magic[2] -eq 0x46 -and $magic[3] -eq 0x38 -and
+                ($magic[4] -eq 0x37 -or $magic[4] -eq 0x39) -and $magic[5] -eq 0x61) {
+                $extension = '.gif'
+            }
+            if (-not $extension) {
+                throw "The downloaded file is not a PNG, JPEG or GIF image (unrecognized file signature)."
+            }
+
+            $finalFile = [System.IO.Path]::ChangeExtension($tempFile, $extension)
+            Move-Item -LiteralPath $tempFile -Destination $finalFile -Force -ErrorAction Stop
+            $tempFile = $null
+
+            $brandingParams[$image.ParamName] = $finalFile
+            Write-RjRbLog -Message "Branding: using the custom $($image.Kind) image from '$url' ($([math]::Round($fileItem.Length / 1KB, 1)) KB, $extension)" -Verbose
+        }
+        catch {
+            Write-RjRbLog -Message "WARNING: Branding: the custom $($image.Kind) image from '$url' could not be used - the default image is used instead. $($_.Exception.Message)" -Verbose
+            # Write-Warning (not Write-Output): inside this value-returning function, Write-Output
+            # would pollute the returned hashtable and break splatting at the call sites.
+            Write-Warning -Message "The custom $($image.Kind) image could not be downloaded or is not a usable image - the report email uses the default $($image.Kind) image instead."
+            if ($tempFile -and (Test-Path -LiteralPath $tempFile)) {
+                Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    return $brandingParams
 }
 
 #endregion
@@ -1524,6 +1703,9 @@ if ($EmailTo) {
     }
 
     # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink
+
     try {
         if ($reportFiles.Count -gt 0) {
             $markdownFallback = @"
@@ -1559,14 +1741,14 @@ if ($EmailTo) {
                 ReportVersion     = $Version
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjRbGuardedReportEmail @guardParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbGuardedReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
             }
             else {
-                Send-RjRbGuardedReportEmail @guardParams -Attachments $reportFiles
+                Send-RjRbGuardedReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
             }
         }
         else {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
             Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
         }
 
@@ -1600,6 +1782,12 @@ if ($EmailTo) {
 ########################################################
 #region     Cleanup
 ########################################################
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
 
 # Clean up temporary report files (covers the email and the download-link-only case)
 foreach ($reportFilePath in $reportFiles) {

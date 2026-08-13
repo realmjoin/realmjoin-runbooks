@@ -1,5 +1,42 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-13
+
+- Add customizable email branding to all 28 runbooks that send report or notification emails
+  - The header image, the footer image and the footer link of the report emails can now be overridden per tenant via the new `RJReport.Branding.HeaderImageUrl`, `RJReport.Branding.FooterImageUrl` and `RJReport.Branding.FooterLink` settings in the runbook customization (see `docs/general/setup-email-reporting.md`)
+  - The images are downloaded from the configured public HTTPS URL on each run and validated before use (PNG, JPEG or GIF by file signature, maximum 200 KB per image); the temp file is cleaned up after the send
+  - When a setting is empty, the default RealmJoin graphics and footer link are used; when a download or validation fails, the runbook logs a warning and sends the report with the default graphics - a broken branding configuration never prevents a report email from being sent
+  - The new parameters (`BrandingHeaderImageUrl`, `BrandingFooterImageUrl`, `BrandingFooterLink`) are hidden and sourced from the RJReport tenant settings (new inline helper `Get-RjRbBrandingMailParams`, planned to be absorbed into the RealmJoin.RunbookHelper module)
+  - Affected runbooks:
+    - **Check Device Compliance** - Device/General
+    - **Export Enterprise Application Users** - Org/Applications
+    - **List Inactive Enterprise Applications** - Org/Applications
+    - **Report Application Registration** - Org/Applications
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+    - **Auto Approve Driver Updates (Scheduled)** - Org/Devices
+    - **Cleanup Autopilot Devices (Scheduled)** - Org/Devices
+    - **Delete Stale Devices (Scheduled)** - Org/Devices
+    - **Notify Users About Stale Devices (Scheduled)** - Org/Devices
+    - **Report Devices Without Primary User (Scheduled)** - Org/Devices
+    - **Report Primary User Mismatch (Scheduled)** - Org/Devices
+    - **Report Stale Devices (Scheduled)** - Org/Devices
+    - **Report Users With More Than 5 Devices (Scheduled)** - Org/Devices
+    - **Report Windows Devices Without Autopilot (Scheduled)** - Org/Devices
+    - **Monitor Service Health (Scheduled)** - Org/General
+    - **Report Apple MDM Cert Expiry (Scheduled)** - Org/General
+    - **Report License Assignment (Scheduled)** - Org/General
+    - **Sync Channel Or Group Members (Scheduled)** - Org/General
+    - **Sync Shared Channel Owners (Scheduled)** - Org/General
+    - **Monitor Pending EPM Requests (Scheduled)** - Org/Security
+    - **Report EPM Elevation Requests (Scheduled)** - Org/Security
+    - **Sync MFA Secure Users To Group (Scheduled)** - Org/Security
+    - **List Group Memberships** - User/General
+    - **List Group Ownerships** - User/General
+    - **Create Temporary Access Pass** - User/Security
+    - **List MFA Methods** - User/Security
+    - **Reset MFA** - User/Security
+    - **Set Or Remove Mobile Phone MFA** - User/Security
+
 ## 2026-08-12
 
 - Update the required `RealmJoin.RunbookHelper` module version to 0.8.8 in all runbooks (167 runbooks)
