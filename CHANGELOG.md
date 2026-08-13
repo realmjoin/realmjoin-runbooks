@@ -40,6 +40,7 @@
 ## 2026-08-12
 
 - Update the required `RealmJoin.RunbookHelper` module version to 0.8.8 in all runbooks (167 runbooks)
+  - Remove the inline `Export-RjRbXlsx` function from the 20 runbooks that carried it: the function is now provided by the `RealmJoin.RunbookHelper` module (since 0.8.8), so the runbooks pick up the latest version automatically (adds `DateTimeOffset` support, a text fallback for dates before 1900 and PSProvider-aware path resolution)
 - Update the required `MicrosoftTeams` module version to 7.9.0 (latest GA) in all 6 Teams phone runbooks
   - Switch `Set-CsPhoneNumberAssignment` in **Set Teams Phone** (User/Phone) to the current parameter names `-TelephoneNumber` and `-NumberType` (the former `-PhoneNumber`/`-PhoneNumberType` remain as aliases only)
   - No further changes required: the runbooks use none of the cmdlets affected by the 7.7.0–7.9.0 breaking changes (Teams Shifts Connection, tenant federation settings, Mainline Attendant), and the WAM authentication default only affects interactive sign-ins, not the managed identity connection used by the runbooks
