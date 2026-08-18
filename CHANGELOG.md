@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-17
+
+- Add **Agent Identities Without Sponsor or Owner (Scheduled)** Runbook in Org/General
+  - Report active Entra Agent Identities without sponsors and/or owners through Microsoft Graph beta derived-type endpoints
+  - Label sponsorless identities as anomalies and ownerless identities as legitimate, and surface relationship lookup failures as unknown instead of false findings
+  - Enrich report rows with Agent Identity Blueprint details and support selectable report scopes plus optional inactive identities
+  - Note: reading the sponsors relationship currently requires `AgentIdentity.ReadWrite.All` because Microsoft Graph exposes no read-only application permission for that API
+
 ## 2026-08-13
 
 - Add customizable email branding to all 28 runbooks that send report or notification emails
