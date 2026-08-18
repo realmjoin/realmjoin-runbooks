@@ -1,0 +1,33 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "AgentIdentity.Read.All",
+                    "Reason": "Lists Agent Identities and reads their owners"
+                },
+                {
+                    "Value": "AgentIdentity.ReadWrite.All",
+                    "Reason": "Reads Agent Identity sponsors; Microsoft Graph currently exposes no read-only application permission for this relationship"
+                },
+                {
+                    "Value": "AgentIdentityBlueprint.Read.All",
+                    "Reason": "Reads Agent Identity Blueprints to enrich each identity with its blueprint name and application ID"
+                },
+                {
+                    "Value": "Application.Read.All",
+                    "Reason": "Reads application and service principal details returned for Agent Identities, blueprints, sponsors, and owners"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads user display names returned for Agent Identity sponsors and owners"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}
