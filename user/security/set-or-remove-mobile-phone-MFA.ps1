@@ -35,6 +35,14 @@
     Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
     When empty, the default link (https://www.realmjoin.com) is used.
 
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
     .PARAMETER ServiceDeskDisplayName
     Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName.
 
@@ -92,6 +100,12 @@
             "BrandingFooterLink": {
                 "Hide": true
             },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
             "ServiceDeskDisplayName": {
                 "Hide": true
             },
@@ -117,7 +131,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.8" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param(
@@ -141,6 +155,12 @@ param(
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
     [string]$BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_DisplayName" } )]
     [string]$ServiceDeskDisplayName,
@@ -174,7 +194,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "2.2.0"
+$Version = "2.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserId: $UserId" -Verbose
@@ -185,6 +205,8 @@ Write-RjRbLog -Message "LanguageOverride: $LanguageOverride" -Verbose
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 
 #endregion RJ Log Part
 
@@ -274,205 +296,63 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
             return
         }
 
-        $batchSize = 20
-        $processedCount = 0
+        # Process in slices of 500 requests (25 batch calls each) so the search can still
+        # terminate early once the unique SMS Sign-In number is found. Transport, chunking
+        # (20 requests per call) and inner-429 throttling retries are handled by the
+        # module function Invoke-RjRbGraphBatch.
+        $sliceSize = 500
+        $searchedCount = 0
+        for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $sliceSize) {
+            $slice = @($phoneRegisteredUsers[$i..([Math]::Min($i + $sliceSize - 1, $phoneRegisteredUsers.Count - 1))])
 
-        # Determine progress interval based on total user count
-        $totalUsers = $phoneRegisteredUsers.Count
-        if ($totalUsers -le 500) {
-            $progressInterval = 100
-        }
-        elseif ($totalUsers -le 1000) {
-            $progressInterval = 250
-        }
-        elseif ($totalUsers -le 2500) {
-            $progressInterval = 500
-        }
-        else {
-            $progressInterval = 1000
-        }
-
-        for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $batchSize) {
-            $batch = $phoneRegisteredUsers[$i..([Math]::Min($i + $batchSize - 1, $phoneRegisteredUsers.Count - 1))]
-
-            $batchRequests = @()
-            $batchIndex = 1
-            foreach ($user in $batch) {
-                $batchRequests += @{
-                    id     = "$batchIndex"
+            # The user id doubles as the request id for correlation
+            $userById = @{}
+            $batchRequests = foreach ($user in $slice) {
+                $userById["$($user.id)"] = $user
+                @{
+                    id     = "$($user.id)"
                     method = "GET"
                     url    = "/users/$($user.id)/authentication/phoneMethods"
                 }
-                $batchIndex++
             }
 
             try {
-                $batchBody = @{ requests = $batchRequests }
-                $batchResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/`$batch" -Method POST -Body ($batchBody | ConvertTo-Json -Depth 10) -ContentType "application/json"
+                $responses = Invoke-RjRbGraphBatch -Requests @($batchRequests) -ProgressLabel "users" -ProgressInterval 0
+            }
+            catch {
+                Write-Verbose "Batch request failed: $($_.Exception.Message)"
+                continue
+            }
 
-                foreach ($response in $batchResponse.responses) {
-                    $responseIndex = [int]$response.id - 1
-                    $user = $batch[$responseIndex]
+            foreach ($response in $responses) {
+                $user = $userById["$($response.id)"]
+                if (-not $user) { continue }
 
-                    if ($response.status -eq 200 -and $response.body.value) {
-                        foreach ($method in $response.body.value) {
-                            $cleanNumber = $method.phoneNumber -replace '\s', ''
-                            if ($cleanNumber -eq $PhoneNumber) {
-                                Write-Output ""
-                                Write-Output "Phone number '$($PhoneNumber)' is assigned to:"
-                                Write-Output "  Display Name:       $($user.userDisplayName)"
-                                Write-Output "  UPN:                $($user.userPrincipalName)"
-                                Write-Output "  Phone Type:         $($method.phoneType)"
-                                Write-Output "  SMS Sign-In State:  $($method.smsSignInState)"
-                                Write-Output "  Entra Portal Link:  https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($user.id)"
-                                $script:phoneNumberOwnerFound = $true
-                                return
-                            }
+                if ($response.status -eq 200 -and $response.body.value) {
+                    foreach ($method in $response.body.value) {
+                        $cleanNumber = $method.phoneNumber -replace '\s', ''
+                        if ($cleanNumber -eq $PhoneNumber) {
+                            Write-Output ""
+                            Write-Output "Phone number '$($PhoneNumber)' is assigned to:"
+                            Write-Output "  Display Name:       $($user.userDisplayName)"
+                            Write-Output "  UPN:                $($user.userPrincipalName)"
+                            Write-Output "  Phone Type:         $($method.phoneType)"
+                            Write-Output "  SMS Sign-In State:  $($method.smsSignInState)"
+                            Write-Output "  Entra Portal Link:  https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($user.id)"
+                            $script:phoneNumberOwnerFound = $true
+                            return
                         }
                     }
                 }
             }
-            catch {
-                Write-Verbose "Batch request failed: $($_.Exception.Message)"
-            }
 
-            $processedCount += $batch.Count
-            if ($processedCount % $progressInterval -eq 0) {
-                Write-Output "Searched $processedCount of $($phoneRegisteredUsers.Count) users..."
-            }
+            $searchedCount += $slice.Count
+            Write-Output "Searched $searchedCount of $($phoneRegisteredUsers.Count) users..."
         }
 
         Write-Output "Could not identify the user holding this phone number for SMS Sign-In."
         Write-Output "The number may be held by a deleted or soft-deleted user account."
     }
-
-function Get-RjRbBrandingMailParams {
-    <#
-        .SYNOPSIS
-        Resolves the tenant email branding settings into Send-RjReportEmail parameters.
-
-        .DESCRIPTION
-        Downloads the custom header/footer image configured via the RJReport.Branding.*
-        tenant settings to a temp file, validates it (HTTPS only, PNG/JPEG/GIF by file
-        signature, size cap) and returns a hashtable ready to splat into
-        Send-RjReportEmail / Send-RjRbGuardedReportEmail.
-
-        A missing setting, a broken URL or an invalid image NEVER fails the report send:
-        the affected key is simply omitted (warning logged) and the module falls back to
-        the bundled default graphics. Images are downloaded once per run - reuse the
-        returned hashtable for every email sent by this job.
-
-        NOTE: This logic is planned to move into the RealmJoin.RunbookHelper module.
-        Until then it is duplicated inline in the runbooks.
-
-        .PARAMETER HeaderImageUrl
-        Public HTTPS URL of the custom header image (RJReport.Branding.HeaderImageUrl).
-
-        .PARAMETER FooterImageUrl
-        Public HTTPS URL of the custom footer image (RJReport.Branding.FooterImageUrl).
-
-        .PARAMETER FooterLink
-        URL the footer image links to (RJReport.Branding.FooterLink).
-
-        .PARAMETER TimeoutSec
-        Download timeout per image in seconds.
-
-        .PARAMETER MaxImageBytes
-        Maximum accepted image file size. Branding images count against the ~4 MB Graph
-        sendMail request limit together with the report attachments, so they must stay small.
-    #>
-    param(
-        [string]$HeaderImageUrl,
-        [string]$FooterImageUrl,
-        [string]$FooterLink,
-        [int]$TimeoutSec = 30,
-        [long]$MaxImageBytes = 200KB
-    )
-
-    $brandingParams = @{}
-    if (-not [string]::IsNullOrWhiteSpace($FooterLink)) {
-        $brandingParams.FooterLink = $FooterLink.Trim()
-    }
-
-    $images = @(
-        @{ Kind = 'header'; Url = $HeaderImageUrl; ParamName = 'HeaderImage' },
-        @{ Kind = 'footer'; Url = $FooterImageUrl; ParamName = 'FooterImage' }
-    )
-
-    foreach ($image in $images) {
-        if ([string]::IsNullOrWhiteSpace($image.Url)) { continue }
-        $url = $image.Url.Trim()
-        $tempFile = $null
-        try {
-            $uri = [System.Uri]$url
-            if ($uri.Scheme -ne 'https') {
-                throw "Only HTTPS URLs are supported (got '$url')."
-            }
-
-            $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) `
-                ("RjRbBranding-$($image.Kind)-" + [System.Guid]::NewGuid().ToString('N') + '.tmp')
-
-            # Ensure TLS 1.2 on Windows PowerShell 5.1 (no-op on PowerShell 7)
-            [System.Net.ServicePointManager]::SecurityProtocol = `
-                [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
-
-            $previousProgressPreference = $ProgressPreference
-            $ProgressPreference = 'SilentlyContinue'
-            try {
-                Invoke-WebRequest -Uri $url -OutFile $tempFile -UseBasicParsing -TimeoutSec $TimeoutSec -ErrorAction Stop | Out-Null
-            }
-            finally {
-                $ProgressPreference = $previousProgressPreference
-            }
-
-            $fileItem = Get-Item -LiteralPath $tempFile -ErrorAction Stop
-            if ($fileItem.Length -eq 0) { throw "The downloaded file is empty." }
-            if ($fileItem.Length -gt $MaxImageBytes) {
-                throw "The image is $([math]::Round($fileItem.Length / 1KB, 1)) KB and exceeds the $([math]::Round($MaxImageBytes / 1KB, 0)) KB limit for inline email images."
-            }
-
-            # Determine the actual image format from the file signature - the URL may have a
-            # wrong extension or none at all, and Send-RjReportEmail validates by extension.
-            $magic = New-Object byte[] 8
-            $stream = [System.IO.File]::OpenRead($tempFile)
-            try { [void]$stream.Read($magic, 0, 8) } finally { $stream.Dispose() }
-
-            $extension = $null
-            if ($magic[0] -eq 0x89 -and $magic[1] -eq 0x50 -and $magic[2] -eq 0x4E -and $magic[3] -eq 0x47 -and
-                $magic[4] -eq 0x0D -and $magic[5] -eq 0x0A -and $magic[6] -eq 0x1A -and $magic[7] -eq 0x0A) {
-                $extension = '.png'
-            }
-            elseif ($magic[0] -eq 0xFF -and $magic[1] -eq 0xD8 -and $magic[2] -eq 0xFF) {
-                $extension = '.jpg'
-            }
-            elseif ($magic[0] -eq 0x47 -and $magic[1] -eq 0x49 -and $magic[2] -eq 0x46 -and $magic[3] -eq 0x38 -and
-                ($magic[4] -eq 0x37 -or $magic[4] -eq 0x39) -and $magic[5] -eq 0x61) {
-                $extension = '.gif'
-            }
-            if (-not $extension) {
-                throw "The downloaded file is not a PNG, JPEG or GIF image (unrecognized file signature)."
-            }
-
-            $finalFile = [System.IO.Path]::ChangeExtension($tempFile, $extension)
-            Move-Item -LiteralPath $tempFile -Destination $finalFile -Force -ErrorAction Stop
-            $tempFile = $null
-
-            $brandingParams[$image.ParamName] = $finalFile
-            Write-RjRbLog -Message "Branding: using the custom $($image.Kind) image from '$url' ($([math]::Round($fileItem.Length / 1KB, 1)) KB, $extension)" -Verbose
-        }
-        catch {
-            Write-RjRbLog -Message "WARNING: Branding: the custom $($image.Kind) image from '$url' could not be used - the default image is used instead. $($_.Exception.Message)" -Verbose
-            # Write-Warning (not Write-Output): inside this value-returning function, Write-Output
-            # would pollute the returned hashtable and break splatting at the call sites.
-            Write-Warning -Message "The custom $($image.Kind) image could not be downloaded or is not a usable image - the report email uses the default $($image.Kind) image instead."
-            if ($tempFile -and (Test-Path -LiteralPath $tempFile)) {
-                Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
-            }
-        }
-    }
-
-    return $brandingParams
-}
 
 #endregion Function Definitions
 
@@ -878,7 +758,7 @@ IT Administration
     }
 
     # Resolve optional tenant email branding once per run (never fails the send)
-    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     try {
         Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $CurrentMail -Subject $subject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams

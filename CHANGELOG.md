@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-14
+
+- Update the required `RealmJoin.RunbookHelper` module version to 0.8.9 and adopt the new module functions in all 28 report runbooks plus 4 runbooks using the Graph batch API
+  - Add customizable email template colors: the accent color (table headers, buttons, accent borders) and the primary text color of the report emails can now be overridden per tenant via the new `RJReport.Branding.AccentColor` and `RJReport.Branding.TextColor` settings (6-digit hex values, e.g. `#0052cc`); an empty or invalid value falls back to the default RealmJoin colors and never prevents a report email from being sent. Without these settings the emails look exactly as before.
+  - Replace the inline helper `Get-RjRbBrandingMailParams` with the module function of the same name (28 runbooks); branding images are now additionally validated by file signature inside the module (`Resolve-RjRbImageSource`), so a renamed non-image can no longer produce a broken inline attachment
+  - Replace the inline helper `Send-RjRbGuardedReportEmail` with the attachment size guard built into `Send-RjReportEmail` 0.8.9 (`-FallbackAttachments`, `-FallbackMarkdownContent`, `-MaxAttachmentBytes`); the guard behavior (budget check, reduced attachment set, retry safety net) is unchanged (20 runbooks)
+  - Replace the inline `Invoke-GraphBatch` helpers and hand-rolled Graph `$batch` loops with the module function `Invoke-RjRbGraphBatch`: **Sync MFA Secure Users To Group (Scheduled)** (Org/Security), **Check Device Onboarding Exclusion (Scheduled)** (Org/General), **Add Primary Users Of Devices To Group (Scheduled)** (Org/General), **Find SMS Auth Phone Number** (Org/Security) and **Set Or Remove Mobile Phone MFA** (User/Security) - throttled inner batch requests (status 429) are now retried with the reported Retry-After interval in all five runbooks instead of only one, so results can no longer be silently lost under Graph throttling in large tenants
+  - Point the configuration error messages to the central [Runbook Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) instead of the repository-internal setup page (22 runbooks)
+
 ## 2026-08-13
 
 - Add customizable email branding to all 28 runbooks that send report or notification emails
