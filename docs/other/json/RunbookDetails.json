@@ -25531,6 +25531,378 @@
     }
   },
   {
+    "RunbookDisplayName": "List Signin Events",
+    "RunbookDisplayPath": "User \\ Security \\ List Signin Events",
+    "RelativeRunbookPath": "user/security/list-signin-events.ps1",
+    "RelativeRunbookPath_PathOnly": "user/security",
+    "PrimaryFolder": "User",
+    "SubFolder": "Security",
+    "Synopsis": "Retrieve and analyze sign-in events for a target user",
+    "Description": "Retrieves the target user's Entra ID sign-in logs from the Microsoft Graph beta endpoint and analyzes them: each sign-in's application, timestamp, status (with error codes and failure reasons if applicable), client app, device and location information is displayed, and a per-application failure summary helps support teams identify which applications are experiencing issues and diagnose the underlying causes. IP addresses are shown in the failed sign-in view; conditional access details are included in the exported report files. The runbook can optionally export the full data set to CSV and XLSX files and deliver them by email and/or a time-limited download link.",
+    "Notes": "Common Use Cases:\n- Investigate which application is generating sign-in failures for a specific user and why (grouped by error code).\n- Narrow results with ApplicationName (partial match) or FailedSignInsOnly when a user reports access issues.\n- Export sign-in data to CSV/XLSX for further analysis in Excel when the event count is too large to read in the portal.\n\nBehavior:\n- Sign-in log data is retrieved from the Microsoft Graph beta endpoint because sign-in event type filtering\n  and non-interactive sign-in retrieval require beta-only properties (signInEventTypes, authenticationRequirement).\n- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the\n  50 most recent entries, but exported report files always contain the full result set.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional filter to display sign-ins for a specific application only (partial match). Leave empty to include all applications."
+          }
+        ],
+        "globbing": "false",
+        "name": "ApplicationName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.\nSourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.\nSourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.\nWhen empty, the default link (https://www.realmjoin.com) is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.\nSourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional text color override (6-digit hex) for the report email template.\nSourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "20",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "user-signin-events",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the report files will be uploaded to Azure Storage and a time-limited download link will be generated. If false, no upload occurs."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "7",
+        "description": [
+          {
+            "Text": "Number of days to retrieve sign-in logs for (1 to 30 days). Default is 7 days."
+          }
+        ],
+        "globbing": "false",
+        "name": "Days",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. Sourced from the RJReport.EmailSender tenant setting. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses.\nEmails are sent individually to each recipient."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, only failed sign-in attempts are displayed. If false, all sign-in events are shown."
+          }
+        ],
+        "globbing": "false",
+        "name": "FailedSignInsOnly",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires (1 to 3650 days). Sourced from the RJReport tenant settings. Default is 6 days."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Select the report file format: CSV & XLSX (both files), CSV only, or XLSX only. Only used when a delivery method (email or download link) is selected."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the sign-in report will be sent by email. If false, no email is sent."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "Interactive only",
+        "description": [
+          {
+            "Text": "Filter sign-in events by type: Interactive only, Non-interactive only, or both."
+          }
+        ],
+        "globbing": "false",
+        "name": "SignInType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the target user."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Required license and permissions\n\nReading sign-in logs through the Microsoft Graph API requires an **Entra ID P1 or P2 license** in the tenant. Tenants without it receive a 403 error from the sign-in log query even when all Graph permissions are granted. With P1/P2, sign-in logs are retained for up to 30 days; the 7-day retention of the free tier applies to the Entra portal, not to this runbook.\n\nIf the sign-in log query returns a 403 although `AuditLog.Read.All` is granted and the tenant is licensed, some tenants additionally require `Directory.Read.All` on the Entra reporting API. Granting it is the known workaround; it is not declared by default because it grants read access to every directory object.\n\n## Report delivery\n\nReport files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.\n\n## Interpreting the results\n\nEntra counts some sign-in interrupts as errors (for example 50140 \"Keep me signed in\", 50058 and 50076), so they appear as failures and are included in the per-application failure rate. Check the failure reason before treating a high failure rate as a genuine problem. Error codes are Entra ID sign-in error codes; look them up at [https://login.microsoftonline.com/error](https://login.microsoftonline.com/error).\n\nSign-in log data typically lags ~15 minutes but can take up to 2 hours for some records - a very recent sign-in may not yet appear. All timestamps are shown in UTC.\n",
+    "DocsContentEncoded": "IyMgUmVxdWlyZWQgbGljZW5zZSBhbmQgcGVybWlzc2lvbnMKClJlYWRpbmcgc2lnbi1pbiBsb2dzIHRocm91Z2ggdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkgcmVxdWlyZXMgYW4gKipFbnRyYSBJRCBQMSBvciBQMiBsaWNlbnNlKiogaW4gdGhlIHRlbmFudC4gVGVuYW50cyB3aXRob3V0IGl0IHJlY2VpdmUgYSA0MDMgZXJyb3IgZnJvbSB0aGUgc2lnbi1pbiBsb2cgcXVlcnkgZXZlbiB3aGVuIGFsbCBHcmFwaCBwZXJtaXNzaW9ucyBhcmUgZ3JhbnRlZC4gV2l0aCBQMS9QMiwgc2lnbi1pbiBsb2dzIGFyZSByZXRhaW5lZCBmb3IgdXAgdG8gMzAgZGF5czsgdGhlIDctZGF5IHJldGVudGlvbiBvZiB0aGUgZnJlZSB0aWVyIGFwcGxpZXMgdG8gdGhlIEVudHJhIHBvcnRhbCwgbm90IHRvIHRoaXMgcnVuYm9vay4KCklmIHRoZSBzaWduLWluIGxvZyBxdWVyeSByZXR1cm5zIGEgNDAzIGFsdGhvdWdoIGBBdWRpdExvZy5SZWFkLkFsbGAgaXMgZ3JhbnRlZCBhbmQgdGhlIHRlbmFudCBpcyBsaWNlbnNlZCwgc29tZSB0ZW5hbnRzIGFkZGl0aW9uYWxseSByZXF1aXJlIGBEaXJlY3RvcnkuUmVhZC5BbGxgIG9uIHRoZSBFbnRyYSByZXBvcnRpbmcgQVBJLiBHcmFudGluZyBpdCBpcyB0aGUga25vd24gd29ya2Fyb3VuZDsgaXQgaXMgbm90IGRlY2xhcmVkIGJ5IGRlZmF1bHQgYmVjYXVzZSBpdCBncmFudHMgcmVhZCBhY2Nlc3MgdG8gZXZlcnkgZGlyZWN0b3J5IG9iamVjdC4KCiMjIFJlcG9ydCBkZWxpdmVyeQoKUmVwb3J0IGZpbGVzIGFyZSBvbmx5IGdlbmVyYXRlZCB3aGVuIGEgZGVsaXZlcnkgbWV0aG9kIGlzIHNlbGVjdGVkIHZpYSB0aGUgKipSZXBvcnQgZGVsaXZlcnkqKiBvcHRpb24gKGVtYWlsIGFuZC9vciBkb3dubG9hZCBsaW5rKS4gV2l0aCAqTm8gcmVwb3J0KiBzZWxlY3RlZCwgdGhlIHNpZ24taW4gYW5hbHlzaXMgaXMgcmVhZCBkaXJlY3RseSBpbiB0aGUgUmVhbG1Kb2luIHBvcnRhbCBvdXRwdXQuIEVtYWlsIGRlbGl2ZXJ5IGFuZCBkb3dubG9hZCBsaW5rIGdlbmVyYXRpb24gYXJlIGluZGVwZW5kZW50IGFuZCBjYW4gYmUgY29tYmluZWQuCgpGb3IgdGhlIGRvd25sb2FkIGxpbmssIHRoZSByZXBvcnQgZmlsZXMgYXJlIHVwbG9hZGVkIHRvIHRoZSBBenVyZSBzdG9yYWdlIGFjY291bnQgY29uZmlndXJlZCBpbiB0aGUgYFJKUmVwb3J0LlN0b3JhZ2VBY2NvdW50LipgIHRlbmFudCBzZXR0aW5ncywgYW5kIHRpbWUtbGltaXRlZCBTQVMgZG93bmxvYWQgbGlua3MgYXJlIHJldHVybmVkLiBUaGUgc3RvcmFnZSB1cGxvYWQgYXV0aGVudGljYXRlcyB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5OyB0aGF0IGlkZW50aXR5IG5lZWRzIHRoZSAqKlN0b3JhZ2UgQmxvYiBEYXRhIENvbnRyaWJ1dG9yKiogUkJBQyByb2xlIG9uIHRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50ICh0aGlzIGlzIGFuIEF6dXJlIFJCQUMgYXNzaWdubWVudCwgbm90IGEgR3JhcGggYXBwbGljYXRpb24gcGVybWlzc2lvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhbiBlbWFpbCByZXBvcnQgaXMgb3B0aW9uYWwgYW5kIG9ubHkgaGFwcGVucyB3aGVuIHRoZSAqRW1haWwgcmVwb3J0KiBkZWxpdmVyeSBvcHRpb24gaXMgc2VsZWN0ZWQ7IGEgcmVjaXBpZW50IChgRW1haWxUb2ApIGlzIHRoZW4gcmVxdWlyZWQuIFRoZSBzZW5kZXIgYWRkcmVzcyBpcyB0YWtlbiBmcm9tIHRoZSBgUkpSZXBvcnQuRW1haWxTZW5kZXJgIHRlbmFudCBzZXR0aW5nLgoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIGRldGFpbHMuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOiBhIGN1c3RvbSBoZWFkZXIgaW1hZ2UsIGEgY3VzdG9tIGZvb3RlciBpbWFnZSAocHVibGljIEhUVFBTIFVSTHMsIFBORy9KUEVHL0dJRiwgbWF4LiAyMDAgS0IgZWFjaCksIGEgY3VzdG9tIGZvb3RlciBsaW5rLCBhbmQgY3VzdG9tIGFjY2VudCBhbmQgdGV4dCBjb2xvcnMgKDYtZGlnaXQgaGV4IHZhbHVlcywgZS5nLiBgIzAwNTJjY2ApLiBXaGVuIHRoZXNlIHNldHRpbmdzIGFyZSBub3QgY29uZmlndXJlZCwgdGhlIGRlZmF1bHQgUmVhbG1Kb2luIGdyYXBoaWNzIGFuZCBjb2xvcnMgYXJlIHVzZWQuIEEgYnJhbmRpbmcgaW1hZ2UgdGhhdCBjYW5ub3QgYmUgZG93bmxvYWRlZCBvciB2YWxpZGF0ZWQsIG9yIGEgY29sb3IgdmFsdWUgdGhhdCBpcyBub3QgYSB2YWxpZCBoZXggY29sb3IsIG5ldmVyIHByZXZlbnRzIHRoZSByZXBvcnQgZW1haWwgLSB0aGUgY29ycmVzcG9uZGluZyBkZWZhdWx0IGlzIHVzZWQgaW5zdGVhZC4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIHNldHVwIGRldGFpbHMuCgojIyBJbnRlcnByZXRpbmcgdGhlIHJlc3VsdHMKCkVudHJhIGNvdW50cyBzb21lIHNpZ24taW4gaW50ZXJydXB0cyBhcyBlcnJvcnMgKGZvciBleGFtcGxlIDUwMTQwICJLZWVwIG1lIHNpZ25lZCBpbiIsIDUwMDU4IGFuZCA1MDA3NiksIHNvIHRoZXkgYXBwZWFyIGFzIGZhaWx1cmVzIGFuZCBhcmUgaW5jbHVkZWQgaW4gdGhlIHBlci1hcHBsaWNhdGlvbiBmYWlsdXJlIHJhdGUuIENoZWNrIHRoZSBmYWlsdXJlIHJlYXNvbiBiZWZvcmUgdHJlYXRpbmcgYSBoaWdoIGZhaWx1cmUgcmF0ZSBhcyBhIGdlbnVpbmUgcHJvYmxlbS4gRXJyb3IgY29kZXMgYXJlIEVudHJhIElEIHNpZ24taW4gZXJyb3IgY29kZXM7IGxvb2sgdGhlbSB1cCBhdCBbaHR0cHM6Ly9sb2dpbi5taWNyb3NvZnRvbmxpbmUuY29tL2Vycm9yXShodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vZXJyb3IpLgoKU2lnbi1pbiBsb2cgZGF0YSB0eXBpY2FsbHkgbGFncyB+MTUgbWludXRlcyBidXQgY2FuIHRha2UgdXAgdG8gMiBob3VycyBmb3Igc29tZSByZWNvcmRzIC0gYSB2ZXJ5IHJlY2VudCBzaWduLWluIG1heSBub3QgeWV0IGFwcGVhci4gQWxsIHRpbWVzdGFtcHMgYXJlIHNob3duIGluIFVUQy4K",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"AuditLog.Read.All\",\n                    \"Reason\": \"Reads the target user's Entra ID sign-in events from auditLogs/signIns (beta) to build the report\"\n                },\n                {\n                    \"Value\": \"User.Read.All\",\n                    \"Reason\": \"Resolves the target user to get id, userPrincipalName and displayName\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the sign-in report email with CSV/XLSX attachments via Send-RjReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads /organization to put the tenant name into the report email footer\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AuditLog.Read.All",
+            "Mail.Send",
+            "Organization.Read.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Reset MFA",
     "RunbookDisplayPath": "User \\ Security \\ Reset MFA",
     "RelativeRunbookPath": "user/security/reset-MFA.ps1",

@@ -226,6 +226,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Create Temporary Access Pass](docs/user/security/create-temporary-access-pass.md)
     - [Enable Or Disable Password Expiration](docs/user/security/enable-or-disable-password-expiration.md)
     - [List MFA Methods](docs/user/security/list-mfa-methods.md)
+    - [List Signin Events](docs/user/security/list-signin-events.md)
     - [Reset MFA](docs/user/security/reset-mfa.md)
     - [Reset Password](docs/user/security/reset-password.md)
     - [Revoke Or Restore Access](docs/user/security/revoke-or-restore-access.md)

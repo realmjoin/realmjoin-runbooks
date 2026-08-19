@@ -192,6 +192,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Create Temporary Access Pass](#user-security-create-temporary-access-pass)
     - [Enable Or Disable Password Expiration](#user-security-enable-or-disable-password-expiration)
     - [List MFA Methods](#user-security-list-mfa-methods)
+    - [List Signin Events](#user-security-list-signin-events)
     - [Reset MFA](#user-security-reset-mfa)
     - [Reset Password](#user-security-reset-password)
     - [Revoke Or Restore Access](#user-security-revoke-or-restore-access)
@@ -2779,6 +2780,34 @@ List all MFA / authentication methods of a user
 | ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
+
+<a name='user-security-list-signin-events'></a>
+
+### List Signin Events
+Retrieve and analyze sign-in events for a target user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the target user. |
+| Days |  | Int32 | Number of days to retrieve sign-in logs for (1 to 30 days). Default is 7 days. |
+| SignInType |  | String | Filter sign-in events by type: Interactive only, Non-interactive only, or both. |
+| FailedSignInsOnly |  | Boolean | If set to true, only failed sign-in attempts are displayed. If false, all sign-in events are shown. |
+| ApplicationName |  | String | Optional filter to display sign-ins for a specific application only (partial match). Leave empty to include all applications. |
+| EmailFrom |  | String | The sender email address. Sourced from the RJReport.EmailSender tenant setting. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| SendEmailReport |  | Boolean | If set to true, the sign-in report will be sent by email. If false, no email is sent. |
+| EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses.<br>Emails are sent individually to each recipient. |
+| ReportFileFormat |  | String | Select the report file format: CSV & XLSX (both files), CSV only, or XLSX only. Only used when a delivery method (email or download link) is selected. |
+| CreateDownloadLink |  | Boolean | If set to true, the report files will be uploaded to Azure Storage and a time-limited download link will be generated. If false, no upload occurs. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires (1 to 3650 days). Sourced from the RJReport tenant settings. Default is 6 days. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='user-security-reset-mfa'></a>
 
