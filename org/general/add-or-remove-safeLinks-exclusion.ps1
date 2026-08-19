@@ -89,7 +89,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 function createGroupFromPolicyName {
@@ -280,7 +280,7 @@ try {
 
     ""
     $DoNotRewriteUrls = @()
-    if ($Remove) {
+    if ($Action -eq 1) {
         "## Trying to remove $LinkPattern ..."
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {

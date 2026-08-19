@@ -2,6 +2,9 @@
 
 ## 2026-08-19
 
+- Improve the remove action of **Add Or Remove SafeLinks Exclusion** in Org/General
+  - Selecting "Remove URL Pattern from Policy" now reliably removes the given URL pattern from the policy's `DoNotRewriteUrls` list
+
 - Update the required `ExchangeOnlineManagement` module version to 3.9.2 in all 29 runbooks that were still pinned to older versions, so all 32 Exchange Online runbooks now use a consistent, current module version
   - Version 3.9.2 is intentionally chosen over the latest release 3.10.1: the 3.10.x releases require PowerShell 7.6, while the RealmJoin hosted runbook environment currently runs on the PowerShell 7.4 runtime environment, where 3.9.2 is the latest supported module version. The pins will be raised to 3.10.1 or later once a PowerShell 7.6 runtime environment is available.
 
