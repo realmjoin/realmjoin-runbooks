@@ -2,6 +2,9 @@
 
 ## 2026-08-19
 
+- Update the required `ExchangeOnlineManagement` module version to 3.9.2 in all 29 runbooks that were still pinned to older versions, so all 32 Exchange Online runbooks now use a consistent, current module version
+  - Version 3.9.2 is intentionally chosen over the latest release 3.10.1: the 3.10.x releases require PowerShell 7.6, while the RealmJoin hosted runbook environment currently runs on the PowerShell 7.4 runtime environment, where 3.9.2 is the latest supported module version. The pins will be raised to 3.10.1 or later once a PowerShell 7.6 runtime environment is available.
+
 - Improve the email routing of **Notify Users About Stale Devices (Scheduled)** in Org/Devices
   - `OverrideEmailRecipient` is now a true global override: when set, ALL emails (user notifications, pattern-routed notifications and the combined email for devices without a primary user) are redirected to this address, independent of all other settings, and a warning is logged on every run while the override is active. Previously, enabling `SendNoPrimaryUserDevicesToOverride` switched the notifications of regular users back to direct delivery, which could be unexpected when the override recipient was configured as a test or central mailbox.
   - Add the dedicated recipient parameter `NoPrimaryUserEmailRecipient` for the combined email of stale devices without a primary user (`SendNoPrimaryUserDevicesToOverride`); while the global override is active, the combined email goes to the override recipient instead, so existing configurations keep working
