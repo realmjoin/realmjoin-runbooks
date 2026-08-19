@@ -53,25 +53,30 @@ To use a custom mail template (e.g., in Dutch, Spanish, or any other language), 
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
 - When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
 
-## Routing Devices Without a Primary User to the Override Recipient
+## Email Routing
 
-By default, stale devices without a primary user are skipped, and a filled `OverrideEmailRecipient` redirects **all** notifications. Enabling `SendNoPrimaryUserDevicesToOverride` changes this: devices without a primary user (and devices whose primary user matches `OverrideUserNamePattern`) are sent to the `OverrideEmailRecipient`, while all other notifications go directly to the end users.
+The runbook knows three independent routing targets, checked in this order of precedence:
 
-| `SendNoPrimaryUserDevicesToOverride` | `OverrideEmailRecipient` | Behavior |
-| --- | --- | --- |
-| Off | empty | Devices without a primary user are skipped; users are mailed directly. |
-| Off | set | All notifications are redirected to the override recipient. |
-| On | set | Devices without a primary user are collected into **one** combined email to the override recipient. Users matching the pattern are redirected to the override recipient. All other users receive their notification directly. |
-| On | empty | Invalid configuration - the runbook stops with an error. |
+1. **Global override (testing):** A filled `OverrideEmailRecipient` redirects **ALL** emails - user notifications, pattern-routed notifications and the combined email for devices without a primary user - to that address. No end user receives an email. Use this for testing, piloting, or routing everything to a shared mailbox or ticket system. A warning is logged on every run while the override is active.
+2. **Pattern-matched users:** When `OverrideUserNamePattern` is set, notifications of users whose UPN matches the pattern are sent to `UserNamePatternEmailRecipient` instead of the user. All other users receive their notification directly. Typical use: Device Enrollment Manager or kiosk accounts (`DEM-*`, `KIOSK-*`) whose mailboxes nobody reads.
+3. **Devices without a primary user:** When `SendNoPrimaryUserDevicesToOverride` is enabled, stale devices without a primary user are collected into **one** combined email to `NoPrimaryUserEmailRecipient`. Otherwise these devices are skipped. This setting never changes how user notifications are routed.
+
+Incomplete configurations stop the runbook with an error instead of silently mailing end users:
+
+- `SendNoPrimaryUserDevicesToOverride` enabled without `NoPrimaryUserEmailRecipient` (and without a global override) - error.
+- `OverrideUserNamePattern` set without `UserNamePatternEmailRecipient` (and without a global override) - error.
+- A recipient set without its feature (`NoPrimaryUserEmailRecipient` without the toggle, `UserNamePatternEmailRecipient` without a pattern) - warning, the recipient is ignored.
+
+While the global override is active, the dedicated recipients do not need to be set - everything goes to the override recipient anyway.
 
 ### User Name Pattern
 
-`OverrideUserNamePattern` accepts one or more wildcard patterns (comma-separated) matched against the primary user's UPN, e.g. `DEM-*` for Device Enrollment Manager accounts or `DEM-*,KIOSK-*` for multiple patterns. Matching is case-insensitive and uses PowerShell wildcard syntax (`*`, `?`). The pattern is only evaluated when `SendNoPrimaryUserDevicesToOverride` is enabled.
+`OverrideUserNamePattern` accepts one or more wildcard patterns (comma-separated) matched against the primary user's UPN, e.g. `DEM-*` for Device Enrollment Manager accounts or `DEM-*,KIOSK-*` for multiple patterns. Matching is case-insensitive and uses PowerShell wildcard syntax (`*`, `?`). When the pattern routing is active, the runbook logs a warning stating which pattern is redirected to which recipient.
 
 **Important Notes:**
 
-- Enabling `SendNoPrimaryUserDevicesToOverride` requires `OverrideEmailRecipient` to be set
+- All recipient parameters accept multiple comma-separated addresses
 - Devices without a primary user bypass the user scope filtering (they have no user to match against groups)
 - Pattern-matched users are still subject to user scope filtering first; users excluded by scope produce no notification at all
 - The combined email for devices without a primary user uses an administrative wording (no end-user action steps), independent of custom templates
-
+- Redirected notifications state the affected user in the email subject and body

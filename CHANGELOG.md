@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-19
+
+- Improve the email routing of **Notify Users About Stale Devices (Scheduled)** in Org/Devices
+  - `OverrideEmailRecipient` is now a true global override: when set, ALL emails (user notifications, pattern-routed notifications and the combined email for devices without a primary user) are redirected to this address, independent of all other settings, and a warning is logged on every run while the override is active. Previously, enabling `SendNoPrimaryUserDevicesToOverride` switched the notifications of regular users back to direct delivery, which could be unexpected when the override recipient was configured as a test or central mailbox.
+  - Add the dedicated recipient parameter `NoPrimaryUserEmailRecipient` for the combined email of stale devices without a primary user (`SendNoPrimaryUserDevicesToOverride`); while the global override is active, the combined email goes to the override recipient instead, so existing configurations keep working
+  - Add the dedicated recipient parameter `UserNamePatternEmailRecipient` for notifications of users matching `OverrideUserNamePattern` (e.g. `DEM-*` accounts); the pattern routing is now independent of `SendNoPrimaryUserDevicesToOverride`, and an active pattern is stated as a warning in the run output
+  - Incomplete routing configurations (a pattern or the combined email enabled without a matching recipient and without a global override) now stop the runbook with a clear error instead of silently changing the delivery, and the run summary always states which notifications were redirected and which were sent directly to end users
+
 ## 2026-08-18
 
 - Add **List Signin Events** Runbook in User/Security
