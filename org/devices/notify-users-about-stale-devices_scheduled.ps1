@@ -188,7 +188,7 @@
                 "Hide": true
             },
             "OverrideEmailRecipient": {
-                "DisplayName": "(Testing) Redirect ALL Emails to Override Recipient(s)"
+                "DisplayName": "Redirect * ALL * Emails to Override Recipient(s)"
             },
             "SendNoPrimaryUserDevicesToOverride": {
                 "DisplayName": "Send Devices without Primary User as Combined Email",
