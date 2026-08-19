@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-18
+
+- Add **List Signin Events** Runbook in User/Security
+  - Retrieves and analyzes a target user's Entra ID sign-in events from the Microsoft Graph beta endpoint over a configurable lookback period (`Days`, 1-30, default 7), with filters for the sign-in type (interactive, non-interactive or both), failed sign-ins only, and an optional application name filter (partial match)
+  - Shows a per-application summary with success/failure counts, failure rate and the most common error codes with their failure reasons, a failed sign-in detail table, and the most recent sign-in events (console tables capped at the 50 most recent entries for readability; exported report files always contain the full result set)
+  - Optional report delivery via the **Report delivery** selector: email report (`SendEmailReport`) and/or a time-limited download link (`CreateDownloadLink`, uses the `RJReport.*` tenant settings); report files (CSV and Excel workbook with cover sheet, failure highlighting and per-application summary) are only generated when a delivery method is selected and sign-in events were found
+  - A companion documentation page covers the required Entra ID P1/P2 license, the `Directory.Read.All` workaround for tenants where the reporting API requires it, storage RBAC prerequisites and guidance on interpreting sign-in interrupt error codes
+
 ## 2026-08-14
 
 - Update the required `RealmJoin.RunbookHelper` module version to 0.8.9 and adopt the new module functions in all 28 report runbooks plus 4 runbooks using the Graph batch API
