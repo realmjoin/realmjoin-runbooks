@@ -84,8 +84,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.8" }
-#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
-#Requires -Modules @{ ModuleName = "Az.Resources"; ModuleVersion = "9.0.1" }
+#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Number of days without Sync/Login being considered inactive." } )]

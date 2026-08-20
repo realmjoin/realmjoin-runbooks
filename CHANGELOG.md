@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-20
+
+- Update all `Az.*` module requirements to the current releases: `Az.Accounts` 5.5.2 (27 runbooks, previously mixed pins 5.1.1-5.5.0), `Az.Storage` 9.7.2, `Az.DesktopVirtualization` 6.0.0, `Az.Compute` 11.8.0 and `Az.ManagementPartner` 0.8.0
+  - The release notes between the previous and new versions were reviewed: none of the documented breaking changes affects a cmdlet used in these runbooks, and all versions are compatible with the PowerShell 7.4 runtime environment. `Az.Storage` 9.7.2 additionally includes a security fix for `Get-AzStorageBlobContent`.
+- Streamline the module requirements of **List Inactive Devices**, **List Vulnerable App Regs** (both Org/Security) and **Export CloudPC Usage (Scheduled)** (Org/General): the storage export is fully covered by `Az.Storage`, so `Az.Resources` is no longer listed as a requirement - this keeps the runtime environment leaner and reduces module maintenance
+
 ## 2026-08-19
 
 - Improve the remove action of **Add Or Remove SafeLinks Exclusion** in Org/General
