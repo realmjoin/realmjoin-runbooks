@@ -1,15 +1,23 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Office 365 Exchange Online",
             "Id": "00000002-0000-0ff1-ce00-000000000000",
             "AppRoleAssignments": [
-                "Exchange.ManageAsApp"
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Reason": "Runs Set-Mailbox -HiddenFromAddressListsEnabled in the app-only Exchange Online session"
+                }
             ]
         }
     ],
     "Roles": [
-        "Exchange administrator"
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Reason": "Required for the app-only Exchange Online session hiding or showing the mailbox"
+        }
     ],
     "ManualPermissions": []
 }

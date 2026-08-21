@@ -1,13 +1,32 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Directory.Read.All",
-                "RoleManagement.Read.All",
-                "RoleAssignmentSchedule.Read.Directory"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads role holders' user details when resolving principals"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Resolves role-holder principal ids to users, groups or service principals via /directoryObjects"
+                },
+                {
+                    "Value": "RoleManagement.Read.All",
+                    "Reason": "Lists role definitions, role assignments and PIM eligibility schedules"
+                },
+                {
+                    "Value": "RoleAssignmentSchedule.Read.Directory",
+                    "Reason": "Reads roleAssignmentScheduleInstances to report PIM assignment end dates"
+                },
+                {
+                    "Value": "UserAuthenticationMethod.Read.All",
+                    "Optional": true,
+                    "Feature": "MFA state",
+                    "Reason": "Reads each admin's authentication methods when QueryMfaState is enabled (default on)"
+                }
             ]
         }
     ],

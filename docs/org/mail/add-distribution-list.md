@@ -16,7 +16,7 @@ Org \ Mail \ Add Distribution List
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

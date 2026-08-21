@@ -9,8 +9,12 @@ Hides or unhides special mailboxes in the Global Address List, currently intende
 Org \ Mail \ Hide Mailboxes_Scheduled
 
 ## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

@@ -13,6 +13,7 @@ Org \ General \ Sync All Devices
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.ReadWrite.All
+  - DeviceManagementManagedDevices.PrivilegedOperations.All
 
 
 ## Parameters

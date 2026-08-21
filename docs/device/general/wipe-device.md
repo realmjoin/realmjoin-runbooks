@@ -74,7 +74,7 @@ The json configuration for this is as follows:
   - Machine.Read.All
 
 ### RBAC roles
-- Cloud device administrator
+- Cloud Device Administrator
 
 
 ## Parameters

@@ -1,15 +1,35 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Office 365 Exchange Online",
             "Id": "00000002-0000-0ff1-ce00-000000000000",
             "AppRoleAssignments": [
-                "Exchange.ManageAsApp"
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Reason": "Creates the equipment mailbox and configures delegation and calendar processing in the app-only Exchange Online session"
+                }
+            ]
+        },
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Optional": true,
+                    "Feature": "Disable user account",
+                    "Reason": "Disables the mailbox's user account via PATCH /users/{id} when DisableUser is enabled (default on)"
+                }
             ]
         }
     ],
     "Roles": [
-        "Exchange administrator"
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Reason": "Required for the app-only Exchange Online session creating the equipment mailbox"
+        }
     ],
     "ManualPermissions": []
 }

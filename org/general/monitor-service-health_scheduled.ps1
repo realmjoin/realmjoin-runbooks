@@ -31,6 +31,26 @@
     .PARAMETER EmailFrom
     The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization.
 
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
     .PARAMETER EmailTo
     Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required.
 
@@ -56,6 +76,21 @@
             "EmailFrom": {
                 "Hide": true
             },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
             "EmailTo": {
                 "DisplayName": "Alert Email Recipient Email Address(es)"
             },
@@ -66,7 +101,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
 
 param (
@@ -82,6 +117,21 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
     [string]$EmailFrom,
 
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string]$BrandingHeaderImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string]$BrandingFooterImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string]$BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
+
     [Parameter(Mandatory = $true)]
     [string]$EmailTo,
 
@@ -96,7 +146,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.0"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -105,6 +155,11 @@ Write-RjRbLog -Message "LookbackHours: $LookbackHours" -Verbose
 Write-RjRbLog -Message "IncludeAdvisories: $IncludeAdvisories" -Verbose
 Write-RjRbLog -Message "IncludeResolvedIssues: $IncludeResolvedIssues" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 
 #endregion RJ Log Part
@@ -115,7 +170,7 @@ Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 
 # A sender address is required before any mail can be sent
 if (-not $EmailFrom) {
-    Write-Error "The sender email address is required. Configure it in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -ErrorAction Continue
+    Write-Error "The sender email address is required. Configure it in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -ErrorAction Continue
     throw "Missing email sender configuration (RJReport.EmailSender)."
 }
 
@@ -584,6 +639,7 @@ Write-Output "Send Email Report"
 Write-Output "---------------------"
 
 
+$brandingMailParams = @{}
 if ($newIssues.Count -eq 0) {
     Write-Output "No new service health issues found - no alert emails to send."
 }
@@ -591,6 +647,9 @@ else {
     $emailToString = $emailRecipients -join ','
     $successCount = 0
     $failureCount = 0
+
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     foreach ($issue in $newIssues) {
         try {
@@ -634,7 +693,8 @@ $($issue.LatestUpdate)
                 -Subject $emailSubject `
                 -MarkdownContent $markdownContent `
                 -TenantDisplayName $tenantDisplayName `
-                -ReportVersion $Version
+                -ReportVersion $Version `
+                @brandingMailParams
 
             $successCount++
         }
@@ -664,6 +724,12 @@ Write-Output ""
 Write-Output "Cleaning up..."
 Write-Output "---------------------"
 
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
 
 Disconnect-MgGraph | Out-Null
 

@@ -1,10 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.Create"
+                {
+                    "Value": "Group.Create",
+                    "Reason": "Creates the security group via POST /groups after a duplicate-name check"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Checks for an existing group with the same display name before creating"
+                }
             ]
         }
     ],

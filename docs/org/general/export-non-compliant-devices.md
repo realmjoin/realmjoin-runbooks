@@ -13,6 +13,7 @@ Org \ General \ Export Non Compliant Devices
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.Read.All
+  - DeviceManagementManagedDevices.Read.All
 
 ### Permission notes
 Azure IaaS: Access to create/manage Azure Storage resources if producing links

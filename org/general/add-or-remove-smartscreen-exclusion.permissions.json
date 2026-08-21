@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "WindowsDefenderATP",
             "Id": "fc780465-2017-40d4-a0c5-307022471b92",
             "AppRoleAssignments": [
-                "Ti.ReadWrite.All"
+                {
+                    "Value": "Ti.ReadWrite.All",
+                    "Reason": "Lists, creates and deletes domain threat indicators in Defender for Endpoint"
+                }
             ]
         }
     ],

@@ -55,8 +55,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.6.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -473,10 +473,10 @@ else {
     Write-Output "Set $PhoneNumber to $UPN"
     try {
         if ($CallingPlanCheck) {
-            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType CallingPlan -ErrorAction Stop
+            Set-CsPhoneNumberAssignment -Identity $UPN -TelephoneNumber $PhoneNumber -NumberType CallingPlan -ErrorAction Stop
         }
         else {
-            Set-CsPhoneNumberAssignment -Identity $UPN -PhoneNumber $PhoneNumber -PhoneNumberType DirectRouting -ErrorAction Stop
+            Set-CsPhoneNumberAssignment -Identity $UPN -TelephoneNumber $PhoneNumber -NumberType DirectRouting -ErrorAction Stop
         }
     }
     catch {

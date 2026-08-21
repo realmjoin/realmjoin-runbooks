@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All",
-                "Group.Read.All",
-                "WindowsUpdates.ReadWrite.All"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Reads the device members' properties (deviceId, displayName) to identify devices to check"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Enumerates the group members via /groups/{id}/members to find device members"
+                },
+                {
+                    "Value": "WindowsUpdates.ReadWrite.All",
+                    "Reason": "Queries the Windows Update for Business enrollment state per device via updatableAssets"
+                }
             ]
         }
     ],

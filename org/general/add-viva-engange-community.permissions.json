@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.ReadWrite.All",
-                "GroupMember.ReadWrite.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves each owner UPN to a user object when CommunityOwners is provided"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Finds the new community's M365 group, reads its owners and adds new owners"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Adds each new owner as group member via /groups/{id}/members/$ref"
+                }
             ]
         }
     ],

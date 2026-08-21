@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "GroupMember.ReadWrite.All",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user's object id by UPN"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Checks membership and adds or removes the user in the license group"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Reads the group object to validate the LIC_ naming prefix"
+                }
             ]
         }
     ],

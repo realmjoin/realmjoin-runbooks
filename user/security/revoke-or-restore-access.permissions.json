@@ -1,15 +1,23 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.ReadWrite.All"
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Sets accountEnabled and revokes sign-in sessions on the user"
+                }
             ]
         }
     ],
     "Roles": [
-        "User Administrator"
+        {
+            "Name": "User Administrator",
+            "TemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
+            "Reason": "Required so blocking sign-in and revoking sessions also succeed for role-assigned users"
+        }
     ],
     "ManualPermissions": []
 }

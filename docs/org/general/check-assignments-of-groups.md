@@ -12,12 +12,9 @@ Org \ General \ Check Assignments Of Groups
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - User.Read.All
   - Group.Read.All
   - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
   - DeviceManagementApps.Read.All
-  - Device.Read.All
 
 
 ## Parameters

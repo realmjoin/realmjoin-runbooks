@@ -1,11 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.Create",
-                "Team.Create"
+                {
+                    "Value": "Group.Create",
+                    "Reason": "Creates the new Microsoft 365 group with visibility, mail settings and owner/member bindings"
+                },
+                {
+                    "Value": "Team.Create",
+                    "Reason": "Promotes the group to a Teams team when CreateTeam is enabled"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Checks for an existing group with the same mail nickname before creating"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Optional": true,
+                    "Feature": "Owner assignment",
+                    "Reason": "Resolves the owner users via /users/{upn} when owners are provided"
+                }
             ]
         }
     ],

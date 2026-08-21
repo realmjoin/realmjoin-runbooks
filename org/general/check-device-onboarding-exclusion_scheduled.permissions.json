@@ -1,12 +1,26 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.ReadWrite.All",
-                "Device.Read.All",
-                "DeviceManagementManagedDevices.Read.All"
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Finds or creates the exclusion group and adds/removes device members"
+                },
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Resolves Autopilot and Intune azureADDeviceIds to Entra device objects via /devices"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Lists recently enrolled Windows devices via /deviceManagement/managedDevices"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Lists windowsAutopilotDeviceIdentities to match Autopilot devices for the exclusion group"
+                }
             ]
         }
     ],

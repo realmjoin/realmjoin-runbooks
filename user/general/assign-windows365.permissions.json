@@ -1,13 +1,36 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "GroupMember.ReadWrite.All",
-                "Group.ReadWrite.All",
-                "Mail.Send"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user by UPN and checks mailbox existence before mailing"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Adds the user to the provisioning, user-settings and license groups"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Looks up config and license groups and reads their assigned licenses"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the out-of-licenses ticket and the user notification when the mail options are enabled"
+                },
+                {
+                    "Value": "CloudPC.Read.All",
+                    "Reason": "Reads the provisioning policies, shared-use service plans and the user's Cloud PCs"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /subscribedSkus to verify a free Windows 365 license in the dedicated plan path"
+                }
             ]
         }
     ],

@@ -12,9 +12,11 @@ User \ Mail \ Set Room Mailbox Configuration
 ### Application permissions
 - **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
+- **Type**: Microsoft Graph
+  - Group.Read.All *(optional: Book-in policy group)*
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

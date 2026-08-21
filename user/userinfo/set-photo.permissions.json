@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.ReadWrite.All"
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Reads the user and uploads the photo via PUT /users/{id}/photo/$value"
+                }
             ]
         }
     ],

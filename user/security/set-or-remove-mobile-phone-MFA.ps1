@@ -23,6 +23,26 @@
     .PARAMETER EmailFrom
     Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender.
 
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
     .PARAMETER ServiceDeskDisplayName
     Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName.
 
@@ -71,6 +91,21 @@
             "EmailFrom": {
                 "Hide": true
             },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
             "ServiceDeskDisplayName": {
                 "Hide": true
             },
@@ -96,7 +131,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param(
@@ -111,6 +146,21 @@ param(
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
     [string]$EmailFrom,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string]$BrandingHeaderImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string]$BrandingFooterImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string]$BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_DisplayName" } )]
     [string]$ServiceDeskDisplayName,
@@ -144,7 +194,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "2.1.3"
+$Version = "2.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserId: $UserId" -Verbose
@@ -152,6 +202,11 @@ Write-RjRbLog -Message "phoneNumber: $phoneNumber" -Verbose
 Write-RjRbLog -Message "Remove: $Remove" -Verbose
 Write-RjRbLog -Message "NotifyUser: $NotifyUser" -Verbose
 Write-RjRbLog -Message "LanguageOverride: $LanguageOverride" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 
 #endregion RJ Log Part
 
@@ -241,72 +296,58 @@ if ($phoneNumber -notmatch "^\+\d{8,15}$") {
             return
         }
 
-        $batchSize = 20
-        $processedCount = 0
+        # Process in slices of 500 requests (25 batch calls each) so the search can still
+        # terminate early once the unique SMS Sign-In number is found. Transport, chunking
+        # (20 requests per call) and inner-429 throttling retries are handled by the
+        # module function Invoke-RjRbGraphBatch.
+        $sliceSize = 500
+        $searchedCount = 0
+        for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $sliceSize) {
+            $slice = @($phoneRegisteredUsers[$i..([Math]::Min($i + $sliceSize - 1, $phoneRegisteredUsers.Count - 1))])
 
-        # Determine progress interval based on total user count
-        $totalUsers = $phoneRegisteredUsers.Count
-        if ($totalUsers -le 500) {
-            $progressInterval = 100
-        }
-        elseif ($totalUsers -le 1000) {
-            $progressInterval = 250
-        }
-        elseif ($totalUsers -le 2500) {
-            $progressInterval = 500
-        }
-        else {
-            $progressInterval = 1000
-        }
-
-        for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $batchSize) {
-            $batch = $phoneRegisteredUsers[$i..([Math]::Min($i + $batchSize - 1, $phoneRegisteredUsers.Count - 1))]
-
-            $batchRequests = @()
-            $batchIndex = 1
-            foreach ($user in $batch) {
-                $batchRequests += @{
-                    id     = "$batchIndex"
+            # The user id doubles as the request id for correlation
+            $userById = @{}
+            $batchRequests = foreach ($user in $slice) {
+                $userById["$($user.id)"] = $user
+                @{
+                    id     = "$($user.id)"
                     method = "GET"
                     url    = "/users/$($user.id)/authentication/phoneMethods"
                 }
-                $batchIndex++
             }
 
             try {
-                $batchBody = @{ requests = $batchRequests }
-                $batchResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/`$batch" -Method POST -Body ($batchBody | ConvertTo-Json -Depth 10) -ContentType "application/json"
+                $responses = Invoke-RjRbGraphBatch -Requests @($batchRequests) -ProgressLabel "users" -ProgressInterval 0
+            }
+            catch {
+                Write-Verbose "Batch request failed: $($_.Exception.Message)"
+                continue
+            }
 
-                foreach ($response in $batchResponse.responses) {
-                    $responseIndex = [int]$response.id - 1
-                    $user = $batch[$responseIndex]
+            foreach ($response in $responses) {
+                $user = $userById["$($response.id)"]
+                if (-not $user) { continue }
 
-                    if ($response.status -eq 200 -and $response.body.value) {
-                        foreach ($method in $response.body.value) {
-                            $cleanNumber = $method.phoneNumber -replace '\s', ''
-                            if ($cleanNumber -eq $PhoneNumber) {
-                                Write-Output ""
-                                Write-Output "Phone number '$($PhoneNumber)' is assigned to:"
-                                Write-Output "  Display Name:       $($user.userDisplayName)"
-                                Write-Output "  UPN:                $($user.userPrincipalName)"
-                                Write-Output "  Phone Type:         $($method.phoneType)"
-                                Write-Output "  SMS Sign-In State:  $($method.smsSignInState)"
-                                Write-Output "  Entra Portal Link:  https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($user.id)"
-                                $script:phoneNumberOwnerFound = $true
-                                return
-                            }
+                if ($response.status -eq 200 -and $response.body.value) {
+                    foreach ($method in $response.body.value) {
+                        $cleanNumber = $method.phoneNumber -replace '\s', ''
+                        if ($cleanNumber -eq $PhoneNumber) {
+                            Write-Output ""
+                            Write-Output "Phone number '$($PhoneNumber)' is assigned to:"
+                            Write-Output "  Display Name:       $($user.userDisplayName)"
+                            Write-Output "  UPN:                $($user.userPrincipalName)"
+                            Write-Output "  Phone Type:         $($method.phoneType)"
+                            Write-Output "  SMS Sign-In State:  $($method.smsSignInState)"
+                            Write-Output "  Entra Portal Link:  https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($user.id)"
+                            $script:phoneNumberOwnerFound = $true
+                            return
                         }
                     }
                 }
             }
-            catch {
-                Write-Verbose "Batch request failed: $($_.Exception.Message)"
-            }
 
-            $processedCount += $batch.Count
-            if ($processedCount % $progressInterval -eq 0) {
-                Write-Output "Searched $processedCount of $($phoneRegisteredUsers.Count) users..."
-            }
+            $searchedCount += $slice.Count
+            Write-Output "Searched $searchedCount of $($phoneRegisteredUsers.Count) users..."
         }
 
         Write-Output "Could not identify the user holding this phone number for SMS Sign-In."
@@ -572,6 +613,7 @@ Write-Output ""
 Write-Output "Notify User"
 Write-Output "---------------------"
 
+$brandingMailParams = @{}
 if (-not $NotifyUser) {
     Write-Output "NotifyUser is disabled - no notification email sent."
 }
@@ -715,8 +757,11 @@ IT Administration
         }
     }
 
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
     try {
-        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $CurrentMail -Subject $subject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $CurrentMail -Subject $subject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
         Write-Output "Notification email sent to $CurrentMail."
     }
     catch {

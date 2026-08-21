@@ -15,7 +15,7 @@ Device \ Security \ Enable Or Disable Device
   - Device.Read.All
 
 ### RBAC roles
-- Cloud device administrator
+- Cloud Device Administrator
 
 
 ## Parameters

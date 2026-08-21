@@ -1,12 +1,20 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Organization.Read.All",
-                "User.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization and /subscribedSkus to evaluate license counts against the thresholds"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the threshold report email via Send-RjReportEmail when EmailTo is configured"
+                }
             ]
         }
     ],

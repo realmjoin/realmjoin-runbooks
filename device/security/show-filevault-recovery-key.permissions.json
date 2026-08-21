@@ -1,14 +1,21 @@
 {
-	"Permissions": [
-		{
-			"Name": "Microsoft Graph",
-			"Id": "00000003-0000-0000-c000-000000000000",
-			"AppRoleAssignments": [
-				"DeviceManagementManagedDevices.PrivilegedOperations.All",
-				"DeviceManagementManagedDevices.Read.All"
-			]
-		}
-	],
-	"Roles": [],
-	"ManualPermissions": []
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Retrieves the escrowed FileVault key via getFileVaultKey, a privileged Intune operation"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Resolves the Intune device by azureADDeviceId and verifies it runs macOS"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
 }

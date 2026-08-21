@@ -1,13 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "Directory.Read.All",
-                "Mail.Send",
-                "Organization.Read.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads Intune managed devices to get each Windows device's primary user for comparison"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads group members to resolve the optional include/exclude device group scope filters"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Delivers the mismatch report via Send-RjReportEmail to the configured EmailTo recipient"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant name shown in the report"
+                }
             ]
         }
     ],

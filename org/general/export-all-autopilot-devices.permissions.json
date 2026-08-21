@@ -1,12 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "Directory.Read.All",
-                "Device.Read.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Enriches each Autopilot device with Intune data via /deviceManagement/managedDevices"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Lists windowsAutopilotDeviceIdentities as the base data of the export"
+                }
             ]
         }
     ],

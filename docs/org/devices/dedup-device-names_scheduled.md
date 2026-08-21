@@ -28,6 +28,7 @@ Common Use Cases:
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.ReadWrite.All
   - DeviceManagementServiceConfig.ReadWrite.All
+  - DeviceManagementManagedDevices.PrivilegedOperations.All
 
 
 ## Parameters

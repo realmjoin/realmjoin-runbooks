@@ -1,14 +1,42 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.ReadWrite.All",
-                "GroupMember.ReadWrite.All",
-                "Channel.ReadBasic.All",
-                "ChannelMember.ReadWrite.All",
-                "Mail.Send"
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Lists teams, reads group owners and adds missing team owners via /groups/{id}/owners/$ref"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Reads owner-group transitive members and adds users as team members first"
+                },
+                {
+                    "Value": "Channel.ReadBasic.All",
+                    "Reason": "Lists /teams/{id}/channels to find the shared channels to process"
+                },
+                {
+                    "Value": "ChannelMember.ReadWrite.All",
+                    "Reason": "Reads channel members and adds users or promotes them to shared channel owner"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the sync report email via Send-RjReportEmail when EmailTo is configured"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads member user properties (UPN, userType) via transitiveMembers to filter guests"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the report email"
+                }
             ]
         }
     ],

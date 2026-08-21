@@ -24,7 +24,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param (
@@ -44,7 +44,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.3"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "PhoneNumber: $PhoneNumber" -Verbose
@@ -163,99 +163,73 @@ Write-Output "Step 2: Checking phone numbers and SMS Sign-In state for $($phoneR
 
 $smsSignInMatch = $null
 $mfaOnlyMatches = @()
-$batchSize = 20
-$processedCount = 0
 
-# Determine progress interval based on total user count
-$totalUsers = $phoneRegisteredUsers.Count
-if ($totalUsers -le 500) {
-    $progressInterval = 100
-}
-elseif ($totalUsers -le 1000) {
-    $progressInterval = 250
-}
-elseif ($totalUsers -le 2500) {
-    $progressInterval = 500
-}
-else {
-    $progressInterval = 1000
-}
-
-for ($i = 0; $i -lt $phoneRegisteredUsers.Count; $i += $batchSize) {
-    $batch = $phoneRegisteredUsers[$i..([Math]::Min($i + $batchSize - 1, $phoneRegisteredUsers.Count - 1))]
-
-    # Build batch requests
-    $batchRequests = @()
-    $batchIndex = 1
-    foreach ($user in $batch) {
-        $batchRequests += @{
-            id     = "$batchIndex"
-            method = "GET"
-            url    = "/users/$($user.id)/authentication/phoneMethods"
-        }
-        $batchIndex++
+# Build one request per user; the user id doubles as the request id for correlation.
+# Transport, chunking (20 requests per call) and inner-429 throttling retries are
+# handled by the module function Invoke-RjRbGraphBatch.
+$userById = @{}
+$batchRequests = foreach ($user in $phoneRegisteredUsers) {
+    $userById["$($user.id)"] = $user
+    @{
+        id     = "$($user.id)"
+        method = "GET"
+        url    = "/users/$($user.id)/authentication/phoneMethods"
     }
+}
 
-    # Execute batch request
-    try {
-        $batchBody = @{ requests = $batchRequests }
-        $batchResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/`$batch" -Method POST -Body ($batchBody | ConvertTo-Json -Depth 10) -ContentType "application/json"
-        $responses = $batchResponse.responses
+try {
+    $responses = Invoke-RjRbGraphBatch -Requests @($batchRequests) -ProgressLabel "users"
 
-        # Process batch responses
-        foreach ($response in $responses) {
-            $responseIndex = [int]$response.id - 1
-            $user = $batch[$responseIndex]
+    # Process batch responses
+    foreach ($response in $responses) {
+        $user = $userById["$($response.id)"]
+        if (-not $user) { continue }
 
-            if ($response.status -eq 200 -and $response.body.value) {
-                foreach ($method in $response.body.value) {
-                    $CleanPhoneNumber = $method.phoneNumber -replace '\s', ''
-                    if ($CleanPhoneNumber -eq $PhoneNumber) {
-                        if ($method.smsSignInState -eq 'ready') {
-                            # SMS Sign-In match found - retrieve account status
-                            $accountEnabled = $null
-                            try {
-                                $userDetails = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)?`$select=accountEnabled" -Method Get
-                                $accountEnabled = $userDetails.accountEnabled
-                            }
-                            catch {
-                                Write-Verbose "Could not retrieve account status for user $($user.userPrincipalName): $($_.Exception.Message)"
-                            }
-
-                            $smsSignInMatch = [PSCustomObject]@{
-                                DisplayName       = $user.userDisplayName
-                                UserPrincipalName = $user.userPrincipalName
-                                AccountEnabled    = $accountEnabled
-                                PhoneType         = $method.phoneType
-                                SmsSignInState    = $method.smsSignInState
-                                PhoneNumber       = $CleanPhoneNumber
-                                UserId            = $user.id
-                            }
+        if ($response.status -eq 200 -and $response.body.value) {
+            foreach ($method in $response.body.value) {
+                $CleanPhoneNumber = $method.phoneNumber -replace '\s', ''
+                if ($CleanPhoneNumber -eq $PhoneNumber) {
+                    if ($method.smsSignInState -eq 'ready') {
+                        # SMS Sign-In match found - retrieve account status
+                        $accountEnabled = $null
+                        try {
+                            $userDetails = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)?`$select=accountEnabled" -Method Get
+                            $accountEnabled = $userDetails.accountEnabled
                         }
-                        else {
-                            # Phone number matches but SMS Sign-In is not enabled - MFA only
-                            $mfaOnlyMatches += [PSCustomObject]@{
-                                DisplayName       = $user.userDisplayName
-                                UserPrincipalName = $user.userPrincipalName
-                                PhoneType         = $method.phoneType
-                                SmsSignInState    = $method.smsSignInState
-                                PhoneNumber       = $CleanPhoneNumber
-                                UserId            = $user.id
-                            }
+                        catch {
+                            Write-Verbose "Could not retrieve account status for user $($user.userPrincipalName): $($_.Exception.Message)"
+                        }
+
+                        $smsSignInMatch = [PSCustomObject]@{
+                            DisplayName       = $user.userDisplayName
+                            UserPrincipalName = $user.userPrincipalName
+                            AccountEnabled    = $accountEnabled
+                            PhoneType         = $method.phoneType
+                            SmsSignInState    = $method.smsSignInState
+                            PhoneNumber       = $CleanPhoneNumber
+                            UserId            = $user.id
+                        }
+                    }
+                    else {
+                        # Phone number matches but SMS Sign-In is not enabled - MFA only
+                        $mfaOnlyMatches += [PSCustomObject]@{
+                            DisplayName       = $user.userDisplayName
+                            UserPrincipalName = $user.userPrincipalName
+                            PhoneType         = $method.phoneType
+                            SmsSignInState    = $method.smsSignInState
+                            PhoneNumber       = $CleanPhoneNumber
+                            UserId            = $user.id
                         }
                     }
                 }
             }
         }
     }
-    catch {
-        Write-Warning "Batch request failed for users $($i + 1) to $([Math]::Min($i + $batchSize, $phoneRegisteredUsers.Count)): $($_.Exception.Message)"
-    }
 
-    $processedCount += $batch.Count
-    if ($processedCount % $progressInterval -eq 0) {
-        Write-Output "Processed $processedCount of $($phoneRegisteredUsers.Count) users..."
-    }
+    Write-Output "Processed $($phoneRegisteredUsers.Count) of $($phoneRegisteredUsers.Count) users."
+}
+catch {
+    Write-Warning "Batch query for phone methods failed: $($_.Exception.Message)"
 }
 
 #endregion Query phone methods via batch API

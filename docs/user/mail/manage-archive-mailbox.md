@@ -14,7 +14,7 @@ User \ Mail \ Manage Archive Mailbox
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

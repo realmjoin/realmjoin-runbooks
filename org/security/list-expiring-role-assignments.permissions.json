@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Organization.Read.All",
-                "RoleManagement.Read.All"
+                {
+                    "Value": "RoleManagement.Read.All",
+                    "Reason": "Reads role assignment schedules, eligibility schedules and role definitions"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves each assignment's principal to a UPN via /users/{principalId}"
+                }
             ]
         }
     ],

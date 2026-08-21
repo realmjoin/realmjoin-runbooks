@@ -1,17 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Reads the Entra device object to report display name, enabled state, trust type, OS and last sign-in"
+                }
             ]
         },
         {
             "Name": "WindowsDefenderATP",
             "Id": "fc780465-2017-40d4-a0c5-307022471b92",
             "AppRoleAssignments": [
-                "Machine.Read.All"
+                {
+                    "Value": "Machine.Read.All",
+                    "Reason": "Queries the Defender for Endpoint /machines API to read onboarding status, health state, last seen and risk score"
+                }
             ]
         }
     ],

@@ -134,12 +134,42 @@ function Convert-PermissionJsonToMarkdown {
     foreach ($permission in $jsonObject.Permissions) {
         $permissionsMarkdown += "- **Type**: $($permission.Name)<br>"
         foreach ($assignment in $permission.AppRoleAssignments) {
-            $permissionsMarkdown += "&emsp;- $assignment<br>"
+            # Schema v1 entries are plain strings, schema v2 entries may be objects
+            # with 'Value' plus metadata like 'Optional' and 'Feature'.
+            if ($assignment -is [string]) {
+                $permissionsMarkdown += "&emsp;- $assignment<br>"
+                continue
+            }
+
+            $entry = [string]$assignment.Value
+            if ($assignment.PSObject.Properties['Optional'] -and $assignment.Optional) {
+                if ($assignment.PSObject.Properties['Feature'] -and $assignment.Feature) {
+                    $entry += " *(optional: $($assignment.Feature))*"
+                }
+                else {
+                    $entry += " *(optional)*"
+                }
+            }
+            $permissionsMarkdown += "&emsp;- $entry<br>"
         }
     }
 
     foreach ($role in $jsonObject.Roles) {
-        $rbacRolesMarkdown += "- $role<br>"
+        if ($role -is [string]) {
+            $rbacRolesMarkdown += "- $role<br>"
+            continue
+        }
+
+        $entry = [string]$role.Name
+        if ($role.PSObject.Properties['Optional'] -and $role.Optional) {
+            if ($role.PSObject.Properties['Feature'] -and $role.Feature) {
+                $entry += " *(optional: $($role.Feature))*"
+            }
+            else {
+                $entry += " *(optional)*"
+            }
+        }
+        $rbacRolesMarkdown += "- $entry<br>"
     }
 
     foreach ($manualPermission in $jsonObject.ManualPermissions) {

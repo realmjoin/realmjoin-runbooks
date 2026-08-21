@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "InformationProtectionPolicy.Read.All"
+                {
+                    "Value": "InformationProtectionPolicy.Read.All",
+                    "Reason": "Reads all tenant sensitivity labels to list their ids for other runbooks"
+                }
             ]
         }
     ],

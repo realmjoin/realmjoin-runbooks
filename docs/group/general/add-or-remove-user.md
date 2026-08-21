@@ -16,6 +16,11 @@ Group \ General \ Add Or Remove User
   - User.Read.All
   - Group.ReadWrite.All
   - GroupMember.ReadWrite.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp *(optional: Mail-enabled groups)*
+
+### RBAC roles
+- Exchange Administrator *(optional: Mail-enabled groups)*
 
 
 ## Parameters

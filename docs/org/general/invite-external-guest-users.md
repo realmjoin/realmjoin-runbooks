@@ -24,6 +24,7 @@ Parameter Interactions:
 - **Type**: Microsoft Graph
   - User.ReadWrite.All
   - Group.ReadWrite.All
+  - Organization.Read.All
 
 
 ## Parameters

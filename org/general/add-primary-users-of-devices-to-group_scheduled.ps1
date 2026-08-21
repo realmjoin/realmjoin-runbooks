@@ -99,7 +99,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 # Suppress false positive from PSScriptAnalyzer - $idx is assigned in ForEach-Object -Begin and used in -Process block
@@ -137,7 +137,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.3"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "TargetGroupId: $TargetGroupId" -Verbose
@@ -195,26 +195,6 @@ function Get-GraphPagedResult {
     } while ($nextLink)
 
     return $allResults
-}
-
-function Invoke-GraphBatch {
-    param(
-        [Parameter(Mandatory = $true)]
-        [object[]]$Requests
-    )
-
-    # Graph batch API: max 20 requests per call
-    $batchSize = 20
-    $responses = [System.Collections.Generic.List[object]]::new()
-
-    for ($i = 0; $i -lt $Requests.Count; $i += $batchSize) {
-        $chunk = $Requests[$i..([Math]::Min($i + $batchSize - 1, $Requests.Count - 1))]
-        $batchBody = @{ requests = @($chunk) }
-        $batchResult = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/`$batch" -Method POST -Body $batchBody
-        $responses.AddRange([object[]]@($batchResult.responses))
-    }
-
-    return $responses
 }
 
 #endregion
@@ -387,7 +367,7 @@ if ($toAdd.Count -gt 0) {
             $idx++
         })
 
-    $addResponses = Invoke-GraphBatch -Requests $addRequests
+    $addResponses = Invoke-RjRbGraphBatch -Requests $addRequests
     $addedCount = ($addResponses | Where-Object { $_.status -in 200, 201, 204 }).Count
     $alreadyExisted = ($addResponses | Where-Object { $_.status -eq 400 -and $_.body.error.message -like "*already exist*" }).Count
     $addFailedCount = $addResponses.Count - $addedCount - $alreadyExisted
@@ -424,7 +404,7 @@ if ($toRemove.Count -gt 0) {
             $idx++
         })
 
-    $removeResponses = Invoke-GraphBatch -Requests $removeRequests
+    $removeResponses = Invoke-RjRbGraphBatch -Requests $removeRequests
     $removedCount = ($removeResponses | Where-Object { $_.status -in 200, 204 }).Count
     $alreadyGone = ($removeResponses | Where-Object { $_.status -eq 404 }).Count
     $removeFailedCount = $removeResponses.Count - $removedCount - $alreadyGone

@@ -15,6 +15,7 @@ Group \ Devices \ Unenroll Updatable Assets_Scheduled
 - **Type**: Microsoft Graph
   - Group.Read.All
   - WindowsUpdates.ReadWrite.All
+  - User.Read.All *(optional: User-owned devices)*
 
 
 ## Parameters

@@ -1,14 +1,32 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.ReadWrite.All",
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementServiceConfig.ReadWrite.All",
-                "Mail.Send",
-                "Organization.Read.All"
+                {
+                    "Value": "Device.ReadWrite.All",
+                    "Reason": "Looks up Entra devices by deviceId and deletes them in 'Delete Autopilot and Entra device' mode"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads Intune managed Windows devices to find Autopilot serials no longer present in Intune"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Lists windowsAutopilotDeviceIdentities and deletes stale Autopilot identities"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the cleanup report email via Send-RjReportEmail when EmailTo is configured"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to show the tenant display name in the report output and email"
+                }
             ]
         }
     ],

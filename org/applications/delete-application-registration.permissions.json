@@ -1,16 +1,27 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Application.ReadWrite.OwnedBy",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "Application.ReadWrite.OwnedBy",
+                    "Reason": "Looks up the app and service principal by appId and deletes the registration"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Deletes the groups that were assigned to the app during provisioning"
+                }
             ]
         }
     ],
     "Roles": [
-        "Application Developer"
+        {
+            "Name": "Application Developer",
+            "TemplateId": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+            "Reason": "Allows deleting app registrations the runbook's identity does not own"
+        }
     ],
     "ManualPermissions": []
 }

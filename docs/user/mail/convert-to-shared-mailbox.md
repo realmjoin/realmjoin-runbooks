@@ -12,9 +12,13 @@ User \ Mail \ Convert To Shared Mailbox
 ### Application permissions
 - **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All
+  - Group.Read.All *(optional: Group and license handling)*
+  - GroupMember.ReadWrite.All *(optional: Group and license handling)*
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

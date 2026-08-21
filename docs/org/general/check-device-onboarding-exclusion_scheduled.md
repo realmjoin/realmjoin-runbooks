@@ -15,6 +15,7 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
   - Group.ReadWrite.All
   - Device.Read.All
   - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementServiceConfig.Read.All
 
 
 ## Parameters

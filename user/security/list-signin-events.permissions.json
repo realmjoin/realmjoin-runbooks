@@ -1,0 +1,33 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Reads the target user's Entra ID sign-in events from auditLogs/signIns (beta) to build the report"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user to get id, userPrincipalName and displayName"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the sign-in report email with CSV/XLSX attachments via Send-RjReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads /organization to put the tenant name into the report email footer"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

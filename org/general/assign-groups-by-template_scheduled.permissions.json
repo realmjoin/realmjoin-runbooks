@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads member users of source, exclusion and target groups to compute who to add"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Resolves groups and adds users to target groups via members@odata.bind batches"
+                }
             ]
         }
     ],

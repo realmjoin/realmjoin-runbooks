@@ -12,7 +12,6 @@ Org \ General \ Bulk Retire Devices From Intune
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.ReadWrite.All
-  - Device.Read.All
 
 
 ## Parameters

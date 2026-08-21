@@ -11,7 +11,7 @@ Org \ Security \ List Vulnerable App Regs
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - DeviceManagementManagedDevices.Read.All
+  - Application.Read.All
 
 
 ## Parameters
