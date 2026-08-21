@@ -31,7 +31,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.8" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Az.DesktopVirtualization"; ModuleVersion = "6.0.0" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 #Requires -Modules @{ModuleName = "Az.Compute"; ModuleVersion = "11.8.0" }

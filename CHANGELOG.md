@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-21
+
+- Update the required `RealmJoin.RunbookHelper` module version to 0.8.9 in all 136 runbooks that were still pinned to 0.8.8, so all 168 runbooks now use a consistent, current module version
+
 ## 2026-08-20
 
 - Update all `Az.*` module requirements to the current releases: `Az.Accounts` 5.5.2 (27 runbooks, previously mixed pins 5.1.1-5.5.0), `Az.Storage` 9.7.2, `Az.DesktopVirtualization` 6.0.0, `Az.Compute` 11.8.0 and `Az.ManagementPartner` 0.8.0
