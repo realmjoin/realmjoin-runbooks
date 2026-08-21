@@ -12,9 +12,11 @@ User \ Userinfo \ Update User
 ### Application permissions
 - **Type**: Microsoft Graph
   - UserAuthenticationMethod.Read.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
 
 ### RBAC roles
-- User administrator
+- User Administrator
 - Exchange Administrator
 
 

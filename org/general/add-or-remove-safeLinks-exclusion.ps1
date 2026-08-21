@@ -67,8 +67,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.7.2" }
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
+#Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Action to execute" } )]
@@ -89,7 +89,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 function createGroupFromPolicyName {
@@ -280,7 +280,7 @@ try {
 
     ""
     $DoNotRewriteUrls = @()
-    if ($Remove) {
+    if ($Action -eq 1) {
         "## Trying to remove $LinkPattern ..."
         foreach ($entry in $policy.DoNotRewriteUrls) {
             if ($entry -ne $LinkPattern) {

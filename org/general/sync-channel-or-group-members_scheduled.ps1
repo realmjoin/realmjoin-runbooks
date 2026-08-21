@@ -10,7 +10,9 @@
     performed, while removing members that only exist in the target is optional and controlled by a
     parameter. Guest handling and whether channel removals also remove the host team membership are
     configurable, and the runbook can optionally send an email report and upload the results as a
-    time-limited download link.
+    time-limited download link. The ReportFileFormat parameter controls which report file formats are
+    generated and delivered (CSV only, CSV & XLSX, or XLSX only). When the CSV attachment exceeds the
+    email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
     .PARAMETER Direction
     Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target
@@ -47,7 +49,8 @@
     When enabled, the runbook only logs the changes it would make without writing anything.
 
     .PARAMETER SendEmailReport
-    When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run.
+    When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. Toggling
+    this on reveals the recipient address and report file format fields.
 
     .PARAMETER EmailTo
     Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled.
@@ -55,8 +58,31 @@
     .PARAMETER EmailFrom
     Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender.
 
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+    .PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
     .PARAMETER CreateDownloadLink
-    When enabled, the CSV report is uploaded to a storage account and a time-limited download link is
+    When enabled, the report file(s) are uploaded to a storage account and time-limited download links are
     returned (and included in the email report if that is also enabled).
 
     .PARAMETER ContainerName
@@ -182,7 +208,8 @@
                             "ParameterValue": true,
                             "Customization": {
                                 "Show": [
-                                    "EmailTo"
+                                    "EmailTo",
+                                    "ReportFileFormat"
                                 ]
                             }
                         },
@@ -191,7 +218,8 @@
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": [
-                                    "EmailTo"
+                                    "EmailTo",
+                                    "ReportFileFormat"
                                 ]
                             }
                         }
@@ -205,11 +233,65 @@
             "EmailFrom": {
                 "Hide": true
             },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
             "CreateDownloadLink": {
                 "DisplayName": "Create a report download link (upload report to storage)",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Yes - upload report and return a download link",
+                            "ParameterValue": true,
+                            "Customization": {
+                                "Show": [
+                                    "ReportFileFormat"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "No - do not create a download link",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "ReportFileFormat"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "ReportFileFormat": {
+                "DisplayName": "Report file format",
+                "Hide": true,
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
                 }
             },
             "ContainerName": {
@@ -231,9 +313,9 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -271,7 +353,23 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string] $EmailFrom,
 
-    # Enables uploading the CSV report to a storage account and returning a download link.
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string] $BrandingHeaderImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string] $BrandingFooterImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string] $BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string] $BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string] $BrandingTextColor,
+
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string] $ReportFileFormat = 'CSV & XLSX',
+
+    # Enables uploading the report file(s) to a storage account and returning a download link.
     [bool] $CreateDownloadLink = $false,
 
     [string] $ContainerName = "channel-group-member-sync",
@@ -367,7 +465,7 @@ function Get-ChannelMemberUser {
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -382,6 +480,7 @@ Write-RjRbLog -Message "RemoveFromTeam: $RemoveFromTeam" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
@@ -389,6 +488,11 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 
 #endregion
 
@@ -735,6 +839,7 @@ if ($WhatIfMode) {
 ##
 ########################################################
 
+$brandingMailParams = @{}
 if ($SendEmailReport -or $CreateDownloadLink) {
     Write-Output ""
     Write-Output "## Preparing report..."
@@ -752,24 +857,38 @@ if ($SendEmailReport -or $CreateDownloadLink) {
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $basePath = (Get-Location).Path
 
-    # CSV: per-change detail
-    $actionsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_MemberSync_Changes.csv"
-    if ($actionRows.Count -gt 0) {
-        $actionRows | Sort-Object Action, UserUpn | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
-    }
-    else {
-        # Always produce a (header-only) file so the attachment/upload is present
-        "" | Select-Object @{N = "Direction"; E = { $_ } } | Where-Object { $false } | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
+    # Sort once so the CSV and XLSX exports use identical data
+    $actionRows = @($actionRows | Sort-Object Action, UserUpn)
+
+    $reportFiles = @()
+    $xlsxPath = $null
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        # CSV: per-change detail
+        $actionsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_MemberSync_Changes.csv"
+        if ($actionRows.Count -gt 0) {
+            $actionRows | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
+        }
+        else {
+            # Always produce a (header-only) file so the attachment/upload is present
+            "" | Select-Object @{N = "Direction"; E = { $_ } } | Where-Object { $false } | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
+        }
+        $reportFiles += $actionsCsvPath
     }
 
-    $csvFiles = @($actionsCsvPath)
+    if ($ReportFileFormat -ne 'CSV only') {
+        # XLSX: the same data as a formatted Excel workbook (writes a "No data available" sheet when empty)
+        $xlsxPath = Join-Path -Path $basePath -ChildPath "${timestamp}_MemberSync_Changes.xlsx"
+        $actionRows | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Actions"
+        $reportFiles += $xlsxPath
+    }
 
     # Upload + download link (optional)
     $downloadLinks = @()
-    if ($CreateDownloadLink) {
+    if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
         Write-Output "## Uploading report to storage account..."
         $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $csvFiles `
+            -FilePaths $reportFiles `
             -ContainerName $ContainerName `
             -ResourceGroupName $ResourceGroupName `
             -StorageAccountName $StorageAccountName `
@@ -829,7 +948,33 @@ $modeNote
 $downloadSection
 ## Attachments
 
-- **$([IO.Path]::GetFileName($actionsCsvPath))** - one row per individual change (target, user, action).
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$([IO.Path]::GetFileName($actionsCsvPath))** - one row per individual change (target, user, action)." })
+$(if ($ReportFileFormat -ne 'CSV only') { "- **$([IO.Path]::GetFileName($xlsxPath))** - the same data as a formatted Excel workbook." })
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+        $markdownFallback = @"
+# Member Sync
+
+$modeNote
+
+## Summary
+
+| Metric | Value |
+|---|---|
+| Mode | $mode |
+| Direction | $Direction |
+| Members added | $totalAdded |
+| Members removed | $totalRemoved |
+
+## Attachments
+
+- **$([IO.Path]::GetFileName($xlsxPath))** - one row per individual change (target, user, action) as a formatted Excel workbook.
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
 
 ---
 
@@ -838,11 +983,29 @@ $downloadSection
 
         $emailSubject = "Member Sync - $Direction - added $totalAdded, removed $totalRemoved$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()
 
+        # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
         Write-Output "Sending report to '$EmailTo'..."
+
+        # Resolve optional tenant email branding once per run (never fails the send)
+        $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
         try {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $csvFiles -UseNativeGraphRequest
+            $guardParams = @{
+                EmailFrom         = $EmailFrom
+                EmailTo           = $EmailTo
+                Subject           = $emailSubject
+                MarkdownContent   = $markdownContent
+                TenantDisplayName = $tenantDisplayName
+                ReportVersion     = $Version
+            }
+            $guardParams.UseNativeGraphRequest = $true
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
+                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+            }
+            else {
+                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            }
             Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
-            Write-Output "Email report sent to '$EmailTo'."
         }
         catch {
             Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue

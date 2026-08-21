@@ -1,13 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Mail.Send",
-                "Organization.Read.All",
-                "User.Read.All",
-                "UserAuthenticationMethod.Read.All"
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the MFA-lookup notification mail to the user's mailbox via Send-RjReportEmail when notification is enabled"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to put the tenant name into the notification email"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user to get id, mail, accountEnabled and usageLocation"
+                },
+                {
+                    "Value": "UserAuthenticationMethod.Read.All",
+                    "Reason": "Lists the user's registered MFA methods including phone numbers and FIDO2 details"
+                }
             ]
         }
     ],

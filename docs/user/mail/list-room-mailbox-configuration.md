@@ -10,8 +10,14 @@ User \ Mail \ List Room Mailbox Configuration
 
 ## Permissions
 ### Application permissions
-- **Type**: MG Graph
+- **Type**: Microsoft Graph
   - Place.Read.All
+  - User.Read.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
+### RBAC roles
+- Exchange Administrator
 
 
 ## Parameters

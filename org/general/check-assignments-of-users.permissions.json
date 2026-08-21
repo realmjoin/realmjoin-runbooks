@@ -1,15 +1,26 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.Read.All",
-                "DeviceManagementConfiguration.Read.All",
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementApps.Read.All",
-                "Device.Read.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves each UPN to a user id and lists /users/{id}/transitiveMemberOf"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the group objects returned by transitiveMemberOf to match assignment targets"
+                },
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Lists Intune configuration, group policy and compliance policies and their assignments"
+                },
+                {
+                    "Value": "DeviceManagementApps.Read.All",
+                    "Reason": "Lists mobile apps and their assignments when IncludeApps is enabled"
+                }
             ]
         }
     ],

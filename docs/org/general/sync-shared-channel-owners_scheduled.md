@@ -8,8 +8,11 @@ that gap: for each team named in a mapping, it ensures the members of a mapped s
 of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
 maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
 are never removed - so newly created shared channels are simply picked up on the next run. It can
-optionally email a report and/or upload the CSV results as a download link. See the accompanying
-documentation for the mapping rules and configuration.
+optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+rules and configuration.
 
 ## Where to find
 Org \ General \ Sync Shared Channel Owners_Scheduled
@@ -60,6 +63,12 @@ The storage upload authenticates with the Automation account's managed identity;
 
 Designed to run unattended on a schedule. Because configuration is centralized in the org settings and the runbook is add-only and idempotent, a single recurring schedule keeps all mapped teams and their shared channels in sync as people and channels come and go.
 
+## Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 ## Notes
 Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under
@@ -83,7 +92,9 @@ TeamOwnerGroupMapping parameter is injected from it at runtime.
   - GroupMember.ReadWrite.All
   - Channel.ReadBasic.All
   - ChannelMember.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
+  - User.Read.All
+  - Organization.Read.All *(optional: Email report)*
 
 
 ## Parameters
@@ -121,7 +132,8 @@ When enabled, the runbook only logs the changes it would make without writing an
 
 ### SendEmailReport
 When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body
-contains run statistics and two CSV attachments (per-team summary and per-change detail).
+contains run statistics; the report files (per-team summary and per-change detail) are attached in the
+selected report file format(s).
 
 | Property | Value |
 |----------|-------|
@@ -147,8 +159,67 @@ Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender".
 | Required | false |
 | Type | String |
 
+### BrandingHeaderImageUrl
+Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterImageUrl
+Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterLink
+Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+When empty, the default link (https://www.realmjoin.com) is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingAccentColor
+Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingTextColor
+Optional text color override (6-digit hex) for the report email template.
+Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
 ### CreateDownloadLink
-When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is
+When enabled, the report file(s) are uploaded to a storage account and time-limited download links are
 returned (and included in the email report if that is also enabled). Default off.
 
 | Property | Value |

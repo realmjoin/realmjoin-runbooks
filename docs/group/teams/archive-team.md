@@ -14,6 +14,7 @@ Group \ Teams \ Archive Team
 ### Application permissions
 - **Type**: Microsoft Graph
   - TeamSettings.ReadWrite.All
+  - Group.Read.All
 
 
 ## Parameters

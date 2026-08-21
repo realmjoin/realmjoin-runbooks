@@ -10,8 +10,12 @@ This can be used to enable or restrict features such as the ability to use email
 User \ Mail \ Assign Owa Mailbox Policy
 
 ## Permissions
+### Application permissions
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
+
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

@@ -60,7 +60,7 @@
                 "Hide": true
             },
             "exportGroupMemberships": {
-                "Hide": true,
+                "Hide": true
             },
             "exportResourceGroupName": {
                 "Hide": true
@@ -98,7 +98,7 @@
                     "Options": [
                         {
                             "Display": "Do not change assigned groups",
-                            "Value": 0,
+                            "Value": 0
                         },
                         {
                             "Display": "Change the user's groups",
@@ -195,9 +195,9 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.6.0" }
-#Requires -Modules @{ ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
+#Requires -Modules @{ ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param (
     [Parameter(Mandatory = $true)]

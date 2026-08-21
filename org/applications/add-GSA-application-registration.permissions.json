@@ -1,0 +1,29 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Application.ReadWrite.All",
+                    "Reason": "Instantiates the app from the application template, patches onPremisesPublishing and adds app segments"
+                },
+                {
+                    "Value": "Directory.ReadWrite.All",
+                    "Reason": "Required by the App Proxy endpoints: reads connector groups and assigns the app's connectorGroup"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Creates the access security group for the app and deletes it on rollback"
+                },
+                {
+                    "Value": "AppRoleAssignment.ReadWrite.All",
+                    "Reason": "Assigns the access group to the app via /servicePrincipals/{id}/appRoleAssignedTo"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

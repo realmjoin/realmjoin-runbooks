@@ -32,8 +32,8 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param(
   # EntraID exclusion group for Defender Compliance.
@@ -46,7 +46,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.2"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 ########################################################
@@ -83,30 +83,6 @@ function Get-GraphPagedResult {
   return $allResults
 }
 
-function Invoke-GraphBatch {
-  <#
-    .SYNOPSIS
-    Executes Microsoft Graph requests via the JSON batch endpoint (max 20 per call).
-  #>
-  param(
-    [Parameter(Mandatory = $true)]
-    [object[]]$Requests
-  )
-
-  # Graph batch API: max 20 requests per call
-  $batchSize = 20
-  $responses = [System.Collections.Generic.List[object]]::new()
-
-  for ($i = 0; $i -lt $Requests.Count; $i += $batchSize) {
-    $chunk = $Requests[$i..([Math]::Min($i + $batchSize - 1, $Requests.Count - 1))]
-    $batchBody = @{ requests = @($chunk) }
-    $batchResult = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/`$batch" -Method POST -Body $batchBody
-    $responses.AddRange([object[]]@($batchResult.responses))
-  }
-
-  return $responses
-}
-
 function Resolve-EntraDevices {
   <#
     .SYNOPSIS
@@ -134,7 +110,7 @@ function Resolve-EntraDevices {
       $idx++
     })
 
-  $responses = Invoke-GraphBatch -Requests $requests
+  $responses = Invoke-RjRbGraphBatch -Requests $requests
   foreach ($r in $responses) {
     if ($r.status -eq 200 -and $r.body.value) {
       $results.AddRange([object[]]@($r.body.value))
@@ -253,7 +229,7 @@ if ($toRemove.Count -gt 0) {
       }
       $idx++
     })
-  $removeResponses = Invoke-GraphBatch -Requests $removeRequests
+  $removeResponses = Invoke-RjRbGraphBatch -Requests $removeRequests
   $removeFailed = @($removeResponses | Where-Object { $_.status -notin 200, 204, 404 })
   foreach ($r in $removeFailed) {
     Write-RjRbLog -Message "Remove failed (status $($r.status), id $($r.id)): $($r.body.error.message)" -Verbose
@@ -274,7 +250,7 @@ if ($toAdd.Count -gt 0) {
       }
       $idx++
     })
-  $addResponses = Invoke-GraphBatch -Requests $addRequests
+  $addResponses = Invoke-RjRbGraphBatch -Requests $addRequests
   $addFailed = @($addResponses | Where-Object { $_.status -notin 200, 201, 204 -and -not ($_.status -eq 400 -and $_.body.error.message -like "*already exist*") })
   foreach ($r in $addFailed) {
     Write-RjRbLog -Message "Add failed (status $($r.status), id $($r.id)): $($r.body.error.message)" -Verbose

@@ -3,7 +3,10 @@
 Compare primary user assignments in Intune against RealmJoin for Windows managed devices
 
 ## Detailed description
-For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.
+For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 ## Where to find
 Org \ Devices \ Report Primary User Mismatch_Scheduled
@@ -12,7 +15,13 @@ Org \ Devices \ Report Primary User Mismatch_Scheduled
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+This process is described in detail in the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 ## Setup regarding RealmJoin API credentials
 
@@ -44,7 +53,7 @@ Prerequisites:
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 
@@ -131,12 +140,12 @@ Exclude devices that are members of this Entra device group from the report. Req
 | Type | String |
 
 ### EmailTo
-Recipient email address (or multiple comma-separated addresses) that should receive the report.
+If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
-| Required | true |
+| Required | false |
 | Type | String |
 
 ### EmailFrom
@@ -147,6 +156,100 @@ The sender email address. This is configured via the runbook customization setti
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### BrandingHeaderImageUrl
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterImageUrl
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterLink
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingAccentColor
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingTextColor
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
+### CreateDownloadLink
+If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ContainerName
+Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+| Property | Value |
+|----------|-------|
+| Default Value | report-primary-user-mismatch |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

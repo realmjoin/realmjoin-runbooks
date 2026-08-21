@@ -3,10 +3,10 @@
 This document provides a comprehensive overview of all parameters used in the runbooks available in the RealmJoin portal. Each parameter is listed with its type and whether it is required or optional.
 
 To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:
-- device
-- group
-- org
-- user
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row.
 
@@ -59,9 +59,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Organization](#organization)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
-    - [Add Gsa Application Registration](#organization-applications-add-gsa-application-registration)
+    - [Add GSA Application Registration](#organization-applications-add-gsa-application-registration)
     - [Delete Application Registration](#organization-applications-delete-application-registration)
-    - [Delete Gsa Application Registration](#organization-applications-delete-gsa-application-registration)
+    - [Delete GSA Application Registration](#organization-applications-delete-gsa-application-registration)
     - [Export Enterprise Application Users](#organization-applications-export-enterprise-application-users)
     - [List Inactive Enterprise Applications](#organization-applications-list-inactive-enterprise-applications)
     - [Report Application Registration](#organization-applications-report-application-registration)
@@ -78,11 +78,11 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
-    - [Report Devices Without Primary User](#organization-devices-report-devices-without-primary-user)
+    - [Report Devices Without Primary User (Scheduled)](#organization-devices-report-devices-without-primary-user-scheduled)
     - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
-    - [Report Users With More Than 5-Devices](#organization-devices-report-users-with-more-than-5-devices)
-    - [Report Windows Devices Without Autopilot](#organization-devices-report-windows-devices-without-autopilot)
+    - [Report Users With More Than 5-Devices (Scheduled)](#organization-devices-report-users-with-more-than-5-devices-scheduled)
+    - [Report Windows Devices Without Autopilot (Scheduled)](#organization-devices-report-windows-devices-without-autopilot-scheduled)
     - [Sync Device Serialnumbers To Entraid (Scheduled)](#organization-devices-sync-device-serialnumbers-to-entraid-scheduled)
   - [General](#organization-general)
     - [Add Devices Of Users To Group (Scheduled)](#organization-general-add-devices-of-users-to-group-scheduled)
@@ -114,6 +114,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Invite External Guest Users](#organization-general-invite-external-guest-users)
     - [List All Administrative Template Policies](#organization-general-list-all-administrative-template-policies)
     - [List Group License Assignment Errors](#organization-general-list-group-license-assignment-errors)
+    - [Monitor Service Health (Scheduled)](#organization-general-monitor-service-health-scheduled)
     - [Office365 License Report](#organization-general-office365-license-report)
     - [Report Apple MDM Cert Expiry (Scheduled)](#organization-general-report-apple-mdm-cert-expiry-scheduled)
     - [Report License Assignment (Scheduled)](#organization-general-report-license-assignment-scheduled)
@@ -150,6 +151,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Monitor Pending EPM Requests (Scheduled)](#organization-security-monitor-pending-epm-requests-scheduled)
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
     - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
+    - [Sync MFA Secure Users To Group (Scheduled)](#organization-security-sync-mfa-secure-users-to-group-scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - [User Signout](#user-avd-user-signout)
@@ -190,6 +192,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Create Temporary Access Pass](#user-security-create-temporary-access-pass)
     - [Enable Or Disable Password Expiration](#user-security-enable-or-disable-password-expiration)
     - [List MFA Methods](#user-security-list-mfa-methods)
+    - [List Signin Events](#user-security-list-signin-events)
     - [Reset MFA](#user-security-reset-mfa)
     - [Reset Password](#user-security-reset-password)
     - [Revoke Or Restore Access](#user-security-revoke-or-restore-access)
@@ -267,6 +270,11 @@ Check the compliance status of a device
 | DetailedOutput |  | Boolean | Select "Simple" (final value: $false) to show only the overall compliance state and non-compliant policy names.<br>Select "Detailed" (final value: $true) to additionally show which specific settings are failing and the reason for each failure. |
 | EmailTo |  | String | Optional - if specified, a compliance report will be sent to the provided email address(es).<br>Can be a single address or multiple comma-separated addresses. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-general-check-updatable-assets'></a>
@@ -690,7 +698,7 @@ Add an application registration to Azure AD
 
 <a name='organization-applications-add-gsa-application-registration'></a>
 
-### Add Gsa Application Registration
+### Add GSA Application Registration
 Add a GSA application registration to Azure AD
 
 | Parameter | Required | Type | Description |
@@ -719,7 +727,7 @@ Delete an application registration from Azure AD
 
 <a name='organization-applications-delete-gsa-application-registration'></a>
 
-### Delete Gsa Application Registration
+### Delete GSA Application Registration
 Delete a GSA application registration from Azure AD including associated objects
 
 | Parameter | Required | Type | Description |
@@ -733,15 +741,24 @@ Delete a GSA application registration from Azure AD including associated objects
 <a name='organization-applications-export-enterprise-application-users'></a>
 
 ### Export Enterprise Application Users
-Export a CSV of all (enterprise) application owners and users
+Export a report of all (enterprise) application owners and users
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | entAppsOnly |  | Boolean | Determines whether to export only enterprise applications (final value: true) or all service principals/applications (final value: false). |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Enabled by default. |
 | ContainerName |  | String | Storage container name used for the upload. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
 | StorageAccountName |  | String | Storage account name used for the upload. |
 | LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-list-inactive-enterprise-applications'></a>
@@ -752,6 +769,19 @@ List enterprise applications with no recent sign-ins
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Number of days without user logon to consider an application as inactive. Default is 90 days. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-report-application-registration'></a>
@@ -761,9 +791,20 @@ Generate and email a comprehensive Application Registration report
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | IncludeDeletedApps |  | Boolean | Whether to include deleted application registrations in the report (default: true) |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-report-expiring-application-credentials-scheduled'></a>
@@ -777,8 +818,19 @@ List expiry date of all Application Registration credentials
 | Days |  | Int32 | The number of days before a credential expires to consider it "about to expire". |
 | CredentialType |  | String | Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates". |
 | ApplicationIds |  | String | Optional - comma-separated list of Application IDs to filter the credentials. |
-| EmailTo | ✓ | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-applications-update-application-registration'></a>
@@ -855,7 +907,18 @@ Auto-approve new driver updates in Intune driver update policies
 | MaximumDriverAge |  | Int32 | (Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days. |
 | OnlyNeedsReview |  | Boolean | When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers. |
 | WhatIf |  | SwitchParameter | (Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | Sender email address for notifications. This parameter is backed by a setting and should not be modified directly. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String |  |
+| BrandingTextColor |  | String |  |
 | EmailTo |  | String | (Optional) Recipient email address for approval notifications. If not specified, no email is sent. |
 | CallerName | ✓ | String | Name of the user or system initiating the runbook. Used for auditing purposes. |
 
@@ -877,6 +940,17 @@ Clean up orphaned and stale Windows Autopilot device registrations
 | NeverEnrolledAgeDays |  | Int32 | Age threshold in days for never-enrolled devices. Measured on the Device creation date. |
 | EmailTo |  | String | Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log. |
 | EmailFrom |  | String | The sender email address for the summary report. This is configured via Runbook Customizations. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String |  |
+| BrandingTextColor |  | String |  |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-create-endpoint-analytics-baseline'></a>
@@ -905,19 +979,32 @@ Detect and rename duplicate Intune device display names using a prefix and rando
 <a name='organization-devices-delete-stale-devices-scheduled'></a>
 
 ### Delete Stale Devices (Scheduled)
-Scheduled deletion of stale devices based on last activity
+Scheduled deletion of stale devices based on last activity date and platform
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 | Number of days without activity to be considered stale |
-| Windows |  | Boolean | Include Windows devices in the results |
-| MacOS |  | Boolean | Include macOS devices in the results |
-| iOS |  | Boolean | Include iOS devices in the results |
-| Android |  | Boolean | Include Android devices in the results |
-| DeleteDevices |  | Boolean | If set to true, the script will delete the stale devices. If false, it will only report them. |
-| ConfirmDeletion |  | Boolean | If set to true, the script will prompt for confirmation before deleting devices.<br>Should be set to false for scheduled runs. |
-| sendAlertTo |  | String | Email address to send the report to. |
-| sendAlertFrom |  | String | Email address to send the report from. |
+| Days |  | Int32 | Number of days without activity to be considered stale. |
+| Windows |  | Boolean | Include Windows devices in the results. |
+| MacOS |  | Boolean | Include macOS devices in the results. |
+| iOS |  | Boolean | Include iOS devices in the results. |
+| Android |  | Boolean | Include Android devices in the results. |
+| DeleteDevices |  | Boolean | If set to true, the matching stale devices are deleted from Intune.<br>If false (default), the runbook only reports which devices would be deleted (simulation). |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
+| IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-get-bitlocker-recovery-key'></a>
@@ -944,6 +1031,11 @@ Notify primary users about their stale devices via email
 | iOS |  | Boolean | Include iOS devices in the results. |
 | Android |  | Boolean | Include Android devices in the results. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
@@ -952,7 +1044,11 @@ Notify primary users about their stale devices via email
 | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
 | IncludeUserGroup |  | String | Only send emails to users who are members of this group. Requires UseUserScope to be enabled. |
 | ExcludeUserGroup |  | String | Do not send emails to users who are members of this group. Requires UseUserScope to be enabled. |
-| OverrideEmailRecipient |  | String | Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users. |
+| OverrideEmailRecipient |  | String | Optional: Global override - when set, ALL notifications (user notifications, pattern-routed notifications and the combined email for devices without a primary user) are sent to this address instead of their normal recipients. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a ticket system. If left empty, the normal routing applies. |
+| OverrideUserNamePattern |  | String | Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Notifications of matching users are redirected to UserNamePatternEmailRecipient; all other users are mailed directly. Not evaluated separately while the global override (OverrideEmailRecipient) is active, since all notifications are redirected anyway. |
+| UserNamePatternEmailRecipient |  | String | Email address(es) that receive the notifications of users matching OverrideUserNamePattern. Can be comma-separated. Required when OverrideUserNamePattern is set, unless OverrideEmailRecipient is set. |
+| SendNoPrimaryUserDevicesToOverride |  | Boolean | If enabled, stale devices without a primary user are collected into one combined email to NoPrimaryUserEmailRecipient (or to OverrideEmailRecipient while the global override is active). Does not change how user notifications are routed. Devices without a primary user bypass user scope filtering. |
+| NoPrimaryUserEmailRecipient |  | String | Email address(es) that receive the combined email for stale devices without a primary user. Can be comma-separated. Required when SendNoPrimaryUserDevicesToOverride is enabled, unless OverrideEmailRecipient is set. |
 | MailTemplateLanguage |  | String | Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations). |
 | CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). |
 | CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
@@ -979,14 +1075,30 @@ Remove or outphase multiple devices
 | defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-devices-without-primary-user'></a>
+<a name='organization-devices-report-devices-without-primary-user-scheduled'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 Reports all managed devices in Intune that do not have a primary user assigned.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IncludeWindows |  | Boolean | Include Windows devices in the report. Enabled by default. |
+| IncludeMacOS |  | Boolean | Include macOS devices in the report. Enabled by default. |
+| IncludeIOS |  | Boolean | Include iOS and iPadOS devices in the report. Enabled by default. |
+| IncludeAndroid |  | Boolean | Include Android devices in the report. Enabled by default. |
+| IncludeOther |  | Boolean | Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
@@ -1006,8 +1118,19 @@ Compare primary user assignments in Intune against RealmJoin for Windows managed
 | UseDeviceScope |  | Boolean | Enable device scope filtering to include or exclude devices based on Entra device group membership. |
 | IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled. |
 | ExcludeDeviceGroup |  | String | Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled. |
-| EmailTo | ✓ | String | Recipient email address (or multiple comma-separated addresses) that should receive the report. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses. |
 | EmailFrom |  | String | The sender email address. This is configured via the runbook customization setting and hidden in the portal. |
+| BrandingHeaderImageUrl |  | String |  |
+| BrandingFooterImageUrl |  | String |  |
+| BrandingFooterLink |  | String |  |
+| BrandingAccentColor |  | String |  |
+| BrandingTextColor |  | String |  |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-stale-devices-scheduled'></a>
@@ -1024,34 +1147,63 @@ Scheduled report of stale devices based on last activity date and platform.
 | iOS |  | Boolean | Include iOS devices in the results. |
 | Android |  | Boolean | Include Android devices in the results. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | UseUserScope |  | Boolean | Enable user scope filtering to include or exclude devices based on primary user group membership. |
 | IncludeUserGroup |  | String | Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
 | ExcludeUserGroup |  | String | Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled. |
-| EmailTo | ✓ | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-users-with-more-than-5-devices'></a>
+<a name='organization-devices-report-users-with-more-than-5-devices-scheduled'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 Report users with more than five registered devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IntuneOnlyDevices |  | Boolean | If enabled, only devices that are present in Intune (managed devices) are considered for the report.<br>The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.<br>Disabled by default. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String |  |
+| BrandingFooterImageUrl |  | String |  |
+| BrandingFooterLink |  | String |  |
+| BrandingAccentColor |  | String |  |
+| BrandingTextColor |  | String |  |
 | EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
-<a name='organization-devices-report-windows-devices-without-autopilot'></a>
+<a name='organization-devices-report-windows-devices-without-autopilot-scheduled'></a>
 
-### Report Windows Devices Without Autopilot
+### Report Windows Devices Without Autopilot (Scheduled)
 Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| SendMail |  | Boolean | If enabled, the report is sent via email. Toggling this on reveals the recipient address field. |
+| SendMail |  | Boolean | If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields. |
 | EmailTo |  | String | Recipient address(es) for the email report. Only used / shown when SendMail is enabled.<br>Can be a single address or multiple comma-separated addresses (string). |
 | EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender). |
-| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. |
 | ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
 | ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
 | StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
@@ -1482,6 +1634,26 @@ Report groups that have license assignment errors
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
+<a name='organization-general-monitor-service-health-scheduled'></a>
+
+### Monitor Service Health (Scheduled)
+Alert by email on newly announced Microsoft 365 Service Health issues
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Services |  | String | Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page. |
+| LookbackHours |  | Int32 | How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice. |
+| IncludeAdvisories |  | Boolean | If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well. |
+| IncludeResolvedIssues |  | Boolean | If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported. |
+| EmailFrom |  | String | The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| EmailTo | ✓ | String | Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
+
 <a name='organization-general-office365-license-report'></a>
 
 ### Office365 License Report
@@ -1512,6 +1684,11 @@ Monitor/Report expiry of Apple device management certificates
 | Days |  | Int32 | The warning threshold in days. Certificates and tokens expiring within this many days will be<br>flagged as alerts in the report. Default is 30 days. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 
 <a name='organization-general-report-license-assignment-scheduled'></a>
 
@@ -1521,8 +1698,19 @@ Generate and email a license availability report based on thresholds
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | InputJson | ✓ | Object | JSON array containing SKU configurations with thresholds. Each entry should include a SKUPartNumber for the Microsoft SKU identifier, a FriendlyName as the display name for the license, an optional MinThreshold specifying the minimum number of licenses that should be available, and an optional MaxThreshold specifying the maximum number of licenses that should be available.<br><br>This needs to be configured in the runbook customization |
-| EmailTo | ✓ | String | Recipient email address or comma-separated recipient list. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string). |
 | EmailFrom |  | String | Sender email address resolved from settings. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String |  |
+| BrandingTextColor |  | String |  |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-general-report-pim-activations-scheduled'></a>
@@ -1571,10 +1759,16 @@ Sync members between a Teams Shared Channel or a group and an Entra security gro
 | IncludeGuests |  | Boolean | When enabled, guest users are included in the sync and may be added or removed. When disabled (default),<br>guests are skipped and are never added or removed. |
 | RemoveFromTeam |  | Boolean | Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also<br>removes that user from the host team membership. When disabled (default), only the channel membership<br>is removed. |
 | WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
-| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. Toggling<br>this on reveals the recipient address and report file format fields. |
 | EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
 | EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender. |
-| CreateDownloadLink |  | Boolean | When enabled, the CSV report is uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | When enabled, the report file(s) are uploaded to a storage account and time-limited download links are<br>returned (and included in the email report if that is also enabled). |
 | ContainerName |  | String | Storage container used for the upload. Configured per runbook. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName. |
@@ -1591,10 +1785,16 @@ Ensure a security group's members are owners of mapped Teams and their shared ch
 | TeamOwnerGroupMapping |  | Object | Mapping of an exact team display name to an owner security group object id, e.g.<br>[{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].<br>Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects<br>that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or<br>as a JSON string and normalizes both. |
 | IncludeTeamOwners |  | Boolean | When enabled (default), the owner-group members are also ensured as owners and members of the parent<br>team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership. |
 | WhatIfMode |  | Boolean | When enabled, the runbook only logs the changes it would make without writing anything. |
-| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics and two CSV attachments (per-team summary and per-change detail). |
+| SendEmailReport |  | Boolean | When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body<br>contains run statistics; the report files (per-team summary and per-change detail) are attached in the<br>selected report file format(s). |
 | EmailTo |  | String | Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled. |
 | EmailFrom |  | String | Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender". |
-| CreateDownloadLink |  | Boolean | When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is<br>returned (and included in the email report if that is also enabled). Default off. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | When enabled, the report file(s) are uploaded to a storage account and time-limited download links are<br>returned (and included in the email report if that is also enabled). Default off. |
 | ContainerName |  | String | Storage container used for the upload. Configured per runbook (not a global RJReport setting). |
 | ResourceGroupName |  | String | Resource group that contains the storage account. Bound to "RJReport.StorageAccount.ResourceGroup". |
 | StorageAccountName |  | String | Storage account used for the upload. Bound to "RJReport.StorageAccount.StorageAccountName". |
@@ -1938,9 +2138,20 @@ Monitor and report pending Endpoint Privilege Management (EPM) elevation request
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Internal parameter for tracking purposes |
-| DetailedReport |  | Boolean | When enabled, includes detailed request information in a table and as CSV attachment.<br>When disabled, only provides a summary count of pending requests. |
+| DetailedReport |  | Boolean | When enabled, includes detailed request information in a table and as report file attachment(s).<br>When disabled, only provides a summary count of pending requests. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
 
 <a name='organization-security-notify-changed-ca-policies'></a>
 
@@ -1970,6 +2181,54 @@ Generate report for Endpoint Privilege Management (EPM) elevation requests
 | MaxAgeInDays |  | Int32 | Filter requests created within the last X days (default: 30).<br>Note: Request details are retained in Intune for 30 days after creation. |
 | EmailTo |  | String | Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+
+<a name='organization-security-sync-mfa-secure-users-to-group-scheduled'></a>
+
+### Sync MFA Secure Users To Group (Scheduled)
+Sync users with secure MFA methods registered into an Entra ID group
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TargetGroupId | ✓ | String | The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook. |
+| IncludePasskeys |  | Boolean | Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDeviceBound, passKeyDeviceBoundAuthenticator). |
+| IncludePlatformCredentials |  | Boolean | Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoundWindowsHello, macOsSecureEnclaveKey). |
+| IncludeMicrosoftAuthenticator |  | Boolean | Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, microsoftAuthenticatorPasswordless). |
+| IncludeSoftwareOtp |  | Boolean | Count software OTP / authenticator TOTP apps as secure (softwareOneTimePasscode). |
+| IncludeHardwareOtp |  | Boolean | Count hardware OTP tokens as secure (hardwareOneTimePasscode). |
+| IncludeCertificateBasedAuth |  | Boolean | Count certificate-based authentication as secure (certificateBasedAuthentication). |
+| SecureOnly |  | Boolean | Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member. |
+| SecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values. |
+| UnsecureMethodsOverride |  | String | Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly). |
+| ExcludeAdmins |  | Boolean | Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor. |
+| ExcludeGroupId |  | String | Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members. |
+| ExcludeUserIds |  | String Array | Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning. |
+| WhatIfMode |  | Boolean | Dry run: log which users would be added or removed without changing the group. |
+| SendEmail |  | Boolean | If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default. |
+| EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled. |
+| EmailFrom |  | String | The sender email address. Sourced from the RJReport tenant settings. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -2055,10 +2314,16 @@ List group memberships for this user
 | TeamsEnabled |  | String | Filter groups with Microsoft Teams functionality: Yes (Teams-enabled only) or NotSet (all groups, default). |
 | Source |  | String | Filter by group origin: Cloud (Azure AD only), OnPrem (synchronized from on-premises AD), or All (default). |
 | WritebackEnabled |  | String | Filter groups by writeback enablement. |
-| SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+| SendMail |  | Boolean | If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields. |
 | EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
-| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output. |
 | ContainerName |  | String | Storage container name used for the upload. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
 | StorageAccountName |  | String | Storage account name used for the upload. |
@@ -2073,10 +2338,16 @@ List group ownerships for this user.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
-| SendMail |  | Boolean | If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field. |
+| SendMail |  | Boolean | If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields. |
 | EmailTo |  | String | Recipient address or multiple comma-separated addresses for the email report. Only used when SendMail is enabled. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
-| CreateDownloadLink |  | Boolean | If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output. |
 | ContainerName |  | String | Storage container name used for the upload. |
 | ResourceGroupName |  | String | Resource group that contains the storage account. |
 | StorageAccountName |  | String | Storage account name used for the upload. |
@@ -2243,15 +2514,15 @@ Convert a user mailbox to a shared mailbox and back
 <a name='user-mail-delegate-full-access'></a>
 
 ### Delegate Full Access
-Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
+Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the mailbox. |
-| delegateTo | ✓ | String | User principal name of the delegate. |
-| Remove |  | Boolean | If set to true, removes the delegation instead of granting it. |
-| AutoMapping |  | Boolean | If set to true, enables Outlook automapping when granting FullAccess. |
-| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+| UserName | ✓ | String | User principal name of the mailbox owner. |
+| delegateTo | ✓ | String Array | One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously. |
+| Remove |  | Boolean | If set to true, the script will remove the FullAccess permission. If false, it will grant the permission. |
+| AutoMapping |  | Boolean | If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false). |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='user-mail-delegate-send-as'></a>
 
@@ -2332,16 +2603,17 @@ Hard delete a shared mailbox, room or bookings calendar
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-Enable or disable out-of-office notifications for a mailbox
+Enable or disable mailbox out-of-office notifications
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the mailbox. |
-| Disable |  | Boolean | "Enable Out-of-Office" (final value: $false) or "Disable Out-of-Office" (final value: $true) can be selected as action to perform. |
+| UserName | ✓ | String | User principal name of the mailbox. This value is auto-filled by the portal. |
+| Disable |  | Boolean | Select whether to enable out-of-office notifications or disable existing out-of-office settings. |
 | Start |  | DateTime | Start time for scheduled out-of-office replies. |
-| End |  | DateTime | End time for scheduled out-of-office replies. If not specified, defaults to 10 years from the current date. |
+| End |  | DateTime | End time for scheduled out-of-office replies. If not specified, it defaults to 10 years from the current date. |
 | MessageInternal |  | String | Internal automatic reply message. |
 | MessageExternal |  | String | External automatic reply message. |
+| ExternalAudience |  | String | Controls who receives external automatic replies. Use None to send no external replies, Known to send replies only to known external contacts, or All to send replies to all external senders. |
 | CreateEvent |  | Boolean | If set to true, creates an out-of-office calendar event. |
 | EventSubject |  | String | Subject for the optional out-of-office calendar event. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
@@ -2464,6 +2736,11 @@ Create a temporary access pass for a user
 | OneTimeUseOnly |  | Boolean | If set to true, the pass can be used only once. |
 | NotifyUser |  | Boolean | If enabled, sends a notification email to the user's primary email address about the newly created TAP. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
@@ -2493,6 +2770,11 @@ List all MFA / authentication methods of a user
 | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were retrieved by an administrator. Default is disabled. |
 | MaskPhoneNumbers |  | Boolean | When enabled, all phone numbers are masked except for the last four digits (for example +491234567890 becomes ********7890). Default is disabled. |
 | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
@@ -2500,6 +2782,34 @@ List all MFA / authentication methods of a user
 | ServiceDeskTicketUrl |  | String | Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
 | LanguageOverride |  | String | Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location. |
 | CallerName | ✓ | String | Caller name for auditing purposes. Auto-filled by the RealmJoin portal. |
+
+<a name='user-security-list-signin-events'></a>
+
+### List Signin Events
+Retrieve and analyze sign-in events for a target user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the target user. |
+| Days |  | Int32 | Number of days to retrieve sign-in logs for (1 to 30 days). Default is 7 days. |
+| SignInType |  | String | Filter sign-in events by type: Interactive only, Non-interactive only, or both. |
+| FailedSignInsOnly |  | Boolean | If set to true, only failed sign-in attempts are displayed. If false, all sign-in events are shown. |
+| ApplicationName |  | String | Optional filter to display sign-ins for a specific application only (partial match). Leave empty to include all applications. |
+| EmailFrom |  | String | The sender email address. Sourced from the RJReport.EmailSender tenant setting. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| SendEmailReport |  | Boolean | If set to true, the sign-in report will be sent by email. If false, no email is sent. |
+| EmailTo |  | String | Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses.<br>Emails are sent individually to each recipient. |
+| ReportFileFormat |  | String | Select the report file format: CSV & XLSX (both files), CSV only, or XLSX only. Only used when a delivery method (email or download link) is selected. |
+| CreateDownloadLink |  | Boolean | If set to true, the report files will be uploaded to Azure Storage and a time-limited download link will be generated. If false, no upload occurs. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires (1 to 3650 days). Sourced from the RJReport tenant settings. Default is 6 days. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='user-security-reset-mfa'></a>
 
@@ -2511,6 +2821,11 @@ Remove all App- and Mobilephone auth methods for a user
 | UserName | ✓ | String | User principal name of the target user. |
 | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled. |
 | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |
@@ -2554,6 +2869,11 @@ Set or remove a user's mobile phone MFA method
 | Remove |  | Boolean | "Set/Update Mobile Phone MFA Method" (final value: $false) or "Remove Mobile Phone MFA Method" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the mobile phone MFA method for the user. If set to false, it will add or update the mobile phone MFA method with the provided phone number. |
 | NotifyUser |  | Boolean | When enabled, sends a notification email to the target user informing them that their mobile phone MFA method was added or removed by an administrator. Default is disabled. |
 | EmailFrom |  | String | Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 | ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName. |
 | ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail. |
 | ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone. |

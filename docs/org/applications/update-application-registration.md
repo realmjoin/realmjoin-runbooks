@@ -14,7 +14,6 @@ Org \ Applications \ Update Application Registration
 ### Application permissions
 - **Type**: Microsoft Graph
   - Application.ReadWrite.OwnedBy
-  - Organization.Read.All
   - Group.ReadWrite.All
 
 ### RBAC roles

@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "IdentityRiskyUser.ReadWrite.All"
+                {
+                    "Value": "IdentityRiskyUser.ReadWrite.All",
+                    "Reason": "Reads the risky user and posts dismiss or confirmCompromised to change the risk state"
+                }
             ]
         }
     ],

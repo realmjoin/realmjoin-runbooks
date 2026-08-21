@@ -14,7 +14,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

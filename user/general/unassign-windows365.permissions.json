@@ -1,13 +1,30 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "GroupMember.ReadWrite.All",
-                "Group.ReadWrite.All",
-                "CloudPC.ReadWrite.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user by UPN for the group member removals"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Reads group members and removes the user from the Windows 365 groups"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Finds license and config groups and reads their assigned licenses"
+                },
+                {
+                    "Value": "CloudPC.ReadWrite.All",
+                    "Reason": "Reads provisioning policies and Cloud PCs and ends the grace period to remove the Cloud PC"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /subscribedSkus to map the license group's SKU in the dedicated plan path"
+                }
             ]
         }
     ],

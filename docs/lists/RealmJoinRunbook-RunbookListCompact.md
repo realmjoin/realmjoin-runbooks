@@ -40,10 +40,10 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Show Or Hide In Address Book | Show or hide a group in the address book |
 |  | Teams | Archive Team | Archive a team |
 | Organization | Applications | Add Application Registration | Add an application registration to Azure AD |
-|  |  | Add Gsa Application Registration | Add a GSA application registration to Azure AD |
+|  |  | Add GSA Application Registration | Add a GSA application registration to Azure AD |
 |  |  | Delete Application Registration | Delete an application registration from Azure AD |
-|  |  | Delete Gsa Application Registration | Delete a GSA application registration from Azure AD including associated objects |
-|  |  | Export Enterprise Application Users | Export a CSV of all (enterprise) application owners and users |
+|  |  | Delete GSA Application Registration | Delete a GSA application registration from Azure AD including associated objects |
+|  |  | Export Enterprise Application Users | Export a report of all (enterprise) application owners and users |
 |  |  | List Inactive Enterprise Applications | List enterprise applications with no recent sign-ins |
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
 |  |  | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
@@ -54,15 +54,15 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Cleanup Autopilot Devices (Scheduled) | Clean up orphaned and stale Windows Autopilot device registrations |
 |  |  | Create Endpoint Analytics Baseline | Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema. |
 |  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
-|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity |
+|  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 |  |  | Outphase Devices | Remove or outphase multiple devices |
-|  |  | Report Devices Without Primary User | Reports all managed devices in Intune that do not have a primary user assigned. |
+|  |  | Report Devices Without Primary User (Scheduled) | Reports all managed devices in Intune that do not have a primary user assigned. |
 |  |  | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
-|  |  | Report Users With More Than 5-Devices | Report users with more than five registered devices |
-|  |  | Report Windows Devices Without Autopilot | Reports all Windows Entra devices that have no associated Windows Autopilot object. |
+|  |  | Report Users With More Than 5-Devices (Scheduled) | Report users with more than five registered devices |
+|  |  | Report Windows Devices Without Autopilot (Scheduled) | Reports all Windows Entra devices that have no associated Windows Autopilot object. |
 |  |  | Sync Device Serialnumbers To Entraid (Scheduled) | Sync Intune serial numbers to Entra ID extension attributes |
 |  | General | Add Devices Of Users To Group (Scheduled) | Sync devices of users in a specific group to another device group |
 |  |  | Add Management Partner | List or add Management Partner Links (PAL) |
@@ -93,6 +93,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Invite External Guest Users | Invite external guest users to the organization |
 |  |  | List All Administrative Template Policies | List all Administrative Template policies and their assignments |
 |  |  | List Group License Assignment Errors | Report groups that have license assignment errors |
+|  |  | Monitor Service Health (Scheduled) | Alert by email on newly announced Microsoft 365 Service Health issues |
 |  |  | Office365 License Report | Generate an Office 365 licensing report |
 |  |  | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates |
 |  |  | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
@@ -126,6 +127,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Monitor Pending EPM Requests (Scheduled) | Monitor and report pending Endpoint Privilege Management (EPM) elevation requests |
 |  |  | Notify Changed CA Policies | Send notification email if Conditional Access policies have been created or modified in the last 24 hours. |
 |  |  | Report EPM Elevation Requests (Scheduled) | Generate report for Endpoint Privilege Management (EPM) elevation requests |
+|  |  | Sync MFA Secure Users To Group (Scheduled) | Sync users with secure MFA methods registered into an Entra ID group |
 | User | AVD | User Signout | Removes (Signs Out) a specific User from their AVD Session. |
 |  | General | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
 |  |  | Assign Or Unassign License | Assign or remove a license for a user via group membership |
@@ -141,7 +143,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Mail | Add Or Remove Email Address | Add or remove an email address for a mailbox |
 |  |  | Assign OWA Mailbox Policy | Assign an OWA mailbox policy to a user |
 |  |  | Convert To Shared Mailbox | Convert a user mailbox to a shared mailbox and back |
-|  |  | Delegate Full Access | Delegate FullAccess permissions to another user on a mailbox or remove existing delegation |
+|  |  | Delegate Full Access | Grant or revoke Exchange Online FullAccess mailbox permission for one or more users |
 |  |  | Delegate Send As | Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation |
 |  |  | Delegate Send On Behalf | Delegate SendOnBehalf permissions for the user's mailbox |
 |  |  | Hide Or Unhide In Addressbook | Hide or unhide a mailbox in the address book |
@@ -149,7 +151,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Room Mailbox Configuration | List room mailbox configuration |
 |  |  | Manage Archive Mailbox | Manage the Exchange Online archive mailbox for a user |
 |  |  | Remove Mailbox | Hard delete a shared mailbox, room or bookings calendar |
-|  |  | Set Out Of Office | Enable or disable out-of-office notifications for a mailbox |
+|  |  | Set Out Of Office | Enable or disable mailbox out-of-office notifications |
 |  |  | Set Room Mailbox Configuration | Set room mailbox resource policies |
 |  | Phone | Disable Teams Phone | Microsoft Teams telephony offboarding |
 |  |  | Get Teams User Info | Get Microsoft Teams voice status for a user |
@@ -160,6 +162,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Create Temporary Access Pass | Create a temporary access pass for a user |
 |  |  | Enable Or Disable Password Expiration | Enable or disable password expiration for a user |
 |  |  | List MFA Methods | List all MFA / authentication methods of a user |
+|  |  | List Signin Events | Retrieve and analyze sign-in events for a target user |
 |  |  | Reset MFA | Remove all App- and Mobilephone auth methods for a user |
 |  |  | Reset Password | Reset a user's password |
 |  |  | Revoke Or Restore Access | Revoke or restore user access |

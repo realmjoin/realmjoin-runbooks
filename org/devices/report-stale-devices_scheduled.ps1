@@ -4,11 +4,14 @@
 
     .DESCRIPTION
     Identifies and lists devices that haven't been active for a specified number of days.
-    Automatically sends a report via email.
+    Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
     .NOTES
     This runbook generates a comprehensive report of stale devices and delivers it via email.
-    The report includes device details, platform breakdowns, and exports a CSV file for further analysis.
+    The report includes device details, platform breakdowns, and exports report files (CSV/xlsx) for further analysis.
 
     Prerequisites:
     - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
@@ -42,11 +45,50 @@
     Include Android devices in the results.
 
     .PARAMETER EmailTo
+    If specified, an email with the report will be sent to the provided address(es).
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.
 
     .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization
+
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+    .PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+    .PARAMETER CreateDownloadLink
+    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+    .PARAMETER ContainerName
+    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+    .PARAMETER LinkExpiryDays
+    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
 
     .PARAMETER UseUserScope
     Enable user scope filtering to include or exclude devices based on primary user group membership.
@@ -88,6 +130,60 @@
                 "DisplayName": "Recipient Email Address(es)"
             },
             "EmailFrom": {
+                "Hide": true
+            },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
+            "ReportFileFormat": {
+                "DisplayName": "Report file format",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "CreateDownloadLink": {
+                "DisplayName": "Create a file download link (upload report to storage)?",
+                "SelectSimple": {
+                    "Yes - upload report and return a download link": true,
+                    "No - do not create a download link": false
+                }
+            },
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "LinkExpiryDays": {
                 "Hide": true
             },
             "UseUserScope": {
@@ -136,8 +232,9 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [int] $Days = 30,
@@ -148,12 +245,33 @@ param(
     [bool] $Android = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string] $BrandingHeaderImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string] $BrandingFooterImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string] $BrandingFooterLink,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string] $BrandingAccentColor,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string] $BrandingTextColor,
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string] $ReportFileFormat = 'CSV & XLSX',
+    [bool] $CreateDownloadLink = $false,
+    [string] $ContainerName = "report-stale-devices",
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
     [bool] $UseUserScope = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Users from Group" } )]
     [string]$IncludeUserGroup,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
     [string]$ExcludeUserGroup,
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string] $EmailTo,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -169,13 +287,18 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.2.3"
+$Version = "1.5.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
 Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 Write-RjRbLog -Message "Days: $Days" -Verbose
 Write-RjRbLog -Message "MaxDays: $MaxDays" -Verbose
 Write-RjRbLog -Message "Windows: $Windows" -Verbose
@@ -185,6 +308,14 @@ Write-RjRbLog -Message "Android: $Android" -Verbose
 Write-RjRbLog -Message "UseUserScope: $UseUserScope" -Verbose
 Write-RjRbLog -Message "IncludeUserGroup: $IncludeUserGroup" -Verbose
 Write-RjRbLog -Message "ExcludeUserGroup: $ExcludeUserGroup" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
 
 #endregion
 
@@ -192,16 +323,17 @@ Write-RjRbLog -Message "ExcludeUserGroup: $ExcludeUserGroup" -Verbose
 #region     Parameter Validation
 ########################################################
 
-# Validate Email Addresses
-if (-not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
-    throw "This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
+# Validate Email Addresses (only if email is requested)
+if ($EmailTo -and -not $EmailFrom) {
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
     exit
 }
 
-if (-not $EmailTo) {
-    Write-RjRbLog -Message "The recipient email address is required. It could be a single address or multiple comma-separated addresses." -Verbose
-    throw "The recipient email address is required."
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
 }
 
 #endregion
@@ -467,8 +599,10 @@ foreach ($device in $filteredDevices) {
 $displayDevices | Sort-Object -Property LastSync | Format-Table -AutoSize
 
 # Create Markdown content for email
-Write-Output ""
-Write-Output "## Preparing email report to send to $($EmailTo)"
+if ($EmailTo) {
+    Write-Output ""
+    Write-Output "## Preparing email report to send to $($EmailTo)"
+}
 
 # Prepare additional metadata for the report body
 $selectedPlatforms = @()
@@ -620,7 +754,7 @@ Regularly reviewing stale devices helps:
 
 ## Attachments
 
-The .csv-file attached to this email contains the full list of stale devices for further analysis.
+The report file(s) attached to this email contain the full list of stale devices for further analysis.
 
 ---
 
@@ -629,18 +763,54 @@ The .csv-file attached to this email contains the full list of stale devices for
 "@
 }
 
-# Create CSV file in current location
+# Create report files in current location (only needed for the email report and/or download link)
 $csvFileNameSuffix = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
     "$($Days)-$($MaxDays)Days"
 } else {
     "$($Days)Days"
 }
-$csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "StaleDevicesReport_$($tenantDisplayName)_$($csvFileNameSuffix).csv"
-$filteredDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
-$attachments = @($csvFilePath)
-Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
+$fileNameBase = "StaleDevicesReport_$($tenantDisplayName)_$($csvFileNameSuffix)"
+$csvFilePath = $null
+$xlsxFilePath = $null
+$reportFiles = @()
+if (($EmailTo -or $CreateDownloadLink) -and $filteredDevices.Count -gt 0) {
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.csv"
+        $filteredDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
+        $reportFiles += $csvFilePath
+        Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
+    }
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.xlsx"
+        $filteredDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Stale Devices"
+        $reportFiles += $xlsxFilePath
+        Write-RjRbLog -Message "Exported stale devices to XLSX: $($xlsxFilePath)" -Verbose
+    }
+}
 
-# Send email report
+# Upload / Download Link (optional)
+if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
+    Write-Output ""
+    Write-Output "## Uploading report to storage account..."
+
+    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+    # transparently connects the managed identity if no Az context is active.
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $reportFiles `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -LinkExpiryDays $LinkExpiryDays `
+        -AddBlobNamePrefix $true
+
+    foreach ($uploadResult in $uploadResults) {
+        Write-Output ""
+        Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+        $uploadResult.SASLink | Out-String | Write-Output
+    }
+}
+
+# Send email report (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
 $emailSubjectSuffix = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
     "$($Days)-$($MaxDays) days"
 } else {
@@ -648,9 +818,53 @@ $emailSubjectSuffix = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
 }
 $emailSubject = "Stale Devices Report - $($tenantDisplayName) - $($emailSubjectSuffix)"
 
+$brandingMailParams = @{}
+if ($EmailTo) {
 Write-Output "Sending report to '$($EmailTo)'..."
+
+# Resolve optional tenant email branding once per run (never fails the send)
+$brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
 try {
-    Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $attachments
+    if ($reportFiles.Count -gt 0) {
+        $markdownFallback = @"
+# Stale Devices Report
+
+This report shows devices that have been inactive for $($inactivityPeriodText).
+
+## Summary Statistics
+
+- Total stale devices: **$($filteredDevices.Count)**
+
+## Attachments
+
+- **$($fileNameBase).xlsx**: Formatted Excel workbook with the complete stale device list
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+        $guardParams = @{
+            EmailFrom         = $EmailFrom
+            EmailTo           = $EmailTo
+            Subject           = $emailSubject
+            MarkdownContent   = $markdownContent
+            TenantDisplayName = $tenantDisplayName
+            ReportVersion     = $Version
+        }
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
+            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+        }
+        else {
+            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+        }
+    }
+    else {
+        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+    }
 
     Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
     Write-Output "Stale devices report generated and sent successfully"
@@ -679,3 +893,33 @@ catch {
     Write-RjRbLog -Message "Error sending email: $_" -Verbose
     throw "Failed to send email report: $($_.Exception.Message)"
 }
+}
+else {
+    Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
+}
+
+########################################################
+#region     Cleanup
+########################################################
+
+# Remove the temporary report files, if any were created.
+foreach ($reportFilePath in $reportFiles) {
+    if ($reportFilePath -and (Test-Path -Path $reportFilePath)) {
+        try {
+            Remove-Item -Path $reportFilePath -Force -ErrorAction Stop
+            Write-RjRbLog -Message "Removed temporary report file: $reportFilePath" -Verbose
+        }
+        catch {
+            Write-RjRbLog -Message "Failed to remove temporary report file '$reportFilePath': $($_.Exception.Message)" -Verbose
+        }
+    }
+}
+
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
+
+#endregion

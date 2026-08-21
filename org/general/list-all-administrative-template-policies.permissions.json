@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementConfiguration.Read.All",
-                "Group.Read.All"
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Reads groupPolicyConfigurations and their assignments to list Administrative Template policies"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Resolves assignment target group names via /groups/{id}"
+                }
             ]
         }
     ],

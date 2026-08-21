@@ -14,7 +14,7 @@ Org \ Mail \ Add Or Remove Public Folder
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

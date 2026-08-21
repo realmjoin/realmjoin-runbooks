@@ -1,4 +1,4 @@
-# Add Gsa Application Registration
+# Add GSA Application Registration
 
 Add a GSA application registration to Azure AD
 
@@ -14,7 +14,7 @@ If a later step fails anyway, objects created in this run (application, group) a
 Pre-existing objects (update mode) are never removed.
 
 ## Where to find
-Org \ Applications \ Add Gsa Application Registration
+Org \ Applications \ Add GSA Application Registration
 
 ## Permissions
 ### Application permissions

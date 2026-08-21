@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "UserAuthenticationMethod.Read.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Lists all enabled users to build the set of accounts to check"
+                },
+                {
+                    "Value": "UserAuthenticationMethod.Read.All",
+                    "Reason": "Counts each user's registered MFA methods via /users/{id}/authentication/methods"
+                }
             ]
         }
     ],

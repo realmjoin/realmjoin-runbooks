@@ -11,12 +11,12 @@ Org \ General \ Add User
 
 ## Permissions
 ### Application permissions
-- **Type**: Microsoft Graph
-  - DeviceManagementManagedDevices.Read.All
-  - DeviceManagementManagedDevices.PrivilegedOperations.All
+- **Type**: Office 365 Exchange Online
+  - Exchange.ManageAsApp
 
 ### RBAC roles
 - User Administrator
+- Exchange Administrator
 
 
 ## Parameters

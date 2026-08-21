@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "AuditLog.Read.All",
-                "User.Read.All",
-                "UserAuthenticationMethod.Read.All"
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Queries userRegistrationDetails to pre-filter users with a registered mobile phone method"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the matched user's accountEnabled state for the report"
+                },
+                {
+                    "Value": "UserAuthenticationMethod.Read.All",
+                    "Reason": "Batch-reads the users' phoneMethods to compare numbers and check the SMS sign-in state"
+                }
             ]
         }
     ],

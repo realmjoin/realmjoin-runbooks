@@ -15,7 +15,7 @@ User \ Mail \ Delegate Send As
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

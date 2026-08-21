@@ -14,7 +14,9 @@ User \ General \ Assign Windows365
   - User.Read.All
   - GroupMember.ReadWrite.All
   - Group.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
+  - CloudPC.Read.All
+  - Organization.Read.All
 
 
 ## Parameters

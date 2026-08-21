@@ -1,15 +1,23 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Organization.Read.All"
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Required by the app-based Teams PowerShell sign-in to read tenant information"
+                }
             ]
         }
     ],
     "Roles": [
-        "Teams Administrator"
+        {
+            "Name": "Teams Administrator",
+            "TemplateId": "69091246-20e8-4a56-aa4d-066075b2a7a8",
+            "Reason": "Required to read user, calling, voicemail and call queue settings via the Cs cmdlets"
+        }
     ],
     "ManualPermissions": []
 }

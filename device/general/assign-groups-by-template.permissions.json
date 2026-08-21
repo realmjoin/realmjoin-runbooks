@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All",
-                "Group.Read.All",
-                "GroupMember.ReadWrite.All"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Resolves the Entra device and reads its current group memberships"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Looks up the template's target groups by display name or id and checks existing membership"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Adds the device to each template group via members@odata.bind"
+                }
             ]
         }
     ],

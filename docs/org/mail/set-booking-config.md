@@ -14,7 +14,7 @@ Org \ Mail \ Set Booking Config
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

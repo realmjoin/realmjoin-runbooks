@@ -3,10 +3,10 @@
 This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality.
 
 To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:
-- device
-- group
-- org
-- user
+- Device
+- Group
+- Organization
+- User
 
 Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory.
 
@@ -60,9 +60,9 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [Org](#org)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
-      - [Add Gsa Application Registration](#add-gsa-application-registration)
+      - [Add GSA Application Registration](#add-gsa-application-registration)
       - [Delete Application Registration](#delete-application-registration)
-      - [Delete Gsa Application Registration](#delete-gsa-application-registration)
+      - [Delete GSA Application Registration](#delete-gsa-application-registration)
       - [Export Enterprise Application Users](#export-enterprise-application-users)
       - [List Inactive Enterprise Applications](#list-inactive-enterprise-applications)
       - [Report Application Registration](#report-application-registration)
@@ -79,11 +79,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
-      - [Report Devices Without Primary User](#report-devices-without-primary-user)
+      - [Report Devices Without Primary User (Scheduled)](#report-devices-without-primary-user-(scheduled))
       - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
-      - [Report Users With More Than 5-Devices](#report-users-with-more-than-5-devices)
-      - [Report Windows Devices Without Autopilot](#report-windows-devices-without-autopilot)
+      - [Report Users With More Than 5-Devices (Scheduled)](#report-users-with-more-than-5-devices-(scheduled))
+      - [Report Windows Devices Without Autopilot (Scheduled)](#report-windows-devices-without-autopilot-(scheduled))
       - [Sync Device Serialnumbers To Entraid (Scheduled)](#sync-device-serialnumbers-to-entraid-(scheduled))
   - [General](#org-general)
       - [Add Devices Of Users To Group (Scheduled)](#add-devices-of-users-to-group-(scheduled))
@@ -115,6 +115,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Invite External Guest Users](#invite-external-guest-users)
       - [List All Administrative Template Policies](#list-all-administrative-template-policies)
       - [List Group License Assignment Errors](#list-group-license-assignment-errors)
+      - [Monitor Service Health (Scheduled)](#monitor-service-health-(scheduled))
       - [Office365 License Report](#office365-license-report)
       - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
@@ -151,6 +152,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Monitor Pending EPM Requests (Scheduled)](#monitor-pending-epm-requests-(scheduled))
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
       - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
+      - [Sync MFA Secure Users To Group (Scheduled)](#sync-mfa-secure-users-to-group-(scheduled))
 - [User](#user)
   - [AVD](#user-avd)
       - [User Signout](#user-signout)
@@ -191,6 +193,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Create Temporary Access Pass](#create-temporary-access-pass)
       - [Enable Or Disable Password Expiration](#enable-or-disable-password-expiration)
       - [List MFA Methods](#list-mfa-methods)
+      - [List Signin Events](#list-signin-events)
       - [Reset MFA](#reset-mfa)
       - [Reset Password](#reset-password)
       - [Revoke Or Restore Access](#revoke-or-restore-access)
@@ -304,6 +307,21 @@ Optionally, a report with the full compliance details can be sent via email.
 #### Where to find
 
 Device \ General \ Check Device Compliance
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1094,7 +1112,7 @@ Org \ Applications \ Add Application Registration
 
 <a name='org-applications-add-gsa-application-registration'></a>
 
-### Add Gsa Application Registration
+### Add GSA Application Registration
 #### Add a GSA application registration to Azure AD
 
 #### Description
@@ -1111,7 +1129,7 @@ Pre-existing objects (update mode) are never removed.
 
 #### Where to find
 
-Org \ Applications \ Add Gsa Application Registration
+Org \ Applications \ Add GSA Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1141,7 +1159,7 @@ Org \ Applications \ Delete Application Registration
 
 <a name='org-applications-delete-gsa-application-registration'></a>
 
-### Delete Gsa Application Registration
+### Delete GSA Application Registration
 #### Delete a GSA application registration from Azure AD including associated objects
 
 #### Description
@@ -1164,7 +1182,7 @@ Safety measures:
 
 #### Where to find
 
-Org \ Applications \ Delete Gsa Application Registration
+Org \ Applications \ Delete GSA Application Registration
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1175,16 +1193,34 @@ Org \ Applications \ Delete Gsa Application Registration
 <a name='org-applications-export-enterprise-application-users'></a>
 
 ### Export Enterprise Application Users
-#### Export a CSV of all (enterprise) application owners and users
+#### Export a report of all (enterprise) application owners and users
 
 #### Description
 
-This runbook exports a CSV report of enterprise applications (or all service principals) including owners and assigned users or groups.
-It uploads the generated CSV file to an Azure Storage Account and returns a time-limited download link.
+This runbook exports a report of enterprise applications (or all service principals) including owners and assigned users or groups.
+By default, the generated report files are uploaded to an Azure Storage Account and time-limited download links are returned.
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
 Org \ Applications \ Export Enterprise Application Users
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1203,9 +1239,29 @@ This runbook identifies enterprise applications with no recent sign-in activity 
 It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
 Use it to find candidates for review, cleanup, or decommissioning.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 #### Where to find
 
 Org \ Applications \ List Inactive Enterprise Applications
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1221,7 +1277,10 @@ Org \ Applications \ List Inactive Enterprise Applications
 #### Description
 
 This runbook generates a report of all application registrations in Microsoft Entra ID and can optionally include deleted registrations.
-It exports the results to CSV files and sends them via email.
+It exports the results to CSV files and an Excel (xlsx) workbook and can send them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 Use it for periodic inventory, review, and audit purposes.
 
 #### Where to find
@@ -1235,6 +1294,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -1253,6 +1318,11 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
 It can optionally filter by application IDs and can limit output to credentials that are about to expire.
 
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
 #### Where to find
 
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
@@ -1264,6 +1334,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -1347,6 +1423,10 @@ Org \ Devices \ Add Device Via Corporate Identifier
 #### Description
 
 This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+The notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1359,6 +1439,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -1374,7 +1460,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1387,6 +1476,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -1438,16 +1533,33 @@ Org \ Devices \ Dedup Device Names_Scheduled
 <a name='org-devices-delete-stale-devices-(scheduled)'></a>
 
 ### Delete Stale Devices (Scheduled)
-#### Scheduled deletion of stale devices based on last activity
+#### Scheduled deletion of stale devices based on last activity date and platform
 
 #### Description
 
-This runbook identifies Intune managed devices that have not been active for a defined number of days.
-It can optionally delete the matching devices and can send an email report.
+Identifies Intune managed devices that have not been active for a specified number of days.
+By default the runbook runs in report-only mode (simulation) and lists the devices that would be deleted.
+When deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.
+An email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
 #### Where to find
 
 Org \ Devices \ Delete Stale Devices_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1482,7 +1594,7 @@ Org \ Devices \ Get Bitlocker Recovery Key
 
 #### Description
 
-Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
+Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Three optional routing targets are available: a global override recipient that redirects ALL notifications (for testing and piloting), a dedicated recipient for users whose UPN matches a name pattern (e.g. Device Enrollment Manager accounts), and a dedicated recipient that receives one combined email for stale devices without a primary user.
 
 #### Where to find
 
@@ -1495,6 +1607,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 ## Mail Template Language Selection
 
@@ -1537,6 +1655,33 @@ To use a custom mail template (e.g., in Dutch, Spanish, or any other language), 
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
 - When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
 
+## Email Routing
+
+The runbook knows three independent routing targets, checked in this order of precedence:
+
+1. **Global override (testing):** A filled `OverrideEmailRecipient` redirects **ALL** emails - user notifications, pattern-routed notifications and the combined email for devices without a primary user - to that address. No end user receives an email. Use this for testing, piloting, or routing everything to a shared mailbox or ticket system. A warning is logged on every run while the override is active.
+2. **Pattern-matched users:** When `OverrideUserNamePattern` is set, notifications of users whose UPN matches the pattern are sent to `UserNamePatternEmailRecipient` instead of the user. All other users receive their notification directly. Typical use: Device Enrollment Manager or kiosk accounts (`DEM-*`, `KIOSK-*`) whose mailboxes nobody reads.
+3. **Devices without a primary user:** When `SendNoPrimaryUserDevicesToOverride` is enabled, stale devices without a primary user are collected into **one** combined email to `NoPrimaryUserEmailRecipient`. Otherwise these devices are skipped. This setting never changes how user notifications are routed.
+
+Incomplete configurations stop the runbook with an error instead of silently mailing end users:
+
+- `SendNoPrimaryUserDevicesToOverride` enabled without `NoPrimaryUserEmailRecipient` (and without a global override) - error.
+- `OverrideUserNamePattern` set without `UserNamePatternEmailRecipient` (and without a global override) - error.
+- A recipient set without its feature (`NoPrimaryUserEmailRecipient` without the toggle, `UserNamePatternEmailRecipient` without a pattern) - warning, the recipient is ignored.
+
+While the global override is active, the dedicated recipients do not need to be set - everything goes to the override recipient anyway.
+
+### User Name Pattern
+
+`OverrideUserNamePattern` accepts one or more wildcard patterns (comma-separated) matched against the primary user's UPN, e.g. `DEM-*` for Device Enrollment Manager accounts or `DEM-*,KIOSK-*` for multiple patterns. Matching is case-insensitive and uses PowerShell wildcard syntax (`*`, `?`). When the pattern routing is active, the runbook logs a warning stating which pattern is redirected to which recipient.
+
+**Important Notes:**
+
+- All recipient parameters accept multiple comma-separated addresses
+- Devices without a primary user bypass the user scope filtering (they have no user to match against groups)
+- Pattern-matched users are still subject to user scope filtering first; users excluded by scope produce no notification at all
+- The combined email for devices without a primary user uses an administrative wording (no end-user action steps), independent of custom templates
+- Redirected notifications state the affected user in the email subject and body
 
 
 
@@ -1586,21 +1731,25 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
  
  
 
-<a name='org-devices-report-devices-without-primary-user'></a>
+<a name='org-devices-report-devices-without-primary-user-(scheduled)'></a>
 
-### Report Devices Without Primary User
+### Report Devices Without Primary User (Scheduled)
 #### Reports all managed devices in Intune that do not have a primary user assigned.
 
 #### Description
 
 This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-The output is a formatted table showing Object ID, Device ID, Display Name, and Last Sync Date/Time for each device without a primary user.
+The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
+The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
 
-Optionally, the report can be sent via email with a CSV attachment containing detailed device information
+Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing detailed device information.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
-Org \ Devices \ Report Devices Without Primary User
+Org \ Devices \ Report Devices Without Primary User_Scheduled
 
 ## Setup regarding email sending
 
@@ -1609,6 +1758,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -1624,7 +1779,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 #### Description
 
-For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.
+For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1634,7 +1792,13 @@ Org \ Devices \ Report Primary User Mismatch_Scheduled
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-This process is described in detail in the [Setup Email Reporting](https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md) documentation.
+This process is described in detail in the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 ## Setup regarding RealmJoin API credentials
 
@@ -1665,7 +1829,10 @@ This runbook queries the RealmJoin customer API and requires a dedicated credent
 #### Description
 
 Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1679,6 +1846,12 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1686,19 +1859,23 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
  
  
 
-<a name='org-devices-report-users-with-more-than-5-devices'></a>
+<a name='org-devices-report-users-with-more-than-5-devices-(scheduled)'></a>
 
-### Report Users With More Than 5-Devices
+### Report Users With More Than 5-Devices (Scheduled)
 #### Report users with more than five registered devices
 
 #### Description
 
 This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-It outputs a summary table and can optionally send an email with CSV attachments.
+It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
+The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device and whether it is compliant (both highlighted green/red in the Excel workbook).
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
-Org \ Devices \ Report Users With More Than 5-Devices
+Org \ Devices \ Report Users With More Than 5-Devices_Scheduled
 
 ## Setup regarding email sending
 
@@ -1708,6 +1885,12 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1715,9 +1898,9 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
  
  
 
-<a name='org-devices-report-windows-devices-without-autopilot'></a>
+<a name='org-devices-report-windows-devices-without-autopilot-(scheduled)'></a>
 
-### Report Windows Devices Without Autopilot
+### Report Windows Devices Without Autopilot (Scheduled)
 #### Reports all Windows Entra devices that have no associated Windows Autopilot object.
 
 #### Description
@@ -1730,12 +1913,14 @@ Such orphaned Entra device objects are typical leftovers ("Objektleichen") from 
 reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
 these candidates visible so they can be reviewed and - if appropriate - deleted.
 
-Optionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited
-download link) and/or sent via email with the CSV attached.
+Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
+download links) and/or sent via email with the selected report file format(s) attached.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
-Org \ Devices \ Report Windows Devices Without Autopilot
+Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 ## Reporting orphaned Windows devices
 
@@ -1769,6 +1954,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -2377,6 +2568,40 @@ Org \ General \ List Group License Assignment Errors
  
  
 
+<a name='org-general-monitor-service-health-(scheduled)'></a>
+
+### Monitor Service Health (Scheduled)
+#### Alert by email on newly announced Microsoft 365 Service Health issues
+
+#### Description
+
+Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.
+
+#### Where to find
+
+Org \ General \ Monitor Service Health_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-general-office365-license-report'></a>
 
 ### Office365 License Report
@@ -2419,6 +2644,12 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2436,7 +2667,10 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 This runbook checks the license availability based on the transmitted SKUs and sends an email report if any thresholds are reached.
 Two types of thresholds can be configured. The first type is a minimum threshold, which triggers an alert when the number of available licenses falls below a specified number.
 The second type is a maximum threshold, which triggers an alert when the number of available licenses exceeds a specified number.
-The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV files, and sends them via email.
+The report includes detailed information about licenses that are outside the configured thresholds, exports them to CSV and/or Excel (xlsx) files, and sends them via email.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -2451,6 +2685,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 ### InputJson Configuration
 
@@ -2663,7 +2903,9 @@ or vice versa) and syncing group members into a Teams Shared Channel. Adding mis
 performed, while removing members that only exist in the target is optional and controlled by a
 parameter. Guest handling and whether channel removals also remove the host team membership are
 configurable, and the runbook can optionally send an email report and upload the results as a
-time-limited download link.
+time-limited download link. The ReportFileFormat parameter controls which report file formats are
+generated and delivered (CSV only, CSV & XLSX, or XLSX only). When the CSV attachment exceeds the
+email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -2735,6 +2977,12 @@ assignment, not a Graph application permission).
 Designed to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule
 keeps the target in sync with the source as members come and go.
 
+## Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2754,8 +3002,11 @@ that gap: for each team named in a mapping, it ensures the members of a mapped s
 of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
 maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
 are never removed - so newly created shared channels are simply picked up on the next run. It can
-optionally email a report and/or upload the CSV results as a download link. See the accompanying
-documentation for the mapping rules and configuration.
+optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+rules and configuration.
 
 #### Where to find
 
@@ -2806,6 +3057,12 @@ The storage upload authenticates with the Automation account's managed identity;
 ### Scheduling
 
 Designed to run unattended on a schedule. Because configuration is centralized in the org settings and the runbook is add-only and idempotent, a single recurring schedule keeps all mapped teams and their shared channels in sync as people and channels come and go.
+
+## Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -3273,7 +3530,10 @@ Org \ Security \ List Vulnerable App Regs
 
 Queries Microsoft Intune for pending EPM elevation requests and sends an email report.
 Email is only sent when there are pending requests.
-Optionally includes detailed information about each request in a table and CSV attachment.
+Optionally includes detailed information about each request in a table and report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -3286,6 +3546,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -3322,7 +3588,10 @@ Org \ Security \ Notify Changed CA Policies
 
 Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
 Supports filtering by multiple status types and time range.
-Sends an email report with summary statistics and detailed CSV attachment.
+Sends an email report with summary statistics and detailed report file attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -3335,6 +3604,188 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-sync-mfa-secure-users-to-group-(scheduled)'></a>
+
+### Sync MFA Secure Users To Group (Scheduled)
+#### Sync users with secure MFA methods registered into an Entra ID group
+
+#### Description
+
+This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
+
+Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
+
+#### Where to find
+
+Org \ Security \ Sync MFA Secure Users To Group_Scheduled
+
+## How it works
+
+The runbook reads the Entra ID [authentication methods registration report](https://learn.microsoft.com/en-us/graph/api/authenticationmethodsroot-list-userregistrationdetails) (`userRegistrationDetails`) and mirrors the target group against all **member users** that qualify:
+
+- A user qualifies when at least one of their registered methods is in the configured **secure** set.
+- In **strict mode** (`SecureOnly`), a user additionally must not have any method from the **unsecure** set registered — a passkey user who also keeps an SMS factor does not qualify.
+- Qualifying users that are not yet group members are added; members that no longer qualify are removed (mirror sync).
+- Guest users are never added or removed. Non-user group members (devices, service principals, nested groups) are never touched.
+
+The target group should be managed exclusively by this runbook.
+
+## Secure method groups
+
+Each toggle controls which `methodsRegistered` values count as secure:
+
+| Toggle | Default | Covered values |
+| --- | --- | --- |
+| Passkeys / FIDO2 security keys | on | `fido2SecurityKey`, `passKeyDeviceBound`, `passKeyDeviceBoundAuthenticator` |
+| Platform credentials | on | `windowsHelloForBusiness`, `passKeyDeviceBoundWindowsHello`, `macOsSecureEnclaveKey` |
+| Microsoft Authenticator app | on | `microsoftAuthenticatorPush`, `microsoftAuthenticatorPasswordless` |
+| Software OTP | off | `softwareOneTimePasscode` |
+| Hardware OTP | off | `hardwareOneTimePasscode` |
+| Certificate-based authentication | on | `certificateBasedAuthentication` |
+
+## Strict mode (SecureOnly)
+
+With strict mode enabled, users with any of the following built-in unsecure methods never qualify:
+
+`mobilePhone`, `alternateMobilePhone`, `officePhone`, `email`, `securityQuestion`
+
+If a method ends up in both the secure and the unsecure set (only possible via the override parameters), unsecure wins — such users never qualify in strict mode. The runbook warns about this at startup.
+
+## Exclusions
+
+Excluded users never qualify regardless of their registered methods: they are never added to the target group and are removed if they are already members. The per-user report shows the reason in the `ExclusionReason` column.
+
+### Exclude admin users (`ExcludeAdmins`, on by default)
+
+Users holding an Entra ID directory role are excluded. This covers:
+
+- **Active role assignments** (`roleManagement/directory/roleAssignments`)
+- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — without P2 the runbook falls back to active assignments and logs a warning)
+- **Role-assignable groups**: groups holding a role are expanded to their transitive user members
+
+Background: when the target group drives **SSPR** and the SSPR administrator policy is disabled, admins in the group would still be forced to register a second factor once two SSPR methods are required. Keeping admins out of the group avoids this.
+
+This option requires the additional Graph permission `RoleManagement.Read.Directory` for the managed identity.
+
+### Exclusion group (`ExcludeGroupId`, optional)
+
+Transitive user members of the configured group are excluded — intended for accounts that must never be managed by this sync, such as **break glass accounts** or **service accounts**. Nested groups are honored. The exclusion group must not be the target group itself.
+
+### Individually excluded users (`ExcludeUserIds`, optional)
+
+Individual users can be excluded directly via the multi-user picker — for one-off exclusions where a dedicated exclusion group is not worth maintaining. The list accepts user **object IDs** and **user principal names** (UPNs). Unresolvable entries (e.g. a deleted account) log a warning and are ignored, so a stale entry never breaks a scheduled sync.
+
+### Maintaining exclusions via Runbook Customization (without the pickers)
+
+Both exclusion parameters can be pre-set centrally via [JSON-based Runbook Customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization#json-based-customizing) (RealmJoin portal: **Settings** → **Runbook Customizations**) — useful when the exclusions are fixed for the tenant and should not be picked manually each time the runbook is started or scheduled:
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_security_sync-mfa-secure-users-to-group_scheduled": {
+            "Parameters": {
+                "ExcludeGroupId": {
+                    "DefaultValue": "00000000-0000-0000-0000-000000000000",
+                    "Hide": true
+                },
+                "ExcludeUserIds": {
+                    "DefaultValue": [
+                        "11111111-1111-1111-1111-111111111111",
+                        "breakglass@contoso.com"
+                    ],
+                    "Hide": true
+                }
+            }
+        }
+    }
+}
+```
+
+- **ExcludeGroupId** takes a single group **object ID** (GUID) as a plain string — copy it from the group's overview page in the Entra admin center or the RealmJoin portal.
+- **ExcludeUserIds** takes a JSON **array of strings**; each entry can be a user **object ID** or a **UPN**. Entries are trimmed and deduplicated; the runbook resolves them at startup.
+- **Recommended:** when the exclusions are maintained via Runbook Customization, also set `"Hide": true` on the parameter (as in the example above). This removes it from the start form entirely, so the centrally configured exclusions cannot be overridden in the UI when starting or scheduling the runbook. Without `Hide`, the configured values only appear pre-filled and can still be changed there.
+
+## Method classification reference
+
+Use the exact Graph values from this table when building the comma-separated override strings:
+
+| `methodsRegistered` value | Friendly name | Classification | Covered by toggle (default) |
+| --- | --- | --- | --- |
+| `fido2SecurityKey` | FIDO2 security key | Secure | Passkeys / FIDO2 (on) |
+| `passKeyDeviceBound` | Passkey (device-bound) | Secure | Passkeys / FIDO2 (on) |
+| `passKeyDeviceBoundAuthenticator` | Passkey in Microsoft Authenticator | Secure | Passkeys / FIDO2 (on) |
+| `windowsHelloForBusiness` | Windows Hello for Business | Secure | Platform credentials (on) |
+| `passKeyDeviceBoundWindowsHello` | Passkey in Windows Hello | Secure | Platform credentials (on) |
+| `macOsSecureEnclaveKey` | Platform Credential for macOS | Secure | Platform credentials (on) |
+| `microsoftAuthenticatorPush` | Microsoft Authenticator (push notification) | Secure | Microsoft Authenticator app (on) |
+| `microsoftAuthenticatorPasswordless` | Microsoft Authenticator (passwordless phone sign-in) | Secure | Microsoft Authenticator app (on) |
+| `softwareOneTimePasscode` | Software OATH token (TOTP app) | Secure | Software OTP (off) |
+| `hardwareOneTimePasscode` | Hardware OATH token | Secure | Hardware OTP (off) |
+| `certificateBasedAuthentication` | Certificate-based authentication | Secure | Certificate-based authentication (on) |
+| `mobilePhone` | Phone (SMS / voice call) | Unsecure | built-in unsecure list |
+| `alternateMobilePhone` | Alternate phone (voice call) | Unsecure | built-in unsecure list |
+| `officePhone` | Office phone (voice call) | Unsecure | built-in unsecure list |
+| `email` | Email (SSPR only) | Unsecure | built-in unsecure list |
+| `securityQuestion` | Security questions (SSPR only) | Unsecure | built-in unsecure list |
+| `temporaryAccessPass` | Temporary Access Pass | Neutral | never qualifies, never disqualifies |
+
+Unknown or future Graph values are treated as neutral unless explicitly listed in an override parameter.
+
+## Override parameters
+
+Both override parameters are hidden by default and intended for RealmJoin runbook customization:
+
+- **SecureMethodsOverride** — comma-separated list of `methodsRegistered` values that defines the secure set. When set, **all** method group toggles are ignored. Example: `fido2SecurityKey,passKeyDeviceBound,passKeyDeviceBoundAuthenticator,windowsHelloForBusiness`
+- **UnsecureMethodsOverride** — comma-separated list that replaces the built-in unsecure list. Only evaluated in strict mode. Example: `mobilePhone,alternateMobilePhone,officePhone,email,securityQuestion,softwareOneTimePasscode`
+
+Unknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.
+
+## Email report and download links
+
+Optionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+
+- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
+- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+
+Report files are only generated when at least one of the two options is enabled. The report consists of:
+
+- **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
+- **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification, exclusion reason and group membership
+- **mfa-secure-users-group-sync-report.xlsx** - the same data as a formatted Excel workbook: an "Info" cover sheet with the chosen parameters and result counts, a "Changes" worksheet (added users highlighted in green, removed in red) and an "All Users" worksheet
+
+In large tenants the raw CSV files can exceed the email attachment size limit (Graph rejects mails at roughly 4 MB total). When the CSV files exceed a 2.5 MB budget, the email is sent with only the Excel workbook attached (which contains the complete data in compressed form) and a note explaining the omission; a failed full-size send is also retried automatically with the workbook only. The download link upload always includes all files regardless of size.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+## Notes and limitations
+
+- The registration report requires an **Entra ID P1 or P2** license.
+- PIM-eligible role assignments (admin exclusion) require an **Entra ID P2** license — without it, only active role assignments are excluded.
+- The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
+- Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
+- The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
+
+## Scheduling
+
+The sync is idempotent — a single recurring schedule (e.g. daily) keeps the group up to date, and reruns after partial failures self-heal. Recommendation: run once with **Dry run (WhatIf)** enabled and review the job output before scheduling the runbook in live mode.
 
 
 
@@ -3445,6 +3896,21 @@ Lists group memberships for this user and supports filtering by group type, memb
 
 User \ General \ List Group Memberships
 
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when the `SendMail` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -3459,10 +3925,27 @@ User \ General \ List Group Memberships
 #### Description
 
 Lists Entra ID groups where the specified user is an owner. Outputs the group names and IDs.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
 User \ General \ List Group Ownerships
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3652,17 +4135,79 @@ User \ Mail \ Convert To Shared Mailbox
 <a name='user-mail-delegate-full-access'></a>
 
 ### Delegate Full Access
-#### Delegate FullAccess permissions to another user on a mailbox or remove existing delegation
+#### Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
 
 #### Description
 
-Grants or removes FullAccess permissions for a delegate on a mailbox. Optionally enables Outlook automapping when granting access.
-Also shows the current and new permissions for the mailbox.
-Automapping allows the delegated mailbox to automatically appear in the delegate's Outlook client.
+Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.
 
 #### Where to find
 
 User \ Mail \ Delegate Full Access
+
+## How it works
+
+On each run the runbook:
+
+1. Connects to Exchange Online with the Automation account's managed identity.
+2. Verifies that the selected mailbox owner (`UserName`) actually has a mailbox - if not, the run stops before anything is changed.
+3. Resolves every selected delegate to its primary SMTP address and drops duplicates and the mailbox owner itself.
+4. Reads and prints the current **FullAccess** delegations on the mailbox (the *status quo*).
+5. Grants or removes FullAccess for each remaining delegate, one at a time.
+6. Re-reads the mailbox permissions and prints the resulting state plus a per-run summary.
+
+The runbook only ever touches the **FullAccess** right on the one selected mailbox. Send As, Send on Behalf and folder-level permissions are not affected.
+
+### Selecting delegates
+
+The **Delegate access to** field is a **multi-select** user picker. Select as many delegates as needed - all of them receive the same action (*Grant access* or *Remove access*) and the same AutoMapping setting from the form in a single run.
+
+The picker is restricted to member accounts (`userType eq 'Member'`), so guest accounts are not offered. It hands over each selected delegate as a **user principal name**, so the very first log line already reads as a list of UPNs instead of raw object IDs. Each value is then resolved against Exchange Online, and from the preflight step onward all output shows the delegate's primary SMTP address.
+
+Two picker entries that resolve to the same mailbox are de-duplicated, and a delegate that resolves to the mailbox owner is dropped with a warning - a mailbox cannot be delegated to itself.
+
+### What gets changed
+
+- **Grant access (`Remove` = false):** `Add-MailboxPermission` with `-AccessRights FullAccess` for each delegate.
+- **Remove access (`Remove` = true):** `Remove-MailboxPermission` with `-AccessRights FullAccess -InheritanceType All` for each delegate.
+
+### AutoMapping
+
+**`AutoMapping`** is only evaluated when granting access; the portal hides the field when *Remove access* is selected. With AutoMapping enabled, Outlook adds the delegated mailbox to the delegate's profile automatically - but only after the client re-creates the mapping, which can take a while. Existing grants are not re-written to change their AutoMapping value; remove the delegation and grant it again if the mapping behaviour must change.
+
+### Idempotent by design
+
+Nothing is done twice and nothing fails just because it was already true:
+
+- Granting access to a delegate who already holds FullAccess is reported as *unchanged*, not as an error.
+- Removing access from a delegate who has no FullAccess entry is reported as *unchanged*, not as an error.
+- When the pre-change snapshot cannot classify an existing permission entry, the runbook does **not** take the shortcut - it calls Exchange Online and lets its response decide, so a removable delegation is never silently skipped.
+
+### Partial results
+
+Delegates are processed independently:
+
+- A delegate **without a mailbox** is skipped during the preflight check and counted as *skipped*; the remaining delegates are still processed. If none of the selected delegates has a mailbox, the run stops.
+- A delegate whose change **fails** is reported with a targeted reason (directory-replication delay, insufficient Exchange Online permissions on the managed identity, a permission inherited from a group, or a shared/unlicensed mailbox) and the loop continues with the rest.
+
+Every run ends with a summary line in the form `Summary: <changed>, <unchanged>, <failed>, <skipped (no mailbox)>`, followed by the resulting FullAccess delegations on the mailbox.
+
+If **any** delegate failed, the runbook itself reports a failure. This is deliberate: with a multi-select picker, a partial success reported as a clean run would hide delegates that never received access.
+
+### Limitations
+
+- **Inherited permissions cannot be removed.** A FullAccess right that comes from a role group or security group membership is shown as *inherited* but cannot be revoked here - adjust the group membership or role assignment instead.
+- **Only explicit Allow grants are managed.** An explicit **Deny** entry on the mailbox is displayed for transparency, but the runbook never adds or removes one.
+
+### Prerequisites
+
+The Automation account's managed identity connects to Exchange Online via `Connect-RjRbExchangeOnline` and needs:
+
+- the `Exchange.ManageAsApp` application permission on *Office 365 Exchange Online*, and
+- the **Exchange Administrator** role (or an equivalent Exchange Online RBAC role that includes `Add-MailboxPermission` and `Remove-MailboxPermission`).
+
+The runbook makes no Microsoft Graph calls - the user picker is a portal-side annotation only, so no Graph application permissions are required.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -3808,11 +4353,11 @@ User \ Mail \ Remove Mailbox
 <a name='user-mail-set-out-of-office'></a>
 
 ### Set Out Of Office
-#### Enable or disable out-of-office notifications for a mailbox
+#### Enable or disable mailbox out-of-office notifications
 
 #### Description
 
-Configures automatic replies for a mailbox and optionally creates an out-of-office calendar event. The runbook can either enable scheduled replies or disable them.
+Configures automatic replies for a mailbox and can optionally create an out-of-office calendar event. The runbook can either enable scheduled replies with internal and external messages or disable existing out-of-office settings.
 
 #### Where to find
 
@@ -4035,6 +4580,12 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -4131,6 +4682,64 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-security-list-signin-events'></a>
+
+### List Signin Events
+#### Retrieve and analyze sign-in events for a target user
+
+#### Description
+
+Retrieves the target user's Entra ID sign-in logs from the Microsoft Graph beta endpoint and analyzes them: each sign-in's application, timestamp, status (with error codes and failure reasons if applicable), client app, device and location information is displayed, and a per-application failure summary helps support teams identify which applications are experiencing issues and diagnose the underlying causes. IP addresses are shown in the failed sign-in view; conditional access details are included in the exported report files. The runbook can optionally export the full data set to CSV and XLSX files and deliver them by email and/or a time-limited download link.
+
+#### Where to find
+
+User \ Security \ List Signin Events
+
+## Required license and permissions
+
+Reading sign-in logs through the Microsoft Graph API requires an **Entra ID P1 or P2 license** in the tenant. Tenants without it receive a 403 error from the sign-in log query even when all Graph permissions are granted. With P1/P2, sign-in logs are retained for up to 30 days; the 7-day retention of the free tier applies to the Entra portal, not to this runbook.
+
+If the sign-in log query returns a 403 although `AuditLog.Read.All` is granted and the tenant is licensed, some tenants additionally require `Directory.Read.All` on the Entra reporting API. Granting it is the known workaround; it is not declared by default because it grants read access to every directory object.
+
+## Report delivery
+
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+## Interpreting the results
+
+Entra counts some sign-in interrupts as errors (for example 50140 "Keep me signed in", 50058 and 50076), so they appear as failures and are included in the per-application failure rate. Check the failure reason before treating a high failure rate as a genuine problem. Error codes are Entra ID sign-in error codes; look them up at [https://login.microsoftonline.com/error](https://login.microsoftonline.com/error).
+
+Sign-in log data typically lags ~15 minutes but can take up to 2 hours for some records - a very recent sign-in may not yet appear. All timestamps are shown in UTC.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -4204,6 +4813,12 @@ Sending a notification email is optional and only happens when `NotifyUser` is e
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 
@@ -4316,6 +4931,12 @@ Sending a notification email is optional and only happens when `NotifyUser` is e
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 

@@ -3,7 +3,10 @@
 Clean up orphaned and stale Windows Autopilot device registrations
 
 ## Detailed description
-This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 ## Where to find
 Org \ Devices \ Cleanup Autopilot Devices_Scheduled
@@ -15,6 +18,12 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
 
 
 ## Notes
@@ -60,7 +69,7 @@ Parameter interactions:
   - Device.ReadWrite.All
   - DeviceManagementManagedDevices.Read.All
   - DeviceManagementServiceConfig.ReadWrite.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 
@@ -163,6 +172,106 @@ The sender email address for the summary report. This is configured via Runbook 
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### BrandingHeaderImageUrl
+Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterImageUrl
+Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterLink
+Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+When empty, the default link (https://www.realmjoin.com) is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingAccentColor
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingTextColor
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
+### CreateDownloadLink
+If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ContainerName
+Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+| Property | Value |
+|----------|-------|
+| Default Value | cleanup-autopilot-devices |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

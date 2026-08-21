@@ -20,7 +20,7 @@ Group \ General \ Add Or Remove Owner
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

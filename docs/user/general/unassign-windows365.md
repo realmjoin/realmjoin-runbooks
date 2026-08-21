@@ -15,6 +15,7 @@ User \ General \ Unassign Windows365
   - GroupMember.ReadWrite.All
   - Group.ReadWrite.All
   - CloudPC.ReadWrite.All
+  - Organization.Read.All
 
 
 ## Parameters

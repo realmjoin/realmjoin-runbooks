@@ -1,17 +1,27 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Application.ReadWrite.OwnedBy",
-                "Organization.Read.All",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "Application.ReadWrite.OwnedBy",
+                    "Reason": "Reads and patches /applications/{id} and /servicePrincipals/{id} to update redirect URIs, tags and SAML settings"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Creates the assignment group and assigns it to the app when UserAssignmentRequired is set"
+                }
             ]
         }
     ],
     "Roles": [
-        "Application Developer"
+        {
+            "Name": "Application Developer",
+            "TemplateId": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+            "Reason": "Allows updating app registrations the runbook's identity does not own"
+        }
     ],
     "ManualPermissions": []
 }

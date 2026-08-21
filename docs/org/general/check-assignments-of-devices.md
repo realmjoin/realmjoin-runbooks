@@ -15,7 +15,6 @@ Org \ General \ Check Assignments Of Devices
   - Device.Read.All
   - Group.Read.All
   - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
   - DeviceManagementApps.Read.All
 
 

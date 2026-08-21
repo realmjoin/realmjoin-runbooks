@@ -1,13 +1,26 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementServiceConfig.Read.All",
-                "DeviceManagementManagedDevices.Read.All",
-                "User.Read.All",
-                "Device.ReadWrite.All"
+                {
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Lists all Autopilot devices as the report's base data set"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads each Intune device for enrollment date and user info"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the grouping attribute from each device's user when grouping by user properties"
+                },
+                {
+                    "Value": "Device.ReadWrite.All",
+                    "Reason": "Reads Entra device objects for device-property grouping"
+                }
             ]
         }
     ],

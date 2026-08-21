@@ -15,9 +15,7 @@ Org \ General \ Check Assignments Of Users
   - User.Read.All
   - Group.Read.All
   - DeviceManagementConfiguration.Read.All
-  - DeviceManagementManagedDevices.Read.All
   - DeviceManagementApps.Read.All
-  - Device.Read.All
 
 
 ## Parameters

@@ -1,0 +1,27 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Lists all Entra devices with their registered users to count devices per user"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads all Intune devices to mark each device's Intune presence in the report"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

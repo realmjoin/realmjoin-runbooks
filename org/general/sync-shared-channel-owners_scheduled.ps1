@@ -8,8 +8,11 @@
     of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
     maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
     are never removed - so newly created shared channels are simply picked up on the next run. It can
-    optionally email a report and/or upload the CSV results as a download link. See the accompanying
-    documentation for the mapping rules and configuration.
+    optionally email a report and/or upload the report files as a download link. The ReportFileFormat
+    parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
+    XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
+    email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
+    rules and configuration.
 
     .PARAMETER TeamOwnerGroupMapping
     Mapping of an exact team display name to an owner security group object id, e.g.
@@ -27,7 +30,8 @@
 
     .PARAMETER SendEmailReport
     When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body
-    contains run statistics and two CSV attachments (per-team summary and per-change detail).
+    contains run statistics; the report files (per-team summary and per-change detail) are attached in the
+    selected report file format(s).
 
     .PARAMETER EmailTo
     Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled.
@@ -35,8 +39,31 @@
     .PARAMETER EmailFrom
     Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender".
 
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+    .PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
     .PARAMETER CreateDownloadLink
-    When enabled, the CSV report(s) are uploaded to a storage account and a time-limited download link is
+    When enabled, the report file(s) are uploaded to a storage account and time-limited download links are
     returned (and included in the email report if that is also enabled). Default off.
 
     .PARAMETER ContainerName
@@ -71,71 +98,176 @@
 
     .INPUTS
     RunbookCustomization: {
-        "Parameters": {
-            "TeamOwnerGroupMapping": {
+        "ParameterList": [
+            {
+                "Name": "TeamOwnerGroupMapping",
                 "Hide": true
             },
-            "IncludeTeamOwners": {
+            {
+                "Name": "IncludeTeamOwners",
                 "DisplayName": "Also make them owners of the parent team"
             },
-            "WhatIfMode": {
+            {
+                "Name": "WhatIfMode",
                 "DisplayName": "Dry run (log only, no changes)"
             },
-            "SendEmailReport": {
-                "DisplayName": "Send email report",
+            {
+                "DisplayName": "Report delivery",
+                "DisplayAfter": "WhatIfMode",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "No",
-                            "ParameterValue": false,
+                            "Display": "No report",
                             "Customization": {
+                                "Default": {
+                                    "SendEmailReport": false,
+                                    "CreateDownloadLink": false
+                                },
+                                "Hide": [
+                                    "EmailTo",
+                                    "ReportFileFormat"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Email report",
+                            "Customization": {
+                                "Default": {
+                                    "SendEmailReport": true,
+                                    "CreateDownloadLink": false
+                                },
+                                "Show": [
+                                    "EmailTo",
+                                    "ReportFileFormat"
+                                ],
+                                "Mandatory": [
+                                    "EmailTo"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Report download link",
+                            "Customization": {
+                                "Default": {
+                                    "SendEmailReport": false,
+                                    "CreateDownloadLink": true
+                                },
+                                "Show": [
+                                    "ReportFileFormat"
+                                ],
                                 "Hide": [
                                     "EmailTo"
                                 ]
                             }
                         },
                         {
-                            "Display": "Yes",
-                            "ParameterValue": true
+                            "Display": "Email report & download link",
+                            "Customization": {
+                                "Default": {
+                                    "SendEmailReport": true,
+                                    "CreateDownloadLink": true
+                                },
+                                "Show": [
+                                    "EmailTo",
+                                    "ReportFileFormat"
+                                ],
+                                "Mandatory": [
+                                    "EmailTo"
+                                ]
+                            }
                         }
                     ]
+                },
+                "Default": "No report"
+            },
+            {
+                "Name": "SendEmailReport",
+                "Hide": true
+            },
+            {
+                "Name": "EmailTo",
+                "DisplayName": "Send report to (email address(es))",
+                "Hide": true
+            },
+            {
+                "Name": "EmailFrom",
+                "Hide": true
+            },
+            {
+                "Name": "BrandingHeaderImageUrl",
+                "Hide": true
+            },
+            {
+                "Name": "BrandingFooterImageUrl",
+                "Hide": true
+            },
+            {
+                "Name": "BrandingFooterLink",
+                "Hide": true
+            },
+            {
+                "Name": "BrandingAccentColor",
+                "Hide": true
+            },
+            {
+                "Name": "BrandingTextColor",
+                "Hide": true
+            },
+            {
+                "Name": "CreateDownloadLink",
+                "Hide": true
+            },
+            {
+                "Name": "ReportFileFormat",
+                "DisplayName": "Report file format",
+                "DisplayAfter": "EmailTo",
+                "DefaultValue": "CSV & XLSX",
+                "Hide": true,
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
                 }
             },
-            "EmailTo": {
-                "DisplayName": "Send report to (email address(es))"
-            },
-            "EmailFrom": {
+            {
+                "Name": "ContainerName",
                 "Hide": true
             },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a report download link (upload report to storage)",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
-                }
-            },
-            "ContainerName": {
+            {
+                "Name": "ResourceGroupName",
                 "Hide": true
             },
-            "ResourceGroupName": {
+            {
+                "Name": "StorageAccountName",
                 "Hide": true
             },
-            "StorageAccountName": {
+            {
+                "Name": "LinkExpiryDays",
                 "Hide": true
             },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "CallerName": {
+            {
+                "Name": "CallerName",
                 "Hide": true
             }
-        }
+        ]
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     # Hidden, sourced from the org Setting "SharedChannelOwners.Mapping". May arrive as a structured
@@ -147,7 +279,7 @@ param(
 
     [bool] $WhatIfMode = $false,
 
-    # Enables the email report; when on, EmailTo becomes visible in the portal.
+    # Enables the email report. Hidden in the portal; set via the "Report delivery" dropdown.
     [bool] $SendEmailReport = $false,
 
     [string] $EmailTo,
@@ -156,7 +288,26 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string] $EmailFrom,
 
-    # Enables uploading the CSV report(s) to a storage account and returning a download link.
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string] $BrandingHeaderImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string] $BrandingFooterImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string] $BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string] $BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string] $BrandingTextColor,
+
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string] $ReportFileFormat = 'CSV & XLSX',
+
+    # Enables uploading the report file(s) to a storage account and returning a download link.
+    # Hidden in the portal; set via the "Report delivery" dropdown.
     [bool] $CreateDownloadLink = $false,
 
     [string] $ContainerName = "shared-channel-owners",
@@ -310,7 +461,7 @@ function Add-ChannelOwner {
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -319,6 +470,12 @@ Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
@@ -682,35 +839,60 @@ if ($SendEmailReport -or $CreateDownloadLink) {
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $basePath = (Get-Location).Path
 
-    # CSV 1: per-team summary
-    $teamsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Teams.csv"
-    if ($teamReportRows.Count -gt 0) {
-        $teamReportRows | Sort-Object Team | Export-Csv -Path $teamsCsvPath -NoTypeInformation -Encoding UTF8
-    }
-    else {
-        # Always produce a (header-only) file so the attachment/upload is present
-        "" | Select-Object @{N = "Team"; E = { $_ } } | Where-Object { $false } | Export-Csv -Path $teamsCsvPath -NoTypeInformation -Encoding UTF8
+    # Sort once so the CSV and XLSX exports use identical data
+    $teamReportRows = @($teamReportRows | Sort-Object Team)
+    $actionRows = @($actionRows | Sort-Object Team, Scope, Channel, UserUpn)
+
+    $reportFiles = @()
+    $xlsxPath = $null
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        # CSV 1: per-team summary
+        $teamsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Teams.csv"
+        if ($teamReportRows.Count -gt 0) {
+            $teamReportRows | Export-Csv -Path $teamsCsvPath -NoTypeInformation -Encoding UTF8
+        }
+        else {
+            # Always produce a (header-only) file so the attachment/upload is present
+            "" | Select-Object @{N = "Team"; E = { $_ } } | Where-Object { $false } | Export-Csv -Path $teamsCsvPath -NoTypeInformation -Encoding UTF8
+        }
+        $reportFiles += $teamsCsvPath
+
+        # CSV 2: per-change detail
+        $actionsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Changes.csv"
+        if ($actionRows.Count -gt 0) {
+            $actionRows | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
+        }
+        else {
+            "" | Select-Object @{N = "Team"; E = { $_ } } | Where-Object { $false } | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
+        }
+        $reportFiles += $actionsCsvPath
     }
 
-    # CSV 2: per-change detail
-    $actionsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Changes.csv"
-    if ($actionRows.Count -gt 0) {
-        $actionRows | Sort-Object Team, Scope, Channel, UserUpn | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
+    if ($ReportFileFormat -ne 'CSV only') {
+        # XLSX: both datasets in a single Excel workbook (one worksheet per dataset) with an "Info" cover sheet.
+        # Export-RjRbXlsx handles empty datasets itself (writes a "No data available" sheet).
+        $xlsxPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Report.xlsx"
+        $workbookCoverSheet = [ordered]@{
+            Title             = 'Shared Channel Owner Sync'
+            Generated         = "$((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm')) UTC"
+            'Runbook Version' = $Version
+            Mode              = $mode
+            'Team rows'       = ($teamReportRows | Measure-Object).Count
+            'Change rows'     = ($actionRows | Measure-Object).Count
+        }
+        Export-RjRbXlsx -Worksheets ([ordered]@{ 'Teams' = $teamReportRows; 'Changes' = $actionRows }) -Path $xlsxPath -CoverSheet $workbookCoverSheet
+        $reportFiles += $xlsxPath
     }
-    else {
-        "" | Select-Object @{N = "Team"; E = { $_ } } | Where-Object { $false } | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
-    }
-
-    $csvFiles = @($teamsCsvPath, $actionsCsvPath)
 
     # Upload + download link (optional)
     $downloadLinks = @()
-    if ($CreateDownloadLink) {
+    if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
         Write-Output "## Uploading report to storage account..."
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
         # transparently connects the managed identity if no Az context is active.
         $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $csvFiles `
+            -FilePaths $reportFiles `
             -ContainerName $ContainerName `
             -ResourceGroupName $ResourceGroupName `
             -StorageAccountName $StorageAccountName `
@@ -779,8 +961,37 @@ $($mappingSummaryLines -join "`n")
 $downloadSection
 ## Attachments
 
-- **$([IO.Path]::GetFileName($teamsCsvPath))** - one row per processed team (visibility, matched prefix, owner group, channel count, owners/members added/promoted).
-- **$([IO.Path]::GetFileName($actionsCsvPath))** - one row per individual change (team/channel scope, user, action).
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$([IO.Path]::GetFileName($teamsCsvPath))** - one row per processed team (visibility, matched prefix, owner group, channel count, owners/members added/promoted)." })
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$([IO.Path]::GetFileName($actionsCsvPath))** - one row per individual change (team/channel scope, user, action)." })
+$(if ($ReportFileFormat -ne 'CSV only') { "- **$([IO.Path]::GetFileName($xlsxPath))** - both datasets as a formatted Excel workbook (Teams and Changes worksheets)." })
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+        $markdownFallback = @"
+# Shared Channel Owner Sync
+
+$modeNote
+
+## Summary
+
+| Metric | Value |
+|---|---|
+| Mode | $mode |
+| Teams processed | $totalTeams |
+| Shared channels processed | $totalChannels |
+| Team owners added | $totalTeamOwnersAdded |
+| Team members added | $totalTeamMembersAdded |
+| Channel owners added | $totalOwnersAdded |
+| Channel owners promoted | $totalPromoted |
+
+## Attachments
+
+- **$([IO.Path]::GetFileName($xlsxPath))** - both datasets as a formatted Excel workbook (Teams and Changes worksheets).
+
+> **Note:** The CSV files were not attached because they exceed the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV files.
 
 ---
 
@@ -789,11 +1000,28 @@ $downloadSection
 
         $emailSubject = "Shared Channel Owner Sync - $totalTeams team(s), $totalChannels channel(s)$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()
 
+        # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSVs are too large)
         Write-Output "Sending report to '$EmailTo'..."
+        # Resolve optional tenant email branding once per run (never fails the send)
+        $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
         try {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $csvFiles -UseNativeGraphRequest
+            $guardParams = @{
+                EmailFrom         = $EmailFrom
+                EmailTo           = $EmailTo
+                Subject           = $emailSubject
+                MarkdownContent   = $markdownContent
+                TenantDisplayName = $tenantDisplayName
+                ReportVersion     = $Version
+            }
+            $guardParams.UseNativeGraphRequest = $true
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
+                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+            }
+            else {
+                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            }
             Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
-            Write-Output "Email report sent to '$EmailTo'."
         }
         catch {
             Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue

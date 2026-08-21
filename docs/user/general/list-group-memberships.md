@@ -8,12 +8,27 @@ Lists group memberships for this user and supports filtering by group type, memb
 ## Where to find
 User \ General \ List Group Memberships
 
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when the `SendMail` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
+
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
   - User.Read.All
   - Group.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
 
 
@@ -82,7 +97,7 @@ Filter groups by writeback enablement.
 | Type | String |
 
 ### SendMail
-If enabled, the report is sent via email as a CSV attachment. Toggling this on reveals the recipient address field.
+If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields.
 
 | Property | Value |
 |----------|-------|
@@ -108,8 +123,67 @@ The sender email address. This needs to be configured in the runbook customizati
 | Required | false |
 | Type | String |
 
+### BrandingHeaderImageUrl
+Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterImageUrl
+Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterLink
+Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+When empty, the default link (https://www.realmjoin.com) is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingAccentColor
+Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingTextColor
+Optional text color override (6-digit hex) for the report email template.
+Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
 ### CreateDownloadLink
-If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned in the output.
+If enabled, the report files (CSV and Excel) are uploaded to an Azure Storage Account and time-limited download links are returned in the output.
 
 | Property | Value |
 |----------|-------|

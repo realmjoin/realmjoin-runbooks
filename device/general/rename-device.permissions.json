@@ -1,13 +1,26 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Device.Read.All",
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementServiceConfig.ReadWrite.All",
-                "DeviceManagementManagedDevices.PrivilegedOperations.All"
+                {
+                    "Value": "Device.Read.All",
+                    "Reason": "Resolves the Entra device object via /devices before renaming"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Finds the Intune device by azureADDeviceId to get its Intune object id"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Reads the Autopilot identity and renames it via updateDeviceProperties"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Triggers the privileged setDeviceName action on the Intune device"
+                }
             ]
         }
     ],

@@ -1,22 +1,33 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Organization.Read.All"
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads the tenant's verified domains to pick the default domain for the SMTP address"
+                }
             ]
         },
         {
             "Name": "Office 365 Exchange Online",
             "Id": "00000002-0000-0ff1-ce00-000000000000",
             "AppRoleAssignments": [
-                "Exchange.ManageAsApp"
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Reason": "Runs New-DistributionGroup in the app-only Exchange Online session"
+                }
             ]
         }
     ],
     "Roles": [
-        "Exchange administrator"
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Reason": "Required for the app-only Exchange Online session to create distribution groups"
+        }
     ],
     "ManualPermissions": []
 }

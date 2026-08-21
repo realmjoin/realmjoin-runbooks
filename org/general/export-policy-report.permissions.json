@@ -1,11 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementConfiguration.Read.All",
-                "Policy.Read.All"
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Reads Intune configuration, compliance and group policy objects incl. assignments and filters"
+                },
+                {
+                    "Value": "Policy.Read.All",
+                    "Reason": "Reads the Conditional Access policies rendered in the report"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Optional": true,
+                    "Feature": "Name resolution",
+                    "Reason": "Resolves group, user, role and application names referenced by policies"
+                }
             ]
         }
     ],

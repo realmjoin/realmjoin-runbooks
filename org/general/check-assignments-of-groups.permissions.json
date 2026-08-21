@@ -1,15 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.Read.All",
-                "DeviceManagementConfiguration.Read.All",
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementApps.Read.All",
-                "Device.Read.All"
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads each target group via /groups('{id}') to resolve its display name"
+                },
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Lists Intune configuration, group policy and compliance policies and their assignments"
+                },
+                {
+                    "Value": "DeviceManagementApps.Read.All",
+                    "Reason": "Lists mobile apps and their assignments when IncludeApps is enabled"
+                }
             ]
         }
     ],

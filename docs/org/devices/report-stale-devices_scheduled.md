@@ -4,7 +4,10 @@ Scheduled report of stale devices based on last activity date and platform.
 
 ## Detailed description
 Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 ## Where to find
 Org \ Devices \ Report Stale Devices_Scheduled
@@ -17,10 +20,16 @@ This runbook sends emails using the Microsoft Graph API. To send emails via Grap
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
 
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+
 
 ## Notes
 This runbook generates a comprehensive report of stale devices and delivers it via email.
-The report includes device details, platform breakdowns, and exports a CSV file for further analysis.
+The report includes device details, platform breakdowns, and exports report files (CSV/xlsx) for further analysis.
 
 Prerequisites:
 - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
@@ -40,8 +49,7 @@ The runbook supports optional user scope filtering to include or exclude devices
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
-  - Device.Read.All
-  - Mail.Send
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters
@@ -108,6 +116,110 @@ The sender email address. This needs to be configured in the runbook customizati
 | Required | false |
 | Type | String |
 
+### BrandingHeaderImageUrl
+Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterImageUrl
+Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingFooterLink
+Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+When empty, the default link (https://www.realmjoin.com) is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingAccentColor
+Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### BrandingTextColor
+Optional text color override (6-digit hex) for the report email template.
+Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### ReportFileFormat
+Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+| Property | Value |
+|----------|-------|
+| Default Value | CSV & XLSX |
+| Required | false |
+| Type | String |
+
+### CreateDownloadLink
+If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
+### ContainerName
+Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+| Property | Value |
+|----------|-------|
+| Default Value | report-stale-devices |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
+
 ### UseUserScope
 Enable user scope filtering to include or exclude devices based on primary user group membership.
 
@@ -136,13 +248,14 @@ Exclude devices whose primary users are members of this group. Requires UseUserS
 | Type | String |
 
 ### EmailTo
+If specified, an email with the report will be sent to the provided address(es).
 Can be a single address or multiple comma-separated addresses (string).
 The function sends individual emails to each recipient for privacy reasons.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
-| Required | true |
+| Required | false |
 | Type | String |
 
 

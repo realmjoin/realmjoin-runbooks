@@ -1,11 +1,30 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "UserAuthenticationMethod.ReadWrite.All",
-                "Mail.Send"
+                {
+                    "Value": "UserAuthenticationMethod.ReadWrite.All",
+                    "Reason": "Lists and deletes the user's phone, Authenticator, OATH and FIDO2 methods"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Mails the user that their MFA methods were reset when NotifyUser is enabled"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the target user's display name, mail and usage location via /users/{UPN}"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email notification",
+                    "Reason": "Reads the tenant display name for the notification email when NotifyUser is enabled"
+                }
             ]
         }
     ],

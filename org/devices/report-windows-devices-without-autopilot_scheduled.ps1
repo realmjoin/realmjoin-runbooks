@@ -11,14 +11,19 @@
     reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
     these candidates visible so they can be reviewed and - if appropriate - deleted.
 
-    Optionally, the report CSV can be uploaded to an Azure Storage Account (returning a time-limited
-    download link) and/or sent via email with the CSV attached.
+    Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
+    download links) and/or sent via email with the selected report file format(s) attached.
+    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
     .PARAMETER SendMail
-    If enabled, the report is sent via email. Toggling this on reveals the recipient address field.
+    If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields.
+
+    .PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned.
 
     .PARAMETER EmailTo
     Recipient address(es) for the email report. Only used / shown when SendMail is enabled.
@@ -26,6 +31,26 @@
 
     .PARAMETER EmailFrom
     The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender).
+
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
 
     .PARAMETER ContainerName
     Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
@@ -53,14 +78,14 @@
                             "Display": "Yes - send the report via email",
                             "ParameterValue": true,
                             "Customization": {
-                                "Show": ["EmailTo"]
+                                "Show": ["EmailTo", "ReportFileFormat"]
                             }
                         },
                         {
                             "Display": "No - do not send an email",
                             "ParameterValue": false,
                             "Customization": {
-                                "Hide": ["EmailTo"]
+                                "Hide": ["EmailTo", "ReportFileFormat"]
                             }
                         }
                     ]
@@ -68,13 +93,63 @@
             },
             "CreateDownloadLink": {
                 "DisplayName": "Create a file download link (upload report to storage)?",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Yes - upload report and return a download link",
+                            "ParameterValue": true,
+                            "Customization": {
+                                "Show": ["ReportFileFormat"]
+                            }
+                        },
+                        {
+                            "Display": "No - do not create a download link",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": ["ReportFileFormat"]
+                            }
+                        }
+                    ]
+                }
+            },
+            "ReportFileFormat": {
+                "DisplayName": "Report file format",
+                "Hide": true,
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
                 }
             },
             "EmailTo": {
                 "DisplayName": "Recipient Email Address(es)",
+                "Hide": true
+            },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
                 "Hide": true
             },
             "EmailFrom": {
@@ -99,9 +174,9 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.3.4" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [bool] $SendMail = $false,
@@ -111,6 +186,24 @@ param(
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
     [string] $EmailFrom,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string] $BrandingHeaderImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string] $BrandingFooterImageUrl,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string] $BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string] $BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string] $BrandingTextColor,
+
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string] $ReportFileFormat = 'CSV & XLSX',
 
     [bool] $CreateDownloadLink = $true,
 
@@ -137,14 +230,20 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.2"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "SendMail: $SendMail" -Verbose
 if ($SendMail) {
     Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
     Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 }
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
@@ -165,7 +264,7 @@ if ($SendMail) {
         throw "A recipient email address (EmailTo) is required when 'Send the report via email' is enabled."
     }
     if (-not $EmailFrom) {
-        Write-Warning -Message "The sender email address is required to send an email report. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
+        Write-Warning -Message "The sender email address is required to send an email report. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
         throw "The sender email address (EmailFrom) needs to be configured in the runbook customization."
     }
 }
@@ -305,16 +404,31 @@ try {
 
     #endregion
 
-    #region CSV Export
+    #region Report File Export
     ##############################
 
-    # The CSV is only needed when it will be uploaded and/or attached to an email
+    # The report files are only needed when they will be uploaded and/or attached to an email
     $csvFileName = "windows-devices-without-autopilot.csv"
+    $xlsxFileName = "windows-devices-without-autopilot.xlsx"
     $csvFilePath = $null
-    if ($CreateDownloadLink -or $SendMail) {
-        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $csvFileName
-        $orphanedDevices | Sort-Object DisplayName | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
-        Write-RjRbLog -Message "Exported orphaned devices to CSV: $($csvFilePath)" -Verbose
+    $xlsxFilePath = $null
+    $reportFiles = @()
+    if (($CreateDownloadLink -or $SendMail) -and $totalDevices -gt 0) {
+        $sortedDevices = $orphanedDevices | Sort-Object DisplayName
+
+        if ($ReportFileFormat -ne 'XLSX only') {
+            $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $csvFileName
+            $sortedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
+            $reportFiles += $csvFilePath
+            Write-RjRbLog -Message "Exported orphaned devices to CSV: $($csvFilePath)" -Verbose
+        }
+
+        if ($ReportFileFormat -ne 'CSV only') {
+            $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $xlsxFileName
+            $sortedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Devices"
+            $reportFiles += $xlsxFilePath
+            Write-RjRbLog -Message "Exported orphaned devices to XLSX: $($xlsxFilePath)" -Verbose
+        }
     }
 
     #endregion
@@ -322,24 +436,29 @@ try {
     #region Upload / Download Link (optional)
     ##############################
 
-    if ($CreateDownloadLink) {
+    if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
         Write-Output ""
         Write-Output "## Uploading report to storage account..."
 
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
         # transparently connects the managed identity if no Az context is active.
         $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths @($csvFilePath) `
+            -FilePaths $reportFiles `
             -ContainerName $ContainerName `
             -ResourceGroupName $ResourceGroupName `
             -StorageAccountName $StorageAccountName `
             -LinkExpiryDays $LinkExpiryDays `
             -AddBlobNamePrefix $true
 
-        $uploadResult = $uploadResults[0]
         Write-Output "## Report uploaded to storage account."
-        Write-Output "## Expiry of Link: $($uploadResult.EndTime)"
-        $uploadResult.SASLink | Out-String | Write-Output
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    elseif ($CreateDownloadLink) {
+        Write-Output ""
+        Write-Output "## No orphaned devices were found - skipping report upload."
     }
 
     #endregion
@@ -368,7 +487,7 @@ Every Windows device object in Entra ID is associated with a Windows Autopilot o
             $emailSubject = "Windows Devices Without Autopilot - $($tenantDisplayName) - No Issues Found"
         }
         else {
-            # Show the first 10 devices inline; the full list is in the attached CSV
+            # Show the first 10 devices inline; the full list is in the attached report file(s)
             $devicesToShow = $orphanedDevices | Sort-Object DisplayName | Select-Object -First 10
             $table = @"
 | Display Name | Device ID | Enabled | Trust Type | Last Sign-In |
@@ -380,7 +499,7 @@ Every Windows device object in Entra ID is associated with a Windows Autopilot o
             }
 
             $tableHeading = if ($totalDevices -gt 10) {
-                "## First 10 Devices (full list in attached CSV)"
+                "## First 10 Devices (full list in the attached report file(s))"
             }
             else {
                 "## Devices"
@@ -411,21 +530,64 @@ $($table)
 
 ## Data Files
 
-The following file is attached to this email:
+The following file(s) are attached to this email:
 
-- **$($csvFileName)**: Complete list of all Windows Entra devices without an associated Autopilot object.
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$($csvFileName)**: Complete list of all Windows Entra devices without an associated Autopilot object (CSV)" })
+$(if ($ReportFileFormat -ne 'CSV only') { "- **$($xlsxFileName)**: The same list as a formatted Excel workbook" })
 
 ---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
             $emailSubject = "Windows Devices Without Autopilot - $($tenantDisplayName) - $($totalDevices) Device(s) Found"
+
+            $markdownFallback = @"
+# Windows Devices Without Autopilot Object
+
+## Executive Summary
+
+This report identifies **$($totalDevices) Windows device object(s)** in Entra ID for tenant **$($tenantDisplayName)** that have **no associated Windows Autopilot object**.
+
+## Data Files
+
+- **$($xlsxFileName)**: Formatted Excel workbook with the complete device list
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
         }
 
+        # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+        # Resolve optional tenant email branding once per run (never fails the send)
+        $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
         try {
-            # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -Attachments @($csvFilePath) -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest
-            Write-Output "## Email report sent successfully to: $($EmailTo)"
+            if ($reportFiles.Count -gt 0) {
+                # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
+                $guardParams = @{
+                    EmailFrom         = $EmailFrom
+                    EmailTo           = $EmailTo
+                    Subject           = $emailSubject
+                    MarkdownContent   = $markdownContent
+                    TenantDisplayName = $tenantDisplayName
+                    ReportVersion     = $Version
+                }
+                $guardParams.UseNativeGraphRequest = $true
+                if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
+                    Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+                }
+                else {
+                    Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                }
+            }
+            else {
+                # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
+                Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
+                Write-Output "## Email report sent successfully to: $($EmailTo)"
+            }
         }
         catch {
             Write-Error "Failed to send email report: $($_.Exception.Message)"
@@ -445,6 +607,12 @@ catch {
 finally {
     #region Cleanup
     ##############################
+    # Remove the downloaded branding images, if any were used.
+    foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+        if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+            Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+        }
+    }
 
     if ($CreateDownloadLink) {
         Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null

@@ -3,7 +3,10 @@
 	Clean up orphaned and stale Windows Autopilot device registrations
 
 	.DESCRIPTION
-	This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with a CSV attachment listing the devices that would be or were deleted.
+	This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
+	The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 	.NOTES
 	Prerequisites:
@@ -75,6 +78,36 @@
 	.PARAMETER EmailFrom
 	The sender email address for the summary report. This is configured via Runbook Customizations.
 
+	.PARAMETER BrandingHeaderImageUrl
+	Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+	Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+	.PARAMETER BrandingFooterImageUrl
+	Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+	Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+	.PARAMETER BrandingFooterLink
+	Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+	When empty, the default link (https://www.realmjoin.com) is used.
+
+	.PARAMETER ReportFileFormat
+	Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+	.PARAMETER CreateDownloadLink
+	If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+	.PARAMETER ContainerName
+	Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+	.PARAMETER ResourceGroupName
+	Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+	.PARAMETER StorageAccountName
+	Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+	.PARAMETER LinkExpiryDays
+	Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
 	.PARAMETER CallerName
 	Caller name for auditing purposes.
 
@@ -137,6 +170,60 @@
 			"EmailFrom": {
 				"Hide": true
 			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"CreateDownloadLink": {
+				"DisplayName": "Create a file download link (upload report to storage)?",
+				"SelectSimple": {
+					"Yes - upload report and return a download link": true,
+					"No - do not create a download link": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
 			"CallerName": {
 				"Hide": true
 			}
@@ -144,8 +231,9 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.5" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param (
     [ValidateSet("WhatIf (report only)", "Delete Autopilot device", "Delete Autopilot and Entra device")]
@@ -172,6 +260,38 @@ param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
     [string]$EmailFrom,
 
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ })]
+    [string]$BrandingHeaderImageUrl,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ })]
+    [string]$BrandingFooterImageUrl,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ })]
+    [string]$BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
+
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string]$ReportFileFormat = 'CSV & XLSX',
+
+    [bool]$CreateDownloadLink = $false,
+
+    [string]$ContainerName = "cleanup-autopilot-devices",
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ })]
+    [string]$ResourceGroupName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ })]
+    [string]$StorageAccountName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
+
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string]$CallerName
@@ -183,7 +303,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "DeleteMode: $DeleteMode" -Verbose
@@ -197,6 +317,19 @@ Write-RjRbLog -Message "CleanupNeverEnrolledDevices: $CleanupNeverEnrolledDevice
 Write-RjRbLog -Message "NeverEnrolledAgeDays: $NeverEnrolledAgeDays" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
 
 #endregion
 
@@ -235,8 +368,8 @@ Write-Output "---------------------"
 # --- Check 1: Email configuration consistency (email is optional) ---
 if ($EmailTo -notlike "") {
     if ($EmailFrom -like "") {
-        Write-RjRbLog -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -NoDebugOnly
-        Write-Output "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
+        Write-RjRbLog -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -NoDebugOnly
+        Write-Output "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
         $sendEmail = $false
     }
     else {
@@ -250,7 +383,13 @@ else {
     $sendEmail = $false
 }
 
-# --- Check 2: Age thresholds must be non-negative ---
+# --- Check 2: A target storage account is required to create a download link ---
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+}
+
+# --- Check 3: Age thresholds must be non-negative ---
 if ($OrphanedLastContactedDays -lt 0) {
     Write-Error "OrphanedLastContactedDays must be 0 or greater. Submitted value: $OrphanedLastContactedDays." -ErrorAction Continue
     throw "Invalid parameter: OrphanedLastContactedDays cannot be negative."
@@ -260,13 +399,13 @@ if ($NeverEnrolledAgeDays -lt 0) {
     throw "Invalid parameter: NeverEnrolledAgeDays cannot be negative."
 }
 
-# --- Check 3: At least one cleanup action enabled (advisory) ---
+# --- Check 4: At least one cleanup action enabled (advisory) ---
 if (-not $CleanupOrphanedDevices -and -not $CleanupNeverEnrolledDevices) {
     Write-RjRbLog -Message "WARNING: Both CleanupOrphanedDevices and CleanupNeverEnrolledDevices are disabled. The runbook will report Autopilot device counts only - no devices will be removed." -NoDebugOnly
     Write-Output "WARNING: No cleanup action is enabled. The runbook will report counts only."
 }
 
-# --- Check 4: Parse the scope filters into trimmed, non-empty arrays ---
+# --- Check 5: Parse the scope filters into trimmed, non-empty arrays ---
 # Each filter is independent; an empty filter means "match all values for that dimension".
 # When more than one is populated they are combined with AND (a device must match every set filter).
 function ConvertTo-FilterList {
@@ -346,6 +485,12 @@ else {
 if ($groupTagList.Count -gt 0 -and ($manufacturerList.Count -gt 0 -or $modelList.Count -gt 0) -or ($manufacturerList.Count -gt 0 -and $modelList.Count -gt 0)) {
     Write-Output "(Filters are combined with AND - a device must match every populated filter.)"
 }
+
+#endregion
+
+########################################################
+#region     Function Definitions
+########################################################
 
 #endregion
 
@@ -698,17 +843,55 @@ else {
     Write-Output "No Autopilot devices matched the cleanup criteria. Nothing to do."
 }
 
-# --- Reporting: CSV export + optional email ---
+# --- Reporting: CSV/XLSX export (only when needed for the email report and/or download link) ---
 $tempDir = $null
 $csvFilePath = $null
-if ($cleanupResults.Count -gt 0) {
+$xlsxFilePath = $null
+$reportFiles = @()
+if (($EmailTo -or $CreateDownloadLink) -and $cleanupResults.Count -gt 0) {
     $tempDir = Join-Path -Path $env:TEMP -ChildPath "AutopilotCleanup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
     if (-not (Test-Path -Path $tempDir)) {
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
     }
-    $csvFilePath = Join-Path -Path $tempDir -ChildPath "AutopilotCleanup-$(Get-Date -Format 'yyyyMMdd-HHmmss').csv"
-    $cleanupResults | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
-    Write-RjRbLog -Message "Exported $($cleanupResults.Count) cleanup record(s) to $csvFilePath" -Verbose
+    $fileNameBase = "AutopilotCleanup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvFilePath = Join-Path -Path $tempDir -ChildPath "$fileNameBase.csv"
+        $cleanupResults | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
+        $reportFiles += $csvFilePath
+        Write-RjRbLog -Message "Exported $($cleanupResults.Count) cleanup record(s) to $csvFilePath" -Verbose
+    }
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFilePath = Join-Path -Path $tempDir -ChildPath "$fileNameBase.xlsx"
+        $cleanupResults | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Autopilot Devices"
+        $reportFiles += $xlsxFilePath
+        Write-RjRbLog -Message "Exported $($cleanupResults.Count) cleanup record(s) to $xlsxFilePath" -Verbose
+    }
+}
+
+# --- Upload / Download Link (optional) ---
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "Uploading report to storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No Autopilot devices matched the cleanup criteria - skipping report upload."
+    }
 }
 
 # Tenant display name for the report
@@ -762,7 +945,7 @@ $NeverEnrolledOut
 - Failed: **$failedCount**
 $EntraOut
 
-The attached CSV lists every candidate device with its category and the action taken.
+The attached report file(s) list every candidate device with its category and the action taken.
 
 ---
 
@@ -781,14 +964,49 @@ if ($deleteEntraDevice) {
     Write-Output "Entra devices deleted: $entraDeletedCount | Entra failed: $entraFailedCount"
 }
 
-if ($sendEmail -and $cleanupResults.Count -gt 0) {
+if ($sendEmail -and $reportFiles.Count -gt 0) {
     $subject = "Autopilot Cleanup - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')"
-    $attachments = @()
-    if ($csvFilePath) { $attachments += $csvFilePath }
+
+    $markdownFallback = @"
+# Autopilot Device Cleanup Report
+
+**Tenant:** $tenantDisplayName
+**Run mode:** $runMode
+**Date:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+## Summary
+
+- Total candidates: **$($cleanupResults.Count)**
+
+- **$($fileNameBase).xlsx**: Formatted Excel workbook with the complete candidate list
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
     try {
-        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $subject -MarkdownContent $markdownContent -Attachments $attachments -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+        $guardParams = @{
+            EmailFrom         = $EmailFrom
+            EmailTo           = $EmailTo
+            Subject           = $subject
+            MarkdownContent   = $markdownContent
+            TenantDisplayName = $tenantDisplayName
+            ReportVersion     = $Version
+        }
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
+            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+        }
+        else {
+            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+        }
         Write-RjRbLog -Message "Cleanup report email sent to '$EmailTo'." -Verbose
-        Write-Output "Report email sent to: $EmailTo"
     }
     catch {
         Write-Error "Failed to send cleanup report email: $($_.Exception.Message)" -ErrorAction Continue
@@ -804,10 +1022,18 @@ elseif ($sendEmail -and $cleanupResults.Count -eq 0) {
 ########################################################
 #region     Cleanup
 ########################################################
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
 
-# Remove the temporary CSV export, if one was created.
-if ($csvFilePath -and (Test-Path -Path $csvFilePath)) {
-    Remove-Item -Path $csvFilePath -Force -ErrorAction SilentlyContinue
+# Remove the temporary report exports, if any were created.
+foreach ($reportFilePath in $reportFiles) {
+    if ($reportFilePath -and (Test-Path -Path $reportFilePath)) {
+        Remove-Item -Path $reportFilePath -Force -ErrorAction SilentlyContinue
+    }
 }
 if ($tempDir -and (Test-Path -Path $tempDir)) {
     Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue

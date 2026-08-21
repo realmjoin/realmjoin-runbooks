@@ -11,7 +11,7 @@ Org \ Devices \ Create Endpoint Analytics Baseline
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - DeviceManagementConfiguration.ReadWrite.All
+  - DeviceManagementManagedDevices.ReadWrite.All
 
 
 ## Parameters

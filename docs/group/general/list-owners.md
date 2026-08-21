@@ -14,6 +14,7 @@ Group \ General \ List Owners
 ### Application permissions
 - **Type**: Microsoft Graph
   - Group.Read.All
+  - User.Read.All
 
 
 ## Parameters

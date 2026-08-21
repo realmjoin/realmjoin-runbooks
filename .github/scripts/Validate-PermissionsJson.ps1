@@ -161,6 +161,50 @@ function Get-RunbookBaseKeysFromChangedFiles {
 	)
 }
 
+function Test-PermissionsJsonContent {
+	<#
+		.SYNOPSIS
+		Validates the content of a permissions JSON file against the repository schema
+
+		.OUTPUTS
+		An array of error detail strings. Empty when the file is valid.
+	#>
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]$FilePath,
+
+		[Parameter(Mandatory = $true)]
+		[string]$SchemaFile
+	)
+
+	$raw = Get-Content -LiteralPath $FilePath -Raw
+
+	$schemaErrors = @()
+	$isValid = $false
+	try {
+		$isValid = Test-Json -Json $raw -SchemaFile $SchemaFile -ErrorAction SilentlyContinue -ErrorVariable schemaErrors
+	}
+	catch {
+		$schemaErrors = @($_)
+	}
+
+	if ($isValid) {
+		return @()
+	}
+
+	$details = @(
+		$schemaErrors |
+		ForEach-Object { if ($_ -and $_.Exception) { $_.Exception.Message } else { [string]$_ } } |
+		Where-Object { $_ }
+	)
+
+	if ($details.Count -eq 0) {
+		$details = @('The file does not conform to .schema/permissions.schema.json.')
+	}
+
+	return $details
+}
+
 function Get-RelativePath {
 	<#
 		.SYNOPSIS
@@ -188,13 +232,41 @@ try {
 	$missing = @()
 	$wrongName = @()
 	$orphanPermissions = @()
+	$invalidContent = @()
 	$checkedCount = 0
 
+	$schemaFile = Join-Path (Get-Location).Path '.schema/permissions.schema.json'
+	$schemaAvailable = Test-Path -LiteralPath $schemaFile
+	if (-not $schemaAvailable) {
+		Write-Output "Notice: '.schema/permissions.schema.json' not found. Schema content validation skipped."
+	}
+
+	# Full paths of permissions JSON files whose content gets validated against the schema
+	$contentTargets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
 	if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
+		$normalizedChanged = @(
+			$ChangedFiles |
+			ForEach-Object { (($_ ?? '').Trim() -replace '\\', '/') -replace '^\./', '' } |
+			Where-Object { $_ }
+		)
+		$schemaChanged = @($normalizedChanged | Where-Object { $_ -ieq '.schema/permissions.schema.json' }).Count -gt 0
+
 		$baseKeys = @(Get-RunbookBaseKeysFromChangedFiles -Files $ChangedFiles -Scopes $IncludedScope)
-		if ($baseKeys.Count -eq 0) {
+		if ($baseKeys.Count -eq 0 -and -not $schemaChanged) {
 			Write-Output "No changed runbook or permissions JSON files in included scopes. Skipping permissions JSON validation."
 			exit 0
+		}
+
+		if ($schemaChanged -and $schemaAvailable) {
+			# The schema itself changed: re-validate the content of every permissions JSON in scope.
+			Write-Output "Schema file changed. Validating content of all permissions JSON files in included scopes."
+			foreach ($rb in @(Get-RunbookFiles -Scopes $IncludedScope)) {
+				$pf = Join-Path (Split-Path -Parent $rb.FullName) ("{0}.permissions.json" -f [System.IO.Path]::GetFileNameWithoutExtension($rb.Name))
+				if (Test-Path -LiteralPath $pf) {
+					[void]$contentTargets.Add((Resolve-Path -LiteralPath $pf).Path)
+				}
+			}
 		}
 
 		foreach ($key in $baseKeys) {
@@ -212,6 +284,7 @@ try {
 			$checkedCount++
 
 			if ($hasRunbook -and $hasPreferred) {
+				[void]$contentTargets.Add((Resolve-Path -LiteralPath $preferredFull).Path)
 				continue
 			}
 
@@ -268,6 +341,7 @@ try {
 			$hasAlt = Test-Path -LiteralPath $altFull
 
 			if ($hasPreferred) {
+				[void]$contentTargets.Add((Resolve-Path -LiteralPath $preferredFull).Path)
 				continue
 			}
 
@@ -290,6 +364,23 @@ try {
 		}
 	}
 
+	if ($schemaAvailable -and $contentTargets.Count -gt 0) {
+		foreach ($target in @($contentTargets | Sort-Object)) {
+			$errorDetails = @(Test-PermissionsJsonContent -FilePath $target -SchemaFile $schemaFile)
+			if ($errorDetails.Count -eq 0) {
+				continue
+			}
+
+			$relPath = Get-RelativePath -Path $target
+			$msg = "Schema validation failed: " + ($errorDetails -join ' | ')
+			$invalidContent += [PSCustomObject]@{ File = $relPath; Message = $msg }
+			Write-Output "::group::Invalid permissions JSON content: $relPath"
+			Write-Output "FAILED: $relPath"
+			Write-GitHubError -Message $msg -FilePath $relPath
+			Write-Output "::endgroup::"
+		}
+	}
+
 	Write-Output ""
 	Write-Output "Permissions JSON validation summary"
 	Write-Output "----------------------------------"
@@ -297,6 +388,7 @@ try {
 	Write-Output ("Missing permissions JSON: {0}" -f $missing.Count)
 	Write-Output ("Wrong permissions JSON filename: {0}" -f $wrongName.Count)
 	Write-Output ("Permissions JSON without runbook: {0}" -f $orphanPermissions.Count)
+	Write-Output ("Permissions JSON with schema violations: {0} (of {1} validated)" -f $invalidContent.Count, $contentTargets.Count)
 
 	if ($missing.Count -gt 0) {
 		Write-Output ""
@@ -334,9 +426,21 @@ try {
 		}
 	}
 
-	if (($missing.Count -gt 0) -or ($wrongName.Count -gt 0) -or ($orphanPermissions.Count -gt 0)) {
+	if ($invalidContent.Count -gt 0) {
 		Write-Output ""
-		Write-Output ("Permissions JSON validation failed for {0} runbook(s)." -f ($missing.Count + $wrongName.Count + $orphanPermissions.Count))
+		Write-Output "Permissions JSON with schema violations (details)"
+		Write-Output "-------------------------------------------------"
+		foreach ($i in $invalidContent) {
+			Write-Output ""
+			Write-Output $i.File
+			Write-Output ("-" * [Math]::Min(120, [Math]::Max(3, $i.File.Length)))
+			Write-Output ("  " + $i.Message)
+		}
+	}
+
+	if (($missing.Count -gt 0) -or ($wrongName.Count -gt 0) -or ($orphanPermissions.Count -gt 0) -or ($invalidContent.Count -gt 0)) {
+		Write-Output ""
+		Write-Output ("Permissions JSON validation failed for {0} runbook(s)." -f ($missing.Count + $wrongName.Count + $orphanPermissions.Count + $invalidContent.Count))
 		exit 1
 	}
 

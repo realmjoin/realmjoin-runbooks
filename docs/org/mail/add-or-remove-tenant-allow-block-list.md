@@ -14,7 +14,7 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

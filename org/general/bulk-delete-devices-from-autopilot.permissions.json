@@ -1,10 +1,14 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementServiceConfig.ReadWrite.All"
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Searches Autopilot identities by serial number and deletes them"
+                }
             ]
         }
     ],

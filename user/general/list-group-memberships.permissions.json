@@ -1,13 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.Read.All",
-                "Mail.Send",
-                "Organization.Read.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user to obtain id and UPN for the report"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the user's groups via /users/{id}/memberOf including membership rules for filtering"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when SendMail is enabled and EmailTo is configured"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization for the tenant display name in the email report"
+                }
             ]
         }
     ],

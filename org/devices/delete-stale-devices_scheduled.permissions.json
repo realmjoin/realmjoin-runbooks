@@ -1,16 +1,27 @@
 {
-  "Permissions": [
-    {
-      "Name": "Microsoft Graph",
-      "Id": "00000003-0000-0000-c000-000000000000",
-      "AppRoleAssignments": [
-        "DeviceManagementManagedDevices.ReadWrite.All",
-        "Directory.Read.All",
-        "Device.Read.All",
-        "Mail.Send"
-      ]
-    }
-  ],
-  "Roles": [],
-  "ManualPermissions": []
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.ReadWrite.All",
+                    "Reason": "Lists stale Intune devices and deletes them via DELETE /deviceManagement/managedDevices/{id}"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads include/exclude group members, primary user details and the tenant name"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
 }

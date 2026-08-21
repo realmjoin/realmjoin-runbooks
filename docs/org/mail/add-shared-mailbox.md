@@ -13,9 +13,11 @@ Org \ Mail \ Add Shared Mailbox
 ### Application permissions
 - **Type**: Office 365 Exchange Online
   - Exchange.ManageAsApp
+- **Type**: Microsoft Graph
+  - User.ReadWrite.All *(optional: Disable user account)*
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

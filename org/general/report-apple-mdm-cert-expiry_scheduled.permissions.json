@@ -1,13 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementServiceConfig.Read.All",
-                "DeviceManagementConfiguration.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Reads the APNs certificate, Apple VPP tokens and DEP onboarding settings to check expiry dates"
+                },
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Covers the tenant info read via GET /organization used in the report header"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the expiry report via Send-RjReportEmail when a certificate or token expires within the threshold"
+                }
             ]
         }
     ],

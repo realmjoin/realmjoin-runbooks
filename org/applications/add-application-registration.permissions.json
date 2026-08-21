@@ -1,17 +1,31 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Application.ReadWrite.OwnedBy",
-                "Organization.Read.All",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "Application.ReadWrite.OwnedBy",
+                    "Reason": "Creates the app and service principal, patches SAML settings and adds a token signing certificate"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to determine the tenant id reported alongside the new AppId"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Creates the user-assignment group and assigns it to the app when UserAssignmentRequired is set"
+                }
             ]
         }
     ],
     "Roles": [
-        "Application Developer"
+        {
+            "Name": "Application Developer",
+            "TemplateId": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+            "Reason": "Backs creating and configuring the new app registration and service principal"
+        }
     ],
     "ManualPermissions": []
 }

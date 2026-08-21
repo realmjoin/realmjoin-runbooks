@@ -14,7 +14,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

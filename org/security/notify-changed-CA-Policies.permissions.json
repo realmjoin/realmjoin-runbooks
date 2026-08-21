@@ -1,11 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Policy.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "Policy.Read.All",
+                    "Reason": "Reads the Conditional Access policies to find changes of the last 24 hours"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Reason": "Sends the changed-policy alert via /users/{sender}/sendMail when changes are found"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the sender mailbox via /users/{From} before sending the alert"
+                }
             ]
         }
     ],

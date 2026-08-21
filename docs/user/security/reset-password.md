@@ -10,7 +10,7 @@ User \ Security \ Reset Password
 
 ## Permissions
 ### RBAC roles
-- User administrator
+- User Administrator
 
 
 ## Parameters

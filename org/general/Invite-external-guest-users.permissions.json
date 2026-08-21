@@ -1,11 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.ReadWrite.All",
-                "Group.ReadWrite.All"
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Creates the invitation, patches guest profile properties and sets manager and sponsor"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Verifies the target group and adds the guest via /groups/{id}/members/$ref"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads the tenant id to build the default invite redirect URL"
+                }
             ]
         }
     ],

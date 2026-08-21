@@ -1,11 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.Read.All",
-                "WindowsUpdates.ReadWrite.All"
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads the group's transitive device and user members to find devices to unenroll"
+                },
+                {
+                    "Value": "WindowsUpdates.ReadWrite.All",
+                    "Reason": "Unenrolls each device via updatableAssets DELETE or unenrollAssets"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Optional": true,
+                    "Feature": "User-owned devices",
+                    "Reason": "Reads each user member's owned devices via /users/{id}/ownedDevices when IncludeUserOwnedDevices is enabled"
+                }
             ]
         }
     ],

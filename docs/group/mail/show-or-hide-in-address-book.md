@@ -15,7 +15,7 @@ Group \ Mail \ Show Or Hide In Address Book
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

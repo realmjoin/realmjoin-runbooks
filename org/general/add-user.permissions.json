@@ -1,16 +1,28 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
-            "Name": "Microsoft Graph",
-            "Id": "00000003-0000-0000-c000-000000000000",
+            "Name": "Office 365 Exchange Online",
+            "Id": "00000002-0000-0ff1-ce00-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "DeviceManagementManagedDevices.PrivilegedOperations.All"
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Reason": "Opens the app-only Exchange Online session used for distribution groups and enabling the online archive"
+                }
             ]
         }
     ],
     "Roles": [
-        "User Administrator"
+        {
+            "Name": "User Administrator",
+            "TemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
+            "Reason": "Backs creating the user, assigning manager, sponsors and groups and reading license data"
+        },
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Reason": "Required for the app-only Exchange Online session managing distribution groups and the online archive"
+        }
     ],
     "ManualPermissions": []
 }

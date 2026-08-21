@@ -3,7 +3,10 @@
 	Compare primary user assignments in Intune against RealmJoin for Windows managed devices
 
 	.DESCRIPTION
-	For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with a CSV attachment.
+	For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
+	The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 	.NOTES
 	Prerequisites:
@@ -34,10 +37,28 @@
 	Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default.
 
 	.PARAMETER EmailTo
-	Recipient email address (or multiple comma-separated addresses) that should receive the report.
+	If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses.
 
 	.PARAMETER EmailFrom
 	The sender email address. This is configured via the runbook customization setting and hidden in the portal.
+
+	.PARAMETER ReportFileFormat
+	Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+	.PARAMETER CreateDownloadLink
+	If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+	.PARAMETER ContainerName
+	Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+	.PARAMETER ResourceGroupName
+	Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+	.PARAMETER StorageAccountName
+	Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+	.PARAMETER LinkExpiryDays
+	Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
 
 	.PARAMETER UseDeviceScope
 	Enable device scope filtering to include or exclude devices based on Entra device group membership.
@@ -91,7 +112,61 @@
             "EmailTo": {
 				"DisplayName": "Send Report To"
 			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
 			"EmailFrom": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"CreateDownloadLink": {
+				"DisplayName": "Create a file download link (upload report to storage)?",
+				"SelectSimple": {
+					"Yes - upload report and return a download link": true,
+					"No - do not create a download link": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
 				"Hide": true
 			},
 			"CallerName": {
@@ -131,8 +206,9 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param (
     [int]$SyncThresholdDays = 30,
@@ -155,11 +231,43 @@ param (
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Devices from Group" } )]
     [string]$ExcludeDeviceGroup,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string]$EmailTo,
 
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
     [string]$EmailFrom,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ })]
+    [string]$BrandingHeaderImageUrl,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ })]
+    [string]$BrandingFooterImageUrl,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ })]
+    [string]$BrandingFooterLink,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
+
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string]$ReportFileFormat = 'CSV & XLSX',
+
+    [bool]$CreateDownloadLink = $false,
+
+    [string]$ContainerName = "report-primary-user-mismatch",
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ })]
+    [string]$ResourceGroupName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ })]
+    [string]$StorageAccountName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -172,7 +280,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.4.1"
+$Version = "1.7.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "SyncThresholdDays: $SyncThresholdDays" -Verbose
@@ -183,9 +291,22 @@ Write-RjRbLog -Message "IncludeMissingInIntune: $IncludeMissingInIntune" -Verbos
 Write-RjRbLog -Message "IncludePrimaryUserDeleted: $IncludePrimaryUserDeleted" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 Write-RjRbLog -Message "UseDeviceScope: $UseDeviceScope" -Verbose
 Write-RjRbLog -Message "IncludeDeviceGroup: $IncludeDeviceGroup" -Verbose
 Write-RjRbLog -Message "ExcludeDeviceGroup: $ExcludeDeviceGroup" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
 
 #endregion
 
@@ -196,6 +317,12 @@ Write-RjRbLog -Message "ExcludeDeviceGroup: $ExcludeDeviceGroup" -Verbose
 Write-Output ""
 Write-Output "Parameter Validation"
 Write-Output "---------------------"
+
+# A configured sender address is required when an email report is requested
+if ($EmailTo -and -not $EmailFrom) {
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
+}
 
 # Retrieve the RealmJoin API credential from the Automation Account shared credentials store.
 # Reference: https://docs.realmjoin.com/dev-reference/realmjoin-api/authentication
@@ -235,6 +362,12 @@ if ([string]::IsNullOrWhiteSpace($EmailTo)) {
 }
 
 Write-Output "EmailTo ($EmailTo) - OK"
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+}
 
 Write-Output ""
 Write-Output "Parameter Validation completed successfully."
@@ -579,8 +712,10 @@ Write-Output "Primary User Deleted: $primaryUserDeletedCount"
 
 $tempDir = $null
 $csvFilePath = $null
+$xlsxFilePath = $null
+$reportFiles = @()
 
-# Cap the inline "Devices with Differences" listing at this many rows; the full set is always in the CSV.
+# Cap the inline "Devices with Differences" listing at this many rows; the full set is always in the report files.
 $maxDisplayDevices = 10
 $displayDifferences = @($differences | Select-Object -First $maxDisplayDevices)
 
@@ -590,17 +725,31 @@ if ($differences.Count -gt 0) {
     Write-Output "---------------------"
     $displayDifferences | Format-Table -AutoSize -Property DeviceName, AzureAdDeviceId, IntunePrimaryUser, RealmJoinPrimaryUser, Status, LastSyncDateTime
     if ($differences.Count -gt $maxDisplayDevices) {
-        Write-Output "Showing the first $maxDisplayDevices of $($differences.Count) device(s) with differences. See the attached CSV for the complete list."
+        Write-Output "Showing the first $maxDisplayDevices of $($differences.Count) device(s) with differences. See the attached report file(s) for the complete list."
     }
 
-    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "Report_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+    # The report files are only needed when they will be attached to an email and/or uploaded
+    if ($EmailTo -or $CreateDownloadLink) {
+        $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "Report_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+        Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
-    $csvFilePath = Join-Path $tempDir "$(Get-Date -Format 'yyyyMMdd_HHmmss')_PrimaryUserMismatch.csv"
-    $differences | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
-    Write-RjRbLog -Message "Exported $($differences.Count) differing devices to CSV: $csvFilePath" -Verbose
-    Write-Output "CSV file created: $csvFilePath"
+        $fileNameBase = "$(Get-Date -Format 'yyyyMMdd_HHmmss')_PrimaryUserMismatch"
+        if ($ReportFileFormat -ne 'XLSX only') {
+            $csvFilePath = Join-Path $tempDir "$fileNameBase.csv"
+            $differences | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
+            $reportFiles += $csvFilePath
+            Write-RjRbLog -Message "Exported $($differences.Count) differing devices to CSV: $csvFilePath" -Verbose
+            Write-Output "CSV file created: $csvFilePath"
+        }
+        if ($ReportFileFormat -ne 'CSV only') {
+            $xlsxFilePath = Join-Path $tempDir "$fileNameBase.xlsx"
+            $differences | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Primary User Mismatch"
+            $reportFiles += $xlsxFilePath
+            Write-RjRbLog -Message "Exported $($differences.Count) differing devices to XLSX: $xlsxFilePath" -Verbose
+            Write-Output "XLSX file created: $xlsxFilePath"
+        }
+    }
 }
 else {
     Write-Output ""
@@ -611,10 +760,44 @@ else {
 #endregion
 
 ########################################################
+#region     Upload / Download Link (optional)
+########################################################
+
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "Uploading report to storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No primary user differences detected - skipping report upload."
+    }
+}
+
+#endregion
+
+########################################################
 #region     Email Report
 ########################################################
 
-if ($differences.Count -gt 0) {
+if (-not $EmailTo) {
+    Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
+}
+elseif ($differences.Count -gt 0) {
     try {
         $tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
         $tenantDisplayName = $tenantInfo.value[0].displayName ?? "Tenant"
@@ -642,7 +825,7 @@ if ($differences.Count -gt 0) {
 $summaryBlock
 
 ## Devices with Differences
-A total of $($differences.Count) device(s) differ between Intune and RealmJoin. Showing up to $maxDisplayDevices below; the full list is in the attached CSV.
+A total of $($differences.Count) device(s) differ between Intune and RealmJoin. Showing up to $maxDisplayDevices below; the full list is in the attached report file(s).
 
 | Device Name | Entra Device ID | Intune Primary User | RealmJoin Primary User | Status | Last Sync |
 |---|---|---|---|---|---|
@@ -653,20 +836,53 @@ A total of $($differences.Count) device(s) differ between Intune and RealmJoin. 
     }
 
     if ($differences.Count -gt $maxDisplayDevices) {
-        $markdownContent += "`n`n_Showing the first $maxDisplayDevices of $($differences.Count) device(s) with differences. See the attached CSV for the complete list._"
+        $markdownContent += "`n`n_Showing the first $maxDisplayDevices of $($differences.Count) device(s) with differences. See the attached report file(s) for the complete list._"
     }
 
-    $markdownContent += "`n`nSee the attached CSV for full details.`n"
+    $markdownContent += "`n`nSee the attached report file(s) for full details.`n"
 
     $markdownContent += "`n---`n`n*This email was automatically generated. Please do not reply to this email.*`n"
 
     $emailSubject = "Primary User Mismatch Report - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')"
-    $attachments = @($csvFilePath)
+
+    $markdownFallback = @"
+# Primary User Mismatch Report
+
+## Summary
+$summaryBlock
+
+## Devices with Differences
+A total of $($differences.Count) device(s) differ between Intune and RealmJoin.
+
+- **$($fileNameBase).xlsx**: Formatted Excel workbook with the complete list of differences
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     try {
-        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -Attachments $attachments -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+        $guardParams = @{
+            EmailFrom         = $EmailFrom
+            EmailTo           = $EmailTo
+            Subject           = $emailSubject
+            MarkdownContent   = $markdownContent
+            TenantDisplayName = $tenantDisplayName
+            ReportVersion     = $Version
+        }
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
+            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+        }
+        else {
+            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+        }
         Write-RjRbLog -Message "Email report sent successfully to: $EmailTo" -Verbose
-        Write-Output "Report sent to: $EmailTo"
     }
     catch {
         Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
@@ -682,6 +898,12 @@ else {
 ########################################################
 #region     Cleanup
 ########################################################
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
 
 if ($tempDir -and (Test-Path -Path $tempDir)) {
     Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue

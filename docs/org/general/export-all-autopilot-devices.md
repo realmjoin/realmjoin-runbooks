@@ -12,8 +12,7 @@ Org \ General \ Export All Autopilot Devices
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
-  - Directory.Read.All
-  - Device.Read.All
+  - DeviceManagementServiceConfig.Read.All
 
 
 ## Parameters

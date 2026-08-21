@@ -154,12 +154,41 @@ function Convert-PermissionJsonToMarkdown {
     foreach ($permission in $jsonObject.Permissions) {
         $permissionsMarkdown += "- **Type**: $($permission.Name)`n"
         foreach ($assignment in $permission.AppRoleAssignments) {
-            $permissionsMarkdown += "  - $assignment`n"
+            # Schema v1 entries are plain strings, schema v2 entries may be objects
+            if ($assignment -is [string]) {
+                $permissionsMarkdown += "  - $assignment`n"
+                continue
+            }
+
+            $entry = [string]$assignment.Value
+            if ($assignment.PSObject.Properties['Optional'] -and $assignment.Optional) {
+                if ($assignment.PSObject.Properties['Feature'] -and $assignment.Feature) {
+                    $entry += " *(optional: $($assignment.Feature))*"
+                }
+                else {
+                    $entry += " *(optional)*"
+                }
+            }
+            $permissionsMarkdown += "  - $entry`n"
         }
     }
 
     foreach ($role in $jsonObject.Roles) {
-        $rbacRolesMarkdown += "- $role`n"
+        if ($role -is [string]) {
+            $rbacRolesMarkdown += "- $role`n"
+            continue
+        }
+
+        $entry = [string]$role.Name
+        if ($role.PSObject.Properties['Optional'] -and $role.Optional) {
+            if ($role.PSObject.Properties['Feature'] -and $role.Feature) {
+                $entry += " *(optional: $($role.Feature))*"
+            }
+            else {
+                $entry += " *(optional)*"
+            }
+        }
+        $rbacRolesMarkdown += "- $entry`n"
     }
 
     foreach ($manualPermission in $jsonObject.ManualPermissions) {
@@ -306,7 +335,13 @@ if ($outputMode -eq "OneFile") {
     Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $includedScope) {
-        Add-Content -Path $ResultFile -Value "- $scope"
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $ResultFile -Value "- $scopeDisplayName"
     }
     Add-Content -Path $ResultFile -Value ""
     Add-Content -Path $ResultFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory."

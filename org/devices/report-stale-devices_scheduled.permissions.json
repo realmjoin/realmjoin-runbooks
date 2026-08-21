@@ -1,16 +1,27 @@
 {
-  "Permissions": [
-    {
-      "Name": "Microsoft Graph",
-      "Id": "00000003-0000-0000-c000-000000000000",
-      "AppRoleAssignments": [
-        "DeviceManagementManagedDevices.Read.All",
-        "Directory.Read.All",
-        "Device.Read.All",
-        "Mail.Send"
-      ]
-    }
-  ],
-  "Roles": [],
-  "ManualPermissions": []
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Lists Intune devices filtered by lastSyncDateTime to find stale devices"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Reads include/exclude group members, primary user details and the tenant name"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
 }

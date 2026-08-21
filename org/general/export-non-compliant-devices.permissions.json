@@ -1,10 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementConfiguration.Read.All"
+                {
+                    "Value": "DeviceManagementConfiguration.Read.All",
+                    "Reason": "Pulls per-device policy and setting compliance via the Intune compliance report endpoints"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Lists non-compliant Intune devices via /deviceManagement/managedDevices"
+                }
             ]
         }
     ],

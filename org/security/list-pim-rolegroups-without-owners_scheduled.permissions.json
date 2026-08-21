@@ -1,12 +1,30 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.Read.All",
-                "RoleManagement.Read.Directory",
-                "Mail.Send"
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Lists role-assignable groups and reads their owners to find ownerless ones"
+                },
+                {
+                    "Value": "RoleManagement.Read.Directory",
+                    "Reason": "Queries roleEligibilitySchedules per group to detect PIM-eligible role assignments"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the alert email via /users/{From}/sendMail when ownerless PIM groups were found"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant's verified domain for the alert email body"
+                }
             ]
         }
     ],

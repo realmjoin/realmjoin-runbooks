@@ -13,6 +13,7 @@ Org \ General \ Add Security Group
 ### Application permissions
 - **Type**: Microsoft Graph
   - Group.Create
+  - Group.Read.All
 
 
 ## Parameters

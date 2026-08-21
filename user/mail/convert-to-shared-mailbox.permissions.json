@@ -1,15 +1,45 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Office 365 Exchange Online",
             "Id": "00000002-0000-0ff1-ce00-000000000000",
             "AppRoleAssignments": [
-                "Exchange.ManageAsApp"
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Reason": "Converts the mailbox type and manages permissions and distribution groups in the app-only Exchange Online session"
+                }
+            ]
+        },
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Reads the user and toggles accountEnabled when converting to or from a shared mailbox"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Optional": true,
+                    "Feature": "Group and license handling",
+                    "Reason": "Finds the regular or archival license group by display name"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Optional": true,
+                    "Feature": "Group and license handling",
+                    "Reason": "Removes group memberships and manages license group membership during conversion"
+                }
             ]
         }
     ],
     "Roles": [
-        "Exchange administrator"
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Reason": "Required for the app-only Exchange Online session converting the mailbox"
+        }
     ],
     "ManualPermissions": []
 }

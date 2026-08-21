@@ -14,6 +14,7 @@ Org \ General \ Export Policy Report
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.Read.All
   - Policy.Read.All
+  - Directory.Read.All *(optional: Name resolution)*
 
 ### Permission notes
 Azure Storage Account: Contributor role on the Storage Account used for exporting reports

@@ -1,11 +1,18 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "AuditLog.Read.All",
-                "Mail.Send"
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Queries /auditLogs/directoryAudits for PIM role activation events of the last month"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Reason": "Sends the PIM activation report via /users/{sendAlertFrom}/sendMail when activations were found"
+                }
             ]
         }
     ],

@@ -14,7 +14,7 @@ User \ Mail \ List Mailbox Permissions
   - Exchange.ManageAsApp
 
 ### RBAC roles
-- Exchange administrator
+- Exchange Administrator
 
 
 ## Parameters

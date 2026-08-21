@@ -18,6 +18,11 @@
     In this document, the information regarding the following parameters are included: Category, Subcategory, Runbook Name, Synopsis, Description
     The name of this list is "RealmJoinRunbook-RunbookList.md"
 
+    .PARAMETER createCustomRunbookOverviewList
+    Creates a copy of the runbook overview list without the table of contents section.
+    The document uses a single top-level header ("# Runbook overview"); categories are H2 and subcategories are H3.
+    The name of this list is "RealmJoinRunbook-RunbookList-noToc.md" and it is stored in the subfolder "custom" of the output folder.
+
     .PARAMETER createCompactRunbookOverviewList
     Creates a compact list of all runbooks with a short description. The created document does not contain a table of contents or other links.
     In the list, the columns are Category, Subcategory, Runbook Name and Synopsis
@@ -61,6 +66,7 @@
 param(
     [string[]]$includedScope = @("device", "group", "org", "user"),
     [switch]$createRunbookOverviewList,
+    [switch]$createCustomRunbookOverviewList,
     [switch]$createCompactRunbookOverviewList,
     [switch]$createPermissionList,
     [switch]$createParameterList,
@@ -128,12 +134,42 @@ function Convert-PermissionJsonToMarkdown {
     foreach ($permission in $jsonObject.Permissions) {
         $permissionsMarkdown += "- **Type**: $($permission.Name)<br>"
         foreach ($assignment in $permission.AppRoleAssignments) {
-            $permissionsMarkdown += "&emsp;- $assignment<br>"
+            # Schema v1 entries are plain strings, schema v2 entries may be objects
+            # with 'Value' plus metadata like 'Optional' and 'Feature'.
+            if ($assignment -is [string]) {
+                $permissionsMarkdown += "&emsp;- $assignment<br>"
+                continue
+            }
+
+            $entry = [string]$assignment.Value
+            if ($assignment.PSObject.Properties['Optional'] -and $assignment.Optional) {
+                if ($assignment.PSObject.Properties['Feature'] -and $assignment.Feature) {
+                    $entry += " *(optional: $($assignment.Feature))*"
+                }
+                else {
+                    $entry += " *(optional)*"
+                }
+            }
+            $permissionsMarkdown += "&emsp;- $entry<br>"
         }
     }
 
     foreach ($role in $jsonObject.Roles) {
-        $rbacRolesMarkdown += "- $role<br>"
+        if ($role -is [string]) {
+            $rbacRolesMarkdown += "- $role<br>"
+            continue
+        }
+
+        $entry = [string]$role.Name
+        if ($role.PSObject.Properties['Optional'] -and $role.Optional) {
+            if ($role.PSObject.Properties['Feature'] -and $role.Feature) {
+                $entry += " *(optional: $($role.Feature))*"
+            }
+            else {
+                $entry += " *(optional)*"
+            }
+        }
+        $rbacRolesMarkdown += "- $entry<br>"
     }
 
     foreach ($manualPermission in $jsonObject.ManualPermissions) {
@@ -144,6 +180,118 @@ function Convert-PermissionJsonToMarkdown {
         Permissions = $permissionsMarkdown
         RBACRoles   = $rbacRolesMarkdown
         ManualPermissions = $manualPermissionsMarkdown
+    }
+}
+
+function New-RunbookOverviewDocument {
+    <#
+        .SYNOPSIS
+        Writes a runbook overview markdown document, optionally including a table of contents.
+
+        .DESCRIPTION
+        Generates the runbook overview markdown document with a single top-level header ("# Overview").
+        Categories are rendered as H2 headers and subcategories as H3 headers to keep a valid markdown
+        header hierarchy with exactly one H1. The table of contents and the matching back-links are only
+        added when -IncludeTableOfContents is specified.
+
+        .PARAMETER OutputFile
+        The full path of the markdown file to create.
+
+        .PARAMETER RunbookDescriptions
+        The collection of runbook description objects to render.
+
+        .PARAMETER IncludedScope
+        The list of top-level scopes/categories included in the document.
+
+        .PARAMETER IncludeTableOfContents
+        If specified, a table of contents and matching back-links are added to the document.
+    #>
+    param(
+        [string]$OutputFile,
+        [object[]]$RunbookDescriptions,
+        [string[]]$IncludedScope,
+        [switch]$IncludeTableOfContents
+    )
+
+    if (Test-Path -Path $OutputFile) {
+        Remove-Item -Path $OutputFile -Force -ErrorAction SilentlyContinue
+    }
+
+    $groupedRunbooks = $RunbookDescriptions | Group-Object -Property PrimaryFolder, SubFolder
+
+    Add-Content -Path $OutputFile -Value "<a name='runbook-overview'></a>"
+    Add-Content -Path $OutputFile -Value "# Runbook overview"
+    Add-Content -Path $OutputFile -Value "This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality."
+    Add-Content -Path $OutputFile -Value ""
+    Add-Content -Path $OutputFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
+    foreach ($scope in $IncludedScope) {
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $OutputFile -Value "- $scopeDisplayName"
+    }
+    Add-Content -Path $OutputFile -Value ""
+    Add-Content -Path $OutputFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory."
+    Add-Content -Path $OutputFile -Value ""
+
+    if ($IncludeTableOfContents) {
+        # Create table of contents (rendered as H2 to keep a single H1 in the document)
+        Add-Content -Path $OutputFile -Value "## Table of Contents"
+
+        $lastPrimaryFolder = ""
+        foreach ($primaryGroup in $groupedRunbooks) {
+            $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
+            $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
+            $primaryFolderAnchor = ($primaryFolder -replace ' ', '-').ToLower()
+            $subFolderAnchor = "$($primaryFolderAnchor)-$(($subFolder -replace ' ', '-').ToLower())"
+
+            if ($lastPrimaryFolder -ne $primaryFolder) {
+                Add-Content -Path $OutputFile -Value "- [$primaryFolder](#$primaryFolderAnchor)"
+                $lastPrimaryFolder = $primaryFolder
+            }
+
+            Add-Content -Path $OutputFile -Value "  - [$subFolder](#$subFolderAnchor)"
+
+            foreach ($runbook in $primaryGroup.Group) {
+                Add-Content -Path $OutputFile -Value "    - $($runbook.RunbookDisplayName)"
+            }
+        }
+
+        Add-Content -Path $OutputFile -Value ""
+    }
+
+    $lastPrimaryFolder = ""
+    foreach ($primaryGroup in $groupedRunbooks) {
+        $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
+        $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
+        $primaryFolderAnchor = ($primaryFolder -replace ' ', '-').ToLower()
+        $subFolderAnchor = "$($primaryFolderAnchor)-$(($subFolder -replace ' ', '-').ToLower())"
+
+        if ($lastPrimaryFolder -ne $primaryFolder) {
+            Add-Content -Path $OutputFile -Value "<a name='$primaryFolderAnchor'></a>"
+            Add-Content -Path $OutputFile -Value "## $primaryFolder"
+            $lastPrimaryFolder = $primaryFolder
+        }
+
+        Add-Content -Path $OutputFile -Value "<a name='$subFolderAnchor'></a>"
+        Add-Content -Path $OutputFile -Value "### $subFolder"
+
+        Add-Content -Path $OutputFile -Value "| Runbook Name | Synopsis |"
+        Add-Content -Path $OutputFile -Value "|--------------|----------|"
+
+        foreach ($runbook in $primaryGroup.Group) {
+            $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
+            Add-Content -Path $OutputFile -Value "| $($runbook.RunbookDisplayName) | $synopsis |"
+        }
+        Add-Content -Path $OutputFile -Value ""
+
+        if ($IncludeTableOfContents) {
+            Add-Content -Path $OutputFile -Value "[Back to the RealmJoin runbook overview](#table-of-contents)"
+            Add-Content -Path $OutputFile -Value ""
+        }
     }
 }
 #endregion
@@ -235,73 +383,22 @@ catch {
 
 if ($createRunbookOverviewList) {
     $ListFile_Overview = Join-Path -Path $outputFolder -ChildPath "RealmJoinRunbook-RunbookList.md"
-    if (Test-Path -Path $ListFile_Overview) {
-        Remove-Item -Path $ListFile_Overview -Force -ErrorAction SilentlyContinue
+    New-RunbookOverviewDocument -OutputFile $ListFile_Overview -RunbookDescriptions $runbookDescriptions -IncludedScope $includedScope -IncludeTableOfContents
+}
+#endregion
+
+######################################
+#region Generate custom Runbook overview list (without table of contents)
+######################################
+
+if ($createCustomRunbookOverviewList) {
+    $customOutputFolder = Join-Path -Path $outputFolder -ChildPath "custom"
+    if (-not (Test-Path -Path $customOutputFolder)) {
+        New-Item -Path $customOutputFolder -ItemType Directory -Force | Out-Null
     }
 
-    $groupedRunbooks = $runbookDescriptions | Group-Object -Property PrimaryFolder, SubFolder
-
-    Add-Content -Path $ListFile_Overview -Value "<a name='runbook-overview'></a>"
-    Add-Content -Path $ListFile_Overview -Value "# Overview"
-    Add-Content -Path $ListFile_Overview -Value "This document provides a comprehensive overview of all runbooks currently available in the RealmJoin portal. Each runbook is listed along with a brief description or synopsis to give a clear understanding of its purpose and functionality."
-    Add-Content -Path $ListFile_Overview -Value ""
-    Add-Content -Path $ListFile_Overview -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
-    foreach ($scope in $includedScope) {
-        Add-Content -Path $ListFile_Overview -Value "- $scope"
-    }
-    Add-Content -Path $ListFile_Overview -Value ""
-    Add-Content -Path $ListFile_Overview -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. The runbooks are listed in alphabetical order within each subcategory."
-    Add-Content -Path $ListFile_Overview -Value ""
-
-    # Create TOC
-    Add-Content -Path $ListFile_Overview -Value "# Table of Contents"
-
-    foreach ($primaryGroup in $groupedRunbooks) {
-        $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
-        $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
-        $primaryFolderAnchor = ($primaryFolder -replace ' ', '-').ToLower()
-        $subFolderAnchor = "$($primaryFolderAnchor)-$(($subFolder -replace ' ', '-').ToLower())"
-
-        if ($lastPrimaryFolder -ne $primaryFolder) {
-            Add-Content -Path $ListFile_Overview -Value "- [$primaryFolder](#$primaryFolderAnchor)"
-            $lastPrimaryFolder = $primaryFolder
-        }
-
-        Add-Content -Path $ListFile_Overview -Value "  - [$subFolder](#$subFolderAnchor)"
-
-        foreach ($runbook in $primaryGroup.Group) {
-            Add-Content -Path $ListFile_Overview -Value "    - $($runbook.RunbookDisplayName)"
-        }
-    }
-
-    Add-Content -Path $ListFile_Overview -Value ""
-
-    foreach ($primaryGroup in $groupedRunbooks) {
-        $primaryFolder = $primaryGroup.Name.Split(',')[0].Trim()
-        $subFolder = $primaryGroup.Name.Split(',')[1].Trim()
-        $primaryFolderAnchor = ($primaryFolder -replace ' ', '-').ToLower()
-        $subFolderAnchor = "$($primaryFolderAnchor)-$(($subFolder -replace ' ', '-').ToLower())"
-
-        if ($lastPrimaryFolder -ne $primaryFolder) {
-            Add-Content -Path $ListFile_Overview -Value "<a name='$primaryFolderAnchor'></a>"
-            Add-Content -Path $ListFile_Overview -Value "# $primaryFolder"
-            $lastPrimaryFolder = $primaryFolder
-        }
-
-        Add-Content -Path $ListFile_Overview -Value "<a name='$subFolderAnchor'></a>"
-        Add-Content -Path $ListFile_Overview -Value "## $subFolder"
-
-        Add-Content -Path $ListFile_Overview -Value "| Runbook Name | Synopsis |"
-        Add-Content -Path $ListFile_Overview -Value "|--------------|----------|"
-
-        foreach ($runbook in $primaryGroup.Group) {
-            $synopsis = if ($runbook.Synopsis) { $runbook.Synopsis } elseif ($runbook.Description) { $runbook.Description } else { "" }
-            Add-Content -Path $ListFile_Overview -Value "| $($runbook.RunbookDisplayName) | $synopsis |"
-        }
-        Add-Content -Path $ListFile_Overview -Value ""
-        Add-Content -Path $ListFile_Overview -Value "[Back to the RealmJoin runbook overview](#table-of-contents)"
-        Add-Content -Path $ListFile_Overview -Value ""
-    }
+    $CustomOverviewFile = Join-Path -Path $customOutputFolder -ChildPath "RealmJoinRunbook-RunbookList-noToc.md"
+    New-RunbookOverviewDocument -OutputFile $CustomOverviewFile -RunbookDescriptions $runbookDescriptions -IncludedScope $includedScope
 }
 #endregion
 
@@ -405,7 +502,13 @@ if ($createParameterList) {
     Add-Content -Path $ParameterFile -Value ""
     Add-Content -Path $ParameterFile -Value "To ensure easy navigation, the runbooks are categorized into different sections based on their area of application. The following categories are currently available:"
     foreach ($scope in $includedScope) {
-        Add-Content -Path $ParameterFile -Value "- $scope"
+        # Use the same display name as the section headers (e.g. "org" -> "Organization")
+        if ($scope -eq "org") {
+            $scopeDisplayName = "Organization"
+        } else {
+            $scopeDisplayName = $scope.Substring(0, 1).ToUpper() + $scope.Substring(1)
+        }
+        Add-Content -Path $ParameterFile -Value "- $scopeDisplayName"
     }
     Add-Content -Path $ParameterFile -Value ""
     Add-Content -Path $ParameterFile -Value "Each category contains multiple runbooks that are further divided into subcategories based on their functionality. For runbooks with multiple parameters, each parameter is listed in a separate row."

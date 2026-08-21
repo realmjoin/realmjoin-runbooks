@@ -3,7 +3,7 @@
     Notify primary users about their stale devices via email
 
     .DESCRIPTION
-    Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups.
+    Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Three optional routing targets are available: a global override recipient that redirects ALL notifications (for testing and piloting), a dedicated recipient for users whose UPN matches a name pattern (e.g. Device Enrollment Manager accounts), and a dedicated recipient that receives one combined email for stale devices without a primary user.
 
     .NOTES
     This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.
@@ -19,6 +19,7 @@
     - Security and compliance by ensuring users are aware of all devices registered to them
     - Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)
     - User scope filtering to target specific departments or exclude service accounts
+    - Centrally handling devices without a primary user or owned by Device Enrollment Manager (e.g. DEM-*) accounts via dedicated recipients
 
     Pilot and Testing Options:
     - Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users
@@ -46,6 +47,26 @@
     .PARAMETER EmailFrom
     The sender email address. This needs to be configured in the runbook customization.
 
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
     .PARAMETER ServiceDeskDisplayName
     Service Desk display name for user contact information (optional).
 
@@ -71,7 +92,19 @@
     Do not send emails to users who are members of this group. Requires UseUserScope to be enabled.
 
     .PARAMETER OverrideEmailRecipient
-    Optional: Email address(es) to send all notifications to instead of end users. Can be comma-separated for multiple recipients. Perfect for testing, piloting, or sending to ticket systems. If left empty, emails will be sent to the actual end users.
+    Optional: Global override - when set, ALL notifications (user notifications, pattern-routed notifications and the combined email for devices without a primary user) are sent to this address instead of their normal recipients. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a ticket system. If left empty, the normal routing applies.
+
+    .PARAMETER SendNoPrimaryUserDevicesToOverride
+    If enabled, stale devices without a primary user are collected into one combined email to NoPrimaryUserEmailRecipient (or to OverrideEmailRecipient while the global override is active). Does not change how user notifications are routed. Devices without a primary user bypass user scope filtering.
+
+    .PARAMETER NoPrimaryUserEmailRecipient
+    Email address(es) that receive the combined email for stale devices without a primary user. Can be comma-separated. Required when SendNoPrimaryUserDevicesToOverride is enabled, unless OverrideEmailRecipient is set.
+
+    .PARAMETER OverrideUserNamePattern
+    Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Notifications of matching users are redirected to UserNamePatternEmailRecipient; all other users are mailed directly. Not evaluated separately while the global override (OverrideEmailRecipient) is active, since all notifications are redirected anyway.
+
+    .PARAMETER UserNamePatternEmailRecipient
+    Email address(es) that receive the notifications of users matching OverrideUserNamePattern. Can be comma-separated. Required when OverrideUserNamePattern is set, unless OverrideEmailRecipient is set.
 
     .PARAMETER MailTemplateLanguage
     Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
@@ -112,6 +145,21 @@
             "EmailFrom": {
                 "Hide": true
             },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
             "ServiceDeskDisplayName": {
                 "Hide": true
             },
@@ -140,7 +188,21 @@
                 "Hide": true
             },
             "OverrideEmailRecipient": {
-                "DisplayName": "(Optional) Override Email Recipient(s)"
+                "DisplayName": "Redirect * ALL * Emails to Override Recipient(s)"
+            },
+            "SendNoPrimaryUserDevicesToOverride": {
+                "DisplayName": "Send Devices without Primary User as Combined Email",
+                "Hide": true
+            },
+            "NoPrimaryUserEmailRecipient": {
+                "DisplayName": "Recipient(s) for Devices without Primary User",
+                "Hide": true
+            },
+            "OverrideUserNamePattern": {
+                "DisplayName": "(Optional) Primary User Name Pattern - redirect matching users (e.g. 'DEM-*')"
+            },
+            "UserNamePatternEmailRecipient": {
+                "DisplayName": "Recipient(s) for Pattern-Matched Users"
             },
             "MailTemplateLanguage": {
                 "DisplayName": "Mail Template",
@@ -193,6 +255,35 @@
                 }
             },
             {
+                "DisplayName": "(Optional) Send inactive devices with no primary user as one combined email.",
+                "DisplayAfter": "UserNamePatternEmailRecipient",
+                "Default": false,
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Yes - send one combined email for devices without primary user",
+                            "Customization": {
+                                "Hide": [],
+                                "Show": ["NoPrimaryUserEmailRecipient"],
+                                "Default": {
+                                    "SendNoPrimaryUserDevicesToOverride": true
+                                }
+                            }
+                        },
+                        {
+                            "Display": "No - skip devices without primary user (default)",
+                            "Customization": {
+                                "Hide": ["NoPrimaryUserEmailRecipient"],
+                                "Default": {
+                                    "SendNoPrimaryUserDevicesToOverride": false
+                                }
+                            },
+                            "ParameterValue": false
+                        }
+                    ]
+                }
+            },
+            {
                 "DisplayName": "Select which email template to use",
                 "DisplayAfter": "Android",
                 "Default": "EN",
@@ -232,8 +323,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param(
     [int] $Days = 30,
@@ -244,6 +335,16 @@ param(
     [bool] $Android = $true,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string]$BrandingHeaderImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string]$BrandingFooterImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string]$BrandingFooterLink,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_DisplayName" } )]
     [string]$ServiceDeskDisplayName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_EMail" } )]
@@ -259,6 +360,10 @@ param(
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
     [string]$ExcludeUserGroup,
     [string]$OverrideEmailRecipient,
+    [string]$OverrideUserNamePattern = "",
+    [string]$UserNamePatternEmailRecipient = "",
+    [bool] $SendNoPrimaryUserDevicesToOverride = $false,
+    [string]$NoPrimaryUserEmailRecipient = "",
     [ValidateSet("EN", "DE", "Custom")]
     [string]$MailTemplateLanguage = "EN",
     [string]$CustomMailTemplateSubject,
@@ -278,12 +383,17 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.4"
+$Version = "1.7.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 Write-RjRbLog -Message "Service Desk Display Name: $ServiceDeskDisplayName" -Verbose
 Write-RjRbLog -Message "Service Desk Email: $ServiceDeskEmail" -Verbose
 Write-RjRbLog -Message "Service Desk Phone: $ServiceDeskPhone" -Verbose
@@ -299,6 +409,10 @@ Write-RjRbLog -Message "UseUserScope: $UseUserScope" -Verbose
 Write-RjRbLog -Message "IncludeUserGroup: $IncludeUserGroup" -Verbose
 Write-RjRbLog -Message "ExcludeUserGroup: $ExcludeUserGroup" -Verbose
 Write-RjRbLog -Message "OverrideEmailRecipient: $OverrideEmailRecipient" -Verbose
+Write-RjRbLog -Message "OverrideUserNamePattern: $OverrideUserNamePattern" -Verbose
+Write-RjRbLog -Message "UserNamePatternEmailRecipient: $UserNamePatternEmailRecipient" -Verbose
+Write-RjRbLog -Message "SendNoPrimaryUserDevicesToOverride: $SendNoPrimaryUserDevicesToOverride" -Verbose
+Write-RjRbLog -Message "NoPrimaryUserEmailRecipient: $NoPrimaryUserEmailRecipient" -Verbose
 Write-RjRbLog -Message "MailTemplateLanguage: $MailTemplateLanguage" -Verbose
 Write-RjRbLog -Message "CustomMailTemplateSubject: $CustomMailTemplateSubject" -Verbose
 Write-RjRbLog -Message "CustomMailTemplateBeforeDeviceDetails: $CustomMailTemplateBeforeDeviceDetails" -Verbose
@@ -312,9 +426,52 @@ Write-RjRbLog -Message "CustomMailTemplateAfterDeviceDetails: $CustomMailTemplat
 
 # Validate Email Address
 if (-not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md" -Verbose
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
     throw "The sender email address is required. This needs to be configured in the runbook customization."
     exit
+}
+
+# Validate override routing configuration
+$globalOverrideActive = -not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)
+if ($globalOverrideActive) {
+    Write-Warning "OverrideEmailRecipient is set - ALL notifications are redirected to '$OverrideEmailRecipient'. No end user receives an email."
+}
+
+# Combined email for devices without a primary user
+$effectiveNoPrimaryUserRecipient = $null
+if ($SendNoPrimaryUserDevicesToOverride) {
+    if ($globalOverrideActive) {
+        $effectiveNoPrimaryUserRecipient = $OverrideEmailRecipient
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($NoPrimaryUserEmailRecipient)) {
+        $effectiveNoPrimaryUserRecipient = $NoPrimaryUserEmailRecipient
+    }
+    else {
+        throw "SendNoPrimaryUserDevicesToOverride is enabled but neither NoPrimaryUserEmailRecipient nor OverrideEmailRecipient is set. Configure a recipient for the combined email."
+    }
+}
+elseif (-not [string]::IsNullOrWhiteSpace($NoPrimaryUserEmailRecipient)) {
+    Write-Warning "NoPrimaryUserEmailRecipient is set but SendNoPrimaryUserDevicesToOverride is disabled - the recipient will be ignored."
+}
+
+# Pattern-based redirect of user notifications; parse the comma-separated pattern list once
+$overrideUserPatterns = @()
+$effectivePatternRecipient = $null
+if (-not [string]::IsNullOrWhiteSpace($OverrideUserNamePattern)) {
+    if ($globalOverrideActive) {
+        Write-Warning "OverrideUserNamePattern is set, but OverrideEmailRecipient already redirects all notifications - the pattern has no additional effect."
+    }
+    elseif ([string]::IsNullOrWhiteSpace($UserNamePatternEmailRecipient)) {
+        throw "OverrideUserNamePattern is set but UserNamePatternEmailRecipient is empty. Configure a recipient for pattern-matched users."
+    }
+    else {
+        $effectivePatternRecipient = $UserNamePatternEmailRecipient
+        $overrideUserPatterns = @($OverrideUserNamePattern.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        Write-Warning "OverrideUserNamePattern is set - notifications of users matching '$OverrideUserNamePattern' are redirected to '$UserNamePatternEmailRecipient'; all other users are mailed directly."
+    }
+}
+elseif (-not [string]::IsNullOrWhiteSpace($UserNamePatternEmailRecipient)) {
+    Write-Warning "UserNamePatternEmailRecipient is set but OverrideUserNamePattern is empty - the recipient will be ignored."
 }
 
 # Validate Custom Mail Template parameters - fallback to EN if any parameter is missing
@@ -478,6 +635,71 @@ Wenn Sie Fragen oder Probleme haben, wenden Sie sich bitte an Ihren Service Desk
     return $template
 }
 
+function Get-DeviceListMarkdown {
+    <#
+        .SYNOPSIS
+        Builds the localized markdown device list section for notification emails.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [array]$Devices,
+        [Parameter(Mandatory = $true)]
+        [string]$MailTemplateLanguage
+    )
+
+    $deviceListMarkdown = ""
+    foreach ($device in $Devices) {
+        $lastSync = if ($device.lastSyncDateTime) {
+            (Get-Date $device.lastSyncDateTime).ToString("yyyy-MM-dd")
+        }
+        else {
+            "Unknown"
+        }
+
+        # Calculate actual inactive days
+        $inactiveDays = if ($device.lastSyncDateTime) {
+            [math]::Round(((Get-Date) - (Get-Date $device.lastSyncDateTime)).TotalDays)
+        }
+        else {
+            "Unknown"
+        }
+
+        # Device name header - localized based on mail template language
+        $deviceNameHeader = if ($MailTemplateLanguage -eq "DE") { "### $($device.deviceName)" } else { "### $($device.deviceName)" }
+        $osLabel = if ($MailTemplateLanguage -eq "DE") { "Betriebssystem" } else { "Operating System" }
+        $modelLabel = if ($MailTemplateLanguage -eq "DE") { "Modell" } else { "Model" }
+        $serialLabel = if ($MailTemplateLanguage -eq "DE") { "Seriennummer" } else { "Serial Number" }
+        $userLabel = if ($MailTemplateLanguage -eq "DE") { "Primärer Benutzer" } else { "Primary User" }
+        $lastSyncLabel = if ($MailTemplateLanguage -eq "DE") { "Letzte Synchronisation" } else { "Last Sync" }
+        $inactiveLabel = if ($MailTemplateLanguage -eq "DE") { "Inaktiv seit" } else { "Inactive Since" }
+        $daysLabel = if ($MailTemplateLanguage -eq "DE") { "Tagen" } else { "days" }
+
+        $primaryUserValue = if ($device.userPrincipalName) {
+            $device.userPrincipalName
+        }
+        elseif ($MailTemplateLanguage -eq "DE") {
+            "Nicht zugewiesen"
+        }
+        else {
+            "Not assigned"
+        }
+
+        $deviceListMarkdown += @"
+$deviceNameHeader
+
+- **$($osLabel):** $($device.operatingSystem)
+- **$($modelLabel):** $($device.manufacturer) $($device.model)
+- **$($serialLabel):** $($device.serialNumber)
+- **$($userLabel):** $primaryUserValue
+- **$($lastSyncLabel):** $lastSync
+- **$($inactiveLabel):** $inactiveDays $daysLabel
+
+"@
+    }
+
+    return $deviceListMarkdown
+}
+
 #endregion
 
 ########################################################
@@ -574,14 +796,9 @@ Write-Output "Found $($devices.Count) total stale devices before platform filter
 
 # Filter devices by platform and primary user
 $filteredDevices = @()
+$devicesWithoutUser = @()
 
 foreach ($device in $devices) {
-    # Skip devices without primary user
-    if (-not $device.userPrincipalName) {
-        Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no primary user assigned" -Verbose
-        continue
-    }
-
     $include = $false
 
     # Check if the device's platform matches any of the selected platforms
@@ -598,12 +815,28 @@ foreach ($device in $devices) {
         $include = $true
     }
 
-    if ($include) {
-        $filteredDevices += $device
+    if (-not $include) {
+        continue
     }
+
+    # Devices without a primary user are either collected for the override recipient or skipped
+    if (-not $device.userPrincipalName) {
+        if ($SendNoPrimaryUserDevicesToOverride) {
+            $devicesWithoutUser += $device
+        }
+        else {
+            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no primary user assigned" -Verbose
+        }
+        continue
+    }
+
+    $filteredDevices += $device
 }
 
 Write-Output "Found $($filteredDevices.Count) stale devices after platform filtering"
+if ($SendNoPrimaryUserDevicesToOverride) {
+    Write-Output "Found $($devicesWithoutUser.Count) stale devices without a primary user (will be sent as one combined email)"
+}
 
 #endregion
 
@@ -705,90 +938,70 @@ Write-Output ""
 
 $emailsSent = 0
 $emailsFailed = 0
+$patternRoutedUsers = 0
+
+# Get mail template based on language selection
+$mailTemplate = Get-MailTemplate -Language $MailTemplateLanguage -CustomSubject $CustomMailTemplateSubject -CustomBeforeDeviceDetails $CustomMailTemplateBeforeDeviceDetails -CustomAfterDeviceDetails $CustomMailTemplateAfterDeviceDetails
+
+# Build Service Desk contact information section
+$serviceDeskSection = ""
+if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone -or $ServiceDeskPortalUrl -or $ServiceDeskTicketUrl) {
+    $serviceDeskSection = "`n`n### Service Desk Contact Information`n"
+    if ($ServiceDeskDisplayName) {
+        $serviceDeskSection += "`n $($ServiceDeskDisplayName)"
+    }
+    if ($ServiceDeskEmail) {
+        $serviceDeskSection += "`n **Email:** [$($ServiceDeskEmail)](mailto:$($ServiceDeskEmail))"
+    }
+    if ($ServiceDeskPhone) {
+        $serviceDeskSection += "`n **Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
+    }
+    if ($ServiceDeskPortalUrl) {
+        $serviceDeskSection += "`n **Portal:** [$($ServiceDeskPortalUrl)]($($ServiceDeskPortalUrl))"
+    }
+    if ($ServiceDeskTicketUrl) {
+        $serviceDeskSection += "`n **Ticket:** [$($ServiceDeskTicketUrl)]($($ServiceDeskTicketUrl))"
+    }
+}
+
+$brandingMailParams = @{}
+if ($devicesByUser.Count -gt 0 -or ($SendNoPrimaryUserDevicesToOverride -and $devicesWithoutUser.Count -gt 0)) {
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+}
 
 foreach ($userEmail in $devicesByUser.Keys) {
     $userDevices = $devicesByUser[$userEmail]
 
-    # Determine actual recipient - if OverrideEmailRecipient is filled, use it; otherwise use the actual user email
-    $actualRecipient = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
-        $OverrideEmailRecipient
+    # Determine actual recipient: the global override wins over everything;
+    # otherwise pattern-matched users go to the pattern recipient, the rest directly to the user
+    $routeToOverride = $false
+    $actualRecipient = $userEmail
+    if ($globalOverrideActive) {
+        $routeToOverride = $true
+        $actualRecipient = $OverrideEmailRecipient
     }
-    else {
-        $userEmail
+    elseif ($overrideUserPatterns.Count -gt 0) {
+        foreach ($pattern in $overrideUserPatterns) {
+            if ($userEmail -like $pattern) {
+                $routeToOverride = $true
+                $actualRecipient = $effectivePatternRecipient
+                $patternRoutedUsers++
+                break
+            }
+        }
     }
 
     Write-Output "Processing user: $($userEmail) ($($userDevices.Count) device(s)) - Sending to: $($actualRecipient)"
 
-    # Get mail template based on language selection
-    $mailTemplate = Get-MailTemplate -Language $MailTemplateLanguage -CustomSubject $CustomMailTemplateSubject -CustomBeforeDeviceDetails $CustomMailTemplateBeforeDeviceDetails -CustomAfterDeviceDetails $CustomMailTemplateAfterDeviceDetails
-
-    # Build Service Desk contact information section
-    $serviceDeskSection = ""
-    if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone -or $ServiceDeskPortalUrl -or $ServiceDeskTicketUrl) {
-        $serviceDeskSection = "`n`n### Service Desk Contact Information`n"
-        if ($ServiceDeskDisplayName) {
-            $serviceDeskSection += "`n $($ServiceDeskDisplayName)"
-        }
-        if ($ServiceDeskEmail) {
-            $serviceDeskSection += "`n **Email:** [$($ServiceDeskEmail)](mailto:$($ServiceDeskEmail))"
-        }
-        if ($ServiceDeskPhone) {
-            $serviceDeskSection += "`n **Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
-        }
-        if ($ServiceDeskPortalUrl) {
-            $serviceDeskSection += "`n **Portal:** [$($ServiceDeskPortalUrl)]($($ServiceDeskPortalUrl))"
-        }
-        if ($ServiceDeskTicketUrl) {
-            $serviceDeskSection += "`n **Ticket:** [$($ServiceDeskTicketUrl)]($($ServiceDeskTicketUrl))"
-        }
-    }
-
     # Build device list for email
-    $deviceListMarkdown = ""
-    foreach ($device in $userDevices) {
-        $lastSync = if ($device.lastSyncDateTime) {
-            (Get-Date $device.lastSyncDateTime).ToString("yyyy-MM-dd")
-        }
-        else {
-            "Unknown"
-        }
-
-        # Calculate actual inactive days
-        $inactiveDays = if ($device.lastSyncDateTime) {
-            [math]::Round(((Get-Date) - (Get-Date $device.lastSyncDateTime)).TotalDays)
-        }
-        else {
-            "Unknown"
-        }
-
-        # Device name header - localized based on mail template language
-        $deviceNameHeader = if ($MailTemplateLanguage -eq "DE") { "### $($device.deviceName)" } else { "### $($device.deviceName)" }
-        $osLabel = if ($MailTemplateLanguage -eq "DE") { "Betriebssystem" } else { "Operating System" }
-        $modelLabel = if ($MailTemplateLanguage -eq "DE") { "Modell" } else { "Model" }
-        $serialLabel = if ($MailTemplateLanguage -eq "DE") { "Seriennummer" } else { "Serial Number" }
-        $userLabel = if ($MailTemplateLanguage -eq "DE") { "Primärer Benutzer" } else { "Primary User" }
-        $lastSyncLabel = if ($MailTemplateLanguage -eq "DE") { "Letzte Synchronisation" } else { "Last Sync" }
-        $inactiveLabel = if ($MailTemplateLanguage -eq "DE") { "Inaktiv seit" } else { "Inactive Since" }
-        $daysLabel = if ($MailTemplateLanguage -eq "DE") { "Tagen" } else { "days" }
-
-        $deviceListMarkdown += @"
-$deviceNameHeader
-
-- **$($osLabel):** $($device.operatingSystem)
-- **$($modelLabel):** $($device.manufacturer) $($device.model)
-- **$($serialLabel):** $($device.serialNumber)
-- **$($userLabel):** $($device.userPrincipalName)
-- **$($lastSyncLabel):** $lastSync
-- **$($inactiveLabel):** $inactiveDays $daysLabel
-
-"@
-    }
+    $deviceListMarkdown = Get-DeviceListMarkdown -Devices $userDevices -MailTemplateLanguage $MailTemplateLanguage
 
     # Build email subject
     $emailSubject = $mailTemplate.Subject
 
     # Add user information to subject if sending to override recipient
-    if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
+    if ($routeToOverride) {
         $emailSubject = "$($mailTemplate.Subject) - User: $userEmail"
     }
 
@@ -800,12 +1013,12 @@ $deviceNameHeader
     }
 
     # Build override recipient note
-    $overrideNoteEN = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
+    $overrideNoteEN = if ($routeToOverride) {
         "**Note:** This email was sent to you instead of the end user.`n`n**Affected User:** $($userEmail)`n"
     }
     else { "" }
 
-    $overrideNoteDE = if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
+    $overrideNoteDE = if ($routeToOverride) {
         "**Hinweis:** Diese E-Mail wurde an Sie statt an den Endbenutzer gesendet.`n`n**Betroffener Benutzer:** $($userEmail)`n"
     }
     else { "" }
@@ -845,7 +1058,7 @@ $autoGeneratedNote
 
     # Send email to user
     try {
-        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $actualRecipient -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version
+        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $actualRecipient -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
 
         Write-Output "Email sent successfully to $($actualRecipient)"
         Write-RjRbLog -Message "Email sent to $($actualRecipient) for user $($userEmail) with $($userDevices.Count) device(s)" -Verbose
@@ -854,6 +1067,65 @@ $autoGeneratedNote
     catch {
         Write-Warning "Failed to send email to $($actualRecipient) : $_"
         Write-RjRbLog -Message "Failed to send email to $($actualRecipient) for user $($userEmail) : $_" -Verbose
+        $emailsFailed++
+    }
+}
+
+# Send one combined email for all devices without a primary user to the override recipient
+if ($SendNoPrimaryUserDevicesToOverride -and $devicesWithoutUser.Count -gt 0) {
+    Write-Output "Processing $($devicesWithoutUser.Count) device(s) without primary user - Sending to: $($effectiveNoPrimaryUserRecipient)"
+
+    $deviceListMarkdown = Get-DeviceListMarkdown -Devices $devicesWithoutUser -MailTemplateLanguage $MailTemplateLanguage
+
+    if ($MailTemplateLanguage -eq "DE") {
+        $emailSubject = "$($mailTemplate.Subject) - Geräte ohne primären Benutzer"
+        $emailHeader = "# Inaktive Geräte - Handlungsbedarf"
+        $noUserNote = "**Hinweis:** Die folgenden inaktiven Geräte haben keinen primären Benutzer in Intune zugewiesen. Bitte prüfen Sie diese zentral."
+        $inactivityLine = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+            "Diese Geräte sind seit **$($Days) bis $($MaxDays) Tagen** inaktiv:"
+        }
+        else {
+            "Diese Geräte sind seit mindestens **$($Days) Tagen** inaktiv:"
+        }
+        $autoGeneratedNote = "*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*"
+    }
+    else {
+        $emailSubject = "$($mailTemplate.Subject) - Devices without Primary User"
+        $emailHeader = "# Inactive Devices - Action Required"
+        $noUserNote = "**Note:** The following inactive devices have no primary user assigned in Intune. Please review them centrally."
+        $inactivityLine = if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
+            "These devices have been inactive between **$($Days) and $($MaxDays) days**:"
+        }
+        else {
+            "These devices have been inactive for at least **$($Days) days**:"
+        }
+        $autoGeneratedNote = "*This email was automatically generated. Please do not reply to this email.*"
+    }
+
+    $markdownContent = @"
+$emailHeader
+
+$noUserNote
+
+$inactivityLine
+
+$($deviceListMarkdown)$($serviceDeskSection)
+
+---
+
+$autoGeneratedNote
+"@
+
+    try {
+        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $effectiveNoPrimaryUserRecipient -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+
+        Write-Output "Email sent successfully to $($effectiveNoPrimaryUserRecipient)"
+        Write-RjRbLog -Message "Email sent to $($effectiveNoPrimaryUserRecipient) for $($devicesWithoutUser.Count) device(s) without primary user" -Verbose
+        $emailsSent++
+    }
+    catch {
+        Write-Warning "Failed to send email to $($effectiveNoPrimaryUserRecipient) : $_"
+        Write-RjRbLog -Message "Failed to send email to $($effectiveNoPrimaryUserRecipient) for devices without primary user : $_" -Verbose
         $emailsFailed++
     }
 }
@@ -868,9 +1140,12 @@ Write-Output ""
 Write-Output "===================="
 Write-Output "Notification Summary"
 Write-Output "===================="
-Write-Output "Total users notified: $($emailsSent)"
+Write-Output "Total emails sent: $($emailsSent)"
 Write-Output "Failed notifications: $($emailsFailed)"
-Write-Output "Total devices: $($filteredDevices.Count)"
+Write-Output "Total devices: $($filteredDevices.Count + $devicesWithoutUser.Count)"
+if ($SendNoPrimaryUserDevicesToOverride) {
+    Write-Output "Devices without primary user: $($devicesWithoutUser.Count)"
+}
 if ($null -ne $MaxDays -and $MaxDays -gt $Days) {
     Write-Output "Inactivity range: $($Days) to $($MaxDays) days"
 }
@@ -889,10 +1164,19 @@ if ($UseUserScope) {
     }
 }
 
-if (-not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)) {
+if ($globalOverrideActive -or $overrideUserPatterns.Count -gt 0 -or $SendNoPrimaryUserDevicesToOverride) {
     Write-Output ""
-    Write-Output "Override Recipient Mode: Enabled"
-    Write-Output "  - All emails sent to: $($OverrideEmailRecipient)"
+    Write-Output "Email Routing:"
+    if ($globalOverrideActive) {
+        Write-Output "  - Global override active: ALL emails sent to: $($OverrideEmailRecipient)"
+    }
+    elseif ($overrideUserPatterns.Count -gt 0) {
+        Write-Output "  - Users matching pattern '$($OverrideUserNamePattern)': $($patternRoutedUsers) (sent to: $($effectivePatternRecipient))"
+        Write-Output "  - All other notifications sent directly to end users"
+    }
+    if ($SendNoPrimaryUserDevicesToOverride) {
+        Write-Output "  - Devices without primary user: $($devicesWithoutUser.Count) (combined email sent to: $($effectiveNoPrimaryUserRecipient))"
+    }
 }
 
 Write-Output ""

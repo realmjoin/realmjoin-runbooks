@@ -4,6 +4,10 @@
 
 	.DESCRIPTION
 	This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
+	The notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).
+	The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 	.NOTES
 	Prerequisites:
@@ -42,8 +46,38 @@
 	.PARAMETER MaximumDriverAge
 	(Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days.
 
+	.PARAMETER ReportFileFormat
+	Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+
+	.PARAMETER CreateDownloadLink
+	If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+	.PARAMETER ContainerName
+	Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+	.PARAMETER ResourceGroupName
+	Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+	.PARAMETER StorageAccountName
+	Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+	.PARAMETER LinkExpiryDays
+	Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+
 	.PARAMETER EmailFrom
 	Sender email address for notifications. This parameter is backed by a setting and should not be modified directly.
+
+	.PARAMETER BrandingHeaderImageUrl
+	Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+	Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+	.PARAMETER BrandingFooterImageUrl
+	Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+	Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+	.PARAMETER BrandingFooterLink
+	Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+	When empty, the default link (https://www.realmjoin.com) is used.
 
 	.PARAMETER EmailTo
 	(Optional) Recipient email address for approval notifications. If not specified, no email is sent.
@@ -96,18 +130,73 @@
 				"DisplayName": "What-If Mode (Dry Run)",
 				"Description": "(Optional) Simulate approvals without making changes - useful for testing filters"
 			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"CreateDownloadLink": {
+				"DisplayName": "Create a file download link (upload report to storage)?",
+				"SelectSimple": {
+					"Yes - upload report and return a download link": true,
+					"No - do not create a download link": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
 			"CallerName": {
 				"Hide": true
 			},
 			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
 				"Hide": true
 			}
 		}
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.7" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [Parameter(Mandatory = $false)]
@@ -126,8 +215,31 @@ param(
     [bool]$OnlyNeedsReview = $true,
     [Parameter(Mandatory = $false)]
     [switch]$WhatIf,
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string]$ReportFileFormat = 'CSV & XLSX',
+    [Parameter(Mandatory = $false)]
+    [bool]$CreateDownloadLink = $false,
+    [Parameter(Mandatory = $false)]
+    [string]$ContainerName = "auto-approve-driver-updates",
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ })]
+    [string]$ResourceGroupName,
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ })]
+    [string]$StorageAccountName,
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
     [string]$EmailFrom,
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ })]
+    [string]$BrandingHeaderImageUrl,
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ })]
+    [string]$BrandingFooterImageUrl,
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ })]
+    [string]$BrandingFooterLink,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string]$BrandingAccentColor,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string]$BrandingTextColor,
     [Parameter(Mandatory = $false)]
     [string]$EmailTo,
 
@@ -144,7 +256,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.2"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "PolicyNames: $PolicyNames" -Verbose
@@ -156,6 +268,19 @@ Write-RjRbLog -Message "MaximumDriverAge: $MaximumDriverAge" -Verbose
 Write-RjRbLog -Message "OnlyNeedsReview: $OnlyNeedsReview" -Verbose
 Write-RjRbLog -Message "WhatIf: $WhatIf" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 
 #endregion
 
@@ -185,6 +310,18 @@ if ($PolicyNameList.Count -eq 0 -and $PolicyIdList.Count -eq 0) {
 if (-not $DriverDisplayNamePattern -and -not $DriverClass -and -not $DriverManufacturer -and -not $MaximumDriverAge) {
     Write-RjRbLog -Message "WARNING: No driver filter specified - will approve ALL pending drivers in selected policies" -Verbose
 }
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+}
+
+#endregion
+
+########################################################
+#region     Function Definitions
+########################################################
 
 #endregion
 
@@ -295,6 +432,9 @@ $approvalSummary = @{
     Details = @()
 }
 
+# Detailed per-driver report rows (used for the CSV/XLSX report files)
+$driverReportRows = [System.Collections.Generic.List[PSCustomObject]]::new()
+
 foreach ($policy in $targetPolicies) {
     Write-Output ""
     Write-Output "Processing policy: $($policy.displayName)"
@@ -391,6 +531,15 @@ foreach ($policy in $targetPolicies) {
                 $policyDetails.DriversApproved++
                 $policyDetails.ApprovedDrivers += $driver.name
                 $approvalSummary.TotalDriversApproved++
+                $driverReportRows.Add([PSCustomObject]@{
+                    Policy       = $policy.displayName
+                    DriverName   = $driver.name
+                    Version      = $driver.version
+                    Manufacturer = $driver.manufacturer
+                    DriverClass  = $driver.driverClass
+                    ReleaseDate  = $driver.releaseDateTime
+                    Action       = "Would approve"
+                })
             }
         }
         else {
@@ -416,14 +565,41 @@ foreach ($policy in $targetPolicies) {
                         $policyDetails.DriversApproved++
                         $policyDetails.ApprovedDrivers += $driver.name
                         $approvalSummary.TotalDriversApproved++
+                        $driverReportRows.Add([PSCustomObject]@{
+                            Policy       = $policy.displayName
+                            DriverName   = $driver.name
+                            Version      = $driver.version
+                            Manufacturer = $driver.manufacturer
+                            DriverClass  = $driver.driverClass
+                            ReleaseDate  = $driver.releaseDateTime
+                            Action       = "Approved"
+                        })
                     }
                     elseif ($failed -contains $driver.id) {
                         Write-Warning "    [FAIL] Failed to approve: $($driver.name) (ID: $($driver.id))"
                         $approvalSummary.FailedApprovals++
+                        $driverReportRows.Add([PSCustomObject]@{
+                            Policy       = $policy.displayName
+                            DriverName   = $driver.name
+                            Version      = $driver.version
+                            Manufacturer = $driver.manufacturer
+                            DriverClass  = $driver.driverClass
+                            ReleaseDate  = $driver.releaseDateTime
+                            Action       = "Failed"
+                        })
                     }
                     elseif ($notFound -contains $driver.id) {
                         Write-Warning "    [NOTFOUND] Driver not found during approval: $($driver.name) (ID: $($driver.id))"
                         $approvalSummary.FailedApprovals++
+                        $driverReportRows.Add([PSCustomObject]@{
+                            Policy       = $policy.displayName
+                            DriverName   = $driver.name
+                            Version      = $driver.version
+                            Manufacturer = $driver.manufacturer
+                            DriverClass  = $driver.driverClass
+                            ReleaseDate  = $driver.releaseDateTime
+                            Action       = "Not found"
+                        })
                     }
                 }
             }
@@ -431,6 +607,17 @@ foreach ($policy in $targetPolicies) {
                 Write-Warning "Failed to approve drivers for policy '$($policy.displayName)': $_"
                 Write-RjRbLog -Message "Failed to approve drivers for policy '$($policy.displayName)': $_" -Verbose
                 $approvalSummary.FailedApprovals += $driversNeedingApproval.Count
+                foreach ($driver in $driversNeedingApproval) {
+                    $driverReportRows.Add([PSCustomObject]@{
+                        Policy       = $policy.displayName
+                        DriverName   = $driver.name
+                        Version      = $driver.version
+                        Manufacturer = $driver.manufacturer
+                        DriverClass  = $driver.driverClass
+                        ReleaseDate  = $driver.releaseDateTime
+                        Action       = "Failed"
+                    })
+                }
             }
         }
     }
@@ -460,11 +647,82 @@ if ($approvalSummary.FailedApprovals -gt 0) {
     Write-Output "Failed approvals: $($approvalSummary.FailedApprovals)"
 }
 
+#endregion
+
+########################################################
+#region     Report File Export (if needed for download link or email)
+########################################################
+
+$reportFiles = @()
+$xlsxPath = $null
+$tempDir = $null
+$fileName_Details = "driver-approvals.csv"
+$fileName_DetailsXlsx = "driver-approvals.xlsx"
+
+if (($EmailTo -or $CreateDownloadLink) -and $driverReportRows.Count -gt 0) {
+    $tempDir = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "DriverApprovals_$(Get-Date -Format 'yyyyMMdd_HHmmss')"))
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvPath = Join-Path $tempDir.FullName $fileName_Details
+        $driverReportRows | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+        $reportFiles += $csvPath
+        Write-Output "Exported driver approval report to: $csvPath"
+    }
+
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxPath = Join-Path $tempDir.FullName $fileName_DetailsXlsx
+        $driverReportRows | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Driver Approvals"
+        $reportFiles += $xlsxPath
+        Write-Output "Exported driver approval report to: $xlsxPath"
+    }
+}
+
+#endregion
+
+########################################################
+#region     Upload / Download Link (if CreateDownloadLink is enabled)
+########################################################
+
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "Uploading report to storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No driver approval actions were recorded - skipping report upload."
+    }
+}
+
+#endregion
+
+########################################################
+#region     Email Notification (if EmailTo is provided)
+########################################################
+
 # Send email notification if configured
+$brandingMailParams = @{}
 if ($EmailTo) {
     Write-Output ""
     Write-Output "Sending Email Notification"
     Write-Output "---------------------"
+
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     try {
         $tenantDisplayName = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization").value[0].displayName
@@ -511,8 +769,13 @@ $(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($appr
                 else {
                     $emailBody += "`n**Approved Drivers:**`n"
                 }
-                foreach ($driverName in $detail.ApprovedDrivers) {
+                # Cap the per-policy driver list to keep the email readable - the full list is in the attached report
+                $maxListedDrivers = 15
+                foreach ($driverName in ($detail.ApprovedDrivers | Select-Object -First $maxListedDrivers)) {
                     $emailBody += "- $driverName`n"
+                }
+                if ($detail.ApprovedDrivers.Count -gt $maxListedDrivers -and $reportFiles.Count -gt 0) {
+                    $emailBody += "- ... and $($detail.ApprovedDrivers.Count - $maxListedDrivers) more (see attached report)`n"
                 }
             }
         }
@@ -527,21 +790,83 @@ $(if ($DriverDisplayNamePattern) { "- **Driver Name Pattern:** $DriverDisplayNam
 $(if ($DriverClass) { "- **Driver Class:** $DriverClass" })
 $(if ($DriverManufacturer) { "- **Manufacturer:** $DriverManufacturer" })
 $(if ($MaximumDriverAge) { "- **Maximum Driver Age:** $MaximumDriverAge days" })
+"@
+
+        if ($reportFiles.Count -gt 0) {
+            $emailBody += @"
+
+
+## Report Files
+
+The following file(s) are attached to this email:
+
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$($fileName_Details)**: Complete list of all driver approval actions (CSV)" })
+$(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_DetailsXlsx)**: The same list as a formatted Excel workbook" })
+"@
+        }
+
+        $emailBody += @"
+
 
 ---
 
-*This email was automatically generated by the RealmJoin Runbook: Auto-Approve Driver Updates. Please do not reply to this email.*
+*This email was automatically generated. Please do not reply to this email.*
 "@
 
-        Send-RjReportEmail `
-            -EmailFrom $EmailFrom `
-            -EmailTo $EmailTo `
-            -Subject $emailSubject `
-            -MarkdownContent $emailBody `
-            -TenantDisplayName $tenantDisplayName `
-            -ReportVersion $Version
+        # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+        if ($reportFiles.Count -gt 0) {
+            $markdownFallback = @"
+# Driver Update Auto-Approval Report$(if ($WhatIf) { " [WHAT-IF MODE]" })
 
-        Write-Output "Email notification sent to: $EmailTo"
+**Date:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+**Tenant:** $tenantDisplayName
+$(if ($WhatIf) { "**Mode:** WHAT-IF (Simulation - No actual changes were made)" })
+
+## Summary
+
+- **Policies Processed:** $($approvalSummary.TotalPoliciesProcessed)
+- **Drivers Reviewed:** $($approvalSummary.TotalDriversReviewed)
+- **Drivers $(if ($WhatIf) { "That Would Be " })Approved:** $($approvalSummary.TotalDriversApproved)
+$(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($approvalSummary.FailedApprovals)" })
+
+## Report Files
+
+- **$($fileName_DetailsXlsx)**: Formatted Excel workbook with the complete list of driver approval actions
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+            $guardParams = @{
+                EmailFrom         = $EmailFrom
+                EmailTo           = $EmailTo
+                Subject           = $emailSubject
+                MarkdownContent   = $emailBody
+                TenantDisplayName = $tenantDisplayName
+                ReportVersion     = $Version
+            }
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
+                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+            }
+            else {
+                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            }
+        }
+        else {
+            Send-RjReportEmail `
+                -EmailFrom $EmailFrom `
+                -EmailTo $EmailTo `
+                -Subject $emailSubject `
+                -MarkdownContent $emailBody `
+                -TenantDisplayName $tenantDisplayName `
+                -ReportVersion $Version `
+                @brandingMailParams
+
+            Write-Output "Email notification sent to: $EmailTo"
+        }
         Write-RjRbLog -Message "Email notification sent successfully to: $EmailTo" -Verbose
     }
     catch {
@@ -555,6 +880,19 @@ $(if ($MaximumDriverAge) { "- **Maximum Driver Age:** $MaximumDriverAge days" })
 ########################################################
 #region     Cleanup
 ########################################################
+
+# Cleanup temporary report files
+if ($tempDir -and (Test-Path $tempDir.FullName)) {
+    Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Cleaned up temporary report files" -Verbose
+}
+
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
 
 Write-RjRbLog -Message "Disconnecting from Microsoft Graph..." -Verbose
 Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null

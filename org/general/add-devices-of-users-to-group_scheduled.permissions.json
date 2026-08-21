@@ -1,12 +1,22 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "Group.ReadWrite.All",
-                "User.Read.All",
-                "GroupMember.ReadWrite.All"
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Resolves the groups by display name and backs adding devices to the device group"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Lists the user group's transitive user members and reads each user's owned devices"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Reads current device-group members and adds missing devices via /groups/{id}/members/$ref"
+                }
             ]
         }
     ],

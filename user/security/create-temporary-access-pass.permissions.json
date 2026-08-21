@@ -1,10 +1,24 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "UserAuthenticationMethod.ReadWrite.All"
+                {
+                    "Value": "UserAuthenticationMethod.ReadWrite.All",
+                    "Reason": "Deletes existing Temporary Access Passes and creates the new one"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the user's mail and usage location via /users/{UPN} for output and notification"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email notification",
+                    "Reason": "Mails the new Temporary Access Pass to the user when NotifyUser is enabled"
+                }
             ]
         }
     ],

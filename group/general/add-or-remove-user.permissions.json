@@ -1,15 +1,45 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "User.Read.All",
-                "Group.ReadWrite.All",
-                "GroupMember.ReadWrite.All"
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves the target user before adding or removing the membership"
+                },
+                {
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Reads the target group and backs the member changes"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Checks membership and adds or removes the user via /groups/{id}/members/$ref"
+                }
+            ]
+        },
+        {
+            "Name": "Office 365 Exchange Online",
+            "Id": "00000002-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Exchange.ManageAsApp",
+                    "Optional": true,
+                    "Feature": "Mail-enabled groups",
+                    "Reason": "Manages members via the Exchange Online distribution group cmdlets"
+                }
             ]
         }
     ],
-    "Roles": [],
+    "Roles": [
+        {
+            "Name": "Exchange Administrator",
+            "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
+            "Optional": true,
+            "Feature": "Mail-enabled groups",
+            "Reason": "Required for the app-only Exchange Online session managing distribution group members"
+        }
+    ],
     "ManualPermissions": []
 }

@@ -13,6 +13,7 @@ Org \ Devices \ Add Autopilot Device
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementServiceConfig.ReadWrite.All
+  - User.Read.All *(optional: User assignment)*
 
 
 ## Parameters

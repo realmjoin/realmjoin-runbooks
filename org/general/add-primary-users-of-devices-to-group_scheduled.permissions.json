@@ -1,13 +1,26 @@
 {
+    "SchemaVersion": 2,
     "Permissions": [
         {
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                "DeviceManagementManagedDevices.Read.All",
-                "Group.Read.All",
-                "GroupMember.ReadWrite.All",
-                "User.Read.All"
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads Intune managed devices filtered by OS to collect each device's primary user"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Validates the target/include/exclude groups and reads their member lists"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Adds and removes users in the target group via batched /groups/{id}/members/$ref calls"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads member id and UPN to identify user members and log removals"
+                }
             ]
         }
     ],
