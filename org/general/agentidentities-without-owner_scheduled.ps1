@@ -10,6 +10,7 @@
 
     The runbook uses the Microsoft Graph beta API. Sponsor and owner lookup failures are included
     in the report as unknown findings instead of being treated as an empty relationship.
+    When EmailTo is provided, the same report is sent as a branded Markdown email.
 
     .PARAMETER ReportScope
     Controls which Agent Identities are included: identities missing a sponsor, identities missing
@@ -17,6 +18,12 @@
 
     .PARAMETER IncludeInactive
     Include disabled Agent Identities. By default, only active identities are evaluated.
+
+    .PARAMETER EmailTo
+    Optional recipient email address. Multiple recipients can be supplied as a comma-separated list.
+
+    .PARAMETER EmailFrom
+    Sender mailbox sourced from the RJReport.EmailSender tenant setting. Required when EmailTo is set.
 
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
@@ -55,6 +62,12 @@
                     "No - only report active identities": false
                 }
             },
+            "EmailTo": {
+                "DisplayName": "Recipient Email Address(es)"
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -62,7 +75,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.8" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param(
@@ -70,6 +83,11 @@ param(
     [string]$ReportScope = 'Missing sponsor or owner',
 
     [bool]$IncludeInactive = $false,
+
+    [string]$EmailTo,
+
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [string]$EmailFrom,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -82,13 +100,27 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "ReportScope: $ReportScope" -Verbose
 Write-RjRbLog -Message "IncludeInactive: $IncludeInactive" -Verbose
+Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+if ($EmailTo) {
+    Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+}
 
 #endregion RJ Log Part
+
+########################################################
+#region     Parameter Validation
+########################################################
+
+if ($EmailTo -and [string]::IsNullOrWhiteSpace($EmailFrom)) {
+    throw "No EmailSender configured. See https://docs.realmjoin.com/automation/runbooks/runbook-report-settings for setup instructions."
+}
+
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -128,6 +160,19 @@ function Get-DirectoryObjectLabel {
     }
 
     return 'Unknown directory object'
+}
+
+function ConvertTo-MarkdownTableCell {
+    param(
+        [AllowNull()]
+        [string]$Value
+    )
+
+    if ($null -eq $Value) {
+        return ''
+    }
+
+    return $Value.Replace('|', '\|').Replace("`r", ' ').Replace("`n", ' ')
 }
 
 function Test-InReportScope {
@@ -315,3 +360,61 @@ else {
 }
 
 #endregion Report Results
+
+########################################################
+#region     Send Email Report
+########################################################
+
+if ($EmailTo) {
+    $reportRows = if ($sortedReport.Count -eq 0) {
+        '| No matching Agent Identities | - | - | - | - | - |'
+    }
+    else {
+        @($sortedReport | ForEach-Object {
+            $finding = ConvertTo-MarkdownTableCell -Value $_.Finding
+            $status = ConvertTo-MarkdownTableCell -Value $_.Status
+            $identity = ConvertTo-MarkdownTableCell -Value $_.AgentIdentity
+            $sponsors = ConvertTo-MarkdownTableCell -Value $_.Sponsors
+            $owners = ConvertTo-MarkdownTableCell -Value $_.Owners
+            $objectId = ConvertTo-MarkdownTableCell -Value $_.ObjectId
+            "| $finding | $status | $identity | $sponsors | $owners | $objectId |"
+        }) -join "`n"
+    }
+
+    $markdownContent = @"
+# Entra Agent Identity Sponsor and Owner Report
+
+## Summary
+
+| Metric | Value |
+|---|---:|
+| Scope | $(ConvertTo-MarkdownTableCell -Value $ReportScope) |
+| Evaluated identities | $($agentIdentities.Count) |
+| Reported identities | $($sortedReport.Count) |
+| Sponsorless anomalies | $sponsorlessCount |
+| Ownerless identities (legitimate) | $ownerlessCount |
+| Identities with lookup failures | $lookupFailureCount |
+
+> [!NOTE]
+> A missing sponsor is an anomaly. A missing owner is legitimate because owners are optional.
+
+## Findings
+
+| Finding | Status | Agent Identity | Sponsors | Owners | Object ID |
+|---|---|---|---|---|---|
+$reportRows
+"@
+
+    $emailSubject = "Entra Agent Identity Sponsor and Owner Report - $($sortedReport.Count) reported"
+
+    Send-RjRbReportEmail `
+        -EmailFrom $EmailFrom `
+        -EmailTo $EmailTo `
+        -Subject $emailSubject `
+        -MarkdownContent $markdownContent `
+        -ReportVersion $Version
+
+    Write-Output "Email report sent to '$EmailTo'."
+}
+
+#endregion Send Email Report

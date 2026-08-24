@@ -24,6 +24,12 @@
                 {
                     "Value": "User.Read.All",
                     "Reason": "Reads user display names returned for Agent Identity sponsors and owners"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the Agent Identity report through Send-RjRbReportEmail when EmailTo is configured"
                 }
             ]
         }

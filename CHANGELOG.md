@@ -38,6 +38,7 @@
   - Report active Entra Agent Identities without sponsors and/or owners through Microsoft Graph beta derived-type endpoints
   - Label sponsorless identities as anomalies and ownerless identities as legitimate, and surface relationship lookup failures as unknown instead of false findings
   - Enrich report rows with Agent Identity Blueprint details and support selectable report scopes plus optional inactive identities
+  - Add optional branded email delivery through `Send-RjRbReportEmail`, using `EmailTo` and the central `RJReport.EmailSender` setting
   - Note: reading the sponsors relationship currently requires `AgentIdentity.ReadWrite.All` because Microsoft Graph exposes no read-only application permission for that API
 
 ## 2026-08-14
