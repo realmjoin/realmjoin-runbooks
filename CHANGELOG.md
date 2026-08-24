@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-24
+
+- Add **Agent Identities Without Sponsor or Owner (Scheduled)** Runbook in Org/General
+  - Report active Entra Agent Identities without sponsors and/or owners through Microsoft Graph beta derived-type endpoints
+  - Label sponsorless identities as anomalies and ownerless identities as legitimate, and surface relationship lookup failures as unknown instead of false findings
+  - Enrich report rows with Agent Identity Blueprint details and support selectable report scopes plus optional inactive identities
+  - Add optional branded email delivery through `Send-RjRbReportEmail`, using `EmailTo` and the central `RJReport.EmailSender` setting
+  - Note: reading the sponsors relationship currently requires `AgentIdentity.ReadWrite.All` because Microsoft Graph exposes no read-only application permission for that API
+
 ## 2026-08-21
 
 - Update the required `RealmJoin.RunbookHelper` module version to 0.8.9 in all 136 runbooks that were still pinned to 0.8.8, so all 168 runbooks now use a consistent, current module version
@@ -31,15 +40,6 @@
   - Shows a per-application summary with success/failure counts, failure rate and the most common error codes with their failure reasons, a failed sign-in detail table, and the most recent sign-in events (console tables capped at the 50 most recent entries for readability; exported report files always contain the full result set)
   - Optional report delivery via the **Report delivery** selector: email report (`SendEmailReport`) and/or a time-limited download link (`CreateDownloadLink`, uses the `RJReport.*` tenant settings); report files (CSV and Excel workbook with cover sheet, failure highlighting and per-application summary) are only generated when a delivery method is selected and sign-in events were found
   - A companion documentation page covers the required Entra ID P1/P2 license, the `Directory.Read.All` workaround for tenants where the reporting API requires it, storage RBAC prerequisites and guidance on interpreting sign-in interrupt error codes
-
-## 2026-08-17
-
-- Add **Agent Identities Without Sponsor or Owner (Scheduled)** Runbook in Org/General
-  - Report active Entra Agent Identities without sponsors and/or owners through Microsoft Graph beta derived-type endpoints
-  - Label sponsorless identities as anomalies and ownerless identities as legitimate, and surface relationship lookup failures as unknown instead of false findings
-  - Enrich report rows with Agent Identity Blueprint details and support selectable report scopes plus optional inactive identities
-  - Add optional branded email delivery through `Send-RjRbReportEmail`, using `EmailTo` and the central `RJReport.EmailSender` setting
-  - Note: reading the sponsors relationship currently requires `AgentIdentity.ReadWrite.All` because Microsoft Graph exposes no read-only application permission for that API
 
 ## 2026-08-14
 
