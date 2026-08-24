@@ -100,7 +100,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.0"
+$Version = "1.1.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "ReportScope: $ReportScope" -Verbose
@@ -216,7 +216,7 @@ function Test-InReportScope {
 ########################################################
 
 Write-Output "Connecting to Microsoft Graph..."
-Connect-RjRbGraph
+Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop | Out-Null
 
 #endregion Connect to Microsoft Graph
 
@@ -412,7 +412,8 @@ $reportRows
         -EmailTo $EmailTo `
         -Subject $emailSubject `
         -MarkdownContent $markdownContent `
-        -ReportVersion $Version
+        -ReportVersion $Version `
+        -UseNativeGraphRequest
 
     Write-Output "Email report sent to '$EmailTo'."
 }
