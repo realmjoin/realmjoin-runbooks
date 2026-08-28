@@ -14566,6 +14566,298 @@
     }
   },
   {
+    "RunbookDisplayName": "Report Intune Enrollment Readiness",
+    "RunbookDisplayPath": "Org \\ General \\ Report Intune Enrollment Readiness",
+    "RelativeRunbookPath": "org/general/report-intune-enrollment-readiness.ps1",
+    "RelativeRunbookPath_PathOnly": "org/general",
+    "PrimaryFolder": "Org",
+    "SubFolder": "General",
+    "Synopsis": "Report Intune enrollment readiness for a set of users",
+    "Description": "Analyzes whether each user in a selected user set can enroll a device in Microsoft Intune by checking account status, Intune licensing, device enrollment limits, authentication methods, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via \"All resources\" are exempted per Microsoft Entra design. Platform-scoped policies and browser-only client-app constraints are evaluated against the selected enrollment platform. Results are exported as CSV and/or XLSX with optional email delivery.",
+    "Notes": "Interpretation notes:\n- Checks performed per user: account state, Intune license and service plan, tenant MDM authority,\n  device enrollment limit, platform restrictions, registered authentication methods, Conditional\n  Access policies, and optionally pilot group membership.\n- Conditional Access is evaluated as a static \"What If\" against the enrollment sign-in for each\n  user's EnrollmentPlatform; Entra's own What If tool remains the authority.\n- Compliant-device requirements on \"All resources\" policies do not block enrollment (documented\n  Entra exemption); only policies targeting device registration or the Intune enrollment apps are\n  treated as strict gates.\n- Not evaluated statically: named locations, device filters, sign-in frequency, and terms of use.\n- Expired or already-used Temporary Access Passes are not counted as usable methods.\n\nPrerequisites:\n- Requires the RJReport.EmailSender setting for email delivery, and at least one of UserName or\n  GroupName (memberships resolved transitively).",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the report includes a column showing pilot group membership for each user. Users who are not members are marked \"Not ready\" with the reason \"Not a member of the pilot group\"; if the group cannot be found or verified, a warning is issued."
+          }
+        ],
+        "globbing": "false",
+        "name": "CheckPilotGroupMembership",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address for report delivery. Configured as a tenant setting; leave empty if no email report is requested."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address or multiple comma-separated addresses for the report email. Required when SendEmailReport is set to true. Each recipient receives an individual email for privacy."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "Windows",
+        "description": [
+          {
+            "Text": "Device platform assumed during Conditional Access evaluation. Platform-scoped policies that do not cover this platform are ruled out. When set to 'All', the script evaluates every platform and reports results per platform."
+          }
+        ],
+        "globbing": "false",
+        "name": "EnrollmentPlatform",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Display name of a group whose members to check for Intune enrollment readiness. Group membership is resolved transitively, including nested groups. At least one of UserName or GroupName must be supplied; both may be combined."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "col - All Users - Pilot (users)",
+        "description": [
+          {
+            "Text": "Display name of the pilot group to check membership against when CheckPilotGroupMembership is enabled. Default is \"col - All Users - Pilot (users)\". This can be overridden per run or configured via runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "PilotGroupDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "File format for the generated report: CSV only, CSV & XLSX (both files), or XLSX only."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the report is sent as an email to the address specified by EmailTo. If false, the report is generated but not emailed."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "@()",
+        "description": [
+          {
+            "Text": "User principal names of users to check for Intune enrollment readiness. Select one or more users. At least one of UserName or GroupName must be supplied; both may be combined."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String[]"
+        }
+      }
+    ],
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** – target of the footer image\n- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscyBvbiBhbGwgYXZhaWxhYmxlIHNldHRpbmdzLgoKIyMjIEVtYWlsIGJyYW5kaW5nCgpUaGUgcmVwb3J0IGVtYWlsIGhvbm9ycyB0aGUgb3B0aW9uYWwgYFJKUmVwb3J0LkJyYW5kaW5nLipgIHRlbmFudCBzZXR0aW5nczoKCi0gKipIZWFkZXIgYW5kIGZvb3RlciBpbWFnZSoqIOKAkyBwdWJsaWMgSFRUUFMgVVJMcywgUE5HL0pQRUcvR0lGLCBtYXguIDIwMCBLQiBlYWNoCi0gKipGb290ZXIgbGluayoqIOKAkyB0YXJnZXQgb2YgdGhlIGZvb3RlciBpbWFnZQotICoqQWNjZW50IGFuZCB0ZXh0IGNvbG9yKiog4oCTIDYtZGlnaXQgaGV4IHZhbHVlcywgZS5nLiBgIzAwNTJjY2AKCldoZW4gdGhlc2Ugc2V0dGluZ3MgYXJlIG5vdCBjb25maWd1cmVkLCB0aGUgZGVmYXVsdCBSZWFsbUpvaW4gZ3JhcGhpY3MgYW5kIGNvbG9ycyBhcmUgdXNlZC4gQW4gaW1hZ2UgdGhhdCBjYW5ub3QgYmUgZG93bmxvYWRlZCBvciB2YWxpZGF0ZWQsIG9yIGFuIGludmFsaWQgY29sb3IgdmFsdWUsIG5ldmVyIHByZXZlbnRzIHRoZSByZXBvcnQgZW1haWwg4oCTIHRoZSBjb3JyZXNwb25kaW5nIGRlZmF1bHQgaXMgdXNlZCBpbnN0ZWFkLgoKU2V0dXAgaW5zdHJ1Y3Rpb25zIGFuZCBpbWFnZSByZXF1aXJlbWVudHM6IFtFbWFpbCBicmFuZGluZ10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncyNlbWFpbC1icmFuZGluZy1vcHRpb25hbCkuCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                { \"Value\": \"DeviceManagementServiceConfig.Read.All\", \"Reason\": \"Reads /deviceManagement/deviceEnrollmentConfigurations?$expand=assignments to evaluate enrollment limit and platform restriction configurations against each target user\" },\n                { \"Value\": \"Group.Read.All\", \"Reason\": \"Resolves the scope group and the optional pilot group via /groups?$filter=displayName eq '...' when a group name is supplied\" },\n                { \"Value\": \"GroupMember.Read.All\", \"Reason\": \"Expands /groups/{id}/transitiveMembers/microsoft.graph.user to enumerate members of the scope group and, when pilot-membership checking is enabled, the pilot group\" },\n                { \"Value\": \"Organization.Read.All\", \"Reason\": \"Reads /organization twice: in Connect Part, GET /v1.0/organization?$select=displayName resolves $tenantDisplayName for report file names and the email subject; in Data Collection, GET /v1.0/organization/{tenantId}?$select=id,displayName,mobileDeviceManagementAuthority determines the tenant's MDM authority, with the tenant ID taken from Get-MgContext as a fast path and falling back to GET /v1.0/organization?$select=id\" },\n                { \"Value\": \"Policy.Read.All\", \"Reason\": \"Reads /identity/conditionalAccess/policies to identify enabled Conditional Access policies that could block device enrollment\" },\n                { \"Value\": \"RoleManagement.Read.Directory\", \"Reason\": \"Populates the roleTemplateId of the directoryRole objects returned by /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole, which Conditional Access includeRoles/excludeRoles scoping is matched against. User.Read.All authorizes the call itself but leaves directoryRole properties null, which would silently make every role-scoped policy appear not to apply\" },\n                { \"Value\": \"User.Read.All\", \"Reason\": \"Reads /users/{id} with accountEnabled, assignedLicenses, usageLocation and department for each selected or group-resolved user, /users/{id}/ownedDevices to count registered devices for the readiness check, /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole to resolve each user's directory roles for Conditional Access includeRoles/excludeRoles scoping, and /subscribedSkus to determine which licenses include an Intune service plan\" },\n                { \"Value\": \"UserAuthenticationMethod.Read.All\", \"Reason\": \"Reads /users/{id}/authentication/methods to check each target user has a registered authentication method before enrollment\" },\n                { \"Value\": \"Mail.Send\", \"Optional\": true, \"Feature\": \"Email report\", \"Reason\": \"Sends the readiness report email with its CSV/XLSX attachments via Send-RjReportEmail when SendEmailReport is enabled\" }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementServiceConfig.Read.All",
+            "Group.Read.All",
+            "GroupMember.Read.All",
+            "Mail.Send",
+            "Organization.Read.All",
+            "Policy.Read.All",
+            "RoleManagement.Read.Directory",
+            "User.Read.All",
+            "UserAuthenticationMethod.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Report License Assignment_Scheduled",
     "RunbookDisplayPath": "Org \\ General \\ Report License Assignment_Scheduled",
     "RelativeRunbookPath": "org/general/report-license-assignment_scheduled.ps1",
@@ -20698,6 +20990,127 @@
             "Mail.Send",
             "Organization.Read.All",
             "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Check Intune Enrollment Readiness",
+    "RunbookDisplayPath": "User \\ General \\ Check Intune Enrollment Readiness",
+    "RelativeRunbookPath": "user/general/check-intune-enrollment-readiness.ps1",
+    "RelativeRunbookPath_PathOnly": "user/general",
+    "PrimaryFolder": "User",
+    "SubFolder": "General",
+    "Synopsis": "Check whether a user is ready to enrol devices in Microsoft Intune",
+    "Description": "Evaluates a selected user account for Intune device enrollment readiness and reports a readiness result (Ready, Ready with warnings, or Not ready) along with specific blockers. The runbook checks account status, Intune licensing, device enrollment limits, platform restrictions, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via \"All resources\" are exempted by Microsoft Entra design. Platform-scoped policies and browser-only client-app requirements are evaluated against the specified enrollment platform, and the runbook performs read-only diagnostics only.",
+    "Notes": "Interpretation notes:\n- Checks performed: account state, Intune license and service plan, tenant MDM authority, device\n  enrollment limit, platform restrictions, registered authentication methods, Conditional Access\n  policies, and optionally pilot group membership.\n- Conditional Access is evaluated as a static \"What If\" against the enrollment sign-in for the\n  selected EnrollmentPlatform; Entra's own What If tool remains the authority.\n- Compliant-device requirements on \"All resources\" policies do not block enrollment (documented\n  Entra exemption); only policies targeting device registration or the Intune enrollment apps are\n  treated as strict gates.\n- Not evaluated statically: named locations, device filters, sign-in frequency, and terms of use.\n- Expired or already-used Temporary Access Passes are not counted as usable methods.\n\nPrerequisites:\n- Tenant MDM authority must be \"intune\" or \"office365\"; other values block every user.",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the script checks whether the user is a member of the pilot group. Non-members are reported as Not ready; if the group cannot be found or membership cannot be verified, a warning is issued."
+          }
+        ],
+        "globbing": "false",
+        "name": "CheckPilotGroupMembership",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "Windows",
+        "description": [
+          {
+            "Text": "Device platform assumed during Conditional Access evaluation. Platform-scoped policies that do not cover this platform are ruled out. When set to 'All', the script evaluates every platform and reports results per platform."
+          }
+        ],
+        "globbing": "false",
+        "name": "EnrollmentPlatform",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "col - All Users - Pilot (users)",
+        "description": [
+          {
+            "Text": "Display name of the pilot group to check for membership. This parameter can be overridden per run or configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "PilotGroupDisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the user to check for Intune enrolment readiness."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementServiceConfig.Read.All\",\n                    \"Reason\": \"Reads /deviceManagement/deviceEnrollmentConfigurations (limit and platform restriction configs, with assignments expanded) to evaluate enrollment limit and platform restriction findings\"\n                },\n                {\n                    \"Value\": \"Group.Read.All\",\n                    \"Reason\": \"Reads /groups?$filter=displayName eq '...' to resolve the optional pilot group by name\"\n                },\n                {\n                    \"Value\": \"GroupMember.Read.All\",\n                    \"Reason\": \"Reads /groups/{id}/transitiveMembers/microsoft.graph.user to check pilot-group membership and /users/{id}/transitiveMemberOf/microsoft.graph.group to resolve the target user's group memberships for Conditional Access include/exclude group scoping\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Reason\": \"Reads /v1.0/organization/{tenantId}?$select=id,displayName,mobileDeviceManagementAuthority to determine the tenant's MDM authority, an unconditional tenant-level enrollment blocker check; the tenant ID is taken from Get-MgContext as a fast path, falling back to GET /v1.0/organization?$select=id when the Graph context does not yield one\"\n                },\n                {\n                    \"Value\": \"Policy.Read.All\",\n                    \"Reason\": \"Reads /identity/conditionalAccess/policies to evaluate enabled policies that could block Intune enrollment for the user\"\n                },\n                {\n                    \"Value\": \"RoleManagement.Read.Directory\",\n                    \"Reason\": \"Populates the roleTemplateId of the directoryRole objects returned by /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole, which Conditional Access includeRoles/excludeRoles scoping is matched against. User.Read.All authorizes the call itself but leaves directoryRole properties null, which would silently make every role-scoped policy appear not to apply\"\n                },\n                {\n                    \"Value\": \"User.Read.All\",\n                    \"Reason\": \"Reads /users/{id} (accountEnabled, assignedLicenses, usageLocation) to resolve the target user, /subscribedSkus to determine which licenses include an Intune service plan, /users/{id}/ownedDevices to count registered devices against the enrollment limit, and /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole to resolve the user's directory roles for Conditional Access includeRoles/excludeRoles scoping\"\n                },\n                {\n                    \"Value\": \"UserAuthenticationMethod.Read.All\",\n                    \"Reason\": \"Reads /users/{id}/authentication/methods to determine whether the user has a registered method that can satisfy Conditional Access MFA grant controls\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementServiceConfig.Read.All",
+            "Group.Read.All",
+            "GroupMember.Read.All",
+            "Organization.Read.All",
+            "Policy.Read.All",
+            "RoleManagement.Read.Directory",
+            "User.Read.All",
+            "UserAuthenticationMethod.Read.All"
           ]
         }
       ],

@@ -117,6 +117,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Monitor Service Health (Scheduled)](#organization-general-monitor-service-health-scheduled)
     - [Office365 License Report](#organization-general-office365-license-report)
     - [Report Apple MDM Cert Expiry (Scheduled)](#organization-general-report-apple-mdm-cert-expiry-scheduled)
+    - [Report Intune Enrollment Readiness](#organization-general-report-intune-enrollment-readiness)
     - [Report License Assignment (Scheduled)](#organization-general-report-license-assignment-scheduled)
     - [Report PIM Activations (Scheduled)](#organization-general-report-pim-activations-scheduled)
     - [Sync All Devices](#organization-general-sync-all-devices)
@@ -159,6 +160,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Assign Groups By Template](#user-general-assign-groups-by-template)
     - [Assign Or Unassign License](#user-general-assign-or-unassign-license)
     - [Assign Windows365](#user-general-assign-windows365)
+    - [Check Intune Enrollment Readiness](#user-general-check-intune-enrollment-readiness)
     - [List Group Memberships](#user-general-list-group-memberships)
     - [List Group Ownerships](#user-general-list-group-ownerships)
     - [List Manager](#user-general-list-manager)
@@ -1690,6 +1692,29 @@ Monitor/Report expiry of Apple device management certificates
 | BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
 | BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
 
+<a name='organization-general-report-intune-enrollment-readiness'></a>
+
+### Report Intune Enrollment Readiness
+Report Intune enrollment readiness for a set of users
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName |  | String Array | User principal names of users to check for Intune enrollment readiness. Select one or more users. At least one of UserName or GroupName must be supplied; both may be combined. |
+| GroupName |  | String | Display name of a group whose members to check for Intune enrollment readiness. Group membership is resolved transitively, including nested groups. At least one of UserName or GroupName must be supplied; both may be combined. |
+| EnrollmentPlatform |  | String | Device platform assumed during Conditional Access evaluation. Platform-scoped policies that do not cover this platform are ruled out. When set to 'All', the script evaluates every platform and reports results per platform. |
+| CheckPilotGroupMembership |  | Boolean | If set to true, the report includes a column showing pilot group membership for each user. Users who are not members are marked "Not ready" with the reason "Not a member of the pilot group"; if the group cannot be found or verified, a warning is issued. |
+| PilotGroupDisplayName |  | String | Display name of the pilot group to check membership against when CheckPilotGroupMembership is enabled. Default is "col - All Users - Pilot (users)". This can be overridden per run or configured via runbook customization. |
+| EmailFrom |  | String | The sender email address for report delivery. Configured as a tenant setting; leave empty if no email report is requested. |
+| BrandingHeaderImageUrl |  | String | URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingFooterImageUrl |  | String | URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingFooterLink |  | String | Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingAccentColor |  | String | Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingTextColor |  | String | Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| SendEmailReport |  | Boolean | If set to true, the report is sent as an email to the address specified by EmailTo. If false, the report is generated but not emailed. |
+| EmailTo |  | String | Recipient email address or multiple comma-separated addresses for the report email. Required when SendEmailReport is set to true. Each recipient receives an individual email for privacy. |
+| ReportFileFormat |  | String | File format for the generated report: CSV only, CSV & XLSX (both files), or XLSX only. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
+
 <a name='organization-general-report-license-assignment-scheduled'></a>
 
 ### Report License Assignment (Scheduled)
@@ -2299,6 +2324,19 @@ Assign and provision a Windows 365 Cloud PC for a user
 | fromMailAddress |  | String | Mailbox used to send the ticket and user notification emails. |
 | ticketCustomerId |  | String | Customer identifier used in ticket subject lines. |
 | CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+
+<a name='user-general-check-intune-enrollment-readiness'></a>
+
+### Check Intune Enrollment Readiness
+Check whether a user is ready to enrol devices in Microsoft Intune
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the user to check for Intune enrolment readiness. |
+| EnrollmentPlatform |  | String | Device platform assumed during Conditional Access evaluation. Platform-scoped policies that do not cover this platform are ruled out. When set to 'All', the script evaluates every platform and reports results per platform. |
+| CheckPilotGroupMembership |  | Boolean | If set to true, the script checks whether the user is a member of the pilot group. Non-members are reported as Not ready; if the group cannot be found or membership cannot be verified, a warning is issued. |
+| PilotGroupDisplayName |  | String | Display name of the pilot group to check for membership. This parameter can be overridden per run or configured in the runbook customization. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='user-general-list-group-memberships'></a>
 

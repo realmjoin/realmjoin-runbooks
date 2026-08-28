@@ -158,6 +158,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Monitor Service Health (Scheduled) | Alert by email on newly announced Microsoft 365 Service Health issues |
 | Office365 License Report | Generate an Office 365 licensing report |
 | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates |
+| Report Intune Enrollment Readiness | Report Intune enrollment readiness for a set of users |
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
@@ -221,6 +222,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
 | Assign Or Unassign License | Assign or remove a license for a user via group membership |
 | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user |
+| Check Intune Enrollment Readiness | Check whether a user is ready to enrol devices in Microsoft Intune |
 | List Group Memberships | List group memberships for this user |
 | List Group Ownerships | List group ownerships for this user. |
 | List Manager | List manager information for this user |

@@ -118,6 +118,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Monitor Service Health (Scheduled)](#monitor-service-health-(scheduled))
       - [Office365 License Report](#office365-license-report)
       - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
+      - [Report Intune Enrollment Readiness](#report-intune-enrollment-readiness)
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
@@ -160,6 +161,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
       - [Assign Windows365](#assign-windows365)
+      - [Check Intune Enrollment Readiness](#check-intune-enrollment-readiness)
       - [List Group Memberships](#list-group-memberships)
       - [List Group Ownerships](#list-group-ownerships)
       - [List Manager](#list-manager)
@@ -2753,6 +2755,46 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
  
  
 
+<a name='org-general-report-intune-enrollment-readiness'></a>
+
+### Report Intune Enrollment Readiness
+#### Report Intune enrollment readiness for a set of users
+
+#### Description
+
+Analyzes whether each user in a selected user set can enroll a device in Microsoft Intune by checking account status, Intune licensing, device enrollment limits, authentication methods, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted per Microsoft Entra design. Platform-scoped policies and browser-only client-app constraints are evaluated against the selected enrollment platform. Results are exported as CSV and/or XLSX with optional email delivery.
+
+#### Where to find
+
+Org \ General \ Report Intune Enrollment Readiness
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-general-report-license-assignment-(scheduled)'></a>
 
 ### Report License Assignment (Scheduled)
@@ -4008,6 +4050,25 @@ Assigns the required groups and license or Frontline provisioning policy to init
 #### Where to find
 
 User \ General \ Assign Windows365
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='user-general-check-intune-enrollment-readiness'></a>
+
+### Check Intune Enrollment Readiness
+#### Check whether a user is ready to enrol devices in Microsoft Intune
+
+#### Description
+
+Evaluates a selected user account for Intune device enrollment readiness and reports a readiness result (Ready, Ready with warnings, or Not ready) along with specific blockers. The runbook checks account status, Intune licensing, device enrollment limits, platform restrictions, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted by Microsoft Entra design. Platform-scoped policies and browser-only client-app requirements are evaluated against the specified enrollment platform, and the runbook performs read-only diagnostics only.
+
+#### Where to find
+
+User \ General \ Check Intune Enrollment Readiness
 
 
 [Back to Table of Content](#table-of-contents)
