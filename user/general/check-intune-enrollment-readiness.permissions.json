@@ -1,0 +1,45 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Reads /deviceManagement/deviceEnrollmentConfigurations (limit and platform restriction configs, with assignments expanded) to evaluate enrollment limit and platform restriction findings"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Reads /groups?$filter=displayName eq '...' to resolve the optional pilot group by name"
+                },
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Reads /groups/{id}/transitiveMembers/microsoft.graph.user to check pilot-group membership and /users/{id}/transitiveMemberOf/microsoft.graph.group to resolve the target user's group memberships for Conditional Access include/exclude group scoping"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /v1.0/organization/{tenantId}?$select=id,displayName,mobileDeviceManagementAuthority to determine the tenant's MDM authority, an unconditional tenant-level enrollment blocker check; the tenant ID is taken from Get-MgContext as a fast path, falling back to GET /v1.0/organization?$select=id when the Graph context does not yield one"
+                },
+                {
+                    "Value": "Policy.Read.All",
+                    "Reason": "Reads /identity/conditionalAccess/policies to evaluate enabled policies that could block Intune enrollment for the user"
+                },
+                {
+                    "Value": "RoleManagement.Read.Directory",
+                    "Reason": "Populates the roleTemplateId of the directoryRole objects returned by /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole, which Conditional Access includeRoles/excludeRoles scoping is matched against. User.Read.All authorizes the call itself but leaves directoryRole properties null, which would silently make every role-scoped policy appear not to apply"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads /users/{id} (accountEnabled, assignedLicenses, usageLocation) to resolve the target user, /subscribedSkus to determine which licenses include an Intune service plan, /users/{id}/ownedDevices to count registered devices against the enrollment limit, and /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole to resolve the user's directory roles for Conditional Access includeRoles/excludeRoles scoping"
+                },
+                {
+                    "Value": "UserAuthenticationMethod.Read.All",
+                    "Reason": "Reads /users/{id}/authentication/methods to determine whether the user has a registered method that can satisfy Conditional Access MFA grant controls"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

@@ -1,5 +1,18 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-28
+
+- Add **Check Intune Enrollment Readiness** Runbook in User/General
+  - Evaluates a single selected user for Intune device enrollment readiness and reports a clear result (Ready, Ready with warnings, Not ready) together with the concrete blockers found
+  - Checks account state, Intune license and service plan, tenant MDM authority, device enrollment limit, enrollment platform restrictions and registered authentication methods
+  - Performs a static Conditional Access "What If" for the selected `EnrollmentPlatform` (Windows, iOS, Android, macOS or all platforms): only policies that explicitly target device registration or the Intune enrollment apps are treated as strict gates, while compliant-device requirements coming from "All resources" policies are exempted per documented Microsoft Entra behavior; platform-scoped policies and browser-only client-app conditions are matched against the selected platform
+  - Optional pilot group check (`CheckPilotGroupMembership`, `PilotGroupDisplayName`): users outside the pilot group are reported as "Not ready", an unresolvable group produces a warning instead of a failure
+
+- Add **Report Intune Enrollment Readiness** Runbook in Org/General
+  - Runs the same readiness analysis for a whole user set: one or more users (`UserName`), all (transitive) members of a group (`GroupName`), or both combined
+  - Produces a per-user report with readiness result, blockers and warnings, optionally including a pilot group membership column
+  - Report delivery as CSV, XLSX or both (`ReportFileFormat`) with optional email delivery (`SendEmailReport`, `EmailTo`, individual email per recipient for privacy); email branding follows the existing `RJReport.Branding.*` tenant settings
+
 ## 2026-08-21
 
 - Update the required `RealmJoin.RunbookHelper` module version to 0.8.9 in all 136 runbooks that were still pinned to 0.8.8, so all 168 runbooks now use a consistent, current module version
