@@ -1,6 +1,21 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-29
+
+- Add **Report Devices Low Diskspace** Runbook in Org/Devices
+  - Scheduled report of Intune managed devices whose free disk space is below a configurable threshold; `ThresholdType` selects whether the threshold is a fixed amount of free space (`FreeSpaceThresholdGB`, default 20 GB) or a percentage of the disk size (`FreeSpacePercentThreshold`), and every reported device is rated as Critical (below half of the threshold) or Warning
+  - Filterable by platform (Windows and macOS on by default; iOS/iPadOS and Android available but off by default, because the threshold in gigabytes is dimensioned for desktop disks and mobile storage inventory is less reliable) and by comma-separated manufacturer and model substring filters
+  - Devices without usable storage inventory (a reported total disk size of zero bytes, e.g. Android Enterprise work profiles) are excluded from the evaluation and reported as a summary count; the Last Sync column shows how fresh the underlying Intune hardware inventory of a row is
+  - Report delivery as CSV, XLSX or both (`ReportFileFormat`, with severity highlighting in the Excel workbook), optional email report (`EmailTo`, summary statistics plus the ten devices with the least free space inline) and optional time-limited download link (`CreateDownloadLink`) based on the existing `RJReport.*` tenant settings
+
 ## 2026-08-28
+
+- Extend **Offboard User Permanently** in User/General
+  - New option `ReplaceManagerReferences` sets the replacement person as manager for all direct reports of the offboarded user
+  - New option `ReplaceSponsorReferences` replaces the offboarded user as sponsor (typically on guest users); as Microsoft Graph offers no reverse lookup for sponsors it scans all users of the tenant, and sponsorships held only through a group membership stay untouched
+  - Both are off by default and reuse the established replacement person (`ManagerAsReplacementOwner` takes precedence over `ReplacementOwnerName`); without a resolvable replacement, or if a single change fails, the affected users are named in the output for manual follow-up instead of aborting the offboarding
+  - New option `UserTypeSelector` limits the runbook to member or guest users and aborts before any change on a mismatch; hide the parameter via RunbookCustomization to make the restriction binding, and note that accounts with an unset `userType` count as members
+  - All Graph calls now use native `Connect-MgGraph` / `Invoke-MgGraphRequest` with the shared `Get-GraphPagedResult` helper; user principal names and group name filters are URL encoded, so guest accounts (whose UPN contains `#EXT#`) and names with special characters resolve correctly
 
 - Add **Check Intune Enrollment Readiness** Runbook in User/General
   - Evaluates a single selected user for Intune device enrollment readiness and reports a clear result (Ready, Ready with warnings, Not ready) together with the concrete blockers found

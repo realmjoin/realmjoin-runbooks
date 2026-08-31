@@ -7,7 +7,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "User.ReadWrite.All",
-                    "Reason": "Disables sign-in, revokes sessions, removes licenses and deletes the user object"
+                    "Reason": "Disables sign-in, revokes sessions, removes licenses, replaces manager and sponsor references and deletes the user object"
                 },
                 {
                     "Value": "Group.ReadWrite.All",
