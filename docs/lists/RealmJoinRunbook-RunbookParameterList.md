@@ -78,6 +78,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
+    - [Report Devices Low Diskspace (Scheduled)](#organization-devices-report-devices-low-diskspace-scheduled)
     - [Report Devices Without Primary User (Scheduled)](#organization-devices-report-devices-without-primary-user-scheduled)
     - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
@@ -1075,6 +1076,37 @@ Remove or outphase multiple devices
 | disableAADDevice |  | Boolean | Internal flag derived from aadAction. |
 | excludeFromDefender |  | Boolean | If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely. |
 | defenderExclusionTag |  | String | The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation". |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-devices-report-devices-low-diskspace-scheduled'></a>
+
+### Report Devices Low Diskspace (Scheduled)
+Scheduled report of managed devices running low on free disk space.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| ThresholdType |  | String | Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size. |
+| FreeSpaceThresholdGB |  | Int32 | Devices with less free disk space than this value in gigabytes are reported. Only used when the threshold type is set to free space in gigabytes. |
+| FreeSpacePercentThreshold |  | Int32 | Devices with a lower percentage of free disk space than this value are reported. Only used when the threshold type is set to free space in percent. |
+| Windows |  | Boolean | Include Windows devices in the results. |
+| MacOS |  | Boolean | Include macOS devices in the results. |
+| iOS |  | Boolean | Include iOS and iPadOS devices in the results. |
+| Android |  | Boolean | Include Android devices in the results. |
+| ManufacturerFilter |  | String | Optional comma-separated list of manufacturer names. A device is included when its manufacturer contains one of the entries. Leave empty to include all manufacturers. |
+| ModelFilter |  | String | Optional comma-separated list of model names. A device is included when its model contains one of the entries. Leave empty to include all models. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only". |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-report-devices-without-primary-user-scheduled'></a>
@@ -2410,6 +2442,7 @@ Permanently offboard a user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
+| UserTypeSelector |  | Int32 | Controls which user types this runbook may be run against: all users, member users only or guest users only. The run aborts before any change if the selected user does not match. To enforce the restriction, configure it as a tenant setting and hide the parameter via RunbookCustomization - otherwise operators can change it in the runbook form. |
 | DeleteUser |  | Boolean | "Delete user object" (final value: $true) or "Keep the user object" (final value: $false) can be selected as action to perform. If set to true, the user object will be deleted. If set to false, the user object will be kept but access will be revoked and sign-in will be blocked. |
 | DisableUser |  | Boolean | If set to true, disables the user account for sign-in. |
 | RevokeAccess |  | Boolean | If set to true, revokes the user's refresh tokens and active sessions. |
@@ -2426,6 +2459,8 @@ Permanently offboard a user
 | RevokeGroupOwnership |  | Boolean | "Remove/Replace this user's group ownerships" (final value: $true) or "User will remain owner / Do not change" (final value: $false) can be selected as action to perform. If set to true, the runbook will attempt to remove the user from group ownerships. If the user is the last owner of a group, it will attempt to assign a replacement owner; if that fails, it will skip ownership change for that group and log it for manual follow-up. |
 | ManagerAsReplacementOwner |  | Boolean | If set to true, uses the user's manager as replacement owner where applicable. |
 | ReplacementOwnerName |  | String | User who will take over group or resource ownership if required. |
+| ReplaceManagerReferences |  | Boolean | If set to true, all direct reports of the offboarded user get the replacement person assigned as their new manager. Without a resolvable replacement, affected users are only listed for manual follow-up. |
+| ReplaceSponsorReferences |  | Boolean | If set to true, the offboarded user is replaced by the replacement person wherever they are set as sponsor (typically on guest users). Without a resolvable replacement, affected users are only listed for manual follow-up. Sponsorships that the user only holds through a group membership are left untouched, as they remain valid after the offboarding. As Graph offers no reverse lookup for sponsors, this option scans all users of the tenant. |
 | CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
 <a name='user-general-offboard-user-temporarily'></a>

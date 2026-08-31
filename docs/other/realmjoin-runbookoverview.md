@@ -79,6 +79,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
+      - [Report Devices Low Diskspace (Scheduled)](#report-devices-low-diskspace-(scheduled))
       - [Report Devices Without Primary User (Scheduled)](#report-devices-without-primary-user-(scheduled))
       - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
@@ -1779,6 +1780,71 @@ To make the exclusion tag visible and usable for filtering in the [Defender Devi
 Devices supplied by serial number that are not found in Intune have no Entra ID device ID and are therefore not tagged in Defender.
 
 See [Create and manage device tags](https://learn.microsoft.com/defender-endpoint/machine-tags#create-tags) for details.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-report-devices-low-diskspace-(scheduled)'></a>
+
+### Report Devices Low Diskspace (Scheduled)
+#### Scheduled report of managed devices running low on free disk space.
+
+#### Description
+
+Identifies and lists Intune managed devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size.
+The result can be narrowed down by platform and by manufacturer and model filters, and each reported device is rated as Critical or Warning depending on how far below the threshold it is.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ Devices \ Report Devices Low Diskspace_Scheduled
+
+## Data freshness and limitations
+
+The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.
+
+Devices that report a total disk size of zero bytes have no usable storage inventory. This is common for Android Enterprise work profiles and also happens on devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being reported as "0 GB free", and their number is shown in the console output and in the email summary.
+
+Windows and macOS are included by default, iOS/iPadOS and Android are not. The default threshold of 20 GB is dimensioned for desktop disks and would report a large number of perfectly healthy mobile devices. When you enable the mobile platforms, the percentage based threshold (`ThresholdType` = *Free space below a percentage of the disk size*) usually gives more meaningful results.
+
+## Threshold and severity
+
+`ThresholdType` selects whether a device is reported based on a fixed amount of free space (`FreeSpaceThresholdGB`) or based on the share of free space relative to its disk size (`FreeSpacePercentThreshold`). Only the field belonging to the selected type is shown in the portal.
+
+Every reported device is rated: devices below half of the configured threshold are marked as **Critical**, all other reported devices as **Warning**. In the Excel workbook these ratings are highlighted in red and yellow.
+
+## Report delivery
+
+Report files are only generated when a delivery method is used, that is when a recipient (`EmailTo`) is provided and/or `CreateDownloadLink` is enabled. Without either, the result is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -4184,7 +4250,7 @@ User \ General \ List Manager
 
 #### Description
 
-Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
+Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.
 
 #### Where to find
 

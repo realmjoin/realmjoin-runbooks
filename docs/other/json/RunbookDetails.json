@@ -8240,6 +8240,430 @@
     }
   },
   {
+    "RunbookDisplayName": "Report Devices Low Diskspace_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Devices Low Diskspace_Scheduled",
+    "RelativeRunbookPath": "org/devices/report-devices-low-diskspace_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Scheduled report of managed devices running low on free disk space.",
+    "Description": "Identifies and lists Intune managed devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size.\nThe result can be narrowed down by platform and by manufacturer and model filters, and each reported device is rated as Critical or Warning depending on how far below the threshold it is.\nAutomatically sends a report via email with CSV and/or Excel (xlsx) attachments.\nThe report files can also be uploaded to an Azure Storage Account, returning time-limited download links.\nThe ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).\nWhen the CSV attachment exceeds the email size limit and \"CSV & XLSX\" is selected, the email falls back to the Excel workbook alone.",
+    "Notes": "This runbook complements the reporting foundation and delivers a recurring overview of devices that are about to run out of disk space,\nso that affected users can be contacted before the lack of free space starts to block updates, app installations or profile synchronization.\n\nPrerequisites:\n- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)\n\nData source and freshness:\nThe free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.\nThey therefore describe the state of the last successful inventory and not necessarily the current state, so the Last Sync column of the report should be used to judge how up to date a row is.\nDevices that report a total disk size of zero bytes have no usable storage inventory (this is common for Android Enterprise work profiles) and are excluded from the evaluation, but their number is reported.\n\nPlatform defaults:\nWindows and macOS are included by default, iOS/iPadOS and Android are not, because the default threshold in gigabytes is dimensioned for desktop disks\nand would report a large number of perfectly healthy mobile devices. When mobile platforms are enabled, the percentage based threshold usually gives more meaningful results.\n\nCommon Use Cases:\n- Recurring disk space monitoring across the managed device fleet\n- Finding devices that are likely to fail feature updates or app deployments because of insufficient free space\n- Preparing targeted user communication or cleanup campaigns\n- Checking a specific hardware generation via the manufacturer and model filters",
+    "Parameters": [
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include Android devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "Android",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.\nSourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.\nSourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.\nWhen empty, the default link (https://www.realmjoin.com) is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.\nSourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional text color override (6-digit hex) for the report email template.\nSourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Caller name for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "23",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "report-devices-low-diskspace",
+        "description": [
+          {
+            "Text": "Storage container name used for the upload. Configured per runbook (not a global RJReport setting)."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization"
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "If specified, an email with the report will be sent to the provided address(es).\nCan be a single address or multiple comma-separated addresses (string).\nThe function sends individual emails to each recipient for privacy reasons."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "22",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "10",
+        "description": [
+          {
+            "Text": "Devices with a lower percentage of free disk space than this value are reported. Only used when the threshold type is set to free space in percent."
+          }
+        ],
+        "globbing": "false",
+        "name": "FreeSpacePercentThreshold",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "20",
+        "description": [
+          {
+            "Text": "Devices with less free disk space than this value in gigabytes are reported. Only used when the threshold type is set to free space in gigabytes."
+          }
+        ],
+        "globbing": "false",
+        "name": "FreeSpaceThresholdGB",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Include iOS and iPadOS devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "iOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days until the generated download link expires. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "21",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include macOS devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "MacOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated list of manufacturer names. A device is included when its manufacturer contains one of the entries. Leave empty to include all manufacturers."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManufacturerFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated list of model names. A device is included when its model contains one of the entries. Leave empty to include all models."
+          }
+        ],
+        "globbing": "false",
+        "name": "ModelFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "XLSX only",
+        "description": [
+          {
+            "Text": "Controls which report file formats are generated and delivered: \"CSV only\", \"CSV & XLSX\" (default) or \"XLSX only\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group that contains the storage account. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account name used for the upload. Sourced from the RJReport tenant settings."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "20",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "Free space in GB",
+        "description": [
+          {
+            "Text": "Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size."
+          }
+        ],
+        "globbing": "false",
+        "name": "ThresholdType",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Windows devices in the results."
+          }
+        ],
+        "globbing": "false",
+        "name": "Windows",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## Data freshness and limitations\n\nThe free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.\n\nDevices that report a total disk size of zero bytes have no usable storage inventory. This is common for Android Enterprise work profiles and also happens on devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being reported as \"0 GB free\", and their number is shown in the console output and in the email summary.\n\nWindows and macOS are included by default, iOS/iPadOS and Android are not. The default threshold of 20 GB is dimensioned for desktop disks and would report a large number of perfectly healthy mobile devices. When you enable the mobile platforms, the percentage based threshold (`ThresholdType` = *Free space below a percentage of the disk size*) usually gives more meaningful results.\n\n## Threshold and severity\n\n`ThresholdType` selects whether a device is reported based on a fixed amount of free space (`FreeSpaceThresholdGB`) or based on the share of free space relative to its disk size (`FreeSpacePercentThreshold`). Only the field belonging to the selected type is shown in the portal.\n\nEvery reported device is rated: devices below half of the configured threshold are marked as **Critical**, all other reported devices as **Warning**. In the Excel workbook these ratings are highlighted in red and yellow.\n\n## Report delivery\n\nReport files are only generated when a delivery method is used, that is when a recipient (`EmailTo`) is provided and/or `CreateDownloadLink` is enabled. Without either, the result is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** – target of the footer image\n- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n",
+    "DocsContentEncoded": "IyMgRGF0YSBmcmVzaG5lc3MgYW5kIGxpbWl0YXRpb25zCgpUaGUgZnJlZSBhbmQgdG90YWwgZGlzayBzcGFjZSB2YWx1ZXMgYXJlIHJlYWQgZnJvbSB0aGUgSW50dW5lIGhhcmR3YXJlIGludmVudG9yeSBvZiBlYWNoIG1hbmFnZWQgZGV2aWNlLiBUaGlzIGludmVudG9yeSBpcyByZWZyZXNoZWQgd2l0aCB0aGUgcmVndWxhciBkZXZpY2UgY2hlY2staW4sIHNvIHRoZSByZXBvcnQgZGVzY3JpYmVzIHRoZSBzdGF0ZSBvZiB0aGUgbGFzdCBzdWNjZXNzZnVsIGludmVudG9yeSByYXRoZXIgdGhhbiB0aGUgY3VycmVudCBzdGF0ZSBvZiB0aGUgZGV2aWNlLiBVc2UgdGhlICoqTGFzdCBTeW5jKiogY29sdW1uIG9mIHRoZSByZXBvcnQgdG8ganVkZ2UgaG93IHVwIHRvIGRhdGUgYW4gaW5kaXZpZHVhbCByb3cgaXMuCgpEZXZpY2VzIHRoYXQgcmVwb3J0IGEgdG90YWwgZGlzayBzaXplIG9mIHplcm8gYnl0ZXMgaGF2ZSBubyB1c2FibGUgc3RvcmFnZSBpbnZlbnRvcnkuIFRoaXMgaXMgY29tbW9uIGZvciBBbmRyb2lkIEVudGVycHJpc2Ugd29yayBwcm9maWxlcyBhbmQgYWxzbyBoYXBwZW5zIG9uIGRldmljZXMgdGhhdCBoYXZlIG5vdCBjb21wbGV0ZWQgYW4gaW52ZW50b3J5IHlldC4gU3VjaCBkZXZpY2VzIGFyZSBleGNsdWRlZCBmcm9tIHRoZSBldmFsdWF0aW9uIGluc3RlYWQgb2YgYmVpbmcgcmVwb3J0ZWQgYXMgIjAgR0IgZnJlZSIsIGFuZCB0aGVpciBudW1iZXIgaXMgc2hvd24gaW4gdGhlIGNvbnNvbGUgb3V0cHV0IGFuZCBpbiB0aGUgZW1haWwgc3VtbWFyeS4KCldpbmRvd3MgYW5kIG1hY09TIGFyZSBpbmNsdWRlZCBieSBkZWZhdWx0LCBpT1MvaVBhZE9TIGFuZCBBbmRyb2lkIGFyZSBub3QuIFRoZSBkZWZhdWx0IHRocmVzaG9sZCBvZiAyMCBHQiBpcyBkaW1lbnNpb25lZCBmb3IgZGVza3RvcCBkaXNrcyBhbmQgd291bGQgcmVwb3J0IGEgbGFyZ2UgbnVtYmVyIG9mIHBlcmZlY3RseSBoZWFsdGh5IG1vYmlsZSBkZXZpY2VzLiBXaGVuIHlvdSBlbmFibGUgdGhlIG1vYmlsZSBwbGF0Zm9ybXMsIHRoZSBwZXJjZW50YWdlIGJhc2VkIHRocmVzaG9sZCAoYFRocmVzaG9sZFR5cGVgID0gKkZyZWUgc3BhY2UgYmVsb3cgYSBwZXJjZW50YWdlIG9mIHRoZSBkaXNrIHNpemUqKSB1c3VhbGx5IGdpdmVzIG1vcmUgbWVhbmluZ2Z1bCByZXN1bHRzLgoKIyMgVGhyZXNob2xkIGFuZCBzZXZlcml0eQoKYFRocmVzaG9sZFR5cGVgIHNlbGVjdHMgd2hldGhlciBhIGRldmljZSBpcyByZXBvcnRlZCBiYXNlZCBvbiBhIGZpeGVkIGFtb3VudCBvZiBmcmVlIHNwYWNlIChgRnJlZVNwYWNlVGhyZXNob2xkR0JgKSBvciBiYXNlZCBvbiB0aGUgc2hhcmUgb2YgZnJlZSBzcGFjZSByZWxhdGl2ZSB0byBpdHMgZGlzayBzaXplIChgRnJlZVNwYWNlUGVyY2VudFRocmVzaG9sZGApLiBPbmx5IHRoZSBmaWVsZCBiZWxvbmdpbmcgdG8gdGhlIHNlbGVjdGVkIHR5cGUgaXMgc2hvd24gaW4gdGhlIHBvcnRhbC4KCkV2ZXJ5IHJlcG9ydGVkIGRldmljZSBpcyByYXRlZDogZGV2aWNlcyBiZWxvdyBoYWxmIG9mIHRoZSBjb25maWd1cmVkIHRocmVzaG9sZCBhcmUgbWFya2VkIGFzICoqQ3JpdGljYWwqKiwgYWxsIG90aGVyIHJlcG9ydGVkIGRldmljZXMgYXMgKipXYXJuaW5nKiouIEluIHRoZSBFeGNlbCB3b3JrYm9vayB0aGVzZSByYXRpbmdzIGFyZSBoaWdobGlnaHRlZCBpbiByZWQgYW5kIHllbGxvdy4KCiMjIFJlcG9ydCBkZWxpdmVyeQoKUmVwb3J0IGZpbGVzIGFyZSBvbmx5IGdlbmVyYXRlZCB3aGVuIGEgZGVsaXZlcnkgbWV0aG9kIGlzIHVzZWQsIHRoYXQgaXMgd2hlbiBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyBwcm92aWRlZCBhbmQvb3IgYENyZWF0ZURvd25sb2FkTGlua2AgaXMgZW5hYmxlZC4gV2l0aG91dCBlaXRoZXIsIHRoZSByZXN1bHQgaXMgcmVhZCBkaXJlY3RseSBpbiB0aGUgUmVhbG1Kb2luIHBvcnRhbCBvdXRwdXQuIEVtYWlsIGRlbGl2ZXJ5IGFuZCBkb3dubG9hZCBsaW5rIGdlbmVyYXRpb24gYXJlIGluZGVwZW5kZW50IGFuZCBjYW4gYmUgY29tYmluZWQuCgpGb3IgdGhlIGRvd25sb2FkIGxpbmssIHRoZSByZXBvcnQgZmlsZXMgYXJlIHVwbG9hZGVkIHRvIHRoZSBBenVyZSBzdG9yYWdlIGFjY291bnQgY29uZmlndXJlZCBpbiB0aGUgYFJKUmVwb3J0LlN0b3JhZ2VBY2NvdW50LipgIHRlbmFudCBzZXR0aW5ncywgYW5kIHRpbWUtbGltaXRlZCBTQVMgZG93bmxvYWQgbGlua3MgYXJlIHJldHVybmVkLiBUaGUgc3RvcmFnZSB1cGxvYWQgYXV0aGVudGljYXRlcyB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5OyB0aGF0IGlkZW50aXR5IG5lZWRzIHRoZSAqKlN0b3JhZ2UgQmxvYiBEYXRhIENvbnRyaWJ1dG9yKiogUkJBQyByb2xlIG9uIHRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50ICh0aGlzIGlzIGFuIEF6dXJlIFJCQUMgYXNzaWdubWVudCwgbm90IGEgR3JhcGggYXBwbGljYXRpb24gcGVybWlzc2lvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhbiBlbWFpbCByZXBvcnQgaXMgb3B0aW9uYWwgYW5kIG9ubHkgaGFwcGVucyB3aGVuIGEgcmVjaXBpZW50IChgRW1haWxUb2ApIGlzIHByb3ZpZGVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzIG9uIGFsbCBhdmFpbGFibGUgc2V0dGluZ3MuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOgoKLSAqKkhlYWRlciBhbmQgZm9vdGVyIGltYWdlKiog4oCTIHB1YmxpYyBIVFRQUyBVUkxzLCBQTkcvSlBFRy9HSUYsIG1heC4gMjAwIEtCIGVhY2gKLSAqKkZvb3RlciBsaW5rKiog4oCTIHRhcmdldCBvZiB0aGUgZm9vdGVyIGltYWdlCi0gKipBY2NlbnQgYW5kIHRleHQgY29sb3IqKiDigJMgNi1kaWdpdCBoZXggdmFsdWVzLCBlLmcuIGAjMDA1MmNjYAoKV2hlbiB0aGVzZSBzZXR0aW5ncyBhcmUgbm90IGNvbmZpZ3VyZWQsIHRoZSBkZWZhdWx0IFJlYWxtSm9pbiBncmFwaGljcyBhbmQgY29sb3JzIGFyZSB1c2VkLiBBbiBpbWFnZSB0aGF0IGNhbm5vdCBiZSBkb3dubG9hZGVkIG9yIHZhbGlkYXRlZCwgb3IgYW4gaW52YWxpZCBjb2xvciB2YWx1ZSwgbmV2ZXIgcHJldmVudHMgdGhlIHJlcG9ydCBlbWFpbCDigJMgdGhlIGNvcnJlc3BvbmRpbmcgZGVmYXVsdCBpcyB1c2VkIGluc3RlYWQuCgpTZXR1cCBpbnN0cnVjdGlvbnMgYW5kIGltYWdlIHJlcXVpcmVtZW50czogW0VtYWlsIGJyYW5kaW5nXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzI2VtYWlsLWJyYW5kaW5nLW9wdGlvbmFsKS4K",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Reads Intune managed devices including freeStorageSpaceInBytes and totalStorageSpaceInBytes to find devices below the low disk space threshold\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads /organization for the tenant name used in the report file names, the email subject and the email footer; without it the runbook falls back to 'Unknown Tenant'\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjReportEmail when EmailTo is configured\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure Storage Account: 'Storage Blob Data Contributor' role for the Automation Account's managed identity on the target storage account (only required when CreateDownloadLink is used)\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure Storage Account: 'Storage Blob Data Contributor' role for the Automation Account's managed identity on the target storage account (only required when CreateDownloadLink is used)"
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Report Devices Without Primary User_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Report Devices Without Primary User_Scheduled",
     "RelativeRunbookPath": "org/devices/report-devices-without-primary-user_scheduled.ps1",
@@ -21899,7 +22323,7 @@
     "PrimaryFolder": "User",
     "SubFolder": "General",
     "Synopsis": "Permanently offboard a user",
-    "Description": "Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.",
+    "Description": "Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.",
     "Notes": null,
     "Parameters": [
       {
@@ -21913,7 +22337,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "21",
         "required": "true",
         "type": {
           "name": "String"
@@ -21930,7 +22354,7 @@
         "name": "ChangeGroupsSelector",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -21947,7 +22371,7 @@
         "name": "ChangeLicensesSelector",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -21964,7 +22388,7 @@
         "name": "DeleteUser",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -21981,7 +22405,7 @@
         "name": "DisableUser",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -21998,7 +22422,7 @@
         "name": "exportGroupMemberships",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22015,7 +22439,7 @@
         "name": "exportResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -22032,7 +22456,7 @@
         "name": "exportStorAccountLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "String"
@@ -22049,7 +22473,7 @@
         "name": "exportStorAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -22066,7 +22490,7 @@
         "name": "exportStorAccountSKU",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -22083,7 +22507,7 @@
         "name": "exportStorContainerGroupMembershipExports",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -22100,7 +22524,7 @@
         "name": "GroupsToRemovePrefix",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
@@ -22117,7 +22541,7 @@
         "name": "GroupToAdd",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
@@ -22134,7 +22558,24 @@
         "name": "ManagerAsReplacementOwner",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, all direct reports of the offboarded user get the replacement person assigned as their new manager. Without a resolvable replacement, affected users are only listed for manual follow-up."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReplaceManagerReferences",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22151,10 +22592,27 @@
         "name": "ReplacementOwnerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the offboarded user is replaced by the replacement person wherever they are set as sponsor (typically on guest users). Without a resolvable replacement, affected users are only listed for manual follow-up. Sponsorships that the user only holds through a group membership are left untouched, as they remain valid after the offboarding. As Graph offers no reverse lookup for sponsors, this option scans all users of the tenant."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReplaceSponsorReferences",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "20",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -22168,7 +22626,7 @@
         "name": "RevokeAccess",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22185,7 +22643,7 @@
         "name": "RevokeGroupOwnership",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22207,11 +22665,28 @@
         "type": {
           "name": "String"
         }
+      },
+      {
+        "defaultValue": "0",
+        "description": [
+          {
+            "Text": "Controls which user types this runbook may be run against: all users, member users only or guest users only. The run aborts before any change if the selected user does not match. To enforce the restriction, configure it as a tenant setting and hide the parameter via RunbookCustomization - otherwise operators can change it in the runbook form."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserTypeSelector",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
       }
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Reason\": \"Disables sign-in, revokes sessions, removes licenses and deletes the user object\"\n                },\n                {\n                    \"Value\": \"Group.ReadWrite.All\",\n                    \"Reason\": \"Reads groups and transfers or removes the user's group ownerships\"\n                },\n                {\n                    \"Value\": \"GroupMember.ReadWrite.All\",\n                    \"Reason\": \"Adds and removes group memberships during the group cleanup\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Opens the app-only Exchange Online session used to remove the user from distribution groups\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"User Administrator\",\n            \"TemplateId\": \"fe930be7-5e62-47db-91af-98c3a49a38b1\",\n            \"Reason\": \"Required so the app-only identity can block sign-in, revoke sessions and delete the user\"\n        },\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session removing distribution group memberships\"\n        }\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}\n",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Reason\": \"Disables sign-in, revokes sessions, removes licenses, replaces manager and sponsor references and deletes the user object\"\n                },\n                {\n                    \"Value\": \"Group.ReadWrite.All\",\n                    \"Reason\": \"Reads groups and transfers or removes the user's group ownerships\"\n                },\n                {\n                    \"Value\": \"GroupMember.ReadWrite.All\",\n                    \"Reason\": \"Adds and removes group memberships during the group cleanup\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Opens the app-only Exchange Online session used to remove the user from distribution groups\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"User Administrator\",\n            \"TemplateId\": \"fe930be7-5e62-47db-91af-98c3a49a38b1\",\n            \"Reason\": \"Required so the app-only identity can block sign-in, revoke sessions and delete the user\"\n        },\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session removing distribution group memberships\"\n        }\n    ],\n    \"ManualPermissions\": [\n        \"Azure IaaS: Contributor access on subscription or resource group used for the export\"\n    ]\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {

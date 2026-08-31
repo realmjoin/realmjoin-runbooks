@@ -58,6 +58,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 |  |  | Outphase Devices | Remove or outphase multiple devices |
+|  |  | Report Devices Low Diskspace (Scheduled) | Scheduled report of managed devices running low on free disk space. |
 |  |  | Report Devices Without Primary User (Scheduled) | Reports all managed devices in Intune that do not have a primary user assigned. |
 |  |  | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 |  |  | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
