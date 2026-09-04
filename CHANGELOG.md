@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-04
+
+- Update **Add Shared Mailbox** in Org/Mail
+  - Improve when Domain is specified for the shared mailbox creation, it is correctly included in the primary SMTP address and the UPN.
+- Update **Add Primary Users of Devices to Group** in Org/general
+  - Add Report Only mode to limit the runbook to generating a report without making any changes
+
 ## 2026-08-30
 
 - Add **Report SharePoint Tenant Storage** Runbook in Org/Collab
