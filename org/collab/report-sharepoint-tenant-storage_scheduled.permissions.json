@@ -1,0 +1,24 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                { "Value": "Mail.Send", "Reason": "Sends the storage threshold alert email via Send-RjReportEmail; this runbook's entire purpose is the alert, so the send is unconditional on a breach, not a toggle" },
+                { "Value": "Organization.Read.All", "Reason": "Reads /organization via Invoke-RjRbRestMethodGraph to resolve the tenant display name used in the alert email subject and branding" }
+            ]
+        },
+        {
+            "Name": "Office 365 SharePoint Online",
+            "Id": "00000003-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                { "Value": "Sites.FullControl.All", "Reason": "This runbook connects with Connect-PnPOnline -ManagedIdentity against the SharePoint admin center URL and calls the tenant-admin cmdlets Get-PnPGeoStorageQuota and Get-PnPTenantSite, which require tenant-wide full control; read-only Sites.Read.All is insufficient for the tenant-admin endpoint" }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Online' resource (appId 00000003-0000-0ff1-ce00-000000000000) to the Automation Account's managed identity — this app-only grant cannot be made through the standard Entra app-role-assignment flow used for Microsoft Graph and must be assigned manually per tenant."
+    ]
+}
