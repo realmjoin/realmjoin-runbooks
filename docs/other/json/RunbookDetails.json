@@ -11410,8 +11410,8 @@
     "PrimaryFolder": "Org",
     "SubFolder": "General",
     "Synopsis": "Sync primary users of Intune managed devices by platform into an Entra ID group",
-    "Description": "This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.",
-    "Notes": null,
+    "Description": "This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed. A report-only mode allows previewing the proposed changes via email (email body shows at most 10 users per list, complete lists attached as CSV and/or XLSX file) without making any modifications.",
+    "Notes": "Runbook Type: Scheduled (recommended: daily)\n\nCommon Use Cases:\n- Keeping a distribution or Conditional Access target group aligned with \"who currently has a\n  managed device\", filtered by platform, an advanced OData filter, or an include/exclude group scope.\n- Validating a new or changed filter/scope before it is allowed to write to a production group.\n\nPilot and Testing Options:\n- Enable ReportOnly to compute the same add/remove diff a real run would produce, without applying\n  any change to the group. A Markdown preview email listing the affected users (by UPN) is sent to\n  EmailTo instead; each list (would be added / would be removed) shows at most 10 users in the mail\n  body, with a \"... and N more\" pointer when a list is longer, and the complete lists are attached\n  as report file(s) in the format chosen by ReportFileFormat. Run once in this mode after changing\n  the platform selection, AdvancedFilter, or the include/exclude groups, review the preview, then\n  disable ReportOnly to let the sync apply.\n\nParameter Interactions:\n- AdvancedFilter, when set, replaces the Windows/MacOS/iOS/Android platform selection entirely\n  rather than combining with it.\n- RemoveUsersWhenNoDeviceMatch controls both the real run and the ReportOnly preview: when disabled,\n  no users are removed in either case, so the preview always reflects what a real run would do.\n\nPrerequisites:\n- EmailFrom requires the RJReport.EmailSender tenant setting to be configured; this is only needed\n  when ReportOnly is used to send the preview email.",
     "Parameters": [
       {
         "defaultValue": "",
@@ -11451,6 +11451,91 @@
         "defaultValue": "",
         "description": [
           {
+            "Text": "Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
             "Text": "Caller name for auditing purposes."
           }
         ],
@@ -11458,8 +11543,42 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "19",
         "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address for report-only preview emails. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address for the report-only preview email. The email shows at most 10 users per list in the body, with complete lists attached as CSV and/or XLSX file(s) per ReportFileFormat. Only used when ReportOnly is set to true."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
         "type": {
           "name": "String"
         }
@@ -11550,6 +11669,40 @@
         }
       },
       {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "File format of the report attached to the report-only preview email. The attachments contain the complete lists of users that would be added or removed, while the email body shows at most 10 users per list. Only used when ReportOnly is enabled and EmailTo is set."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "If set to true, the script computes what would change but applies no modifications. The proposed changes are sent to the EmailTo recipient in a preview email showing at most 10 users per list in the body, with complete lists attached as CSV and/or XLSX file(s) per ReportFileFormat. If false, the runbook applies all changes immediately."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportOnly",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
         "defaultValue": "",
         "description": [
           {
@@ -11584,8 +11737,8 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
+    "DocsContent": "## Setup regarding email sending\n\nSending an email report is optional and only happens when the `ReportOnly` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** – target of the footer image\n- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n",
+    "DocsContentEncoded": "IyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiB0aGUgYFJlcG9ydE9ubHlgIG9wdGlvbiBpcyBlbmFibGVkOyBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyB0aGVuIHJlcXVpcmVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzIG9uIGFsbCBhdmFpbGFibGUgc2V0dGluZ3MuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOgoKLSAqKkhlYWRlciBhbmQgZm9vdGVyIGltYWdlKiog4oCTIHB1YmxpYyBIVFRQUyBVUkxzLCBQTkcvSlBFRy9HSUYsIG1heC4gMjAwIEtCIGVhY2gKLSAqKkZvb3RlciBsaW5rKiog4oCTIHRhcmdldCBvZiB0aGUgZm9vdGVyIGltYWdlCi0gKipBY2NlbnQgYW5kIHRleHQgY29sb3IqKiDigJMgNi1kaWdpdCBoZXggdmFsdWVzLCBlLmcuIGAjMDA1MmNjYAoKV2hlbiB0aGVzZSBzZXR0aW5ncyBhcmUgbm90IGNvbmZpZ3VyZWQsIHRoZSBkZWZhdWx0IFJlYWxtSm9pbiBncmFwaGljcyBhbmQgY29sb3JzIGFyZSB1c2VkLiBBbiBpbWFnZSB0aGF0IGNhbm5vdCBiZSBkb3dubG9hZGVkIG9yIHZhbGlkYXRlZCwgb3IgYW4gaW52YWxpZCBjb2xvciB2YWx1ZSwgbmV2ZXIgcHJldmVudHMgdGhlIHJlcG9ydCBlbWFpbCDigJMgdGhlIGNvcnJlc3BvbmRpbmcgZGVmYXVsdCBpcyB1c2VkIGluc3RlYWQuCgpTZXR1cCBpbnN0cnVjdGlvbnMgYW5kIGltYWdlIHJlcXVpcmVtZW50czogW0VtYWlsIGJyYW5kaW5nXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzI2VtYWlsLWJyYW5kaW5nLW9wdGlvbmFsKS4K",
     "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Reads Intune managed devices filtered by OS to collect each device's primary user\"\n                },\n                {\n                    \"Value\": \"Group.Read.All\",\n                    \"Reason\": \"Validates the target/include/exclude groups and reads their member lists\"\n                },\n                {\n                    \"Value\": \"GroupMember.ReadWrite.All\",\n                    \"Reason\": \"Adds and removes users in the target group via batched /groups/{id}/members/$ref calls\"\n                },\n                {\n                    \"Value\": \"User.Read.All\",\n                    \"Reason\": \"Reads member id and UPN to identify user members and log removals\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
