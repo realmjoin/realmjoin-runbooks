@@ -120,7 +120,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
-param (
+param(
     [Parameter(Mandatory = $true)]
     [string] $MailboxName,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "DisplayName" } )]
@@ -138,6 +138,7 @@ param (
     [bool]$MessageCopyForSendOnBehalfEnabled = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Disable AAD User" } )]
     [bool] $DisableUser = $true,
+
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -146,13 +147,12 @@ param (
 ########################################################
 #region     RJ Log Part
 ########################################################
-
 # Add Caller and Version in Verbose output
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -167,13 +167,11 @@ Write-RjRbLog -Message "AutoMapping: $($AutoMapping)" -Verbose
 Write-RjRbLog -Message "MessageCopyForSentAsEnabled: $($MessageCopyForSentAsEnabled)" -Verbose
 Write-RjRbLog -Message "MessageCopyForSendOnBehalfEnabled: $($MessageCopyForSendOnBehalfEnabled)" -Verbose
 Write-RjRbLog -Message "DisableUser: $($DisableUser)" -Verbose
-
-#endregion
+#endregion RJ Log Part
 
 ########################################################
-#region     Connect and Initialize
+#region     Connect Part
 ########################################################
-
 try {
     Write-Output "Connecting to Microsoft Graph..."
     Connect-MgGraph -Identity -NoWelcome
@@ -191,11 +189,10 @@ catch {
     Write-Error "Failed to connect to Exchange Online: $_"
     throw $_
 }
-
-#endregion
+#endregion Connect Part
 
 ########################################################
-#region     Create Shared Mailbox
+#region     Main Part
 ########################################################
 try {
     # make sure a displayName exists
@@ -280,19 +277,20 @@ try {
 
     if ($aliasConflict) {
         Write-Warning "## Note: Due to an alias conflict, the mailbox alias was set to '$aliasToUse' instead of '$MailboxName'"
-        Write-Output "Updating MicrosoftOnlineServicesID to match primary SMTP address..."
-
-        # Update the UserPrincipalName to match the primary SMTP address
-        if ($primarySmtpAddress) {
-            $mailbox | Set-Mailbox -MicrosoftOnlineServicesID $primarySmtpAddress -ErrorAction SilentlyContinue
-        }
     }
 
-#endregion
-
-########################################################
-#region     Configure Mailbox Settings
-########################################################
+    if ($primarySmtpAddress) {
+        Write-Output "Aligning UserPrincipalName with the primary SMTP address '$($primarySmtpAddress)'..."
+        try {
+            $mailbox | Set-Mailbox -MicrosoftOnlineServicesID $primarySmtpAddress -ErrorAction Stop
+            Write-Output "UserPrincipalName set to '$($primarySmtpAddress)'."
+        }
+        catch {
+            Write-RjRbLog -Message "Failed to align UserPrincipalName: $($_.Exception.Message)" -Verbose
+            Write-Error "Failed to set the UserPrincipalName to '$($primarySmtpAddress)': $($_.Exception.Message)" -ErrorAction Continue
+            throw "The shared mailbox was created, but its UserPrincipalName could not be aligned with the primary SMTP address '$($primarySmtpAddress)'. Verify that the domain '$($DomainName)' is verified in the tenant and that no other object already uses this address, then correct the UPN manually."
+        }
+    }
 
     Write-Output "Configuring mailbox settings..."
     $found = $false
@@ -355,6 +353,7 @@ try {
     if ($aliasConflict) {
         Write-Output "## Shared Mailbox '$MailboxName' has been created."
         Write-Output "   Primary SMTP: $($mailbox.PrimarySmtpAddress)"
+        Write-Output "   UserPrincipalName: $($mailbox.UserPrincipalName)"
         Write-Output "   Alias: $aliasToUse (adjusted due to conflict)"
         Write-Output "   Name: $nameToUse"
     }
@@ -363,10 +362,13 @@ try {
         if ($mailbox.PrimarySmtpAddress) {
             Write-Output "   Primary SMTP: $($mailbox.PrimarySmtpAddress)"
         }
+        if ($mailbox.UserPrincipalName) {
+            Write-Output "   UserPrincipalName: $($mailbox.UserPrincipalName)"
+        }
     }
 
 }
 finally {
     Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }
-#endregion
+#endregion Main Part

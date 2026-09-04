@@ -1,5 +1,9 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-04
+- Update **Add Shared Mailbox** in Org/Mail
+  - Improve when Domain is specified for the shared mailbox creation, it is correctly included in the primary SMTP address and the UPN.
+
 ## 2026-08-29
 
 - Add **Report Devices Low Diskspace** Runbook in Org/Devices
