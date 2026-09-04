@@ -1,5 +1,22 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-08-30
+
+- Add **Report SharePoint Tenant Storage** Runbook in Org/Collab
+  - Monitors SharePoint Online tenant storage on a schedule, connecting to the SharePoint admin center via PnP.PowerShell using the managed identity.
+  - Reads the tenant storage quota and lists the top site collections by consumed storage, including title, URL, created date, primary owner, and storage in GB.
+  - Excludes OneDrive for Business sites from the top site collections list, as personal-site storage does not count against the tenant storage quota.
+  - Sends a branded alert email only when free storage falls below a configured low-storage limit or rises above a configured unused-storage limit, indicating reclaimable licensed storage.
+- Add **Check OneDrive Status** Runbook in Org/Collab 
+  - Checks the OneDrive (personal site) status of a single user in SharePoint Online via PnP PowerShell, connecting with the Automation account's system-assigned managed identity.
+  - Reports whether the OneDrive still exists as an active site collection, its archive status, its lock state and whether it currently sits in the tenant recycle bin along with its deletion time.
+  - Supports checking the OneDrive of an already-deleted user account by matching its personal site in the tenant recycle bin via the site owner email.
+  - Strictly read-only; makes no changes.
+- Add **List SharePoint Site Collection Permissions** Runbook in Org/Collab
+  - Lists the permissions of a SharePoint Online site collection, connecting via PnP.PowerShell using the Azure Automation account's system-assigned managed identity.
+  - Reports the site collection administrators and the members of the associated Owners, Members and Visitors groups, resolved via the site's associated-group properties so it works regardless of the site's display language.
+  - Reports each member's type (user, SharePoint group, Entra ID group, security group). Read-only, changes nothing.
+
 ## 2026-08-29
 
 - Add **Report Devices Low Diskspace** Runbook in Org/Devices

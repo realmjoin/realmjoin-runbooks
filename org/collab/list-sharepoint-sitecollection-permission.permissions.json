@@ -1,0 +1,19 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Office 365 SharePoint Online",
+            "Id": "00000003-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.FullControl.All",
+                    "Reason": "Connects via Connect-PnPOnline -ManagedIdentity and calls Get-PnPWeb, Get-PnPSite, Get-PnPSiteCollectionAdmin and Get-PnPGroupMember against the target site collection; Get-PnPSiteCollectionAdmin in particular requires more than read-only site access, so Sites.Read.All is insufficient. Sites.Selected was not used because it would require per-site consent to be pre-granted outside this runbook's control, which this runbook cannot guarantee for an arbitrary $SiteUrl."
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Grant admin consent for the 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (App ID 00000003-0000-0ff1-ce00-000000000000) to the Azure Automation account's system-assigned managed identity; this SharePoint app-only-via-managed-identity consent cannot be assigned through the standard Microsoft Graph app-role automation used for Graph permissions. See the runbook's documentation file for the assignment commands."
+    ]
+}
