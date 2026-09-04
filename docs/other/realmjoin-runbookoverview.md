@@ -68,6 +68,10 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Application Registration](#report-application-registration)
       - [Report Expiring Application Credentials (Scheduled)](#report-expiring-application-credentials-(scheduled))
       - [Update Application Registration](#update-application-registration)
+  - [Collab](#org-collab)
+      - [Check Onedrive Status](#check-onedrive-status)
+      - [List Sharepoint Sitecollection Permission](#list-sharepoint-sitecollection-permission)
+      - [Report Sharepoint Tenant Storage (Scheduled)](#report-sharepoint-tenant-storage-(scheduled))
   - [Devices](#org-devices)
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
@@ -1395,6 +1399,69 @@ Use it to manage redirect URIs, SAML settings, visibility, assignment requiremen
 #### Where to find
 
 Org \ Applications \ Update Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org'></a>
+
+# Org
+<a name='org-collab'></a>
+
+## Collab
+<a name='org-collab-check-onedrive-status'></a>
+
+### Check Onedrive Status
+#### Check the status of a user's OneDrive
+
+#### Description
+
+Connects to the SharePoint admin center using the managed identity and retrieves the status of the specified user's personal site (OneDrive). Reports whether the site is active or archived, its lock state, and whether it resides in the tenant recycle bin. The runbook is read-only and makes no changes to the site or its state.
+
+#### Where to find
+
+Org \ Collab \ Check Onedrive Status
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-collab-list-sharepoint-sitecollection-permission'></a>
+
+### List Sharepoint Sitecollection Permission
+#### List all members and administrators of a SharePoint Online site collection
+
+#### Description
+
+Connects to a SharePoint Online site collection using PnP.PowerShell with the system-assigned managed identity and retrieves the members of the site collection administrators, Owners group, Members group, and Visitors group. Each group's members are listed with their type, such as user, security group, or Entra ID group.
+
+#### Where to find
+
+Org \ Collab \ List Sharepoint Sitecollection Permission
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-collab-report-sharepoint-tenant-storage-(scheduled)'></a>
+
+### Report Sharepoint Tenant Storage (Scheduled)
+#### Monitor SharePoint Online tenant storage and alert when thresholds are exceeded
+
+#### Description
+
+Scheduled monitor for SharePoint Online tenant storage capacity and usage. Connects to the SharePoint admin center using managed identity, retrieves the tenant storage quota and the top site collections by consumed storage, and reports the full inventory to the runbook output on every run. An alert email is sent only when free storage falls below the configured low-storage limit or unused licensed storage rises above the configured reclaimable threshold.
+
+#### Where to find
+
+Org \ Collab \ Report Sharepoint Tenant Storage_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)

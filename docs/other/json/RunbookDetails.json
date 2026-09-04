@@ -5733,6 +5733,379 @@
     }
   },
   {
+    "RunbookDisplayName": "Check Onedrive Status",
+    "RunbookDisplayPath": "Org \\ Collab \\ Check Onedrive Status",
+    "RelativeRunbookPath": "org/collab/check-onedrive-status.ps1",
+    "RelativeRunbookPath_PathOnly": "org/collab",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Collab",
+    "Synopsis": "Check the status of a user's OneDrive",
+    "Description": "Connects to the SharePoint admin center using the managed identity and retrieves the status of the specified user's personal site (OneDrive). Reports whether the site is active or archived, its lock state, and whether it resides in the tenant recycle bin. The runbook is read-only and makes no changes to the site or its state.",
+    "Notes": "Common Use Cases:\n- Check whether an active user's OneDrive is provisioned, and if so, whether it is locked\n  or archived.\n- Check whether a deleted user's OneDrive still exists in the tenant recycle bin, and when\n  it is scheduled to be purged.\n\nParameter Interactions:\n- UserPrincipalName accepts the UPN of an already-deleted account, not only active users.\n  This is intentional: a user picker cannot select a deleted account, so the parameter is\n  free text rather than a picker.\n- For a deleted user, recycle bin matching relies on the deleted site's SiteOwnerEmail; a\n  missing value or a prior UPN rename can cause a false \"Not found\" result.\n\nThis runbook is strictly read-only and makes no changes to the tenant.\n\nRequires -Modules @{ModuleName = \"RealmJoin.RunbookHelper\"; ModuleVersion = \"0.8.9\" }\nRequires -Modules @{ModuleName = \"PnP.PowerShell\"; ModuleVersion = \"3.4.1\" }",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the user whose OneDrive status should be checked. This parameter accepts the UPN of a user whose account has already been deleted, as deleted users' OneDrive sites may still exist in the tenant recycle bin."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserPrincipalName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 SharePoint Online\",\n            \"Id\": \"00000003-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Sites.FullControl.All\",\n                    \"Reason\": \"Required by Connect-PnPOnline against the SharePoint admin center and by the tenant-admin cmdlets Get-PnPTenantSite and Get-PnPTenantDeletedSite, which enumerate/inspect any site collection (including OneDrive personal sites and the tenant recycle bin) and are not exposed under the lower Sites.Read.All / Sites.ReadWrite.All application scopes. Get-PnPUserProfileProperty and Get-PnPWeb are also covered by this grant.\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"SharePoint Online: grant 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant (e.g. via the SharePoint admin center or the Grant-PnPAzureADAppSitePermission equivalent for managed identities).\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Office 365 SharePoint Online",
+          "Id": "00000003-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Sites.FullControl.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "SharePoint Online: grant 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant (e.g. via the SharePoint admin center or the Grant-PnPAzureADAppSitePermission equivalent for managed identities)."
+      ]
+    }
+  },
+  {
+    "RunbookDisplayName": "List Sharepoint Sitecollection Permission",
+    "RunbookDisplayPath": "Org \\ Collab \\ List Sharepoint Sitecollection Permission",
+    "RelativeRunbookPath": "org/collab/list-sharepoint-sitecollection-permission.ps1",
+    "RelativeRunbookPath_PathOnly": "org/collab",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Collab",
+    "Synopsis": "List all members and administrators of a SharePoint Online site collection",
+    "Description": "Connects to a SharePoint Online site collection using PnP.PowerShell with the system-assigned managed identity and retrieves the members of the site collection administrators, Owners group, Members group, and Visitors group. Each group's members are listed with their type, such as user, security group, or Entra ID group.",
+    "Notes": "Parameter Interactions:\n- SiteUrl must point at a site collection root (e.g. https://contoso.sharepoint.com/sites/marketing),\n  not a sub-site. A sub-site URL still returns results, but they describe the parent site\n  collection - the runbook logs a warning when this happens.\n- The Owners, Members, and Visitors groups are resolved via the site's associated-group properties,\n  not by matching localized group names, so the report is accurate regardless of tenant language.\n  Any of the three may be absent (common on Teams-connected sites) and is reported as \"not configured\"\n  rather than causing a failure.\n\nRequires -Modules @{ModuleName = \"RealmJoin.RunbookHelper\"; ModuleVersion = \"0.8.9\" }\nRequires -Modules @{ModuleName = \"PnP.PowerShell\"; ModuleVersion = \"3.4.1\" }",
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Full URL of the SharePoint Online site collection, for example https://contoso.sharepoint.com/sites/marketing"
+          }
+        ],
+        "globbing": "false",
+        "name": "SiteUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 SharePoint Online\",\n            \"Id\": \"00000003-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Sites.FullControl.All\",\n                    \"Reason\": \"Connects via Connect-PnPOnline -ManagedIdentity and calls Get-PnPWeb, Get-PnPSite, Get-PnPSiteCollectionAdmin and Get-PnPGroupMember against the target site collection; Get-PnPSiteCollectionAdmin in particular requires more than read-only site access, so Sites.Read.All is insufficient. Sites.Selected was not used because it would require per-site consent to be pre-granted outside this runbook's control, which this runbook cannot guarantee for an arbitrary $SiteUrl.\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Grant admin consent for the 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (App ID 00000003-0000-0ff1-ce00-000000000000) to the Azure Automation account's system-assigned managed identity; this SharePoint app-only-via-managed-identity consent cannot be assigned through the standard Microsoft Graph app-role automation used for Graph permissions. See the runbook's documentation file for the assignment commands.\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Office 365 SharePoint Online",
+          "Id": "00000003-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Sites.FullControl.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Grant admin consent for the 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (App ID 00000003-0000-0ff1-ce00-000000000000) to the Azure Automation account's system-assigned managed identity; this SharePoint app-only-via-managed-identity consent cannot be assigned through the standard Microsoft Graph app-role automation used for Graph permissions. See the runbook's documentation file for the assignment commands."
+      ]
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Sharepoint Tenant Storage_Scheduled",
+    "RunbookDisplayPath": "Org \\ Collab \\ Report Sharepoint Tenant Storage_Scheduled",
+    "RelativeRunbookPath": "org/collab/report-sharepoint-tenant-storage_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/collab",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Collab",
+    "Synopsis": "Monitor SharePoint Online tenant storage and alert when thresholds are exceeded",
+    "Description": "Scheduled monitor for SharePoint Online tenant storage capacity and usage. Connects to the SharePoint admin center using managed identity, retrieves the tenant storage quota and the top site collections by consumed storage, and reports the full inventory to the runbook output on every run. An alert email is sent only when free storage falls below the configured low-storage limit or unused licensed storage rises above the configured reclaimable threshold.",
+    "Notes": "Common Use Cases:\n- Scheduled daily health check of SharePoint Online tenant storage, alerting only when a\n  threshold is breached.\n- Spotting a tenant approaching its storage quota before users are blocked from saving files.\n- Spotting a large amount of unused, potentially reclaimable licensed storage.\n\nRunbook Type: Scheduled (recommended: daily). The storage summary and the top site collections\nare written to the runbook output on every run regardless of whether a threshold is breached, so\njob history remains useful even on days with no alert.\n\nParameter Interactions:\n- AlertLowStorageLimitInMB alerts when free tenant storage drops below the configured value.\n- AlertUnusedStorageLimitInMB alerts when free tenant storage rises above the configured value\n  (an indicator of reclaimable licensed storage); set it to 0 to disable this check.\n- Both checks can fire in the same run only if AlertLowStorageLimitInMB is configured higher than\n  AlertUnusedStorageLimitInMB - review both values together when tuning thresholds.\n- The alert email is sent only when at least one threshold is breached; a run with no breach\n  completes normally and sends nothing.\n- The top site collections list covers SharePoint site collections only; OneDrive for Business\n  sites are excluded because their storage does not count against the tenant storage quota this\n  runbook monitors.\n\n\nNotes and Limitations:\n- Get-PnPTenantSite does not reliably report a site's creation date on every tenant or module\n  version; the report shows \"Unknown\" for that site when this occurs.\n- Enumerating all site collections can take several minutes in tenants with a large number of\n  sites.\n\nRequires -Modules @{ModuleName = \"RealmJoin.RunbookHelper\"; ModuleVersion = \"0.8.9\" }\nRequires -Modules @{ModuleName = \"PnP.PowerShell\"; ModuleVersion = \"3.4.1\" }",
+    "Parameters": [
+      {
+        "defaultValue": "RealmJoin - SharePoint Online Storage Alert",
+        "description": [
+          {
+            "Text": "Subject line for alert emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "AlertEmailSubject",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Recipient email address for alert emails. Emails are sent only when storage thresholds are exceeded."
+          }
+        ],
+        "globbing": "false",
+        "name": "AlertEmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "200",
+        "description": [
+          {
+            "Text": "Low-storage alert threshold in megabytes. An alert email is sent when free tenant storage falls below this limit."
+          }
+        ],
+        "globbing": "false",
+        "name": "AlertLowStorageLimitInMB",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "1024",
+        "description": [
+          {
+            "Text": "Unused-storage alert threshold in megabytes. An alert email is sent when unused licensed storage (storage assigned but not consumed by any site) rises above this limit, indicating storage that could be reclaimed."
+          }
+        ],
+        "globbing": "false",
+        "name": "AlertUnusedStorageLimitInMB",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "The sender email address. This needs to be configured in the runbook customization."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "10",
+        "description": [
+          {
+            "Text": "Number of site collections to report, ordered by consumed storage. Default is 10."
+          }
+        ],
+        "globbing": "false",
+        "name": "TopSiteCount",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": null,
+    "DocsContentEncoded": null,
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                { \"Value\": \"Mail.Send\", \"Reason\": \"Sends the storage threshold alert email via Send-RjReportEmail; this runbook's entire purpose is the alert, so the send is unconditional on a breach, not a toggle\" },\n                { \"Value\": \"Organization.Read.All\", \"Reason\": \"Reads /organization via Invoke-RjRbRestMethodGraph to resolve the tenant display name used in the alert email subject and branding\" }\n            ]\n        },\n        {\n            \"Name\": \"Office 365 SharePoint Online\",\n            \"Id\": \"00000003-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                { \"Value\": \"Sites.FullControl.All\", \"Reason\": \"This runbook connects with Connect-PnPOnline -ManagedIdentity against the SharePoint admin center URL and calls the tenant-admin cmdlets Get-PnPGeoStorageQuota and Get-PnPTenantSite, which require tenant-wide full control; read-only Sites.Read.All is insufficient for the tenant-admin endpoint\" }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Online' resource (appId 00000003-0000-0ff1-ce00-000000000000) to the Automation Account's managed identity — this app-only grant cannot be made through the standard Entra app-role-assignment flow used for Microsoft Graph and must be assigned manually per tenant.\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        },
+        {
+          "Name": "Office 365 SharePoint Online",
+          "Id": "00000003-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Sites.FullControl.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Online' resource (appId 00000003-0000-0ff1-ce00-000000000000) to the Automation Account's managed identity — this app-only grant cannot be made through the standard Entra app-role-assignment flow used for Microsoft Graph and must be assigned manually per tenant."
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Add Autopilot Device",
     "RunbookDisplayPath": "Org \\ Devices \\ Add Autopilot Device",
     "RelativeRunbookPath": "org/devices/add-autopilot-device.ps1",

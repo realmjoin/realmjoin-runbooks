@@ -101,6 +101,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
 | Update Application Registration | Update an application registration in Azure AD |
 
+<a name='organization-collab'></a>
+### Collab
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Check Onedrive Status | Check the status of a user's OneDrive |
+| List Sharepoint Sitecollection Permission | List all members and administrators of a SharePoint Online site collection |
+| Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint Online tenant storage and alert when thresholds are exceeded |
+
 <a name='organization-devices'></a>
 ### Devices
 | Runbook Name | Synopsis |

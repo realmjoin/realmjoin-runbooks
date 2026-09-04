@@ -67,6 +67,10 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report Application Registration](#organization-applications-report-application-registration)
     - [Report Expiring Application Credentials (Scheduled)](#organization-applications-report-expiring-application-credentials-scheduled)
     - [Update Application Registration](#organization-applications-update-application-registration)
+  - [Collab](#organization-collab)
+    - [Check Onedrive Status](#organization-collab-check-onedrive-status)
+    - [List Sharepoint Sitecollection Permission](#organization-collab-list-sharepoint-sitecollection-permission)
+    - [Report Sharepoint Tenant Storage (Scheduled)](#organization-collab-report-sharepoint-tenant-storage-scheduled)
   - [Devices](#organization-devices)
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
@@ -862,6 +866,51 @@ Update an application registration in Azure AD
 | implicitGrantIDTokens |  | Boolean | Enable implicit grant flow for ID tokens. |
 | disableImplicitGrant |  | Boolean | If set to true, disables implicit grant issuance regardless of other settings. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
+
+[Back to the RealmJoin runbook parameter overview](#table-of-contents)
+
+<a name='organization-collab'></a>
+## Collab
+
+<a name='organization-collab-check-onedrive-status'></a>
+
+### Check Onedrive Status
+Check the status of a user's OneDrive
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserPrincipalName | ✓ | String | User principal name of the user whose OneDrive status should be checked. This parameter accepts the UPN of a user whose account has already been deleted, as deleted users' OneDrive sites may still exist in the tenant recycle bin. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
+
+<a name='organization-collab-list-sharepoint-sitecollection-permission'></a>
+
+### List Sharepoint Sitecollection Permission
+List all members and administrators of a SharePoint Online site collection
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SiteUrl | ✓ | String | Full URL of the SharePoint Online site collection, for example https://contoso.sharepoint.com/sites/marketing |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
+
+<a name='organization-collab-report-sharepoint-tenant-storage-scheduled'></a>
+
+### Report Sharepoint Tenant Storage (Scheduled)
+Monitor SharePoint Online tenant storage and alert when thresholds are exceeded
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| AlertLowStorageLimitInMB | ✓ | Int32 | Low-storage alert threshold in megabytes. An alert email is sent when free tenant storage falls below this limit. |
+| AlertUnusedStorageLimitInMB |  | Int32 | Unused-storage alert threshold in megabytes. An alert email is sent when unused licensed storage (storage assigned but not consumed by any site) rises above this limit, indicating storage that could be reclaimed. |
+| TopSiteCount |  | Int32 | Number of site collections to report, ordered by consumed storage. Default is 10. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingFooterImageUrl |  | String | URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingFooterLink |  | String | Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingAccentColor |  | String | Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| BrandingTextColor |  | String | Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
+| AlertEmailTo | ✓ | String | Recipient email address for alert emails. Emails are sent only when storage thresholds are exceeded. |
+| AlertEmailSubject | ✓ | String | Subject line for alert emails. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 

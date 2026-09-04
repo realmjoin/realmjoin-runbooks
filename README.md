@@ -91,6 +91,11 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Application Registration](docs/org/applications/report-application-registration.md)
     - [Report Expiring Application Credentials (Scheduled)](docs/org/applications/report-expiring-application-credentials_scheduled.md)
     - [Update Application Registration](docs/org/applications/update-application-registration.md)
+  - [Collab](docs/org/README.md#org-collab)
+
+    - [Check Onedrive Status](docs/org/collab/check-onedrive-status.md)
+    - [List Sharepoint Sitecollection Permission](docs/org/collab/list-sharepoint-sitecollection-permission.md)
+    - [Report Sharepoint Tenant Storage (Scheduled)](docs/org/collab/report-sharepoint-tenant-storage_scheduled.md)
   - [Devices](docs/org/README.md#org-devices)
 
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
