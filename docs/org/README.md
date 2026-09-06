@@ -26,6 +26,8 @@
   - [Dedup Device Names (Scheduled)](devices/dedup-device-names_scheduled.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)
   - [Get Bitlocker Recovery Key](devices/get-bitlocker-recovery-key.md)
+  - [List Mobile Devices](devices/list-mobile-devices.md)
+  - [Notify Users About Low Diskspace (Scheduled)](devices/notify-users-about-low-diskspace_scheduled.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
   - [Report Devices Low Diskspace (Scheduled)](devices/report-devices-low-diskspace_scheduled.md)

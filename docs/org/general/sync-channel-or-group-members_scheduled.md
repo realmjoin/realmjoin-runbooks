@@ -75,7 +75,7 @@ Set `WhatIfMode` to log what would change without writing anything.
   is taken from the `RJReport.StorageAccount.*` settings.
 
 The storage upload authenticates with the Automation account's managed identity; that identity needs the
-**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC
+**Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC
 assignment, not a Graph application permission).
 
 ### Scheduling

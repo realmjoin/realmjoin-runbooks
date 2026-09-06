@@ -80,6 +80,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
     - [Get Bitlocker Recovery Key](#organization-devices-get-bitlocker-recovery-key)
+    - [List Mobile Devices](#organization-devices-list-mobile-devices)
+    - [Notify Users About Low Diskspace (Scheduled)](#organization-devices-notify-users-about-low-diskspace-scheduled)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
     - [Report Devices Low Diskspace (Scheduled)](#organization-devices-report-devices-low-diskspace-scheduled)
@@ -1068,6 +1070,58 @@ Get the BitLocker recovery key
 |-----------|----------|------|-------------|
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 | bitlockeryRecoveryKeyId | ✓ | String | Recovery key ID of the desired key. |
+
+<a name='organization-devices-list-mobile-devices'></a>
+
+### List Mobile Devices
+Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details.
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| Android |  | Boolean | Include Android devices in the results. |
+| iOS |  | Boolean | Include iOS and iPadOS devices in the results. |
+| IncludeNetworkDetails |  | Boolean | Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared<br>iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows<br>with the number of devices. |
+| IncludePhoneNumber |  | Boolean | Controls whether the phone number is retrieved and shown. When disabled, the phone number column is omitted entirely.<br>Note that Intune partially masks the phone number of personally owned devices anyway. |
+| IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group. Nested group memberships are resolved. Leave empty to include all mobile devices. |
+| IncludeUserGroup |  | String | Only include devices whose primary user is a member of this Entra user group. Nested group memberships are resolved. Leave empty to include all mobile devices. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
+
+<a name='organization-devices-notify-users-about-low-diskspace-scheduled'></a>
+
+### Notify Users About Low Diskspace (Scheduled)
+Notify primary users about low disk space on their devices via email
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| ThresholdType |  | String | Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size. |
+| FreeSpaceThresholdGB |  | Int32 | Devices with less free disk space than this value in gigabytes are considered. Only used when the threshold type is set to free space in gigabytes. |
+| FreeSpacePercentThreshold |  | Int32 | Devices with a lower percentage of free disk space than this value are considered. Only used when the threshold type is set to free space in percent. |
+| NotifyOnSeverity |  | String | Selects which devices trigger a notification: every device below the threshold (Warning and Critical) or only devices below half of the threshold (Critical only). |
+| Windows |  | Boolean | Include Windows devices in the evaluation. |
+| MacOS |  | Boolean | Include macOS devices in the evaluation. |
+| MaxInventoryAgeDays |  | Int32 | Devices whose last Intune sync is older than this number of days are skipped, because their storage inventory is considered outdated. Devices without a last sync date are skipped as well. Set to 0 to disable the check. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the notification email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the notification email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the notification email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the notification email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ServiceDeskDisplayName |  | String | Service Desk display name for user contact information (optional). |
+| ServiceDeskEmail |  | String | Service Desk email address for user contact information (optional). |
+| ServiceDeskPhone |  | String | Service Desk phone number for user contact information (optional). |
+| ServiceDeskPortalUrl |  | String | Service Desk portal URL for user contact information, rendered as a clickable link (optional). |
+| ServiceDeskTicketUrl |  | String | Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added. |
+| UseUserScope |  | Boolean | Enable user scope filtering to include or exclude users based on group membership. |
+| IncludeUserGroup |  | String | Only notify users who are (transitive) members of this group. Requires UseUserScope to be enabled. |
+| ExcludeUserGroup |  | String | Do not notify users who are (transitive) members of this group. Requires UseUserScope to be enabled. |
+| IncludeDeviceGroup |  | String | Optional Entra device group. When set, only devices that are (transitive) members of this group are evaluated. Can be combined with the user scope. |
+| OverrideEmailRecipient |  | String | Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly. |
+| SimulationMode |  | Boolean | When enabled, the runbook lists the affected users and devices in the output but does not send any email. |
+| MailTemplateLanguage |  | String | Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations). |
+| CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). |
+| CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
+| CustomMailTemplateAfterDeviceDetails |  | String | Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. Replaces the built-in cleanup steps, so it should contain its own guidance. |
+| CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-notify-users-about-stale-devices-scheduled'></a>
 
@@ -2504,12 +2558,11 @@ Permanently offboard a user
 | DeleteUser |  | Boolean | "Delete user object" (final value: $true) or "Keep the user object" (final value: $false) can be selected as action to perform. If set to true, the user object will be deleted. If set to false, the user object will be kept but access will be revoked and sign-in will be blocked. |
 | DisableUser |  | Boolean | If set to true, disables the user account for sign-in. |
 | RevokeAccess |  | Boolean | If set to true, revokes the user's refresh tokens and active sessions. |
-| exportResourceGroupName |  | String | Azure Resource Group name for exporting data to storage. |
-| exportStorAccountName |  | String | Azure Storage Account name for exporting data to storage. |
-| exportStorAccountLocation |  | String | Azure region used when creating the Storage Account. |
-| exportStorAccountSKU |  | String | SKU name used when creating the Storage Account. |
-| exportStorContainerGroupMembershipExports |  | String | Container name used for group membership exports. |
-| exportGroupMemberships |  | Boolean | If set to true, exports the user's current group memberships to Azure Storage. |
+| exportGroupMemberships |  | Boolean | If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link. |
+| ContainerName |  | String | Storage container name used for the group membership export. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. |
+| StorageAccountName |  | String | Storage account name used for the upload. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | ChangeLicensesSelector |  | Int32 | Controls how directly assigned licenses should be handled. |
 | ChangeGroupsSelector |  | Int32 | "Change" and "Remove all" will both honour "groupToAdd" |
 | GroupToAdd |  | String | Group that should be added or kept when group changes are enabled. |
@@ -2529,21 +2582,24 @@ Temporarily offboard a user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the target user. |
-| RevokeAccess |  | Boolean | If set to true, revokes the user's refresh tokens and active sessions. |
+| UserTypeSelector |  | Int32 | Controls which user types this runbook may be run against: all users, member users only or guest users only. The run aborts before any change if the selected user does not match. To enforce the restriction, configure it as a tenant setting and hide the parameter via RunbookCustomization - otherwise operators can change it in the runbook form. |
 | DisableUser |  | Boolean | If set to true, disables the user account for sign-in. |
-| exportResourceGroupName |  | String | Azure Resource Group name for exporting data to storage. |
-| exportStorAccountName |  | String | Azure Storage Account name for exporting data to storage. |
-| exportStorAccountLocation |  | String | Azure region used when creating the Storage Account. |
-| exportStorAccountSKU |  | String | SKU name used when creating the Storage Account. |
-| exportStorContainerGroupMembershipExports |  | String | Container name used for group membership exports. |
-| exportGroupMemberships |  | Boolean | If set to true, exports the user's current group memberships to Azure Storage. |
+| RevokeAccess |  | Boolean | If set to true, revokes the user's refresh tokens and active sessions. |
+| exportGroupMemberships |  | Boolean | If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link. |
+| ContainerName |  | String | Storage container name used for the group membership export. |
+| ResourceGroupName |  | String | Resource group that contains the storage account. |
+| StorageAccountName |  | String | Storage account name used for the upload. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. |
 | ChangeLicensesSelector |  | Int32 | Controls how directly assigned licenses should be handled. |
-| ChangeGroupsSelector |  | Int32 | Controls how assigned groups should be handled. "Change" and "Remove all" will both honour "groupToAdd". |
+| ChangeGroupsSelector |  | Int32 | "Change" and "Remove all" will both honour "groupToAdd" |
 | GroupToAdd |  | String | Group that should be added or kept when group changes are enabled. |
 | GroupsToRemovePrefix |  | String | Prefix used to remove groups matching a naming convention. |
-| RevokeGroupOwnership |  | Boolean | If set to true, removes or replaces the user's group ownerships. |
-| ReplacementOwnerName |  | String | Who will take over group ownership if the offboarded user is the last remaining group owner? Will only be used if needed. |
-| CallerName | ✓ | String | Caller name is tracked purely for auditing purposes. |
+| RevokeGroupOwnership |  | Boolean | "Remove/Replace this user's group ownerships" (final value: $true) or "User will remain owner / Do not change" (final value: $false) can be selected as action to perform. If set to true, the runbook will attempt to remove the user from group ownerships. If the user is the last owner of a group, it will attempt to assign a replacement owner; if that fails, it will skip ownership change for that group and log it for manual follow-up. |
+| ManagerAsReplacementOwner |  | Boolean | If set to true, uses the user's manager as replacement owner where applicable. |
+| ReplacementOwnerName |  | String | User who will take over group or resource ownership if required. |
+| ReplaceManagerReferences |  | Boolean | If set to true, all direct reports of the offboarded user get the replacement person assigned as their new manager. Without a resolvable replacement, affected users are only listed for manual follow-up. |
+| ReplaceSponsorReferences |  | Boolean | If set to true, the offboarded user is replaced by the replacement person wherever they are set as sponsor (typically on guest users). Without a resolvable replacement, affected users are only listed for manual follow-up. Sponsorships that the user only holds through a group membership are left untouched, as they remain valid after the offboarding. As Graph offers no reverse lookup for sponsors, this option scans all users of the tenant. |
+| CallerName | ✓ | String | CallerName is tracked purely for auditing purposes |
 
 <a name='user-general-reprovision-windows365'></a>
 
