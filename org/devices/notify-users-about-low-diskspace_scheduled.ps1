@@ -714,8 +714,11 @@ function Resolve-NotificationUsers {
 
         .DESCRIPTION
         Each user is looked up individually (/users/{upn}) to obtain the mail attribute and the accountEnabled flag.
-        The requests are sent through the Graph $batch endpoint in chunks of up to 20. Throttled requests are retried
-        once, other failed lookups are marked and reported so that the affected users are skipped instead of aborting the run.
+        The requests are sent through the Graph $batch endpoint by the module function Invoke-RjRbGraphBatch, which
+        handles the chunking (20 requests per call), the transport and the retry of throttled inner requests
+        (status 429) with the Retry-After interval reported by Graph. Lookups that are still throttled after the
+        last retry and other failed lookups are marked and reported so that the affected users are skipped instead
+        of aborting the run.
 
         .PARAMETER UserPrincipalNames
         The user principal names (as reported on the managed devices) to resolve.
@@ -725,85 +728,56 @@ function Resolve-NotificationUsers {
     )
 
     $resolvedUsers = @{}
-    $batchSize = 20
-    $batchUri = "https://graph.microsoft.com/v1.0/`$batch"
 
     # The request id has to be a string; a sequential counter is mapped back to the UPN
     $upnByRequestId = @{}
     $requestCounter = 0
-    foreach ($upn in $UserPrincipalNames) {
+    $requests = foreach ($upn in $UserPrincipalNames) {
         $requestCounter++
         $upnByRequestId["$requestCounter"] = $upn
+        $encodedUpn = [System.Uri]::EscapeDataString($upn)
+        @{
+            id     = "$requestCounter"
+            method = "GET"
+            url    = "/users/$encodedUpn?`$select=id,displayName,mail,accountEnabled"
+        }
     }
 
-    $pendingIds = @($upnByRequestId.Keys)
-    $maxAttempts = 2
+    if ($requestCounter -gt 0) {
+        $responses = Invoke-RjRbGraphBatch -Requests @($requests) -ProgressLabel "user lookups" -ProgressInterval 10
 
-    for ($attempt = 1; $attempt -le $maxAttempts -and $pendingIds.Count -gt 0; $attempt++) {
-        $throttledIds = @()
-        $totalBatches = [math]::Ceiling($pendingIds.Count / $batchSize)
-        $batchIndex = 0
+        foreach ($item in $responses) {
+            $upn = $upnByRequestId["$($item.id)"]
+            if (-not $upn) { continue }
 
-        for ($offset = 0; $offset -lt $pendingIds.Count; $offset += $batchSize) {
-            $batchIndex++
-            $lastIndex = [math]::Min($offset + $batchSize, $pendingIds.Count) - 1
-            $chunk = @($pendingIds[$offset..$lastIndex])
-
-            $requests = @()
-            foreach ($requestId in $chunk) {
-                $encodedUpn = [System.Uri]::EscapeDataString($upnByRequestId[$requestId])
-                $requests += @{
-                    id     = "$requestId"
-                    method = "GET"
-                    url    = "/users/$encodedUpn?`$select=id,displayName,mail,accountEnabled"
+            if ($item.status -eq 200) {
+                $mail = $item.body.mail
+                $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
+                    UserPrincipalName = $upn
+                    DisplayName       = $item.body.displayName
+                    Recipient         = if (-not [string]::IsNullOrWhiteSpace($mail)) { $mail } else { $upn }
+                    AccountEnabled    = [bool]$item.body.accountEnabled
+                    LookupFailed      = $false
                 }
             }
-
-            $body = @{ requests = $requests } | ConvertTo-Json -Depth 4
-            $response = Invoke-MgGraphRequest -Uri $batchUri -Method POST -Body $body -ContentType "application/json"
-
-            foreach ($item in $response.responses) {
-                $upn = $upnByRequestId["$($item.id)"]
-                if (-not $upn) { continue }
-
-                if ($item.status -eq 200) {
-                    $mail = $item.body.mail
-                    $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
-                        UserPrincipalName = $upn
-                        DisplayName       = $item.body.displayName
-                        Recipient         = if (-not [string]::IsNullOrWhiteSpace($mail)) { $mail } else { $upn }
-                        AccountEnabled    = [bool]$item.body.accountEnabled
-                        LookupFailed      = $false
-                    }
-                }
-                elseif ($item.status -eq 429) {
-                    $throttledIds += "$($item.id)"
-                }
-                else {
-                    Write-RjRbLog -Message "User lookup for '$upn' failed with status $($item.status)." -Verbose
-                    $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
-                        UserPrincipalName = $upn
-                        DisplayName       = $null
-                        Recipient         = $null
-                        AccountEnabled    = $false
-                        LookupFailed      = $true
-                    }
-                }
+            elseif ($item.status -eq 429) {
+                # Still throttled after the retries of Invoke-RjRbGraphBatch - handled as a missing result below
+                Write-RjRbLog -Message "User lookup for '$upn' was still throttled after the retries." -Verbose
             }
-
-            if (($batchIndex % 10) -eq 0 -or $batchIndex -eq $totalBatches) {
-                Write-Output "Processed user lookup batch $batchIndex of $totalBatches..."
+            else {
+                Write-RjRbLog -Message "User lookup for '$upn' failed with status $($item.status)." -Verbose
+                $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
+                    UserPrincipalName = $upn
+                    DisplayName       = $null
+                    Recipient         = $null
+                    AccountEnabled    = $false
+                    LookupFailed      = $true
+                }
             }
         }
-
-        if ($throttledIds.Count -gt 0 -and $attempt -lt $maxAttempts) {
-            Write-Output "Graph throttled $($throttledIds.Count) request(s), waiting 20 seconds before retrying..."
-            Start-Sleep -Seconds 20
-        }
-        $pendingIds = $throttledIds
     }
 
-    # Users that are still throttled after the retry, or that received no response at all, count as failed lookups
+    # Users that are still throttled after the retries, or that received no response at all, count as failed lookups
     foreach ($upn in $UserPrincipalNames) {
         if (-not $resolvedUsers.ContainsKey($upn.ToLowerInvariant())) {
             Write-RjRbLog -Message "User lookup for '$upn' returned no result." -Verbose
