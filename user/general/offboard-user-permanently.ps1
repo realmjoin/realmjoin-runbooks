@@ -20,23 +20,20 @@
 	.PARAMETER RevokeAccess
 	If set to true, revokes the user's refresh tokens and active sessions.
 
-	.PARAMETER exportResourceGroupName
-	Azure Resource Group name for exporting data to storage.
-
-	.PARAMETER exportStorAccountName
-	Azure Storage Account name for exporting data to storage.
-
-	.PARAMETER exportStorAccountLocation
-	Azure region used when creating the Storage Account.
-
-	.PARAMETER exportStorAccountSKU
-	SKU name used when creating the Storage Account.
-
-	.PARAMETER exportStorContainerGroupMembershipExports
-	Container name used for group membership exports.
-
 	.PARAMETER exportGroupMemberships
-	If set to true, exports the user's current group memberships to Azure Storage.
+	If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link.
+
+	.PARAMETER ContainerName
+	Storage container name used for the group membership export.
+
+	.PARAMETER ResourceGroupName
+	Resource group that contains the storage account.
+
+	.PARAMETER StorageAccountName
+	Storage account name used for the upload.
+
+	.PARAMETER LinkExpiryDays
+	Number of days until the generated download link expires.
 
 	.PARAMETER ChangeLicensesSelector
 	Controls how directly assigned licenses should be handled.
@@ -119,19 +116,16 @@
 			"exportGroupMemberships": {
 				"Hide": true
 			},
-			"exportResourceGroupName": {
+			"ContainerName": {
 				"Hide": true
 			},
-			"exportStorAccountName": {
+			"ResourceGroupName": {
 				"Hide": true
 			},
-			"exportStorAccountLocation": {
+			"StorageAccountName": {
 				"Hide": true
 			},
-			"exportStorAccountSKU": {
-				"Hide": true
-			},
-			"exportStorContainerGroupMembershipExports": {
+			"LinkExpiryDays": {
 				"Hide": true
 			},
 			"ChangeLicensesSelector": {
@@ -228,11 +222,6 @@
                 "deleteUser": true,
                 "disableUser": false,
                 "revokeAccess": true,
-                "exportResourceGroupName": "rj-test-runbooks-01",
-                "exportStorAccountName": "jrbexports01",
-                "exportStorAccountLocation": "West Europe",
-                "exportStorAccountSKU": "Standard_LRS",
-                "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
                 "exportGroupMemberships": true,
                 "licensesMode": 0, // "false": Do nothing, "true": remove all directly assigned licenses
                 "groupsMode": 0, // 0: Do nothing, 1: Change, 2: Remove all
@@ -240,6 +229,13 @@
                 "groupsToRemovePrefix": "",
                 "replaceManagerReferences": true,
                 "replaceSponsorReferences": true
+            },
+            "RJReport": {
+                "StorageAccount": {
+                    "ResourceGroup": "rj-test-runbooks-01",
+                    "StorageAccountName": "rjrbexports01",
+                    "LinkExpiryDays": 6
+                }
             }
         },
         "Runbooks": {
@@ -285,7 +281,7 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
-#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 #Requires -Modules @{ ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param (
@@ -298,20 +294,18 @@ param (
     [bool] $DeleteUser = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.disableUser" } )]
     [bool] $DisableUser = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
-    [String] $exportResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountName" } )]
-    [String] $exportStorAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountLocation" } )]
-    [String] $exportStorAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountSKU" } )]
-    [String] $exportStorAccountSKU,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorContainerGroupMembershipExports" } )]
-    [String] $exportStorContainerGroupMembershipExports,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
+    [string] $ContainerName = "user-leaver-groupmemberships",
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.licensesMode" } )]
     [int] $ChangeLicensesSelector = 0,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsMode" } )]
@@ -337,18 +331,16 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.0"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Sanity checks
-if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {
-    "## To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+if ($exportGroupMemberships -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    "## To export group memberships, a target Azure Storage Account is required."
     ""
-    "## Configure the following attributes:"
-    "## - OffboardUserPermanently.exportResourceGroupName"
-    "## - OffboardUserPermanently.exportStorAccountName"
-    "## - OffboardUserPermanently.exportStorAccountLocation"
-    "## - OffboardUserPermanently.exportStorAccountSKU"
+    "## Please configure the following attributes in the RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ):"
+    "## - RJReport.StorageAccount.ResourceGroup"
+    "## - RJReport.StorageAccount.StorageAccountName"
     ""
     "## Disabling Group Membership Backup/Export."
     $exportGroupMemberships = $false
@@ -441,7 +433,6 @@ if ($RevokeAccess) {
 }
 
 Write-RjRbLog "Getting list of group memberships for user '$UserName'."
-# Write to file, as Set-AzStorageBlobContent needs a file to upload.
 $membershipIds = @()
 $memberGroupsBody = @{ securityEnabledOnly = $false } | ConvertTo-Json
 $memberGroupsUri = "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/getMemberGroups"
@@ -453,29 +444,29 @@ do {
 $memberships = $membershipIds | ForEach-Object {
     Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups/$_"
 }
-$memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
-
-# "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
-    Write-RjRbLog "Connecting to Azure Storage Account"
+    "## Exporting the list of group memberships to the storage account."
+    # "#" and "%" are valid in UPNs (e.g. "#EXT#" in guest accounts) but break the blob download URL - replace them in the file name.
+    $exportFileName = "$($targetUser.userPrincipalName -replace '[#%]', '_')-groupmemberships.json"
+    $exportFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $exportFileName
+    $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json | Out-File -FilePath $exportFilePath -Encoding UTF8
+
+    Write-RjRbLog "Connecting to Azure"
     Connect-RjRbAzAccount
-    # Get Resource group and storage account
-    $storAccount = Get-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -ErrorAction SilentlyContinue
-    if (-not $storAccount) {
-        "## Creating Azure Storage Account $($exportStorAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -Location $exportStorAccountLocation -SkuName $exportStorAccountSKU
-    }
-    $keys = Get-AzStorageAccountKey -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName
-    $context = New-AzStorageContext -StorageAccountName $exportStorAccountName -StorageAccountKey $keys[0].Value
-    $container = Get-AzStorageContainer -Name $exportStorContainerGroupMembershipExports -Context $context -ErrorAction SilentlyContinue
-    if (-not $container) {
-        "## Creating Azure Storage Account Container '$exportStorContainerGroupmembershipExports'"
-        $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context
+
+    # Publish-RjRbFilesToStorageContainer creates the container if needed, uploads via the
+    # Azure Storage REST API (no Az.Storage required) and returns a time-limited SAS link.
+    $uploadResults = Publish-RjRbFilesToStorageContainer -FilePaths @($exportFilePath) `
+        -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName -LinkExpiryDays $LinkExpiryDays -AddBlobNamePrefix $true
+
+    foreach ($uploadResult in $uploadResults) {
+        "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+        $uploadResult.SASLink | Out-String
     }
 
-    "## Uploading list of memberships. This might overwrite older versions."
-    Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
-    Disconnect-AzAccount -Confirm:$false | Out-Null
+    Remove-Item -Path $exportFilePath -Force -ErrorAction SilentlyContinue
+    Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
 }
 
 if ($ManagerAsReplacementOwner) {

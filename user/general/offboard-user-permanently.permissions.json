@@ -43,6 +43,6 @@
         }
     ],
     "ManualPermissions": [
-        "Azure IaaS: Contributor access on subscription or resource group used for the export"
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when exportGroupMemberships is used)"
     ]
 }

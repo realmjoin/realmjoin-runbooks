@@ -1,0 +1,23 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Lists Intune managed mobile devices including hardware, SIM and network details"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Optional": true,
+                    "Feature": "Group scope filtering",
+                    "Reason": "Reads group members to resolve the optional device/user group scope filters"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

@@ -26,6 +26,6 @@
     ],
     "Roles": [],
     "ManualPermissions": [
-        "Azure Storage Account: 'Storage Blob Data Contributor' role for the Automation Account's managed identity on the target storage account (only required when CreateDownloadLink is used)"
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when CreateDownloadLink is used)"
     ]
 }
