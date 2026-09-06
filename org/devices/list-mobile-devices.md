@@ -54,7 +54,7 @@ All values describe the state of the last successful Intune device check-in, not
 
 ## Performance considerations
 
-The network/SIM details are disabled by default and should be enabled with care on large tenants or with many mobile devices: Microsoft Graph returns these values only on a single-device request, not in the device list response. The runbook always sends these requests through the Graph batch endpoint in chunks of up to 20, but the runtime still grows linearly with the number of devices - thousands of mobile devices mean correspondingly long runs and an increased risk of Graph throttling (throttled requests are retried once). On large environments, combine `IncludeNetworkDetails` with the group scope filters.
+The network/SIM details are disabled by default and should be enabled with care on large tenants or with many mobile devices: Microsoft Graph returns these values only on a single-device request, not in the device list response. The runbook always sends these requests through the Graph batch endpoint in chunks of up to 20, but the runtime still grows linearly with the number of devices - thousands of mobile devices mean correspondingly long runs and an increased risk of Graph throttling (throttled requests are retried automatically with the wait time reported by Graph). On large environments, combine `IncludeNetworkDetails` with the group scope filters.
 
 ## Scope filtering
 

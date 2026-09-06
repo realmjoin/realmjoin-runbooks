@@ -2,6 +2,9 @@
 
 ## 2026-09-06
 
+- Update **List Mobile Devices** and **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Replace the inline Graph `$batch` loops of both runbooks with the `RealmJoin.RunbookHelper` module function `Invoke-RjRbGraphBatch`, which is already used by the other batch-based runbooks: the per-device detail requests (`IncludeNetworkDetails`) and the user lookups are now sent through the module function, so throttled inner requests (status 429) are retried up to five times with the Retry-After interval reported by Graph instead of a single retry after a fixed wait, and results can no longer be silently lost under Graph throttling in large tenants
+
 - Add **Notify Users About Low Diskspace** Runbook in Org/Devices
   - Scheduled notification for the primary users of Intune managed Windows and macOS devices whose free disk space is below a configurable threshold; uses the same `ThresholdType` / `FreeSpaceThresholdGB` / `FreeSpacePercentThreshold` settings and the same Critical/Warning rating as **Report Devices Low Diskspace**, and `NotifyOnSeverity` limits the notification to critical devices when required
   - One email per user lists all affected devices (name, operating system, model, free and total disk space, rating, last inventory) with practical cleanup steps rendered per platform (Windows: Storage Sense, Disk Cleanup, Recycle Bin, Downloads, OneDrive Files On-Demand, unused apps, caches; macOS: System Settings > Storage, Optimize Storage, Trash, Downloads, unused apps, Time Machine snapshots); built-in English and German templates or a custom template via runbook customization, Service Desk contact block and email branding as in **Notify Users About Stale Devices**

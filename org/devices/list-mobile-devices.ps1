@@ -371,10 +371,12 @@ function Get-MobileDeviceDetails {
 
         .DESCRIPTION
         Graph returns the hardware details (last reported IP address, subnet, ICCID, UDID, ...) only on a
-        single-device GET, so each device has to be queried individually. The requests are always sent through
-        the Graph $batch endpoint in chunks of up to 20 requests - a partial final chunk (e.g. 16 devices as one
-        batch of 16 requests) works the same way. Throttled requests are retried once, other failed requests are
-        reported as warnings and do not abort the run.
+        single-device GET, so each device has to be queried individually. The requests are sent through the
+        Graph $batch endpoint by the module function Invoke-RjRbGraphBatch, which handles the chunking
+        (20 requests per call, a partial final chunk works the same way), the transport and the retry of
+        throttled inner requests (status 429) with the Retry-After interval reported by Graph. Requests that
+        are still throttled after the last retry and other failed requests are reported as warnings and do
+        not abort the run.
 
         .PARAMETER DeviceIds
         The Intune managed device ids to fetch details for.
@@ -384,61 +386,32 @@ function Get-MobileDeviceDetails {
     )
 
     $details = @{}
-    $batchSize = 20
-    $batchUri = "https://graph.microsoft.com/beta/`$batch"
-
-    $pendingIds = @($DeviceIds)
-    $maxAttempts = 2
-
-    for ($attempt = 1; $attempt -le $maxAttempts -and $pendingIds.Count -gt 0; $attempt++) {
-        $throttledIds = @()
-        $totalBatches = [math]::Ceiling($pendingIds.Count / $batchSize)
-        $batchIndex = 0
-
-        for ($offset = 0; $offset -lt $pendingIds.Count; $offset += $batchSize) {
-            $batchIndex++
-            $lastIndex = [math]::Min($offset + $batchSize, $pendingIds.Count) - 1
-            $chunk = @($pendingIds[$offset..$lastIndex])
-
-            $requests = @()
-            foreach ($deviceId in $chunk) {
-                $requests += @{
-                    id     = "$deviceId"
-                    method = "GET"
-                    url    = "/deviceManagement/managedDevices('$deviceId')?`$select=id,iccid,udid,hardwareInformation"
-                }
-            }
-
-            $body = @{ requests = $requests } | ConvertTo-Json -Depth 4
-            $response = Invoke-MgGraphRequest -Uri $batchUri -Method POST -Body $body -ContentType "application/json"
-
-            foreach ($item in $response.responses) {
-                if ($item.status -eq 200) {
-                    $details[$item.id] = $item.body
-                }
-                elseif ($item.status -eq 429) {
-                    $throttledIds += $item.id
-                }
-                else {
-                    Write-RjRbLog -Message "Device detail request for '$($item.id)' failed with status $($item.status)." -Verbose
-                    Write-Warning "Could not retrieve network/SIM details for device id '$($item.id)' (HTTP $($item.status))."
-                }
-            }
-
-            if (($batchIndex % 10) -eq 0 -or $batchIndex -eq $totalBatches) {
-                Write-Output "Processed detail batch $batchIndex of $totalBatches..."
-            }
-        }
-
-        if ($throttledIds.Count -gt 0 -and $attempt -lt $maxAttempts) {
-            Write-Output "Graph throttled $($throttledIds.Count) request(s), waiting 20 seconds before retrying..."
-            Start-Sleep -Seconds 20
-        }
-        $pendingIds = $throttledIds
+    if (-not $DeviceIds -or $DeviceIds.Count -eq 0) {
+        return $details
     }
 
-    foreach ($deviceId in $pendingIds) {
-        Write-Warning "Could not retrieve network/SIM details for device id '$deviceId' (still throttled after retry)."
+    # The device id doubles as the request id for correlation
+    $requests = foreach ($deviceId in $DeviceIds) {
+        @{
+            id     = "$deviceId"
+            method = "GET"
+            url    = "/deviceManagement/managedDevices('$deviceId')?`$select=id,iccid,udid,hardwareInformation"
+        }
+    }
+
+    $responses = Invoke-RjRbGraphBatch -Requests @($requests) -Beta -ProgressLabel "devices" -ProgressInterval 10
+
+    foreach ($item in $responses) {
+        if ($item.status -eq 200) {
+            $details["$($item.id)"] = $item.body
+        }
+        elseif ($item.status -eq 429) {
+            Write-Warning "Could not retrieve network/SIM details for device id '$($item.id)' (still throttled after retries)."
+        }
+        else {
+            Write-RjRbLog -Message "Device detail request for '$($item.id)' failed with status $($item.status)." -Verbose
+            Write-Warning "Could not retrieve network/SIM details for device id '$($item.id)' (HTTP $($item.status))."
+        }
     }
 
     return $details
