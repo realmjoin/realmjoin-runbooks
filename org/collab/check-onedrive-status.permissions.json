@@ -1,0 +1,19 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Office 365 SharePoint Online",
+            "Id": "00000003-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.FullControl.All",
+                    "Reason": "Required by Connect-PnPOnline against the SharePoint admin center and by the tenant-admin cmdlets Get-PnPTenantSite and Get-PnPTenantDeletedSite, which enumerate/inspect any site collection (including OneDrive personal sites and the tenant recycle bin) and are not exposed under the lower Sites.Read.All / Sites.ReadWrite.All application scopes. Get-PnPUserProfileProperty and Get-PnPWeb are also covered by this grant."
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "SharePoint Online: grant 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant (e.g. via the SharePoint admin center or the Grant-PnPAzureADAppSitePermission equivalent for managed identities)."
+    ]
+}

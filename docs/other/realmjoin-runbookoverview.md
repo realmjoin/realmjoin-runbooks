@@ -68,6 +68,10 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Report Application Registration](#report-application-registration)
       - [Report Expiring Application Credentials (Scheduled)](#report-expiring-application-credentials-(scheduled))
       - [Update Application Registration](#update-application-registration)
+  - [Collab](#org-collab)
+      - [Check Onedrive Status](#check-onedrive-status)
+      - [List Sharepoint Sitecollection Permission](#list-sharepoint-sitecollection-permission)
+      - [Report Sharepoint Tenant Storage (Scheduled)](#report-sharepoint-tenant-storage-(scheduled))
   - [Devices](#org-devices)
       - [Add Autopilot Device](#add-autopilot-device)
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
@@ -77,8 +81,11 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
       - [Get Bitlocker Recovery Key](#get-bitlocker-recovery-key)
+      - [List Mobile Devices](#list-mobile-devices)
+      - [Notify Users About Low Diskspace (Scheduled)](#notify-users-about-low-diskspace-(scheduled))
       - [Notify Users About Stale Devices (Scheduled)](#notify-users-about-stale-devices-(scheduled))
       - [Outphase Devices](#outphase-devices)
+      - [Report Devices Low Diskspace (Scheduled)](#report-devices-low-diskspace-(scheduled))
       - [Report Devices Without Primary User (Scheduled)](#report-devices-without-primary-user-(scheduled))
       - [Report Primary User Mismatch (Scheduled)](#report-primary-user-mismatch-(scheduled))
       - [Report Stale Devices (Scheduled)](#report-stale-devices-(scheduled))
@@ -118,6 +125,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Monitor Service Health (Scheduled)](#monitor-service-health-(scheduled))
       - [Office365 License Report](#office365-license-report)
       - [Report Apple MDM Cert Expiry (Scheduled)](#report-apple-mdm-cert-expiry-(scheduled))
+      - [Report Intune Enrollment Readiness](#report-intune-enrollment-readiness)
       - [Report License Assignment (Scheduled)](#report-license-assignment-(scheduled))
       - [Report Pim Activations (Scheduled)](#report-pim-activations-(scheduled))
       - [Sync All Devices](#sync-all-devices)
@@ -160,6 +168,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Assign Groups By Template](#assign-groups-by-template)
       - [Assign Or Unassign License](#assign-or-unassign-license)
       - [Assign Windows365](#assign-windows365)
+      - [Check Intune Enrollment Readiness](#check-intune-enrollment-readiness)
       - [List Group Memberships](#list-group-memberships)
       - [List Group Ownerships](#list-group-ownerships)
       - [List Manager](#list-manager)
@@ -314,13 +323,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1213,13 +1228,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1254,13 +1275,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1293,13 +1320,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1333,13 +1366,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1362,6 +1401,69 @@ Use it to manage redirect URIs, SAML settings, visibility, assignment requiremen
 #### Where to find
 
 Org \ Applications \ Update Application Registration
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org'></a>
+
+# Org
+<a name='org-collab'></a>
+
+## Collab
+<a name='org-collab-check-onedrive-status'></a>
+
+### Check Onedrive Status
+#### Check the status of a user's OneDrive
+
+#### Description
+
+Connects to the SharePoint admin center using the managed identity and retrieves the status of the specified user's personal site (OneDrive). Reports whether the site is active or archived, its lock state, and whether it resides in the tenant recycle bin. The runbook is read-only and makes no changes to the site or its state.
+
+#### Where to find
+
+Org \ Collab \ Check Onedrive Status
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-collab-list-sharepoint-sitecollection-permission'></a>
+
+### List Sharepoint Sitecollection Permission
+#### List all members and administrators of a SharePoint Online site collection
+
+#### Description
+
+Connects to a SharePoint Online site collection using PnP.PowerShell with the system-assigned managed identity and retrieves the members of the site collection administrators, Owners group, Members group, and Visitors group. Each group's members are listed with their type, such as user, security group, or Entra ID group.
+
+#### Where to find
+
+Org \ Collab \ List Sharepoint Sitecollection Permission
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-collab-report-sharepoint-tenant-storage-(scheduled)'></a>
+
+### Report Sharepoint Tenant Storage (Scheduled)
+#### Monitor SharePoint Online tenant storage and alert when thresholds are exceeded
+
+#### Description
+
+Scheduled monitor for SharePoint Online tenant storage capacity and usage. Connects to the SharePoint admin center using managed identity, retrieves the tenant storage quota and the top site collections by consumed storage, and reports the full inventory to the runbook output on every run. An alert email is sent only when free storage falls below the configured low-storage limit or unused licensed storage rises above the configured reclaimable threshold.
+
+#### Where to find
+
+Org \ Collab \ Report Sharepoint Tenant Storage_Scheduled
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1438,13 +1540,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1475,13 +1583,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1552,13 +1666,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1587,6 +1707,232 @@ Org \ Devices \ Get Bitlocker Recovery Key
  
  
 
+<a name='org-devices-list-mobile-devices'></a>
+
+### List Mobile Devices
+#### Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details.
+
+#### Description
+
+Lists all Intune managed mobile devices with their mobile-specific inventory such as IMEI, serial number, phone number,
+carrier, ownership, compliance and enrollment details.
+Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health
+and Shared iPad state are added per device, which helps to see in which (Wi-Fi) networks the devices were last active.
+The result can be narrowed down by platform and by an Entra device group and/or a user group of the primary users.
+Optionally the full inventory is sent as an email report with CSV and/or Excel (xlsx) attachments and/or uploaded to an
+Azure Storage Account, returning time-limited download links. Without a recipient and without the download link option,
+the runbook only prints the result to the job output.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ Devices \ List Mobile Devices
+
+## Output columns
+
+The runbook prints a summary block (device counts per platform, compliance state and ownership, applied filters and - with network details enabled - the number of devices without a reported IP address) followed by up to three tables. The same data can optionally be delivered as an email report and/or as a download link, see [Report delivery](#report-delivery).
+
+### Inventory (always shown)
+
+| Column | Source and meaning |
+| --- | --- |
+| DeviceName | Device name as reported by Intune |
+| User | User principal name of the primary user |
+| OS / OSVersion | Operating system (Android, iOS, iPadOS) and version |
+| Manufacturer / Model | Hardware manufacturer and model |
+| SerialNumber | Hardware serial number |
+| IMEI | International Mobile Equipment Identity of the device |
+| PhoneNumber | Phone number of the SIM - only present when `IncludePhoneNumber` is enabled, otherwise the column is omitted entirely |
+| Carrier | Subscriber carrier of the SIM |
+| Ownership | `company` or `personal` |
+| Compliance | Intune compliance state |
+| LastSync | Timestamp of the last successful Intune check-in |
+
+### Security and enrollment (always shown)
+
+| Column | Source and meaning |
+| --- | --- |
+| Supervised | iOS/iPadOS supervised mode |
+| Encrypted | Device encryption state |
+| Jailbroken | Whether the device is jailbroken or rooted |
+| ThreatState | Threat state reported by a Mobile Threat Defense partner (only meaningful when an MTD partner is connected) |
+| PatchLevel | Android security patch level (empty on iOS/iPadOS) |
+| EnrollmentType / EnrollmentProfile | How the device was enrolled and the enrollment profile used |
+| Category | Intune device category |
+| FreeGB / TotalGB | Free and total storage (empty when the device reports no usable storage inventory, common for Android Enterprise work profiles) |
+| Enrolled | Enrollment date |
+
+### Network and SIM (only with `IncludeNetworkDetails` enabled - off by default)
+
+| Column | Source and meaning |
+| --- | --- |
+| IPv4 / Subnet | Last IP address and subnet reported by the device - the closest indicator for the (Wi-Fi) network the device was last active in |
+| WiFiMAC | Wi-Fi MAC address of the device |
+| ICCID | Unique identification number of the SIM card |
+| ESIM | eSIM identifier, when an eSIM is provisioned |
+| Cellular | Cellular technology of the device |
+| UDID | Unique device identifier (iOS/iPadOS) |
+| BatteryHealth | Battery health percentage, where reported |
+| Shared | Whether the device is a Shared iPad |
+| LastSync | Timestamp of the last successful Intune check-in - tells how old the IP information is |
+
+This table is sorted by subnet, so devices group visually by the network they were last seen in.
+
+## Data freshness and limitations
+
+All values describe the state of the last successful Intune device check-in, not necessarily the current state - always interpret them together with the LastSync column. Intune does not report the Wi-Fi SSID of a device; the last IP address and subnet are the closest network indicator. Note that the reported IP address can also stem from a cellular connection when the device last checked in over mobile data. Intune partially masks the phone number of personally owned devices regardless of the `IncludePhoneNumber` setting.
+
+## Performance considerations
+
+The network/SIM details are disabled by default and should be enabled with care on large tenants or with many mobile devices: Microsoft Graph returns these values only on a single-device request, not in the device list response. The runbook always sends these requests through the Graph batch endpoint in chunks of up to 20, but the runtime still grows linearly with the number of devices - thousands of mobile devices mean correspondingly long runs and an increased risk of Graph throttling (throttled requests are retried automatically with the wait time reported by Graph). On large environments, combine `IncludeNetworkDetails` with the group scope filters.
+
+## Scope filtering
+
+The scope can be limited to the members of an Entra device group (`IncludeDeviceGroup`) and/or to devices whose primary user is a member of a user group (`IncludeUserGroup`). When both filters are set, a device must match both. Transitive memberships are resolved, so members of nested groups are included.
+
+## Report delivery
+
+By default the runbook only prints the tables to the job output. Two optional delivery channels are available and can be combined:
+
+- **Email report** (`EmailTo`): sends a summary email with the complete inventory attached as CSV and/or Excel workbook (`ReportFileFormat`, default `XLSX only`). Requires the `RJReport.EmailSender` setting; the email branding is taken from the `RJReport.Branding.*` settings as in the other report runbooks. When the CSV attachment exceeds the email size limit and `CSV & XLSX` is selected, the email falls back to the Excel workbook alone.
+- **Download link** (`CreateDownloadLink`): uploads the report file(s) to the storage account configured in the `RJReport.StorageAccount.*` settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly.
+
+The report files contain all columns of the tables above, including the `DeviceId`. The `PhoneNumber` and the network/SIM columns are only part of the files when the corresponding options are enabled. Non-compliant devices are highlighted in the Excel workbook. No files are created when no mobile device matches the selected platforms and filters.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-notify-users-about-low-diskspace-(scheduled)'></a>
+
+### Notify Users About Low Diskspace (Scheduled)
+#### Notify primary users about low disk space on their devices via email
+
+#### Description
+
+Identifies Intune managed Windows and macOS devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size, and sends one personalized email per primary user.
+The email lists all affected devices of the user with their free and total disk space, rates each device as Critical or Warning and contains practical, platform-specific steps to free up space.
+The evaluation can be limited to critical devices, to devices with a recent Intune inventory, to the members of an Entra device group and to users included in or excluded by a group.
+A simulation mode lists the affected users and devices without sending anything, and a global override recipient redirects all notifications to a test or shared mailbox.
+
+#### Where to find
+
+Org \ Devices \ Notify Users About Low Diskspace_Scheduled
+
+## Data freshness and limitations
+
+The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the runbook sees the state of the last successful inventory rather than the current state of the device. To avoid notifying users based on outdated numbers, devices whose last Intune sync is older than `MaxInventoryAgeDays` (default 14 days) are skipped and counted separately. Devices without a last sync date are treated as outdated as well. Set the parameter to `0` to disable this check.
+
+Devices that report a total disk size of zero bytes have no usable storage inventory, for example devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being treated as "0 GB free", and their number is shown in the console output.
+
+Only Windows and macOS devices are evaluated. The storage inventory of mobile devices is less reliable, the default threshold in gigabytes is dimensioned for desktop disks, and the cleanup guidance in the email is specific to desktop operating systems.
+
+This runbook is the user-facing counterpart of **Report Devices Low Diskspace**. Both use the same threshold settings and the same Critical/Warning rating. Use the report for the administrative overview, including devices without a primary user, and this runbook to ask the affected users to free up space themselves.
+
+## Threshold and severity
+
+`ThresholdType` selects whether a device is considered based on a fixed amount of free space (`FreeSpaceThresholdGB`) or based on the share of free space relative to its disk size (`FreeSpacePercentThreshold`). Only the field belonging to the selected type is shown in the portal.
+
+Every device below the threshold is rated: devices below half of the configured threshold are marked as **Critical**, all other devices below the threshold as **Warning**. The rating is shown per device in the email, and the subject line and introduction switch to an urgent wording as soon as one of the user's devices is Critical.
+
+`NotifyOnSeverity` controls which devices trigger a notification. By default every device below the threshold does (*Warning and Critical*). With *Critical only*, users are contacted only when a device is below half of the threshold. This allows a two-stage approach: report all devices below the threshold to administrators via the report runbook, and notify only the users whose devices are critical.
+
+## Notification behaviour
+
+The runbook sends **one email per primary user** that lists all affected devices of that user with operating system, model, free and total disk space, rating and the date of the last inventory. The email contains practical cleanup steps for the platforms of the listed devices: the Windows section is included for Windows devices, the macOS section for macOS devices, and both when the user has affected devices of both kinds.
+
+Recipients are resolved via Microsoft Graph: the email is sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped and listed in the console output. Devices without a primary user cannot be notified; they are listed in the console output for central follow-up (the report runbook covers them as well).
+
+`SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
+
+`OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
+
+## Scoping options
+
+- **User scope:** With `UseUserScope` enabled, `IncludeUserGroup` limits the notifications to users who are members of that group, and `ExcludeUserGroup` suppresses notifications for members of that group. Both use the transitive membership, so nested groups are resolved, and both are read once at the start of the run.
+- **Device scope:** `IncludeDeviceGroup` limits the evaluation to devices that are (transitive) members of the given Entra device group. Devices are matched via their Entra device ID.
+
+When a user scope and a device scope are configured, a device has to match both. A failing group lookup stops the runbook with an error instead of silently notifying every user.
+
+## Setup regarding email sending
+
+The notification emails are sent to the affected users; the sender address is taken from the `RJReport.EmailSender` tenant setting and is required.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The notification email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+### Service Desk contact information
+
+The optional `RJReport.ServiceDesk_DisplayName`, `RJReport.ServiceDesk_EMail`, `RJReport.ServiceDesk_Phone` and `RJReport.ServiceDesk_PortalUrl` tenant settings add a contact block to the end of every email. `ServiceDeskTicketUrl` can additionally link to a ticket.
+
+## Mail Template Language Selection
+
+This runbook supports three email template options:
+
+1. **EN (English - Default)**: Uses the built-in English template
+2. **DE (German)**: Uses the built-in German template
+3. **Custom**: Uses a custom template from Runbook Customizations
+
+### Using Custom Mail Templates
+
+To use a custom mail template (e.g., in Dutch, Spanish, or any other language), you need to configure the template text in the Runbook Customizations. If any custom template parameter is missing, the runbook will automatically fall back to the English template.
+
+The custom template consists of a subject, a text before the device list and a text after the device list. The built-in cleanup steps, the "Why is this important" section and the "Questions" section are **not** rendered with the custom template, so the text after the device list should contain your own cleanup guidance.
+
+#### Example: Custom Template
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_devices_notify-users-about-low-diskspace_scheduled": {
+            "Parameters": {
+                "CustomMailTemplateSubject": {
+                    "Default": "This is a custom subject - Action Required: Low Disk Space"
+                },
+                "CustomMailTemplateBeforeDeviceDetails": {
+                    "Default": "**This is above the Device Details.** \n\nDear user, the following devices are running out of disk space:"
+                },
+                "CustomMailTemplateAfterDeviceDetails": {
+                    "Default": "**This is below the Device Details.** \n\n## What you can do now\n\n1. Empty the Recycle Bin\n2. ..."
+                }
+            }
+        }
+    }
+}
+```
+
+**Important Notes:**
+- Use `\n` for line breaks in the JSON configuration
+- Markdown formatting (##, ###, **, -) is supported in the template text
+- All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
+- If any parameter is missing, the runbook automatically falls back to the English (EN) template
+- When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+- The device list labels are rendered in English for the custom template
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-notify-users-about-stale-devices-(scheduled)'></a>
 
 ### Notify Users About Stale Devices (Scheduled)
@@ -1606,13 +1952,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 ## Mail Template Language Selection
 
@@ -1731,6 +2083,71 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
  
  
 
+<a name='org-devices-report-devices-low-diskspace-(scheduled)'></a>
+
+### Report Devices Low Diskspace (Scheduled)
+#### Scheduled report of managed devices running low on free disk space.
+
+#### Description
+
+Identifies and lists Intune managed devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size.
+The result can be narrowed down by platform and by manufacturer and model filters, and each reported device is rated as Critical or Warning depending on how far below the threshold it is.
+Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
+The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+
+#### Where to find
+
+Org \ Devices \ Report Devices Low Diskspace_Scheduled
+
+## Data freshness and limitations
+
+The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.
+
+Devices that report a total disk size of zero bytes have no usable storage inventory. This is common for Android Enterprise work profiles and also happens on devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being reported as "0 GB free", and their number is shown in the console output and in the email summary.
+
+Windows and macOS are included by default, iOS/iPadOS and Android are not. The default threshold of 20 GB is dimensioned for desktop disks and would report a large number of perfectly healthy mobile devices. When you enable the mobile platforms, the percentage based threshold (`ThresholdType` = *Free space below a percentage of the disk size*) usually gives more meaningful results.
+
+## Threshold and severity
+
+`ThresholdType` selects whether a device is reported based on a fixed amount of free space (`FreeSpaceThresholdGB`) or based on the share of free space relative to its disk size (`FreeSpacePercentThreshold`). Only the field belonging to the selected type is shown in the portal.
+
+Every reported device is rated: devices below half of the configured threshold are marked as **Critical**, all other reported devices as **Warning**. In the Excel workbook these ratings are highlighted in red and yellow.
+
+## Report delivery
+
+Report files are only generated when a delivery method is used, that is when a recipient (`EmailTo`) is provided and/or `CreateDownloadLink` is enabled. Without either, the result is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-devices-report-devices-without-primary-user-(scheduled)'></a>
 
 ### Report Devices Without Primary User (Scheduled)
@@ -1757,13 +2174,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1796,9 +2219,15 @@ This process is described in detail in the [RealmJoin Report Settings documentat
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 ## Setup regarding RealmJoin API credentials
 
@@ -1844,13 +2273,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1883,13 +2318,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -1943,7 +2384,7 @@ The CSV report is uploaded to an Azure Storage Account. The target storage accou
 
 The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
 
@@ -1957,9 +2398,15 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -2139,11 +2586,32 @@ Org \ General \ Add Or Remove Trusted Site
 
 #### Description
 
-This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed.
+This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed. A report-only mode allows previewing the proposed changes via email (email body shows at most 10 users per list, complete lists attached as CSV and/or XLSX file) without making any modifications.
 
 #### Where to find
 
 Org \ General \ Add Primary Users Of Devices To Group_Scheduled
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when the `ReportOnly` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -2587,13 +3055,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -2642,13 +3116,59 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-general-report-intune-enrollment-readiness'></a>
+
+### Report Intune Enrollment Readiness
+#### Report Intune enrollment readiness for a set of users
+
+#### Description
+
+Analyzes whether each user in a selected user set can enroll a device in Microsoft Intune by checking account status, Intune licensing, device enrollment limits, authentication methods, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted per Microsoft Entra design. Platform-scoped policies and browser-only client-app constraints are evaluated against the selected enrollment platform. Results are exported as CSV and/or XLSX with optional email delivery.
+
+#### Where to find
+
+Org \ General \ Report Intune Enrollment Readiness
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -2684,13 +3204,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 ### InputJson Configuration
 
@@ -2969,7 +3495,7 @@ Set `WhatIfMode` to log what would change without writing anything.
   is taken from the `RJReport.StorageAccount.*` settings.
 
 The storage upload authenticates with the Automation account's managed identity; that identity needs the
-**Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC
+**Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC
 assignment, not a Graph application permission).
 
 ### Scheduling
@@ -2979,9 +3505,15 @@ keeps the target in sync with the source as members come and go.
 
 ## Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -3052,7 +3584,7 @@ Set **`WhatIfMode`** to log what would change without writing anything. In this 
 - **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and two CSV attachments: a per-team summary and a per-change detail list. The sender is taken from the `RJReport.EmailSender` setting.
 - **`CreateDownloadLink`** uploads the same CSVs to a storage account and returns time-limited SAS download links (also embedded into the email when both options are enabled). The target storage account is taken from the `RJReport.StorageAccount.*` settings.
 
-The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 ### Scheduling
 
@@ -3060,9 +3592,15 @@ Designed to run unattended on a schedule. Because configuration is centralized i
 
 ## Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -3545,13 +4083,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -3603,13 +4147,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -3771,9 +4321,15 @@ In large tenants the raw CSV files can exceed the email attachment size limit (G
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 ## Notes and limitations
 
@@ -3883,6 +4439,25 @@ User \ General \ Assign Windows365
  
  
 
+<a name='user-general-check-intune-enrollment-readiness'></a>
+
+### Check Intune Enrollment Readiness
+#### Check whether a user is ready to enrol devices in Microsoft Intune
+
+#### Description
+
+Evaluates a selected user account for Intune device enrollment readiness and reports a readiness result (Ready, Ready with warnings, or Not ready) along with specific blockers. The runbook checks account status, Intune licensing, device enrollment limits, platform restrictions, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted by Microsoft Entra design. Platform-scoped policies and browser-only client-app requirements are evaluated against the specified enrollment platform, and the runbook performs read-only diagnostics only.
+
+#### Where to find
+
+User \ General \ Check Intune Enrollment Readiness
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='user-general-list-group-memberships'></a>
 
 ### List Group Memberships
@@ -3902,13 +4477,19 @@ Sending an email report is optional and only happens when the `SendMail` option 
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -3938,13 +4519,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -3979,7 +4566,7 @@ User \ General \ List Manager
 
 #### Description
 
-Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
+Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.
 
 #### Where to find
 
@@ -3998,7 +4585,7 @@ User \ General \ Offboard User Permanently
 
 #### Description
 
-Temporarily offboards a user for scenarios such as parental leave or sabbatical by disabling access, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
+Temporarily offboards a user for scenarios such as parental leave or sabbatical by disabling access, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.
 
 #### Where to find
 
@@ -4578,13 +5165,19 @@ Sending an email report is optional and only happens when a recipient (`EmailTo`
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -4680,13 +5273,19 @@ Sending a notification email is optional and only happens when `NotifyUser` is e
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -4718,7 +5317,7 @@ If the sign-in log query returns a 403 although `AuditLog.Read.All` is granted a
 
 Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
 
-For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Blob Data Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 ## Setup regarding email sending
 
@@ -4726,13 +5325,19 @@ Sending an email report is optional and only happens when the *Email report* del
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 ## Interpreting the results
 
@@ -4812,13 +5417,19 @@ Sending a notification email is optional and only happens when `NotifyUser` is e
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 
@@ -4930,13 +5541,19 @@ Sending a notification email is optional and only happens when `NotifyUser` is e
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
 

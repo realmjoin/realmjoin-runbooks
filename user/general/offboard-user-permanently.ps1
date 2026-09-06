@@ -3,10 +3,13 @@
 	Permanently offboard a user
 
 	.DESCRIPTION
-	Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required.
+	Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.
 
 	.PARAMETER UserName
 	User principal name of the target user.
+
+	.PARAMETER UserTypeSelector
+	Controls which user types this runbook may be run against: all users, member users only or guest users only. The run aborts before any change if the selected user does not match. To enforce the restriction, configure it as a tenant setting and hide the parameter via RunbookCustomization - otherwise operators can change it in the runbook form.
 
 	.PARAMETER DeleteUser
 	"Delete user object" (final value: $true) or "Keep the user object" (final value: $false) can be selected as action to perform. If set to true, the user object will be deleted. If set to false, the user object will be kept but access will be revoked and sign-in will be blocked.
@@ -17,23 +20,20 @@
 	.PARAMETER RevokeAccess
 	If set to true, revokes the user's refresh tokens and active sessions.
 
-	.PARAMETER exportResourceGroupName
-	Azure Resource Group name for exporting data to storage.
-
-	.PARAMETER exportStorAccountName
-	Azure Storage Account name for exporting data to storage.
-
-	.PARAMETER exportStorAccountLocation
-	Azure region used when creating the Storage Account.
-
-	.PARAMETER exportStorAccountSKU
-	SKU name used when creating the Storage Account.
-
-	.PARAMETER exportStorContainerGroupMembershipExports
-	Container name used for group membership exports.
-
 	.PARAMETER exportGroupMemberships
-	If set to true, exports the user's current group memberships to Azure Storage.
+	If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link.
+
+	.PARAMETER ContainerName
+	Storage container name used for the group membership export.
+
+	.PARAMETER ResourceGroupName
+	Resource group that contains the storage account.
+
+	.PARAMETER StorageAccountName
+	Storage account name used for the upload.
+
+	.PARAMETER LinkExpiryDays
+	Number of days until the generated download link expires.
 
 	.PARAMETER ChangeLicensesSelector
 	Controls how directly assigned licenses should be handled.
@@ -56,13 +56,36 @@
 	.PARAMETER ReplacementOwnerName
 	User who will take over group or resource ownership if required.
 
+	.PARAMETER ReplaceManagerReferences
+	If set to true, all direct reports of the offboarded user get the replacement person assigned as their new manager. Without a resolvable replacement, affected users are only listed for manual follow-up.
 
+	.PARAMETER ReplaceSponsorReferences
+	If set to true, the offboarded user is replaced by the replacement person wherever they are set as sponsor (typically on guest users). Without a resolvable replacement, affected users are only listed for manual follow-up. Sponsorships that the user only holds through a group membership are left untouched, as they remain valid after the offboarding. As Graph offers no reverse lookup for sponsors, this option scans all users of the tenant.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 			"UserName": {
 				"Hide": true
+			},
+			"UserTypeSelector": {
+				"DisplayName": "Restrict to a user type",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Allow all user types (Members and Guests)",
+							"Value": 0
+						},
+						{
+							"Display": "Members only",
+							"Value": 1
+						},
+						{
+							"Display": "Guests only",
+							"Value": 2
+						}
+					]
+				}
 			},
 			"CallerName": {
 				"Hide": true
@@ -93,19 +116,16 @@
 			"exportGroupMemberships": {
 				"Hide": true
 			},
-			"exportResourceGroupName": {
+			"ContainerName": {
 				"Hide": true
 			},
-			"exportStorAccountName": {
+			"ResourceGroupName": {
 				"Hide": true
 			},
-			"exportStorAccountLocation": {
+			"StorageAccountName": {
 				"Hide": true
 			},
-			"exportStorAccountSKU": {
-				"Hide": true
-			},
-			"exportStorContainerGroupMembershipExports": {
+			"LinkExpiryDays": {
 				"Hide": true
 			},
 			"ChangeLicensesSelector": {
@@ -158,7 +178,37 @@
 				}
 			},
 			"ManagerAsReplacementOwner": {
-				"Description": "Fetch the user's manager from AzureAD as replacing owner. This takes precedence over manually specifying a replacement owner."
+				"Description": "Fetch the user's manager from AzureAD as replacing owner/manager/sponsor. This takes precedence over manually specifying a replacement owner."
+			},
+			"ReplaceManagerReferences": {
+				"DisplayName": "Handle manager references",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Keep this user as manager of their direct reports",
+							"Value": false
+						},
+						{
+							"Display": "Set the replacement as manager of the direct reports",
+							"Value": true
+						}
+					]
+				}
+			},
+			"ReplaceSponsorReferences": {
+				"DisplayName": "Handle sponsor references",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Keep this user as sponsor",
+							"Value": false
+						},
+						{
+							"Display": "Replace this user as sponsor of (guest) users",
+							"Value": true
+						}
+					]
+				}
 			}
 		}
 	}
@@ -168,24 +218,33 @@
     {
         "Settings": {
             "OffboardUserPermanently": {
+                "userTypeRestriction": 0, // 0: Allow all user types, 1: Members only, 2: Guests only
                 "deleteUser": true,
                 "disableUser": false,
                 "revokeAccess": true,
-                "exportResourceGroupName": "rj-test-runbooks-01",
-                "exportStorAccountName": "jrbexports01",
-                "exportStorAccountLocation": "West Europe",
-                "exportStorAccountSKU": "Standard_LRS",
-                "exportStorContainerGroupMembershipExports": "user-leaver-groupmemberships",
                 "exportGroupMemberships": true,
                 "licensesMode": 0, // "false": Do nothing, "true": remove all directly assigned licenses
                 "groupsMode": 0, // 0: Do nothing, 1: Change, 2: Remove all
                 "groupToAdd": "",
-                "groupsToRemovePrefix": ""
+                "groupsToRemovePrefix": "",
+                "replaceManagerReferences": true,
+                "replaceSponsorReferences": true
+            },
+            "RJReport": {
+                "StorageAccount": {
+                    "ResourceGroup": "rj-test-runbooks-01",
+                    "StorageAccountName": "rjrbexports01",
+                    "LinkExpiryDays": 6
+                }
             }
         },
         "Runbooks": {
             "rjgit-user_general_offboard-user-permanently": {
                 "ParameterList": [
+                    {
+                        "Name": "UserTypeSelector",
+                        "Hide": true
+                    },
                     {
                         "Name": "disableUser",
                         "Hide": true
@@ -221,31 +280,32 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 #Requires -Modules @{ ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param (
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.userTypeRestriction" } )]
+    [int] $UserTypeSelector = 0,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.deleteUser" } )]
     [bool] $DeleteUser = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.disableUser" } )]
     [bool] $DisableUser = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokaAccess" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportResourceGroupName" } )]
-    [String] $exportResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountName" } )]
-    [String] $exportStorAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountLocation" } )]
-    [String] $exportStorAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorAccountSKU" } )]
-    [String] $exportStorAccountSKU,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportStorContainerGroupMembershipExports" } )]
-    [String] $exportStorContainerGroupMembershipExports,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
     [bool] $exportGroupMemberships = $false,
+    [string] $ContainerName = "user-leaver-groupmemberships",
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.licensesMode" } )]
     [int] $ChangeLicensesSelector = 0,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsMode" } )]
@@ -260,6 +320,10 @@ param (
     [bool] $ManagerAsReplacementOwner = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Who should step in as group/resource owner?" } )]
     [String] $ReplacementOwnerName,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.replaceManagerReferences" -DisplayName "Set the replacement as manager of this user's direct reports" } )]
+    [bool] $ReplaceManagerReferences = $false,
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.replaceSponsorReferences" -DisplayName "Replace this user as sponsor of (guest) users" } )]
+    [bool] $ReplaceSponsorReferences = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -267,103 +331,174 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Sanity checks
-if ($exportGroupMemberships -and ((-not $exportResourceGroupName) -or (-not $exportStorAccountName) -or (-not $exportStorAccountLocation) -or (-not $exportStorAccountSKU))) {
-    "## To export group memberships, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+if ($exportGroupMemberships -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    "## To export group memberships, a target Azure Storage Account is required."
     ""
-    "## Configure the following attributes:"
-    "## - OffboardUserPermanently.exportResourceGroupName"
-    "## - OffboardUserPermanently.exportStorAccountName"
-    "## - OffboardUserPermanently.exportStorAccountLocation"
-    "## - OffboardUserPermanently.exportStorAccountSKU"
+    "## Please configure the following attributes in the RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ):"
+    "## - RJReport.StorageAccount.ResourceGroup"
+    "## - RJReport.StorageAccount.StorageAccountName"
     ""
     "## Disabling Group Membership Backup/Export."
     $exportGroupMemberships = $false
     ""
 }
 
-Connect-RjRbGraph
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/applications".
+
+        .EXAMPLE
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = @()
+    $nextLink = $Uri
+
+    do {
+        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
+        if ($response.value) {
+            $allResults += $response.value
+        }
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    return $allResults
+}
+
+Write-RjRbLog "Connecting to Microsoft Graph"
+try {
+    $VerbosePreference = "SilentlyContinue"
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+    $VerbosePreference = "Continue"
+}
+catch {
+    throw "Connecting to Microsoft Graph failed."
+}
 Connect-RjRbExchangeOnline
 
 "## Trying to permanently offboard user '$UserName'"
 
 Write-RjRbLog "Finding the user object '$UserName'"
-$targetUser = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
+$targetUser = $null
+# Escape the UPN: guest accounts contain "#EXT#", and an unescaped "#" would start a URL fragment.
+try { $targetUser = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString($UserName))" -ErrorAction Stop }
+catch { Write-RjRbLog "Lookup of user '$UserName' failed: $_" }
 if (-not $targetUser) {
     throw ("User '$UserName' not found.")
+}
+
+if ($UserTypeSelector -ne 0) {
+    $allowedUserType = switch ($UserTypeSelector) {
+        1 { "Member" }
+        2 { "Guest" }
+        default { throw ("Invalid value '$UserTypeSelector' for UserTypeSelector. Allowed values: 0 (all user types), 1 (members only), 2 (guests only).") }
+    }
+    $targetUserType = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)?`$select=id,userType").userType
+    # userType is not populated on some (typically older on-prem synced) member accounts
+    if (-not $targetUserType) {
+        $targetUserType = "Member"
+    }
+    if ($targetUserType -ne $allowedUserType) {
+        "## User '$UserName' is of type '$targetUserType'. This runbook is restricted to $allowedUserType users."
+        throw ("User type '$targetUserType' does not match the configured restriction '$allowedUserType'. Aborting.")
+    }
 }
 
 if ($DisableUser) {
     "## Blocking user sign in for '$UserName'"
     $body = @{ accountEnabled = $false }
-    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
+    Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)" -Body ($body | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
 }
 
 if ($RevokeAccess) {
     "## Revoke all refresh tokens"
     $body = @{ }
-    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
+    Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/revokeSignInSessions" -Body ($body | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
 }
 
 Write-RjRbLog "Getting list of group memberships for user '$UserName'."
-# Write to file, as Set-AzStorageBlobContent needs a file to upload.
-$membershipIds = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/getMemberGroups" -Method Post -Body @{ securityEnabledOnly = $false } -FollowPaging
+$membershipIds = @()
+$memberGroupsBody = @{ securityEnabledOnly = $false } | ConvertTo-Json
+$memberGroupsUri = "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/getMemberGroups"
+do {
+    $response = Invoke-MgGraphRequest -Method POST -Uri $memberGroupsUri -Body $memberGroupsBody -ContentType "application/json"
+    $membershipIds += $response.value
+    $memberGroupsUri = $response.'@odata.nextLink'
+} while ($memberGroupsUri)
 $memberships = $membershipIds | ForEach-Object {
-    Invoke-RjRbRestMethodGraph -Resource "/groups/$_"
+    Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups/$_"
 }
-$memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json > memberships.txt
-
-# "Connectint to Azure Storage Account"
 if ($exportGroupMemberships) {
-    Write-RjRbLog "Connecting to Azure Storage Account"
+    "## Exporting the list of group memberships to the storage account."
+    # "#" and "%" are valid in UPNs (e.g. "#EXT#" in guest accounts) but break the blob download URL - replace them in the file name.
+    $exportFileName = "$($targetUser.userPrincipalName -replace '[#%]', '_')-groupmemberships.json"
+    $exportFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $exportFileName
+    $memberships | Select-Object -Property "displayName", "id" | ConvertTo-Json | Out-File -FilePath $exportFilePath -Encoding UTF8
+
+    Write-RjRbLog "Connecting to Azure"
     Connect-RjRbAzAccount
-    # Get Resource group and storage account
-    $storAccount = Get-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -ErrorAction SilentlyContinue
-    if (-not $storAccount) {
-        "## Creating Azure Storage Account $($exportStorAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName -Location $exportStorAccountLocation -SkuName $exportStorAccountSKU
-    }
-    $keys = Get-AzStorageAccountKey -ResourceGroupName $exportResourceGroupName -Name $exportStorAccountName
-    $context = New-AzStorageContext -StorageAccountName $exportStorAccountName -StorageAccountKey $keys[0].Value
-    $container = Get-AzStorageContainer -Name $exportStorContainerGroupMembershipExports -Context $context -ErrorAction SilentlyContinue
-    if (-not $container) {
-        "## Creating Azure Storage Account Container '$exportStorContainerGroupmembershipExports'"
-        $container = New-AzStorageContainer -Name $exportStorContainerGroupmembershipExports -Context $context
+
+    # Publish-RjRbFilesToStorageContainer creates the container if needed, uploads via the
+    # Azure Storage REST API (no Az.Storage required) and returns a time-limited SAS link.
+    $uploadResults = Publish-RjRbFilesToStorageContainer -FilePaths @($exportFilePath) `
+        -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName -LinkExpiryDays $LinkExpiryDays -AddBlobNamePrefix $true
+
+    foreach ($uploadResult in $uploadResults) {
+        "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+        $uploadResult.SASLink | Out-String
     }
 
-    "## Uploading list of memberships. This might overwrite older versions."
-    Set-AzStorageBlobContent -File "memberships.txt" -Container $exportStorContainerGroupmembershipExports -Blob $UserName -Context $context -Force | Out-Null
-    Disconnect-AzAccount -Confirm:$false | Out-Null
+    Remove-Item -Path $exportFilePath -Force -ErrorAction SilentlyContinue
+    Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
 }
 
 if ($ManagerAsReplacementOwner) {
-    $manager = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/manager" -ErrorAction SilentlyContinue
+    $manager = $null
+    # Graph answers with 404 when no manager is set - a normal case, not an error.
+    try { $manager = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/manager" -ErrorAction Stop }
+    catch { Write-RjRbLog "No manager set for '$UserName'." }
     if ($manager) {
         $ReplacementOwner = $manager
         $ReplacementOwnerName = $manager.userPrincipalName
     }
 }
+if ((-not $ReplacementOwner) -and $ReplacementOwnerName) {
+    $ReplacementOwner = $null
+    try { $ReplacementOwner = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString($ReplacementOwnerName))" -ErrorAction Stop }
+    catch { Write-RjRbLog "Replacement owner '$ReplacementOwnerName' could not be resolved." }
+}
 
 
 # Remove user from group owners UNLESS the group would have no remaining (or replacing) owner
 if ($RevokeGroupOwnership) {
-    $OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/ownedObjects/microsoft.graph.group/" -FollowPaging
+    $OwnedGroups = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/ownedObjects/microsoft.graph.group"
     if ($OwnedGroups) {
         foreach ($OwnedGroup in $OwnedGroups) {
-            $owners = Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners" -FollowPaging
+            $owners = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$($OwnedGroup.id)/owners"
             if (([array]$owners).Count -eq 1) {
                 "## '$UserName' is the last remaining owner of group '$($OwnedGroup.displayName)'"
-                if ($ReplacementOwnerName -and -not $ReplacementOwner) {
-                    $ReplacementOwner = Invoke-RjRbRestMethodGraph -Resource "/users/$ReplacementOwnerName" -ErrorAction SilentlyContinue
-                }
                 if ($ReplacementOwner) {
                     $ReplacementBodyString = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)"
                     $ReplacementBody = @{"@odata.id" = $ReplacementBodyString }
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/`$ref" -Body $ReplacementBody
-                    Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                    Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/groups/$($OwnedGroup.id)/owners/`$ref" -Body ($ReplacementBody | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
+                    Invoke-MgGraphRequest -Method DELETE -Uri "https://graph.microsoft.com/v1.0/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" | Out-Null
                     "## Changed ownership of group '$($OwnedGroup.displayName)' to '$($ReplacementOwner.userPrincipalName)'"
                 }
                 else {
@@ -378,10 +513,87 @@ if ($RevokeGroupOwnership) {
                 }
             }
             else {
-                Invoke-RjRbRestMethodGraph -Resource "/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" -Method Delete
+                Invoke-MgGraphRequest -Method DELETE -Uri "https://graph.microsoft.com/v1.0/groups/$($OwnedGroup.id)/owners/$($targetUser.id)/`$ref" | Out-Null
                 "## Revoked Ownership of group '$($OwnedGroup.displayName)'"
             }
 
+        }
+    }
+}
+
+# Set the replacement as manager for the user's direct reports
+if ($ReplaceManagerReferences) {
+    $directReports = $null
+    try {
+        $directReports = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/directReports/microsoft.graph.user?`$select=id,displayName,userPrincipalName"
+    }
+    catch {
+        "## Could not read the direct reports of '$UserName'. Please assign new managers manually!"
+    }
+    foreach ($report in $directReports) {
+        if (-not $ReplacementOwner) {
+            "## '$UserName' is the manager of '$($report.userPrincipalName)'"
+            "## No replacement available. Please assign a new manager manually!"
+            continue
+        }
+        if ($report.id -eq $ReplacementOwner.id) {
+            "## Skipping '$($report.userPrincipalName)' - a user can not be their own manager. Please verify manually!"
+            continue
+        }
+        $ReplacementBody = @{"@odata.id" = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)" }
+        try {
+            Invoke-MgGraphRequest -Method PUT -Uri "https://graph.microsoft.com/v1.0/users/$($report.id)/manager/`$ref" -Body ($ReplacementBody | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
+            "## Changed manager of '$($report.userPrincipalName)' to '$($ReplacementOwner.userPrincipalName)'"
+        }
+        catch {
+            "## Changing manager of '$($report.userPrincipalName)' failed. Please verify manually!"
+        }
+    }
+}
+
+# Replace the user wherever they are listed as sponsor (typically on guest users)
+if ($ReplaceSponsorReferences) {
+    # Graph offers no reverse lookup for sponsors, so all users are scanned with their sponsors expanded.
+    # Do not add advanced query options (ConsistencyLevel/$count/$search) here - they are incompatible with $expand.
+    $sponsoredUsers = $null
+    try {
+        $allUsersWithSponsors = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users?`$select=id,displayName,userPrincipalName,userType&`$expand=sponsors(`$select=id)&`$top=999"
+        $sponsoredUsers = [array]($allUsersWithSponsors | Where-Object { $_.sponsors.id -contains $targetUser.id })
+        # $expand returns at most 20 related objects and offers no paging inside the expansion,
+        # so users at that limit are re-checked directly to avoid missing a sponsorship.
+        $atExpandLimit = $allUsersWithSponsors | Where-Object { (([array]$_.sponsors).Count -ge 20) -and ($_.sponsors.id -notcontains $targetUser.id) }
+        foreach ($candidate in $atExpandLimit) {
+            $allSponsors = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($candidate.id)/sponsors?`$select=id"
+            if ($allSponsors.id -contains $targetUser.id) {
+                $candidate | Add-Member -NotePropertyName "sponsors" -NotePropertyValue $allSponsors -Force
+                $sponsoredUsers += $candidate
+            }
+        }
+    }
+    catch {
+        "## Could not determine which users are sponsored by '$UserName'. Please verify sponsors manually!"
+    }
+    foreach ($sponsoredUser in $sponsoredUsers) {
+        if (-not $ReplacementOwner) {
+            "## '$UserName' is a sponsor of '$($sponsoredUser.userPrincipalName)'"
+            "## No replacement available. Please verify sponsors manually!"
+            continue
+        }
+        if ($sponsoredUser.id -eq $ReplacementOwner.id) {
+            "## Skipping '$($sponsoredUser.userPrincipalName)' - a user can not be their own sponsor. Please verify manually!"
+            continue
+        }
+        try {
+            if ($sponsoredUser.sponsors.id -notcontains $ReplacementOwner.id) {
+                $ReplacementBody = @{"@odata.id" = "https://graph.microsoft.com/v1.0/users/$($ReplacementOwner.id)" }
+                Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/users/$($sponsoredUser.id)/sponsors/`$ref" -Body ($ReplacementBody | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
+            }
+            # The trailing /$ref is essential - without it Graph would delete the sponsor's user object.
+            Invoke-MgGraphRequest -Method DELETE -Uri "https://graph.microsoft.com/v1.0/users/$($sponsoredUser.id)/sponsors/$($targetUser.id)/`$ref" | Out-Null
+            "## Changed sponsor of '$($sponsoredUser.userPrincipalName)' to '$($ReplacementOwner.userPrincipalName)'"
+        }
+        catch {
+            "## Changing sponsor of '$($sponsoredUser.userPrincipalName)' failed. Please verify manually!"
         }
     }
 }
@@ -392,7 +604,7 @@ if ($DeleteUser) {
     }
 
     "## Deleting User Object $UserName"
-    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Delete | Out-Null
+    Invoke-MgGraphRequest -Method DELETE -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)" | Out-Null
     "## Offboarding of $($UserName) successful."
     # Script ends here
     exit
@@ -401,13 +613,15 @@ if ($DeleteUser) {
 if ($ChangeGroupsSelector -ne 0) {
     # Add new licensing group, if not already assigned
     if ($GroupToAdd -and ($memberships.DisplayName -notcontains $GroupToAdd)) {
-        $group = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdFilter "displayName eq '$GroupToAdd'"
+        # Group names can contain spaces and other characters that need encoding in the query string.
+        $groupFilter = [uri]::EscapeDataString("displayName eq '$GroupToAdd'")
+        $group = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/groups?`$filter=$groupFilter").value
         if (([array]$group).count -eq 1) {
             "## Adding group '$GroupToAdd' to user $UserName"
             $body = @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($targetUser.id)"
             }
-            Invoke-RjRbRestMethodGraph -Resource "/groups/$($group.id)/members/`$ref" -Method Post -Body $body | Out-Null
+            Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/groups/$($group.id)/members/`$ref" -Body ($body | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
         }
         else {
             "## Could not resove group name '$GroupToAdd', skipping..."
@@ -445,7 +659,7 @@ if ($ChangeGroupsSelector -ne 0) {
                 if (($_.GroupTypes -contains "Unified") -or (-not $_.MailEnabled)) {
                     # group is AAD group
                     try {
-                        Invoke-RjRbRestMethodGraph -Resource "/groups/$($_.id)/members/$($targetUser.id)/`$ref" -Method Delete | Out-Null
+                        Invoke-MgGraphRequest -Method DELETE -Uri "https://graph.microsoft.com/v1.0/groups/$($_.id)/members/$($targetUser.id)/`$ref" | Out-Null
                     }
                     catch {
                         "## ... group removal failed. Please check."
@@ -472,7 +686,7 @@ if ($ChangeGroupsSelector -ne 0) {
 }
 
 if ($ChangeLicensesSelector -ne 0) {
-    $assignments = Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -OdSelect "licenseAssignmentStates"
+    $assignments = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)?`$select=licenseAssignmentStates"
 
     # Remove all directly assigned licenses
     if ($ChangeLicensesSelector -eq 2) {
@@ -487,7 +701,7 @@ if ($ChangeLicensesSelector -ne 0) {
             }
             "## Removing license assignments $licsToRemove"
             try {
-                Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/assignLicense" -Method Post -Body $body | Out-Null
+                Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/assignLicense" -Body ($body | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
             }
             catch {
                 "## ... removing licenses failed. Please check."

@@ -19,7 +19,7 @@ The CSV report is uploaded to an Azure Storage Account. The target storage accou
 
 The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
 The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
 
@@ -33,6 +33,12 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 ### Email branding
 
-The report email honors the optional `RJReport.Branding.*` tenant settings: a custom header image, a custom footer image (public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each), a custom footer link, and custom accent and text colors (6-digit hex values, e.g. `#0052cc`). When these settings are not configured, the default RealmJoin graphics and colors are used. A branding image that cannot be downloaded or validated, or a color value that is not a valid hex color, never prevents the report email - the corresponding default is used instead.
+The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for setup details.
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
