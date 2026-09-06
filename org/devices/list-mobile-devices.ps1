@@ -8,11 +8,20 @@
     Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health
     and Shared iPad state are added per device, which helps to see in which (Wi-Fi) networks the devices were last active.
     The result can be narrowed down by platform and by an Entra device group and/or a user group of the primary users.
+    Optionally the full inventory is sent as an email report with CSV and/or Excel (xlsx) attachments and/or uploaded to an
+    Azure Storage Account, returning time-limited download links. Without a recipient and without the download link option,
+    the runbook only prints the result to the job output.
+    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
     .NOTES
     Intune does not report the Wi-Fi SSID of a device. The last reported IP address and subnet are the closest network
     indicator and should always be interpreted together with the Last Sync column, because they describe the state of the
     last successful device check-in - which can also have happened over cellular.
+
+    Prerequisites:
+    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when an email report is requested
+    - RJReport.StorageAccount.* settings must be configured when a download link is requested
 
     Data source and freshness:
     All values are taken from the Intune inventory of each device, which is refreshed with the regular device check-in.
@@ -21,14 +30,15 @@
     are retrieved with one additional Graph request per device, sent through the Graph batch endpoint in chunks of up to 20.
 
     Performance:
-    With network/SIM details enabled the runtime grows linearly with the number of mobile devices. On tenants with many
-    mobile devices, combine the option with the group scope filters or disable it when only inventory data is needed.
+    The network/SIM details are disabled by default. When enabled, the runtime grows linearly with the number of mobile
+    devices. On tenants with many mobile devices, combine the option with the group scope filters.
 
     Common Use Cases:
     - Inventory of all mobile devices including IMEI, serial number, phone number and carrier
     - Identifying in which (Wi-Fi) networks mobile devices were last active, e.g. handheld scanners across warehouse locations
     - Reviewing compliance, supervision and encryption state of the mobile fleet
     - SIM/eSIM inventory via ICCID and eSIM identifier
+    - Handing the full mobile inventory to asset management as an Excel workbook or CSV file
 
     .PARAMETER Android
     Include Android devices in the results.
@@ -39,7 +49,7 @@
     .PARAMETER IncludeNetworkDetails
     Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared
     iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows
-    with the number of devices.
+    with the number of devices. Disabled by default.
 
     .PARAMETER IncludePhoneNumber
     Controls whether the phone number is retrieved and shown. When disabled, the phone number column is omitted entirely.
@@ -50,6 +60,52 @@
 
     .PARAMETER IncludeUserGroup
     Only include devices whose primary user is a member of this Entra user group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+
+    .PARAMETER EmailTo
+    If specified, an email with the report will be sent to the provided address(es).
+    Can be a single address or multiple comma-separated addresses (string).
+    The function sends individual emails to each recipient for privacy reasons.
+
+    .PARAMETER EmailFrom
+    The sender email address. This needs to be configured in the runbook customization
+
+    .PARAMETER BrandingHeaderImageUrl
+    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+
+    .PARAMETER BrandingFooterImageUrl
+    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
+    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+
+    .PARAMETER BrandingFooterLink
+    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
+    When empty, the default link (https://www.realmjoin.com) is used.
+
+    .PARAMETER BrandingAccentColor
+    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
+    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+
+    .PARAMETER BrandingTextColor
+    Optional text color override (6-digit hex) for the report email template.
+    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+
+    .PARAMETER ReportFileFormat
+    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" or "XLSX only" (default).
+
+    .PARAMETER CreateDownloadLink
+    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+
+    .PARAMETER ContainerName
+    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+
+    .PARAMETER ResourceGroupName
+    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+
+    .PARAMETER StorageAccountName
+    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+
+    .PARAMETER LinkExpiryDays
+    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
 
     .PARAMETER CallerName
     Caller name for auditing purposes.
@@ -75,6 +131,66 @@
             "IncludeUserGroup": {
                 "DisplayName": "Limit to primary users in group (optional)"
             },
+            "EmailTo": {
+                "DisplayName": "Recipient Email Address(es) (optional - leave empty for job output only)"
+            },
+            "EmailFrom": {
+                "Hide": true
+            },
+            "BrandingHeaderImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterImageUrl": {
+                "Hide": true
+            },
+            "BrandingFooterLink": {
+                "Hide": true
+            },
+            "BrandingAccentColor": {
+                "Hide": true
+            },
+            "BrandingTextColor": {
+                "Hide": true
+            },
+            "ReportFileFormat": {
+                "DisplayName": "Report file format",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "CSV & XLSX",
+                            "ParameterValue": "CSV & XLSX"
+                        },
+                        {
+                            "Display": "CSV only",
+                            "ParameterValue": "CSV only"
+                        },
+                        {
+                            "Display": "XLSX only",
+                            "ParameterValue": "XLSX only"
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "CreateDownloadLink": {
+                "DisplayName": "Create a file download link (upload report to storage)?",
+                "SelectSimple": {
+                    "Yes - upload report and return a download link": true,
+                    "No - do not create a download link": false
+                }
+            },
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "LinkExpiryDays": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -84,16 +200,42 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [bool] $Android = $true,
     [bool] $iOS = $true,
-    [bool] $IncludeNetworkDetails = $true,
+    [bool] $IncludeNetworkDetails = $false,
     [bool] $IncludePhoneNumber = $true,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group (optional)" } )]
     [string] $IncludeDeviceGroup,
     [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to primary users in group (optional)" } )]
     [string] $IncludeUserGroup,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [string] $EmailFrom,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [string] $BrandingHeaderImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [string] $BrandingFooterImageUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [string] $BrandingFooterLink,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [string] $BrandingAccentColor,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [string] $BrandingTextColor,
+    [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
+    [string] $ReportFileFormat = 'XLSX only',
+    [bool] $CreateDownloadLink = $false,
+    [string] $ContainerName = "list-mobile-devices",
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [string] $ResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
+    [Parameter(Mandatory = $false)]
+    [string] $EmailTo,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -119,12 +261,39 @@ Write-RjRbLog -Message "IncludeNetworkDetails: $IncludeNetworkDetails" -Verbose
 Write-RjRbLog -Message "IncludePhoneNumber: $IncludePhoneNumber" -Verbose
 Write-RjRbLog -Message "IncludeDeviceGroup: $IncludeDeviceGroup" -Verbose
 Write-RjRbLog -Message "IncludeUserGroup: $IncludeUserGroup" -Verbose
+Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
+Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
+Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
 
 #endregion
 
 ########################################################
 #region     Parameter Validation
 ########################################################
+
+# Validate Email Addresses (only if email is requested)
+if ($EmailTo -and -not $EmailFrom) {
+    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
+    throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
+}
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
+    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+}
 
 # At least one platform has to be evaluated
 $selectedPlatforms = @()
@@ -304,6 +473,36 @@ function Limit-DisplayLength {
 
 # Connect to Microsoft Graph
 Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+
+# Get tenant information (used for the report file names, the email subject and the email footer)
+$tenantDisplayName = "Unknown Tenant"
+if ($EmailTo -or $CreateDownloadLink) {
+    Write-Output "## Retrieving tenant information..."
+    try {
+        $organizationUri = "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
+        $organizationResponse = Invoke-MgGraphRequest -Uri $organizationUri -Method GET -ErrorAction Stop
+
+        if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+            $tenantDisplayName = $organizationResponse.value[0].displayName
+            Write-Output "## Tenant: $($tenantDisplayName)"
+        }
+        elseif ($organizationResponse.displayName) {
+            $tenantDisplayName = $organizationResponse.displayName
+            Write-Output "## Tenant: $($tenantDisplayName)"
+        }
+    }
+    catch {
+        Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
+    }
+}
+
+# Connect RJ RunbookHelper for email reporting
+if ($EmailTo) {
+    Write-Output "Graph connection for RJ RunbookHelper..."
+    Connect-RjRbGraph
+}
+
+Write-Output ""
 
 #endregion
 
@@ -493,6 +692,11 @@ if ($IncludeNetworkDetails -and $mobileDevices.Count -gt 0) {
 
 $mobileDevices = @($mobileDevices | Sort-Object -Property DeviceName)
 
+$androidCount = @($mobileDevices | Where-Object { $_.OperatingSystem -like "Android*" }).Count
+$iosCount = @($mobileDevices | Where-Object { $_.OperatingSystem -like "iOS*" -or $_.OperatingSystem -like "iPadOS*" }).Count
+$noncompliantCount = @($mobileDevices | Where-Object { $_.Compliance -eq 'noncompliant' }).Count
+$personalCount = @($mobileDevices | Where-Object { $_.Ownership -eq 'personal' }).Count
+
 #endregion
 
 ########################################################
@@ -503,8 +707,6 @@ Write-Output ""
 Write-Output "## Summary of mobile devices:"
 Write-Output "Mobile devices found: $($mobileDevices.Count)"
 
-$androidCount = @($mobileDevices | Where-Object { $_.OperatingSystem -like "Android*" }).Count
-$iosCount = @($mobileDevices | Where-Object { $_.OperatingSystem -like "iOS*" -or $_.OperatingSystem -like "iPadOS*" }).Count
 if ($Android) { Write-Output "  Android: $($androidCount)" }
 if ($iOS) { Write-Output "  iOS/iPadOS: $($iosCount)" }
 
@@ -596,6 +798,276 @@ else {
             }
         }
         $networkRows | Format-Table -AutoSize
+    }
+}
+
+#endregion
+
+########################################################
+#region     Email Report Content
+########################################################
+
+if ($EmailTo) {
+    Write-Output ""
+    Write-Output "## Preparing email report to send to $($EmailTo)"
+}
+
+$scopeSummary = @()
+if (-not [string]::IsNullOrEmpty($IncludeDeviceGroup)) { $scopeSummary += "Device group ($($includeDeviceIds.Count) member(s))" }
+if (-not [string]::IsNullOrEmpty($IncludeUserGroup)) { $scopeSummary += "User group ($($includeUserIds.Count) member(s))" }
+$scopeSummaryText = if ($scopeSummary.Count -gt 0) { $scopeSummary -join ' | ' } else { 'None (all mobile devices)' }
+$networkDetailsText = if ($IncludeNetworkDetails) { 'Included' } else { 'Not included' }
+
+$markdownContent = if ($mobileDevices.Count -eq 0) {
+    @"
+# Mobile Devices Inventory Report
+
+No managed mobile device was found for the selected platforms and scope filters.
+
+## What We Checked
+
+- Platforms: $($platformSummary)
+- Scope filters: $($scopeSummaryText)
+- Network/SIM details: $($networkDetailsText)
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+}
+else {
+    @"
+# Mobile Devices Inventory Report
+
+This report lists the Intune managed mobile devices of the selected platforms with their mobile-specific inventory, security and enrollment details.
+
+## Summary Statistics
+
+| Metric | Count |
+|--------|-------|
+| **Mobile Devices** | $($mobileDevices.Count) |
+$(
+    $summaryLines = @()
+    if ($Android) { $summaryLines += "| **Android** | $androidCount |" }
+    if ($iOS) { $summaryLines += "| **iOS/iPadOS** | $iosCount |" }
+    $summaryLines += "| **Non-Compliant** | $noncompliantCount |"
+    $summaryLines += "| **Personally Owned** | $personalCount |"
+    if ($IncludeNetworkDetails) { $summaryLines += "| **Without Reported IP Address** | $devicesWithoutIp |" }
+    $summaryLines -join "`n"
+)
+
+- Scope filters: $($scopeSummaryText)
+- Network/SIM details: $($networkDetailsText)
+
+$(
+    # A subexpression joins multiple output strings with $OFS (a space), so the lines are
+    # joined explicitly - otherwise the heading and its description end up on one line and
+    # Markdown swallows the description into the heading.
+    $headingLines = if ($mobileDevices.Count -gt 10) {
+        @("## First 10 Devices (by Device Name)", "",
+          "This table shows the first ten devices sorted by device name. The attached report file(s) contain the complete inventory.")
+    }
+    else {
+        @("## Mobile Devices", "",
+          "This table lists all mobile devices found for the selected platforms and scope filters.")
+    }
+    $headingLines -join "`n"
+)
+
+
+$(
+    $devicesToShow = if ($mobileDevices.Count -gt 10) {
+        $mobileDevices | Select-Object -First 10
+    } else {
+        $mobileDevices
+    }
+
+    $table = @"
+| Device Name | Primary User | Operating System | Version | Model | Serial Number | Ownership | Compliance | Last Sync |
+|-------------|--------------|------------------|---------|-------|---------------|-----------|------------|-----------|
+"@
+
+    foreach ($device in $devicesToShow) {
+        $table += "`n| $($device.DeviceName) | $($device.PrimaryUser) | $($device.OperatingSystem) | $($device.OSVersion) | $($device.Model) | $($device.SerialNumber) | $($device.Ownership) | $($device.Compliance) | $($device.LastSync) |"
+    }
+
+    $table
+)
+
+## Data Freshness
+
+All values come from the Intune inventory of each device, which is refreshed with the regular device check-in. They describe the state of the last successful check-in, so please use the Last Sync column to judge how current a row is. Intune does not report the Wi-Fi SSID of a device; the last reported IP address and subnet are the closest network indicator.
+
+## Attachments
+
+The report file(s) attached to this email contain the full mobile device inventory$(if ($IncludeNetworkDetails) { ' including the network and SIM details' }) for further analysis.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+
+"@
+}
+
+#endregion
+
+########################################################
+#region     Export
+########################################################
+
+# Create report files in current location (only needed for the email report and/or download link)
+$fileNameBase = "MobileDevicesInventory_$($tenantDisplayName)"
+$csvFilePath = $null
+$xlsxFilePath = $null
+$reportFiles = @()
+if (($EmailTo -or $CreateDownloadLink) -and $mobileDevices.Count -gt 0) {
+    # Only export the columns that were actually retrieved; the optional columns stay out of the files when disabled.
+    $excludedColumns = @()
+    if (-not $IncludePhoneNumber) { $excludedColumns += 'PhoneNumber' }
+    if (-not $IncludeNetworkDetails) { $excludedColumns += @('IPv4', 'Subnet', 'ICCID', 'ESIM', 'Cellular', 'UDID', 'BatteryHealth', 'Shared') }
+    $exportDevices = @($mobileDevices | Select-Object -Property * -ExcludeProperty $excludedColumns)
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.csv"
+        $exportDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
+        $reportFiles += $csvFilePath
+        Write-RjRbLog -Message "Exported mobile devices to CSV: $($csvFilePath)" -Verbose
+    }
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.xlsx"
+        $highlightRules = @(
+            @{ Column = 'Compliance'; Value = 'noncompliant'; Color = 'Red' }
+            @{ Column = 'Compliance'; Value = 'inGracePeriod'; Color = 'Yellow' }
+        )
+        $exportDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Mobile Devices" -HighlightRules $highlightRules
+        $reportFiles += $xlsxFilePath
+        Write-RjRbLog -Message "Exported mobile devices to XLSX: $($xlsxFilePath)" -Verbose
+    }
+}
+
+# Upload / Download Link (optional)
+if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
+    Write-Output ""
+    Write-Output "## Uploading report to storage account..."
+
+    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+    # transparently connects the managed identity if no Az context is active.
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $reportFiles `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -LinkExpiryDays $LinkExpiryDays `
+        -AddBlobNamePrefix $true
+
+    foreach ($uploadResult in $uploadResults) {
+        Write-Output ""
+        Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+        $uploadResult.SASLink | Out-String | Write-Output
+    }
+}
+elseif ($CreateDownloadLink) {
+    Write-Output ""
+    Write-Output "No report file was created because no mobile devices were found - download link skipped."
+}
+
+#endregion
+
+########################################################
+#region     Email Report
+########################################################
+
+# Send email report (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+$emailSubject = "Mobile Devices Inventory Report - $($tenantDisplayName) - $($platformSummary)"
+
+$brandingMailParams = @{}
+if ($EmailTo) {
+    Write-Output "Sending report to '$($EmailTo)'..."
+
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
+    try {
+        if ($reportFiles.Count -gt 0) {
+            $markdownFallback = @"
+# Mobile Devices Inventory Report
+
+This report lists the Intune managed mobile devices of the selected platforms ($($platformSummary)).
+
+## Summary Statistics
+
+- Mobile devices: **$($mobileDevices.Count)**
+- Non-compliant: **$($noncompliantCount)**
+- Personally owned: **$($personalCount)**
+
+## Attachments
+
+- **$($fileNameBase).xlsx**: Formatted Excel workbook with the complete mobile device inventory
+
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+
+---
+
+*This email was automatically generated. Please do not reply to this email.*
+"@
+
+            $guardParams = @{
+                EmailFrom         = $EmailFrom
+                EmailTo           = $EmailTo
+                Subject           = $emailSubject
+                MarkdownContent   = $markdownContent
+                TenantDisplayName = $tenantDisplayName
+                ReportVersion     = $Version
+            }
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+            }
+            else {
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            }
+        }
+        else {
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+        }
+
+        Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
+        Write-Output "Mobile devices inventory report generated and sent successfully"
+        Write-Output "Recipient: $($EmailTo)"
+        Write-Output "Mobile devices: $($mobileDevices.Count)"
+    }
+    catch {
+        Write-Output "Error sending email: $_"
+        Write-RjRbLog -Message "Error sending email: $_" -Verbose
+        throw "Failed to send email report: $($_.Exception.Message)"
+    }
+}
+else {
+    Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
+}
+
+#endregion
+
+########################################################
+#region     Cleanup
+########################################################
+
+# Remove the temporary report files, if any were created.
+foreach ($reportFilePath in $reportFiles) {
+    if ($reportFilePath -and (Test-Path -Path $reportFilePath)) {
+        try {
+            Remove-Item -Path $reportFilePath -Force -ErrorAction Stop
+            Write-RjRbLog -Message "Removed temporary report file: $reportFilePath" -Verbose
+        }
+        catch {
+            Write-RjRbLog -Message "Failed to remove temporary report file '$reportFilePath': $($_.Exception.Message)" -Verbose
+        }
+    }
+}
+
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
     }
 }
 

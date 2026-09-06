@@ -19,9 +19,10 @@
 
 - Add **List Mobile Devices** Runbook in Org/Devices
   - Lists all Intune managed Android and iOS/iPadOS devices with mobile-specific inventory such as IMEI, serial number, phone number, carrier, ownership, compliance and enrollment details
-  - The `IncludeNetworkDetails` option adds the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state per device; the network table is sorted by subnet so devices group by the network they were last seen in
+  - The `IncludeNetworkDetails` option (off by default) adds the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state per device; the network table is sorted by subnet so devices group by the network they were last seen in
   - The network details require one additional Graph request per device, always sent through the Graph batch endpoint in chunks of up to 20 with a retry on throttling; the companion documentation explains why this option should be used with care on tenants with many mobile devices
   - The phone number column can be omitted entirely via `IncludePhoneNumber`, and optional scope filters limit the output to the members of an Entra device group and/or to devices whose primary user is a member of a user group (nested group memberships are resolved)
+  - The inventory can optionally be sent as an email report (CSV and/or XLSX) and/or uploaded to the `RJReport.StorageAccount.*` storage account with a time-limited download link, as in the other report runbooks
 
 - Extend **Offboard User Temporarily** in User/General
   - New option `ReplaceManagerReferences` sets the replacement person as manager for all direct reports of the offboarded user
