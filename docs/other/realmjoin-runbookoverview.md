@@ -1719,6 +1719,11 @@ carrier, ownership, compliance and enrollment details.
 Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health
 and Shared iPad state are added per device, which helps to see in which (Wi-Fi) networks the devices were last active.
 The result can be narrowed down by platform and by an Entra device group and/or a user group of the primary users.
+Optionally the full inventory is sent as an email report with CSV and/or Excel (xlsx) attachments and/or uploaded to an
+Azure Storage Account, returning time-limited download links. Without a recipient and without the download link option,
+the runbook only prints the result to the job output.
+The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
+When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
 #### Where to find
 
@@ -1726,7 +1731,7 @@ Org \ Devices \ List Mobile Devices
 
 ## Output columns
 
-The runbook prints a summary block (device counts per platform, compliance state and ownership, applied filters and - with network details enabled - the number of devices without a reported IP address) followed by up to three tables.
+The runbook prints a summary block (device counts per platform, compliance state and ownership, applied filters and - with network details enabled - the number of devices without a reported IP address) followed by up to three tables. The same data can optionally be delivered as an email report and/or as a download link, see [Report delivery](#report-delivery).
 
 ### Inventory (always shown)
 
@@ -1758,7 +1763,7 @@ The runbook prints a summary block (device counts per platform, compliance state
 | FreeGB / TotalGB | Free and total storage (empty when the device reports no usable storage inventory, common for Android Enterprise work profiles) |
 | Enrolled | Enrollment date |
 
-### Network and SIM (only with `IncludeNetworkDetails` enabled)
+### Network and SIM (only with `IncludeNetworkDetails` enabled - off by default)
 
 | Column | Source and meaning |
 | --- | --- |
@@ -1780,11 +1785,20 @@ All values describe the state of the last successful Intune device check-in, not
 
 ## Performance considerations
 
-Use the network/SIM details with care on large tenants or with many mobile devices: Microsoft Graph returns these values only on a single-device request, not in the device list response. The runbook always sends these requests through the Graph batch endpoint in chunks of up to 20, but the runtime still grows linearly with the number of devices - thousands of mobile devices mean correspondingly long runs and an increased risk of Graph throttling (throttled requests are retried once). On large environments, combine `IncludeNetworkDetails` with the group scope filters, or disable it when only inventory data is needed.
+The network/SIM details are disabled by default and should be enabled with care on large tenants or with many mobile devices: Microsoft Graph returns these values only on a single-device request, not in the device list response. The runbook always sends these requests through the Graph batch endpoint in chunks of up to 20, but the runtime still grows linearly with the number of devices - thousands of mobile devices mean correspondingly long runs and an increased risk of Graph throttling (throttled requests are retried once). On large environments, combine `IncludeNetworkDetails` with the group scope filters.
 
 ## Scope filtering
 
 The scope can be limited to the members of an Entra device group (`IncludeDeviceGroup`) and/or to devices whose primary user is a member of a user group (`IncludeUserGroup`). When both filters are set, a device must match both. Transitive memberships are resolved, so members of nested groups are included.
+
+## Report delivery
+
+By default the runbook only prints the tables to the job output. Two optional delivery channels are available and can be combined:
+
+- **Email report** (`EmailTo`): sends a summary email with the complete inventory attached as CSV and/or Excel workbook (`ReportFileFormat`, default `XLSX only`). Requires the `RJReport.EmailSender` setting; the email branding is taken from the `RJReport.Branding.*` settings as in the other report runbooks. When the CSV attachment exceeds the email size limit and `CSV & XLSX` is selected, the email falls back to the Excel workbook alone.
+- **Download link** (`CreateDownloadLink`): uploads the report file(s) to the storage account configured in the `RJReport.StorageAccount.*` settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly.
+
+The report files contain all columns of the tables above, including the `DeviceId`. The `PhoneNumber` and the network/SIM columns are only part of the files when the corresponding options are enabled. Non-compliant devices are highlighted in the Excel workbook. No files are created when no mobile device matches the selected platforms and filters.
 
 
 

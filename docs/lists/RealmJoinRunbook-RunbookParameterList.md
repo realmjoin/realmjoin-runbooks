@@ -1080,10 +1080,23 @@ Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inve
 |-----------|----------|------|-------------|
 | Android |  | Boolean | Include Android devices in the results. |
 | iOS |  | Boolean | Include iOS and iPadOS devices in the results. |
-| IncludeNetworkDetails |  | Boolean | Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared<br>iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows<br>with the number of devices. |
+| IncludeNetworkDetails |  | Boolean | Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared<br>iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows<br>with the number of devices. Disabled by default. |
 | IncludePhoneNumber |  | Boolean | Controls whether the phone number is retrieved and shown. When disabled, the phone number column is omitted entirely.<br>Note that Intune partially masks the phone number of personally owned devices anyway. |
 | IncludeDeviceGroup |  | String | Only include devices that are members of this Entra device group. Nested group memberships are resolved. Leave empty to include all mobile devices. |
 | IncludeUserGroup |  | String | Only include devices whose primary user is a member of this Entra user group. Nested group memberships are resolved. Leave empty to include all mobile devices. |
+| EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization |
+| BrandingHeaderImageUrl |  | String | Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used. |
+| BrandingFooterImageUrl |  | String | Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.<br>Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used. |
+| BrandingFooterLink |  | String | Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.<br>When empty, the default link (https://www.realmjoin.com) is used. |
+| BrandingAccentColor |  | String | Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.<br>Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used. |
+| BrandingTextColor |  | String | Optional text color override (6-digit hex) for the report email template.<br>Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used. |
+| ReportFileFormat |  | String | Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" or "XLSX only" (default). |
+| CreateDownloadLink |  | Boolean | If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default. |
+| ContainerName |  | String | Storage container name used for the upload. Configured per runbook (not a global RJReport setting). |
+| ResourceGroupName |  | String | Resource group that contains the storage account. Sourced from the RJReport tenant settings. |
+| StorageAccountName |  | String | Storage account name used for the upload. Sourced from the RJReport tenant settings. |
+| LinkExpiryDays |  | Int32 | Number of days until the generated download link expires. Sourced from the RJReport tenant settings. |
+| EmailTo |  | String | If specified, an email with the report will be sent to the provided address(es).<br>Can be a single address or multiple comma-separated addresses (string).<br>The function sends individual emails to each recipient for privacy reasons. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='organization-devices-notify-users-about-low-diskspace-scheduled'></a>
