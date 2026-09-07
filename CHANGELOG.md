@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-07
+
+- Fix **Report SharePoint Tenant Storage** as the Quota was not calculated correctly
+- Update **Report SharePoint Tenant Storage** now takes GB instead of MB as a more reasonable unit
+
 ## 2026-09-04
 
 - Update **Add Shared Mailbox** in Org/Mail

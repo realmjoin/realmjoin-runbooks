@@ -119,9 +119,9 @@
 param(
 
     [Parameter(Mandatory = $true)]
-    [int]$AlertLowStorageLimitInMB = 200,
+    [int]$AlertLowStorageLimitInGB = 200,
 
-    [int]$AlertUnusedStorageLimitInMB = 1024,
+    [int]$AlertUnusedStorageLimitInGB = 1024,
 
     [ValidateRange(1, 100)]
     [int]$TopSiteCount = 10,
@@ -160,7 +160,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.3.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "AlertLowStorageLimitInMB: $AlertLowStorageLimitInMB" -Verbose
@@ -306,7 +306,7 @@ Write-Output "---------------------"
 # ===== Derive storage metrics =====
 # Get-PnPGeoStorageQuota returns GeoUsedStorageMB and StorageQuotaMB
 $usedMB = $storageQuota.GeoUsedStorageMB
-$quotaMB = $storageQuota.GeoAvailableStorageMB
+$quotaMB = $storageQuota.TenantStorageMB
 
 # Fail with clear message if quota values are missing or unusable
 if ($null -eq $usedMB -or $null -eq $quotaMB -or $quotaMB -le 0) {
@@ -348,14 +348,12 @@ if ($allSites.Count -gt 0) {
         $sitePercent = if ($quotaMB -gt 0) { [Math]::Round(($siteStorageMB / $quotaMB) * 100, 2) } else { 0 }
 
 
-        # Handle empty title and missing owner
+        # Handle empty title
         $displayTitle = if ([string]::IsNullOrEmpty($_.Title)) { $_.Url } else { $_.Title }
-        $primaryOwner = if ([string]::IsNullOrEmpty($_.Owner)) { "Unknown" } else { $_.Owner }
 
         [PSCustomObject]@{
             Title                = $displayTitle
             Url                  = $_.Url
-            PrimaryOwner         = $primaryOwner
             StorageUsedGB        = $siteStorageGB
             PercentOfTenantStorage = $sitePercent
         }
@@ -390,11 +388,11 @@ $tableRows = @()
 foreach ($site in $topSites) {
     # Escape pipe characters that could appear in site titles
     $escapedTitle = $site.Title -replace '\|', '\|'
-    $tableRows += "| $escapedTitle | $($site.Url) | $($site.PrimaryOwner) | $($site.StorageUsedGB) GB |"
+    $tableRows += "| $escapedTitle | $($site.Url) | $($site.StorageUsedGB) GB |"
 }
 
 $tableContent = if ($tableRows.Count -gt 0) {
-    "| Site Title | URL | Primary Owner | Storage Used |`n| --- | --- | --- | --- | --- |`n$($tableRows -join "`n")"
+    "| Site Title | URL | Storage Used |`n| --- | --- | --- | --- | --- |`n$($tableRows -join "`n")"
 } else {
     "(No site collections found)"
 }
