@@ -54,8 +54,7 @@ SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Onl
 
 
 ## Parameters
-### AlertLowStorageLimitInMB
-Low-storage alert threshold in megabytes. An alert email is sent when free tenant storage falls below this limit.
+### AlertLowStorageLimitInGB
 
 | Property | Value |
 |----------|-------|
@@ -63,8 +62,7 @@ Low-storage alert threshold in megabytes. An alert email is sent when free tenan
 | Required | true |
 | Type | Int32 |
 
-### AlertUnusedStorageLimitInMB
-Unused-storage alert threshold in megabytes. An alert email is sent when unused licensed storage (storage assigned but not consumed by any site) rises above this limit, indicating storage that could be reclaimed.
+### AlertUnusedStorageLimitInGB
 
 | Property | Value |
 |----------|-------|
