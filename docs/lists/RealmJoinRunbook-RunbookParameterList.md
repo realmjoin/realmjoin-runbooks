@@ -901,8 +901,8 @@ Monitor SharePoint Online tenant storage and alert when thresholds are exceeded
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| AlertLowStorageLimitInMB | ✓ | Int32 | Low-storage alert threshold in megabytes. An alert email is sent when free tenant storage falls below this limit. |
-| AlertUnusedStorageLimitInMB |  | Int32 | Unused-storage alert threshold in megabytes. An alert email is sent when unused licensed storage (storage assigned but not consumed by any site) rises above this limit, indicating storage that could be reclaimed. |
+| AlertLowStorageLimitInGB | ✓ | Int32 |  |
+| AlertUnusedStorageLimitInGB |  | Int32 |  |
 | TopSiteCount |  | Int32 | Number of site collections to report, ordered by consumed storage. Default is 10. |
 | EmailFrom |  | String | The sender email address. This needs to be configured in the runbook customization. |
 | BrandingHeaderImageUrl |  | String | URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding. |
