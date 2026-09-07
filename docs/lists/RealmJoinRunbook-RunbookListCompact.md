@@ -48,6 +48,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report Application Registration | Generate and email a comprehensive Application Registration report |
 |  |  | Report Expiring Application Credentials (Scheduled) | List expiry date of all Application Registration credentials |
 |  |  | Update Application Registration | Update an application registration in Azure AD |
+|  | Collab | Check Onedrive Status | Check the status of a user's OneDrive |
+|  |  | List Sharepoint Sitecollection Permission | List all members and administrators of a SharePoint Online site collection |
+|  |  | Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint Online tenant storage and alert when thresholds are exceeded |
 |  | Devices | Add Autopilot Device | Import a Windows device into Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Import a device into Intune via corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Auto-approve new driver updates in Intune driver update policies |
@@ -56,6 +59,8 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 |  |  | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 |  |  | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
+|  |  | List Mobile Devices | Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details. |
+|  |  | Notify Users About Low Diskspace (Scheduled) | Notify primary users about low disk space on their devices via email |
 |  |  | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 |  |  | Outphase Devices | Remove or outphase multiple devices |
 |  |  | Report Devices Low Diskspace (Scheduled) | Scheduled report of managed devices running low on free disk space. |

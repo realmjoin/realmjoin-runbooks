@@ -1,0 +1,37 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads Intune managed devices including freeStorageSpaceInBytes, totalStorageSpaceInBytes, lastSyncDateTime and the primary user to find devices below the low disk space threshold"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Resolves each affected primary user (mail address, display name and accountEnabled) before sending the notification"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Reason": "Sends the low disk space notification email to each primary user or to the override recipient"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Tenant name in email footer",
+                    "Reason": "Reads /organization for the tenant name shown in the email footer; without it the runbook falls back to 'Unknown Tenant'"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Optional": true,
+                    "Feature": "Group scope filtering",
+                    "Reason": "Reads the transitive user members of the include/exclude user groups and the transitive device members (Entra device ID) of the optional device group"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

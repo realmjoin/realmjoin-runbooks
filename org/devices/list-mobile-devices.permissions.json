@@ -7,19 +7,25 @@
             "AppRoleAssignments": [
                 {
                     "Value": "DeviceManagementManagedDevices.Read.All",
-                    "Reason": "Reads Intune managed devices including freeStorageSpaceInBytes and totalStorageSpaceInBytes to find devices below the low disk space threshold"
+                    "Reason": "Lists Intune managed mobile devices including hardware, SIM and network details"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Optional": true,
+                    "Feature": "Group scope filtering",
+                    "Reason": "Reads group members to resolve the optional device/user group scope filters"
                 },
                 {
                     "Value": "Organization.Read.All",
                     "Optional": true,
-                    "Feature": "Email report",
+                    "Feature": "Email report / download link",
                     "Reason": "Reads /organization for the tenant name used in the report file names, the email subject and the email footer; without it the runbook falls back to 'Unknown Tenant'"
                 },
                 {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when EmailTo is configured"
                 }
             ]
         }
