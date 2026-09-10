@@ -12,6 +12,11 @@
     This runbook is the user-facing counterpart of the "Report Devices Low Diskspace" runbook. Both use the same threshold settings and the same
     Critical/Warning rating, so the report gives administrators the overview while this runbook asks the affected users to free up space themselves.
 
+    Recipient resolution:
+    The primary user of a device is resolved via the Entra object id that Intune reports in managedDevice.userId, so guest accounts and
+    users whose current UPN differs from the address recorded at enrollment are resolved correctly. Devices for which Intune reports no
+    userId fall back to a lookup by user principal name. The notification is sent to the user's mail attribute, with the UPN as fallback.
+
     Prerequisites:
     - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
     - Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)
@@ -20,6 +25,8 @@
     The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
     They describe the state of the last successful inventory and not necessarily the current state of the device. To avoid notifying users based on outdated
     numbers, devices whose last Intune sync is older than MaxInventoryAgeDays are skipped (0 disables this check).
+    The "Report Devices Low Diskspace" runbook deliberately does not apply this filter, so it lists devices with a stale inventory as well - it can therefore show more
+    devices than are notified here. The number skipped for an outdated inventory is reported in this runbook's output, which accounts for the difference.
     Devices that report a total disk size of zero bytes have no usable storage inventory and are excluded from the evaluation, but their number is reported.
     Only Windows and macOS devices are evaluated, because the storage inventory of mobile devices is less reliable and the cleanup guidance differs.
 
@@ -625,13 +632,16 @@ function Get-DiskSeverity {
     return 'Warning'
 }
 
-function Get-GroupUserUpnSet {
+function Get-GroupUserSet {
     <#
         .SYNOPSIS
-        Resolves the transitive user members of a group into a case-insensitive set of user principal names.
+        Resolves the transitive user members of a group into case-insensitive sets of object ids and user principal names.
 
         .DESCRIPTION
         Uses the transitiveMembers navigation with the user type cast, so nested group memberships are included.
+        Both the object id and the user principal name are kept: a device is matched on the object id of its
+        primary user whenever Intune reports one, because that id survives UPN changes and is unambiguous for
+        guest accounts, and falls back to the UPN otherwise.
         A failing lookup stops the runbook, because a silently empty include group would notify every user
         and a silently empty exclude group would notify users that should have been excluded.
 
@@ -648,25 +658,66 @@ function Get-GroupUserUpnSet {
         [string]$Label
     )
 
+    $idSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     $upnSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $memberCount = 0
 
-    Write-Output "Retrieving members of the $Label user group (including nested groups)..."
+    # No Write-Output in this function: it returns its result on the success stream, and any progress
+    # line written here would be captured into that return value, turning it into an Object[] and
+    # flattening the HashSets. The caller prints the progress instead.
     try {
         $groupUri = "https://graph.microsoft.com/v1.0/groups/$GroupId/transitiveMembers/microsoft.graph.user?`$top=999&`$select=id,userPrincipalName"
         $members = Get-GraphPagedResult -Uri $groupUri
         foreach ($member in $members) {
+            $memberCount++
+            if (-not [string]::IsNullOrEmpty($member.id)) {
+                [void]$idSet.Add($member.id)
+            }
             if (-not [string]::IsNullOrEmpty($member.userPrincipalName)) {
                 [void]$upnSet.Add($member.userPrincipalName)
             }
         }
-        Write-Output "The $Label user group contains $($upnSet.Count) user(s)."
     }
     catch {
         Write-Error "Failed to retrieve members of the $Label user group ('$GroupId'): $($_.Exception.Message)" -ErrorAction Continue
         throw "Unable to retrieve $Label user group membership"
     }
 
-    return $upnSet
+    return [PSCustomObject]@{
+        Ids   = $idSet
+        Upns  = $upnSet
+        Count = $memberCount
+    }
+}
+
+function Test-UserInScope {
+    <#
+        .SYNOPSIS
+        Tests whether the primary user of a device belongs to a resolved user group scope.
+
+        .DESCRIPTION
+        Matches on the Entra object id whenever Intune reports one on the device; the user principal name is
+        only used as a fallback for devices without a userId.
+
+        .PARAMETER Scope
+        A scope as returned by Get-GroupUserSet.
+
+        .PARAMETER UserId
+        The Entra object id of the device's primary user, if reported by Intune.
+
+        .PARAMETER UserPrincipalName
+        The user principal name of the device's primary user.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Scope,
+        [string]$UserId,
+        [string]$UserPrincipalName
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($UserId) -and $Scope.Ids.Contains($UserId)) { return $true }
+    if (-not [string]::IsNullOrWhiteSpace($UserPrincipalName) -and $Scope.Upns.Contains($UserPrincipalName)) { return $true }
+    return $false
 }
 
 function Get-GroupDeviceIdSet {
@@ -688,7 +739,7 @@ function Get-GroupDeviceIdSet {
 
     $deviceIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
-    Write-Output "Retrieving members of the device group (including nested groups)..."
+    # No Write-Output here either - see the note in Get-GroupUserSet
     try {
         $groupUri = "https://graph.microsoft.com/v1.0/groups/$GroupId/transitiveMembers?`$select=id,deviceId,displayName"
         $members = Get-GraphPagedResult -Uri $groupUri
@@ -697,14 +748,38 @@ function Get-GroupDeviceIdSet {
                 [void]$deviceIdSet.Add($member.deviceId)
             }
         }
-        Write-Output "The device group contains $($deviceIdSet.Count) device(s)."
     }
     catch {
         Write-Error "Failed to retrieve members of the device group ('$GroupId'): $($_.Exception.Message)" -ErrorAction Continue
         throw "Unable to retrieve device group membership"
     }
 
-    return $deviceIdSet
+    # The comma keeps PowerShell from enumerating the HashSet into loose strings, which would lose
+    # the OrdinalIgnoreCase comparer and turn Contains() into case-sensitive array membership
+    return , $deviceIdSet
+}
+
+function ConvertTo-GraphPathSegment {
+    <#
+        .SYNOPSIS
+        Escapes a value for use as a single path segment of a Microsoft Graph URL.
+
+        .DESCRIPTION
+        Graph resolves a user principal name as a path segment, where '@' is a legal character (RFC 3986 pchar)
+        and has to stay literal - percent-encoding it as '%40' breaks the route resolution of the $batch endpoint,
+        which rejects the request with status 400 because the identifier then contains a '%'. Only '%' itself and
+        '#' (guest accounts contain '#EXT#') actually need escaping. The '%' has to be replaced first, otherwise
+        the escape sequence introduced for '#' would be escaped a second time.
+
+        .PARAMETER Value
+        The raw path segment, e.g. a user principal name.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    return $Value.Replace('%', '%25').Replace('#', '%23')
 }
 
 function Resolve-NotificationUsers {
@@ -713,33 +788,45 @@ function Resolve-NotificationUsers {
         Resolves the mail address and account state of the users to notify via Graph JSON batching.
 
         .DESCRIPTION
-        Each user is looked up individually (/users/{upn}) to obtain the mail attribute and the accountEnabled flag.
+        Each user is looked up individually to obtain the mail attribute and the accountEnabled flag. Intune
+        reports the Entra object id of the primary user in managedDevice.userId, which is used as the lookup
+        identifier whenever it is present: an object id needs no escaping and stays valid for guest accounts and
+        for users whose current UPN differs from the address that Intune recorded at enrollment. Devices without
+        a userId fall back to a lookup by user principal name.
         The requests are sent through the Graph $batch endpoint by the module function Invoke-RjRbGraphBatch, which
         handles the chunking (20 requests per call), the transport and the retry of throttled inner requests
         (status 429) with the Retry-After interval reported by Graph. Lookups that are still throttled after the
         last retry and other failed lookups are marked and reported so that the affected users are skipped instead
         of aborting the run.
 
-        .PARAMETER UserPrincipalNames
-        The user principal names (as reported on the managed devices) to resolve.
+        .PARAMETER Users
+        The user identities to resolve, as objects with Key, Id and UserPrincipalName.
     #>
     param(
-        [array]$UserPrincipalNames
+        [array]$Users
     )
 
     $resolvedUsers = @{}
 
-    # The request id has to be a string; a sequential counter is mapped back to the UPN
-    $upnByRequestId = @{}
+    # The request id has to be a string; a sequential counter is mapped back to the user identity
+    $userByRequestId = @{}
     $requestCounter = 0
-    $requests = foreach ($upn in $UserPrincipalNames) {
+    $requests = foreach ($user in $Users) {
         $requestCounter++
-        $upnByRequestId["$requestCounter"] = $upn
-        $encodedUpn = [System.Uri]::EscapeDataString($upn)
+        $userByRequestId["$requestCounter"] = $user
+        $identifier = if (-not [string]::IsNullOrWhiteSpace($user.Id)) {
+            $user.Id
+        }
+        else {
+            ConvertTo-GraphPathSegment -Value $user.UserPrincipalName
+        }
         @{
             id     = "$requestCounter"
             method = "GET"
-            url    = "/users/$encodedUpn?`$select=id,displayName,mail,accountEnabled"
+            # The identifier MUST be wrapped in a subexpression: '?' is a legal character in an unbraced
+            # PowerShell variable name (cf. the automatic variable $?), so "$identifier?" would parse as the
+            # undefined variable 'identifier?' and silently drop the user from the URL.
+            url    = "/users/$($identifier)?`$select=id,displayName,mail,userPrincipalName,accountEnabled"
         }
     }
 
@@ -747,46 +834,59 @@ function Resolve-NotificationUsers {
         $responses = Invoke-RjRbGraphBatch -Requests @($requests) -ProgressLabel "user lookups" -ProgressInterval 10
 
         foreach ($item in $responses) {
-            $upn = $upnByRequestId["$($item.id)"]
-            if (-not $upn) { continue }
+            $user = $userByRequestId["$($item.id)"]
+            if (-not $user) { continue }
+
+            # Prefer the UPN in log lines; devices without one are only identifiable by their user object id
+            $identityLabel = if (-not [string]::IsNullOrWhiteSpace($user.UserPrincipalName)) { $user.UserPrincipalName } else { $user.Id }
 
             if ($item.status -eq 200) {
                 $mail = $item.body.mail
-                $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
+                # The UPN returned by Graph is authoritative; the one recorded by Intune can be outdated
+                $upn = if (-not [string]::IsNullOrWhiteSpace($item.body.userPrincipalName)) { $item.body.userPrincipalName } else { $user.UserPrincipalName }
+                $resolvedUsers[$user.Key] = [PSCustomObject]@{
                     UserPrincipalName = $upn
                     DisplayName       = $item.body.displayName
                     Recipient         = if (-not [string]::IsNullOrWhiteSpace($mail)) { $mail } else { $upn }
                     AccountEnabled    = [bool]$item.body.accountEnabled
                     LookupFailed      = $false
+                    FailureStatus     = $null
                 }
             }
             elseif ($item.status -eq 429) {
                 # Still throttled after the retries of Invoke-RjRbGraphBatch - handled as a missing result below
-                Write-RjRbLog -Message "User lookup for '$upn' was still throttled after the retries." -Verbose
+                Write-RjRbLog -Message "User lookup for '$identityLabel' was still throttled after the retries." -Verbose
             }
             else {
-                Write-RjRbLog -Message "User lookup for '$upn' failed with status $($item.status)." -Verbose
-                $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
-                    UserPrincipalName = $upn
+                # The Graph error body carries the actual reason - a bare status code is not diagnosable
+                $errorCode = $item.body.error.code
+                $errorMessage = $item.body.error.message
+                $errorDetail = if ($errorCode -or $errorMessage) { " - $($errorCode): $($errorMessage)" } else { "" }
+                Write-RjRbLog -Message "User lookup for '$identityLabel' failed with status $($item.status).$errorDetail" -Verbose
+                $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                    UserPrincipalName = $user.UserPrincipalName
                     DisplayName       = $null
                     Recipient         = $null
                     AccountEnabled    = $false
                     LookupFailed      = $true
+                    FailureStatus     = $item.status
                 }
             }
         }
     }
 
     # Users that are still throttled after the retries, or that received no response at all, count as failed lookups
-    foreach ($upn in $UserPrincipalNames) {
-        if (-not $resolvedUsers.ContainsKey($upn.ToLowerInvariant())) {
-            Write-RjRbLog -Message "User lookup for '$upn' returned no result." -Verbose
-            $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
-                UserPrincipalName = $upn
+    foreach ($user in $Users) {
+        if (-not $resolvedUsers.ContainsKey($user.Key)) {
+            $identityLabel = if (-not [string]::IsNullOrWhiteSpace($user.UserPrincipalName)) { $user.UserPrincipalName } else { $user.Id }
+            Write-RjRbLog -Message "User lookup for '$identityLabel' returned no result." -Verbose
+            $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                UserPrincipalName = $user.UserPrincipalName
                 DisplayName       = $null
                 Recipient         = $null
                 AccountEnabled    = $false
                 LookupFailed      = $true
+                FailureStatus     = $null
             }
         }
     }
@@ -1068,17 +1168,23 @@ Write-Output ""
 # Resolve the optional scope filters first, so that a broken group configuration stops the run before any evaluation
 $includeDeviceIds = $null
 if ($deviceGroupActive) {
+    Write-Output "Retrieving members of the device group (including nested groups)..."
     $includeDeviceIds = Get-GroupDeviceIdSet -GroupId $IncludeDeviceGroup
+    Write-Output "The device group contains $($includeDeviceIds.Count) device(s)."
 }
 
-$includeUserUpns = $null
-$excludeUserUpns = $null
+$includeUserScope = $null
+$excludeUserScope = $null
 if ($userScopeConfigured) {
     if (-not [string]::IsNullOrWhiteSpace($IncludeUserGroup)) {
-        $includeUserUpns = Get-GroupUserUpnSet -GroupId $IncludeUserGroup -Label "include"
+        Write-Output "Retrieving members of the include user group (including nested groups)..."
+        $includeUserScope = Get-GroupUserSet -GroupId $IncludeUserGroup -Label "include"
+        Write-Output "The include user group contains $($includeUserScope.Count) user(s)."
     }
     if (-not [string]::IsNullOrWhiteSpace($ExcludeUserGroup)) {
-        $excludeUserUpns = Get-GroupUserUpnSet -GroupId $ExcludeUserGroup -Label "exclude"
+        Write-Output "Retrieving members of the exclude user group (including nested groups)..."
+        $excludeUserScope = Get-GroupUserSet -GroupId $ExcludeUserGroup -Label "exclude"
+        Write-Output "The exclude user group contains $($excludeUserScope.Count) user(s)."
     }
 }
 
@@ -1088,6 +1194,7 @@ $selectProperties = @(
     'id'
     'azureADDeviceId'
     'deviceName'
+    'userId'
     'userPrincipalName'
     'userDisplayName'
     'serialNumber'
@@ -1162,18 +1269,25 @@ foreach ($device in $devices) {
         }
     }
 
-    $freeSpaceGB = [math]::Round($freeBytes / 1GB, 1)
-    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
-    $freePercent = [int][math]::Round(($freeBytes / $totalBytes) * 100, 0)
+    # Exact values drive the threshold test and the severity rating; the rounded ones are for display
+    # only. Comparing rounded values would shift the effective boundary by up to half a percentage
+    # point, silently dropping devices that are measurably below the configured threshold.
+    $freeSpaceGBExact = $freeBytes / 1GB
+    $freePercentExact = ($freeBytes / $totalBytes) * 100
 
-    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGB -FreePercent $freePercent)) {
+    $freeSpaceGB = [math]::Round($freeSpaceGBExact, 1)
+    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
+    $freePercent = [int][math]::Round($freePercentExact, 0)
+
+    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact)) {
         continue
     }
 
-    $severity = Get-DiskSeverity -FreeGB $freeSpaceGB -FreePercent $freePercent
+    $severity = Get-DiskSeverity -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact
 
     $flaggedDevice = [PSCustomObject]@{
         DeviceName       = $device.deviceName
+        PrimaryUserId    = $device.userId
         PrimaryUser      = $device.userPrincipalName
         UserDisplayName  = $device.userDisplayName
         OperatingSystem  = $device.operatingSystem
@@ -1205,21 +1319,23 @@ foreach ($device in $devices) {
         continue
     }
 
-    # Optional user scope, matched via the primary user's UPN
+    # Optional user scope, matched via the primary user's object id and, as a fallback, its UPN
     if ($userScopeConfigured) {
-        if ($null -ne $includeUserUpns -and -not $includeUserUpns.Contains($device.userPrincipalName)) {
+        if ($null -ne $includeUserScope -and -not (Test-UserInScope -Scope $includeUserScope -UserId $device.userId -UserPrincipalName $device.userPrincipalName)) {
             $devicesSkippedByUserScope++
             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - user '$($device.userPrincipalName)' is not in the include group" -Verbose
             continue
         }
-        if ($null -ne $excludeUserUpns -and $excludeUserUpns.Contains($device.userPrincipalName)) {
+        if ($null -ne $excludeUserScope -and (Test-UserInScope -Scope $excludeUserScope -UserId $device.userId -UserPrincipalName $device.userPrincipalName)) {
             $devicesSkippedByUserScope++
             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - user '$($device.userPrincipalName)' is in the exclude group" -Verbose
             continue
         }
     }
 
-    $userKey = $device.userPrincipalName.ToLowerInvariant()
+    # Group on the primary user's object id when Intune reports one - it survives UPN changes and is
+    # unambiguous for guest accounts; devices without a userId fall back to the lowercased UPN
+    $userKey = if (-not [string]::IsNullOrWhiteSpace($device.userId)) { $device.userId.ToLowerInvariant() } else { $device.userPrincipalName.ToLowerInvariant() }
     if (-not $devicesByUser.ContainsKey($userKey)) {
         $devicesByUser[$userKey] = @()
     }
@@ -1239,13 +1355,21 @@ $warningCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Warning' } | 
 $usersToNotify = @()
 $usersSkippedDisabled = @()
 $usersSkippedLookupFailed = @()
+$lookupPermissionDenied = $false
 
 if ($devicesByUser.Count -gt 0) {
     Write-Output ""
     Write-Output "Resolving $($devicesByUser.Count) user(s) with affected devices..."
 
-    $userPrincipalNames = @($devicesByUser.Keys | ForEach-Object { $devicesByUser[$_][0].PrimaryUser })
-    $resolvedUsers = Resolve-NotificationUsers -UserPrincipalNames $userPrincipalNames
+    $userIdentities = @($devicesByUser.Keys | ForEach-Object {
+            $firstDevice = $devicesByUser[$_][0]
+            [PSCustomObject]@{
+                Key               = $_
+                Id                = $firstDevice.PrimaryUserId
+                UserPrincipalName = $firstDevice.PrimaryUser
+            }
+        })
+    $resolvedUsers = Resolve-NotificationUsers -Users $userIdentities
 
     foreach ($userKey in ($devicesByUser.Keys | Sort-Object)) {
         $userDevices = $devicesByUser[$userKey]
@@ -1253,6 +1377,9 @@ if ($devicesByUser.Count -gt 0) {
 
         if ($null -eq $userInfo -or $userInfo.LookupFailed) {
             $usersSkippedLookupFailed += $userDevices[0].PrimaryUser
+            if ($null -ne $userInfo -and $userInfo.FailureStatus -in 401, 403) {
+                $lookupPermissionDenied = $true
+            }
             continue
         }
         if (-not $userInfo.AccountEnabled) {
@@ -1272,7 +1399,12 @@ if ($devicesByUser.Count -gt 0) {
     }
 
     if ($usersSkippedLookupFailed.Count -gt 0 -and $usersToNotify.Count -eq 0 -and $usersSkippedDisabled.Count -eq 0) {
-        Write-Warning "None of the affected users could be resolved via Microsoft Graph. Check that the managed identity has the User.Read.All permission."
+        if ($lookupPermissionDenied) {
+            Write-Warning "None of the affected users could be resolved via Microsoft Graph - the lookups were denied. Check that the managed identity has the User.Read.All permission."
+        }
+        else {
+            Write-Warning "None of the affected users could be resolved via Microsoft Graph. The verbose log lists the Graph error of each individual lookup."
+        }
     }
 }
 
@@ -1544,11 +1676,11 @@ else {
 if ($userScopeConfigured) {
     Write-Output ""
     Write-Output "User Scope Filtering:"
-    if ($null -ne $includeUserUpns) {
-        Write-Output "  - Include group: $($includeUserUpns.Count) users"
+    if ($null -ne $includeUserScope) {
+        Write-Output "  - Include group: $($includeUserScope.Count) users"
     }
-    if ($null -ne $excludeUserUpns) {
-        Write-Output "  - Exclude group: $($excludeUserUpns.Count) users"
+    if ($null -ne $excludeUserScope) {
+        Write-Output "  - Exclude group: $($excludeUserScope.Count) users"
     }
     Write-Output "  - Devices skipped by user scope: $($devicesSkippedByUserScope)"
 }

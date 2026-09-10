@@ -21,6 +21,10 @@
     The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
     They therefore describe the state of the last successful inventory and not necessarily the current state, so the Last Sync column of the report should be used to judge how up to date a row is.
     Devices that report a total disk size of zero bytes have no usable storage inventory (this is common for Android Enterprise work profiles) and are excluded from the evaluation, but their number is reported.
+    This report deliberately lists devices regardless of how old their inventory is, so that a device which stopped checking in still shows up. Its user-facing counterpart
+    "Notify Users About Low Diskspace" does the opposite and skips devices whose last Intune sync is older than its MaxInventoryAgeDays setting, so that no user is asked to
+    free up space based on outdated numbers. Both runbooks apply the same threshold and the same Critical/Warning rating, but the report can therefore list more devices than
+    the notification runbook writes to - the difference is the devices with a stale inventory, and the notification runbook reports their number in its own output.
 
     Platform defaults:
     Windows and macOS are included by default, iOS/iPadOS and Android are not, because the default threshold in gigabytes is dimensioned for desktop disks
@@ -627,11 +631,18 @@ foreach ($device in $devices) {
         continue
     }
 
-    $freeSpaceGB = [math]::Round($freeBytes / 1GB, 1)
-    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
-    $freePercent = [int][math]::Round(($freeBytes / $totalBytes) * 100, 0)
+    # Exact values drive the threshold test and the severity rating; the rounded ones are for display
+    # only. Comparing rounded values would shift the effective boundary by up to half a percentage
+    # point, silently dropping devices that are measurably below the configured threshold.
+    # Kept identical to the notify counterpart so both rate a given device the same way.
+    $freeSpaceGBExact = $freeBytes / 1GB
+    $freePercentExact = ($freeBytes / $totalBytes) * 100
 
-    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGB -FreePercent $freePercent)) {
+    $freeSpaceGB = [math]::Round($freeSpaceGBExact, 1)
+    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
+    $freePercent = [int][math]::Round($freePercentExact, 0)
+
+    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact)) {
         continue
     }
 
@@ -647,7 +658,7 @@ foreach ($device in $devices) {
         FreeSpaceGB     = $freeSpaceGB
         TotalSpaceGB    = $totalSpaceGB
         FreePercent     = $freePercent
-        Severity        = Get-DiskSeverity -FreeGB $freeSpaceGB -FreePercent $freePercent
+        Severity        = Get-DiskSeverity -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact
         ComplianceState = $device.complianceState
         LastSync        = if ($device.lastSyncDateTime) { Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd } else { "N/A" }
         DeviceId        = $device.id
