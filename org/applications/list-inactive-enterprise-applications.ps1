@@ -3,9 +3,13 @@
     List enterprise applications with no recent sign-ins
 
     .DESCRIPTION
-    This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.
-    It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
+    This runbook identifies enterprise applications with no recent sign-in activity. It evaluates the Microsoft Entra
+    "Service principal sign-in activity" report, which holds the last sign-in date of every service principal across
+    delegated and app-only flows and is therefore independent of the retention period of the sign-in logs.
+    It lists apps whose last sign-in is older than the specified number of days and apps without any recorded sign-in.
     Use it to find candidates for review, cleanup, or decommissioning.
+    The runbook only reads data; it does not modify the listed applications.
+    Reading the report requires the AuditLog.Read.All permission and a Microsoft Entra ID P1 or P2 license.
 
     Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
     The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
@@ -139,6 +143,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -193,7 +198,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Days: $Days" -Verbose
 if ($EmailTo) {
@@ -241,21 +246,55 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
 #region     Function Definitions
 ########################################################
 
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/applications".
+
+        .EXAMPLE
+        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = @()
+    $nextLink = $Uri
+
+    do {
+        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
+        if ($response.value) {
+            $allResults += $response.value
+        }
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    return $allResults
+}
+
 #endregion
 
 ########################################################
 #region     Connect Part
 ########################################################
 
-Connect-RjRbGraph
+Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 
 # Get tenant information for the email report
 $TenantDisplayName = "Unknown Tenant"
 if ($EmailTo) {
     try {
-        $tenantInfo = Invoke-RjRbRestMethodGraph -Resource "/organization" -OdSelect "displayName"
-        if ($tenantInfo -and $tenantInfo[0].displayName) {
-            $TenantDisplayName = $tenantInfo[0].displayName
+        $tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+        if ($tenantInfo.value -and ($tenantInfo.value | Measure-Object).Count -gt 0 -and $tenantInfo.value[0].displayName) {
+            $TenantDisplayName = $tenantInfo.value[0].displayName
         }
     }
     catch {
@@ -266,76 +305,140 @@ if ($EmailTo) {
 #endregion
 
 ########################################################
-#region     Inactive Applications (last sign-in older than threshold)
+#region     Service Principals and Sign-in Activity
 ########################################################
 
-$lastSignInDate = (get-date) - (New-TimeSpan -Days $days) | Get-Date -Format "yyyy-MM-dd"
-
-"## Inactive Applications (Last SignIn more than $Days days ago):"
-""
-[array]$UsedApps = @()
-$inactiveApps = @()
+# All service principals of the tenant. appDisplayName is not populated for every service principal,
+# displayName serves as fallback so the report shows a readable name wherever one exists.
+$allServicePrincipals = @()
 try {
-    Invoke-RjRbRestMethodGraph -Resource "/auditLogs/SignIns" -FollowPaging | Select-Object -Property appDisplayName, appId, createdDateTime | Group-Object -Property appId | ForEach-Object {
-        $first = $_.Group | Sort-Object -Property createdDateTime | Select-Object -First 1
-        $UsedApps += Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
-        if ($first.createdDateTime -le $lastSignInDate) {
-            $app = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -OdFilter "appId eq '$($first.appId)'"
-            Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals/$($app.Id)" -Method Patch -body @{ notes = $(($first.createdDateTime).ToString('o')) }
-            $loginTime = New-TimeSpan -Start $first.createdDateTime -End (Get-Date)
-            # Some apps seem to have no DisplayName...
-            if ($app.appDisplayName) {
-                "## $($app.appDisplayName): no logins for $($loginTime.Days) Days"
-            }
-            else {
-                "## (AppId) $($app.appId): no logins for $($loginTime.Days) Days"
-            }
-            $inactiveApps += [PSCustomObject]@{
-                AppDisplayName      = $(if ($app.appDisplayName) { $app.appDisplayName } else { "" })
-                AppId               = $app.appId
-                ServicePrincipalId  = $app.id
-                LastSignIn          = $first.createdDateTime
-                DaysSinceLastSignIn = [int]$loginTime.Days
-            }
+    $servicePrincipalUri = "https://graph.microsoft.com/v1.0/servicePrincipals?`$select=id,appId,appDisplayName,displayName&`$top=999"
+    $allServicePrincipals = @(Get-GraphPagedResult -Uri $servicePrincipalUri)
+}
+catch {
+    Write-Error "Listing service principals failed. Missing permissions (Directory.Read.All)? Error details: $($_)" -ErrorAction Stop
+}
+Write-RjRbLog -Message "Service principals found: $(($allServicePrincipals | Measure-Object).Count)" -Verbose
+
+# Last sign-in per application, taken from the Microsoft Entra "Service principal sign-in activity" report.
+# The report holds the last activity date per service principal (delegated and app-only, as client and as
+# resource) and is therefore not bound to the retention period of the sign-in logs, which keep only the last
+# 7 days (Microsoft Entra ID Free) resp. 30 days (Microsoft Entra ID P1/P2) of individual sign-in events.
+$lastSignInByAppId = @{}
+try {
+    $signInActivities = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/reports/servicePrincipalSignInActivities")
+    foreach ($activity in $signInActivities) {
+        $activityAppId = [string]$activity.appId
+        if (-not $activityAppId) {
+            continue
+        }
+        $lastSignInValue = $activity.lastSignInActivity.lastSignInDateTime
+        if ($lastSignInValue) {
+            $lastSignInByAppId[$activityAppId] = $lastSignInValue
         }
     }
 }
 catch {
-    Write-Error "Listing AuditLog or ServicePrincipals failed. Missing permissions? Error details: $($_)" -ErrorAction Stop
+    Write-Error "Reading the service principal sign-in activity report failed. The report requires the AuditLog.Read.All permission and a Microsoft Entra ID P1 or P2 license. Error details: $($_)" -ErrorAction Stop
 }
+Write-RjRbLog -Message "Applications with a recorded sign-in: $($lastSignInByAppId.Count)" -Verbose
+
+$nowUtc = (Get-Date).ToUniversalTime()
+$thresholdUtc = $nowUtc.AddDays(-$Days)
+
+$inactiveApps = @()
+$neverUsedApps = @()
+
+foreach ($servicePrincipal in $allServicePrincipals) {
+    $appId = [string]$servicePrincipal.appId
+    $displayName = ""
+    if ($servicePrincipal.appDisplayName) {
+        $displayName = [string]$servicePrincipal.appDisplayName
+    }
+    elseif ($servicePrincipal.displayName) {
+        $displayName = [string]$servicePrincipal.displayName
+    }
+
+    $lastSignInUtc = $null
+    if ($appId -and $lastSignInByAppId.ContainsKey($appId)) {
+        $rawLastSignIn = $lastSignInByAppId[$appId]
+        if ($rawLastSignIn -is [datetime]) {
+            $lastSignInUtc = ([datetime]$rawLastSignIn).ToUniversalTime()
+        }
+        else {
+            $parsedLastSignIn = [datetime]::MinValue
+            if ([datetime]::TryParse([string]$rawLastSignIn, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind, [ref]$parsedLastSignIn)) {
+                $lastSignInUtc = $parsedLastSignIn.ToUniversalTime()
+            }
+            else {
+                Write-RjRbLog -Message "Unreadable last sign-in date '$($rawLastSignIn)' for application $($appId) - counted as never used" -Verbose
+            }
+        }
+    }
+
+    if ($null -eq $lastSignInUtc) {
+        $neverUsedApps += [PSCustomObject]@{
+            AppDisplayName     = $displayName
+            AppId              = $appId
+            ServicePrincipalId = [string]$servicePrincipal.id
+        }
+        continue
+    }
+
+    if ($lastSignInUtc -le $thresholdUtc) {
+        $inactiveApps += [PSCustomObject]@{
+            AppDisplayName      = $displayName
+            AppId               = $appId
+            ServicePrincipalId  = [string]$servicePrincipal.id
+            LastSignIn          = $lastSignInUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            DaysSinceLastSignIn = [int][Math]::Floor(($nowUtc - $lastSignInUtc).TotalDays)
+        }
+    }
+}
+
+# Longest inactivity first, applications without any sign-in alphabetically
+$inactiveApps = @($inactiveApps | Sort-Object -Property DaysSinceLastSignIn -Descending)
+$neverUsedApps = @($neverUsedApps | Sort-Object -Property AppDisplayName)
 
 #endregion
 
 ########################################################
-#region     Applications without any sign-in record
+#region     Output
 ########################################################
 
+"## Inactive Applications (Last SignIn more than $Days days ago):"
 ""
-"## Inactive Applications (No SignIn record exists in AuditLog):"
-""
-
-$neverUsedApps = @()
-
-try {
-    $AllApps = Invoke-RjRbRestMethodGraph -Resource "/servicePrincipals" -FollowPaging
-    $unusedApps = (Compare-Object $AllApps $UsedApps).InputObject
-    foreach ($app in $unusedApps) {
+if (($inactiveApps | Measure-Object).Count -eq 0) {
+    "## None"
+}
+else {
+    foreach ($app in $inactiveApps) {
         # Some apps seem to have no DisplayName...
-        if ($app.appDisplayName) {
-            "## $($app.appDisplayName): no logins recorded in auditLog"
+        if ($app.AppDisplayName) {
+            "## $($app.AppDisplayName): no logins for $($app.DaysSinceLastSignIn) Days"
         }
         else {
-            "## (AppId) $($app.appId): no logins recorded in auditLog"
-        }
-        $neverUsedApps += [PSCustomObject]@{
-            AppDisplayName     = $(if ($app.appDisplayName) { $app.appDisplayName } else { "" })
-            AppId              = $app.appId
-            ServicePrincipalId = $app.id
+            "## (AppId) $($app.AppId): no logins for $($app.DaysSinceLastSignIn) Days"
         }
     }
 }
-catch {
-    Write-Error "Listing ServicePrincipals failed. Missing permissions? Error details: $($_)" -ErrorAction Stop
+
+""
+"## Inactive Applications (No SignIn recorded):"
+""
+if (($neverUsedApps | Measure-Object).Count -eq 0) {
+    "## None"
+}
+else {
+    foreach ($app in $neverUsedApps) {
+        # Some apps seem to have no DisplayName...
+        if ($app.AppDisplayName) {
+            "## $($app.AppDisplayName): no sign-in recorded"
+        }
+        else {
+            "## (AppId) $($app.AppId): no sign-in recorded"
+        }
+    }
 }
 
 #endregion
@@ -457,7 +560,7 @@ if ($EmailTo) {
 
 ## Summary
 
-This report lists enterprise applications in your tenant without recent sign-in activity based on the Microsoft Entra ID sign-in logs.
+This report lists enterprise applications in your tenant without recent sign-in activity, based on the Microsoft Entra service principal sign-in activity report.
 
 | Metric | Count |
 |--------|-------|
@@ -471,7 +574,7 @@ This report lists enterprise applications in your tenant without recent sign-in 
 The following file(s) are attached to this email:
 
 $(if ($ReportFileFormat -ne 'XLSX only') { "- **$($fileName_Inactive)**: Applications whose last sign-in is more than $Days days ago (CSV)" })
-$(if ($ReportFileFormat -ne 'XLSX only' -and $neverUsedCount -gt 0) { "- **$($fileName_NeverUsed)**: Applications without any sign-in record in the audit log (CSV)" })
+$(if ($ReportFileFormat -ne 'XLSX only' -and $neverUsedCount -gt 0) { "- **$($fileName_NeverUsed)**: Applications without any recorded sign-in (CSV)" })
 $(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_Xlsx)**: Both lists as separate worksheets in a formatted Excel workbook" })
 
 ---
@@ -511,23 +614,27 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_Xlsx)**: Both lists a
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
+            # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
             $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $TenantDisplayName
-                ReportVersion     = $Version
+                EmailFrom              = $EmailFrom
+                EmailTo                = $EmailTo
+                Subject                = $emailSubject
+                MarkdownContent        = $markdownContent
+                TenantDisplayName      = $TenantDisplayName
+                ReportVersion          = $Version
+                UseNativeGraphRequest  = $true
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
             }
             else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
             }
+            Write-Output "Email report sent successfully to: $EmailTo"
         }
         else {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $TenantDisplayName -ReportVersion $Version @brandingMailParams
+            # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $TenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
             Write-Output "Email report sent successfully to: $EmailTo"
         }
     }
