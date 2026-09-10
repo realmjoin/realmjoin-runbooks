@@ -3,9 +3,13 @@
 List enterprise applications with no recent sign-ins
 
 ## Detailed description
-This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.
-It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
+This runbook identifies enterprise applications with no recent sign-in activity. It evaluates the Microsoft Entra
+"Service principal sign-in activity" report, which holds the last sign-in date of every service principal across
+delegated and app-only flows and is therefore independent of the retention period of the sign-in logs.
+It lists apps whose last sign-in is older than the specified number of days and apps without any recorded sign-in.
 Use it to find candidates for review, cleanup, or decommissioning.
+The runbook only reads data; it does not modify the listed applications.
+Reading the report requires the AuditLog.Read.All permission and a Microsoft Entra ID P1 or P2 license.
 
 Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
 The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
@@ -14,6 +18,27 @@ When the CSV attachments exceed the email size limit and "CSV & XLSX" is selecte
 
 ## Where to find
 Org \ Applications \ List Inactive Enterprise Applications
+
+## How the sign-in data is determined
+
+The runbook evaluates the Microsoft Entra **service principal sign-in activity** report
+(`/beta/reports/servicePrincipalSignInActivities`). The report holds the date of the last sign-in per
+service principal – across delegated and app-only flows, both as client and as resource – and is therefore
+not limited to the retention period of the sign-in logs, which keep individual sign-in events for only
+7 days (Microsoft Entra ID Free) resp. 30 days (Microsoft Entra ID P1/P2). A threshold of 90 days can
+therefore be evaluated as reliably as one of 7 days.
+
+Every enterprise application (service principal) of the tenant is assigned to exactly one of two lists:
+
+- **Inactive applications** – the last sign-in is older than the configured number of days
+- **Applications without any sign-in record** – the report contains no sign-in for the application
+
+Requirements:
+
+- A **Microsoft Entra ID P1 or P2** license – the report is part of *Usage & insights* and is not available without it
+- The **AuditLog.Read.All** permission for the report and **Directory.Read.All** for the list of service principals
+
+The runbook only reads data. It does not modify the listed applications.
 
 ## Setup regarding email sending
 
@@ -39,7 +64,9 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - AuditLog.Read.All
   - Directory.Read.All
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters

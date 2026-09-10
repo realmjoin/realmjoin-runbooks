@@ -19,6 +19,8 @@ The free and total disk space values are read from the Intune hardware inventory
 
 Devices that report a total disk size of zero bytes have no usable storage inventory. This is common for Android Enterprise work profiles and also happens on devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being reported as "0 GB free", and their number is shown in the console output and in the email summary.
 
+This report deliberately lists devices regardless of how old their inventory is, so that a device which stopped checking in still shows up. Its user-facing counterpart **Notify Users About Low Diskspace** does the opposite: it skips devices whose last Intune sync is older than its `MaxInventoryAgeDays` setting, so that nobody is asked to free up space based on outdated numbers. Both runbooks apply the same threshold and the same Critical/Warning rating, so a device is rated identically in both — but this report can list more devices than the notification runbook writes to. The difference is exactly the devices with a stale inventory, and the notification runbook reports their number in its own output.
+
 Windows and macOS are included by default, iOS/iPadOS and Android are not. The default threshold of 20 GB is dimensioned for desktop disks and would report a large number of perfectly healthy mobile devices. When you enable the mobile platforms, the percentage based threshold (`ThresholdType` = *Free space below a percentage of the disk size*) usually gives more meaningful results.
 
 ## Threshold and severity
@@ -65,6 +67,10 @@ Data source and freshness:
 The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
 They therefore describe the state of the last successful inventory and not necessarily the current state, so the Last Sync column of the report should be used to judge how up to date a row is.
 Devices that report a total disk size of zero bytes have no usable storage inventory (this is common for Android Enterprise work profiles) and are excluded from the evaluation, but their number is reported.
+This report deliberately lists devices regardless of how old their inventory is, so that a device which stopped checking in still shows up. Its user-facing counterpart
+"Notify Users About Low Diskspace" does the opposite and skips devices whose last Intune sync is older than its MaxInventoryAgeDays setting, so that no user is asked to
+free up space based on outdated numbers. Both runbooks apply the same threshold and the same Critical/Warning rating, but the report can therefore list more devices than
+the notification runbook writes to - the difference is the devices with a stale inventory, and the notification runbook reports their number in its own output.
 
 Platform defaults:
 Windows and macOS are included by default, iOS/iPadOS and Android are not, because the default threshold in gigabytes is dimensioned for desktop disks
@@ -80,7 +86,7 @@ Common Use Cases:
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
-  - Organization.Read.All *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report / download link)*
   - Mail.Send *(optional: Email report)*
 
 ### Permission notes
@@ -233,7 +239,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 
 | Property | Value |
 |----------|-------|
-| Default Value | XLSX only |
+| Default Value | CSV & XLSX |
 | Required | false |
 | Type | String |
 

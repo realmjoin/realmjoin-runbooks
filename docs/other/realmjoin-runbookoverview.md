@@ -1256,9 +1256,13 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-This runbook identifies enterprise applications with no recent sign-in activity based on Microsoft Entra ID sign-in logs.
-It lists apps that have not been used for the specified number of days and apps that have no sign-in records.
+This runbook identifies enterprise applications with no recent sign-in activity. It evaluates the Microsoft Entra
+"Service principal sign-in activity" report, which holds the last sign-in date of every service principal across
+delegated and app-only flows and is therefore independent of the retention period of the sign-in logs.
+It lists apps whose last sign-in is older than the specified number of days and apps without any recorded sign-in.
 Use it to find candidates for review, cleanup, or decommissioning.
+The runbook only reads data; it does not modify the listed applications.
+Reading the report requires the AuditLog.Read.All permission and a Microsoft Entra ID P1 or P2 license.
 
 Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
 The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
@@ -1268,6 +1272,27 @@ When the CSV attachments exceed the email size limit and "CSV & XLSX" is selecte
 #### Where to find
 
 Org \ Applications \ List Inactive Enterprise Applications
+
+## How the sign-in data is determined
+
+The runbook evaluates the Microsoft Entra **service principal sign-in activity** report
+(`/beta/reports/servicePrincipalSignInActivities`). The report holds the date of the last sign-in per
+service principal – across delegated and app-only flows, both as client and as resource – and is therefore
+not limited to the retention period of the sign-in logs, which keep individual sign-in events for only
+7 days (Microsoft Entra ID Free) resp. 30 days (Microsoft Entra ID P1/P2). A threshold of 90 days can
+therefore be evaluated as reliably as one of 7 days.
+
+Every enterprise application (service principal) of the tenant is assigned to exactly one of two lists:
+
+- **Inactive applications** – the last sign-in is older than the configured number of days
+- **Applications without any sign-in record** – the report contains no sign-in for the application
+
+Requirements:
+
+- A **Microsoft Entra ID P1 or P2** license – the report is part of *Usage & insights* and is not available without it
+- The **AuditLog.Read.All** permission for the report and **Directory.Read.All** for the list of service principals
+
+The runbook only reads data. It does not modify the listed applications.
 
 ## Setup regarding email sending
 
@@ -1827,6 +1852,8 @@ Org \ Devices \ Notify Users About Low Diskspace_Scheduled
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the runbook sees the state of the last successful inventory rather than the current state of the device. To avoid notifying users based on outdated numbers, devices whose last Intune sync is older than `MaxInventoryAgeDays` (default 14 days) are skipped and counted separately. Devices without a last sync date are treated as outdated as well. Set the parameter to `0` to disable this check.
 
+The companion **Report Devices Low Diskspace** runbook deliberately does not apply this filter, so it lists devices with a stale inventory as well and can show more devices than are notified here. Both runbooks apply the same threshold and the same Critical/Warning rating, so a device is rated identically in both; the difference in the device count is exactly the devices skipped for an outdated inventory, which this runbook reports as a separate number in its output.
+
 Devices that report a total disk size of zero bytes have no usable storage inventory, for example devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being treated as "0 GB free", and their number is shown in the console output.
 
 Only Windows and macOS devices are evaluated. The storage inventory of mobile devices is less reliable, the default threshold in gigabytes is dimensioned for desktop disks, and the cleanup guidance in the email is specific to desktop operating systems.
@@ -1837,7 +1864,7 @@ This runbook is the user-facing counterpart of **Report Devices Low Diskspace**.
 
 `ThresholdType` selects whether a device is considered based on a fixed amount of free space (`FreeSpaceThresholdGB`) or based on the share of free space relative to its disk size (`FreeSpacePercentThreshold`). Only the field belonging to the selected type is shown in the portal.
 
-Every device below the threshold is rated: devices below half of the configured threshold are marked as **Critical**, all other devices below the threshold as **Warning**. The rating is shown per device in the email, and the subject line and introduction switch to an urgent wording as soon as one of the user's devices is Critical.
+Every device below the threshold is rated: devices below half of the configured threshold are marked as **Critical**, all other devices below the threshold as **Warning**. The rating is shown per device in the email, and with the built-in English and German templates the subject line and introduction switch to an urgent wording as soon as one of the user's devices is Critical. The `Custom` template has a single subject and a single introduction, both taken verbatim from the runbook customization, so a Critical and a Warning notification read identically there - phrase the custom text so it works for both.
 
 `NotifyOnSeverity` controls which devices trigger a notification. By default every device below the threshold does (*Warning and Critical*). With *Critical only*, users are contacted only when a device is below half of the threshold. This allows a two-stage approach: report all devices below the threshold to administrators via the report runbook, and notify only the users whose devices are critical.
 
@@ -1845,7 +1872,7 @@ Every device below the threshold is rated: devices below half of the configured 
 
 The runbook sends **one email per primary user** that lists all affected devices of that user with operating system, model, free and total disk space, rating and the date of the last inventory. The email contains practical cleanup steps for the platforms of the listed devices: the Windows section is included for Windows devices, the macOS section for macOS devices, and both when the user has affected devices of both kinds.
 
-Recipients are resolved via Microsoft Graph: the email is sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped and listed in the console output. Devices without a primary user cannot be notified; they are listed in the console output for central follow-up (the report runbook covers them as well).
+Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped and listed in the console output. Devices without a primary user cannot be notified; they are listed in the console output for central follow-up (the report runbook covers them as well).
 
 `SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
@@ -2106,6 +2133,8 @@ Org \ Devices \ Report Devices Low Diskspace_Scheduled
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.
 
 Devices that report a total disk size of zero bytes have no usable storage inventory. This is common for Android Enterprise work profiles and also happens on devices that have not completed an inventory yet. Such devices are excluded from the evaluation instead of being reported as "0 GB free", and their number is shown in the console output and in the email summary.
+
+This report deliberately lists devices regardless of how old their inventory is, so that a device which stopped checking in still shows up. Its user-facing counterpart **Notify Users About Low Diskspace** does the opposite: it skips devices whose last Intune sync is older than its `MaxInventoryAgeDays` setting, so that nobody is asked to free up space based on outdated numbers. Both runbooks apply the same threshold and the same Critical/Warning rating, so a device is rated identically in both — but this report can list more devices than the notification runbook writes to. The difference is exactly the devices with a stale inventory, and the notification runbook reports their number in its own output.
 
 Windows and macOS are included by default, iOS/iPadOS and Android are not. The default threshold of 20 GB is dimensioned for desktop disks and would report a large number of perfectly healthy mobile devices. When you enable the mobile platforms, the percentage based threshold (`ThresholdType` = *Free space below a percentage of the disk size*) usually gives more meaningful results.
 

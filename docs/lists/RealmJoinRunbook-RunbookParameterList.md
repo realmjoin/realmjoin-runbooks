@@ -1131,7 +1131,7 @@ Notify primary users about low disk space on their devices via email
 | OverrideEmailRecipient |  | String | Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly. |
 | SimulationMode |  | Boolean | When enabled, the runbook lists the affected users and devices in the output but does not send any email. |
 | MailTemplateLanguage |  | String | Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations). |
-| CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). |
+| CustomMailTemplateSubject |  | String | Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). It is used for Warning and for Critical notifications alike,<br>because the custom template has no counterpart to the urgent subject line of the built-in templates. |
 | CustomMailTemplateBeforeDeviceDetails |  | String | Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. |
 | CustomMailTemplateAfterDeviceDetails |  | String | Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. Replaces the built-in cleanup steps, so it should contain its own guidance. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
