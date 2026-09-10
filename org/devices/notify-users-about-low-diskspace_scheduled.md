@@ -14,7 +14,7 @@ This runbook is the user-facing counterpart of **Report Devices Low Diskspace**.
 
 `ThresholdType` selects whether a device is considered based on a fixed amount of free space (`FreeSpaceThresholdGB`) or based on the share of free space relative to its disk size (`FreeSpacePercentThreshold`). Only the field belonging to the selected type is shown in the portal.
 
-Every device below the threshold is rated: devices below half of the configured threshold are marked as **Critical**, all other devices below the threshold as **Warning**. The rating is shown per device in the email, and the subject line and introduction switch to an urgent wording as soon as one of the user's devices is Critical.
+Every device below the threshold is rated: devices below half of the configured threshold are marked as **Critical**, all other devices below the threshold as **Warning**. The rating is shown per device in the email, and with the built-in English and German templates the subject line and introduction switch to an urgent wording as soon as one of the user's devices is Critical. The `Custom` template has a single subject and a single introduction, both taken verbatim from the runbook customization, so a Critical and a Warning notification read identically there - phrase the custom text so it works for both.
 
 `NotifyOnSeverity` controls which devices trigger a notification. By default every device below the threshold does (*Warning and Critical*). With *Critical only*, users are contacted only when a device is below half of the threshold. This allows a two-stage approach: report all devices below the threshold to administrators via the report runbook, and notify only the users whose devices are critical.
 

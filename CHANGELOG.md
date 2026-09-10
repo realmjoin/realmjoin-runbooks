@@ -1,5 +1,33 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-10
+
+- Update **Notify Users About Low Diskspace (Scheduled)** and **Report Devices Low Diskspace (Scheduled)** in Org/Devices
+  - Evaluate the threshold against the exact free disk space and round the displayed values down, so a device just below the configured limit is reliably reported and never shown with a value that equals the threshold
+  - Rank the flagged devices by the metric the threshold uses, so the most urgent devices lead the report and the notification in both threshold modes
+  - Render device name, operating system, model and primary user as Intune reports them, including values containing Markdown characters such as "|", "*" or "<"
+  - Describe in both runbooks why the pair can list a different number of devices: the report includes devices with a stale inventory, the notification skips them
+
+- Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Resolve the primary user by the Entra object id that Intune reports in `managedDevice.userId`, with the escaped user principal name as fallback, so guest accounts and users whose UPN has changed are reached as well
+  - Group all devices of a person into a single notification, also when Intune reports an object id for some of them and only a user principal name for others
+  - Return the resolved group scopes as a set, so the include/exclude user scope and the device group scope match case-insensitively and report their real size
+  - Report the delivery result per recipient, so a partially delivered notification is visible and a run without a single delivery ends as a failed job
+  - Keep a custom mail template in its own language by taking the headline from the custom subject and omitting the generated closing note
+
+- Update **Report Devices Low Diskspace (Scheduled)** in Org/Devices
+  - Deliver the report email independently of the optional download link: a failed upload is reported as a warning naming the likely cause and the run continues
+  - Ship "CSV & XLSX" as the `ReportFileFormat` default, matching the parameter help, the dropdown and the runbook description
+  - Treat manufacturer and model filter entries as literal substrings, so an entry containing `*`, `?`, `[` or `]` matches as written
+  - Reduce the tenant name to a file-safe form before it becomes part of the report file name
+  - Attach and announce only the report files that were actually written, and report the delivery result per recipient
+
+- Update **List Inactive Enterprise Applications** Runbook in Org/Applications
+  - Determine the last sign-in from the Entra service principal sign-in activity report, which keeps the date per application, instead of the raw sign-in log with its 7 resp. 30 day retention - a threshold above the retention period, such as the default of 90 days, is evaluated on data that covers it
+  - Assign every application of the tenant to exactly one of the two result lists
+  - Leave the tenant unchanged: the runbook reports only and no longer writes the date of the last sign-in into the application's `notes` field
+  - Read the tenant with two paged Graph calls instead of one lookup per application, which noticeably shortens the runtime in tenants with many enterprise applications
+
 ## 2026-09-07
 
 - Fix **Report SharePoint Tenant Storage** as the Quota was not calculated correctly
