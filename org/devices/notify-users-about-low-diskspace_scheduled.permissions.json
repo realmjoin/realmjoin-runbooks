@@ -7,7 +7,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "DeviceManagementManagedDevices.Read.All",
-                    "Reason": "Reads Intune managed devices including freeStorageSpaceInBytes, totalStorageSpaceInBytes, lastSyncDateTime and the primary user to find devices below the low disk space threshold"
+                    "Reason": "Reads Intune managed devices including freeStorageSpaceInBytes, totalStorageSpaceInBytes, lastSyncDateTime and the primary user (userId and userPrincipalName) to find devices below the low disk space threshold"
                 },
                 {
                     "Value": "User.Read.All",
