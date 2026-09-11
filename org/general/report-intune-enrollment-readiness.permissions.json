@@ -1,0 +1,22 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                { "Value": "DeviceManagementServiceConfig.Read.All", "Reason": "Reads /deviceManagement/deviceEnrollmentConfigurations?$expand=assignments to evaluate enrollment limit and platform restriction configurations against each target user" },
+                { "Value": "Group.Read.All", "Reason": "Resolves the scope group and the optional pilot group via /groups?$filter=displayName eq '...' when a group name is supplied" },
+                { "Value": "GroupMember.Read.All", "Reason": "Expands /groups/{id}/transitiveMembers/microsoft.graph.user to enumerate members of the scope group and, when pilot-membership checking is enabled, the pilot group" },
+                { "Value": "Organization.Read.All", "Reason": "Reads /organization twice: in Connect Part, GET /v1.0/organization?$select=displayName resolves $tenantDisplayName for report file names and the email subject; in Data Collection, GET /v1.0/organization/{tenantId}?$select=id,displayName,mobileDeviceManagementAuthority determines the tenant's MDM authority, with the tenant ID taken from Get-MgContext as a fast path and falling back to GET /v1.0/organization?$select=id" },
+                { "Value": "Policy.Read.All", "Reason": "Reads /identity/conditionalAccess/policies to identify enabled Conditional Access policies that could block device enrollment" },
+                { "Value": "RoleManagement.Read.Directory", "Reason": "Populates the roleTemplateId of the directoryRole objects returned by /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole, which Conditional Access includeRoles/excludeRoles scoping is matched against. User.Read.All authorizes the call itself but leaves directoryRole properties null, which would silently make every role-scoped policy appear not to apply" },
+                { "Value": "User.Read.All", "Reason": "Reads /users/{id} with accountEnabled, assignedLicenses, usageLocation and department for each selected or group-resolved user, /users/{id}/ownedDevices to count registered devices for the readiness check, /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole to resolve each user's directory roles for Conditional Access includeRoles/excludeRoles scoping, and /subscribedSkus to determine which licenses include an Intune service plan" },
+                { "Value": "UserAuthenticationMethod.Read.All", "Reason": "Reads /users/{id}/authentication/methods to check each target user has a registered authentication method before enrollment" },
+                { "Value": "Mail.Send", "Optional": true, "Feature": "Email report", "Reason": "Sends the readiness report email with its CSV/XLSX attachments via Send-RjReportEmail when SendEmailReport is enabled" }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

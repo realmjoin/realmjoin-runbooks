@@ -67,6 +67,10 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report Application Registration
     - Report Expiring Application Credentials (Scheduled)
     - Update Application Registration
+  - [Collab](#organization-collab)
+    - Check Onedrive Status
+    - List Sharepoint Sitecollection Permission
+    - Report Sharepoint Tenant Storage (Scheduled)
   - [Devices](#organization-devices)
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
@@ -76,8 +80,11 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Dedup Device Names (Scheduled)
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
+    - List Mobile Devices
+    - Notify Users About Low Diskspace (Scheduled)
     - Notify Users About Stale Devices (Scheduled)
     - Outphase Devices
+    - Report Devices Low Diskspace (Scheduled)
     - Report Devices Without Primary User (Scheduled)
     - Report Primary User Mismatch (Scheduled)
     - Report Stale Devices (Scheduled)
@@ -117,6 +124,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Monitor Service Health (Scheduled)
     - Office365 License Report
     - Report Apple MDM Cert Expiry (Scheduled)
+    - Report Intune Enrollment Readiness
     - Report License Assignment (Scheduled)
     - Report PIM Activations (Scheduled)
     - Sync All Devices
@@ -159,6 +167,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Assign Groups By Template
     - Assign Or Unassign License
     - Assign Windows365
+    - Check Intune Enrollment Readiness
     - List Group Memberships
     - List Group Ownerships
     - List Manager
@@ -309,6 +318,16 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
+<a name='organization-collab'></a>
+### Collab
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Check Onedrive Status | Check the status of a user's OneDrive |
+| List Sharepoint Sitecollection Permission | List all members and administrators of a SharePoint Online site collection |
+| Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint Online tenant storage and alert when thresholds are exceeded |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='organization-devices'></a>
 ### Devices
 | Runbook Name | Synopsis |
@@ -321,8 +340,11 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
+| List Mobile Devices | Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details. |
+| Notify Users About Low Diskspace (Scheduled) | Notify primary users about low disk space on their devices via email |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 | Outphase Devices | Remove or outphase multiple devices |
+| Report Devices Low Diskspace (Scheduled) | Scheduled report of managed devices running low on free disk space. |
 | Report Devices Without Primary User (Scheduled) | Reports all managed devices in Intune that do not have a primary user assigned. |
 | Report Primary User Mismatch (Scheduled) | Compare primary user assignments in Intune against RealmJoin for Windows managed devices |
 | Report Stale Devices (Scheduled) | Scheduled report of stale devices based on last activity date and platform. |
@@ -368,6 +390,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Monitor Service Health (Scheduled) | Alert by email on newly announced Microsoft 365 Service Health issues |
 | Office365 License Report | Generate an Office 365 licensing report |
 | Report Apple MDM Cert Expiry (Scheduled) | Monitor/Report expiry of Apple device management certificates |
+| Report Intune Enrollment Readiness | Report Intune enrollment readiness for a set of users |
 | Report License Assignment (Scheduled) | Generate and email a license availability report based on thresholds |
 | Report PIM Activations (Scheduled) | Scheduled report on PIM activations |
 | Sync All Devices | Sync all Intune Windows devices |
@@ -441,6 +464,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Assign Groups By Template | Assign cloud-only groups to a user based on a template |
 | Assign Or Unassign License | Assign or remove a license for a user via group membership |
 | Assign Windows365 | Assign and provision a Windows 365 Cloud PC for a user |
+| Check Intune Enrollment Readiness | Check whether a user is ready to enrol devices in Microsoft Intune |
 | List Group Memberships | List group memberships for this user |
 | List Group Ownerships | List group ownerships for this user. |
 | List Manager | List manager information for this user |
