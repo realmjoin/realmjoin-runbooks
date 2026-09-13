@@ -5,10 +5,10 @@
 	.DESCRIPTION
 	Scheduled monitor for SharePoint Online tenant storage capacity and usage. Connects to the SharePoint admin center using managed identity, retrieves the tenant storage quota and the top site collections by consumed storage, and reports the full inventory to the runbook output on every run. An alert email is sent only when free storage falls below the configured low-storage limit or unused licensed storage rises above the configured reclaimable threshold.
 
-	.PARAMETER AlertLowStorageLimitInMB
+	.PARAMETER AlertLowStorageLimitInGB
 	Low-storage alert threshold in megabytes. An alert email is sent when free tenant storage falls below this limit.
 
-	.PARAMETER AlertUnusedStorageLimitInMB
+	.PARAMETER AlertUnusedStorageLimitInGB
 	Unused-storage alert threshold in megabytes. An alert email is sent when unused licensed storage (storage assigned but not consumed by any site) rises above this limit, indicating storage that could be reclaimed.
 
 	.PARAMETER TopSiteCount
@@ -44,10 +44,10 @@
 	.INPUTS
 	RunbookCustomization: {
 
-			"AlertLowStorageLimitInMB": {
+			"AlertLowStorageLimitInGB": {
 				"DisplayName": "Alert when free storage falls below (MB)"
 			},
-			"AlertUnusedStorageLimitInMB": {
+			"AlertUnusedStorageLimitInGB": {
 				"DisplayName": "Alert when unused storage rises above (MB)"
 			},
 			"TopSiteCount": {
@@ -95,11 +95,11 @@
 	job history remains useful even on days with no alert.
 
 	Parameter Interactions:
-	- AlertLowStorageLimitInMB alerts when free tenant storage drops below the configured value.
-	- AlertUnusedStorageLimitInMB alerts when free tenant storage rises above the configured value
+	- AlertLowStorageLimitInGB alerts when free tenant storage drops below the configured value.
+	- AlertUnusedStorageLimitInGB alerts when free tenant storage rises above the configured value
 	  (an indicator of reclaimable licensed storage); set it to 0 to disable this check.
-	- Both checks can fire in the same run only if AlertLowStorageLimitInMB is configured higher than
-	  AlertUnusedStorageLimitInMB - review both values together when tuning thresholds.
+	- Both checks can fire in the same run only if AlertLowStorageLimitInGB is configured higher than
+	  AlertUnusedStorageLimitInGB - review both values together when tuning thresholds.
 	- The alert email is sent only when at least one threshold is breached; a run with no breach
 	  completes normally and sends nothing.
 	- The top site collections list covers SharePoint site collections only; OneDrive for Business
@@ -160,11 +160,11 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.2"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-Write-RjRbLog -Message "AlertLowStorageLimitInMB: $AlertLowStorageLimitInMB" -Verbose
-Write-RjRbLog -Message "AlertUnusedStorageLimitInMB: $AlertUnusedStorageLimitInMB" -Verbose
+Write-RjRbLog -Message "AlertLowStorageLimitInGB: $AlertLowStorageLimitInGB" -Verbose
+Write-RjRbLog -Message "AlertUnusedStorageLimitInGB: $AlertUnusedStorageLimitInGB" -Verbose
 Write-RjRbLog -Message "TopSiteCount: $TopSiteCount" -Verbose
 
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
@@ -304,13 +304,13 @@ Write-Output "SharePoint Online Tenant Storage"
 Write-Output "---------------------"
 
 # ===== Derive storage metrics =====
-# Get-PnPGeoStorageQuota returns GeoUsedStorageMB and StorageQuotaMB
+# Get-PnPGeoStorageQuota returns GeoUsedStorageMB and StoragequotaGB
 $usedMB = $storageQuota.GeoUsedStorageMB
 $quotaMB = $storageQuota.TenantStorageMB
 
 # Fail with clear message if quota values are missing or unusable
 if ($null -eq $usedMB -or $null -eq $quotaMB -or $quotaMB -le 0) {
-    Write-Error "Unable to retrieve valid storage quota values. Used: $usedMB, Quota: $quotaMB" -ErrorAction Continue
+    Write-Error "Unable to retrieve valid storage quota values. Used MB: $usedMB, Quota MB: $quotaMB" -ErrorAction Continue
     throw "Cannot determine tenant storage quota"
 }
 
@@ -326,14 +326,14 @@ $alertTriggered = $false
 $alertReasons = @()
 
 # Low storage check
-if ($freeMB -lt $AlertLowStorageLimitInMB) {
-    $alertReasons += "Free tenant storage ($freeGB GB) is below the configured low-storage limit ($([Math]::Round($AlertLowStorageLimitInMB / 1024, 2)) GB)."
+if ($freeGB -lt $AlertLowStorageLimitInGB) {
+    $alertReasons += "Free tenant storage ($freeGB GB) is below the configured low-storage limit ($AlertLowStorageLimitInGB GB)."
     $alertTriggered = $true
 }
 
 # Unused storage check (only if threshold is enabled, i.e., > 0)
-if ($AlertUnusedStorageLimitInMB -gt 0 -and $freeMB -gt $AlertUnusedStorageLimitInMB) {
-    $alertReasons += "Free tenant storage ($freeGB GB) exceeds the configured unused-storage limit ($([Math]::Round($AlertUnusedStorageLimitInMB / 1024, 2)) GB); licensed storage may be reclaimable."
+if ($AlertUnusedStorageLimitInGB -gt 0 -and $freeGB -gt $AlertUnusedStorageLimitInGB) {
+    $alertReasons += "Free tenant storage ($freeGB GB) exceeds the configured unused-storage limit ($AlertUnusedStorageLimitInGB GB); licensed storage may be reclaimable."
     $alertTriggered = $true
 }
 
@@ -345,7 +345,7 @@ if ($allSites.Count -gt 0) {
         # Treat null storage as 0; normalize to GB
         $siteStorageMB = if ($null -eq $_.StorageUsageCurrent) { 0 } else { [double]$_.StorageUsageCurrent }
         $siteStorageGB = [Math]::Round($siteStorageMB / 1024, 2)
-        $sitePercent = if ($quotaMB -gt 0) { [Math]::Round(($siteStorageMB / $quotaMB) * 100, 2) } else { 0 }
+        $sitePercent = if ($quotaGB -gt 0) { [Math]::Round(($siteStorageMB / $quotaGB) * 100, 2) } else { 0 }
 
 
         # Handle empty title
@@ -362,7 +362,7 @@ if ($allSites.Count -gt 0) {
 
 # ===== Display to runbook output =====
 Write-Output "Total Quota: $quotaGB GB"
-Write-Output "Used: $usedMB MB ($usedPercent%)"
+Write-Output "Used: $usedGB GB ($usedPercent%)"
 Write-Output "Free: $freeGB GB"
 Write-Output ""
 
@@ -409,7 +409,7 @@ $($alertReasons | ForEach-Object { "- $_" } | Out-String)
 ## Storage Summary
 
 - **Total Quota:** $quotaGB GB
-- **Used:** $usedMB MB ($usedPercent%)
+- **Used:** $usedGB MB ($usedPercent%)
 - **Free:** $freeGB GB
 
 ## Top Site Collections
