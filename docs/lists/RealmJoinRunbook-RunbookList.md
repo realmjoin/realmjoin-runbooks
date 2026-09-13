@@ -67,6 +67,10 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Report Application Registration
     - Report Expiring Application Credentials (Scheduled)
     - Update Application Registration
+  - [Collab](#organization-collab)
+    - Check Onedrive Status
+    - List Sharepoint Sitecollection Permission
+    - Report Sharepoint Tenant Storage (Scheduled)
   - [Devices](#organization-devices)
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
@@ -76,6 +80,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Dedup Device Names (Scheduled)
     - Delete Stale Devices (Scheduled)
     - Get Bitlocker Recovery Key
+    - List Mobile Devices
+    - Notify Users About Low Diskspace (Scheduled)
     - Notify Users About Stale Devices (Scheduled)
     - Outphase Devices
     - Report Devices Low Diskspace (Scheduled)
@@ -312,6 +318,16 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
+<a name='organization-collab'></a>
+### Collab
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Check Onedrive Status | Check the status of a user's OneDrive |
+| List Sharepoint Sitecollection Permission | List all members and administrators of a SharePoint Online site collection |
+| Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint Online tenant storage and alert when thresholds are exceeded |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='organization-devices'></a>
 ### Devices
 | Runbook Name | Synopsis |
@@ -324,6 +340,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Dedup Device Names (Scheduled) | Detect and rename duplicate Intune device display names using a prefix and random suffix |
 | Delete Stale Devices (Scheduled) | Scheduled deletion of stale devices based on last activity date and platform |
 | Get Bitlocker Recovery Key | Get the BitLocker recovery key |
+| List Mobile Devices | Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details. |
+| Notify Users About Low Diskspace (Scheduled) | Notify primary users about low disk space on their devices via email |
 | Notify Users About Stale Devices (Scheduled) | Notify primary users about their stale devices via email |
 | Outphase Devices | Remove or outphase multiple devices |
 | Report Devices Low Diskspace (Scheduled) | Scheduled report of managed devices running low on free disk space. |

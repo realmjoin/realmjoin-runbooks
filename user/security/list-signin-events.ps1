@@ -893,7 +893,7 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
         # optional download link failed. Report and continue so the email is still attempted.
         $uploadError = "$_"
         if ($uploadError -like "*AuthorizationPermissionMismatch*" -or $uploadError -like "*403*" -or $uploadError -like "*Forbidden*") {
-            Write-Error "Could not create the download link: the managed identity is not authorized to write to storage account '$StorageAccountName'. Grant it the 'Storage Blob Data Contributor' Azure RBAC role on the storage account and run the report again. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "Could not create the download link: the managed identity is not authorized to write to storage account '$StorageAccountName'. Grant it the 'Storage Account Contributor' Azure RBAC role on the storage account and run the report again. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
         }
         elseif ($uploadError -like "*ResourceNotFound*" -or $uploadError -like "*404*" -or $uploadError -like "*could not be found*") {
             Write-Error "Could not create the download link: storage account '$StorageAccountName' or resource group '$ResourceGroupName' was not found. Verify the RJReport.StorageAccount.ResourceGroup and RJReport.StorageAccount.StorageAccountName settings. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue

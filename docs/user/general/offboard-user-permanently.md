@@ -18,7 +18,7 @@ User \ General \ Offboard User Permanently
   - Exchange.ManageAsApp
 
 ### Permission notes
-Azure IaaS: Contributor access on subscription or resource group used for the export
+Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when exportGroupMemberships is used)
 
 ### RBAC roles
 - User Administrator
@@ -71,59 +71,50 @@ If set to true, revokes the user's refresh tokens and active sessions.
 | Required | false |
 | Type | Boolean |
 
-### exportResourceGroupName
-Azure Resource Group name for exporting data to storage.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
-### exportStorAccountName
-Azure Storage Account name for exporting data to storage.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
-### exportStorAccountLocation
-Azure region used when creating the Storage Account.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
-### exportStorAccountSKU
-SKU name used when creating the Storage Account.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
-### exportStorContainerGroupMembershipExports
-Container name used for group membership exports.
-
-| Property | Value |
-|----------|-------|
-| Default Value |  |
-| Required | false |
-| Type | String |
-
 ### exportGroupMemberships
-If set to true, exports the user's current group memberships to Azure Storage.
+If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link.
 
 | Property | Value |
 |----------|-------|
 | Default Value | False |
 | Required | false |
 | Type | Boolean |
+
+### ContainerName
+Storage container name used for the group membership export.
+
+| Property | Value |
+|----------|-------|
+| Default Value | user-leaver-groupmemberships |
+| Required | false |
+| Type | String |
+
+### ResourceGroupName
+Resource group that contains the storage account.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### StorageAccountName
+Storage account name used for the upload.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days until the generated download link expires.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 ### ChangeLicensesSelector
 Controls how directly assigned licenses should be handled.

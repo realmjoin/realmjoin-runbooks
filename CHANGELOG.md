@@ -5,12 +5,51 @@
 - Fix **Report SharePoint Tenant Storage** as the Quota was not calculated correctly
 - Update **Report SharePoint Tenant Storage** now takes GB instead of MB as a more reasonable unit
 
+## 2026-09-06
+
+- Update **List Mobile Devices** and **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Replace the inline Graph `$batch` loops of both runbooks with the `RealmJoin.RunbookHelper` module function `Invoke-RjRbGraphBatch`, which is already used by the other batch-based runbooks: the per-device detail requests (`IncludeNetworkDetails`) and the user lookups are now sent through the module function, so throttled inner requests (status 429) are retried up to five times with the Retry-After interval reported by Graph instead of a single retry after a fixed wait, and results can no longer be silently lost under Graph throttling in large tenants
+
+- Add **Notify Users About Low Diskspace** Runbook in Org/Devices
+  - Scheduled notification for the primary users of Intune managed Windows and macOS devices whose free disk space is below a configurable threshold; uses the same `ThresholdType` / `FreeSpaceThresholdGB` / `FreeSpacePercentThreshold` settings and the same Critical/Warning rating as **Report Devices Low Diskspace**, and `NotifyOnSeverity` limits the notification to critical devices when required
+  - One email per user lists all affected devices (name, operating system, model, free and total disk space, rating, last inventory) with practical cleanup steps rendered per platform (Windows: Storage Sense, Disk Cleanup, Recycle Bin, Downloads, OneDrive Files On-Demand, unused apps, caches; macOS: System Settings > Storage, Optimize Storage, Trash, Downloads, unused apps, Time Machine snapshots); built-in English and German templates or a custom template via runbook customization, Service Desk contact block and email branding as in **Notify Users About Stale Devices**
+  - Recipients are resolved via the user's mail attribute (UPN as fallback) using the Graph batch endpoint; disabled accounts, failed lookups and devices without a primary user are skipped and listed in the output, and `MaxInventoryAgeDays` skips devices whose last Intune sync is older than the given number of days so users are not notified based on outdated inventory
+  - Optional scoping by user group (include/exclude, transitive membership resolved once per run) and by Entra device group; `SimulationMode` lists the affected users and devices without sending anything, and `OverrideEmailRecipient` redirects all notifications to a test or shared mailbox
+
 ## 2026-09-04
 
 - Update **Add Shared Mailbox** in Org/Mail
   - Improve when Domain is specified for the shared mailbox creation, it is correctly included in the primary SMTP address and the UPN.
 - Update **Add Primary Users of Devices to Group** in Org/general
   - Add Report Only mode to limit the runbook to generating a report without making any changes
+
+## 2026-09-02
+
+- Add **List Mobile Devices** Runbook in Org/Devices
+  - Lists all Intune managed Android and iOS/iPadOS devices with mobile-specific inventory such as IMEI, serial number, phone number, carrier, ownership, compliance and enrollment details
+  - The `IncludeNetworkDetails` option (off by default) adds the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state per device; the network table is sorted by subnet so devices group by the network they were last seen in
+  - The network details require one additional Graph request per device, always sent through the Graph batch endpoint in chunks of up to 20 with a retry on throttling; the companion documentation explains why this option should be used with care on tenants with many mobile devices
+  - The phone number column can be omitted entirely via `IncludePhoneNumber`, and optional scope filters limit the output to the members of an Entra device group and/or to devices whose primary user is a member of a user group (nested group memberships are resolved)
+  - The inventory can optionally be sent as an email report (CSV and/or XLSX) and/or uploaded to the `RJReport.StorageAccount.*` storage account with a time-limited download link, as in the other report runbooks
+
+- Extend **Offboard User Temporarily** in User/General
+  - New option `ReplaceManagerReferences` sets the replacement person as manager for all direct reports of the offboarded user
+  - New option `ReplaceSponsorReferences` replaces the offboarded user as sponsor (typically on guest users); as Microsoft Graph offers no reverse lookup for sponsors it scans all users of the tenant, and sponsorships held only through a group membership stay untouched
+  - Both are off by default and reuse the established replacement person (the new `ManagerAsReplacementOwner` option takes precedence over `ReplacementOwnerName`, which is now picked from the directory instead of the former `OffboardUserTemporarily.ReplacementOwnerName` setting); without a resolvable replacement, or if a single change fails, the affected users are named in the output for manual follow-up instead of aborting the offboarding
+  - New option `UserTypeSelector` limits the runbook to member or guest users and aborts before any change on a mismatch; hide the parameter via RunbookCustomization to make the restriction binding, and note that accounts with an unset `userType` count as members
+  - The replacement person is resolved once at the start of the run instead of once per affected group, and all Graph calls now use native `Connect-MgGraph` / `Invoke-MgGraphRequest` with the shared `Get-GraphPagedResult` helper; user principal names and group name filters are URL encoded, so guest accounts (whose UPN contains `#EXT#`) and names with special characters resolve correctly
+
+- Modernize the group membership export of **Offboard User Temporarily** and **Offboard User Permanently** in User/General
+  - The export (`exportGroupMemberships`) now uploads a timestamped `<UPN>-groupmemberships.json` file per run to the storage account configured in the central `RJReport.StorageAccount.*` settings and returns a time-limited SAS download link, instead of overwriting a single unversioned blob per user
+  - The runbook-specific `OffboardUser*.export*` settings (resource group, storage account name, location, SKU, container) are replaced by the shared `RJReport.StorageAccount.*` settings plus a `ContainerName` parameter (default `user-leaver-groupmemberships`); the storage account is no longer created on the fly, and the managed identity only needs the `Storage Account Contributor` role on the target storage account instead of Contributor on the subscription or resource group
+  - The upload uses the `RealmJoin.RunbookHelper` storage functions, so the `Az.Storage` module requirement is dropped in favor of `Az.Accounts`, which also avoids the known assembly conflict between `Az.Storage` and `ExchangeOnlineManagement`
+
+- Improve **Offboard User Permanently** in User/General
+  - The `RevokeAccess` option now binds to the documented `OffboardUserPermanently.revokeAccess` setting; previously a misspelled attribute name was read, so configuring the documented setting had no effect and the option always ran with its default. Tenants that configured the misspelled `revokaAccess` attribute should rename it to `revokeAccess`
+
+- Correct the documented storage role for the report upload of **Report Devices Low Diskspace** (Org/Devices), **Sync Channel Or Group Members** and **Sync Shared Channel Owners** (Org/General) and **List Signin Events** (User/Security)
+  - The Automation Account's managed identity needs the `Storage Account Contributor` role on the target storage account, as the upload retrieves the account keys via `listKeys`; the previously documented `Storage Blob Data Contributor` role does not include that action
+  - The role is corrected in the permissions declaration and runbook documentation as well as in the authorization-error hint that **List Signin Events** prints when the upload is not permitted
 
 ## 2026-08-30
 

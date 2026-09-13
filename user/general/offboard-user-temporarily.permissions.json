@@ -7,15 +7,15 @@
             "AppRoleAssignments": [
                 {
                     "Value": "User.ReadWrite.All",
-                    "Reason": "Disables sign-in, revokes sessions and removes direct license assignments"
+                    "Reason": "Disables sign-in, revokes sessions, removes direct license assignments and replaces manager and sponsor references"
                 },
                 {
                     "Value": "Group.ReadWrite.All",
-                    "Reason": "Reads groups and owned objects and transfers group ownerships"
+                    "Reason": "Reads groups and transfers or removes the user's group ownerships"
                 },
                 {
                     "Value": "GroupMember.ReadWrite.All",
-                    "Reason": "Adds and removes group memberships when changing or clearing groups"
+                    "Reason": "Adds and removes group memberships during the group cleanup"
                 }
             ]
         },
@@ -43,6 +43,6 @@
         }
     ],
     "ManualPermissions": [
-        "Azure IaaS: Contributor access on subscription or resource group used for the export"
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when exportGroupMemberships is used)"
     ]
 }
