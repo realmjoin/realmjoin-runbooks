@@ -24,22 +24,6 @@
 		}
 	}
 
-	.NOTES
-
-	Common Use Cases:
-	- Check whether an active user's OneDrive is provisioned, and if so, whether it is locked
-	  or archived.
-	- Check whether a deleted user's OneDrive still exists in the tenant recycle bin, and when
-	  it is scheduled to be purged.
-
-	Parameter Interactions:
-	- UserPrincipalName accepts the UPN of an already-deleted account, not only active users.
-	  This is intentional: a user picker cannot select a deleted account, so the parameter is
-	  free text rather than a picker.
-	- For a deleted user, recycle bin matching relies on the deleted site's SiteOwnerEmail; a
-	  missing value or a prior UPN rename can cause a false "Not found" result.
-
-	This runbook is strictly read-only and makes no changes to the tenant.
 #>
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }

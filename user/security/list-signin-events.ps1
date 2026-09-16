@@ -71,18 +71,6 @@
     .PARAMETER CallerName
     Name of the user or system that started the runbook. Tracked for auditing purposes.
 
-    .NOTES
-    Common Use Cases:
-    - Investigate which application is generating sign-in failures for a specific user and why (grouped by error code).
-    - Narrow results with ApplicationName (partial match) or FailedSignInsOnly when a user reports access issues.
-    - Export sign-in data to CSV/XLSX for further analysis in Excel when the event count is too large to read in the portal.
-
-    Behavior:
-    - Sign-in log data is retrieved from the Microsoft Graph beta endpoint because sign-in event type filtering
-      and non-interactive sign-in retrieval require beta-only properties (signInEventTypes, authenticationRequirement).
-    - Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the
-      50 most recent entries, but exported report files always contain the full result set.
-
     .INPUTS
     RunbookCustomization: {
         "Parameters": {

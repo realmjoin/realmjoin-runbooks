@@ -8,43 +8,6 @@
 	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
 	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-	.NOTES
-	Prerequisites:
-	- The Azure Automation managed identity must hold these Microsoft Graph application
-	  permissions: DeviceManagementManagedDevices.Read.All,
-	  DeviceManagementServiceConfig.ReadWrite.All, Organization.Read.All, Device.ReadWrite.All
-	  (Device.ReadWrite.All only when the "Delete Autopilot and Entra device" mode is used), and
-	  Mail.Send (Mail.Send only when email reporting is enabled).
-	- Grant the permissions before the first scheduled run.
-
-	Warning - deletion is irreversible:
-	- Removing an Autopilot device identity permanently deletes it from Windows Autopilot.
-	- The physical device cannot re-enter Autopilot until its hardware hash is re-uploaded.
-	- There is no soft-delete or recycle bin for Autopilot records.
-	- Deleting the Entra (Azure AD) device object is likewise permanent; only do so for records
-	  that are genuinely dead (the device will never enroll again).
-
-	Recommended first-run procedure:
-	- Run with Delete mode = "WhatIf (report only)" (the default) and review the output or emailed CSV.
-	- Confirm the identified devices are genuinely orphaned or never-enrolled.
-	- Switch to a deletion mode only after the candidate list has been reviewed.
-
-	Parameter interactions:
-	- DeleteMode defaults to "WhatIf (report only)"; no deletions occur in that mode.
-	- "Delete Autopilot device" removes only the Autopilot identity. "Delete Autopilot and Entra
-	  device" additionally removes the matching Entra (Azure AD) device object, which would
-	  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.
-	- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both
-	  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.
-	- GroupTagFilter, ManufacturerFilter and ModelFilter are all optional; leave a filter empty to
-	  evaluate all values for that dimension. When more than one filter is set they are combined with
-	  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the
-	  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive
-	  substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
-	- ExcludeSerialNumbers is applied after the AND filters as an exclusion: any device whose serial
-	  number is in the list (exact, case-insensitive) is removed from scope regardless of the other
-	  filters. Leave empty to exclude nothing.
-
 	.PARAMETER DeleteMode
 	Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records.
 

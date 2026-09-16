@@ -14,32 +14,6 @@
     The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
     When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-    .NOTES
-    Intune does not report the Wi-Fi SSID of a device. The last reported IP address and subnet are the closest network
-    indicator and should always be interpreted together with the Last Sync column, because they describe the state of the
-    last successful device check-in - which can also have happened over cellular.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when an email report is requested
-    - RJReport.StorageAccount.* settings must be configured when a download link is requested
-
-    Data source and freshness:
-    All values are taken from the Intune inventory of each device, which is refreshed with the regular device check-in.
-    They therefore describe the state of the last successful check-in and not necessarily the current state.
-    The network and SIM details (IP address, subnet, ICCID, UDID, ...) are not part of the Graph device list response and
-    are retrieved with one additional Graph request per device, sent through the Graph batch endpoint in chunks of up to 20.
-
-    Performance:
-    The network/SIM details are disabled by default. When enabled, the runtime grows linearly with the number of mobile
-    devices. On tenants with many mobile devices, combine the option with the group scope filters.
-
-    Common Use Cases:
-    - Inventory of all mobile devices including IMEI, serial number, phone number and carrier
-    - Identifying in which (Wi-Fi) networks mobile devices were last active, e.g. handheld scanners across warehouse locations
-    - Reviewing compliance, supervision and encryption state of the mobile fleet
-    - SIM/eSIM inventory via ICCID and eSIM identifier
-    - Handing the full mobile inventory to asset management as an Excel workbook or CSV file
-
     .PARAMETER Android
     Include Android devices in the results.
 

@@ -5,27 +5,6 @@
     .DESCRIPTION
     Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Three optional routing targets are available: a global override recipient that redirects ALL notifications (for testing and piloting), a dedicated recipient for users whose UPN matches a name pattern (e.g. Device Enrollment Manager accounts), and a dedicated recipient that receives one combined email for stale devices without a primary user.
 
-    .NOTES
-    This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.
-    The email is sent directly to the primary user's email address and includes detailed information about each inactive device.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-    - Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)
-
-    Common Use Cases:
-    - Automated user reminders about inactive devices to encourage regular device check-ins
-    - Proactive device lifecycle management by alerting users before devices are retired
-    - Security and compliance by ensuring users are aware of all devices registered to them
-    - Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)
-    - User scope filtering to target specific departments or exclude service accounts
-    - Centrally handling devices without a primary user or owned by Device Enrollment Manager (e.g. DEM-*) accounts via dedicated recipients
-
-    Pilot and Testing Options:
-    - Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users
-    - Perfect for validating email content and testing filters before rolling out to production
-    - Send notifications to ticket systems or shared mailboxes for centralized handling
-
     .PARAMETER Days
     Number of days without activity to be considered stale (minimum threshold).
 

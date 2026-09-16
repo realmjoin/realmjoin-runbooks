@@ -16,11 +16,6 @@
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
-    .NOTES
-    Setting this via Microsoft Graph is broken as of 2021-06-28.
-    Attribute: allowExternalSenders.
-    See https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property.
-
     .INPUTS
     RunbookCustomization: {
         "Parameters": {

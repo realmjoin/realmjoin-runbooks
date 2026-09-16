@@ -1,3 +1,10 @@
+## Common use cases
+
+- Recurring reminders to users whose devices are about to run out of disk space, before updates and app installations start to fail
+- Two-stage campaigns: report all devices below the threshold to administrators with **Report Devices Low Diskspace**, and notify only the users with critical devices via `NotifyOnSeverity`
+- Staged rollouts per department or pilot group via the user and device group scope options
+- Excluding service or shared accounts via the exclude group
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the runbook sees the state of the last successful inventory rather than the current state of the device. To avoid notifying users based on outdated numbers, devices whose last Intune sync is older than `MaxInventoryAgeDays` (default 14 days) are skipped and counted separately. Devices without a last sync date are treated as outdated as well. Set the parameter to `0` to disable this check.

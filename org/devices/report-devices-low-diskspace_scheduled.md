@@ -1,3 +1,10 @@
+## Common use cases
+
+- Recurring disk space monitoring across the managed device fleet
+- Finding devices that are likely to fail feature updates or app deployments because of insufficient free space
+- Preparing targeted user communication or cleanup campaigns, for example with **Notify Users About Low Diskspace**
+- Checking a specific hardware generation via the manufacturer and model filters
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.

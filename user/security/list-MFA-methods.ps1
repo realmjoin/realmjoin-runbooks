@@ -58,21 +58,6 @@
     .PARAMETER CallerName
     Caller name for auditing purposes. Auto-filled by the RealmJoin portal.
 
-    .NOTES
-    Permissions (managed identity, application):
-    - UserAuthenticationMethod.Read.All - list authentication methods
-    - User.Read.All                      - resolve target user
-    - Organization.Read.All              - read tenant display name for the email body
-    - Mail.Send                          - only required when NotifyUser is enabled
-
-    Privacy / audit:
-    - This runbook reads sensitive identity data (registered MFA methods, including phone numbers).
-      Phone numbers are masked by default. Set MaskPhoneNumbers to false only when full numbers are
-      required for legitimate support purposes; the action is logged with CallerName.
-    - When NotifyUser is enabled, the target user is notified by email that an administrator has
-      retrieved their MFA methods. This requires the tenant setting RJReport.EmailSender to be
-      configured.
-
     .INPUTS
     RunbookCustomization: {
         "Parameters": {

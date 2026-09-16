@@ -9,25 +9,6 @@
 	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
 	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-	.NOTES
-	Prerequisites:
-	- Microsoft Graph BETA API access (driver update endpoints are in beta)
-	- RJReport.EmailSender setting configured (if email notifications are used)
-
-	Common Use Cases:
-	- Test filters first: Use WhatIf parameter to preview which drivers would be approved
-	- Auto-approve all drivers: Run without any filter parameters
-	- Approve specific manufacturers: Use DriverManufacturer to target vendors like "Intel" or "AMD"
-	- Target specific policies: Use PolicyNames or PolicyIds to scope to test policies first
-	- Monitor approvals: Configure EmailTo to receive detailed reports after each run
-
-	Parameter Interactions:
-	- If no policy filter is specified, ALL driver update policies are processed
-	- If no driver filter is specified, ALL pending drivers in selected policies are approved
-	- PolicyNames and PolicyIds can be combined - both filters apply independently
-	- Email notifications require RJReport.EmailSender setting and Connect-RjRbGraph
-	- WhatIf mode simulates approvals without making changes - useful for testing filters
-
 	.PARAMETER PolicyNames
 	(Optional) Comma-separated list of driver update policy names to scope the approval (e.g., "Policy1, Policy2, Policy3"). If not specified, all policies are processed.
 

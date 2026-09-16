@@ -8,16 +8,6 @@
 	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
 	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-	.NOTES
-	Prerequisites:
-	- An Azure Automation Account shared credential named exactly "RJAPI" must be created manually
-	  before scheduling. Set the username and password to match a RealmJoin customer API account
-	  (see https://docs.realmjoin.com/dev-reference/realmjoin-api/authentication).
-	- The Automation Account managed identity must have the following Graph application permissions
-	  assigned: DeviceManagementManagedDevices.Read.All, Mail.Send, Organization.Read.All.
-	- The RJReport.EmailSender setting must be configured with a valid sender address before the first run.
-	- No email is sent when the two datasets are in sync; an empty run is not an error.
-
 	.PARAMETER SyncThresholdDays
 	Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated.
 

@@ -3,7 +3,11 @@
 ## 2026-09-16
 
 - Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
-  - Point out in the parameter help, in the override warning and in the notification summary that the override mailbox receives one email per affected user within seconds, that mail filters may classify such a burst as bulk or spam, and where to look when the emails do not arrive (junk folder, quarantine, message trace of the sender)
+  - Point out in the documentation, in the override warning and in the notification summary that the override mailbox receives one email per affected user within seconds, that mail filters may classify such a burst as bulk or spam, and where to look when the emails do not arrive (junk folder, quarantine, message trace of the sender)
+
+- Move the background notes of 27 runbooks from the comment-based help (`.NOTES`) into their companion documentation (`<runbook>.md` next to the script), so the generated runbook reference presents each topic once and in a consistent place; use cases, parameter interactions, limitations and configuration examples that were previously only available in the notes are now part of the documentation page, permission lists are covered by the permission manifests
+  - New companion documentation for **Add Or Remove Trusted Site**, **Check Intune Enrollment Readiness**, **Check OneDrive Status**, **Dedup Device Names (Scheduled)**, **Enable Or Disable External Mail**, **Invite External Guest Users**, **List SharePoint Site Collection Permission** and **Report SharePoint Tenant Storage (Scheduled)**
+  - Extended companion documentation for **Add Primary Users Of Devices To Group (Scheduled)**, **Auto Approve Driver Updates (Scheduled)**, **Cleanup Autopilot Devices (Scheduled)**, **Delete Stale Devices (Scheduled)**, **List MFA Methods**, **List Mobile Devices**, **List Signin Events**, **Monitor Pending EPM Requests (Scheduled)**, **Monitor Service Health (Scheduled)**, **Notify Users About Low Diskspace (Scheduled)**, **Notify Users About Stale Devices (Scheduled)**, **Report Devices Low Diskspace (Scheduled)**, **Report EPM Elevation Requests (Scheduled)**, **Report Intune Enrollment Readiness**, **Report Primary User Mismatch (Scheduled)**, **Report Stale Devices (Scheduled)** and **Sync Shared Channel Owners (Scheduled)**
 
 ## 2026-09-15
 

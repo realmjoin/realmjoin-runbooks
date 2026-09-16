@@ -9,23 +9,6 @@
     The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
     When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-    .NOTES
-    This runbook generates a comprehensive report of stale devices and delivers it via email.
-    The report includes device details, platform breakdowns, and exports report files (CSV/xlsx) for further analysis.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-
-    Common Use Cases:
-    - Regular device inventory audits and compliance reporting
-    - Identifying devices for retirement or decommissioning
-    - Security reviews to find potentially lost devices
-    - Monitoring device health across the organization
-    - Using MaxDays parameter for staged reporting (e.g., 30-60 days, 60-90 days)
-    - User scope filtering to focus on specific departments or exclude service accounts
-
-    The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
-
     .PARAMETER Days
     Number of days without activity to be considered stale.
 

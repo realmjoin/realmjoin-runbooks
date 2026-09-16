@@ -5,23 +5,6 @@
 	.DESCRIPTION
 	Analyzes whether each user in a selected user set can enroll a device in Microsoft Intune by checking account status, Intune licensing, device enrollment limits, authentication methods, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted per Microsoft Entra design. Platform-scoped policies and browser-only client-app constraints are evaluated against the selected enrollment platform. Results are exported as CSV and/or XLSX with optional email delivery.
 
-	.NOTES
-	Interpretation notes:
-	- Checks performed per user: account state, Intune license and service plan, tenant MDM authority,
-	  device enrollment limit, platform restrictions, registered authentication methods, Conditional
-	  Access policies, and optionally pilot group membership.
-	- Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each
-	  user's EnrollmentPlatform; Entra's own What If tool remains the authority.
-	- Compliant-device requirements on "All resources" policies do not block enrollment (documented
-	  Entra exemption); only policies targeting device registration or the Intune enrollment apps are
-	  treated as strict gates.
-	- Not evaluated statically: named locations, device filters, sign-in frequency, and terms of use.
-	- Expired or already-used Temporary Access Passes are not counted as usable methods.
-
-	Prerequisites:
-	- Requires the RJReport.EmailSender setting for email delivery, and at least one of UserName or
-	  GroupName (memberships resolved transitively).
-
 	.PARAMETER UserName
 	User principal names of users to check for Intune enrollment readiness. Select one or more users. At least one of UserName or GroupName must be supplied; both may be combined.
 

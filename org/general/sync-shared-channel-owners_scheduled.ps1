@@ -81,21 +81,6 @@
     .PARAMETER CallerName
     Caller name for auditing purposes.
 
-    .NOTES
-    Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under
-    "SharedChannelOwners.Mapping". Each entry names a team by its exact display name. The hidden
-    TeamOwnerGroupMapping parameter is injected from it at runtime.
-    {
-        "Settings": {
-            "SharedChannelOwners": {
-                "Mapping": [
-                    { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
-                    { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
-                ]
-            }
-        }
-    }
-
     .INPUTS
     RunbookCustomization: {
         "ParameterList": [

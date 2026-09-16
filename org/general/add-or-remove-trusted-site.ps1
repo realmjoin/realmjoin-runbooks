@@ -23,9 +23,6 @@
     .PARAMETER CallerName
     Caller name is tracked purely for auditing purposes.
 
-    .NOTES
-    This runbook uses calls as described in https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/ to decrypt omaSettings. It currently needs to use the Microsoft Graph beta endpoint for this.
-
     .INPUTS
     RunbookCustomization: {
         "Parameters": {

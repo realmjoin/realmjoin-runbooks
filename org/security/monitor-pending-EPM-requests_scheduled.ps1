@@ -10,21 +10,6 @@
     The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
     When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-    .NOTES
-    Runbook Type: Scheduled (recommended: hourly or every 1 hours)
-
-    Endpoint Privilege Management (EPM) Context:
-    - EPM allows users to request temporary admin rights for specific applications
-    - Pending requests require manual review and approval by security admins
-    - Requests expire automatically if not reviewed within the configured timeframe
-    - Timely review is critical for user productivity and security posture
-
-    Email Behavior:
-    - Emails are sent individually to each recipient
-    - No email is sent when there are zero pending requests
-    - Report file attachments (see ReportFileFormat) are only included when DetailedReport is enabled
-
-
     .PARAMETER EmailTo
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.

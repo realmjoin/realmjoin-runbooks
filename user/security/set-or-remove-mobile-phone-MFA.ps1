@@ -61,13 +61,6 @@
     .PARAMETER LanguageOverride
     Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
 
-    .NOTES
-    Permissions (managed identity, application):
-    - UserAuthenticationMethod.ReadWrite.All - manage phone authentication methods
-    - User.Read.All                           - resolve target user
-    - Organization.Read.All                  - read tenant display name for the email body
-    - Mail.Send                              - only required when NotifyUser is enabled
-
     .INPUTS
     RunbookCustomization: {
         "Parameters": {

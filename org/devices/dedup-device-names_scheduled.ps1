@@ -7,19 +7,6 @@
 		For each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.
 		An optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.
 
-	.NOTES
-		Prerequisites:
-		- The managed identity must have DeviceManagementManagedDevices.ReadWrite.All and DeviceManagementServiceConfig.ReadWrite.All Graph application permissions assigned.
-		- Autopilot display name changes via updateDeviceProperties take effect at the next device sync and may not reflect immediately in the portal.
-
-		Parameter Interactions:
-		- NameLength must be strictly greater than the character count of NamePrefix. The difference determines how many random digits are appended (e.g., NamePrefix "CORP" with NameLength 8 produces names like "CORP4271").
-		- The runbook validates this constraint at startup and fails fast if violated.
-
-		Common Use Cases:
-		- Schedule weekly to automatically resolve duplicate device names that arise from re-enrollment, OS reimaging, or cloning workflows.
-		- The idempotent Autopilot sync path ensures that unique devices are also normalized in Autopilot even on the first run.
-
 	.PARAMETER NamePrefix
 		The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string.
 

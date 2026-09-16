@@ -23,15 +23,6 @@
 		}
 	}
 
-	.NOTES
-	Parameter Interactions:
-	- SiteUrl must point at a site collection root (e.g. https://contoso.sharepoint.com/sites/marketing),
-	  not a sub-site. A sub-site URL still returns results, but they describe the parent site
-	  collection - the runbook logs a warning when this happens.
-	- The Owners, Members, and Visitors groups are resolved via the site's associated-group properties,
-	  not by matching localized group names, so the report is accurate regardless of tenant language.
-	  Any of the three may be absent (common on Teams-connected sites) and is reported as "not configured"
-	  rather than causing a failure.
 #>
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }

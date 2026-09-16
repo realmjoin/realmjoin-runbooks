@@ -10,34 +10,6 @@
     The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
     When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
-    .NOTES
-    Runbook Type: Scheduled (recommended: monthly)
-
-    Purpose & Use Cases:
-    - Regular reporting of EPM activities
-    - Audit trail for approved/denied elevation requests
-    - Analysis of expired requests to identify process bottlenecks
-    - Identification of frequently requested applications for automatic elevation rules
-
-    Status Types Explained:
-    - Pending: Awaits admin decision (use monitor-pending-EPM-requests for time-critical alerting)
-    - Approved: Admin approved the request, user can proceed with elevation
-    - Denied: Admin rejected the request due to security/policy concerns
-    - Expired: Request expired before admin review (may indicate slow response times)
-    - Revoked: Previously approved elevation was later revoked by admin
-    - Completed: User successfully executed the elevated application after approval
-
-    Data Retention & Time Ranges:
-    - Intune retains EPM request details for 30 days after creation
-    - For long-term analysis, archive CSV exports outside of Intune
-    - Default filter (Approved/Denied/Expired/Revoked, 30 days)
-
-    Email & Export Details:
-    - Generates CSV and/or Excel (xlsx) report files with complete request details (see ReportFileFormat)
-    - Emails sent individually to each recipient for privacy
-    - No email sent when zero requests match the filter criteria
-    - Report files include: timestamps, users, devices, applications, justifications, file hashes
-
     .PARAMETER EmailTo
     Can be a single address or multiple comma-separated addresses (string).
     The function sends individual emails to each recipient for privacy reasons.

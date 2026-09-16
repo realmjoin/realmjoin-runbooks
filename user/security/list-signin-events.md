@@ -1,3 +1,14 @@
+## Common use cases
+
+- Investigate which application generates sign-in failures for a specific user and why, grouped by error code.
+- Narrow the results with `ApplicationName` (partial match) or `FailedSignInsOnly` when a user reports access issues.
+- Export the sign-in data to CSV or Excel for further analysis when the event count is too large to read in the portal.
+
+## Behaviour
+
+- Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
+- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the 50 most recent entries, but the exported report files always contain the full result set.
+
 ## Required license and permissions
 
 Reading sign-in logs through the Microsoft Graph API requires an **Entra ID P1 or P2 license** in the tenant. Tenants without it receive a 403 error from the sign-in log query even when all Graph permissions are granted. With P1/P2, sign-in logs are retained for up to 30 days; the 7-day retention of the free tier applies to the Entra portal, not to this runbook.

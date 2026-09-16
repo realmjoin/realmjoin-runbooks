@@ -8,20 +8,6 @@
     When deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.
     An email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
 
-    .NOTES
-    This runbook deletes managed devices from Intune based on inactivity. Use with care!
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when email reporting is used
-
-    Common Use Cases:
-    - Regular cleanup of stale device records in Intune
-    - Simulation runs (report-only mode) before enabling actual deletion
-    - Scheduled lifecycle management with an audit trail via email report
-
-    The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
-    This acts as an additional safety net when deletion is enabled.
-
     .PARAMETER Days
     Number of days without activity to be considered stale.
 

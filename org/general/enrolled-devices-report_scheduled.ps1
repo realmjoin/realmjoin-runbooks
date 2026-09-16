@@ -39,8 +39,6 @@
   .PARAMETER CallerName
   Caller name for auditing purposes.
 
-  .NOTES
-
   .EXAMPLE
   Example of Azure Storage Account configuration for RJ central datastore
   {
