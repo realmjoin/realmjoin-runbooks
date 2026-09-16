@@ -11,6 +11,9 @@
     The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
     When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
+    After the optional email and download link have been processed, the resulting credential list is emitted as structured objects,
+    so it is shown as a sortable and filterable table in the portal's "Output Data" tab - also when neither email nor download link is configured.
+
     .PARAMETER listOnlyExpiring
     If only credentials that are about to expire within the specified number of days should be listed, select "List only credentials about to expire" (final value: true).
     If you want to list all credentials regardless of their expiry date, select "List all credentials" (final value: false).
@@ -256,7 +259,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
@@ -911,6 +914,29 @@ if ($EmailTo) {
         Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
         throw "Failed to send email report: $($_.Exception.Message)"
     }
+}
+
+#endregion
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last on purpose: email sending and the storage upload can take a while with many credentials.
+Write-Output ""
+if ($totalCreds -gt 0) {
+    $tableTitle = if ($listOnlyExpiring) {
+        "Application credentials expiring within $Days days"
+    }
+    else {
+        "All application credentials"
+    }
+    Write-Output "Listing $totalCreds credential(s):"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = $tableTitle })
+    Write-Output $credentialResults
+}
+else {
+    Write-Output "No credentials found matching the filter criteria."
 }
 
 #endregion

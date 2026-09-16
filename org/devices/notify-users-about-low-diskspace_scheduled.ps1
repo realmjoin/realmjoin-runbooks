@@ -40,6 +40,11 @@
     - Use SimulationMode to list the affected users and devices without sending any email
     - Use OverrideEmailRecipient to send all notifications to a test mailbox instead of end users
     - Perfect for validating email content and testing thresholds and filters before rolling out to production
+    - Note that the override mailbox receives one email per affected user, all sent within a few seconds and with urgent
+      subject lines. Mail filters, especially those of a mailbox in another tenant, may classify such a burst as bulk or
+      spam and move it to the junk folder or the quarantine. The runbook only sees that Microsoft Graph accepted each
+      email; if they do not arrive, check the junk folder and the quarantine of the override mailbox and the message
+      trace of the sender. A mailbox in the same tenant is the more reliable test target.
 
     .PARAMETER ThresholdType
     Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
@@ -114,6 +119,7 @@
 
     .PARAMETER OverrideEmailRecipient
     Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly.
+    The override mailbox receives one email per affected user within a few seconds, each with an urgent subject line. Mail filters may treat such a burst as bulk or spam, in particular for a mailbox in another tenant, and move the emails to the junk folder or the quarantine without the runbook noticing. Prefer a mailbox in the same tenant for tests and check junk folder, quarantine and the message trace of the sender if the emails do not arrive.
 
     .PARAMETER SimulationMode
     When enabled, the runbook lists the affected users and devices in the output but does not send any email.
@@ -465,6 +471,10 @@ if (-not $EmailFrom) {
 $globalOverrideActive = -not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)
 if ($globalOverrideActive) {
     Write-Warning "OverrideEmailRecipient is set - ALL notifications are redirected to '$OverrideEmailRecipient'. No end user receives an email."
+    # The override mailbox gets one email per affected user, all within seconds and with urgent subject lines - a pattern
+    # that mail filters may classify as bulk or spam. Said up front so a test run whose emails never show up in the inbox
+    # is checked at the right place instead of being read as a runbook failure.
+    Write-Warning "The override mailbox receives one email per affected user within a few seconds. Mail filters may treat such a burst of similar, urgently worded emails as bulk or spam - if the emails do not arrive, check the junk folder and the quarantine of that mailbox and the message trace of the sender '$EmailFrom'. A mailbox in the same tenant is the more reliable test target."
 }
 
 if ($SimulationMode) {
@@ -1854,6 +1864,12 @@ if ($globalOverrideActive) {
     }
     else {
         Write-Output "  - Global override active: ALL emails sent to: $($OverrideEmailRecipient)"
+        if ($emailsSent -gt 0) {
+            # "Sent" means accepted by Microsoft Graph - what the receiving mail filter does with a burst of similar,
+            # urgently worded emails from one sender to one mailbox is invisible from here. Repeated at the end with the
+            # actual count so the hint sits next to the number the reader compares against the inbox.
+            Write-Output "  - $($emailsSent) separate email(s) were handed over to Microsoft Graph for this address within a few seconds. Mail filters may classify such a burst as bulk or spam - if the emails do not arrive, check the junk folder and the quarantine of the override mailbox and the message trace of the sender '$($EmailFrom)'."
+        }
     }
 }
 

@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-16
+
+- Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Point out in the parameter help, in the override warning and in the notification summary that the override mailbox receives one email per affected user within seconds, that mail filters may classify such a burst as bulk or spam, and where to look when the emails do not arrive (junk folder, quarantine, message trace of the sender)
+
+## 2026-09-15
+
+- Update **Report Expiring Application Credentials (Scheduled)** in Org/Applications
+  - Emit the credential list as structured objects at the end of the run, so it appears as a sortable and filterable table in the portal's Output Data tab - also when neither email nor download link is configured
+
 ## 2026-09-10
 
 - Update **Notify Users About Low Diskspace (Scheduled)** and **Report Devices Low Diskspace (Scheduled)** in Org/Devices
