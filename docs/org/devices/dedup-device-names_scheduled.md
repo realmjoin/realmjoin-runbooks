@@ -10,18 +10,20 @@ An optional OS filter restricts processing to a specific platform (Windows, macO
 ## Where to find
 Org \ Devices \ Dedup Device Names_Scheduled
 
-## Notes
-Prerequisites:
-- The managed identity must have DeviceManagementManagedDevices.ReadWrite.All and DeviceManagementServiceConfig.ReadWrite.All Graph application permissions assigned.
-- Autopilot display name changes via updateDeviceProperties take effect at the next device sync and may not reflect immediately in the portal.
+## Common use cases
 
-Parameter Interactions:
-- NameLength must be strictly greater than the character count of NamePrefix. The difference determines how many random digits are appended (e.g., NamePrefix "CORP" with NameLength 8 produces names like "CORP4271").
-- The runbook validates this constraint at startup and fails fast if violated.
+- Schedule the runbook weekly to resolve duplicate device names that arise from re-enrollment, OS reimaging or cloning workflows automatically.
+- The Autopilot sync path is idempotent, so unique devices are normalized in Autopilot as well, also on the first run.
 
-Common Use Cases:
-- Schedule weekly to automatically resolve duplicate device names that arise from re-enrollment, OS reimaging, or cloning workflows.
-- The idempotent Autopilot sync path ensures that unique devices are also normalized in Autopilot even on the first run.
+## Parameter interactions
+
+- `NameLength` must be strictly greater than the number of characters in `NamePrefix`. The difference determines how many random digits are appended; for example, `NamePrefix` "CORP" with `NameLength` 8 produces names like "CORP4271".
+- The runbook validates this constraint at startup and fails fast when it is violated.
+
+## Behaviour
+
+Autopilot display name changes made via `updateDeviceProperties` take effect at the next device sync and may not be reflected in the portal immediately.
+
 
 ## Permissions
 ### Application permissions

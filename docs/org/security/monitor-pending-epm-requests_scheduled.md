@@ -13,6 +13,23 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 ## Where to find
 Org \ Security \ Monitor Pending EPM Requests_Scheduled
 
+## Endpoint Privilege Management context
+
+- Endpoint Privilege Management (EPM) allows users to request temporary admin rights for specific applications.
+- Pending requests require manual review and approval by security admins.
+- Requests expire automatically if they are not reviewed within the configured timeframe.
+- A timely review is critical for user productivity and for the security posture.
+
+## Scheduling
+
+An hourly schedule is recommended.
+
+## Email behaviour
+
+- Emails are sent individually to each recipient.
+- No email is sent when there are no pending requests.
+- Report file attachments (see `ReportFileFormat`) are only included when `DetailedReport` is enabled.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -33,20 +50,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-Runbook Type: Scheduled (recommended: hourly or every 1 hours)
-
-Endpoint Privilege Management (EPM) Context:
-- EPM allows users to request temporary admin rights for specific applications
-- Pending requests require manual review and approval by security admins
-- Requests expire automatically if not reviewed within the configured timeframe
-- Timely review is critical for user productivity and security posture
-
-Email Behavior:
-- Emails are sent individually to each recipient
-- No email is sent when there are zero pending requests
-- Report file attachments (see ReportFileFormat) are only included when DetailedReport is enabled
 
 ## Permissions
 ### Application permissions

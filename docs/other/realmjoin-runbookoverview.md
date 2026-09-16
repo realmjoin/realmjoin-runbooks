@@ -1045,6 +1045,11 @@ You can also query the current state without making changes.
 
 Group \ Mail \ Enable Or Disable External Mail
 
+## Implementation notes
+
+The setting is changed through Exchange Online (`RequireSenderAuthenticationEnabled`), not through Microsoft Graph. Writing the corresponding `allowExternalSenders` property of the group via Microsoft Graph is a documented known issue (as of 2021-06-28), see [Setting the allowExternalSenders property](https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property).
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -1381,6 +1386,9 @@ The report files can also be uploaded to an Azure Storage Account, returning tim
 The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
 When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
+After the optional email and download link have been processed, the resulting credential list is emitted as structured objects,
+so it is shown as a sortable and filterable table in the portal's "Output Data" tab - also when neither email nor download link is configured.
+
 #### Where to find
 
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
@@ -1452,6 +1460,19 @@ Connects to the SharePoint admin center using the managed identity and retrieves
 
 Org \ Collab \ Check Onedrive Status
 
+## Common use cases
+
+- Check whether an active user's OneDrive is provisioned and, if so, whether it is locked or archived.
+- Check whether a deleted user's OneDrive still exists in the tenant recycle bin, and when it is scheduled to be purged.
+
+## Parameter behaviour
+
+- `UserPrincipalName` accepts the UPN of an already deleted account, not only of active users. This is intentional: a user picker cannot select a deleted account, so the parameter is free text rather than a picker.
+- For a deleted user, the recycle bin lookup matches on the deleted site's `SiteOwnerEmail`. A missing value or a prior UPN rename can cause a false "Not found" result.
+
+The runbook is strictly read-only and makes no changes to the tenant.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -1471,6 +1492,12 @@ Connects to a SharePoint Online site collection using PnP.PowerShell with the sy
 
 Org \ Collab \ List Sharepoint Sitecollection Permission
 
+## Parameter behaviour
+
+- `SiteUrl` must point at a site collection root (for example `https://contoso.sharepoint.com/sites/marketing`), not at a sub-site. A sub-site URL still returns results, but they describe the parent site collection; the runbook logs a warning when this happens.
+- The Owners, Members and Visitors groups are resolved via the site's associated-group properties, not by matching localized group names, so the report is accurate regardless of the tenant language. Any of the three groups may be absent (common on Teams-connected sites) and is then reported as "not configured" instead of causing a failure.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -1489,6 +1516,30 @@ Scheduled monitor for SharePoint Online tenant storage capacity and usage. Conne
 #### Where to find
 
 Org \ Collab \ Report Sharepoint Tenant Storage_Scheduled
+
+## Common use cases
+
+- Scheduled daily health check of the SharePoint Online tenant storage that alerts only when a threshold is breached.
+- Spotting a tenant that approaches its storage quota before users are blocked from saving files.
+- Spotting a large amount of unused, potentially reclaimable licensed storage.
+
+## Scheduling and output
+
+A daily schedule is recommended. The storage summary and the top site collections are written to the runbook output on every run, regardless of whether a threshold is breached, so the job history stays useful on days without an alert.
+
+## Parameter interactions
+
+- `AlertLowStorageLimitInMB` alerts when the free tenant storage drops below the configured value.
+- `AlertUnusedStorageLimitInMB` alerts when the free tenant storage rises above the configured value, an indicator of reclaimable licensed storage. Set it to `0` to disable this check.
+- Both checks can fire in the same run only when `AlertLowStorageLimitInMB` is configured higher than `AlertUnusedStorageLimitInMB`; review both values together when tuning the thresholds.
+- The alert email is only sent when at least one threshold is breached. A run without a breach completes normally and sends nothing.
+- The top site collections list covers SharePoint site collections only. OneDrive for Business sites are excluded because their storage does not count against the tenant storage quota this runbook monitors.
+
+## Limitations
+
+- `Get-PnPTenantSite` does not reliably report the creation date of a site on every tenant or module version; the report shows "Unknown" for such a site.
+- Enumerating all site collections can take several minutes in tenants with a large number of sites.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1559,6 +1610,25 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
 
+## Common use cases
+
+- Test the filters first: use the `WhatIf` parameter to preview which drivers would be approved.
+- Auto-approve all drivers: run without any filter parameter.
+- Approve specific manufacturers: use `DriverManufacturer` to target vendors such as "Intel" or "AMD".
+- Target specific policies: use `PolicyNames` or `PolicyIds` to scope the run to test policies first.
+- Monitor the approvals: configure `EmailTo` to receive a detailed report after each run.
+
+## Parameter interactions
+
+- Without a policy filter, all driver update policies are processed.
+- Without a driver filter, all pending drivers of the selected policies are approved.
+- `PolicyNames` and `PolicyIds` can be combined; both filters apply independently.
+- `WhatIf` simulates the approvals without making changes, which is useful for testing the filters.
+
+## Prerequisites
+
+The driver update endpoints are only available on the Microsoft Graph beta API, which this runbook uses.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -1601,6 +1671,26 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 #### Where to find
 
 Org \ Devices \ Cleanup Autopilot Devices_Scheduled
+
+## Deletion is irreversible
+
+- Removing an Autopilot device identity permanently deletes it from Windows Autopilot. There is no soft delete or recycle bin for Autopilot records.
+- The physical device cannot re-enter Autopilot until its hardware hash is uploaded again.
+- Deleting the Entra device object is likewise permanent; only do so for records that are genuinely dead, meaning the device will never enroll again.
+
+## Recommended first run
+
+1. Run with the delete mode *WhatIf (report only)*, which is the default, and review the output or the emailed CSV.
+2. Confirm that the identified devices are genuinely orphaned or never enrolled.
+3. Switch to a deletion mode only after the candidate list has been reviewed.
+
+## Parameter interactions
+
+- `DeleteMode` defaults to *WhatIf (report only)*; no deletions occur in that mode.
+- *Delete Autopilot device* removes only the Autopilot identity. *Delete Autopilot and Entra device* additionally removes the matching Entra device object, which would otherwise be left behind as a stale record once the Autopilot identity is gone. The second mode requires the `Device.ReadWrite.All` permission.
+- `CleanupOrphanedDevices` and `CleanupNeverEnrolledDevices` are independent; either or both can be enabled. `NeverEnrolledAgeDays` applies only to the never-enrolled check.
+- `GroupTagFilter`, `ManufacturerFilter` and `ModelFilter` are optional; leave a filter empty to evaluate all values for that dimension. When more than one filter is set, they are combined with AND, so a device must match every populated filter to remain in scope. `GroupTagFilter` matches the group tag exactly (case-insensitive); `ManufacturerFilter` and `ModelFilter` match as case-insensitive substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
+- `ExcludeSerialNumbers` is applied after the AND filters as an exclusion: a device whose serial number is in the list (exact, case-insensitive) is removed from scope regardless of the other filters. Leave it empty to exclude nothing.
 
 ## Setup regarding email sending
 
@@ -1663,6 +1753,21 @@ An optional OS filter restricts processing to a specific platform (Windows, macO
 
 Org \ Devices \ Dedup Device Names_Scheduled
 
+## Common use cases
+
+- Schedule the runbook weekly to resolve duplicate device names that arise from re-enrollment, OS reimaging or cloning workflows automatically.
+- The Autopilot sync path is idempotent, so unique devices are normalized in Autopilot as well, also on the first run.
+
+## Parameter interactions
+
+- `NameLength` must be strictly greater than the number of characters in `NamePrefix`. The difference determines how many random digits are appended; for example, `NamePrefix` "CORP" with `NameLength` 8 produces names like "CORP4271".
+- The runbook validates this constraint at startup and fails fast when it is violated.
+
+## Behaviour
+
+Autopilot display name changes made via `updateDeviceProperties` take effect at the next device sync and may not be reflected in the portal immediately.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -1684,6 +1789,18 @@ An email report with CSV and/or Excel (xlsx) attachments can be sent optionally 
 #### Where to find
 
 Org \ Devices \ Delete Stale Devices_Scheduled
+
+## Common use cases
+
+This runbook deletes managed devices from Intune based on inactivity, so use it with care.
+
+- Regular cleanup of stale device records in Intune
+- Simulation runs (report-only mode) before enabling the actual deletion
+- Scheduled lifecycle management with an audit trail via the email report
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user. This acts as an additional safety net when deletion is enabled.
 
 ## Setup regarding email sending
 
@@ -1753,6 +1870,14 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 #### Where to find
 
 Org \ Devices \ List Mobile Devices
+
+## Common use cases
+
+- Inventory of all mobile devices including IMEI, serial number, phone number and carrier
+- Identifying in which (Wi-Fi) networks mobile devices were last active, for example handheld scanners across warehouse locations
+- Reviewing the compliance, supervision and encryption state of the mobile fleet
+- SIM/eSIM inventory via ICCID and eSIM identifier
+- Handing the full mobile inventory to asset management as an Excel workbook or CSV file
 
 ## Output columns
 
@@ -1848,6 +1973,13 @@ A simulation mode lists the affected users and devices without sending anything,
 
 Org \ Devices \ Notify Users About Low Diskspace_Scheduled
 
+## Common use cases
+
+- Recurring reminders to users whose devices are about to run out of disk space, before updates and app installations start to fail
+- Two-stage campaigns: report all devices below the threshold to administrators with **Report Devices Low Diskspace**, and notify only the users with critical devices via `NotifyOnSeverity`
+- Staged rollouts per department or pilot group via the user and device group scope options
+- Excluding service or shared accounts via the exclude group
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the runbook sees the state of the last successful inventory rather than the current state of the device. To avoid notifying users based on outdated numbers, devices whose last Intune sync is older than `MaxInventoryAgeDays` (default 14 days) are skipped and counted separately. Devices without a last sync date are treated as outdated as well. Set the parameter to `0` to disable this check.
@@ -1877,6 +2009,8 @@ Recipients are resolved via Microsoft Graph: the primary user of a device is loo
 `SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
 `OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
+
+Keep in mind that the override mailbox then receives one email per affected user, all sent within a few seconds and with urgent subject lines. Mail filters may classify such a burst of similar emails as bulk or spam and move it to the junk folder or the quarantine, in particular when the override mailbox belongs to another tenant. The runbook only sees that Microsoft Graph accepted each email and reports it as sent; what the receiving side does afterwards is not visible in the job output. If the emails do not arrive, check the junk folder and the quarantine of the override mailbox and run a message trace for the sender address. A mailbox in the same tenant is the more reliable test target.
 
 ## Scoping options
 
@@ -1973,6 +2107,15 @@ Identifies devices that haven't been active for a specified number of days and s
 
 Org \ Devices \ Notify Users About Stale Devices_Scheduled
 
+## Common use cases
+
+- Automated user reminders about inactive devices to encourage regular device check-ins
+- Proactive device lifecycle management by alerting users before devices are retired
+- Security and compliance by ensuring users are aware of all devices registered to them
+- Staged notifications via the `MaxDays` parameter, for example a first reminder at 30 days and a final notice at 60 days
+- User scope filtering to target specific departments or to exclude service accounts
+- Central handling of devices without a primary user or owned by Device Enrollment Manager accounts (for example `DEM-*`) via dedicated recipients
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -1992,6 +2135,10 @@ The report email honors the optional `RJReport.Branding.*` tenant settings:
 When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+### Service Desk contact information
+
+The optional `RJReport.ServiceDesk_DisplayName`, `RJReport.ServiceDesk_EMail`, `RJReport.ServiceDesk_Phone` and `RJReport.ServiceDesk_PortalUrl` tenant settings add a contact block to the end of every notification email. `ServiceDeskTicketUrl` can additionally link to a ticket.
 
 ## Mail Template Language Selection
 
@@ -2128,6 +2275,13 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 
 Org \ Devices \ Report Devices Low Diskspace_Scheduled
 
+## Common use cases
+
+- Recurring disk space monitoring across the managed device fleet
+- Finding devices that are likely to fail feature updates or app deployments because of insufficient free space
+- Preparing targeted user communication or cleanup campaigns, for example with **Notify Users About Low Diskspace**
+- Checking a specific hardware generation via the manufacturer and model filters
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.
@@ -2240,6 +2394,10 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 
 Org \ Devices \ Report Primary User Mismatch_Scheduled
 
+## Result without mismatches
+
+No email is sent when the two data sources are in sync. A run without mismatches completes normally and is not an error.
+
 ## Setup regarding email sending
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
@@ -2295,6 +2453,19 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 #### Where to find
 
 Org \ Devices \ Report Stale Devices_Scheduled
+
+## Common use cases
+
+- Regular device inventory audits and compliance reporting
+- Identifying devices for retirement or decommissioning
+- Security reviews to find potentially lost devices
+- Monitoring device health across the organization
+- Staged reporting via the `MaxDays` parameter, for example 30 to 60 days and 60 to 90 days
+- User scope filtering to focus on specific departments or to exclude service accounts
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user.
 
 ## Setup regarding email sending
 
@@ -2602,6 +2773,11 @@ Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom co
 
 Org \ General \ Add Or Remove Trusted Site
 
+## Implementation notes
+
+The runbook decrypts the `omaSettings` of the custom configuration policy using the approach described in [this call4cloud article](https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/). This currently requires the Microsoft Graph beta endpoint.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -2620,6 +2796,22 @@ This runbook collects the primary users of all Intune managed devices matching t
 #### Where to find
 
 Org \ General \ Add Primary Users Of Devices To Group_Scheduled
+
+## Common use cases
+
+- Keeping a distribution or Conditional Access target group aligned with "who currently has a managed device", filtered by platform, by an advanced OData filter or by an include/exclude group scope.
+- Validating a new or changed filter or scope before it is allowed to write to a production group.
+
+A daily schedule is recommended.
+
+## Report-only mode for pilots and testing
+
+Enable `ReportOnly` to compute the same add/remove diff a real run would produce, without applying any change to the group. Instead, a Markdown preview email listing the affected users by UPN is sent to `EmailTo`: each list (would be added, would be removed) shows at most 10 users in the mail body, with a "... and N more" pointer when a list is longer, and the complete lists are attached as report file(s) in the format chosen by `ReportFileFormat`. Run once in this mode after changing the platform selection, `AdvancedFilter` or the include/exclude groups, review the preview, then disable `ReportOnly` to let the sync apply.
+
+## Parameter interactions
+
+- `AdvancedFilter`, when set, replaces the Windows/macOS/iOS/Android platform selection entirely rather than combining with it.
+- `RemoveUsersWhenNoDeviceMatch` controls both the real run and the `ReportOnly` preview: when disabled, no users are removed in either case, so the preview always reflects what a real run would do.
 
 ## Setup regarding email sending
 
@@ -3019,6 +3211,17 @@ The invited user can optionally be added to a specified group.
 
 Org \ General \ Invite External Guest Users
 
+## Common use cases
+
+- Basic guest invite: provide only the email address and the display name; all profile and group parameters can be left blank.
+- Full onboarding: supply all optional fields to set profile properties, assign a manager and a sponsor, and add the guest to a group in a single run.
+
+## Parameter interactions
+
+- Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.
+- Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -3077,6 +3280,18 @@ Queries the Microsoft 365 Service Health issues feed on a schedule and identifie
 #### Where to find
 
 Org \ General \ Monitor Service Health_Scheduled
+
+## Common use cases
+
+- Schedule the runbook to run at or slightly more often than `LookbackHours` to catch every new Service Health issue exactly once.
+- Set `Services` to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.
+- Leave `IncludeAdvisories` and `IncludeResolvedIssues` at their default of `false` for the lowest-noise setup, which alerts only on unresolved incidents; set either to `true` to also surface advisories or issues Microsoft has already marked as resolved.
+
+## Parameter interactions
+
+- An issue counts as newly announced when its first Service Health post falls inside the `LookbackHours` window (falling back to `startDateTime` if the issue has no posts), not by `lastModifiedDateTime` alone. This avoids missing back-dated issues while preventing re-alerts on every status update of an ongoing incident.
+- The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless `LookbackHours` is temporarily widened for a catch-up run.
+- One email is sent per new issue, so a busy Service Health day can produce several emails per run.
 
 ## Setup regarding email sending
 
@@ -3178,6 +3393,18 @@ Analyzes whether each user in a selected user set can enroll a device in Microso
 #### Where to find
 
 Org \ General \ Report Intune Enrollment Readiness
+
+## Interpretation notes
+
+- Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
+- Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
+- Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
+- Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
+- Expired or already used Temporary Access Passes are not counted as usable methods.
+
+## Prerequisites
+
+At least one of `UserName` or `GroupName` is required; group memberships are resolved transitively.
 
 ## Setup regarding email sending
 
@@ -3586,7 +3813,22 @@ The runbook is **add-only**: it never demotes or removes existing owners or memb
 
 ### Mapping configuration
 
-The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name** (see the *Notes* section for a ready-to-use example). The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name**. The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+
+Ready-to-use example for the org settings:
+
+```json
+{
+    "Settings": {
+        "SharedChannelOwners": {
+            "Mapping": [
+                { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
+                { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
+            ]
+        }
+    }
+}
+```
 
 ### Team matching
 
@@ -4106,6 +4348,23 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 
 Org \ Security \ Monitor Pending EPM Requests_Scheduled
 
+## Endpoint Privilege Management context
+
+- Endpoint Privilege Management (EPM) allows users to request temporary admin rights for specific applications.
+- Pending requests require manual review and approval by security admins.
+- Requests expire automatically if they are not reviewed within the configured timeframe.
+- A timely review is critical for user productivity and for the security posture.
+
+## Scheduling
+
+An hourly schedule is recommended.
+
+## Email behaviour
+
+- Emails are sent individually to each recipient.
+- No email is sent when there are no pending requests.
+- Report file attachments (see `ReportFileFormat`) are only included when `DetailedReport` is enabled.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -4169,6 +4428,37 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 #### Where to find
 
 Org \ Security \ Report EPM Elevation Requests_Scheduled
+
+## Purpose and use cases
+
+- Regular reporting of Endpoint Privilege Management (EPM) activities
+- Audit trail for approved and denied elevation requests
+- Analysis of expired requests to identify process bottlenecks
+- Identification of frequently requested applications for automatic elevation rules
+
+A monthly schedule is recommended.
+
+## Status types
+
+- **Pending:** awaits an admin decision (use **Monitor Pending EPM Requests** for time-critical alerting)
+- **Approved:** an admin approved the request, the user can proceed with the elevation
+- **Denied:** an admin rejected the request due to security or policy concerns
+- **Expired:** the request expired before an admin reviewed it, which may indicate slow response times
+- **Revoked:** a previously approved elevation was later revoked by an admin
+- **Completed:** the user successfully executed the elevated application after approval
+
+## Data retention and time ranges
+
+- Intune retains EPM request details for 30 days after creation.
+- For long-term analysis, archive the CSV exports outside of Intune.
+- The default filter covers the states Approved, Denied, Expired and Revoked over the last 30 days.
+
+## Email and export details
+
+- Generates CSV and/or Excel (xlsx) report files with the complete request details (see `ReportFileFormat`).
+- Emails are sent individually to each recipient for privacy.
+- No email is sent when no request matches the filter criteria.
+- The report files include timestamps, users, devices, applications, justifications and file hashes.
 
 ## Setup regarding email sending
 
@@ -4480,6 +4770,19 @@ Evaluates a selected user account for Intune device enrollment readiness and rep
 #### Where to find
 
 User \ General \ Check Intune Enrollment Readiness
+
+## Interpretation notes
+
+- Checks performed: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
+- Conditional Access is evaluated as a static "What If" against the enrollment sign-in for the selected `EnrollmentPlatform`; Entra's own What If tool remains the authority.
+- Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
+- Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
+- Expired or already used Temporary Access Passes are not counted as usable methods.
+
+## Prerequisites
+
+The tenant MDM authority must be "intune" or "office365"; other values block every user.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -5247,6 +5550,10 @@ Retrieves and displays every Microsoft Entra ID authentication method registered
 
 User \ Security \ List MFA Methods
 
+## Privacy and audit
+
+This runbook reads sensitive identity data: the registered MFA methods of a user, including phone numbers. Phone numbers are masked by default. Set `MaskPhoneNumbers` to `false` only when the full numbers are required for legitimate support purposes; the action is logged together with the caller name.
+
 ## Activate user notification
 
 This runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.
@@ -5335,6 +5642,17 @@ Retrieves the target user's Entra ID sign-in logs from the Microsoft Graph beta 
 #### Where to find
 
 User \ Security \ List Signin Events
+
+## Common use cases
+
+- Investigate which application generates sign-in failures for a specific user and why, grouped by error code.
+- Narrow the results with `ApplicationName` (partial match) or `FailedSignInsOnly` when a user reports access issues.
+- Export the sign-in data to CSV or Excel for further analysis when the event count is too large to read in the portal.
+
+## Behaviour
+
+- Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
+- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the 50 most recent entries, but the exported report files always contain the full result set.
 
 ## Required license and permissions
 

@@ -12,6 +12,19 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 ## Where to find
 Org \ Devices \ Report Stale Devices_Scheduled
 
+## Common use cases
+
+- Regular device inventory audits and compliance reporting
+- Identifying devices for retirement or decommissioning
+- Security reviews to find potentially lost devices
+- Monitoring device health across the organization
+- Staged reporting via the `MaxDays` parameter, for example 30 to 60 days and 60 to 90 days
+- User scope filtering to focus on specific departments or to exclude service accounts
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -32,23 +45,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-This runbook generates a comprehensive report of stale devices and delivers it via email.
-The report includes device details, platform breakdowns, and exports report files (CSV/xlsx) for further analysis.
-
-Prerequisites:
-- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-
-Common Use Cases:
-- Regular device inventory audits and compliance reporting
-- Identifying devices for retirement or decommissioning
-- Security reviews to find potentially lost devices
-- Monitoring device health across the organization
-- Using MaxDays parameter for staged reporting (e.g., 30-60 days, 60-90 days)
-- User scope filtering to focus on specific departments or exclude service accounts
-
-The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
 
 ## Permissions
 ### Application permissions

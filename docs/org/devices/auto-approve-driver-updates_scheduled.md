@@ -12,6 +12,25 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 ## Where to find
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
 
+## Common use cases
+
+- Test the filters first: use the `WhatIf` parameter to preview which drivers would be approved.
+- Auto-approve all drivers: run without any filter parameter.
+- Approve specific manufacturers: use `DriverManufacturer` to target vendors such as "Intel" or "AMD".
+- Target specific policies: use `PolicyNames` or `PolicyIds` to scope the run to test policies first.
+- Monitor the approvals: configure `EmailTo` to receive a detailed report after each run.
+
+## Parameter interactions
+
+- Without a policy filter, all driver update policies are processed.
+- Without a driver filter, all pending drivers of the selected policies are approved.
+- `PolicyNames` and `PolicyIds` can be combined; both filters apply independently.
+- `WhatIf` simulates the approvals without making changes, which is useful for testing the filters.
+
+## Prerequisites
+
+The driver update endpoints are only available on the Microsoft Graph beta API, which this runbook uses.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -32,25 +51,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-Prerequisites:
-- Microsoft Graph BETA API access (driver update endpoints are in beta)
-- RJReport.EmailSender setting configured (if email notifications are used)
-
-Common Use Cases:
-- Test filters first: Use WhatIf parameter to preview which drivers would be approved
-- Auto-approve all drivers: Run without any filter parameters
-- Approve specific manufacturers: Use DriverManufacturer to target vendors like "Intel" or "AMD"
-- Target specific policies: Use PolicyNames or PolicyIds to scope to test policies first
-- Monitor approvals: Configure EmailTo to receive detailed reports after each run
-
-Parameter Interactions:
-- If no policy filter is specified, ALL driver update policies are processed
-- If no driver filter is specified, ALL pending drivers in selected policies are approved
-- PolicyNames and PolicyIds can be combined - both filters apply independently
-- Email notifications require RJReport.EmailSender setting and Connect-RjRbGraph
-- WhatIf mode simulates approvals without making changes - useful for testing filters
 
 ## Permissions
 ### Application permissions

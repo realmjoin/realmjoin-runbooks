@@ -11,6 +11,13 @@ A simulation mode lists the affected users and devices without sending anything,
 ## Where to find
 Org \ Devices \ Notify Users About Low Diskspace_Scheduled
 
+## Common use cases
+
+- Recurring reminders to users whose devices are about to run out of disk space, before updates and app installations start to fail
+- Two-stage campaigns: report all devices below the threshold to administrators with **Report Devices Low Diskspace**, and notify only the users with critical devices via `NotifyOnSeverity`
+- Staged rollouts per department or pilot group via the user and device group scope options
+- Excluding service or shared accounts via the exclude group
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the runbook sees the state of the last successful inventory rather than the current state of the device. To avoid notifying users based on outdated numbers, devices whose last Intune sync is older than `MaxInventoryAgeDays` (default 14 days) are skipped and counted separately. Devices without a last sync date are treated as outdated as well. Set the parameter to `0` to disable this check.
@@ -40,6 +47,8 @@ Recipients are resolved via Microsoft Graph: the primary user of a device is loo
 `SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
 `OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
+
+Keep in mind that the override mailbox then receives one email per affected user, all sent within a few seconds and with urgent subject lines. Mail filters may classify such a burst of similar emails as bulk or spam and move it to the junk folder or the quarantine, in particular when the override mailbox belongs to another tenant. The runbook only sees that Microsoft Graph accepted each email and reports it as sent; what the receiving side does afterwards is not visible in the job output. If the emails do not arrive, check the junk folder and the quarantine of the override mailbox and run a message trace for the sender address. A mailbox in the same tenant is the more reliable test target.
 
 ## Scoping options
 
@@ -116,39 +125,6 @@ The custom template consists of a subject, a text before the device list and a t
 - When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
 - The device list labels are rendered in English for the custom template
 
-
-## Notes
-This runbook is the user-facing counterpart of the "Report Devices Low Diskspace" runbook. Both use the same threshold settings and the same
-Critical/Warning rating, so the report gives administrators the overview while this runbook asks the affected users to free up space themselves.
-
-Recipient resolution:
-The primary user of a device is resolved via the Entra object id that Intune reports in managedDevice.userId, so guest accounts and
-users whose current UPN differs from the address recorded at enrollment are resolved correctly. Devices for which Intune reports no
-userId fall back to a lookup by user principal name. The notification is sent to the user's mail attribute, with the UPN as fallback.
-
-Prerequisites:
-- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-- Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl, ServiceDesk_TicketUrl)
-
-Data source and freshness:
-The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
-They describe the state of the last successful inventory and not necessarily the current state of the device. To avoid notifying users based on outdated
-numbers, devices whose last Intune sync is older than MaxInventoryAgeDays are skipped (0 disables this check).
-The "Report Devices Low Diskspace" runbook deliberately does not apply this filter, so it lists devices with a stale inventory as well - it can therefore show more
-devices than are notified here. The number skipped for an outdated inventory is reported in this runbook's output, which accounts for the difference.
-Devices that report a total disk size of zero bytes have no usable storage inventory and are excluded from the evaluation, but their number is reported.
-Only Windows and macOS devices are evaluated, because the storage inventory of mobile devices is less reliable and the cleanup guidance differs.
-
-Common Use Cases:
-- Recurring reminders to users whose devices are about to run out of disk space, before updates and app installations start to fail
-- Two-stage campaigns: report all devices below the threshold to administrators, notify only the critical ones (NotifyOnSeverity)
-- Staged rollouts per department or pilot group via the user and device group scope options
-- Excluding service or shared accounts via the exclude group
-
-Pilot and Testing Options:
-- Use SimulationMode to list the affected users and devices without sending any email
-- Use OverrideEmailRecipient to send all notifications to a test mailbox instead of end users
-- Perfect for validating email content and testing thresholds and filters before rolling out to production
 
 ## Permissions
 ### Application permissions
@@ -366,6 +342,7 @@ Optional Entra device group. When set, only devices that are (transitive) member
 
 ### OverrideEmailRecipient
 Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly.
+The override mailbox receives one email per affected user within a few seconds; mail filters may treat such a burst as bulk or spam, so prefer a mailbox in the same tenant for tests (see the documentation).
 
 | Property | Value |
 |----------|-------|

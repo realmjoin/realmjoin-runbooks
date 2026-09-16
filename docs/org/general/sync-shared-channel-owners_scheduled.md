@@ -30,7 +30,22 @@ The runbook is **add-only**: it never demotes or removes existing owners or memb
 
 ### Mapping configuration
 
-The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name** (see the *Notes* section for a ready-to-use example). The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name**. The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+
+Ready-to-use example for the org settings:
+
+```json
+{
+    "Settings": {
+        "SharedChannelOwners": {
+            "Mapping": [
+                { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
+                { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
+            ]
+        }
+    }
+}
+```
 
 ### Team matching
 
@@ -75,21 +90,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under
-"SharedChannelOwners.Mapping". Each entry names a team by its exact display name. The hidden
-TeamOwnerGroupMapping parameter is injected from it at runtime.
-{
-    "Settings": {
-        "SharedChannelOwners": {
-            "Mapping": [
-                { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
-                { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
-            ]
-        }
-    }
-}
 
 ## Permissions
 ### Application permissions

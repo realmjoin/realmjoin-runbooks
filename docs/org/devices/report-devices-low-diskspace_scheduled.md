@@ -13,6 +13,13 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 ## Where to find
 Org \ Devices \ Report Devices Low Diskspace_Scheduled
 
+## Common use cases
+
+- Recurring disk space monitoring across the managed device fleet
+- Finding devices that are likely to fail feature updates or app deployments because of insufficient free space
+- Preparing targeted user communication or cleanup campaigns, for example with **Notify Users About Low Diskspace**
+- Checking a specific hardware generation via the manufacturer and model filters
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the report describes the state of the last successful inventory rather than the current state of the device. Use the **Last Sync** column of the report to judge how up to date an individual row is.
@@ -55,32 +62,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-This runbook complements the reporting foundation and delivers a recurring overview of devices that are about to run out of disk space,
-so that affected users can be contacted before the lack of free space starts to block updates, app installations or profile synchronization.
-
-Prerequisites:
-- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-
-Data source and freshness:
-The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
-They therefore describe the state of the last successful inventory and not necessarily the current state, so the Last Sync column of the report should be used to judge how up to date a row is.
-Devices that report a total disk size of zero bytes have no usable storage inventory (this is common for Android Enterprise work profiles) and are excluded from the evaluation, but their number is reported.
-This report deliberately lists devices regardless of how old their inventory is, so that a device which stopped checking in still shows up. Its user-facing counterpart
-"Notify Users About Low Diskspace" does the opposite and skips devices whose last Intune sync is older than its MaxInventoryAgeDays setting, so that no user is asked to
-free up space based on outdated numbers. Both runbooks apply the same threshold and the same Critical/Warning rating, but the report can therefore list more devices than
-the notification runbook writes to - the difference is the devices with a stale inventory, and the notification runbook reports their number in its own output.
-
-Platform defaults:
-Windows and macOS are included by default, iOS/iPadOS and Android are not, because the default threshold in gigabytes is dimensioned for desktop disks
-and would report a large number of perfectly healthy mobile devices. When mobile platforms are enabled, the percentage based threshold usually gives more meaningful results.
-
-Common Use Cases:
-- Recurring disk space monitoring across the managed device fleet
-- Finding devices that are likely to fail feature updates or app deployments because of insufficient free space
-- Preparing targeted user communication or cleanup campaigns
-- Checking a specific hardware generation via the manufacturer and model filters
 
 ## Permissions
 ### Application permissions

@@ -10,14 +10,16 @@ The invited user can optionally be added to a specified group.
 ## Where to find
 Org \ General \ Invite External Guest Users
 
-## Notes
-Common Use Cases:
-- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank
-- Full onboarding: supply all optional fields to set profile properties, assign a manager/sponsor, and add to a group in a single run
+## Common use cases
 
-Parameter Interactions:
-- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely
-- Manager and sponsor assignment and group membership each require their respective parameters; all are silently skipped when not provided
+- Basic guest invite: provide only the email address and the display name; all profile and group parameters can be left blank.
+- Full onboarding: supply all optional fields to set profile properties, assign a manager and a sponsor, and add the guest to a group in a single run.
+
+## Parameter interactions
+
+- Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.
+- Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.
+
 
 ## Permissions
 ### Application permissions

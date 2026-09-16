@@ -11,6 +11,18 @@ An email report with CSV and/or Excel (xlsx) attachments can be sent optionally 
 ## Where to find
 Org \ Devices \ Delete Stale Devices_Scheduled
 
+## Common use cases
+
+This runbook deletes managed devices from Intune based on inactivity, so use it with care.
+
+- Regular cleanup of stale device records in Intune
+- Simulation runs (report-only mode) before enabling the actual deletion
+- Scheduled lifecycle management with an audit trail via the email report
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user. This acts as an additional safety net when deletion is enabled.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -31,20 +43,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-This runbook deletes managed devices from Intune based on inactivity. Use with care!
-
-Prerequisites:
-- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when email reporting is used
-
-Common Use Cases:
-- Regular cleanup of stale device records in Intune
-- Simulation runs (report-only mode) before enabling actual deletion
-- Scheduled lifecycle management with an audit trail via email report
-
-The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
-This acts as an additional safety net when deletion is enabled.
 
 ## Permissions
 ### Application permissions

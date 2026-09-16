@@ -8,8 +8,10 @@ Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom co
 ## Where to find
 Org \ General \ Add Or Remove Trusted Site
 
-## Notes
-This runbook uses calls as described in https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/ to decrypt omaSettings. It currently needs to use the Microsoft Graph beta endpoint for this.
+## Implementation notes
+
+The runbook decrypts the `omaSettings` of the custom configuration policy using the approach described in [this call4cloud article](https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/). This currently requires the Microsoft Graph beta endpoint.
+
 
 ## Permissions
 ### Application permissions

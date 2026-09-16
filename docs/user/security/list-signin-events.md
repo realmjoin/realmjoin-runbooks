@@ -8,6 +8,17 @@ Retrieves the target user's Entra ID sign-in logs from the Microsoft Graph beta 
 ## Where to find
 User \ Security \ List Signin Events
 
+## Common use cases
+
+- Investigate which application generates sign-in failures for a specific user and why, grouped by error code.
+- Narrow the results with `ApplicationName` (partial match) or `FailedSignInsOnly` when a user reports access issues.
+- Export the sign-in data to CSV or Excel for further analysis when the event count is too large to read in the portal.
+
+## Behaviour
+
+- Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
+- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the 50 most recent entries, but the exported report files always contain the full result set.
+
 ## Required license and permissions
 
 Reading sign-in logs through the Microsoft Graph API requires an **Entra ID P1 or P2 license** in the tenant. Tenants without it receive a 403 error from the sign-in log query even when all Graph permissions are granted. With P1/P2, sign-in logs are retained for up to 30 days; the 7-day retention of the free tier applies to the Entra portal, not to this runbook.
@@ -46,18 +57,6 @@ Entra counts some sign-in interrupts as errors (for example 50140 "Keep me signe
 
 Sign-in log data typically lags ~15 minutes but can take up to 2 hours for some records - a very recent sign-in may not yet appear. All timestamps are shown in UTC.
 
-
-## Notes
-Common Use Cases:
-- Investigate which application is generating sign-in failures for a specific user and why (grouped by error code).
-- Narrow results with ApplicationName (partial match) or FailedSignInsOnly when a user reports access issues.
-- Export sign-in data to CSV/XLSX for further analysis in Excel when the event count is too large to read in the portal.
-
-Behavior:
-- Sign-in log data is retrieved from the Microsoft Graph beta endpoint because sign-in event type filtering
-  and non-interactive sign-in retrieval require beta-only properties (signInEventTypes, authenticationRequirement).
-- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the
-  50 most recent entries, but exported report files always contain the full result set.
 
 ## Permissions
 ### Application permissions

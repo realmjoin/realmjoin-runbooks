@@ -8,6 +8,10 @@ Retrieves and displays every Microsoft Entra ID authentication method registered
 ## Where to find
 User \ Security \ List MFA Methods
 
+## Privacy and audit
+
+This runbook reads sensitive identity data: the registered MFA methods of a user, including phone numbers. Phone numbers are masked by default. Set `MaskPhoneNumbers` to `false` only when the full numbers are required for legitimate support purposes; the action is logged together with the caller name.
+
 ## Activate user notification
 
 This runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.
@@ -77,21 +81,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-Permissions (managed identity, application):
-- UserAuthenticationMethod.Read.All - list authentication methods
-- User.Read.All                      - resolve target user
-- Organization.Read.All              - read tenant display name for the email body
-- Mail.Send                          - only required when NotifyUser is enabled
-
-Privacy / audit:
-- This runbook reads sensitive identity data (registered MFA methods, including phone numbers).
-  Phone numbers are masked by default. Set MaskPhoneNumbers to false only when full numbers are
-  required for legitimate support purposes; the action is logged with CallerName.
-- When NotifyUser is enabled, the target user is notified by email that an administrator has
-  retrieved their MFA methods. This requires the tenant setting RJReport.EmailSender to be
-  configured.
 
 ## Permissions
 ### Application permissions

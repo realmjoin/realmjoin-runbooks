@@ -10,10 +10,10 @@ You can also query the current state without making changes.
 ## Where to find
 Group \ Mail \ Enable Or Disable External Mail
 
-## Notes
-Setting this via Microsoft Graph is broken as of 2021-06-28.
-Attribute: allowExternalSenders.
-See https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property.
+## Implementation notes
+
+The setting is changed through Exchange Online (`RequireSenderAuthenticationEnabled`), not through Microsoft Graph. Writing the corresponding `allowExternalSenders` property of the group via Microsoft Graph is a documented known issue (as of 2021-06-28), see [Setting the allowExternalSenders property](https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property).
+
 
 ## Permissions
 ### Application permissions

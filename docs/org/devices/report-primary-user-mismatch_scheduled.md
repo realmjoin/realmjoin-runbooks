@@ -11,6 +11,10 @@ When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selecte
 ## Where to find
 Org \ Devices \ Report Primary User Mismatch_Scheduled
 
+## Result without mismatches
+
+No email is sent when the two data sources are in sync. A run without mismatches completes normally and is not an error.
+
 ## Setup regarding email sending
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
@@ -43,16 +47,6 @@ This runbook queries the RealmJoin customer API and requires a dedicated credent
 6. **Enter the RealmJoin API username and password** — Use the credentials from step 1
 7. **Save** — Click *Create* and re-run the runbook
 
-
-## Notes
-Prerequisites:
-- An Azure Automation Account shared credential named exactly "RJAPI" must be created manually
-  before scheduling. Set the username and password to match a RealmJoin customer API account
-  (see https://docs.realmjoin.com/dev-reference/realmjoin-api/authentication).
-- The Automation Account managed identity must have the following Graph application permissions
-  assigned: DeviceManagementManagedDevices.Read.All, Mail.Send, Organization.Read.All.
-- The RJReport.EmailSender setting must be configured with a valid sender address before the first run.
-- No email is sent when the two datasets are in sync; an empty run is not an error.
 
 ## Permissions
 ### Application permissions

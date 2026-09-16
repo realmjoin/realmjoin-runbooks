@@ -11,6 +11,9 @@ The report files can also be uploaded to an Azure Storage Account, returning tim
 The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
 When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
 
+After the optional email and download link have been processed, the resulting credential list is emitted as structured objects,
+so it is shown as a sortable and filterable table in the portal's "Output Data" tab - also when neither email nor download link is configured.
+
 ## Where to find
 Org \ Applications \ Report Expiring Application Credentials_Scheduled
 

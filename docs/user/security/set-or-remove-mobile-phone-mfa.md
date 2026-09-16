@@ -75,13 +75,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
-## Notes
-Permissions (managed identity, application):
-- UserAuthenticationMethod.ReadWrite.All - manage phone authentication methods
-- User.Read.All                           - resolve target user
-- Organization.Read.All                  - read tenant display name for the email body
-- Mail.Send                              - only required when NotifyUser is enabled
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph

@@ -8,6 +8,22 @@ This runbook collects the primary users of all Intune managed devices matching t
 ## Where to find
 Org \ General \ Add Primary Users Of Devices To Group_Scheduled
 
+## Common use cases
+
+- Keeping a distribution or Conditional Access target group aligned with "who currently has a managed device", filtered by platform, by an advanced OData filter or by an include/exclude group scope.
+- Validating a new or changed filter or scope before it is allowed to write to a production group.
+
+A daily schedule is recommended.
+
+## Report-only mode for pilots and testing
+
+Enable `ReportOnly` to compute the same add/remove diff a real run would produce, without applying any change to the group. Instead, a Markdown preview email listing the affected users by UPN is sent to `EmailTo`: each list (would be added, would be removed) shows at most 10 users in the mail body, with a "... and N more" pointer when a list is longer, and the complete lists are attached as report file(s) in the format chosen by `ReportFileFormat`. Run once in this mode after changing the platform selection, `AdvancedFilter` or the include/exclude groups, review the preview, then disable `ReportOnly` to let the sync apply.
+
+## Parameter interactions
+
+- `AdvancedFilter`, when set, replaces the Windows/macOS/iOS/Android platform selection entirely rather than combining with it.
+- `RemoveUsersWhenNoDeviceMatch` controls both the real run and the `ReportOnly` preview: when disabled, no users are removed in either case, so the preview always reflects what a real run would do.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when the `ReportOnly` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -28,33 +44,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-Runbook Type: Scheduled (recommended: daily)
-
-Common Use Cases:
-- Keeping a distribution or Conditional Access target group aligned with "who currently has a
-  managed device", filtered by platform, an advanced OData filter, or an include/exclude group scope.
-- Validating a new or changed filter/scope before it is allowed to write to a production group.
-
-Pilot and Testing Options:
-- Enable ReportOnly to compute the same add/remove diff a real run would produce, without applying
-  any change to the group. A Markdown preview email listing the affected users (by UPN) is sent to
-  EmailTo instead; each list (would be added / would be removed) shows at most 10 users in the mail
-  body, with a "... and N more" pointer when a list is longer, and the complete lists are attached
-  as report file(s) in the format chosen by ReportFileFormat. Run once in this mode after changing
-  the platform selection, AdvancedFilter, or the include/exclude groups, review the preview, then
-  disable ReportOnly to let the sync apply.
-
-Parameter Interactions:
-- AdvancedFilter, when set, replaces the Windows/MacOS/iOS/Android platform selection entirely
-  rather than combining with it.
-- RemoveUsersWhenNoDeviceMatch controls both the real run and the ReportOnly preview: when disabled,
-  no users are removed in either case, so the preview always reflects what a real run would do.
-
-Prerequisites:
-- EmailFrom requires the RJReport.EmailSender tenant setting to be configured; this is only needed
-  when ReportOnly is used to send the preview email.
 
 ## Permissions
 ### Application permissions
