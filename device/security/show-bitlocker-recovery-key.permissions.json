@@ -10,6 +10,18 @@
                     "Reason": "Lists the device's BitLocker recovery keys and reads the key value for display"
                 }
             ]
+        },
+        {
+            "Name": "WindowsDefenderATP",
+            "Id": "fc780465-2017-40d4-a0c5-307022471b92",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Machine.Read.All",
+                    "Optional": true,
+                    "Feature": "Defender risk check",
+                    "Reason": "Reads the device's Defender risk score in the skipIfAtRisk preflight"
+                }
+            ]
         }
     ],
     "Roles": [],

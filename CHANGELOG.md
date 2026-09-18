@@ -1,5 +1,21 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-18
+
+- Update **Show Bitlocker Recovery Key** Runbook in Device/Security
+  - Add optional `skipIfAtRisk` parameter (default off): when enabled, the recovery keys are only shown if the device's Microsoft Defender for Endpoint risk score is not Medium or High, so the keys of a device potentially involved in a security incident are not disclosed without aligning with the security team first; the check runs before any key is read and aborts with a clearly visible warning
+  - Adds the optional `WindowsDefenderATP` permission `Machine.Read.All` for the risk check
+  - New companion documentation describing the check, its outcomes and how to enable it by default via runbook customization
+
+- Update **Reset Mobile Device Pin** Runbook in Device/Security
+  - Add optional `skipIfAtRisk` parameter (default off): when enabled, the passcode is only reset if the device's Microsoft Defender for Endpoint risk score is not Medium or High, so a reset on a device potentially involved in a security incident does not grant access or interfere with the investigation; the check runs before the Intune device is looked up and aborts with a clearly visible warning
+  - Adds the optional `WindowsDefenderATP` permission `Machine.Read.All` for the risk check
+  - New companion documentation describing the check, its outcomes and how to enable it by default via runbook customization
+
+- Update **Wipe Device** Runbook in Device/General
+  - Describe the Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) in the companion documentation, including its outcomes and a customization example to enable it by default
+  - Mark the `WindowsDefenderATP` permission `Machine.Read.All` as optional in the permission manifest, as it is only needed when the risk check is enabled
+
 ## 2026-09-16
 
 - Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
