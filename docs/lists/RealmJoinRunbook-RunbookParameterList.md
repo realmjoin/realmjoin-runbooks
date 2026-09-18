@@ -448,6 +448,7 @@ Reset a mobile device's password/PIN code.
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | The device ID of the target device. |
+| skipIfAtRisk |  | Boolean | If set to true, the passcode is only reset when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This prevents a passcode reset on a device that may be involved in a security incident, which could grant access to the device or interfere with the investigation. Devices that are not found in Defender for Endpoint are not blocked. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-security-restrict-or-release-code-execution'></a>
@@ -470,6 +471,7 @@ Show all BitLocker recovery keys for a device
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | The device ID of the target device. |
+| skipIfAtRisk |  | Boolean | If set to true, the recovery keys are only shown when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This prevents the recovery key of a device that may be involved in a security incident from being disclosed without aligning with your security team first. Devices that are not found in Defender for Endpoint are not blocked. |
 | CallerName | ✓ | String | Caller name for auditing purposes. |
 
 <a name='device-security-show-filevault-recovery-key'></a>

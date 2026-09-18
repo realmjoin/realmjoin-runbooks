@@ -8,6 +8,34 @@ Wipe a Windows or MacOS device. For Windows devices, you can choose between a re
 ## Where to find
 Device \ General \ Wipe Device
 
+## Only wipe if the device is not at risk
+
+When *Only wipe if device is not at risk* (`skipWipeIfAtRisk`) is enabled, the runbook checks the device's risk score in Microsoft Defender for Endpoint before any device object is touched. The lookup uses the Entra device ID and is the same query the **Check Defender Status** runbook performs. The check is off by default and only runs when a wipe is requested; it is skipped when *Do not wipe device* is selected.
+
+Possible outcomes:
+
+- **No elevated risk** (risk score `None`, `Informational` or `Low`): the wipe and the selected clean-up actions run as usual.
+- **Risk score `Medium` or `High`**: the runbook stops with a warning before the wipe, the exclusion-group membership, the Entra changes and the Intune/Autopilot deletions. A device with an elevated risk score may be involved in a security incident, and wiping it could destroy forensic data (e.g. logs). Align with your security team first; to wipe the device anyway, run the runbook with the option disabled.
+- **Device not found in Defender for Endpoint**: the risk score cannot be determined. The runbook notes this and proceeds with the wipe, so devices that are not onboarded to Defender are not blocked.
+- **Defender query fails**: the runbook stops without wiping, so a temporary API problem never bypasses the protection.
+
+### Enable the check by default
+
+To enforce the check for every wipe, preset the parameter and hide it, so it cannot be switched off from the portal.
+
+The json configuration for this is as follows:
+
+```json
+"rjgit-device_general_wipe-device": {
+    "parameters": {
+        "skipWipeIfAtRisk": {
+            "Default": true,
+            "Hide": true
+        }
+    }
+}
+```
+
 ## Add the device to a compliance exclusion group
 
 When *Add device to compliance exclusion group* (`addToExclusionGroup`) is enabled, the wiped Windows device is added to a compliance exclusion group. Devices in that group receive a longer compliance grace period after they are re-enrolled via Autopilot (this mirrors the **Check Device Onboarding Exclusion** runbook).
@@ -71,7 +99,7 @@ The json configuration for this is as follows:
   - Device.Read.All
   - GroupMember.ReadWrite.All
 - **Type**: WindowsDefenderATP
-  - Machine.Read.All
+  - Machine.Read.All *(optional: Defender risk check)*
 
 ### RBAC roles
 - Cloud Device Administrator
