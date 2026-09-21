@@ -6,6 +6,9 @@
   - Address the mailbox by its directory object id in all permission reads and changes, so mailboxes whose name also matches other recipients in the tenant (for example a shared mailbox named `Export`) are processed reliably
   - Include the Exchange Online response in the run result when the connection, the mailbox lookup or the permission read-back fails
 
+- Update **Add Or Remove User** Runbook in Group/General
+  - Accept every Exchange Online recipient as a member of a distribution or mail-enabled security group, including mail users whose mailbox is hosted on-premises in a hybrid setup; a user without an Exchange Online recipient object is reported with a clear message
+
 - Address recipients by unique identifiers in further Exchange Online runbooks, so recipient names shared with other objects in the tenant are handled reliably
   - **Add Or Remove User** and **Add Or Remove Nested Group** in Group/General: distribution group members are addressed by their directory object id
   - **Add Or Remove Owner** in Group/General: the owner is added to or removed from the distribution group's owner list individually

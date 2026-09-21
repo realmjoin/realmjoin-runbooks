@@ -103,13 +103,18 @@ else {
         Connect-RjRbExchangeOnline
         $groupObj = Get-Group -Identity $groupID
 
-        # Get User mailbox. The membership changes below address the member by its directory object id -
-        # the mailbox Name is not unique in Exchange Online and can fail as an ambiguous identity.
-        $targetMailbox = get-mailbox -Identity $targetUser.id
+        # Resolve the user as an Exchange Online recipient. A distribution group member does not need a
+        # cloud mailbox - a mail user (for example a hybrid user whose mailbox is hosted on-premises) is a
+        # valid member as well. The membership changes below address the member by its directory object
+        # id - the recipient Name is not unique in Exchange Online and can fail as an ambiguous identity.
+        $targetRecipient = Get-Recipient -Identity $targetUser.id -ErrorAction SilentlyContinue
+        if (-not $targetRecipient) {
+            throw "User '$($targetUser.UserPrincipalName)' is not an Exchange Online recipient (neither a mailbox nor a mail user). Only mail-enabled users can be members of a distribution or mail-enabled security group."
+        }
 
         if ($Remove) {
             # Remove user from EXO group
-            if ($groupObj.Members -contains $targetMailbox.name) {
+            if ($groupObj.Members -contains $targetRecipient.Name) {
                 Remove-DistributionGroupMember -Identity $GroupID -Member $targetUser.id -BypassSecurityGroupManagerCheck -Confirm:$false
                 "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)'."
             }
@@ -120,7 +125,7 @@ else {
         else {
             # Add user to EXO group
             if ($groupObj.RecipientType -in @("MailUniversalDistributionGroup", "MailUniversalSecurityGroup")) {
-                if ($groupObj.Members -contains $targetMailbox.name) {
+                if ($groupObj.Members -contains $targetRecipient.Name) {
                     "## User '$($targetUser.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
                 }
                 else {
