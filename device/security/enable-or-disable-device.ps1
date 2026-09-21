@@ -1,28 +1,27 @@
 <#
     .SYNOPSIS
-    Enable or disable a device in Entra ID
+    Enable or disable this device in Entra ID
 
     .DESCRIPTION
-    This runbook enables or disables a Windows device object in Entra ID (Azure AD) based on the provided device ID.
-    Use it to temporarily block sign-ins from a compromised or lost device, or to re-enable the device after remediation.
+    Disables or re-enables the Entra ID object of this device. A disabled device can no longer be used to sign in, which blocks a lost or compromised device; enabling it again lifts the block. Nothing on the device itself is changed.
 
     .PARAMETER DeviceId
-    The device ID of the target device.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER Enable
-    "Disable Device?" (final value: false) or "Enable Device again?" (final value: true) can be selected as action to perform. If set to false, the runbook will disable the device in Entra ID (Azure AD). If set to true, the runbook will enable the device in Entra ID (Azure AD) again.
+    Disable blocks sign-ins from the device. Enable again lifts an earlier block.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Enable": {
-                "DisplayName": "Disable or Enable Device",
+                "DisplayName": "Disable or enable this device",
                 "SelectSimple": {
-                    "Disable Device": false,
-                    "Enable Device again": true
+                    "Disable device": false,
+                    "Enable device again": true
                 }
             },
             "DeviceId": {

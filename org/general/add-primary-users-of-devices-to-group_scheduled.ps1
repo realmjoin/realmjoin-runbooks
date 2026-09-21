@@ -1,104 +1,104 @@
 <#
 	.SYNOPSIS
-    Sync primary users of Intune managed devices by platform into an Entra ID group
+	Keep a group in sync with the primary users of Intune devices
 
 	.DESCRIPTION
-    This runbook collects the primary users of all Intune managed devices matching the selected platform(s) and synchronizes them into a target Entra ID group. Users no longer assigned as primary user on any matching device are removed from the group. An optional include group restricts which users are eligible, and an optional exclude group prevents specific users from being added or keeps them removed. A report-only mode allows previewing the proposed changes via email (email body shows at most 10 users per list, complete lists attached as CSV and/or XLSX file) without making any modifications.
+	Collects the primary users of all Intune devices of the chosen platforms and keeps an Entra ID group in sync with them. Users without a matching device are removed unless removal is turned off. An include group limits which users are eligible, an exclude group blocks users. A report-only mode previews the changes by email without applying anything.
 
 	.PARAMETER TargetGroupId
-    The Entra ID group to synchronize primary users into. Members of this group will be managed exclusively by this runbook.
+	Group that receives the primary users. Its membership is managed by this runbook alone.
 
 	.PARAMETER Windows
-    Include primary users of Windows devices. (OData Filter used "operatingSystem eq 'Windows'")
+	Includes the primary users of Windows devices.
 
 	.PARAMETER MacOS
-    Include primary users of macOS devices. (OData Filter used "operatingSystem eq 'macOS'")
+	Includes the primary users of macOS devices.
 
 	.PARAMETER iOS
-    Include primary users of iOS and iPadOS devices. (OData Filter used "operatingSystem eq 'iOS'")
+	Includes the primary users of iOS and iPadOS devices.
 
 	.PARAMETER Android
-    Include primary users of Android devices. (OData Filter used "operatingSystem eq 'Android'")
+	Includes the primary users of Android devices.
 
 	.PARAMETER AdvancedFilter
-    Optional. Custom OData filter to apply when retrieving devices. Overrides the platform-based filters if provided. Example: startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows' .
+	OData filter for the devices instead of the platform switches, for example startsWith(deviceName,'FWP-') and operatingSystem eq 'Windows'.
 
 	.PARAMETER IncludeGroupId
-    Optional. Only users who are members of this group are eligible to be added to the target group. Leave empty to consider all primary users.
+	Only members of this group can be added to the target group.
 
 	.PARAMETER ExcludeGroupId
-    Optional. Users who are members of this group will not be added and will be removed from the target group if already present.
+	Members of this group are never added and are removed if present.
 
 	.PARAMETER RemoveUsersWhenNoDeviceMatch
-    When enabled (default), users who no longer have a primary device matching the selected platform(s) are removed from the target group. Disable to add-only mode — existing members are never removed.
+	Removes users from the target group when they are no longer primary user of a matching device. Turn off to only ever add.
 
 	.PARAMETER ReportOnly
-    If set to true, the script computes what would change but applies no modifications. The proposed changes are sent to the EmailTo recipient in a preview email showing at most 10 users per list in the body, with complete lists attached as CSV and/or XLSX file(s) per ReportFileFormat. If false, the runbook applies all changes immediately.
+	Previews the changes without applying them. The preview goes by email, with the first 10 users per list in the body and the complete lists attached.
 
 	.PARAMETER EmailFrom
-    The sender email address for report-only preview emails. This needs to be configured in the runbook customization.
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 	.PARAMETER EmailTo
-    Recipient email address for the report-only preview email. The email shows at most 10 users per list in the body, with complete lists attached as CSV and/or XLSX file(s) per ReportFileFormat. Only used when ReportOnly is set to true.
+	Address the preview goes to. Only used in report-only mode.
 
 	.PARAMETER ReportFileFormat
-    File format of the report attached to the report-only preview email. The attachments contain the complete lists of users that would be added or removed, while the email body shows at most 10 users per list. Only used when ReportOnly is enabled and EmailTo is set.
+	Attach the complete lists as CSV, as an Excel workbook, or both. Only used in report-only mode.
 
 	.PARAMETER BrandingHeaderImageUrl
-    URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 	.PARAMETER BrandingFooterImageUrl
-    URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 	.PARAMETER BrandingFooterLink
-    Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 	.PARAMETER BrandingAccentColor
-    Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER BrandingTextColor
-    Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER CallerName
-    Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
     RunbookCustomization: {
         "Parameters": {
             "TargetGroupId": {
-                "DisplayName": "Target Group (sync primary users into)"
+                "DisplayName": "Target group"
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "iOS": {
-                "DisplayName": "Include iOS Devices"
+                "DisplayName": "Include iOS devices?"
             },
             "Android": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android devices?"
             },
             "AdvancedFilter": {
-                "DisplayName": "Custom filter (overrides OS selection)"
+                "DisplayName": "Custom filter"
             },
             "RemoveUsersWhenNoDeviceMatch": {
-                "DisplayName": "Remove users who no longer have a matching device"
+                "DisplayName": "Remove users without a matching device?"
             },
             "IncludeGroupId": {
-                "DisplayName": "Include users from group (optional)",
+                "DisplayName": "Include users from group",
                 "Hide": true
             },
             "ExcludeGroupId": {
-                "DisplayName": "Exclude users from group (optional)",
+                "DisplayName": "Exclude users from group",
                 "Hide": true
             },
             "ReportOnly": {
-                "DisplayName": "Report only (preview changes, apply nothing)"
+                "DisplayName": "Report only?"
             },
             "ReportFileFormat": {
-                "DisplayName": "Preview report file format (only used when Report only is enabled)",
+                "DisplayName": "Preview report file format",
                 "Select": {
                     "Options": [
                         { "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
@@ -109,7 +109,7 @@
                 }
             },
             "EmailTo": {
-                "DisplayName": "Send preview report to (only used when Report only is enabled)"
+                "DisplayName": "Send preview report to"
             },
             "EmailFrom": {
                 "Hide": true
@@ -135,20 +135,20 @@
         },
         "ParameterList": [
             {
-                "DisplayName": "(Optional) Filter eligible users by group membership.",
+                "DisplayName": "Filter eligible users by group?",
                 "DisplayAfter": "RemoveUsersWhenNoDeviceMatch",
                 "Default": false,
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - filter by group membership",
+                            "Display": "Yes, filter by group membership",
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeGroupId", "ExcludeGroupId"]
                             }
                         },
                         {
-                            "Display": "No - consider all primary users",
+                            "Display": "No, consider all primary users",
                             "Customization": {
                                 "Hide": ["IncludeGroupId", "ExcludeGroupId"]
                             },
@@ -168,7 +168,7 @@ param(
     # Suppress false positive from PSScriptAnalyzer - $idx is assigned in ForEach-Object -Begin and used in -Process block
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "idx")]
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Target Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Target group" } )]
     [string]$TargetGroupId,
 
     [bool]$Windows = $false,
@@ -180,10 +180,10 @@ param(
 
     [bool]$RemoveUsersWhenNoDeviceMatch = $true,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string]$IncludeGroupId = "",
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string]$ExcludeGroupId = "",
 
     [bool]$ReportOnly = $false,

@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    List mailbox permissions for a mailbox
+    List who has access to this user's mailbox
 
     .DESCRIPTION
-    Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
+    Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table. Works for shared mailboxes as well. Nothing is changed.
 
     .PARAMETER UserName
-    User principal name of the mailbox.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

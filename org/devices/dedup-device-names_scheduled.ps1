@@ -1,39 +1,37 @@
 <#
 	.SYNOPSIS
-		Detect and rename duplicate Intune device display names using a prefix and random suffix
+	Rename Intune devices that share a display name
 
 	.DESCRIPTION
-		This scheduled runbook queries all Intune managed devices and identifies devices that share the same display name.
-		For each set of duplicates, the most recently enrolled device is renamed to a generated name consisting of a configurable prefix followed by random digits padded to the specified total length, and that name is persisted in the matching Windows Autopilot device object.
-		An optional OS filter restricts processing to a specific platform (Windows, macOS, or other); when set to All, devices of every platform are evaluated.
+	Finds Intune devices that share the same display name and renames the most recently enrolled one of each set. The generated name is a fixed prefix followed by random digits up to the chosen total length. The new name is also written to the matching Windows Autopilot record. An OS filter limits which platforms are checked.
 
 	.PARAMETER NamePrefix
-		The fixed prefix used at the start of every generated device name. All renamed devices will begin with this string.
+	Fixed start of every generated name, for example PC-.
 
 	.PARAMETER NameLength
-		The total character length of the generated device name, including the prefix. Must be greater than the length of NamePrefix so there is room for the random digit suffix.
+	Length of the generated name including the prefix; the rest is filled with random digits, so it must be longer than the prefix.
 
 	.PARAMETER OsFilter
-		Restricts which devices are evaluated for duplicate detection and renaming. All includes every platform; Windows and MacOS process only those platforms; Other covers Android, iOS, ChromeOS, and any unrecognized OS. Defaults to All.
+	Which platforms are checked: all, Windows only, macOS only, or the others (Android, iOS, ChromeOS).
 
 	.PARAMETER CallerName
-		The identity of the person or automation account that triggered this runbook, used for auditing purposes only.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 		RunbookCustomization: {
 			"Parameters": {
 				"NamePrefix": {
-					"DisplayName": "Device Name Prefix"
+					"DisplayName": "Device name prefix"
 				},
 				"NameLength": {
-					"DisplayName": "Total Name Length (including prefix)"
+					"DisplayName": "Total name length"
 				},
 				"OsFilter": {
-					"DisplayName": "Operating System Filter",
+					"DisplayName": "Operating system filter",
 					"Select": {
 						"Options": [
 							{
-								"Display": "All Platforms",
+								"Display": "All platforms",
 								"ParameterValue": "All",
 								"Parameters": {}
 							},

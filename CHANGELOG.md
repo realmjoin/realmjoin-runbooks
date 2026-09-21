@@ -16,6 +16,9 @@
   - Describe the Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) in the companion documentation, including its outcomes and a customization example to enable it by default
   - Mark the `WindowsDefenderATP` permission `Machine.Read.All` as optional in the permission manifest, as it is only needed when the risk check is enabled
 
+- Revise the portal help texts (synopsis, description and parameter descriptions) of all runbooks for readability in the RealmJoin Portal; technical background moves to the companion documentation, every parameter is documented and the runbook customization of three runbooks is parsed again
+  - **Report SharePoint Tenant Storage (Scheduled)**: the alert thresholds in gigabytes are evaluated again after the parameter rename
+
 ## 2026-09-16
 
 - Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices

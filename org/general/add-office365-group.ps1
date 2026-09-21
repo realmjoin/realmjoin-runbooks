@@ -1,47 +1,54 @@
 <#
-    .SYNOPSIS
-    Create an Office 365 group and SharePoint site, optionally create a (Teams) team.
+	.SYNOPSIS
+	Create a Microsoft 365 group, optionally with a team
 
 	.DESCRIPTION
-	This runbook creates a Microsoft 365 group and provisions the related SharePoint site.
-	It can optionally promote the group to a Microsoft Teams team after creation.
+	Creates a Microsoft 365 group with its SharePoint site and, on request, turns it into a Microsoft Teams team. Visibility, mail and security settings and up to two owners can be set. A team without an owner gets the caller as owner.
 
 	.PARAMETER MailNickname
-	Mail nickname used for group creation.
+	Alias of the group, used for its email address and SharePoint URL.
 
 	.PARAMETER DisplayName
-	Optional display name. If empty, MailNickname is used.
+	Name shown for the group. Leave empty to use the mail nickname.
 
 	.PARAMETER CreateTeam
-	Choose to "Only create a SharePoint Site" (final value: $false) or "Create a Team (and SharePoint Site)" (final value: $true). A team needs an owner, so if CreateTeam is set to true and no owner is specified, the runbook will set the caller as the owner.
+	Creates only the group with its SharePoint site, or also a Microsoft Teams team on top of it.
 
 	.PARAMETER Private
-	Choose the group visibility: "Public" (final value: $false) or "Private" (final value: $true).
+	Public groups can be found and joined by anyone in the organization, private groups only by their members.
 
 	.PARAMETER MailEnabled
-	If set to true, the group is mail-enabled.
+	Gives the group a mailbox and email address.
 
 	.PARAMETER SecurityEnabled
-	If set to true, the group is security-enabled.
+	Lets the group be used for permissions and access assignments.
 
 	.PARAMETER Owner
-	Optional owner of the group.
+	Owner of the group. Leave empty for none; a team then gets the caller as owner.
 
 	.PARAMETER Owner2
-	Optional second owner of the group.
+	Additional owner. Leave empty for none.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
-
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
+			"MailNickname": {
+				"DisplayName": "Mail nickname"
+			},
+			"MailEnabled": {
+				"DisplayName": "Mail-enabled?"
+			},
+			"SecurityEnabled": {
+				"DisplayName": "Security-enabled?"
+			},
 			"CreateTeam": {
-				"DisplayName": "Create a Teams Team",
+				"DisplayName": "Create a Teams team?",
 				"SelectSimple": {
-					"Only create a SharePoint Site": false,
-					"Create a Team (and SharePoint Site)": true
+					"Only the group with its SharePoint site": false,
+					"Also a Microsoft Teams team": true
 				}
 			},
 			"Private": {
@@ -55,7 +62,7 @@
 				"Hide": true
 			},
 			"DisplayName": {
-				"DisplayName": "DisplayName - will use MailNickname if left empty"
+				"DisplayName": "Display name"
 			}
 		}
 	}
@@ -76,7 +83,7 @@ param(
     [bool] $SecurityEnabled = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Second Owner" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Second owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner2,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

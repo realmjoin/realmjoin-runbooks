@@ -1,29 +1,27 @@
 <#
     .SYNOPSIS
-    Enable or disable external parties to send emails to a Microsoft 365 group
+    Allow or block external senders for this Microsoft 365 group
 
     .DESCRIPTION
-    This runbook configures whether external senders are allowed to email a Microsoft 365 group.
-    It uses Exchange Online to enable or disable the RequireSenderAuthenticationEnabled setting.
-    You can also query the current state without making changes.
+    Controls whether people outside the organization can send email to this Microsoft 365 group. The current setting can also be shown without changing it.
 
     .PARAMETER GroupId
-    Object ID of the Microsoft 365 group.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER Action
-    "Enable External Mail" (final value: 0), "Disable External Mail" (final value: 1) or "Query current state only" (final value: 2) can be selected as action to perform. If set to 0, the runbook will allow external senders to email the group. If set to 1, it will block external senders from emailing the group. If set to 2, it will return whether external mailing is currently enabled or disabled for the group without making any changes.
+    Allow lets external senders email the group. Block limits it to internal senders. Query only shows the current state.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Action": {
-                "DisplayName": "Choose action",
+                "DisplayName": "Action",
                 "SelectSimple": {
-                    "Enable External Mail": 0,
-                    "Disable External Mail": 1,
+                    "Allow external senders": 0,
+                    "Block external senders": 1,
                     "Query current state only": 2
                 }
             },

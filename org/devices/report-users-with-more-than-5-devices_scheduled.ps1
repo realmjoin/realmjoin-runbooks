@@ -3,52 +3,58 @@
     Report users with more than five registered devices
 
     .DESCRIPTION
-    This runbook queries Entra ID devices and their registered users to identify users with more than five devices.
-    It outputs a summary table and can optionally send an email with the report attached as CSV files and/or as an Excel workbook (one worksheet for the summary, one for the details).
-    The detailed export lists each device with its object ID, Entra ID device ID and display name, and indicates whether the device is also present in Intune as a managed device and whether it is compliant (both highlighted green/red in the Excel workbook).
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+    Finds users who have more than five devices registered in Entra ID. The report has a summary and a detailed list of their devices, including whether each device is managed by Intune and compliant. Useful to spot leftover registrations before device limits are hit. The report can be sent by email or provided as a download link.
 
-.PARAMETER IntuneOnlyDevices
-    If enabled, only devices that are present in Intune (managed devices) are considered for the report.
-    The "InIntune" column is omitted from the detailed CSV export in this case, as all reported devices are Intune-managed.
-    Disabled by default.
+    .PARAMETER IntuneOnlyDevices
+    Counts only devices that are also managed by Intune, so unmanaged registrations are ignored.
 
-.PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    .PARAMETER ReportFileFormat
+    Deliver the report as CSV, as an Excel workbook, or both.
 
-.PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    .PARAMETER CreateDownloadLink
+    Also upload the report and return a download link that expires after a few days.
 
-.PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    .PARAMETER ContainerName
+    Storage container the report files are uploaded to. Set per runbook.
 
-.PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    .PARAMETER ResourceGroupName
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-.PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    .PARAMETER StorageAccountName
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-.PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    .PARAMETER LinkExpiryDays
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-.PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    .PARAMETER EmailTo
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-.PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    .PARAMETER EmailFrom
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-.PARAMETER CallerName
-    Caller name for auditing purposes.
+    .PARAMETER BrandingHeaderImageUrl
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+
+    .PARAMETER BrandingFooterImageUrl
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+
+    .PARAMETER BrandingFooterLink
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+
+    .PARAMETER BrandingAccentColor
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+
+    .PARAMETER BrandingTextColor
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "IntuneOnlyDevices": {
-                "DisplayName": "Only include devices present in Intune"
+                "DisplayName": "Only count devices managed by Intune?"
             },
             "ReportFileFormat": {
                 "DisplayName": "Report file format",
@@ -71,7 +77,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -90,7 +96,7 @@
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "BrandingHeaderImageUrl": {
                 "Hide": true

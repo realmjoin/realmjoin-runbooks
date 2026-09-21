@@ -1,153 +1,146 @@
 <#
     .SYNOPSIS
-    Sync users with secure MFA methods registered into an Entra ID group
+    Keep a group filled with users who registered a secure MFA method
 
     .DESCRIPTION
-    This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
-
-    Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
+    Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed. Admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
     .PARAMETER TargetGroupId
-    The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook.
+    Group whose members are managed by this runbook. Members that no longer qualify are removed.
 
     .PARAMETER IncludePasskeys
-    Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDeviceBound, passKeyDeviceBoundAuthenticator).
+    Passkeys and FIDO2 security keys, which are phishing-resistant, count as secure.
 
     .PARAMETER IncludePlatformCredentials
-    Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoundWindowsHello, macOsSecureEnclaveKey).
+    Windows Hello for Business and macOS platform credentials count as secure.
 
     .PARAMETER IncludeMicrosoftAuthenticator
-    Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, microsoftAuthenticatorPasswordless).
+    The Microsoft Authenticator app, with push or passwordless sign-in, counts as secure.
 
     .PARAMETER IncludeSoftwareOtp
-    Count software OTP / authenticator TOTP apps as secure (softwareOneTimePasscode).
+    Time-based one-time codes from authenticator apps count as secure.
 
     .PARAMETER IncludeHardwareOtp
-    Count hardware OTP tokens as secure (hardwareOneTimePasscode).
+    Hardware one-time password tokens count as secure.
 
     .PARAMETER IncludeCertificateBasedAuth
-    Count certificate-based authentication as secure (certificateBasedAuthentication).
+    Sign-in with a certificate, for example from a smart card, counts as secure.
 
     .PARAMETER SecureOnly
-    Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member.
+    Strict mode: users who also have a phone, email or security question method registered never qualify, even with a secure method.
 
     .PARAMETER SecureMethodsOverride
-    Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values.
+    Custom list of method names that count as secure, separated by commas. When set, the individual method switches are ignored. Preset in the runbook customization; the method names are listed in the runbook documentation.
 
     .PARAMETER UnsecureMethodsOverride
-    Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly).
+    Custom list of method names that count as unsecure in strict mode, separated by commas. Preset in the runbook customization.
 
     .PARAMETER ExcludeAdmins
-    Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor.
+    Users with an Entra ID directory role, active or eligible, never qualify and are removed from the group. Useful when the group drives self-service password reset.
 
     .PARAMETER ExcludeGroupId
-    Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members.
+    Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none.
 
     .PARAMETER ExcludeUserIds
-    Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning.
+    Users who never qualify and are removed from the target group. Several can be picked.
 
     .PARAMETER WhatIfMode
-    Dry run: log which users would be added or removed without changing the group.
+    Only logs which users would be added or removed without changing the group.
 
     .PARAMETER SendEmail
-    If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default.
+    Send the report by email after the run.
 
     .PARAMETER EmailTo
-    Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. Sourced from the RJReport tenant settings.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "TargetGroupId": {
-                "DisplayName": "Target Group (sync users with secure MFA methods into)"
+                "DisplayName": "Target group"
             },
             "IncludePasskeys": {
-                "DisplayName": "Passkeys / FIDO2 security keys count as secure"
+                "DisplayName": "Passkeys and FIDO2 keys count as secure?"
             },
             "IncludePlatformCredentials": {
-                "DisplayName": "Platform credentials (Windows Hello for Business / macOS Secure Enclave) count as secure"
+                "DisplayName": "Platform credentials count as secure?"
             },
             "IncludeMicrosoftAuthenticator": {
-                "DisplayName": "Microsoft Authenticator app (push / passwordless sign-in) counts as secure"
+                "DisplayName": "Microsoft Authenticator counts as secure?"
             },
             "IncludeSoftwareOtp": {
-                "DisplayName": "Software OTP (authenticator TOTP apps) counts as secure"
+                "DisplayName": "Software OTP counts as secure?"
             },
             "IncludeHardwareOtp": {
-                "DisplayName": "Hardware OTP tokens count as secure"
+                "DisplayName": "Hardware OTP tokens count as secure?"
             },
             "IncludeCertificateBasedAuth": {
-                "DisplayName": "Certificate-based authentication counts as secure"
+                "DisplayName": "Certificate-based auth counts as secure?"
             },
             "SecureOnly": {
-                "DisplayName": "Strict mode: users with any unsecure method (phone, email, security questions) never qualify"
+                "DisplayName": "Strict mode?"
             },
             "SecureMethodsOverride": {
-                "DisplayName": "Expert: custom secure methods list (comma-separated, replaces ALL toggles above)",
+                "DisplayName": "Custom secure methods",
                 "Hide": true
             },
             "UnsecureMethodsOverride": {
-                "DisplayName": "Expert: custom unsecure methods list (comma-separated, replaces built-in list)",
+                "DisplayName": "Custom unsecure methods",
                 "Hide": true
             },
             "ExcludeAdmins": {
-                "DisplayName": "Exclude admin users (directory role holders, incl. PIM-eligible)"
+                "DisplayName": "Exclude admins?"
             },
             "ExcludeGroupId": {
-                "DisplayName": "Exclusion group (members are never synced into the target group)"
+                "DisplayName": "Exclusion group"
             },
             "ExcludeUserIds": {
-                "DisplayName": "Excluded users (never synced into the target group)"
+                "DisplayName": "Excluded users"
             },
             "WhatIfMode": {
-                "DisplayName": "Dry run (log only, no changes)"
+                "DisplayName": "Dry run?"
             },
             "SendEmail": {
-                "DisplayName": "Send report via email?",
+                "DisplayName": "Send report by email?",
                 "Default": false,
                 "Select": {
                     "Options": [
@@ -171,7 +164,7 @@
                 }
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "EmailFrom": {
                 "Hide": true
@@ -192,18 +185,18 @@
                 "Hide": true
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create file download links (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - upload the report and return download links",
+                            "Display": "Yes - upload report and return a download link",
                             "ParameterValue": true,
                             "Customization": {
                                 "Show": ["ReportFileFormat"]
                             }
                         },
                         {
-                            "Display": "No - do not create download links",
+                            "Display": "No - do not create a download link",
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": ["ReportFileFormat"]
@@ -261,7 +254,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "idx")]
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Target Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Target group" } )]
     [string]$TargetGroupId,
 
     [bool]$IncludePasskeys = $true,
@@ -279,10 +272,10 @@ param (
 
     [bool]$ExcludeAdmins = $true,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclusion group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclusion group" } )]
     [string]$ExcludeGroupId = "",
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Excluded users (optional)" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Excluded users" -Filter "userType eq 'Member'" } )]
     [string[]]$ExcludeUserIds = @(),
 
     [bool]$WhatIfMode = $false,

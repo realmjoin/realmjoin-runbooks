@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    List room mailbox configuration
+    Show the booking configuration of this room mailbox
 
     .DESCRIPTION
-    Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
+    Shows the room details and the calendar processing settings of this room mailbox, such as how booking requests are handled. Nothing is changed.
 
     .PARAMETER UserName
-    User principal name of the room mailbox.
+    User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

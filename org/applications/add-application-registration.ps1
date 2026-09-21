@@ -1,75 +1,94 @@
 <#
     .SYNOPSIS
-    Add an application registration to Azure AD
+    Create an application registration in Entra ID
 
     .DESCRIPTION
-    This runbook creates a new application registration in Microsoft Entra ID and optionally configures redirect URIs and SAML settings.
-    It validates the submitted parameters, prevents duplicate app creation, and writes verbose logs for troubleshooting.
-    Use it to standardize application registration setup, including visibility and assignment-related options.
+    Creates a new application registration in Entra ID. Optionally it also configures redirect URIs for web, SPA or public clients, SAML sign-in, visibility in My Apps, user assignment with an access group, and implicit grant. Duplicate names are refused and the inputs are checked before anything is created.
 
     .PARAMETER ApplicationName
-    The display name of the application registration to create.
+    Display name of the new application registration.
 
     .PARAMETER RedirectURI
-    Used for UI selection only. Determines which redirect URI type to configure - None, Web, SPA, or Public Client
+    Type of sign-in to set up: none, a web redirect URI, SAML, a public client (mobile and desktop) or a single-page application. The matching fields appear once you choose.
 
     .PARAMETER signInAudience
-    Specifies who can use the application. Defaults to "AzureADMyOrg" (single tenant).
+    Who may sign in to the application. Preset to accounts in this tenant only (AzureADMyOrg).
 
     .PARAMETER webRedirectURI
-    Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
+    Redirect URI of a web application, for example https://myapp.com/auth. Separate several with semicolons.
 
     .PARAMETER spaRedirectURI
-    Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
+    Redirect URI of a single-page application, for example https://myapp.com. Separate several with semicolons.
 
     .PARAMETER publicClientRedirectURI
-    Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
+    Redirect URI of a mobile or desktop client, for example myapp://auth. Separate several with semicolons.
 
     .PARAMETER EnableSAML
-    If set to true, SAML-based authentication is configured for the application. If enabled, additional SAML-related parameters become required.
+    Whether SAML sign-in is configured. Set by the "Redirect URI" choice.
 
     .PARAMETER SAMLReplyURL
-    The reply URL for SAML-based authentication
+    Where the SAML response is sent (assertion consumer service URL).
 
     .PARAMETER SAMLSignOnURL
-    The sign-on URL for SAML authentication.
+    URL where users start the sign-in to the application.
 
     .PARAMETER SAMLLogoutURL
-    The logout URL for SAML authentication.
+    URL the application uses to sign users out.
 
     .PARAMETER SAMLIdentifier
-    The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
+    Identifier of the application in SAML (entity ID). Leave empty to use urn:app: followed by the client ID.
 
     .PARAMETER SAMLRelayState
-    The SAML relay state parameter for maintaining application state during authentication.
+    Value the application receives back after sign-in, for example to return to a page.
 
     .PARAMETER SAMLExpiryNotificationEmail
-    Email address to receive notifications when the SAML token signing certificate is about to expire.
+    Email address that is notified before the SAML signing certificate expires.
 
     .PARAMETER SAMLCertificateLifeYears
-    Lifetime of the SAML token signing certificate in years. Default is 3 years.
+    How many years the SAML signing certificate stays valid.
 
     .PARAMETER isApplicationVisible
-    Determines whether the application is visible in the My Apps portal. Default is true.
+    Lists the application in the users' My Apps portal.
 
     .PARAMETER UserAssignmentRequired
-    Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
+    Only assigned users can use the application. An access group is created for the assignment.
 
     .PARAMETER groupAssignmentPrefix
-    Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
+    Text put in front of the access group name. Only used when user assignment is required.
 
     .PARAMETER implicitGrantAccessTokens
-    Enable implicit grant flow for access tokens. Default is false.
+    Lets the application receive access tokens through the implicit flow. Needed only for older single-page apps.
 
     .PARAMETER implicitGrantIDTokens
-    Enable implicit grant flow for ID tokens. Default is false.
+    Lets the application receive ID tokens through the implicit flow.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
     "Parameters": {
+        "SAMLReplyURL": {
+            "DisplayName": "SAML reply URL"
+        },
+        "SAMLSignOnURL": {
+            "DisplayName": "SAML sign-on URL"
+        },
+        "SAMLLogoutURL": {
+            "DisplayName": "SAML logout URL"
+        },
+        "SAMLIdentifier": {
+            "DisplayName": "SAML identifier (entity ID)"
+        },
+        "SAMLRelayState": {
+            "DisplayName": "SAML relay state"
+        },
+        "SAMLExpiryNotificationEmail": {
+            "DisplayName": "Certificate expiry notification email"
+        },
+        "SAMLCertificateLifeYears": {
+            "DisplayName": "Certificate lifetime (years)"
+        },
         "signInAudience": {
             "Hide": true
         },
@@ -77,11 +96,11 @@
             "Hide": true
         },
         "ApplicationName": {
-            "DisplayName": "Application Name",
+            "DisplayName": "Application name",
             "Hide": false
         },
         "RedirectURI": {
-            "DisplayName": "Redirect URI (Optional)",
+            "DisplayName": "Sign-in type",
             "Default": "None",
             "Select": {
                 "Options": [
@@ -186,15 +205,15 @@
             }
         },
         "webRedirectURI": {
-            "DisplayName": "Web Redirect URI e.g. https://myapp.com/auth (semicolon-separated for multiple)",
+            "DisplayName": "Web redirect URI",
             "Hide": false
         },
         "publicClientRedirectURI": {
-            "DisplayName": "Public client/native Redirect URI e.g. myapp://auth (semicolon-separated for multiple)",
+            "DisplayName": "Public client redirect URI",
             "Hide": false
         },
         "spaRedirectURI": {
-            "DisplayName": "Single-page application (SPA) Redirect URI e.g. https://myapp.com (semicolon-separated for multiple)",
+            "DisplayName": "SPA redirect URI",
             "Hide": false
         },
         "EnableSAML":{
@@ -222,23 +241,23 @@
             "Hide": false
         },
         "isApplicationVisible":{
-            "DisplayName": "Application visible in My Apps portal",
+            "DisplayName": "Show in My Apps?",
             "Hide": false
         },
         "UserAssignmentRequired":{
-            "DisplayName": "User assignment required",
+            "DisplayName": "Require user assignment?",
             "Hide": false
         },
         "groupAssignmentPrefix":{
-            "DisplayName": "Group assignment prefix (Only necessary when User assignment required)",
+            "DisplayName": "Access group prefix",
             "Hide": false
         },
         "implicitGrantAccessTokens":{
-            "DisplayName": "Enable implicit grant for access tokens",
+            "DisplayName": "Implicit grant for access tokens?",
             "Hide": false
         },
         "implicitGrantIDTokens":{
-            "DisplayName": "Enable implicit grant for ID tokens",
+            "DisplayName": "Implicit grant for ID tokens?",
             "Hide": false
         }
     }

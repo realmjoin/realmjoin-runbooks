@@ -1,27 +1,27 @@
 <#
     .SYNOPSIS
-    Add or remove a URL entry in the Intune Trusted Sites policy
+    Add a URL to the Intune trusted sites list or remove it
 
     .DESCRIPTION
-    Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom configuration policy. The runbook can also list all existing Trusted Sites policies and their mappings.
+    Adds a URL to the site-to-zone assignment list of a Windows configuration policy in Intune, or removes it again. That list puts a URL into an Internet Explorer security zone such as Trusted sites. It can also list all trusted sites policies with their entries.
 
     .PARAMETER Action
-    Action to execute: add, remove, or list policies.
+    Add puts the URL into the policy, Remove takes it out, List shows the policies and their entries.
 
     .PARAMETER Url
-    URL to add or remove; it must be prefixed with "http://" or "https://".
+    Address to add or remove, starting with http:// or https://.
 
     .PARAMETER Zone
-    Internet Explorer zone id to assign the URL to.
+    Security zone the URL is assigned to: My computer (0), Local intranet (1), Trusted sites (2), Internet (3) or Restricted sites (4).
 
     .PARAMETER DefaultPolicyName
-    Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided.
+    Policy used when several trusted sites policies exist and none is named.
 
     .PARAMETER IntunePolicyName
-    Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one.
+    Policy to change. Leave empty to pick one automatically.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -30,15 +30,15 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Add URL to Trusted Sites",
+                            "Display": "Add URL to trusted sites",
                             "ParameterValue": 0
                         },
                         {
-                            "Display": "Remove URL from Trusted Sites",
+                            "Display": "Remove URL from trusted sites",
                             "ParameterValue": 1
                         },
                         {
-                            "Display": "List/Print all Trusted Sites Policies",
+                            "Display": "List all trusted sites policies",
                             "ParameterValue": 2,
                             "Customization": {
                                 "Hide": [
@@ -54,11 +54,11 @@
             },
             "Zone": {
                 "SelectSimple": {
-                    "My Computer (0)": 0,
-                    "Local Intranet Zone (1)": 1,
-                    "Trusted sites Zone (2)": 2,
-                    "Internet Zone (3)": 3,
-                    "Restricted Sites Zone (4)": 4
+                    "My computer (0)": 0,
+                    "Local intranet (1)": 1,
+                    "Trusted sites (2)": 2,
+                    "Internet (3)": 3,
+                    "Restricted sites (4)": 4
                 }
             },
             "DefaultPolicyName": {

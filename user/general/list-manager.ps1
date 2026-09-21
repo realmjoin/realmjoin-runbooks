@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    List manager information for this user
+    Show the manager of this user
 
     .DESCRIPTION
-    Retrieves the manager object for a specified user. Outputs common manager attributes such as display name, email, and phone numbers.
+    Shows who is set as the manager of this user in Entra ID, with the manager's display name, email address and phone numbers. Nothing is changed.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,7 +22,6 @@
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

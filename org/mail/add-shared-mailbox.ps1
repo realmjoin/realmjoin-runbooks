@@ -1,51 +1,57 @@
 <#
 	.SYNOPSIS
-	Create a shared mailbox
+	Create a shared mailbox with optional delegate
 
-    .DESCRIPTION
-    This script creates a shared mailbox in Exchange Online and configures various settings such as delegation, auto-mapping, and message copy options.
-    Also if specified, it disables the associated EntraID user account.
+	.DESCRIPTION
+	Creates a shared mailbox in Exchange Online with the chosen language and time zone. A delegate can get full access, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
 
-    .PARAMETER MailboxName
-    The alias (mailbox name) for the shared mailbox.
+	.PARAMETER MailboxName
+	Alias of the mailbox, which becomes the part of the email address in front of the @ sign.
 
 	.PARAMETER DisplayName
-	Display name for the shared mailbox.
+	Name shown in the address book. Leave empty to use the alias.
 
 	.PARAMETER DomainName
-	Optional domain used for the primary SMTP address; if not provided, the default domain is used.
+	Domain of the email address. Leave empty to use the default domain of the tenant.
 
-    .PARAMETER Language
-    The language/locale for the shared mailbox. This setting affects folder names like "Inbox". Default is "en-US".
+	.PARAMETER Language
+	Language of the mailbox, which sets the names of the default folders such as Inbox.
 
-    .PARAMETER TimeZone
-    The time zone for the shared mailbox. Default is "W. Europe Standard Time".
+	.PARAMETER TimeZone
+	Time zone used for the calendar and timestamps of the mailbox.
 
 	.PARAMETER DelegateTo
-	Optional user who receives delegated access to the mailbox.
+	User who gets full access to the mailbox. Leave empty for none.
 
 	.PARAMETER AutoMapping
-	If set to true, the mailbox is automatically mapped in Outlook for the delegate.
+	The mailbox opens automatically in the delegate's Outlook.
 
 	.PARAMETER MessageCopyForSentAsEnabled
-	If set to true, copies of messages sent as the mailbox are stored in the mailbox sent items.
+	Mails sent as the shared mailbox are also stored in its Sent Items folder.
 
 	.PARAMETER MessageCopyForSendOnBehalfEnabled
-	If set to true, copies of messages sent on behalf of the mailbox are stored in the mailbox sent items.
+	Mails sent on behalf of the shared mailbox are also stored in its Sent Items folder.
 
 	.PARAMETER DisableUser
-	If set to true, the associated Entra ID user account is disabled.
+	Blocks sign-in for the user account behind the mailbox. Delegates keep their access.
 
 	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
+			"MailboxName": {
+				"DisplayName": "Alias"
+			},
+			"DomainName": {
+				"DisplayName": "Domain"
+			},
 			"CallerName": {
 				"Hide": true
 			},
 			"Language": {
+				"DisplayName": "Language",
 				"SelectSimple": {
 					"en-US": "en-US",
 					"de-DE": "de-DE",
@@ -53,6 +59,7 @@
 				}
 			},
 			"TimeZone": {
+				"DisplayName": "Time zone",
 				"SelectSimple": {
 					"W. Europe Standard Time": "W. Europe Standard Time",
 					"Central Europe Standard Time": "Central Europe Standard Time",
@@ -92,29 +99,6 @@
 			}
 		}
 	}
-
-    .EXAMPLE
-        "Runbooks": {
-        "rjgit-org_mail_add-shared-mailbox": {
-            "ParameterList": [
-                {
-                    "Name": "DomainName",
-                    "Select": {
-                        "Options": [
-                                {
-                                    "Value": "contoso.onmicrosoft.com"
-                                },
-                                {
-                                    "Value": "contoso.com"
-                                }
-                            ]
-                    },
-                    "DefaultValue": "contoso.com"
-                }
-            ]
-        }
-    }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -123,20 +107,20 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $MailboxName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "DisplayName" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Display name" } )]
     [string] $DisplayName,
     [string] $DomainName,
     [string] $Language = "en-US",
     [string] $TimeZone = "W. Europe Standard Time",
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $DelegateTo,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Automatically map mailbox in Outlook" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Open automatically in the delegate's Outlook?" } )]
     [bool] $AutoMapping = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save a copy of sent mails into shared mailbox's Sent Item folder for Send As Delegates" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Keep copies of mails sent as the mailbox?" } )]
     [bool] $MessageCopyForSentAsEnabled = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save a copy of sent mails into shared mailbox's Sent Item folder for Send On behalf Delegates" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Keep copies of mails sent on behalf?" } )]
     [bool]$MessageCopyForSendOnBehalfEnabled = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Disable AAD User" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Block sign-in for the mailbox account?" } )]
     [bool] $DisableUser = $true,
 
     # CallerName is tracked purely for auditing purposes

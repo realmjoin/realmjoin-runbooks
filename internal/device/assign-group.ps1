@@ -1,44 +1,48 @@
 <#
     .SYNOPSIS
-    Add a device to a group
+    Add this device and its primary user to Windows 11 upgrade groups
 
     .DESCRIPTION
-    This runbook adds a device to a specified Microsoft Entra ID group.
-    Optionally, it can also add the device's primary user (from Intune) to a second group.
-    It is primarily intended for Windows 11 self-service upgrade scenarios.
+    Adds this device to an Entra ID group and, optionally, its primary user from Intune to a second group. Built for self-service Windows 11 upgrades. The groups are usually preset in the runbook customization.
 
     .PARAMETER DeviceId
-    The device ID of the target device.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER AddDeviceToGroup
-    If set to true, the device is added to the group specified by GroupID.
+    Adds the device to the "Device group". Turn off to add only the primary user.
 
     .PARAMETER GroupID
-    Object ID of the group to add the device to.
+    Object ID of the group the device is added to. Usually preset in the runbook customization.
 
     .PARAMETER AddUserToGroup
-    If set to true, the device's primary user is added to the group specified by UserGroupID.
+    Also adds the device's primary user from Intune to the "User group".
 
     .PARAMETER UserGroupID
-    Object ID of the group to add the device's primary user to.
+    Object ID of the group the primary user is added to. Usually preset in the runbook customization.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-    .EXAMPLE
-    "rjgit-internal_device_assign-group": {
+    .INPUTS
+    RunbookCustomization: {
         "Parameters": {
-            "AddDeviceToGroup": {
-                "Default": true
+            "DeviceId": {
+                "Hide": true
             },
-            "GroupId": {
-                "Default": "9d7b59ac-89dd-4b6b-a37a-22a94f886904"
+            "AddDeviceToGroup": {
+                "DisplayName": "Add the device to the device group?"
+            },
+            "GroupID": {
+                "DisplayName": "Device group"
             },
             "AddUserToGroup": {
-                "Default": true
+                "DisplayName": "Add the primary user to the user group?"
             },
-            "UserGroupId": {
-                "Default": "9d7b59ac-89dd-4b6b-a37a-22a94f886905"
+            "UserGroupID": {
+                "DisplayName": "User group"
+            },
+            "CallerName": {
+                "Hide": true
             }
         }
     }

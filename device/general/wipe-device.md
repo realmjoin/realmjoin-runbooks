@@ -78,3 +78,12 @@ The json configuration for this is as follows:
     }
 }
 ```
+
+## macOS wipe options
+
+macOS devices are wiped through Intune's erase action. Two options only apply to them:
+
+- **Recovery code (macOS)** (`macOsRecoveryCode`): older Macs need a six-digit recovery code to accept the wipe; newer devices ignore it. The parameter is hidden in the portal and can be preset via runbook customization.
+- **Obliteration behavior (macOS)** (`macOsObliterationBehavior`): decides what happens when *Erase All Content and Settings* (EACS) is not possible. `default` erases the user data and falls back to erasing the whole OS, `doNotObliterate` never erases the OS, `obliterateWithWarning` warns and then erases the OS, `always` erases the OS in any case.
+
+Windows-only options (*protected wipe*, *Autopilot database*, *compliance exclusion group*) are ignored for macOS devices.

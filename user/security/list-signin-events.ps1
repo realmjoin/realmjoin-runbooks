@@ -1,75 +1,69 @@
 <#
     .SYNOPSIS
-    Retrieve and analyze sign-in events for a target user
+    Show the recent sign-ins of this user and their failures
 
     .DESCRIPTION
-    Retrieves the target user's Entra ID sign-in logs from the Microsoft Graph beta endpoint and analyzes them: each sign-in's application, timestamp, status (with error codes and failure reasons if applicable), client app, device and location information is displayed, and a per-application failure summary helps support teams identify which applications are experiencing issues and diagnose the underlying causes. IP addresses are shown in the failed sign-in view; conditional access details are included in the exported report files. The runbook can optionally export the full data set to CSV and XLSX files and deliver them by email and/or a time-limited download link.
+    Lists the Entra ID sign-ins of this user for the chosen number of days with application, time, result, client app, device and location. Failures are summed up per application so support can see where sign-ins go wrong, and failed sign-ins also show the IP address. The report can be sent by email or provided as a download link.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER Days
-    Number of days to retrieve sign-in logs for (1 to 30 days). Default is 7 days.
+    How many days of sign-in logs to include, 1 to 30.
 
     .PARAMETER SignInType
-    Filter sign-in events by type: Interactive only, Non-interactive only, or both.
+    Interactive sign-ins by the user, non-interactive ones by apps and tokens, or both.
 
     .PARAMETER FailedSignInsOnly
-    If set to true, only failed sign-in attempts are displayed. If false, all sign-in events are shown.
+    Hides successful sign-ins so the failures and their reasons stand out.
 
     .PARAMETER ApplicationName
-    Optional filter to display sign-ins for a specific application only (partial match). Leave empty to include all applications.
+    Shows only sign-ins to applications whose name contains this text. Leave empty for all applications.
 
     .PARAMETER EmailFrom
-    The sender email address. Sourced from the RJReport.EmailSender tenant setting. This needs to be configured in the runbook customization.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER SendEmailReport
-    If set to true, the sign-in report will be sent by email. If false, no email is sent.
+    Whether the report is sent by email. Preset in the runbook customization.
 
     .PARAMETER EmailTo
-    Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses.
-    Emails are sent individually to each recipient.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER ReportFileFormat
-    Select the report file format: CSV & XLSX (both files), CSV only, or XLSX only. Only used when a delivery method (email or download link) is selected.
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If set to true, the report files will be uploaded to Azure Storage and a time-limited download link will be generated. If false, no upload occurs.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires (1 to 3650 days). Sourced from the RJReport tenant settings. Default is 6 days.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Name of the user or system that started the runbook. Tracked for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -78,16 +72,16 @@
                 "Hide": true
             },
             "Days": {
-                "DisplayName": "Lookback Period (Days)"
+                "DisplayName": "Days to look back"
             },
             "SignInType": {
-                "DisplayName": "Sign-In Type"
+                "DisplayName": "Sign-in type"
             },
             "FailedSignInsOnly": {
-                "DisplayName": "Show Failed Sign-Ins Only"
+                "DisplayName": "Failed sign-ins only?"
             },
             "ApplicationName": {
-                "DisplayName": "Filter by Application Name (optional)"
+                "DisplayName": "Application filter"
             },
             "EmailFrom": {
                 "Hide": true
@@ -114,7 +108,7 @@
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)",
+                "DisplayName": "Recipient email address(es)",
                 "Hide": true
             },
             "ReportFileFormat": {

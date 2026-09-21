@@ -1,22 +1,21 @@
 <#
     .SYNOPSIS
-    Sets Drainmode on true or false for a specific AVD Session Host.
+    Enable or disable drain mode on this AVD session host
 
     .DESCRIPTION
-    This Runbooks looks through all AVD Hostpools of a tenant and sets the DrainMode for a specific Session Host.
-    The SubscriptionId value must be defined in the runbooks customization.
+    Switches drain mode for this Azure Virtual Desktop session host, whichever host pool of the tenant it belongs to. With drain mode on, the host accepts no new sessions, for example before maintenance; existing sessions stay connected. With drain mode off, the host takes new sessions again.
 
     .PARAMETER DeviceName
-    The name of the AVD Session Host device for which to toggle drain mode. Hidden in UI.
+    Name of the AVD session host. Set by the portal from the selected device.
 
     .PARAMETER DrainMode
-    Boolean value to enable or disable Drain Mode. Set to true to enable Drain Mode (prevent new sessions), false to disable it (allow new sessions). Default is false.
+    Whether the host should stop accepting new sessions (drain mode on) or take new sessions again (drain mode off).
 
     .PARAMETER SubscriptionIds
-    Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI.
+    Azure subscriptions that hold the AVD host pools. Taken from the tenant setting AVD.SubscriptionIds.
 
     .PARAMETER CallerName
-    The name of the user executing the runbook. Used for auditing purposes. Hidden in UI.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -25,10 +24,12 @@
                 "Hide": true
             },
             "DrainMode": {
-                "DisplayName": "Drain Mode",
-                "DefaultValue": "false",
-                "Type": "bool",
-                "Description": "Set to true to enable Drain Mode, false to disable it."
+                "DisplayName": "Drain mode",
+                "DefaultValue": false,
+                "SelectSimple": {
+                    "On - stop accepting new sessions": true,
+                    "Off - accept new sessions again": false
+                }
             },
             "SubscriptionIds": {
                 "Hide": true

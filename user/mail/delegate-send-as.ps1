@@ -1,22 +1,21 @@
 <#
     .SYNOPSIS
-    Delegate SendAs permissions for other user on his/her mailbox or remove existing delegation
+    Grant or remove Send As permission on this user's mailbox
 
     .DESCRIPTION
-    Grants or removes SendAs permissions for a delegate on a mailbox in Exchange Online. The current permissions are shown before and after applying the change.
-    This allows the delegate to send emails as if they were the mailbox owner.
+    Lets another person send email as this user, so messages appear to come from this mailbox, or removes that permission again. The permissions are shown before and after the change.
 
     .PARAMETER UserName
-    User principal name of the mailbox.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER delegateTo
-    User principal name of the delegate.
+    Person who gets or loses the Send As permission.
 
     .PARAMETER Remove
-    If set to true, removes the delegation instead of granting it.
+    Whether the permission is removed instead of granted. Set by the "Action" choice.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -37,7 +36,7 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Delegate 'Send As'",
+                            "Display": "Grant Send As",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -45,7 +44,7 @@
                             }
                         },
                         {
-                            "Display": "Remove this delegation",
+                            "Display": "Remove Send As",
                             "Customization": {
                                 "Default": {
                                     "Remove": true
@@ -54,7 +53,7 @@
                         }
                     ]
                 },
-                "Default": "Delegate 'Send As'"
+                "Default": "Grant Send As"
             },
             {
                 "Name": "CallerName",

@@ -1,51 +1,51 @@
 <#
-	.SYNOPSIS
-	Assign and provision a Windows 365 Cloud PC for a user
+    .SYNOPSIS
+    Provision a Windows 365 Cloud PC for this user
 
-	.DESCRIPTION
-	Assigns the required groups and license or Frontline provisioning policy to initiate Windows 365 provisioning. Optionally notifies the user when provisioning completes and can create a support ticket when licenses are exhausted.
+    .DESCRIPTION
+    Assigns this user the groups that trigger Windows 365 provisioning: the provisioning policy or Frontline assignment, the user settings policy and, for a dedicated Cloud PC, the license group. Optionally the user gets an email once the Cloud PC is ready, and a service ticket is opened by email when no licenses or Frontline seats are left.
 
-	.PARAMETER UserName
-	User principal name of the target user.
+    .PARAMETER UserName
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
-	.PARAMETER cfgProvisioningGroupName
-	Display name of the provisioning policy group or Frontline assignment to use.
+    .PARAMETER cfgProvisioningGroupName
+    Provisioning policy group for a dedicated Cloud PC, or the name of the Frontline provisioning policy. Type the name, or pick it when your runbook customization offers a list.
 
-	.PARAMETER cfgUserSettingsGroupName
-	Display name of the user settings policy group to use.
+    .PARAMETER cfgUserSettingsGroupName
+    Group that carries the user settings policy, for example whether the user may restore the Cloud PC.
 
-	.PARAMETER licWin365GroupName
-	Display name of the Windows 365 license group to assign when using dedicated Cloud PCs.
+    .PARAMETER licWin365GroupName
+    License group for a dedicated Cloud PC. Not needed for Frontline.
 
-	.PARAMETER cfgProvisioningGroupPrefix
-	Prefix used to detect provisioning-related configuration groups.
+    .PARAMETER cfgProvisioningGroupPrefix
+    Name prefix that identifies provisioning policy groups. Preset in the runbook customization.
 
-	.PARAMETER cfgUserSettingsGroupPrefix
-	Prefix used to detect user-settings-related configuration groups.
+    .PARAMETER cfgUserSettingsGroupPrefix
+    Name prefix that identifies user settings policy groups. Preset in the runbook customization.
 
-	.PARAMETER sendMailWhenProvisioned
-	If set to true, sends an email to the user after provisioning completes.
+    .PARAMETER sendMailWhenProvisioned
+    Sends the user an email as soon as provisioning has finished.
 
-	.PARAMETER customizeMail
-	If set to true, uses a custom email body.
+    .PARAMETER customizeMail
+    Replaces the standard notification text with your own message. Only used when the user is notified.
 
-	.PARAMETER customMailMessage
-	Custom message body used for the notification email.
+    .PARAMETER customMailMessage
+    Text of the notification email.
 
-	.PARAMETER createTicketOutOfLicenses
-	If set to true, creates a service ticket email when no licenses or Frontline seats are available.
+    .PARAMETER createTicketOutOfLicenses
+    Sends a ticket email to the service desk when no license or Frontline seat is available.
 
-	.PARAMETER ticketQueueAddress
-	Email address used as ticket queue recipient.
+    .PARAMETER ticketQueueAddress
+    Mailbox of the service desk that turns the email into a ticket.
 
-	.PARAMETER fromMailAddress
-	Mailbox used to send the ticket and user notification emails.
+    .PARAMETER fromMailAddress
+    Mailbox the notification and ticket emails are sent from.
 
-	.PARAMETER ticketCustomerId
-	Customer identifier used in ticket subject lines.
+    .PARAMETER ticketCustomerId
+    Customer identifier put into the ticket subject.
 
-	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -62,15 +62,24 @@
             "CallerName": {
                 "Hide": true
             },
+            "cfgProvisioningGroupName": {
+                "DisplayName": "Provisioning policy or Frontline assignment"
+            },
+            "cfgUserSettingsGroupName": {
+                "DisplayName": "User settings policy"
+            },
+            "licWin365GroupName": {
+                "DisplayName": "Windows 365 license (dedicated Cloud PC)"
+            },
             "sendMailWhenProvisioned": {
-                "DisplayName": "Notify user once the CloudPC is done provisioning?"
+                "DisplayName": "Notify the user when the Cloud PC is ready?"
             },
             "customizeMail": {
-                "DisplayName": "Would you like to customize the mail sent to the user? (Works only if \"Notify user\" switch is on)",
+                "DisplayName": "Customize the notification email?",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Do not customize the email.",
+                            "Display": "Use the standard email",
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": [
@@ -79,65 +88,26 @@
                             }
                         },
                         {
-                            "Display": "Customize the email.",
+                            "Display": "Use a custom message",
                             "ParameterValue": true
                         }
                     ]
                 }
             },
-            "cfgProvisioningGroupName": {
-                "DisplayName": "Provisioning Policy / FrontLine Assignment to use"
-            },
-            "cfgUserSettingsGroupName": {
-                "DisplayName": "User Settings Policy to use"
-            },
-            "licWin365GroupName": {
-                "DisplayName": "Windows 365 license to assign (if not FrontLine)"
-            },
-            "sendMailWhenProvisioned": {
-                "DisplayName": "Notify user once the CloudPC is done provisioning?"
-            },
-            "customizeMail": {
-                "DisplayName": "Would you like to customize the mail sent to the user?"
-            },
             "customMailMessage": {
-                "DisplayName": "Custom message to be sent to the user."
+                "DisplayName": "Custom message"
             },
             "createTicketOutOfLicenses": {
-                "DisplayName": "Create a service ticket (email) if not enough licenses/FrontLine seats are available?"
+                "DisplayName": "Open a service ticket when licenses run out?"
             },
             "ticketQueueAddress": {
-                "DisplayName": "Where to open a service ticket (via email)"
+                "DisplayName": "Service ticket address"
             },
             "fromMailAddress": {
-                "DisplayName": "(Shared) Mailbox to send mail from"
+                "DisplayName": "Sender mailbox"
             },
             "ticketCustomerId": {
-                "DisplayName": "Customer ID string for service tickets"
-            }
-        }
-    }
-
-    .EXAMPLE
-    "rjgit-user_general_assign-windows365": {
-        "Parameters": {
-            "cfgProvisioningGroupName": {
-                "SelectSimple": {
-                    "cfg - Windows 365 - Provisioning - Win11": "cfg - Windows 365 - Provisioning - Win11",
-                    "cfg - Windows 365 - Provisioning - Win10": "cfg - Windows 365 - Provisioning - Win10"
-                }
-            },
-            "cfgUserSettingsGroupName": {
-                "SelectSimple": {
-                    "cfg - Windows 365 - User Settings - restore allowed": "cfg - Windows 365 - User Settings - restore allowed",
-                    "cfg - Windows 365 - User Settings - no restore": "cfg - Windows 365 - User Settings - no restore"
-                }
-            },
-            "licWin365GroupName": {
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
+                "DisplayName": "Customer ID for tickets"
             }
         }
     }

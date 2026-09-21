@@ -1,18 +1,18 @@
 <#
 	.SYNOPSIS
-	Set the profile photo for a user
+	Set the profile photo of this user from a URL
 
 	.DESCRIPTION
-	Downloads a JPEG image from a URL and uploads it as the user's profile photo. This is useful to set or update user avatars in Microsoft 365.
+	Downloads a JPEG image from the given URL and sets it as the profile photo of this user. The photo shows up in Microsoft 365 apps such as Teams and Outlook. An existing photo is replaced.
 
 	.PARAMETER UserName
-	User principal name of the target user.
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER PhotoURI
-	URL to a JPEG image that will be used as the profile photo.
+	Web address of a JPEG image the runbook can download.
 
 	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -24,7 +24,7 @@
 				"Hide": true
 			},
 			"PhotoURI": {
-				"DisplayName": "Photo Source URL:"
+				"DisplayName": "Photo URL"
 			}
 		}
 	}

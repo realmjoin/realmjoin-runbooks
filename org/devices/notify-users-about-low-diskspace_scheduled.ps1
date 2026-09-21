@@ -1,106 +1,96 @@
 <#
     .SYNOPSIS
-    Notify primary users about low disk space on their devices via email
+    Email users whose devices are running out of disk space
 
     .DESCRIPTION
-    Identifies Intune managed Windows and macOS devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size, and sends one personalized email per primary user.
-    The email lists all affected devices of the user with their free and total disk space, rates each device as Critical or Warning and contains practical, platform-specific steps to free up space.
-    The evaluation can be limited to critical devices, to devices with a recent Intune inventory, to the members of an Entra device group and to users included in or excluded by a group.
-    A simulation mode lists the affected users and devices without sending anything, and a global override recipient redirects all notifications to a test or shared mailbox.
+    Finds Windows and macOS devices in Intune whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each primary user gets one email listing their affected devices with practical steps to free up space. Devices are rated Warning or Critical. The run can be limited to critical devices, to devices with a fresh inventory, to a device group and to certain users. A simulation mode only lists who would be notified, and an override recipient redirects all emails to a test mailbox.
 
     .PARAMETER ThresholdType
-    Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
+    By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
     .PARAMETER FreeSpaceThresholdGB
-    Devices with less free disk space than this value in gigabytes are considered. Only used when the threshold type is set to free space in gigabytes.
+    Devices with less free space than this many gigabytes are affected.
 
     .PARAMETER FreeSpacePercentThreshold
-    Devices with a lower percentage of free disk space than this value are considered. Only used when the threshold type is set to free space in percent.
+    Devices with less free space than this percentage of the disk are affected.
 
     .PARAMETER NotifyOnSeverity
-    Selects which devices trigger a notification: every device below the threshold (Warning and Critical) or only devices below half of the threshold (Critical only).
+    Every device below the limit (Warning and Critical), or only devices below half of it (Critical only).
 
     .PARAMETER Windows
-    Include Windows devices in the evaluation.
+    Includes Windows devices.
 
     .PARAMETER MacOS
-    Include macOS devices in the evaluation.
+    Includes macOS devices.
 
     .PARAMETER MaxInventoryAgeDays
-    Devices whose last Intune sync is older than this number of days are skipped, because their storage inventory is considered outdated. Devices without a last sync date are skipped as well. Set to 0 to disable the check.
+    Devices whose last Intune sync is older than this many days are skipped, as their disk data is stale. 0 disables the check.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the notification email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the notification email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the notification email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the notification email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the notification email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ServiceDeskDisplayName
-    Service Desk display name for user contact information (optional).
+    Service desk name shown in the email. Taken from the tenant setting RJReport.ServiceDesk_DisplayName.
 
     .PARAMETER ServiceDeskEmail
-    Service Desk email address for user contact information (optional).
+    Service desk email address shown in the email. Taken from the tenant setting RJReport.ServiceDesk_EMail.
 
     .PARAMETER ServiceDeskPhone
-    Service Desk phone number for user contact information (optional).
+    Service desk phone number shown in the email. Taken from the tenant setting RJReport.ServiceDesk_Phone.
 
     .PARAMETER ServiceDeskPortalUrl
-    Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+    Link to the service desk portal shown in the email. Taken from the tenant setting RJReport.ServiceDesk_PortalUrl.
 
     .PARAMETER ServiceDeskTicketUrl
-    Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+    Link to the service desk ticket shown in the email. Taken from the tenant setting RJReport.ServiceDesk_TicketUrl; empty means no link.
 
     .PARAMETER UseUserScope
-    Enable user scope filtering to include or exclude users based on group membership.
+    Whether users are filtered by group membership. Set by the "Filter users by group?" choice.
 
     .PARAMETER IncludeUserGroup
-    Only notify users who are (transitive) members of this group. Requires UseUserScope to be enabled.
+    Only users in this group, nested groups included, are notified.
 
     .PARAMETER ExcludeUserGroup
-    Do not notify users who are (transitive) members of this group. Requires UseUserScope to be enabled.
+    Users in this group, nested groups included, are not notified.
 
     .PARAMETER IncludeDeviceGroup
-    Optional Entra device group. When set, only devices that are (transitive) members of this group are evaluated. Can be combined with the user scope.
+    Only devices in this Entra ID group, nested groups included, are checked. Can be combined with the user filter.
 
     .PARAMETER OverrideEmailRecipient
-    Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly.
-    The override mailbox receives one email per affected user within a few seconds; mail filters may treat such a burst as bulk or spam, so prefer a mailbox in the same tenant for tests (see the documentation).
+    Sends every email to these addresses instead of the users, for tests and pilots. The mailbox gets one email per affected user within seconds, which mail filters may treat as spam; prefer a mailbox in your own tenant.
 
     .PARAMETER SimulationMode
-    When enabled, the runbook lists the affected users and devices in the output but does not send any email.
+    Simulation only lists the affected users and devices; nothing is sent.
 
     .PARAMETER MailTemplateLanguage
-    Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
+    English, German, or the custom template from the runbook customization; English is used where the custom template is empty.
 
     .PARAMETER CustomMailTemplateSubject
-    Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). It is used for Warning and for Critical notifications alike,
-    because the custom template has no counterpart to the urgent subject line of the built-in templates.
+    Subject of the email when the custom template is used, for Warning and Critical alike.
 
     .PARAMETER CustomMailTemplateBeforeDeviceDetails
-    Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+    Text above the device list when the custom template is used. Markdown is allowed.
 
     .PARAMETER CustomMailTemplateAfterDeviceDetails
-    Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. Replaces the built-in cleanup steps, so it should contain its own guidance.
+    Text below the device list when the custom template is used; it replaces the built-in cleanup steps. Markdown is allowed.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -138,10 +128,10 @@
                 }
             },
             "FreeSpaceThresholdGB": {
-                "DisplayName": "Low Disk Space Threshold (free GB)"
+                "DisplayName": "Free space limit (GB)"
             },
             "FreeSpacePercentThreshold": {
-                "DisplayName": "Low Disk Space Threshold (free %)",
+                "DisplayName": "Free space limit (%)",
                 "Hide": true
             },
             "NotifyOnSeverity": {
@@ -161,19 +151,19 @@
                 }
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "MaxInventoryAgeDays": {
-                "DisplayName": "Skip devices whose last Intune sync is older than (days, 0 = no limit)"
+                "DisplayName": "Skip devices not synced for (days)"
             },
             "IncludeDeviceGroup": {
-                "DisplayName": "Limit to devices in group (optional)"
+                "DisplayName": "Limit to devices in group"
             },
             "OverrideEmailRecipient": {
-                "DisplayName": "Redirect * ALL * Emails to Override Recipient(s)"
+                "DisplayName": "Redirect all emails to"
             },
             "SimulationMode": {
                 "DisplayName": "Notification mode",
@@ -216,31 +206,30 @@
                 "Hide": true
             },
             "UseUserScope": {
-                "DisplayName": "Use User Scope Filtering",
                 "Hide": true
             },
             "IncludeUserGroup": {
-                "DisplayName": "Users to include (Group)",
+                "DisplayName": "Include users from group",
                 "Hide": true
             },
             "ExcludeUserGroup": {
-                "DisplayName": "Users to exclude (Group)",
+                "DisplayName": "Exclude users from group",
                 "Hide": true
             },
             "MailTemplateLanguage": {
-                "DisplayName": "Mail Template",
+                "DisplayName": "Mail template",
                 "Hide": true
             },
             "CustomMailTemplateSubject": {
-                "DisplayName": "Custom: Email Subject",
+                "DisplayName": "Custom: email subject",
                 "Hide": true
             },
             "CustomMailTemplateBeforeDeviceDetails": {
-                "DisplayName": "Custom: Text Before Device List",
+                "DisplayName": "Custom: text before device list",
                 "Hide": true
             },
             "CustomMailTemplateAfterDeviceDetails": {
-                "DisplayName": "Custom: Text After Device List",
+                "DisplayName": "Custom: text after device list",
                 "Hide": true
             },
             "CallerName": {
@@ -249,13 +238,13 @@
         },
         "ParameterList": [
             {
-                "DisplayName": "(Optional) Enable user scope filtering to include or exclude users based on group membership.",
+                "DisplayName": "Filter users by group?",
                 "DisplayAfter": "IncludeDeviceGroup",
                 "Default": false,
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - filter by group membership",
+                            "Display": "Yes, filter by group membership",
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
@@ -265,7 +254,7 @@
                             }
                         },
                         {
-                            "Display": "No - notify all primary users",
+                            "Display": "No, notify all primary users",
                             "Customization": {
                                 "Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
                                 "Default": {
@@ -278,13 +267,13 @@
                 }
             },
             {
-                "DisplayName": "Mail Template",
+                "DisplayName": "Mail template",
                 "DisplayAfter": "SimulationMode",
                 "Default": "EN",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "EN (English - Default)",
+                            "Display": "English (default)",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "EN"
@@ -293,7 +282,7 @@
                             "ParameterValue": "EN"
                         },
                         {
-                            "Display": "DE (German)",
+                            "Display": "German",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "DE"
@@ -302,7 +291,7 @@
                             "ParameterValue": "DE"
                         },
                         {
-                            "Display": "Custom - Use Template from Runbook Customizations (Fallback is English)",
+                            "Display": "Custom template from runbook customization",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "Custom"
@@ -356,11 +345,11 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_TicketUrl" } )]
     [string] $ServiceDeskTicketUrl = "",
     [bool] $UseUserScope = $false,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Users from Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string] $IncludeUserGroup,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string] $ExcludeUserGroup,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group" } )]
     [string] $IncludeDeviceGroup,
     [string] $OverrideEmailRecipient,
     [bool] $SimulationMode = $false,

@@ -3,76 +3,58 @@
     List enterprise applications with no recent sign-ins
 
     .DESCRIPTION
-    This runbook identifies enterprise applications with no recent sign-in activity. It evaluates the Microsoft Entra
-    "Service principal sign-in activity" report, which holds the last sign-in date of every service principal across
-    delegated and app-only flows and is therefore independent of the retention period of the sign-in logs.
-    It lists apps whose last sign-in is older than the specified number of days and apps without any recorded sign-in.
-    Use it to find candidates for review, cleanup, or decommissioning.
-    The runbook only reads data; it does not modify the listed applications.
-    Reading the report requires the AuditLog.Read.All permission and a Microsoft Entra ID P1 or P2 license.
-
-    Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing the inactive and never-used applications.
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+    Finds enterprise applications that nobody has signed in to for a given number of days, plus those that were never used, so you can decide whether they are still needed. The check uses the service principal sign-in activity report, which keeps the last sign-in date of every application. Nothing is changed. Needs a Microsoft Entra ID P1 or P2 license. The report can be sent by email or provided as a download link.
 
     .PARAMETER Days
-    Number of days without user logon to consider an application as inactive. Default is 90 days.
+    Applications with no sign-in for at least this many days are listed as inactive.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Days": {
-                "DisplayName": "Days without user logon"
+                "DisplayName": "Days without sign-in"
             },
             "ReportFileFormat": {
                 "DisplayName": "Report file format",
@@ -95,7 +77,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -114,7 +96,7 @@
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "EmailFrom": {
                 "Hide": true

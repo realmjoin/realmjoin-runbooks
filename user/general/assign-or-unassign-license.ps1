@@ -1,21 +1,21 @@
 <#
     .SYNOPSIS
-    Assign or remove a license for a user via group membership
+    Assign or remove a license for this user via a license group
 
     .DESCRIPTION
-    Adds or removes a user to a dedicated license assignment group to control license allocation. The license group must match the configured naming convention.
+    Adds this user to a license assignment group or removes the user from it, which assigns or removes the license the group carries.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER GroupID_License
-    Object ID of the license assignment group.
+    Group that carries the license. Only groups whose name starts with LIC_ are offered.
 
     .PARAMETER Remove
-    "Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform.
+    Assign adds the user to the group. Remove takes the user out of it.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -24,10 +24,10 @@
                 "Hide": true
             },
             "Remove": {
-                "DisplayName": "Assign or Remove License",
+                "DisplayName": "Action",
                 "SelectSimple": {
-                    "Assign License to User": false,
-                    "Remove License from User": true
+                    "Assign license to user": false,
+                    "Remove license from user": true
                 }
             },
             "CallerName": {
@@ -47,7 +47,7 @@ param(
     # production does not supprt "ref:LicenseGroup" yet
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -Filter "startswith(DisplayName, 'LIC_')" -DisplayName "License group" } )]
     [String] $GroupID_License,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Remove license" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Action" } )]
     [boolean] $Remove = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

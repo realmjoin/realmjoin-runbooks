@@ -1,21 +1,21 @@
 <#
 	.SYNOPSIS
-	List users with no recent interactive sign-ins
+	List users with no recent interactive sign-in
 
 	.DESCRIPTION
-	Lists users and guests that have not signed in interactively for a specified number of days. Optionally includes accounts that never signed in and accounts that are blocked.
+	Lists the users and guests whose last interactive sign-in is older than the chosen number of days. Accounts that are blocked from signing in and accounts that never signed in can be included. Nothing is changed.
 
 	.PARAMETER Days
-	Number of days without interactive sign-in.
+	Users with no interactive sign-in for at least this many days are listed.
 
 	.PARAMETER ShowBlockedUsers
-	If set to true, includes users and guests that cannot sign in.
+	Also lists users and guests whose sign-in is blocked.
 
 	.PARAMETER ShowUsersThatNeverLoggedIn
-	If set to true, includes users and guests that never signed in.
+	Also lists users and guests that never signed in.
 
 	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -24,13 +24,13 @@
 				"Hide": true
 			},
 			"Days": {
-				"DisplayName": "Days without signin"
+				"DisplayName": "Inactive for at least (days)"
 			},
 			"showBlockedUsers": {
-				"DisplayName": "Include users/guests that can not sign in"
+				"DisplayName": "Include blocked accounts?"
 			},
 			"showUsersThatNeverLoggedIn": {
-				"DisplayName": "Include users/guests that never logged in"
+				"DisplayName": "Include accounts that never signed in?"
 			}
 		}
 	}

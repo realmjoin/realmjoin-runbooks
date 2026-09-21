@@ -1,15 +1,15 @@
 <#
 	.SYNOPSIS
-	Sync Apple Enrollment Program Tokens and VPP Tokens with Intune
+	Sync Apple enrollment and VPP tokens with Intune
 
 	.DESCRIPTION
-	This runbook triggers synchronization of Apple tokens in Microsoft Intune. It can sync Apple Enrollment Program (ADE) tokens, Volume Purchase Program (VPP) tokens, or both. The sync ensures that Intune has the latest information from Apple Business Manager regarding device enrollments and app licenses.
+	Triggers a sync of the Apple tokens in Intune, so device enrollments from Apple Business Manager and app licenses from the Volume Purchase Program are up to date. Either token type or both can be synced.
 
 	.PARAMETER SyncType
-	Select which token type(s) to synchronize with Apple Business Manager.
+	Sync the Enrollment Program tokens, the VPP tokens, or both.
 
 	.PARAMETER CallerName
-	Automated parameter for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -17,7 +17,7 @@
 			"SyncType": {
 				"Hide": false,
 				"Default": "Both",
-				"DisplayName": "Sync Type",
+				"DisplayName": "Tokens to sync",
 				"SelectSimple": {
 					"Sync both Enrollment and VPP tokens" : "Both",
 					"Sync Enrollment Program tokens only" : "EnrollmentTokens",

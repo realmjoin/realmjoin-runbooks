@@ -1,66 +1,69 @@
 <#
 	.SYNOPSIS
-	Permanently offboard a user
+	Permanently offboard this user
 
 	.DESCRIPTION
-	Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.
+	Offboards this user for good: access is revoked, the account is disabled or deleted, licenses and groups are adjusted, and the group memberships can be exported before they are changed. Group ownerships, direct reports and sponsorships of guests can be handed over to a replacement. A deleted account can be restored for 30 days only.
 
 	.PARAMETER UserName
-	User principal name of the target user.
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER UserTypeSelector
-	Controls which user types this runbook may be run against: all users, member users only or guest users only. The run aborts before any change if the selected user does not match. To enforce the restriction, configure it as a tenant setting and hide the parameter via RunbookCustomization - otherwise operators can change it in the runbook form.
+	Runs only for the chosen user type: all users, members only or guests only. With a mismatch the run stops before any change.
 
 	.PARAMETER DeleteUser
-	"Delete user object" (final value: $true) or "Keep the user object" (final value: $false) can be selected as action to perform. If set to true, the user object will be deleted. If set to false, the user object will be kept but access will be revoked and sign-in will be blocked.
+	Delete removes the user object. Keep leaves the account in place; what happens to it follows the other switches.
 
 	.PARAMETER DisableUser
-	If set to true, disables the user account for sign-in.
+	Blocks the account from signing in.
 
 	.PARAMETER RevokeAccess
-	If set to true, revokes the user's refresh tokens and active sessions.
+	Ends the user's active sessions and invalidates their refresh tokens.
 
 	.PARAMETER exportGroupMemberships
-	If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link.
+	Exports the user's group memberships to a file and returns a download link before groups and licenses are changed. Taken from the tenant setting OffboardUserPermanently.exportGroupMemberships.
 
 	.PARAMETER ContainerName
-	Storage container name used for the group membership export.
+	Storage container the export is uploaded to. Set per runbook.
 
 	.PARAMETER ResourceGroupName
-	Resource group that contains the storage account.
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 	.PARAMETER StorageAccountName
-	Storage account name used for the upload.
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 	.PARAMETER LinkExpiryDays
-	Number of days until the generated download link expires.
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 	.PARAMETER ChangeLicensesSelector
-	Controls how directly assigned licenses should be handled.
+	Remove all takes away every directly assigned license; licenses inherited from groups stay.
 
-    .Parameter ChangeGroupsSelector
-    "Change" and "Remove all" will both honour "groupToAdd"
+	.PARAMETER ChangeGroupsSelector
+	Remove groups with the prefix removes the groups named by the prefix, Remove all groups removes every group. Both add or keep the group under "Group to add or keep". Dynamic, role-assignable and on-premises groups are skipped and listed.
 
 	.PARAMETER GroupToAdd
-	Group that should be added or kept when group changes are enabled.
+	Group the user still needs after offboarding, for example a leaver license group. It is added if missing and never removed.
 
 	.PARAMETER GroupsToRemovePrefix
-	Prefix used to remove groups matching a naming convention.
+	Groups whose name starts with this text are removed, for example LIC_ for all license groups. Only used with "Remove groups with the prefix".
 
 	.PARAMETER RevokeGroupOwnership
-	"Remove/Replace this user's group ownerships" (final value: $true) or "User will remain owner / Do not change" (final value: $false) can be selected as action to perform. If set to true, the runbook will attempt to remove the user from group ownerships. If the user is the last owner of a group, it will attempt to assign a replacement owner; if that fails, it will skip ownership change for that group and log it for manual follow-up.
+	Remove or replace takes the user's group ownerships away. Where this user is the last owner, the replacement takes over; without a replacement the group is listed for manual follow-up. Keep leaves the ownerships as they are.
 
 	.PARAMETER ManagerAsReplacementOwner
-	If set to true, uses the user's manager as replacement owner where applicable.
+	Takes the user's manager from Entra ID as the replacement owner, manager and sponsor. If a manager is set, it is used instead of the "Replacement person".
 
 	.PARAMETER ReplacementOwnerName
-	User who will take over group or resource ownership if required.
+	Person who takes over ownerships, direct reports and sponsorships when the manager is not used or this user has none.
 
 	.PARAMETER ReplaceManagerReferences
-	If set to true, all direct reports of the offboarded user get the replacement person assigned as their new manager. Without a resolvable replacement, affected users are only listed for manual follow-up.
+	Sets the replacement as manager of everyone who reports to this user. Without a replacement, those users are only listed.
 
 	.PARAMETER ReplaceSponsorReferences
-	If set to true, the offboarded user is replaced by the replacement person wherever they are set as sponsor (typically on guest users). Without a resolvable replacement, affected users are only listed for manual follow-up. Sponsorships that the user only holds through a group membership are left untouched, as they remain valid after the offboarding. As Graph offers no reverse lookup for sponsors, this option scans all users of the tenant.
+	Replaces this user as sponsor wherever they are set as one, typically on guest users. Without a replacement, those users are only listed. Sponsorships held through a group stay. This scans all users of the tenant.
+
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -91,10 +94,11 @@
 				"Hide": true
 			},
 			"DeleteUser": {
+				"DisplayName": "Delete or keep the account",
 				"Select": {
 					"Options": [
 						{
-							"Display": "Delete user object",
+							"Display": "Delete the account",
 							"Value": true,
 							"Customization": {
 								"Hide": [
@@ -107,7 +111,7 @@
 							}
 						},
 						{
-							"Display": "Keep the user object",
+							"Display": "Keep the account",
 							"Value": false
 						}
 					]
@@ -129,7 +133,7 @@
 				"Hide": true
 			},
 			"ChangeLicensesSelector": {
-				"DisplayName": "Change directly assigned licenses",
+				"DisplayName": "Directly assigned licenses",
 				"Select": {
 					"Options": [
 						{
@@ -144,7 +148,7 @@
 				}
 			},
 			"ChangeGroupsSelector": {
-				"DisplayName": "Change assigned groups",
+				"DisplayName": "Group memberships",
 				"Select": {
 					"Options": [
 						{
@@ -152,7 +156,7 @@
 							"Value": 0
 						},
 						{
-							"Display": "Change the user's groups.",
+							"Display": "Remove groups with the prefix",
 							"Value": 1
 						},
 						{
@@ -163,25 +167,25 @@
 				}
 			},
 			"RevokeGroupOwnership": {
-				"DisplayName": "Handle group ownerships",
+				"DisplayName": "Group ownerships",
 				"Select": {
 					"Options": [
 						{
-							"Display": "User will remain owner / Do not change",
+							"Display": "Keep the user's ownerships",
 							"Value": false
 						},
 						{
-							"Display": "Remove/Replace this user's group ownerships",
+							"Display": "Remove or replace the user's ownerships",
 							"Value": true
 						}
 					]
 				}
 			},
 			"ManagerAsReplacementOwner": {
-				"Description": "Fetch the user's manager from AzureAD as replacing owner/manager/sponsor. This takes precedence over manually specifying a replacement owner."
+				"DisplayName": "Use the manager as replacement?"
 			},
 			"ReplaceManagerReferences": {
-				"DisplayName": "Handle manager references",
+				"DisplayName": "Manager of direct reports",
 				"Select": {
 					"Options": [
 						{
@@ -196,7 +200,7 @@
 				}
 			},
 			"ReplaceSponsorReferences": {
-				"DisplayName": "Handle sponsor references",
+				"DisplayName": "Sponsor of guests",
 				"Select": {
 					"Options": [
 						{
@@ -212,71 +216,6 @@
 			}
 		}
 	}
-
-    .EXAMPLE
-    Full Runbook Customizing Example:
-    {
-        "Settings": {
-            "OffboardUserPermanently": {
-                "userTypeRestriction": 0, // 0: Allow all user types, 1: Members only, 2: Guests only
-                "deleteUser": true,
-                "disableUser": false,
-                "revokeAccess": true,
-                "exportGroupMemberships": true,
-                "licensesMode": 0, // "false": Do nothing, "true": remove all directly assigned licenses
-                "groupsMode": 0, // 0: Do nothing, 1: Change, 2: Remove all
-                "groupToAdd": "",
-                "groupsToRemovePrefix": "",
-                "replaceManagerReferences": true,
-                "replaceSponsorReferences": true
-            },
-            "RJReport": {
-                "StorageAccount": {
-                    "ResourceGroup": "rj-test-runbooks-01",
-                    "StorageAccountName": "rjrbexports01",
-                    "LinkExpiryDays": 6
-                }
-            }
-        },
-        "Runbooks": {
-            "rjgit-user_general_offboard-user-permanently": {
-                "ParameterList": [
-                    {
-                        "Name": "UserTypeSelector",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "disableUser",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "revokeAccess",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "ChangeLicensesSelector",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "ChangeGroupsSelector",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "GroupToAdd",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "GroupsToRemovePrefix",
-                        "Hide": true
-                    },
-                    {
-                        "Name": "CallerName",
-                        "Hide": true
-                    }
-                ]
-            }
-        }
-    }
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -296,7 +235,7 @@ param (
     [bool] $DisableUser = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Create a backup of the user's group memberships" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.exportGroupMemberships" -DisplayName "Back up group memberships?" } )]
     [bool] $exportGroupMemberships = $false,
     [string] $ContainerName = "user-leaver-groupmemberships",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
@@ -314,15 +253,15 @@ param (
     [string] $GroupToAdd,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
     [String] $GroupsToRemovePrefix,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" -DisplayName "Remove/Replace this user's group ownerships" })]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.revokeGroupOwnership" -DisplayName "Group ownerships" })]
     [bool] $RevokeGroupOwnership = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Grant ownership of the user's resources to the user's manager?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Use the manager as replacement?" } )]
     [bool] $ManagerAsReplacementOwner = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Who should step in as group/resource owner?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Replacement person" } )]
     [String] $ReplacementOwnerName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.replaceManagerReferences" -DisplayName "Set the replacement as manager of this user's direct reports" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.replaceManagerReferences" -DisplayName "Manager of direct reports" } )]
     [bool] $ReplaceManagerReferences = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.replaceSponsorReferences" -DisplayName "Replace this user as sponsor of (guest) users" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserPermanently.replaceSponsorReferences" -DisplayName "Sponsor of guests" } )]
     [bool] $ReplaceSponsorReferences = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -1,23 +1,21 @@
 <#
     .SYNOPSIS
-    Add/remove a nested group to/from a group
+    Add a nested group to this group or remove it
 
     .DESCRIPTION
-    This runbook adds a nested group to a target group or removes an existing nesting.
-    It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
-    Use the Remove switch to remove the nested group instead of adding it.
+    Adds another group as a member of this group, or removes that nesting again. Works for Microsoft Entra ID groups as well as Exchange Online distribution and mail-enabled security groups.
 
     .PARAMETER GroupID
-    Object ID of the target group.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER NestedGroupID
-    Object ID of the group to add as a nested member.
+    Group that becomes a member of this group, or stops being one.
 
     .PARAMETER Remove
-    Set to true to remove the nested group membership, or false to add it.
+    Add makes the chosen group a member of this group. Remove takes an existing nesting away.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -29,7 +27,11 @@
                 "Hide": true
             },
             "Remove": {
-                "DisplayName": "Remove this group"
+                "DisplayName": "Action",
+                "SelectSimple": {
+                    "Add nested group": false,
+                    "Remove nested group": true
+                }
             }
         }
     }
@@ -41,7 +43,7 @@ param(
     [Parameter(Mandatory = $true)]
     [String] $GroupID,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Nested Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Nested group" } )]
     [String] $NestedGroupID,
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes

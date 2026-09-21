@@ -1,30 +1,27 @@
 <#
     .SYNOPSIS
-    Report users by the count of their registered MFA methods
+    List users by how many MFA methods they registered
 
     .DESCRIPTION
-    This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
-    As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
-    The output includes the user display name, user principal name, and the count of registered MFA methods.
+    Counts the registered authentication methods of every enabled user and lists the users whose count falls into the chosen range, for example those with no MFA method at all. The list shows display name, sign-in name and the number of methods. Nothing is changed.
 
     .PARAMETER mfaMethodsRange
-    Range for filtering users based on the count of their registered MFA methods.
+    No methods lists users without any registered method; the other ranges list users with that many registered methods.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 .INPUTS
 RunbookCustomization: {
     "Parameters": {
         "mfaMethodsRange": {
-            "DisplayName": "Select MFA Methods Count Range",
-            "Description": "Filter users based on the count of their registered MFA methods.",
+            "DisplayName": "Number of MFA methods",
             "Required": true,
             "SelectSimple": {
-                "Users with 0 methods (no MFA)": "0",
-                "Users with 1-3 methods": "1-3",
-                "Users with 4-5 methods": "4-5",
-                "Users with 6+ methods": "6+"
+                "No methods (no MFA)": "0",
+                "1 to 3 methods": "1-3",
+                "4 to 5 methods": "4-5",
+                "6 or more methods": "6+"
             }
         },
         "CallerName": {

@@ -1,17 +1,15 @@
 <#
     .SYNOPSIS
-    List all owners of an Office 365 group.
+    List the owners of this group
 
     .DESCRIPTION
-    This runbook retrieves and lists the owners of the specified group.
-    It uses Microsoft Graph to query the group and its owners and outputs the results as a table.
-    Use this to quickly review ownership assignments.
+    Shows the owners of this group as a table. Nothing is changed.
 
     .PARAMETER GroupID
-    Object ID of the target group.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

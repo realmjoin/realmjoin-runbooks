@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    Get Microsoft Teams voice status for a user
+    Show the Teams voice setup of this user
 
     .DESCRIPTION
-    Retrieves voice-related status information for a Teams user such as phone number assignment, call forwarding settings, voicemail configuration, and policy assignments. The output is intended for troubleshooting and validation.
+    Shows the telephony setup of this user in Teams: the assigned phone number, call forwarding, voicemail, the assigned voice policies and call queue membership. Nothing is changed.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

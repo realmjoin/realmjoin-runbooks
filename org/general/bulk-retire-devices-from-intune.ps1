@@ -1,21 +1,21 @@
 <#
   .SYNOPSIS
-  Bulk retire devices from Intune using serial numbers
+  Retire several Intune devices by serial number
 
   .DESCRIPTION
-  Retires multiple Intune devices based on a comma-separated list of serial numbers. Each serial number is looked up in Intune and the device is retired if found.
+  Retires the Intune devices with the given serial numbers. A retire removes company data and management from each device but leaves personal data in place. Serial numbers that are not found are reported and skipped.
 
   .PARAMETER SerialNumbers
-  Comma-separated list of device serial numbers to retire.
+  Serial numbers of the devices to retire, separated by commas.
 
   .PARAMETER CallerName
-  Caller name is tracked purely for auditing purposes.
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
       "SerialNumbers": {
-        "DisplayName": "List of Serial Numbers (comma-separated)"
+        "DisplayName": "Serial numbers"
       },
       "CallerName": {
         "Hide": true

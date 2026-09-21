@@ -1,90 +1,78 @@
 <#
     .SYNOPSIS
-    Scheduled report of managed devices running low on free disk space.
+    Report devices that are running out of disk space
 
     .DESCRIPTION
-    Identifies and lists Intune managed devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size.
-    The result can be narrowed down by platform and by manufacturer and model filters, and each reported device is rated as Critical or Warning depending on how far below the threshold it is.
-    Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+    Lists Intune devices whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each device is rated Warning or Critical depending on how far below it is. The list can be narrowed by platform, manufacturer and model. The report can be sent by email or provided as a download link.
 
     .PARAMETER ThresholdType
-    Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
+    By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
     .PARAMETER FreeSpaceThresholdGB
-    Devices with less free disk space than this value in gigabytes are reported. Only used when the threshold type is set to free space in gigabytes.
+    Devices with less free space than this many gigabytes are reported.
 
     .PARAMETER FreeSpacePercentThreshold
-    Devices with a lower percentage of free disk space than this value are reported. Only used when the threshold type is set to free space in percent.
+    Devices with less free space than this percentage of the disk are reported.
 
     .PARAMETER Windows
-    Include Windows devices in the results.
+    Includes Windows devices.
 
     .PARAMETER MacOS
-    Include macOS devices in the results.
+    Includes macOS devices.
 
     .PARAMETER iOS
-    Include iOS and iPadOS devices in the results.
+    Includes iOS and iPadOS devices.
 
     .PARAMETER Android
-    Include Android devices in the results.
+    Includes Android devices.
 
     .PARAMETER ManufacturerFilter
-    Optional comma-separated list of manufacturer names. A device is included when its manufacturer contains one of the entries. Leave empty to include all manufacturers.
+    Only these manufacturers, separated by commas; Dell also matches Dell Inc. Leave empty for all.
 
     .PARAMETER ModelFilter
-    Optional comma-separated list of model names. A device is included when its model contains one of the entries. Leave empty to include all models.
+    Only these models, separated by commas; Surface also matches Surface Laptop 3. Leave empty for all.
 
     .PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -122,35 +110,35 @@
                 }
             },
             "FreeSpaceThresholdGB": {
-                "DisplayName": "Low Disk Space Threshold (free GB)"
+                "DisplayName": "Free space limit (GB)"
             },
             "FreeSpacePercentThreshold": {
-                "DisplayName": "Low Disk Space Threshold (free %)",
+                "DisplayName": "Free space limit (%)",
                 "Hide": true
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "iOS": {
-                "DisplayName": "Include iOS/iPadOS Devices"
+                "DisplayName": "Include iOS/iPadOS devices?"
             },
             "Android": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android devices?"
             },
             "ManufacturerFilter": {
-                "DisplayName": "Manufacturer Filter (comma-separated, substring match, leave empty for all)"
+                "DisplayName": "Manufacturer filter"
             },
             "ModelFilter": {
-                "DisplayName": "Model Filter (comma-separated, substring match, leave empty for all)"
+                "DisplayName": "Model filter"
             },
             "CallerName": {
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "EmailFrom": {
                 "Hide": true
@@ -191,7 +179,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false

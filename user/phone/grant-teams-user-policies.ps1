@@ -1,61 +1,60 @@
 <#
     .SYNOPSIS
-    Grant Microsoft Teams policies to a Microsoft Teams enabled user
+    Assign Teams voice and meeting policies to this user
 
     .DESCRIPTION
-    Assigns selected Teams policies for a Teams-enabled user. Policies are only changed when a value is provided, and assignments can be cleared by using the value "Global (Org Wide Default)".
-    It allows to assign the following policies: Online Voice Routing Policy, Tenant Dial Plan, Teams Calling Policy, Teams IP Phone Policy, Online Voicemail Policy, Teams Meeting Policy and Teams Meeting Broadcast Policy (Live Event Policy).
+    Assigns Teams policies to this user: voice routing, dial plan, calling, IP phone, voicemail, meeting and live event policies. Only the policies you fill in are changed. Enter Global (Org Wide Default) to remove an assignment and fall back to the tenant default.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER OnlineVoiceRoutingPolicy
-    Microsoft Teams Online Voice Routing Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    Voice routing policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER TenantDialPlan
-    Microsoft Teams Tenant Dial Plan Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    Dial plan to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER TeamsCallingPolicy
-    Microsoft Teams Calling Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    Calling policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER TeamsIPPhonePolicy
-    Microsoft Teams IP Phone Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered. This is typically used for Common Area Phone users.
+    IP phone policy to assign, typically for common area phones. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER OnlineVoicemailPolicy
-    Microsoft Teams Online Voicemail Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    Voicemail policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER TeamsMeetingPolicy
-    Microsoft Teams Meeting Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    Meeting policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER TeamsMeetingBroadcastPolicy
-    Microsoft Teams Meeting Broadcast Policy Name. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+    Live event (meeting broadcast) policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "OnlineVoiceRoutingPolicy": {
-                "DisplayName": "Microsoft Teams Online Voice Routing Policy Name"
+                "DisplayName": "Online voice routing policy"
             },
             "TenantDialPlan": {
-                "DisplayName": "Microsoft Teams DialPlan Name"
+                "DisplayName": "Tenant dial plan"
             },
             "TeamsCallingPolicy": {
-                "DisplayName": "Microsoft Teams Calling Policy Name"
+                "DisplayName": "Calling policy"
             },
             "OnlineVoicemailPolicy": {
-                "DisplayName": "Microsoft Teams Online Voicemail Policy Name"
+                "DisplayName": "Voicemail policy"
             },
             "TeamsIPPhonePolicy": {
-                "DisplayName": "Microsoft Teams IP-Phone Policy Name (a.o. for Common Area Phone Users)"
+                "DisplayName": "IP phone policy"
             },
             "TeamsMeetingPolicy": {
-                "DisplayName": "Microsoft Teams Meeting Policy Name"
+                "DisplayName": "Meeting policy"
             },
             "TeamsMeetingBroadcastPolicy": {
-                "DisplayName": "Microsoft Teams Meeting Broadcast Policy Name (Live Event Policy)"
+                "DisplayName": "Live event policy"
             },
             "CallerName": {
                 "Hide": true

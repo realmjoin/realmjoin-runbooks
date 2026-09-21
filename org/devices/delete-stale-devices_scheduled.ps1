@@ -1,110 +1,99 @@
 <#
     .SYNOPSIS
-    Scheduled deletion of stale devices based on last activity date and platform
+    Delete Intune devices that have been inactive for too long
 
     .DESCRIPTION
-    Identifies Intune managed devices that have not been active for a specified number of days.
-    By default the runbook runs in report-only mode (simulation) and lists the devices that would be deleted.
-    When deletion is enabled, the matching devices are deleted from Intune and the results are included in the report.
-    An email report with CSV and/or Excel (xlsx) attachments can be sent optionally and the report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
+    Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by the group membership of their primary user. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
 
     .PARAMETER Days
-    Number of days without activity to be considered stale.
+    Devices with no check-in for at least this many days count as stale.
 
     .PARAMETER Windows
-    Include Windows devices in the results.
+    Includes Windows devices.
 
     .PARAMETER MacOS
-    Include macOS devices in the results.
+    Includes macOS devices.
 
     .PARAMETER iOS
-    Include iOS devices in the results.
+    Includes iOS and iPadOS devices.
 
     .PARAMETER Android
-    Include Android devices in the results.
+    Includes Android devices.
 
     .PARAMETER DeleteDevices
-    If set to true, the matching stale devices are deleted from Intune.
-    If false (default), the runbook only reports which devices would be deleted (simulation).
+    Delete removes the stale devices from Intune. Report only lists them and changes nothing.
 
     .PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER UseUserScope
-    Enable user scope filtering to include or exclude devices based on primary user group membership.
+    Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice.
 
     .PARAMETER IncludeUserGroup
-    Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled.
+    Only devices whose primary user is in this group.
 
     .PARAMETER ExcludeUserGroup
-    Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled.
+    Skips devices whose primary user is in this group.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Days": {
-                "DisplayName": "Minimum Days Without Activity"
+                "DisplayName": "Days without activity"
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "iOS": {
-                "DisplayName": "Include iOS Devices"
+                "DisplayName": "Include iOS devices?"
             },
             "Android": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android devices?"
             },
             "DeleteDevices": {
-                "DisplayName": "Deletion Mode",
+                "DisplayName": "Deletion mode",
                 "SelectSimple": {
                     "Report only - show what would be deleted (simulation)": false,
                     "Delete stale devices from Intune": true
@@ -114,7 +103,7 @@
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "BrandingHeaderImageUrl": {
                 "Hide": true
@@ -155,7 +144,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -174,26 +163,25 @@
                 "Hide": true
             },
             "UseUserScope": {
-                "DisplayName": "Use User Scope Filtering",
                 "Hide": true
             },
             "IncludeUserGroup": {
-                "DisplayName": "Users to include (Group)",
+                "DisplayName": "Include users from group",
                 "Hide": true
             },
             "ExcludeUserGroup": {
-                "DisplayName": "Users to exclude (Group)",
+                "DisplayName": "Exclude users from group",
                 "Hide": true
             }
         },
         "ParameterList": [
             {
-                "DisplayName": "(Optional) Enable user scope filtering to include or exclude devices based on primary user group membership.",
+                "DisplayName": "Filter by primary user group?",
                 "DisplayAfter": "EmailFrom",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - filter by group membership",
+                            "Display": "Yes, filter by group membership",
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
@@ -203,7 +191,7 @@
                             }
                         },
                         {
-                            "Display": "No - include all devices",
+                            "Display": "No, include all devices",
                             "Customization": {
                                 "Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
                                 "Default": {
@@ -254,9 +242,9 @@ param(
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
     [bool] $UseUserScope = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Users from Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string]$IncludeUserGroup,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string]$ExcludeUserGroup,
     [Parameter(Mandatory = $false)]
     [string] $EmailTo,

@@ -1,22 +1,21 @@
 <#
     .SYNOPSIS
-    Delegate SendOnBehalf permissions for the user's mailbox
+    Grant or remove Send on Behalf permission on this user's mailbox
 
     .DESCRIPTION
-    Grants or removes SendOnBehalf permissions for a delegate on the user's mailbox. Outputs the resulting SendOnBehalf trustees after applying the change.
-    This allows the delegate to send emails on behalf of the mailbox owner.
+    Lets another person send email on behalf of this user, so recipients see the delegate's name with "on behalf of" this user, or removes that permission again. The resulting list of trustees is shown after the change.
 
     .PARAMETER UserName
-    User principal name of the mailbox.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER delegateTo
-    User principal name of the delegate.
+    Person who gets or loses the Send on Behalf permission.
 
     .PARAMETER Remove
-    If set to true, removes the delegation instead of granting it.
+    Whether the permission is removed instead of granted. Set by the "Action" choice.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -37,7 +36,7 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Delegate 'Send On Behalf Of'",
+                            "Display": "Grant Send on Behalf",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -45,7 +44,7 @@
                             }
                         },
                         {
-                            "Display": "Remove this delegation",
+                            "Display": "Remove Send on Behalf",
                             "Customization": {
                                 "Default": {
                                     "Remove": true
@@ -54,7 +53,7 @@
                         }
                     ]
                 },
-                "Default": "Delegate 'Send On Behalf Of'"
+                "Default": "Grant Send on Behalf"
             },
             {
                 "Name": "CallerName",

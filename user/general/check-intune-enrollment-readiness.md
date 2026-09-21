@@ -9,3 +9,14 @@
 ## Prerequisites
 
 The tenant MDM authority must be "intune" or "office365"; other values block every user.
+
+## What is checked
+
+The readiness verdict combines these checks:
+
+- Account status (enabled, not blocked) and an Intune license assigned to the user.
+- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration.
+- Conditional Access policies that explicitly target device registration or Intune enrollment. Policies that require a compliant device via *All resources* are exempted by Microsoft Entra design and therefore not counted as blockers.
+- Platform-scoped policies and browser-only client-app requirements are evaluated against the chosen enrollment platform; with *All platforms* every platform is evaluated and reported separately.
+
+The runbook only reads; it changes nothing on the user or the tenant.

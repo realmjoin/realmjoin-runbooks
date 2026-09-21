@@ -1,45 +1,51 @@
 <#
     .SYNOPSIS
-    Create an equipment mailbox
+    Create an equipment mailbox with optional delegate
 
     .DESCRIPTION
-    Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
+    Creates an equipment mailbox in Exchange Online, for example for a projector or a pool car, so it can be booked in meeting requests. A delegate can get full access and manage the bookings, and meeting requests can be accepted automatically. The user account behind the mailbox can be disabled so nobody signs in with it.
 
     .PARAMETER MailboxName
-    Alias (mail nickname) for the equipment mailbox.
+    Alias of the mailbox, which becomes the part of the email address in front of the @ sign.
 
     .PARAMETER DisplayName
-    Optional display name for the equipment mailbox.
+    Name shown in the address book. Leave empty to use the alias.
 
     .PARAMETER DelegateTo
-    Optional user who receives delegated access to the mailbox.
+    User who gets full access to the mailbox and handles its booking requests. Leave empty for none.
 
     .PARAMETER AutoAccept
-    If set to true, meeting requests are automatically accepted.
+    Meeting requests are accepted automatically when the equipment is free.
 
     .PARAMETER AutoMapping
-    If set to true, the mailbox is automatically mapped in Outlook for the delegate.
+    The mailbox opens automatically in the delegate's Outlook.
 
     .PARAMETER DisableUser
-    If set to true, the associated Entra ID user account is disabled.
+    Blocks sign-in for the user account behind the mailbox. Booking keeps working.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "MailboxName": {
+                "DisplayName": "Alias"
+            },
+            "DisplayName": {
+                "DisplayName": "Display name"
+            },
             "CallerName": {
                 "Hide": true
             },
             "AutoAccept": {
-                "DisplayName": "Automatically accept meeting requests"
+                "DisplayName": "Accept meeting requests automatically?"
             },
             "AutoMapping": {
-                "DisplayName": "Automatically map mailbox in Outlook"
+                "DisplayName": "Open automatically in the delegate's Outlook?"
             },
             "DisableUser": {
-                "DisplayName": "Disable AAD User"
+                "DisplayName": "Block sign-in for the mailbox account?"
             }
         }
     }

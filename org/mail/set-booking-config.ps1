@@ -1,73 +1,130 @@
 <#
         .SYNOPSIS
-        Configure Microsoft Bookings settings for the organization
+        Configure the Microsoft Bookings settings of the tenant
 
         .DESCRIPTION
-        Configures Microsoft Bookings settings at the organization level using Exchange Online organization configuration. The runbook can optionally create an OWA mailbox policy for Bookings creators and disable Bookings in the default OWA policy.
+        Sets the tenant-wide Microsoft Bookings settings in Exchange Online, such as whether Bookings is on, what customers may enter and how booking pages are named. Optionally an Outlook web policy for Bookings creators is created and Bookings is turned off in the default policy, so only members of that policy can create booking pages.
 
         .PARAMETER BookingsEnabled
-        If set to true, Microsoft Bookings is enabled for the organization.
+        Turns Microsoft Bookings on for the tenant.
 
         .PARAMETER BookingsAuthEnabled
-        If set to true, Bookings uses authentication.
+        Customers must sign in before they can book.
 
         .PARAMETER BookingsSocialSharingRestricted
-        If set to true, social sharing is restricted.
+        Removes the social sharing options from booking pages.
 
         .PARAMETER BookingsExposureOfStaffDetailsRestricted
-        If set to true, exposure of staff details is restricted.
+        Keeps staff details such as email addresses off the booking pages.
 
         .PARAMETER BookingsMembershipApprovalRequired
-        If set to true, membership approval is required.
+        Staff must approve before they are added to a booking page.
 
         .PARAMETER BookingsSmsMicrosoftEnabled
-        If set to true, Microsoft SMS notifications are enabled.
+        Customers can get SMS notifications about their bookings.
 
         .PARAMETER BookingsSearchEngineIndexDisabled
-        If set to true, search engine indexing is disabled.
+        Keeps booking pages out of search engine results.
 
         .PARAMETER BookingsAddressEntryRestricted
-        If set to true, address entry is restricted.
+        Customers cannot enter their address when booking.
 
         .PARAMETER BookingsCreationOfCustomQuestionsRestricted
-        If set to true, creation of custom questions is restricted.
+        Staff cannot add custom questions to booking forms.
 
         .PARAMETER BookingsNotesEntryRestricted
-        If set to true, notes entry is restricted.
+        Customers cannot add notes when booking.
 
         .PARAMETER BookingsPhoneNumberEntryRestricted
-        If set to true, phone number entry is restricted.
+        Customers cannot enter their phone number when booking.
 
         .PARAMETER BookingsNamingPolicyEnabled
-        If set to true, naming policies are enabled.
+        Applies the prefix, suffix and blocked words rules to new booking page names.
 
         .PARAMETER BookingsBlockedWordsEnabled
-        If set to true, blocked words are enabled for naming policies.
+        Rejects booking page names that contain a word from the blocked words list of the Microsoft 365 groups naming policy.
 
         .PARAMETER BookingsNamingPolicyPrefixEnabled
-        If set to true, the naming policy prefix is enabled.
+        Adds the prefix to every new booking page name.
 
         .PARAMETER BookingsNamingPolicyPrefix
-        Prefix applied by the naming policy.
+        Text put in front of new booking page names.
 
         .PARAMETER BookingsNamingPolicySuffixEnabled
-        If set to true, the naming policy suffix is enabled.
+        Adds the suffix to every new booking page name.
 
         .PARAMETER BookingsNamingPolicySuffix
-        Suffix applied by the naming policy.
+        Text appended to new booking page names.
 
         .PARAMETER CreateOwaPolicy
-        If set to true, an OWA mailbox policy for Bookings creators is created if missing.
+        Creates the Outlook web policy for Bookings creators if it is missing and turns off Bookings in the default policy.
 
         .PARAMETER OwaPolicyName
-        Name of the OWA mailbox policy to create or use for Bookings creators.
+        Name of the Outlook web policy for Bookings creators.
 
         .PARAMETER CallerName
-        Caller name is tracked purely for auditing purposes.
+        Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
         .INPUTS
         RunbookCustomization: {
                 "Parameters": {
+                        "BookingsEnabled": {
+                                "DisplayName": "Enable Bookings?"
+                        },
+                        "BookingsAuthEnabled": {
+                                "DisplayName": "Require sign-in to book?"
+                        },
+                        "BookingsSocialSharingRestricted": {
+                                "DisplayName": "Hide social sharing?"
+                        },
+                        "BookingsExposureOfStaffDetailsRestricted": {
+                                "DisplayName": "Hide staff details?"
+                        },
+                        "BookingsMembershipApprovalRequired": {
+                                "DisplayName": "Require staff approval?"
+                        },
+                        "BookingsSmsMicrosoftEnabled": {
+                                "DisplayName": "Allow SMS notifications?"
+                        },
+                        "BookingsSearchEngineIndexDisabled": {
+                                "DisplayName": "Hide from search engines?"
+                        },
+                        "BookingsAddressEntryRestricted": {
+                                "DisplayName": "Block address entry?"
+                        },
+                        "BookingsCreationOfCustomQuestionsRestricted": {
+                                "DisplayName": "Block custom questions?"
+                        },
+                        "BookingsNotesEntryRestricted": {
+                                "DisplayName": "Block notes entry?"
+                        },
+                        "BookingsPhoneNumberEntryRestricted": {
+                                "DisplayName": "Block phone number entry?"
+                        },
+                        "BookingsNamingPolicyEnabled": {
+                                "DisplayName": "Enable naming policy?"
+                        },
+                        "BookingsBlockedWordsEnabled": {
+                                "DisplayName": "Enable blocked words?"
+                        },
+                        "BookingsNamingPolicyPrefixEnabled": {
+                                "DisplayName": "Add prefix?"
+                        },
+                        "BookingsNamingPolicyPrefix": {
+                                "DisplayName": "Prefix"
+                        },
+                        "BookingsNamingPolicySuffixEnabled": {
+                                "DisplayName": "Add suffix?"
+                        },
+                        "BookingsNamingPolicySuffix": {
+                                "DisplayName": "Suffix"
+                        },
+                        "CreateOwaPolicy": {
+                                "DisplayName": "Create Outlook web policy for creators?"
+                        },
+                        "OwaPolicyName": {
+                                "DisplayName": "Outlook web policy name"
+                        },
                         "CallerName": {
                                 "Hide": true
                         }

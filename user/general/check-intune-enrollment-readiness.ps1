@@ -1,28 +1,31 @@
 <#
 	.SYNOPSIS
-	Check whether a user is ready to enrol devices in Microsoft Intune
+	Check whether this user can enroll devices in Intune
 
 	.DESCRIPTION
-	Evaluates a selected user account for Intune device enrollment readiness and reports a readiness result (Ready, Ready with warnings, or Not ready) along with specific blockers. The runbook checks account status, Intune licensing, device enrollment limits, platform restrictions, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted by Microsoft Entra design. Platform-scoped policies and browser-only client-app requirements are evaluated against the specified enrollment platform, and the runbook performs read-only diagnostics only.
+	Checks whether this user is ready to enroll a device in Intune and reports Ready, Ready with warnings or Not ready together with the blockers found. The check covers the account status, the Intune license, the device enrollment limit, platform restrictions and Conditional Access policies that target device registration or enrollment. Nothing is changed. Details on the checks are in the runbook documentation (docs.realmjoin.com).
 
 	.PARAMETER UserName
-	User principal name of the user to check for Intune enrolment readiness.
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER EnrollmentPlatform
-	Device platform assumed during Conditional Access evaluation. Platform-scoped policies that do not cover this platform are ruled out. When set to 'All', the script evaluates every platform and reports results per platform.
+	Platform of the device the user wants to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one.
 
 	.PARAMETER CheckPilotGroupMembership
-	If set to true, the script checks whether the user is a member of the pilot group. Non-members are reported as Not ready; if the group cannot be found or membership cannot be verified, a warning is issued.
+	Also requires the user to be in the pilot group. Non-members are reported as Not ready.
 
 	.PARAMETER PilotGroupDisplayName
-	Display name of the pilot group to check for membership. This parameter can be overridden per run or configured in the runbook customization.
+	Members of this group count as pilot users. The group is looked up by its display name.
 
 	.PARAMETER CallerName
-	Name of the user or system that started the runbook. Tracked for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
         "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
             "EnrollmentPlatform": {
                 "DisplayName": "Platform to enroll",
                 "SelectSimple": {
@@ -34,7 +37,7 @@
                 }
             },
             "CheckPilotGroupMembership": {
-                "DisplayName": "Check pilot group membership"
+                "DisplayName": "Check pilot group membership?"
             },
             "PilotGroupDisplayName": {
                 "DisplayName": "Pilot group name"

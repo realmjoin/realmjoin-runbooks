@@ -1,19 +1,18 @@
 <#
     .SYNOPSIS
-    Check Intune assignments for one or more group names
+    Show which Intune policies and apps target given groups
 
     .DESCRIPTION
-    This runbook queries Intune policies and optionally app assignments that target the specified group(s).
-    It resolves group IDs and reports matching assignments.
+    Lists the Intune policies, and optionally the apps, that are assigned to one or more groups. Nothing is changed.
 
     .PARAMETER GroupIDs
-    Group IDs of the groups to check assignments for
+    Assignments are matched against each picked group directly; assignments to parent groups are not included.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .PARAMETER IncludeApps
-    If set to true, also evaluates application assignments.
+    Also lists the apps assigned to the groups.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,10 +21,10 @@
                 "Hide": true
             },
             "GroupIDs": {
-                "DisplayName": "One or more groups to check assignments for"
+                "DisplayName": "Groups"
             },
             "IncludeApps": {
-                "DisplayName": "Include app assignments"
+                "DisplayName": "Include app assignments?"
             }
         }
     }

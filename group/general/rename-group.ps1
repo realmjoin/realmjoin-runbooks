@@ -1,26 +1,24 @@
 <#
     .SYNOPSIS
-    Rename a group.
+    Rename this group or change its description
 
     .DESCRIPTION
-    This runbook updates a group's DisplayName, MailNickname, and Description.
-    It does not change the group's email addresses.
-    Provide only the fields you want to update; empty values are ignored.
+    Updates the display name, the mail nickname and the description of this group. Fill in only the fields you want to change; empty fields are left as they are. The group's email addresses do not change.
 
     .PARAMETER GroupId
-    Object ID of the group to update.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER DisplayName
-    New display name for the group.
+    New name of the group, for a team also the team name. Leave empty to keep the current name.
 
     .PARAMETER MailNickname
-    New mail nickname (alias) for the group.
+    New alias (mail nickname) of the group. The existing email addresses stay. Leave empty to keep the current alias.
 
     .PARAMETER Description
-    New description for the group.
+    New description shown for the group. Leave empty to keep the current one.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -32,13 +30,13 @@
                 "Hide": true
             },
             "DisplayName": {
-                "DisplayName": "New DisplayName / Team Name"
+                "DisplayName": "New display name"
             },
             "MailNickname": {
-                "DisplayName": "New MailNickname"
+                "DisplayName": "New mail nickname"
             },
             "Description": {
-                "DisplayName": "New Description"
+                "DisplayName": "New description"
             }
         }
     }

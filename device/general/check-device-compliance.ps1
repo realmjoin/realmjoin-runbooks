@@ -1,48 +1,39 @@
 <#
     .SYNOPSIS
-    Check the compliance status of a device
+    Check the Intune compliance status of this device
 
     .DESCRIPTION
-    This runbook retrieves the compliance status of a managed device from Microsoft Intune.
-    In simple mode it shows the overall compliance state and lists any non-compliant policies. In detailed mode it additionally shows which specific settings are failing and the reason for each failure.
-    Optionally, a report with the full compliance details can be sent via email.
+    Shows whether this device is compliant in Intune. The simple view lists the overall state and the names of the non-compliant policies; the detailed view also shows which settings fail and why. Nothing is changed on the device. The report can be sent by email.
 
     .PARAMETER DeviceId
-    The Entra ID device ID of the target device. Passed automatically by the RealmJoin platform.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER DetailedOutput
-    Select "Simple" (final value: $false) to show only the overall compliance state and non-compliant policy names.
-    Select "Detailed" (final value: $true) to additionally show which specific settings are failing and the reason for each failure.
+    Simple shows the overall state and the non-compliant policies. Detailed also lists every failing setting with its reason.
 
     .PARAMETER EmailTo
-    Optional - if specified, a compliance report will be sent to the provided email address(es).
-    Can be a single address or multiple comma-separated addresses.
+    Send the compliance report to these addresses, separated by commas. Leave empty to only show the result in the run output.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -51,22 +42,22 @@
                 "Hide": true
             },
             "DetailedOutput": {
-                "DisplayName": "Output Mode",
+                "DisplayName": "Output mode",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Simple - show overall compliance state and non-compliant policies",
+                            "Display": "Simple - overall state and non-compliant policies",
                             "Value": false
                         },
                         {
-                            "Display": "Detailed - show failing settings and reasons per policy",
+                            "Display": "Detailed - failing settings and reasons per policy",
                             "Value": true
                         }
                     ]
                 }
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es) (optional)"
+                "DisplayName": "Recipient email address(es)"
             },
             "EmailFrom": {
                 "Hide": true

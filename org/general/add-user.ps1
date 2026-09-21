@@ -1,10 +1,9 @@
 <#
     .SYNOPSIS
-    Create a new user account
+    Create a new user account in Entra ID
 
     .DESCRIPTION
-    This runbook creates a new cloud user in Microsoft Entra ID and applies standard user properties.
-    It can optionally assign a license group, add the user to additional groups, and create an Exchange Online archive mailbox.
+    Creates a cloud user in Entra ID with the usual profile details such as name, company, job title, manager, sponsors and address. Sign-in name, alias and display name are derived from the name when left empty, and a start password is generated when none is given. Optionally the user gets a license group, further groups and an Exchange Online archive mailbox.
 
     .PARAMETER GivenName
     First name of the user.
@@ -13,170 +12,67 @@
     Last name of the user.
 
     .PARAMETER UserPrincipalName
-    User principal name (UPN). If empty, the runbook generates a UPN from the provided name.
+    Sign-in name of the user. Derived from the name when empty.
 
     .PARAMETER MailNickname
-    Mail nickname (alias) used for the user. If empty, the runbook derives it from the UPN.
+    Alias of the mailbox. Derived from the sign-in name when empty.
 
     .PARAMETER DisplayName
-    Display name of the user. If empty, the runbook derives it from the provided name.
+    Derived from first and last name when empty.
 
     .PARAMETER CompanyName
-    Company name of the user.
+    Company the user belongs to.
 
     .PARAMETER JobTitle
-    Job title of the user.
+    Shown in the profile and in the address book.
 
     .PARAMETER Department
-    Department of the user.
+    Department the user works in.
 
     .PARAMETER ManagerId
-    Optional manager user ID to set for the user.
+    User who becomes the manager.
 
     .PARAMETER SponsorIds
-    Optional sponsor user IDs to set for the user. Multiple sponsors supported.
+    Users recorded as sponsors of the new user. Several can be picked.
 
     .PARAMETER MobilePhone
-    Mobile phone number of the user.
+    Shown in the profile and in the address book.
 
     .PARAMETER LocationName
-    Office location name used for portal customization.
+    Office location shown in the profile. With templates from the runbook customization, picking one also fills in the address fields.
 
     .PARAMETER StreetAddress
-    Street address of the user.
+    Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
     .PARAMETER PostalCode
-    Postal code of the user.
+    Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
     .PARAMETER City
-    City of the user.
+    Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
     .PARAMETER State
-    State or region of the user.
+    Part of the postal address shown in the profile.
 
     .PARAMETER Country
-    Country of the user.
+    Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
     .PARAMETER UsageLocation
-    Usage location used for licensing.
+    Two-letter country code that decides which licenses the user may get, for example DE.
 
     .PARAMETER DefaultLicense
-    Optional license group to assign to the user.
+    Display name of the group that assigns the license; the user is added to it. Leave empty for none.
 
     .PARAMETER DefaultGroups
-    Comma-separated list of groups to assign to the user.
+    Display names of further groups the user is added to, separated by commas.
 
     .PARAMETER InitialPassword
-    Initial password. If empty, the runbook generates a random password.
+    Start password for the user. Leave empty to have one generated and shown in the output.
 
     .PARAMETER EnableEXOArchive
-    If set to true, creates an Exchange Online archive mailbox for the user.
+    Turns on the Exchange Online archive mailbox for the new user.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
-
-    .EXAMPLE
-    Full Runbook Customizations Example
-    {
-        "Templates": {
-            "Options": [
-                {
-                    "$id": "LocationOptions",
-                    "$values": [
-                        {
-                            "Display": "DE-OF",
-                            "Customization": {
-                                "Default": {
-                                    "StreetAddress": "Kaiserstraße 39",
-                                    "PostalCode": "63065",
-                                    "City": "Offenbach",
-                                    "Country": "Germany"
-                                }
-                            }
-                        },
-                        {
-                            "Display": "DE-DEG",
-                            "Customization": {
-                                "Default": {
-                                    "StreetAddress": "Lateinschulgassse 24-26",
-                                    "PostalCode": "94469",
-                                    "City": "Deggendorf",
-                                    "Country": "Germany"
-                                }
-                            }
-                        },
-                        {
-                            "Display": "DE-HH",
-                            "Customization": {
-                                "Default": {
-                                    "StreetAddress": "Hans-Henny-Jahnn-Weg 53",
-                                    "PostalCode": "22085",
-                                    "City": "Hamburg",
-                                    "Country": "Germany"
-                                }
-                            }
-                        },
-                        {
-                            "Display": "FI-HS",
-                            "Customization": {
-                                "Default": {
-                                    "StreetAddress": "Somewhere 42",
-                                    "PostalCode": "12345",
-                                    "City": "Helsinki",
-                                    "Country": "Finland"
-                                }
-                            }
-                        }
-                    ]
-                },
-                {
-                    "$id": "CompanyOptions",
-                    "$values": [
-                        {
-                            "Id": "gkg",
-                            "Display": "glueckkanja-gab",
-                            "Value": "glueckkanja-gab AG"
-                        },
-                        {
-                            "Id": "pp",
-                            "Display": "PrimePulse",
-                            "Value": "PrimePulse AG"
-                        }
-                    ]
-                }
-            ]
-        },
-        "Runbooks": {
-            "rjgit-org_general_add-user": {
-                "ParameterList": [
-                    {
-                        "DisplayName": "Office Location",
-                        "DisplayAfter": "CompanyName",
-                        "Select": {
-                            "Options": {
-                                "$ref": "LocationOptions"
-                            }
-                        }
-                    },
-                    {
-                        "Name": "CompanyName",
-                        "Select": {
-                            "Options": {
-                                "$ref": "CompanyOptions"
-                            },
-                            "AllowEdit": false
-                        }
-                    }
-                ],
-                "ReadOnly": [
-                    "StreetAddress",
-                    "PostalCode",
-                    "City",
-                    "Country"
-                ]
-            }
-        }
-    }
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -193,11 +89,44 @@
             "CallerName": {
                 "Hide": true
             },
+            "GivenName": {
+                "DisplayName": "First name"
+            },
+            "Surname": {
+                "DisplayName": "Last name"
+            },
+            "CompanyName": {
+                "DisplayName": "Company"
+            },
+            "JobTitle": {
+                "DisplayName": "Job title"
+            },
+            "MobilePhone": {
+                "DisplayName": "Mobile phone"
+            },
+            "LocationName": {
+                "DisplayName": "Office location"
+            },
+            "StreetAddress": {
+                "DisplayName": "Street address"
+            },
+            "PostalCode": {
+                "DisplayName": "Postal code"
+            },
+            "UsageLocation": {
+                "DisplayName": "Usage location"
+            },
             "DefaultLicense": {
                 "DisplayName": "License group to assign"
             },
+            "DefaultGroups": {
+                "DisplayName": "Groups to add"
+            },
+            "InitialPassword": {
+                "DisplayName": "Initial password"
+            },
             "EnableEXOArchive": {
-                "DisplayName": "Create Exchange Online Archive Mailbox"
+                "DisplayName": "Create an archive mailbox?"
             }
         }
     }

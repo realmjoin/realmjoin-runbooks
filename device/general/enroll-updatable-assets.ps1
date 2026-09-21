@@ -1,18 +1,18 @@
 <#
     .SYNOPSIS
-    Enroll device into Windows Update for Business
+    Enroll this device in Windows Update for Business
 
     .DESCRIPTION
-    This script enrolls a device into Windows Update for Business by registering it as an updatable asset for the specified update category.
+    Registers this device as an updatable asset in Windows Update for Business for the chosen update category, so Intune can manage driver, feature or quality updates for it. All enrolls it in driver, feature and quality updates.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .PARAMETER DeviceId
-    DeviceId of the device to enroll.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER UpdateCategory
-    Category of updates to enroll into. Possible values are: Driver, Feature, Quality or All. Selecting All will enroll the device into all three categories sequentially.
+    Update category to enroll the device in. All enrolls it in driver, feature and quality updates.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,6 +22,9 @@
             },
             "DeviceId": {
                 "Hide": true
+            },
+            "UpdateCategory": {
+                "DisplayName": "Update category"
             }
         }
     }

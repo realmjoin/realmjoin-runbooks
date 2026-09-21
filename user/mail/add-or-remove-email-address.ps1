@@ -1,35 +1,35 @@
 <#
     .SYNOPSIS
-    Add or remove an email address for a mailbox
+    Add an email address to this user's mailbox or remove one
 
     .DESCRIPTION
-    Adds or removes an alias email address on a mailbox and can optionally set it as the primary address.
+    Adds an alias address to the mailbox of this user or removes one. A new or existing address can also be made the primary address that outgoing mail is sent from.
 
     .PARAMETER UserName
-    User principal name of the mailbox.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER EmailAddress
-    Email address to add or remove.
+    Address to add or remove, for example jane.doe@contoso.com.
 
     .PARAMETER Remove
-    If set to true, removes the address instead of adding it.
+    Whether the address is removed instead of added. Set by the "Action" choice.
 
     .PARAMETER asPrimary
-    If set to true, sets the specified address as the primary SMTP address.
+    Makes this address the primary one that outgoing mail is sent from.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "ParameterList": [
             {
                 "DisplayBefore": "asPrimary",
-                "DisplayName": "Add or Remove this Email address",
+                "DisplayName": "Action",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Add/Update Email address",
+                            "Display": "Add or update the address",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -37,7 +37,7 @@
                             }
                         },
                         {
-                            "Display": "Remove this address",
+                            "Display": "Remove the address",
                             "Customization": {
                                 "Default": {
                                     "Remove": true
@@ -49,7 +49,7 @@
                         }
                     ]
                 },
-                "Default": "Add/Update Email address"
+                "Default": "Add or update the address"
             }
         ],
         "Parameters": {
@@ -64,8 +64,11 @@
             "CallerName": {
                 "Hide": true
             },
+            "EmailAddress": {
+                "DisplayName": "Email address"
+            },
             "asPrimary": {
-                "DisplayName": "Set as primary address"
+                "DisplayName": "Set as primary address?"
             }
         }
     }

@@ -1,19 +1,18 @@
 <#
     .SYNOPSIS
-    Reboots a specific AVD Session Host.
+    Restart this AVD session host and return it to service
 
     .DESCRIPTION
-    This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted.
-    If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
+    Restarts this Azure Virtual Desktop session host. Signed-in users are disconnected. Drain mode is switched on first so no new sessions land on the host. A stopped host is started instead of rebooted. Once the host runs again, drain mode is switched off.
 
     .PARAMETER DeviceName
-    The name of the AVD Session Host device to restart. Hidden in UI
+    Name of the AVD session host. Set by the portal from the selected device.
 
     .PARAMETER SubscriptionIds
-    Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI
+    Azure subscriptions that hold the AVD host pools. Taken from the tenant setting AVD.SubscriptionIds.
 
     .PARAMETER CallerName
-    The name of the user executing the runbook. Used for auditing purposes. Hidden in UI
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -26,7 +25,7 @@
             },
             "CallerName": {
                 "Hide": true
-            },
+            }
         }
     }
 #>

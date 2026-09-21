@@ -1,106 +1,117 @@
 <#
 	.SYNOPSIS
-	Compare primary user assignments in Intune against RealmJoin for Windows managed devices
+	Compare primary users between Intune and RealmJoin
 
 	.DESCRIPTION
-	For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
-	The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+	Compares, for Windows devices, the primary user recorded in Intune with the one recorded in RealmJoin and lists every device where they differ. Whether mismatches, devices missing on one side and deleted primary users are listed is set in the runbook customization. Only devices that synced with Intune recently are considered. The report can be sent by email or provided as a download link.
 
 	.PARAMETER SyncThresholdDays
-	Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated.
+	Only devices that synced with Intune within this many days are compared.
 
 	.PARAMETER DeviceNamePrefix
-	Optional device name prefix to filter the report to a specific subset of devices. Leave blank to include all devices.
+	Only devices whose name starts with this text. Leave empty for all.
 
 	.PARAMETER IncludeMismatches
-	Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default.
+	Lists devices whose primary user differs between Intune and RealmJoin.
 
 	.PARAMETER IncludeMissingInRealmJoin
-	Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default.
+	Lists devices that exist in Intune but not in RealmJoin.
 
 	.PARAMETER IncludeMissingInIntune
-	Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default.
+	Lists devices that exist in RealmJoin but not in Intune.
 
 	.PARAMETER IncludePrimaryUserDeleted
-	Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default.
+	Lists devices whose Intune primary user was deleted from Entra ID. Without this they would look like mismatches, because Intune rewrites the name of a deleted user.
 
 	.PARAMETER EmailTo
-	If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses.
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 	.PARAMETER EmailFrom
-	The sender email address. This is configured via the runbook customization setting and hidden in the portal.
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 	.PARAMETER ReportFileFormat
-	Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+	Deliver the report as CSV, as an Excel workbook, or both.
 
 	.PARAMETER CreateDownloadLink
-	If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+	Also upload the report and return a download link that expires after a few days.
 
 	.PARAMETER ContainerName
-	Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+	Storage container the report files are uploaded to. Set per runbook.
 
 	.PARAMETER ResourceGroupName
-	Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 	.PARAMETER StorageAccountName
-	Storage account name used for the upload. Sourced from the RJReport tenant settings.
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 	.PARAMETER LinkExpiryDays
-	Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 	.PARAMETER UseDeviceScope
-	Enable device scope filtering to include or exclude devices based on Entra device group membership.
+	Whether devices are filtered by group membership. Set by the "Filter by device group?" choice.
 
 	.PARAMETER IncludeDeviceGroup
-	Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled.
+	Only devices in this Entra ID group.
 
 	.PARAMETER ExcludeDeviceGroup
-	Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled.
+	Skips devices in this Entra ID group.
+
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 			"SyncThresholdDays": {
-				"DisplayName": "Intune Last Sync (days)"
+				"DisplayName": "Intune last sync (days)"
 			},
 			"DeviceNamePrefix": {
-				"DisplayName": "Device Name Prefix (optional)"
+				"DisplayName": "Device name prefix"
 			},
 			"IncludeMismatches": {
-				"DisplayName": "Include Mismatches",
+				"DisplayName": "Include mismatches?",
                 "Hide": true
 			},
 			"IncludeMissingInRealmJoin": {
-				"DisplayName": "Include Missing in RealmJoin",
+				"DisplayName": "Include devices missing in RealmJoin?",
                 "Hide": true
 			},
 			"IncludeMissingInIntune": {
-				"DisplayName": "Include Missing in Intune",
+				"DisplayName": "Include devices missing in Intune?",
                 "Hide": true
 			},
 			"IncludePrimaryUserDeleted": {
-				"DisplayName": "Include Deleted Primary Users",
+				"DisplayName": "Include deleted primary users?",
                 "Hide": true
 			},
 			"UseDeviceScope": {
-				"DisplayName": "Use Device Scope Filtering",
 				"Hide": true
 			},
 			"IncludeDeviceGroup": {
-				"DisplayName": "Devices to include (Group)",
+				"DisplayName": "Include devices from group",
 				"Hide": true
 			},
 			"ExcludeDeviceGroup": {
-				"DisplayName": "Devices to exclude (Group)",
+				"DisplayName": "Exclude devices from group",
 				"Hide": true
 			},
             "EmailTo": {
-				"DisplayName": "Send Report To"
+				"DisplayName": "Recipient email address(es)"
 			},
 			"BrandingHeaderImageUrl": {
 				"Hide": true
@@ -141,7 +152,7 @@
 				}
 			},
 			"CreateDownloadLink": {
-				"DisplayName": "Create a file download link (upload report to storage)?",
+				"DisplayName": "Create a download link?",
 				"SelectSimple": {
 					"Yes - upload report and return a download link": true,
 					"No - do not create a download link": false
@@ -165,12 +176,12 @@
 		},
 		"ParameterList": [
 			{
-				"DisplayName": "(Optional) Enable device scope filtering to include or exclude devices based on Entra device group membership.",
+				"DisplayName": "Filter by device group?",
 				"DisplayAfter": "IncludePrimaryUserDeleted",
 				"Select": {
 					"Options": [
 						{
-							"Display": "Yes - filter by device group membership",
+							"Display": "Yes, filter by device group",
 							"Customization": {
 								"Hide": [],
 								"Show": ["IncludeDeviceGroup", "ExcludeDeviceGroup"],
@@ -180,7 +191,7 @@
 							}
 						},
 						{
-							"Display": "No - include all devices",
+							"Display": "No, include all devices",
 							"Customization": {
 								"Hide": ["IncludeDeviceGroup", "ExcludeDeviceGroup"],
 								"Default": {
@@ -215,10 +226,10 @@ param (
 
     [bool]$UseDeviceScope = $false,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Devices from Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include devices from group" } )]
     [string]$IncludeDeviceGroup,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Devices from Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude devices from group" } )]
     [string]$ExcludeDeviceGroup,
 
     [Parameter(Mandatory = $false)]
