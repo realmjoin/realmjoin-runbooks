@@ -1,11 +1,9 @@
 # Reset Mobile Device Pin
 
-Reset a mobile device's password/PIN code.
+Reset the passcode of this mobile device
 
 ## Detailed description
-This runbook triggers an Intune reset passcode action for a managed mobile device.
-The action is only supported for certain, corporate-owned device types and will be rejected for personal or unsupported devices.
-Optionally, the passcode is only reset when the device's Microsoft Defender for Endpoint risk score is not Medium or High.
+Triggers an Intune passcode reset for this mobile device. Intune supports this only for certain corporate-owned device types and rejects it for personal or unsupported devices. Optionally the reset is skipped when Microsoft Defender for Endpoint rates the device as medium or high risk.
 
 ## Where to find
 Device \ Security \ Reset Mobile Device Pin
@@ -51,7 +49,7 @@ The json configuration for this is as follows:
 
 ## Parameters
 ### DeviceId
-The device ID of the target device.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -60,7 +58,7 @@ The device ID of the target device.
 | Type | String |
 
 ### skipIfAtRisk
-If set to true, the passcode is only reset when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This prevents a passcode reset on a device that may be involved in a security incident, which could grant access to the device or interfere with the investigation. Devices that are not found in Defender for Endpoint are not blocked.
+Skips the reset when Microsoft Defender for Endpoint rates the device as medium or high risk, so a reset cannot open a device that is under investigation. Devices unknown to Defender are not blocked.
 
 | Property | Value |
 |----------|-------|

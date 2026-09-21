@@ -1,9 +1,9 @@
 # List Room Mailbox Configuration
 
-List room mailbox configuration
+Show the booking configuration of this room mailbox
 
 ## Detailed description
-Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
+Shows the room details and the calendar processing settings of this room mailbox, such as how booking requests are handled. Nothing is changed.
 
 ## Where to find
 User \ Mail \ List Room Mailbox Configuration
@@ -22,7 +22,7 @@ User \ Mail \ List Room Mailbox Configuration
 
 ## Parameters
 ### UserName
-User principal name of the room mailbox.
+User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|

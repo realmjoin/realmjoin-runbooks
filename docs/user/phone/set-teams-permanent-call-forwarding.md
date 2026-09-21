@@ -1,9 +1,9 @@
 # Set Teams Permanent Call Forwarding
 
-Set immediate call forwarding for a Teams user
+Forward this user's calls immediately or turn forwarding off
 
 ## Detailed description
-Configures immediate call forwarding for a Teams Enterprise Voice user to a Teams user, a phone number, voicemail, or the user's delegates. The runbook can also disable immediate forwarding.
+Sets up immediate call forwarding for this Teams Enterprise Voice user to another Teams user, a phone number, voicemail or the user's own delegates. It can also switch immediate forwarding off again. Unanswered-call handling is turned off at the same time.
 
 ## Where to find
 User \ Phone \ Set Teams Permanent Call Forwarding
@@ -19,7 +19,7 @@ User \ Phone \ Set Teams Permanent Call Forwarding
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ User principal name of the target user.
 | Type | String |
 
 ### ForwardTargetPhoneNumber
-Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789)
+Number that receives the calls, in E.164 format such as +49123456789.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +
 | Type | String |
 
 ### ForwardTargetTeamsUser
-User principal name of the Teams user to forward calls to.
+Colleague whose Teams account rings instead of this user's.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ User principal name of the Teams user to forward calls to.
 | Type | String |
 
 ### ForwardToVoicemail
-If set to true, forwards calls to voicemail.
+Sends the calls to voicemail. Set by the "Forward calls to" choice.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ If set to true, forwards calls to voicemail.
 | Type | Boolean |
 
 ### ForwardToDelegates
-If set to true, forwards calls to the delegates defined by the user.
+Sends the calls to the delegates the user has defined in Teams. Set by the "Forward calls to" choice.
 
 | Property | Value |
 |----------|-------|
@@ -64,7 +64,7 @@ If set to true, forwards calls to the delegates defined by the user.
 | Type | Boolean |
 
 ### TurnOffForward
-If set to true, disables immediate call forwarding.
+Switches immediate forwarding off. Set by the "Forward calls to" choice.
 
 | Property | Value |
 |----------|-------|

@@ -1,9 +1,9 @@
 # Add Or Remove Email Address
 
-Add or remove an email address for a mailbox
+Add an email address to this user's mailbox or remove one
 
 ## Detailed description
-Adds or removes an alias email address on a mailbox and can optionally set it as the primary address.
+Adds an alias address to the mailbox of this user or removes one. A new or existing address can also be made the primary address that outgoing mail is sent from.
 
 ## Where to find
 User \ Mail \ Add Or Remove Email Address
@@ -19,7 +19,7 @@ User \ Mail \ Add Or Remove Email Address
 
 ## Parameters
 ### UserName
-User principal name of the mailbox.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ User principal name of the mailbox.
 | Type | String |
 
 ### EmailAddress
-Email address to add or remove.
+Address to add or remove, for example jane.doe@contoso.com.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Email address to add or remove.
 | Type | String |
 
 ### Remove
-If set to true, removes the address instead of adding it.
+Whether the address is removed instead of added. Set by the "Action" choice.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ If set to true, removes the address instead of adding it.
 | Type | Boolean |
 
 ### asPrimary
-If set to true, sets the specified address as the primary SMTP address.
+Makes this address the primary one that outgoing mail is sent from.
 
 | Property | Value |
 |----------|-------|

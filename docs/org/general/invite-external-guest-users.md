@@ -1,11 +1,9 @@
 # Invite External Guest Users
 
-Invite external guest users to the organization
+Invite an external person as a guest user
 
 ## Detailed description
-This runbook invites an external user as a guest user in Microsoft Entra ID.
-Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
-The invited user can optionally be added to a specified group.
+Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized.
 
 ## Where to find
 Org \ General \ Invite External Guest Users
@@ -31,7 +29,7 @@ Org \ General \ Invite External Guest Users
 
 ## Parameters
 ### InvitedUserEmail
-Email address of the guest user to invite.
+Email address of the person to invite.
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +38,7 @@ Email address of the guest user to invite.
 | Type | String |
 
 ### InvitedUserDisplayName
-Display name of the guest user.
+Name shown for the guest in the directory.
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +47,7 @@ Display name of the guest user.
 | Type | String |
 
 ### GroupId
-The object ID of the group to add the guest user to. If not specified, the user will not be added to any group.
+Group the guest is added to. Preset in the runbook customization; empty means none.
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +56,7 @@ The object ID of the group to add the guest user to. If not specified, the user 
 | Type | String |
 
 ### GivenName
-Given name (first name) of the guest user.
+First name of the guest.
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +65,7 @@ Given name (first name) of the guest user.
 | Type | String |
 
 ### Surname
-Surname (last name) of the guest user.
+Last name of the guest.
 
 | Property | Value |
 |----------|-------|
@@ -76,7 +74,7 @@ Surname (last name) of the guest user.
 | Type | String |
 
 ### CompanyName
-Company name of the guest user.
+Company the guest works for.
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +83,7 @@ Company name of the guest user.
 | Type | String |
 
 ### ManagerName
-Manager to assign to the guest user. Select a user from the directory.
+User who becomes the guest's manager.
 
 | Property | Value |
 |----------|-------|
@@ -94,7 +92,7 @@ Manager to assign to the guest user. Select a user from the directory.
 | Type | String |
 
 ### SponsorName
-Sponsor to assign to the guest user. Select a user from the directory.
+User recorded as the guest's sponsor.
 
 | Property | Value |
 |----------|-------|
@@ -103,7 +101,7 @@ Sponsor to assign to the guest user. Select a user from the directory.
 | Type | String |
 
 ### CustomizeInvitation
-Enable to customize the invitation message and redirect URL.
+Shows fields for an own invitation message and redirect URL.
 
 | Property | Value |
 |----------|-------|
@@ -112,7 +110,7 @@ Enable to customize the invitation message and redirect URL.
 | Type | Boolean |
 
 ### InvitationMessage
-Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled.
+Text included in the invitation email.
 
 | Property | Value |
 |----------|-------|
@@ -121,7 +119,7 @@ Custom message body to include in the invitation email. Only used when Customize
 | Type | String |
 
 ### InviteRedirectUrl
-Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled.
+Page the guest lands on after accepting, for example a SharePoint site.
 
 | Property | Value |
 |----------|-------|
@@ -130,7 +128,7 @@ Custom URL the user is redirected to after accepting the invitation. Only used w
 | Type | String |
 
 ### UsageLocation
-ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE").
+Two-letter country code, for example US or DE, needed before licenses can be assigned.
 
 | Property | Value |
 |----------|-------|

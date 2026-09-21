@@ -1,9 +1,9 @@
 # Monitor Service Health (Scheduled)
 
-Alert by email on newly announced Microsoft 365 Service Health issues
+Alert by email about new Microsoft 365 service health issues
 
 ## Detailed description
-Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.
+Checks the Microsoft 365 service health feed for issues that Microsoft announced within the chosen number of hours. Each new issue is sent as a separate alert email, with the tenant and issue title in the subject and all details in the body. Monitoring can be limited to certain services, and advisories and already resolved issues can be included. No report files are created.
 
 ## Where to find
 Org \ General \ Monitor Service Health_Scheduled
@@ -51,7 +51,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 ## Parameters
 ### Services
-Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page.
+Services to watch, separated by commas, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty for all services. Short names such as Intune work too.
 
 | Property | Value |
 |----------|-------|
@@ -60,7 +60,7 @@ Comma-separated list of Microsoft 365 service names to monitor, for example Micr
 | Type | String |
 
 ### LookbackHours
-How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice.
+How many hours back to look for newly announced issues, 1 to 168. Use the same interval as the schedule, for example 24 for a daily run, so nothing is missed or alerted twice.
 
 | Property | Value |
 |----------|-------|
@@ -69,7 +69,7 @@ How many hours back to look for newly announced issues. Set this to the same int
 | Type | Int32 |
 
 ### IncludeAdvisories
-If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well.
+Also alerts on advisories, not only on incidents.
 
 | Property | Value |
 |----------|-------|
@@ -78,7 +78,7 @@ If set to false, only incidents raise an alert. If set to true, advisories are a
 | Type | Boolean |
 
 ### IncludeResolvedIssues
-If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported.
+Also alerts on issues Microsoft has already resolved by the time the runbook runs.
 
 | Property | Value |
 |----------|-------|
@@ -87,7 +87,7 @@ If set to false, issues that Microsoft has already marked as resolved by the tim
 | Type | Boolean |
 
 ### EmailFrom
-The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization.
+Sender address of the alert email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -96,8 +96,7 @@ The sender email address used for the per-issue alert emails. This needs to be c
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -106,8 +105,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -116,8 +114,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -126,8 +123,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -136,8 +132,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -146,7 +141,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### EmailTo
-Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required.
+Addresses that receive the alert emails, separated by commas. At least one is required.
 
 | Property | Value |
 |----------|-------|

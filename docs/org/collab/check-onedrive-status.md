@@ -1,9 +1,9 @@
 # Check Onedrive Status
 
-Check the status of a user's OneDrive
+Check whether a user's OneDrive is active, locked or deleted
 
 ## Detailed description
-Connects to the SharePoint admin center using the managed identity and retrieves the status of the specified user's personal site (OneDrive). Reports whether the site is active or archived, its lock state, and whether it resides in the tenant recycle bin. The runbook is read-only and makes no changes to the site or its state.
+Looks up the personal OneDrive site of a user and reports whether it is active or archived, whether it is locked, and whether it sits in the tenant recycle bin. Works for users whose account has already been deleted, as their OneDrive may still be in the recycle bin. Nothing is changed.
 
 ## Where to find
 Org \ Collab \ Check Onedrive Status
@@ -32,7 +32,7 @@ SharePoint Online: grant 'Sites.FullControl.All' application permission on the O
 
 ## Parameters
 ### UserPrincipalName
-User principal name of the user whose OneDrive status should be checked. This parameter accepts the UPN of a user whose account has already been deleted, as deleted users' OneDrive sites may still exist in the tenant recycle bin.
+User principal name of the user whose OneDrive is checked. Deleted users are accepted.
 
 | Property | Value |
 |----------|-------|

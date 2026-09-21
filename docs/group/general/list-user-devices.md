@@ -1,11 +1,9 @@
 # List User Devices
 
-List devices owned by group members.
+List the devices registered to this group's members
 
 ## Detailed description
-This runbook enumerates the users in a group and lists their registered devices.
-Optionally, it can add the discovered devices to a specified device group.
-Use this to create or maintain a device group based on group member ownership.
+Lists the devices registered to the users in this group. Optionally the found devices are added to a device group of your choice. Devices are only added to that group, never removed.
 
 ## Where to find
 Group \ General \ List User Devices
@@ -20,7 +18,7 @@ Group \ General \ List User Devices
 
 ## Parameters
 ### GroupID
-Object ID of the group whose members will be evaluated.
+Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +27,7 @@ Object ID of the group whose members will be evaluated.
 | Type | String |
 
 ### moveGroup
-If set to true, the discovered devices are added to the target device group.
+Whether the found devices are added to the chosen device group. Set by the "Action" choice.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +36,7 @@ If set to true, the discovered devices are added to the target device group.
 | Type | Boolean |
 
 ### targetgroup
-Object ID of the target device group that receives the devices when moveGroup is enabled.
+Group the found devices are added to. Only used when "Action" adds the devices.
 
 | Property | Value |
 |----------|-------|

@@ -1,9 +1,9 @@
 # List Mailbox Permissions
 
-List mailbox permissions for a mailbox
+List who has access to this user's mailbox
 
 ## Detailed description
-Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
+Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table. Works for shared mailboxes as well. Nothing is changed.
 
 ## Where to find
 User \ Mail \ List Mailbox Permissions
@@ -19,7 +19,7 @@ User \ Mail \ List Mailbox Permissions
 
 ## Parameters
 ### UserName
-User principal name of the mailbox.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|

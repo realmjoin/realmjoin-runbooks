@@ -1,9 +1,9 @@
 # Hide Or Unhide In Addressbook
 
-Hide or unhide a mailbox in the address book
+Hide this user's mailbox in the address book or show it
 
 ## Detailed description
-Hides or unhides a mailbox from the global address lists. Important: This change can take up to 72 hours until it is reflected in the global address list.
+Hides the mailbox of this user from the global address list or shows it again. A hidden mailbox still receives email; it just does not appear when people browse the address book. The change can take up to 72 hours to show in the address list.
 
 ## Where to find
 User \ Mail \ Hide Or Unhide In Addressbook
@@ -19,7 +19,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
 
 ## Parameters
 ### UserName
-User principal name of the mailbox.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ User principal name of the mailbox.
 | Type | String |
 
 ### HideMailbox
-If set to true, hides the mailbox from address lists.
+Whether the mailbox is hidden or shown. Set by the "Action" choice.
 
 | Property | Value |
 |----------|-------|

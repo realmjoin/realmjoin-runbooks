@@ -1,17 +1,9 @@
 # Wipe Managed App Data
 
-App selective wipe - remove company app data from this MAM device
+Remove company app data from this MAM-managed device
 
 ## Detailed description
-Performs an "App selective wipe" (Mobile Application Management) for this device, mirroring the
-Intune portal flow "Apps > App selective wipe > Create wipe request". It removes company data
-from apps protected by app protection policies without wiping the whole device - typically
-used for lost or stolen devices that are MAM-managed (not MDM-enrolled).
-
-The runbook resolves the users registered on the device, collects their MAM app registrations
-that belong to this device and creates a wipe request for each affected user/device tag. The
-wipe is executed the next time each protected app checks in. Wipe requests can be monitored
-and cancelled in the Intune portal under "Apps > App selective wipe".
+Removes company data from apps protected by app protection policies on this device, without wiping the whole device. This is the app selective wipe known from the Intune portal, typically used for lost or stolen devices that are managed by app protection only and not enrolled in Intune. The data is removed the next time each protected app checks in, so the wipe is not instant. Pending requests can be monitored and cancelled in the Intune portal.
 
 ## Where to find
 Device \ General \ Wipe Managed App Data
@@ -49,7 +41,7 @@ device's display name as fallback; the runbook output indicates when this fallba
 
 ## Parameters
 ### DeviceId
-The device ID of the target device.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|

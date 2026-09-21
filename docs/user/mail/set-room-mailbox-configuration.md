@@ -1,9 +1,9 @@
 # Set Room Mailbox Configuration
 
-Set room mailbox resource policies
+Configure the booking rules of this room mailbox
 
 ## Detailed description
-Updates room mailbox settings such as booking policy, calendar processing, and capacity. The runbook can optionally restrict BookInPolicy to members of a specific mail-enabled security group.
+Sets the booking rules of this room mailbox: who may book it, whether recurring meetings and conflicts are allowed, and how requests are processed. It also sets how far ahead and how long meetings may be, and the room capacity. All booking settings are written as shown; the capacity only when it is greater than 0.
 
 ## Where to find
 User \ Mail \ Set Room Mailbox Configuration
@@ -21,7 +21,7 @@ User \ Mail \ Set Room Mailbox Configuration
 
 ## Parameters
 ### UserName
-User principal name of the room mailbox.
+User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ User principal name of the room mailbox.
 | Type | String |
 
 ### AllBookInPolicy
-"Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn.
+Everyone lets all users book the room. Only members of a group restricts booking to the "Booking group".
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ User principal name of the room mailbox.
 | Type | Boolean |
 
 ### BookInPolicyGroup
-Group whose members are allowed to book when AllBookInPolicy is false.
+Mail-enabled security group whose members may book the room.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ Group whose members are allowed to book when AllBookInPolicy is false.
 | Type | String |
 
 ### AllowRecurringMeetings
-If set to true, allows recurring meetings.
+Turn off to decline recurring meeting requests; single meetings are still accepted.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +57,7 @@ If set to true, allows recurring meetings.
 | Type | Boolean |
 
 ### AutomateProcessing
-Calendar processing mode for the room mailbox.
+Auto accept books the room automatically. Auto update only marks requests as tentative for a delegate to decide. None leaves requests untouched.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ Calendar processing mode for the room mailbox.
 | Type | String |
 
 ### BookingWindowInDays
-How many days into the future bookings are allowed.
+Requests further ahead than this many days are declined.
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +75,7 @@ How many days into the future bookings are allowed.
 | Type | Int32 |
 
 ### MaximumDurationInMinutes
-Maximum meeting duration in minutes.
+Longest meeting the room accepts, in minutes.
 
 | Property | Value |
 |----------|-------|
@@ -84,7 +84,7 @@ Maximum meeting duration in minutes.
 | Type | Int32 |
 
 ### AllowConflicts
-If set to true, allows scheduling conflicts.
+Lets overlapping bookings through instead of declining them.
 
 | Property | Value |
 |----------|-------|
@@ -93,7 +93,7 @@ If set to true, allows scheduling conflicts.
 | Type | Boolean |
 
 ### Capacity
-Capacity to set for the room when greater than 0.
+Number of seats. Leave at 0 to keep the current value.
 
 | Property | Value |
 |----------|-------|

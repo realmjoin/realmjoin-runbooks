@@ -1,11 +1,9 @@
 # Rename Group
 
-Rename a group.
+Rename this group or change its description
 
 ## Detailed description
-This runbook updates a group's DisplayName, MailNickname, and Description.
-It does not change the group's email addresses.
-Provide only the fields you want to update; empty values are ignored.
+Updates the display name, the mail nickname and the description of this group. Fill in only the fields you want to change; empty fields are left as they are. The group's email addresses do not change.
 
 ## Where to find
 Group \ General \ Rename Group
@@ -18,7 +16,7 @@ Group \ General \ Rename Group
 
 ## Parameters
 ### GroupId
-Object ID of the group to update.
+Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +25,7 @@ Object ID of the group to update.
 | Type | String |
 
 ### DisplayName
-New display name for the group.
+New name of the group, for a team also the team name. Leave empty to keep the current name.
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +34,7 @@ New display name for the group.
 | Type | String |
 
 ### MailNickname
-New mail nickname (alias) for the group.
+New alias (mail nickname) of the group. The existing email addresses stay. Leave empty to keep the current alias.
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +43,7 @@ New mail nickname (alias) for the group.
 | Type | String |
 
 ### Description
-New description for the group.
+New description shown for the group. Leave empty to keep the current one.
 
 | Property | Value |
 |----------|-------|

@@ -1,12 +1,70 @@
 # Offboard User Permanently
 
-Permanently offboard a user
+Permanently offboard this user
 
 ## Detailed description
-Permanently offboards a user by revoking access, disabling or deleting the account, adjusting group and license assignments, and optionally exporting memberships. Optionally removes or replaces group ownerships when required and replaces the user as manager of direct reports and as sponsor of (guest) users.
+Offboards this user for good: access is revoked, the account is disabled or deleted, licenses and groups are adjusted, and the group memberships can be exported before they are changed. Group ownerships, direct reports and sponsorships of guests can be handed over to a replacement. A deleted account can be restored for 30 days only.
 
 ## Where to find
 User \ General \ Offboard User Permanently
+
+## Preset the offboarding policy via tenant settings
+
+Most switches of this runbook are backed by tenant settings, so an organization can fix its offboarding policy once and hide the corresponding fields from the operators. The example below presets every switch and hides the fields; keep only the fields the operators should still decide per run.
+
+```json
+{
+    "Settings": {
+        "OffboardUserPermanently": {
+            "userTypeRestriction": 0,
+            "deleteUser": true,
+            "disableUser": true,
+            "revokeAccess": true,
+            "exportGroupMemberships": true,
+            "licensesMode": 0,
+            "groupsMode": 0,
+            "groupToAdd": "",
+            "groupsToRemovePrefix": "",
+            "replaceManagerReferences": true,
+            "replaceSponsorReferences": true
+        },
+        "RJReport": {
+            "StorageAccount": {
+                "ResourceGroup": "rj-test-runbooks-01",
+                "StorageAccountName": "rjrbexports01",
+                "LinkExpiryDays": 6
+            }
+        }
+    },
+    "Runbooks": {
+        "rjgit-user_general_offboard-user-permanently": {
+            "ParameterList": [
+                { "Name": "UserTypeSelector", "Hide": true },
+                { "Name": "DisableUser", "Hide": true },
+                { "Name": "RevokeAccess", "Hide": true },
+                { "Name": "ChangeLicensesSelector", "Hide": true },
+                { "Name": "ChangeGroupsSelector", "Hide": true },
+                { "Name": "GroupToAdd", "Hide": true },
+                { "Name": "GroupsToRemovePrefix", "Hide": true },
+                { "Name": "CallerName", "Hide": true }
+            ]
+        }
+    }
+}
+```
+
+Meaning of the settings:
+
+- `userTypeRestriction`: `0` allows all user types, `1` members only, `2` guests only. A mismatching user stops the run before any change.
+- `deleteUser`: delete the account (`true`) or keep it (`false`).
+- `disableUser`, `revokeAccess`: block sign-in and end the user's sessions.
+- `exportGroupMemberships`: export the group memberships to the report storage account (see `RJReport.StorageAccount`) and return a download link before groups and licenses are changed.
+- `licensesMode`: `0` keeps the directly assigned licenses, `2` removes all of them.
+- `groupsMode`: `0` keeps the groups, `1` removes the groups starting with `groupsToRemovePrefix`, `2` removes all groups. Both `1` and `2` add or keep `groupToAdd`.
+- `replaceManagerReferences`, `replaceSponsorReferences`: hand the user's direct reports and sponsorships over to the replacement person.
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -27,7 +85,7 @@ Azure Storage Account: 'Storage Account Contributor' role for the Automation Acc
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +94,7 @@ User principal name of the target user.
 | Type | String |
 
 ### UserTypeSelector
-Controls which user types this runbook may be run against: all users, member users only or guest users only. The run aborts before any change if the selected user does not match. To enforce the restriction, configure it as a tenant setting and hide the parameter via RunbookCustomization - otherwise operators can change it in the runbook form.
+Runs only for the chosen user type: all users, members only or guests only. With a mismatch the run stops before any change.
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +103,7 @@ Controls which user types this runbook may be run against: all users, member use
 | Type | Int32 |
 
 ### DeleteUser
-"Delete user object" (final value: $true) or "Keep the user object" (final value: $false) can be selected as action to perform. If set to true, the user object will be deleted. If set to false, the user object will be kept but access will be revoked and sign-in will be blocked.
+Delete removes the user object. Keep leaves the account in place; what happens to it follows the other switches.
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +112,7 @@ Controls which user types this runbook may be run against: all users, member use
 | Type | Boolean |
 
 ### DisableUser
-If set to true, disables the user account for sign-in.
+Blocks the account from signing in.
 
 | Property | Value |
 |----------|-------|
@@ -63,7 +121,7 @@ If set to true, disables the user account for sign-in.
 | Type | Boolean |
 
 ### RevokeAccess
-If set to true, revokes the user's refresh tokens and active sessions.
+Ends the user's active sessions and invalidates their refresh tokens.
 
 | Property | Value |
 |----------|-------|
@@ -72,7 +130,7 @@ If set to true, revokes the user's refresh tokens and active sessions.
 | Type | Boolean |
 
 ### exportGroupMemberships
-If set to true, exports the user's current group memberships to an Azure Storage Account and returns a time-limited download link.
+Exports the user's group memberships to a file and returns a download link before groups and licenses are changed. Taken from the tenant setting OffboardUserPermanently.exportGroupMemberships.
 
 | Property | Value |
 |----------|-------|
@@ -81,7 +139,7 @@ If set to true, exports the user's current group memberships to an Azure Storage
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the group membership export.
+Storage container the export is uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -90,7 +148,7 @@ Storage container name used for the group membership export.
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -99,7 +157,7 @@ Resource group that contains the storage account.
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -108,7 +166,7 @@ Storage account name used for the upload.
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|
@@ -117,7 +175,7 @@ Number of days until the generated download link expires.
 | Type | Int32 |
 
 ### ChangeLicensesSelector
-Controls how directly assigned licenses should be handled.
+Remove all takes away every directly assigned license; licenses inherited from groups stay.
 
 | Property | Value |
 |----------|-------|
@@ -126,7 +184,7 @@ Controls how directly assigned licenses should be handled.
 | Type | Int32 |
 
 ### ChangeGroupsSelector
-"Change" and "Remove all" will both honour "groupToAdd"
+Remove groups with the prefix removes the groups named by the prefix, Remove all groups removes every group. Both add or keep the group under "Group to add or keep". Dynamic, role-assignable and on-premises groups are skipped and listed.
 
 | Property | Value |
 |----------|-------|
@@ -135,7 +193,7 @@ Controls how directly assigned licenses should be handled.
 | Type | Int32 |
 
 ### GroupToAdd
-Group that should be added or kept when group changes are enabled.
+Group the user still needs after offboarding, for example a leaver license group. It is added if missing and never removed.
 
 | Property | Value |
 |----------|-------|
@@ -144,7 +202,7 @@ Group that should be added or kept when group changes are enabled.
 | Type | String |
 
 ### GroupsToRemovePrefix
-Prefix used to remove groups matching a naming convention.
+Groups whose name starts with this text are removed, for example LIC_ for all license groups. Only used with "Remove groups with the prefix".
 
 | Property | Value |
 |----------|-------|
@@ -153,7 +211,7 @@ Prefix used to remove groups matching a naming convention.
 | Type | String |
 
 ### RevokeGroupOwnership
-"Remove/Replace this user's group ownerships" (final value: $true) or "User will remain owner / Do not change" (final value: $false) can be selected as action to perform. If set to true, the runbook will attempt to remove the user from group ownerships. If the user is the last owner of a group, it will attempt to assign a replacement owner; if that fails, it will skip ownership change for that group and log it for manual follow-up.
+Remove or replace takes the user's group ownerships away. Where this user is the last owner, the replacement takes over; without a replacement the group is listed for manual follow-up. Keep leaves the ownerships as they are.
 
 | Property | Value |
 |----------|-------|
@@ -162,7 +220,7 @@ Prefix used to remove groups matching a naming convention.
 | Type | Boolean |
 
 ### ManagerAsReplacementOwner
-If set to true, uses the user's manager as replacement owner where applicable.
+Takes the user's manager from Entra ID as the replacement owner, manager and sponsor. If a manager is set, it is used instead of the "Replacement person".
 
 | Property | Value |
 |----------|-------|
@@ -171,7 +229,7 @@ If set to true, uses the user's manager as replacement owner where applicable.
 | Type | Boolean |
 
 ### ReplacementOwnerName
-User who will take over group or resource ownership if required.
+Person who takes over ownerships, direct reports and sponsorships when the manager is not used or this user has none.
 
 | Property | Value |
 |----------|-------|
@@ -180,7 +238,7 @@ User who will take over group or resource ownership if required.
 | Type | String |
 
 ### ReplaceManagerReferences
-If set to true, all direct reports of the offboarded user get the replacement person assigned as their new manager. Without a resolvable replacement, affected users are only listed for manual follow-up.
+Sets the replacement as manager of everyone who reports to this user. Without a replacement, those users are only listed.
 
 | Property | Value |
 |----------|-------|
@@ -189,7 +247,7 @@ If set to true, all direct reports of the offboarded user get the replacement pe
 | Type | Boolean |
 
 ### ReplaceSponsorReferences
-If set to true, the offboarded user is replaced by the replacement person wherever they are set as sponsor (typically on guest users). Without a resolvable replacement, affected users are only listed for manual follow-up. Sponsorships that the user only holds through a group membership are left untouched, as they remain valid after the offboarding. As Graph offers no reverse lookup for sponsors, this option scans all users of the tenant.
+Replaces this user as sponsor wherever they are set as one, typically on guest users. Without a replacement, those users are only listed. Sponsorships held through a group stay. This scans all users of the tenant.
 
 | Property | Value |
 |----------|-------|

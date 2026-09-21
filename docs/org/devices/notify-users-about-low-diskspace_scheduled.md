@@ -1,12 +1,9 @@
 # Notify Users About Low Diskspace (Scheduled)
 
-Notify primary users about low disk space on their devices via email
+Email users whose devices are running out of disk space
 
 ## Detailed description
-Identifies Intune managed Windows and macOS devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size, and sends one personalized email per primary user.
-The email lists all affected devices of the user with their free and total disk space, rates each device as Critical or Warning and contains practical, platform-specific steps to free up space.
-The evaluation can be limited to critical devices, to devices with a recent Intune inventory, to the members of an Entra device group and to users included in or excluded by a group.
-A simulation mode lists the affected users and devices without sending anything, and a global override recipient redirects all notifications to a test or shared mailbox.
+Finds Windows and macOS devices in Intune whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each primary user gets one email listing their affected devices with practical steps to free up space. Devices are rated Warning or Critical. The run can be limited to critical devices, to devices with a fresh inventory, to a device group and to certain users. A simulation mode only lists who would be notified, and an override recipient redirects all emails to a test mailbox.
 
 ## Where to find
 Org \ Devices \ Notify Users About Low Diskspace_Scheduled
@@ -138,7 +135,7 @@ The custom template consists of a subject, a text before the device list and a t
 
 ## Parameters
 ### ThresholdType
-Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
+By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
 | Property | Value |
 |----------|-------|
@@ -147,7 +144,7 @@ Determines how low disk space is detected, either by a fixed amount of free spac
 | Type | String |
 
 ### FreeSpaceThresholdGB
-Devices with less free disk space than this value in gigabytes are considered. Only used when the threshold type is set to free space in gigabytes.
+Devices with less free space than this many gigabytes are affected.
 
 | Property | Value |
 |----------|-------|
@@ -156,7 +153,7 @@ Devices with less free disk space than this value in gigabytes are considered. O
 | Type | Int32 |
 
 ### FreeSpacePercentThreshold
-Devices with a lower percentage of free disk space than this value are considered. Only used when the threshold type is set to free space in percent.
+Devices with less free space than this percentage of the disk are affected.
 
 | Property | Value |
 |----------|-------|
@@ -165,7 +162,7 @@ Devices with a lower percentage of free disk space than this value are considere
 | Type | Int32 |
 
 ### NotifyOnSeverity
-Selects which devices trigger a notification: every device below the threshold (Warning and Critical) or only devices below half of the threshold (Critical only).
+Every device below the limit (Warning and Critical), or only devices below half of it (Critical only).
 
 | Property | Value |
 |----------|-------|
@@ -174,7 +171,7 @@ Selects which devices trigger a notification: every device below the threshold (
 | Type | String |
 
 ### Windows
-Include Windows devices in the evaluation.
+Includes Windows devices.
 
 | Property | Value |
 |----------|-------|
@@ -183,7 +180,7 @@ Include Windows devices in the evaluation.
 | Type | Boolean |
 
 ### MacOS
-Include macOS devices in the evaluation.
+Includes macOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -192,7 +189,7 @@ Include macOS devices in the evaluation.
 | Type | Boolean |
 
 ### MaxInventoryAgeDays
-Devices whose last Intune sync is older than this number of days are skipped, because their storage inventory is considered outdated. Devices without a last sync date are skipped as well. Set to 0 to disable the check.
+Devices whose last Intune sync is older than this many days are skipped, as their disk data is stale. 0 disables the check.
 
 | Property | Value |
 |----------|-------|
@@ -201,7 +198,7 @@ Devices whose last Intune sync is older than this number of days are skipped, be
 | Type | Int32 |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization.
+Sender address of the notification email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -210,8 +207,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the notification email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -220,8 +216,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the notification email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -230,8 +225,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -240,8 +234,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the notification email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -250,8 +243,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the notification email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -260,7 +252,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ServiceDeskDisplayName
-Service Desk display name for user contact information (optional).
+Service desk name shown in the email. Taken from the tenant setting RJReport.ServiceDesk_DisplayName.
 
 | Property | Value |
 |----------|-------|
@@ -269,7 +261,7 @@ Service Desk display name for user contact information (optional).
 | Type | String |
 
 ### ServiceDeskEmail
-Service Desk email address for user contact information (optional).
+Service desk email address shown in the email. Taken from the tenant setting RJReport.ServiceDesk_EMail.
 
 | Property | Value |
 |----------|-------|
@@ -278,7 +270,7 @@ Service Desk email address for user contact information (optional).
 | Type | String |
 
 ### ServiceDeskPhone
-Service Desk phone number for user contact information (optional).
+Service desk phone number shown in the email. Taken from the tenant setting RJReport.ServiceDesk_Phone.
 
 | Property | Value |
 |----------|-------|
@@ -287,7 +279,7 @@ Service Desk phone number for user contact information (optional).
 | Type | String |
 
 ### ServiceDeskPortalUrl
-Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+Link to the service desk portal shown in the email. Taken from the tenant setting RJReport.ServiceDesk_PortalUrl.
 
 | Property | Value |
 |----------|-------|
@@ -296,7 +288,7 @@ Service Desk portal URL for user contact information, rendered as a clickable li
 | Type | String |
 
 ### ServiceDeskTicketUrl
-Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+Link to the service desk ticket shown in the email. Taken from the tenant setting RJReport.ServiceDesk_TicketUrl; empty means no link.
 
 | Property | Value |
 |----------|-------|
@@ -305,7 +297,7 @@ Direct link to a Service Desk ticket, rendered as a clickable link (optional). E
 | Type | String |
 
 ### UseUserScope
-Enable user scope filtering to include or exclude users based on group membership.
+Whether users are filtered by group membership. Set by the "Filter users by group?" choice.
 
 | Property | Value |
 |----------|-------|
@@ -314,7 +306,7 @@ Enable user scope filtering to include or exclude users based on group membershi
 | Type | Boolean |
 
 ### IncludeUserGroup
-Only notify users who are (transitive) members of this group. Requires UseUserScope to be enabled.
+Only users in this group, nested groups included, are notified.
 
 | Property | Value |
 |----------|-------|
@@ -323,7 +315,7 @@ Only notify users who are (transitive) members of this group. Requires UseUserSc
 | Type | String |
 
 ### ExcludeUserGroup
-Do not notify users who are (transitive) members of this group. Requires UseUserScope to be enabled.
+Users in this group, nested groups included, are not notified.
 
 | Property | Value |
 |----------|-------|
@@ -332,7 +324,7 @@ Do not notify users who are (transitive) members of this group. Requires UseUser
 | Type | String |
 
 ### IncludeDeviceGroup
-Optional Entra device group. When set, only devices that are (transitive) members of this group are evaluated. Can be combined with the user scope.
+Only devices in this Entra ID group, nested groups included, are checked. Can be combined with the user filter.
 
 | Property | Value |
 |----------|-------|
@@ -341,8 +333,7 @@ Optional Entra device group. When set, only devices that are (transitive) member
 | Type | String |
 
 ### OverrideEmailRecipient
-Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly.
-The override mailbox receives one email per affected user within a few seconds; mail filters may treat such a burst as bulk or spam, so prefer a mailbox in the same tenant for tests (see the documentation).
+Sends every email to these addresses instead of the users, for tests and pilots. The mailbox gets one email per affected user within seconds, which mail filters may treat as spam; prefer a mailbox in your own tenant.
 
 | Property | Value |
 |----------|-------|
@@ -351,7 +342,7 @@ The override mailbox receives one email per affected user within a few seconds; 
 | Type | String |
 
 ### SimulationMode
-When enabled, the runbook lists the affected users and devices in the output but does not send any email.
+Simulation only lists the affected users and devices; nothing is sent.
 
 | Property | Value |
 |----------|-------|
@@ -360,7 +351,7 @@ When enabled, the runbook lists the affected users and devices in the output but
 | Type | Boolean |
 
 ### MailTemplateLanguage
-Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
+English, German, or the custom template from the runbook customization; English is used where the custom template is empty.
 
 | Property | Value |
 |----------|-------|
@@ -369,8 +360,7 @@ Select which email template to use: EN (English, default), DE (German), or Custo
 | Type | String |
 
 ### CustomMailTemplateSubject
-Custom email subject line (only used when MailTemplateLanguage is set to 'Custom'). It is used for Warning and for Critical notifications alike,
-because the custom template has no counterpart to the urgent subject line of the built-in templates.
+Subject of the email when the custom template is used, for Warning and Critical alike.
 
 | Property | Value |
 |----------|-------|
@@ -379,7 +369,7 @@ because the custom template has no counterpart to the urgent subject line of the
 | Type | String |
 
 ### CustomMailTemplateBeforeDeviceDetails
-Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+Text above the device list when the custom template is used. Markdown is allowed.
 
 | Property | Value |
 |----------|-------|
@@ -388,7 +378,7 @@ Custom text to display before the device list (only used when MailTemplateLangua
 | Type | String |
 
 ### CustomMailTemplateAfterDeviceDetails
-Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. Replaces the built-in cleanup steps, so it should contain its own guidance.
+Text below the device list when the custom template is used; it replaces the built-in cleanup steps. Markdown is allowed.
 
 | Property | Value |
 |----------|-------|

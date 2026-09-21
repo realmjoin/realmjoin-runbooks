@@ -1,9 +1,9 @@
 # Show Filevault Recovery Key
 
-Display macOS FileVault recovery key
+Show the FileVault recovery key of this Mac
 
 ## Detailed description
-Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.
+Shows the FileVault recovery key that Intune has stored for this macOS device. Use it to unlock the Mac when the user has forgotten the password or the device is locked. Nothing is changed.
 
 ## Where to find
 Device \ Security \ Show Filevault Recovery Key
@@ -17,7 +17,7 @@ Device \ Security \ Show Filevault Recovery Key
 
 ## Parameters
 ### DeviceId
-The Azure AD Device ID of the macOS device
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|

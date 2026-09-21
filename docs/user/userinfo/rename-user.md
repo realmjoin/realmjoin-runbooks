@@ -1,9 +1,9 @@
 # Rename User
 
-Rename a user or mailbox
+Change this user's sign-in name (UPN) and mailbox alias
 
 ## Detailed description
-Renames a user by changing the user principal name in Microsoft Entra ID and optionally updates mailbox properties in Exchange Online. This does not update user metadata such as display name, given name, or surname.
+Gives this user a new user principal name in Entra ID and, optionally, updates the mailbox alias and the primary email address in Exchange Online to match. Display name, given name and surname are not touched.
 
 ## Where to find
 User \ Userinfo \ Rename User
@@ -21,7 +21,7 @@ User \ Userinfo \ Rename User
 
 ## Parameters
 ### UserName
-User principal name of the user or mailbox to rename.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ User principal name of the user or mailbox to rename.
 | Type | String |
 
 ### NewUpn
-New user principal name to set.
+New sign-in name, for example jane.doe@contoso.com.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ New user principal name to set.
 | Type | String |
 
 ### ChangeMailnickname
-If set to true, updates the mailbox alias and name based on the new UPN.
+Sets the mailbox alias and name from the new user principal name.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ If set to true, updates the mailbox alias and name based on the new UPN.
 | Type | Boolean |
 
 ### UpdatePrimaryAddress
-If set to true, updates the primary SMTP address and rewrites email addresses accordingly.
+Makes the new user principal name the primary email address; the previous addresses stay as aliases.
 
 | Property | Value |
 |----------|-------|

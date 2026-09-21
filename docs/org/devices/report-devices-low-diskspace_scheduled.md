@@ -1,14 +1,9 @@
 # Report Devices Low Diskspace (Scheduled)
 
-Scheduled report of managed devices running low on free disk space.
+Report devices that are running out of disk space
 
 ## Detailed description
-Identifies and lists Intune managed devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size.
-The result can be narrowed down by platform and by manufacturer and model filters, and each reported device is rated as Critical or Warning depending on how far below the threshold it is.
-Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
-The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Lists Intune devices whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each device is rated Warning or Critical depending on how far below it is. The list can be narrowed by platform, manufacturer and model. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Report Devices Low Diskspace_Scheduled
@@ -76,7 +71,7 @@ Azure Storage Account: 'Storage Account Contributor' role for the Automation Acc
 
 ## Parameters
 ### ThresholdType
-Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
+By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +80,7 @@ Determines how low disk space is detected, either by a fixed amount of free spac
 | Type | String |
 
 ### FreeSpaceThresholdGB
-Devices with less free disk space than this value in gigabytes are reported. Only used when the threshold type is set to free space in gigabytes.
+Devices with less free space than this many gigabytes are reported.
 
 | Property | Value |
 |----------|-------|
@@ -94,7 +89,7 @@ Devices with less free disk space than this value in gigabytes are reported. Onl
 | Type | Int32 |
 
 ### FreeSpacePercentThreshold
-Devices with a lower percentage of free disk space than this value are reported. Only used when the threshold type is set to free space in percent.
+Devices with less free space than this percentage of the disk are reported.
 
 | Property | Value |
 |----------|-------|
@@ -103,7 +98,7 @@ Devices with a lower percentage of free disk space than this value are reported.
 | Type | Int32 |
 
 ### Windows
-Include Windows devices in the results.
+Includes Windows devices.
 
 | Property | Value |
 |----------|-------|
@@ -112,7 +107,7 @@ Include Windows devices in the results.
 | Type | Boolean |
 
 ### MacOS
-Include macOS devices in the results.
+Includes macOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -121,7 +116,7 @@ Include macOS devices in the results.
 | Type | Boolean |
 
 ### iOS
-Include iOS and iPadOS devices in the results.
+Includes iOS and iPadOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -130,7 +125,7 @@ Include iOS and iPadOS devices in the results.
 | Type | Boolean |
 
 ### Android
-Include Android devices in the results.
+Includes Android devices.
 
 | Property | Value |
 |----------|-------|
@@ -139,7 +134,7 @@ Include Android devices in the results.
 | Type | Boolean |
 
 ### ManufacturerFilter
-Optional comma-separated list of manufacturer names. A device is included when its manufacturer contains one of the entries. Leave empty to include all manufacturers.
+Only these manufacturers, separated by commas; Dell also matches Dell Inc. Leave empty for all.
 
 | Property | Value |
 |----------|-------|
@@ -148,7 +143,7 @@ Optional comma-separated list of manufacturer names. A device is included when i
 | Type | String |
 
 ### ModelFilter
-Optional comma-separated list of model names. A device is included when its model contains one of the entries. Leave empty to include all models.
+Only these models, separated by commas; Surface also matches Surface Laptop 3. Leave empty for all.
 
 | Property | Value |
 |----------|-------|
@@ -157,7 +152,7 @@ Optional comma-separated list of model names. A device is included when its mode
 | Type | String |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -166,8 +161,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -176,8 +170,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -186,8 +179,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -196,8 +188,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -206,8 +197,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -216,7 +206,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -225,7 +215,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -234,7 +224,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -243,7 +233,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -252,7 +242,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -261,7 +251,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|
@@ -270,9 +260,7 @@ Number of days until the generated download link expires. Sourced from the RJRep
 | Type | Int32 |
 
 ### EmailTo
-If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|

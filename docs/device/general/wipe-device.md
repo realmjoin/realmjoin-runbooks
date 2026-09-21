@@ -1,9 +1,9 @@
 # Wipe Device
 
-Wipe a Windows or MacOS device
+Wipe this Windows or macOS device and clean up its records
 
 ## Detailed description
-Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
+Wipes this Windows or macOS device. Optionally it also cleans up what is left of it: the Intune record, the Autopilot registration and the Entra ID object can be deleted or disabled. For Windows you can choose a protected wipe and a longer compliance grace period after re-enrollment, for macOS a recovery code and how the OS is erased. A wipe removes all data on the device and cannot be undone. The wipe can be skipped when Defender for Endpoint rates the device as medium or high risk.
 
 ## Where to find
 Device \ General \ Wipe Device
@@ -89,6 +89,15 @@ The json configuration for this is as follows:
 }
 ```
 
+## macOS wipe options
+
+macOS devices are wiped through Intune's erase action. Two options only apply to them:
+
+- **Recovery code (macOS)** (`macOsRecoveryCode`): older Macs need a six-digit recovery code to accept the wipe; newer devices ignore it. The parameter is hidden in the portal and can be preset via runbook customization.
+- **Obliteration behavior (macOS)** (`macOsObliterationBehavior`): decides what happens when *Erase All Content and Settings* (EACS) is not possible. `default` erases the user data and falls back to erasing the whole OS, `doNotObliterate` never erases the OS, `obliterateWithWarning` warns and then erases the OS, `always` erases the OS in any case.
+
+Windows-only options (*protected wipe*, *Autopilot database*, *compliance exclusion group*) are ignored for macOS devices.
+
 
 ## Permissions
 ### Application permissions
@@ -107,7 +116,7 @@ The json configuration for this is as follows:
 
 ## Parameters
 ### DeviceId
-The device ID of the target device.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -116,7 +125,7 @@ The device ID of the target device.
 | Type | String |
 
 ### wipeDevice
-"Wipe this device?" (final value: true) or "Do not wipe device" (final value: false) can be selected as action to perform. If set to true, the runbook will trigger a wipe action for the device in Intune. If set to false, no wipe action will be triggered for the device in Intune.
+Completely wipe erases all user and enrollment data on the device. Do not wipe leaves the device untouched and only runs the selected cleanup steps.
 
 | Property | Value |
 |----------|-------|
@@ -125,7 +134,7 @@ The device ID of the target device.
 | Type | Boolean |
 
 ### useProtectedWipe
-Windows-only. If set to true, uses protected wipe.
+Keeps trying to wipe even if the device is switched off in between, so the wipe cannot be dodged by powering off. Windows only.
 
 | Property | Value |
 |----------|-------|
@@ -134,7 +143,7 @@ Windows-only. If set to true, uses protected wipe.
 | Type | Boolean |
 
 ### removeIntuneDevice
-If set to true, deletes the Intune device object.
+Deletes the device record in Intune. Only sensible when the device is already wiped or destroyed.
 
 | Property | Value |
 |----------|-------|
@@ -143,7 +152,7 @@ If set to true, deletes the Intune device object.
 | Type | Boolean |
 
 ### removeAutopilotDevice
-Windows-only. "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant.
+Removing the device from the Autopilot database lets it leave the tenant and be registered elsewhere. Keeping it allows a later redeployment in this tenant. Windows only.
 
 | Property | Value |
 |----------|-------|
@@ -152,7 +161,7 @@ Windows-only. "Delete device from AutoPilot database?" (final value: true) or "K
 | Type | Boolean |
 
 ### removeAADDevice
-"Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD).
+Whether the Entra ID device object is deleted after the wipe. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -161,7 +170,7 @@ Windows-only. "Delete device from AutoPilot database?" (final value: true) or "K
 | Type | Boolean |
 
 ### disableAADDevice
-"Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD).
+Disabling blocks sign-ins from the device but keeps its object in Entra ID. Keep leaves the Entra ID object unchanged.
 
 | Property | Value |
 |----------|-------|
@@ -170,7 +179,7 @@ Windows-only. "Delete device from AutoPilot database?" (final value: true) or "K
 | Type | Boolean |
 
 ### skipWipeIfAtRisk
-If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe.
+Skips the wipe when Microsoft Defender for Endpoint rates the device as medium or high risk. That keeps evidence intact on a device that may be part of a security incident.
 
 | Property | Value |
 |----------|-------|
@@ -179,7 +188,7 @@ If set to true, the wipe is only performed when the device's Microsoft Defender 
 | Type | Boolean |
 
 ### addToExclusionGroup
-Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook).
+Adds the device to the compliance exclusion group so it gets a longer compliance grace period when it is re-enrolled through Autopilot. Windows only.
 
 | Property | Value |
 |----------|-------|
@@ -188,7 +197,7 @@ Windows-only. If set to true, the device is added to the compliance exclusion gr
 | Type | Boolean |
 
 ### exclusionGroupName
-Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled.
+Display name of the exclusion group the device is added to. An object ID preset in the runbook customization takes precedence.
 
 | Property | Value |
 |----------|-------|
@@ -197,7 +206,7 @@ Display name of the compliance exclusion group the device should be added to whe
 | Type | String |
 
 ### exclusionGroupId
-Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization.
+Object ID of the exclusion group. Preset in the runbook customization and used instead of the group name to avoid name clashes.
 
 | Property | Value |
 |----------|-------|
@@ -206,7 +215,7 @@ Object ID of the compliance exclusion group. If provided, it always overrides 'e
 | Type | String |
 
 ### macOsRecoveryCode
-MacOS-only. Recovery code for older devices; newer devices may not require this.
+Recovery code for older Macs that need one to be wiped. Newer devices ignore it. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -215,7 +224,7 @@ MacOS-only. Recovery code for older devices; newer devices may not require this.
 | Type | String |
 
 ### macOsObliterationBehavior
-MacOS-only. Controls the OS obliteration behavior during wipe.
+How a Mac is erased: erase user data first and fall back to erasing the OS, never erase the OS, warn before erasing the OS, or always erase the OS.
 
 | Property | Value |
 |----------|-------|

@@ -1,11 +1,9 @@
 # Show Bitlocker Recovery Key
 
-Show all BitLocker recovery keys for a device
+Show the BitLocker recovery keys of this device
 
 ## Detailed description
-This runbook retrieves and displays all BitLocker recovery keys that are backed up for the specified device.
-Keys are sorted by creation date (newest first). Use it for disk recovery scenarios.
-Optionally, the keys are only shown when the device's Microsoft Defender for Endpoint risk score is not Medium or High.
+Lists all BitLocker recovery keys backed up for this device, newest first, for disk recovery. Nothing is changed. Optionally the keys are withheld when Microsoft Defender for Endpoint rates the device as medium or high risk. That way the keys are not handed out before the security team has been involved, in case the device is under investigation.
 
 ## Where to find
 Device \ Security \ Show Bitlocker Recovery Key
@@ -50,7 +48,7 @@ The json configuration for this is as follows:
 
 ## Parameters
 ### DeviceId
-The device ID of the target device.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -59,7 +57,7 @@ The device ID of the target device.
 | Type | String |
 
 ### skipIfAtRisk
-If set to true, the recovery keys are only shown when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This prevents the recovery key of a device that may be involved in a security incident from being disclosed without aligning with your security team first. Devices that are not found in Defender for Endpoint are not blocked.
+Withholds the keys when Microsoft Defender for Endpoint rates the device as medium or high risk, so the security team can be consulted first. Devices unknown to Defender are not blocked.
 
 | Property | Value |
 |----------|-------|

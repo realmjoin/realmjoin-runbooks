@@ -1,9 +1,9 @@
 # Report Sharepoint Tenant Storage (Scheduled)
 
-Monitor SharePoint Online tenant storage and alert when thresholds are exceeded
+Monitor SharePoint storage and alert when limits are exceeded
 
 ## Detailed description
-Scheduled monitor for SharePoint Online tenant storage capacity and usage. Connects to the SharePoint admin center using managed identity, retrieves the tenant storage quota and the top site collections by consumed storage, and reports the full inventory to the runbook output on every run. An alert email is sent only when free storage falls below the configured low-storage limit or unused licensed storage rises above the configured reclaimable threshold.
+Checks the storage of the SharePoint Online tenant on every run: the quota, how much is used, and the site collections that use the most. The full inventory is written to the run output. An alert email is sent only when the free storage drops below the low-storage limit or the licensed but unused storage exceeds the reclaimable limit.
 
 ## Where to find
 Org \ Collab \ Report Sharepoint Tenant Storage_Scheduled
@@ -46,6 +46,7 @@ SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Onl
 
 ## Parameters
 ### AlertLowStorageLimitInGB
+Send an alert when the free tenant storage drops below this many gigabytes.
 
 | Property | Value |
 |----------|-------|
@@ -54,6 +55,7 @@ SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Onl
 | Type | Int32 |
 
 ### AlertUnusedStorageLimitInGB
+Send an alert when the licensed storage that no site uses exceeds this many gigabytes. That storage could be reclaimed.
 
 | Property | Value |
 |----------|-------|
@@ -62,7 +64,7 @@ SharePoint Online: grant Sites.FullControl.All on the 'Office 365 SharePoint Onl
 | Type | Int32 |
 
 ### TopSiteCount
-Number of site collections to report, ordered by consumed storage. Default is 10.
+How many of the largest site collections are listed.
 
 | Property | Value |
 |----------|-------|
@@ -71,7 +73,7 @@ Number of site collections to report, ordered by consumed storage. Default is 10
 | Type | Int32 |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization.
+Sender address of the alert email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -80,7 +82,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -89,7 +91,7 @@ URL of a custom header image for report emails. Configured as a tenant setting; 
 | Type | String |
 
 ### BrandingFooterImageUrl
-URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -98,7 +100,7 @@ URL of a custom footer image for report emails. Configured as a tenant setting; 
 | Type | String |
 
 ### BrandingFooterLink
-Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -107,7 +109,7 @@ Link target applied to the footer image in report emails, for example the compan
 | Type | String |
 
 ### BrandingAccentColor
-Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -116,7 +118,7 @@ Accent color used for headings and highlights in report emails. Configured as a 
 | Type | String |
 
 ### BrandingTextColor
-Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -125,7 +127,7 @@ Body text color used in report emails. Configured as a tenant setting; leave emp
 | Type | String |
 
 ### AlertEmailTo
-Recipient email address for alert emails. Emails are sent only when storage thresholds are exceeded.
+Address the alert goes to when a limit is exceeded.
 
 | Property | Value |
 |----------|-------|
@@ -134,7 +136,7 @@ Recipient email address for alert emails. Emails are sent only when storage thre
 | Type | String |
 
 ### AlertEmailSubject
-Subject line for alert emails.
+Subject line of the alert email.
 
 | Property | Value |
 |----------|-------|

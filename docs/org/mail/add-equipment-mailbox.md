@@ -1,9 +1,9 @@
 # Add Equipment Mailbox
 
-Create an equipment mailbox
+Create an equipment mailbox with optional delegate
 
 ## Detailed description
-Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
+Creates an equipment mailbox in Exchange Online, for example for a projector or a pool car, so it can be booked in meeting requests. A delegate can get full access and manage the bookings, and meeting requests can be accepted automatically. The user account behind the mailbox can be disabled so nobody signs in with it.
 
 ## Where to find
 Org \ Mail \ Add Equipment Mailbox
@@ -21,7 +21,7 @@ Org \ Mail \ Add Equipment Mailbox
 
 ## Parameters
 ### MailboxName
-Alias (mail nickname) for the equipment mailbox.
+Alias of the mailbox, which becomes the part of the email address in front of the @ sign.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ Alias (mail nickname) for the equipment mailbox.
 | Type | String |
 
 ### DisplayName
-Optional display name for the equipment mailbox.
+Name shown in the address book. Leave empty to use the alias.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Optional display name for the equipment mailbox.
 | Type | String |
 
 ### DelegateTo
-Optional user who receives delegated access to the mailbox.
+User who gets full access to the mailbox and handles its booking requests. Leave empty for none.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ Optional user who receives delegated access to the mailbox.
 | Type | String |
 
 ### AutoAccept
-If set to true, meeting requests are automatically accepted.
+Meeting requests are accepted automatically when the equipment is free.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +57,7 @@ If set to true, meeting requests are automatically accepted.
 | Type | Boolean |
 
 ### AutoMapping
-If set to true, the mailbox is automatically mapped in Outlook for the delegate.
+The mailbox opens automatically in the delegate's Outlook.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ If set to true, the mailbox is automatically mapped in Outlook for the delegate.
 | Type | Boolean |
 
 ### DisableUser
-If set to true, the associated Entra ID user account is disabled.
+Blocks sign-in for the user account behind the mailbox. Booking keeps working.
 
 | Property | Value |
 |----------|-------|

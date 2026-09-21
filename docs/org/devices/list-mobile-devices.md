@@ -1,18 +1,9 @@
 # List Mobile Devices
 
-Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details.
+List managed mobile devices with inventory and network details
 
 ## Detailed description
-Lists all Intune managed mobile devices with their mobile-specific inventory such as IMEI, serial number, phone number,
-carrier, ownership, compliance and enrollment details.
-Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health
-and Shared iPad state are added per device, which helps to see in which (Wi-Fi) networks the devices were last active.
-The result can be narrowed down by platform and by an Entra device group and/or a user group of the primary users.
-Optionally the full inventory is sent as an email report with CSV and/or Excel (xlsx) attachments and/or uploaded to an
-Azure Storage Account, returning time-limited download links. Without a recipient and without the download link option,
-the runbook only prints the result to the job output.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Lists all Intune managed Android, iOS and iPadOS devices with their inventory: IMEI, serial number, phone number, carrier, ownership, compliance and enrollment. Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state are added. That shows in which networks the devices were last active. The list can be limited by platform, a device group or a group of the primary users. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ List Mobile Devices
@@ -111,7 +102,7 @@ Azure Storage Account: 'Storage Account Contributor' role for the Automation Acc
 
 ## Parameters
 ### Android
-Include Android devices in the results.
+Includes Android devices.
 
 | Property | Value |
 |----------|-------|
@@ -120,7 +111,7 @@ Include Android devices in the results.
 | Type | Boolean |
 
 ### iOS
-Include iOS and iPadOS devices in the results.
+Includes iOS and iPadOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -129,9 +120,7 @@ Include iOS and iPadOS devices in the results.
 | Type | Boolean |
 
 ### IncludeNetworkDetails
-Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared
-iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows
-with the number of devices. Disabled by default.
+Adds IP address, subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state. Needs one extra request per device, so large tenants take longer.
 
 | Property | Value |
 |----------|-------|
@@ -140,8 +129,7 @@ with the number of devices. Disabled by default.
 | Type | Boolean |
 
 ### IncludePhoneNumber
-Controls whether the phone number is retrieved and shown. When disabled, the phone number column is omitted entirely.
-Note that Intune partially masks the phone number of personally owned devices anyway.
+Shows the phone number column. Intune masks part of the number on personally owned devices anyway.
 
 | Property | Value |
 |----------|-------|
@@ -150,7 +138,7 @@ Note that Intune partially masks the phone number of personally owned devices an
 | Type | Boolean |
 
 ### IncludeDeviceGroup
-Only include devices that are members of this Entra device group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+Only devices in this Entra ID group, nested groups included. Leave empty for all mobile devices.
 
 | Property | Value |
 |----------|-------|
@@ -159,7 +147,7 @@ Only include devices that are members of this Entra device group. Nested group m
 | Type | String |
 
 ### IncludeUserGroup
-Only include devices whose primary user is a member of this Entra user group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+Only devices whose primary user is in this group, nested groups included. Leave empty for all.
 
 | Property | Value |
 |----------|-------|
@@ -168,7 +156,7 @@ Only include devices whose primary user is a member of this Entra user group. Ne
 | Type | String |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -177,8 +165,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -187,8 +174,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -197,8 +183,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -207,8 +192,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -217,8 +201,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -227,7 +210,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" or "XLSX only" (default).
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -236,7 +219,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -245,7 +228,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -254,7 +237,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -263,7 +246,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -272,7 +255,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|
@@ -281,9 +264,7 @@ Number of days until the generated download link expires. Sourced from the RJRep
 | Type | Int32 |
 
 ### EmailTo
-If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Send the report to these addresses, separated by commas. Leave empty to only show the result in the run output.
 
 | Property | Value |
 |----------|-------|
