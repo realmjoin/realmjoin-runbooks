@@ -53,7 +53,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -112,9 +112,14 @@ else {
             throw "User '$($targetUser.UserPrincipalName)' is not an Exchange Online recipient (neither a mailbox nor a mail user). Only mail-enabled users can be members of a distribution or mail-enabled security group."
         }
 
+        # Exchange Online returns the group members as directory object ids; module versions that
+        # return recipient names instead are covered as well, so the membership check holds in both
+        # cases. Comparing only the name misses every recipient whose name is not its object id.
+        $isMember = ($groupObj.Members -contains $targetUser.id) -or ($groupObj.Members -contains $targetRecipient.Name)
+
         if ($Remove) {
             # Remove user from EXO group
-            if ($groupObj.Members -contains $targetRecipient.Name) {
+            if ($isMember) {
                 Remove-DistributionGroupMember -Identity $GroupID -Member $targetUser.id -BypassSecurityGroupManagerCheck -Confirm:$false
                 "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)'."
             }
@@ -125,7 +130,7 @@ else {
         else {
             # Add user to EXO group
             if ($groupObj.RecipientType -in @("MailUniversalDistributionGroup", "MailUniversalSecurityGroup")) {
-                if ($groupObj.Members -contains $targetRecipient.Name) {
+                if ($isMember) {
                     "## User '$($targetUser.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
                 }
                 else {

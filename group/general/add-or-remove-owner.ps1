@@ -54,7 +54,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -122,10 +122,14 @@ else {
             throw "Recipient '$UserId' not found in ExchangeOnline. Can not proceed."
         }
 
+        # Exchange Online can return the owners as directory object ids or as recipient names - accept
+        # both, so the owner check holds regardless of which form the tenant returns.
+        $isOwner = ($exgroup.ManagedBy -contains $UserId) -or ($exgroup.ManagedBy -contains $exuser.Name)
+
         if ($Remove) {
-            if ($exgroup.ManagedBy -contains $exuser.Name) {
-                # Remove only this owner instead of rewriting the whole list: the entries in ManagedBy are
-                # recipient names, which are not unique in Exchange Online and can fail as ambiguous identities.
+            if ($isOwner) {
+                # Change this one owner instead of rewriting the whole list from the returned entries,
+                # which addresses the owner unambiguously by its directory object id.
                 Set-DistributionGroup -Identity $GroupID -ManagedBy @{Remove = $UserId } -BypassSecurityGroupManagerCheck:$true
                 "## Removed '$($targetUser.UserPrincipalName)' from the list of owners for '$($targetGroup.DisplayName)'."
             }
@@ -134,7 +138,7 @@ else {
             }
         }
         else {
-            if ($exgroup.ManagedBy -contains $exuser.Name) {
+            if ($isOwner) {
                 "## '$($targetUser.UserPrincipalName)' is already owner of '$($targetGroup.DisplayName)'. No action taken."
             }
             else {

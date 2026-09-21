@@ -53,7 +53,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -107,9 +107,14 @@ else {
         # the group Name is not unique in Exchange Online and can fail as an ambiguous identity.
         $nestedGroupObj = Get-Group -Identity $NestedGroupID
 
+        # Exchange Online returns the group members as directory object ids; module versions that
+        # return recipient names instead are covered as well, so the membership check holds in both
+        # cases. Comparing only the name misses every recipient whose name is not its object id.
+        $isMember = ($groupObj.Members -contains $NestedGroupID) -or ($groupObj.Members -contains $nestedGroupObj.Name)
+
         if ($Remove) {
             # Remove user from EXO group
-            if ($groupObj.Members -contains $nestedGroupObj.name) {
+            if ($isMember) {
                 Remove-DistributionGroupMember -Identity $GroupID -Member $NestedGroupID -BypassSecurityGroupManagerCheck -Confirm:$false
                 "## '$($nestedGroupObj.DisplayName)' is removed from '$($groupObj.DisplayName)'."
             }
@@ -120,7 +125,7 @@ else {
         else {
             # Add user to EXO group
             if ($groupObj.RecipientType -in @("MailUniversalDistributionGroup", "MailUniversalSecurityGroup")) {
-                if ($groupObj.Members -contains $nestedGroupObj.name) {
+                if ($isMember) {
                     "## User '$($nestedGroupObj.DisplayName)' is already a member of '$($groupObj.DisplayName)'. No action taken."
                 }
                 else {
