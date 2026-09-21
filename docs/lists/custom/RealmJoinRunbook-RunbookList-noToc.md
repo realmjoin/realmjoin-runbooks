@@ -125,6 +125,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Notify Users About Low Diskspace (Scheduled) | Email users whose devices are running out of disk space |
 | Notify Users About Stale Devices (Scheduled) | Email users about devices they have not used for a while |
 | Outphase Devices | Wipe and clean up several devices at once |
+| Rename Devices By Group Tag (Scheduled) | Name Autopilot devices after their group tag and serial number |
 | Report Devices Low Diskspace (Scheduled) | Report devices that are running out of disk space |
 | Report Devices Without Primary User (Scheduled) | Report Intune devices without a primary user |
 | Report Primary User Mismatch (Scheduled) | Compare primary users between Intune and RealmJoin |

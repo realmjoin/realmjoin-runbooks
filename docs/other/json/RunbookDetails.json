@@ -9583,6 +9583,156 @@
     }
   },
   {
+    "RunbookDisplayName": "Rename Devices By Group Tag_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Rename Devices By Group Tag_Scheduled",
+    "RelativeRunbookPath": "org/devices/rename-devices-by-group-tag_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Name Autopilot devices after their group tag and serial number",
+    "Description": "Builds the computer name of every Windows Autopilot device from a template of group tag and serial number, for example DEHAM-5CD1234ABC. The name goes into the Autopilot record for the next Autopilot deployment. Enrolled devices whose Intune name differs are renamed through Intune and take the new name after a restart. Hybrid joined and personal devices are only reported. A dry run lists all changes without writing anything.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only devices with one of these Autopilot group tags, separated by commas; DE* matches every tag that starts with DE. Leave empty for all devices that have a group tag."
+          }
+        ],
+        "globbing": "false",
+        "name": "GroupTagFilter",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "0",
+        "description": [
+          {
+            "Text": "Stops after this many devices have been changed; 0 means no limit. Useful for a staged first run."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxChangesPerRun",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "%GROUPTAG%-%SERIAL%",
+        "description": [
+          {
+            "Text": "Pattern of the computer name. %GROUPTAG% is replaced by the Autopilot group tag and %SERIAL% by the serial number; other characters stay as typed. Letters, digits and hyphens only, 15 characters at most after replacement."
+          }
+        ],
+        "globbing": "false",
+        "name": "NameTemplate",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Also rename devices that are already enrolled in Intune. When off, only the Autopilot record is updated and the name is applied at the next Autopilot deployment."
+          }
+        ],
+        "globbing": "false",
+        "name": "RenameEnrolledDevices",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "KeepEnd",
+        "description": [
+          {
+            "Text": "Which end of the serial number is kept when the assembled name would exceed 15 characters; only the serial number is shortened. Keeping the end matches what Autopilot itself does with %SERIAL%."
+          }
+        ],
+        "globbing": "false",
+        "name": "SerialTruncation",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Only logs what would change without writing anything."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIfMode",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## Common use cases\n\n- Replace Autopilot deployment profiles that only exist to give one location its own device name template. One deployment profile without a location prefix is enough: the location comes from the group tag of each Autopilot device, and this runbook writes the resulting name into the Autopilot record before the device is deployed.\n- Give devices that were enrolled before the naming scheme existed, or that were registered with a different group tag, the name that matches their current group tag.\n- Schedule the runbook daily so that newly registered Autopilot devices carry the right name before their first deployment and group tag changes are picked up automatically.\n\n## Name template and placeholders\n\nThe name is built from `NameTemplate`. Two placeholders are replaced, case-insensitive:\n\n| Placeholder | Replaced by |\n|---|---|\n| `%GROUPTAG%` (or `%ORDERID%`) | the Autopilot group tag of the device |\n| `%SERIAL%` | the serial number of the Autopilot record |\n\nEvery other character of the template is used as typed, for example `%GROUPTAG%-%SERIAL%` or `PC-%GROUPTAG%%SERIAL%`. Each placeholder must appear exactly once: without the serial number all devices of a location would share one name, and without the group tag there is nothing to derive the location from. A random part is deliberately not supported, because the runbook compares the current name with the expected name on every run and a random part would rename every device on every run.\n\nGroup tag and serial number are cleaned before they are inserted: characters other than letters, digits and hyphens are removed, so a group tag `DE_HAM 01` becomes `DEHAM01` and a serial number `VMware-42 1a 2b` becomes `VMware-421a2b`. The finished name must follow the Windows computer name rules: 15 characters at most, letters, digits and hyphens only, starting and ending with a letter or digit, not digits only. A device whose name would break these rules is reported and skipped.\n\nWhen the assembled name is longer than 15 characters, only the serial number is shortened; the template text and the group tag stay intact. `SerialTruncation` decides which end of the serial number survives:\n\n| Serial number | `%GROUPTAG%-%SERIAL%` with tag `DEHAM` | Keep the end | Keep the start |\n|---|---|---|---|\n| `7ABCD12` (7 characters) | fits | `DEHAM-7ABCD12` | `DEHAM-7ABCD12` |\n| `5CD1234ABC` (10 characters) | 16 characters, one too many | `DEHAM-CD1234ABC` | `DEHAM-5CD1234AB` |\n| `012345678901` (12 characters) | 18 characters | `DEHAM-345678901` | `DEHAM-012345678` |\n\nThe `%SERIAL%` macro of an Autopilot deployment profile truncates the serial number from the beginning as well, so the default *Keep the end of the serial number* reproduces the names that devices deployed with such a profile already have. Choose *Keep the start of the serial number* only when an existing naming scheme requires it.\n\n## Which devices are changed and which are skipped\n\nOnly Autopilot devices with a group tag are considered; `GroupTagFilter` narrows them further (comma-separated list, exact match, `*` as wildcard, for example `DE*` for all German locations). For each device in scope the runbook compares the expected name with two places:\n\n- The display name of the Autopilot record. It is updated whenever it differs, also for devices that are not enrolled yet and independent of *Rename enrolled devices*. Autopilot uses this name as the computer name at the next deployment of an Entra joined device. For a device that is already running, the field has no effect until the device is reset, so the Autopilot list may show the target name while Intune still shows the old one.\n- The device name in Intune, if the device is enrolled. When it differs and *Rename enrolled devices* is on, the runbook queues the Intune rename action. The device picks the new name up at its next check-in and applies it after a restart.\n\nThe result table in the Output Data tab lists every device in scope with the action taken for Intune and for Autopilot:\n\n| Value | Meaning |\n|---|---|\n| `AlreadyNamed` | The name already matches; nothing to do. |\n| `RenameQueued` / `Updated` | The Intune rename was queued / the Autopilot record was updated. In a dry run the values read `WouldRenameQueue` / `WouldUpdate`. |\n| `RenamePending` | An Intune rename is still pending or active from an earlier run; it is not queued again. |\n| `NotEnrolled` | The device has no Intune record; only the Autopilot record is maintained. |\n| `RenameDisabled` | *Rename enrolled devices* is off; the Intune name is left alone. |\n| `NotCompanyOwned` | Intune only renames corporate-owned devices. |\n| `NotEntraJoined` | Hybrid joined or Entra registered devices cannot be renamed through Intune; hybrid joined devices get their name from the domain join profile. |\n| `NameInUseByOtherDevice` | Another Intune device already carries the expected name; renaming would create a duplicate. This usually resolves itself once the other device has been renamed. |\n| `RenameFailed` / `UpdateFailed` | The Graph call failed; the error is in the job log. |\n| `MaxChangesReached` | *Maximum changes per run* was reached before this device; it is processed in a later run. |\n\nThe `Reason` column names the problem when no valid name could be built: `GroupTagUnusable` or `SerialUnusable` (nothing left after cleaning), `NameTooLong` (template text and group tag alone already fill 15 characters), `NameInvalid` (the finished name breaks the computer name rules, for example digits only or a hyphen at the end after truncation) and `NameCollision` (two or more Autopilot records would get the same name, for example placeholder serial numbers such as `Default string` or a collision after truncation). None of these devices is changed.\n\n## Interplay with Dedup Device Names\n\n**Dedup Device Names (Scheduled)** copies the current Intune name of every device with a unique name into its Autopilot record. When both runbooks are scheduled for Windows devices, the Autopilot display name of a device that this runbook cannot rename (hybrid joined, personal, pending rename, name collision, rename disabled) is written back and forth between the two. Run **Dedup Device Names** with the operating system filter *macOS only* or *Other* once this runbook manages the Windows names, or accept the alternating field for those devices. Devices renamed by this runbook never produce duplicates, because a name collision is detected before anything is written.\n\n## Recommended first run\n\n1. Run with *Dry run* on (the default) and *Group tag filter* set to a single location, for example `DEHAM`. Review the table in the Output Data tab: the expected names, the truncation of long serial numbers and the skip reasons.\n2. Widen the filter, for example to `DE*`, still as a dry run, and check that devices deployed with the previous profile templates show `AlreadyNamed`.\n3. Switch *Dry run* off with *Maximum changes per run* set to a manageable number such as 50, so that renames of already enrolled devices arrive in waves. Renamed devices need a restart to complete the rename.\n4. Remove the limit and the filter and schedule the runbook, for example daily.\n\n## Behaviour\n\n- The Intune rename action does not restart the device. The new name is applied at the next check-in and becomes effective after the next restart; until then Intune still shows the old name and the runbook reports the rename as pending.\n- The Autopilot device name applies to Entra joined deployments only. Hybrid joined devices are named by the domain join profile, and Autopilot device preparation does not use Autopilot device identities at all.\n- A rename that failed on the device is queued again on the next run.\n- Autopilot display name changes made via `updateDeviceProperties` take effect at the next device sync and may not be reflected in the portal immediately.\n",
+    "DocsContentEncoded": "IyMgQ29tbW9uIHVzZSBjYXNlcwoKLSBSZXBsYWNlIEF1dG9waWxvdCBkZXBsb3ltZW50IHByb2ZpbGVzIHRoYXQgb25seSBleGlzdCB0byBnaXZlIG9uZSBsb2NhdGlvbiBpdHMgb3duIGRldmljZSBuYW1lIHRlbXBsYXRlLiBPbmUgZGVwbG95bWVudCBwcm9maWxlIHdpdGhvdXQgYSBsb2NhdGlvbiBwcmVmaXggaXMgZW5vdWdoOiB0aGUgbG9jYXRpb24gY29tZXMgZnJvbSB0aGUgZ3JvdXAgdGFnIG9mIGVhY2ggQXV0b3BpbG90IGRldmljZSwgYW5kIHRoaXMgcnVuYm9vayB3cml0ZXMgdGhlIHJlc3VsdGluZyBuYW1lIGludG8gdGhlIEF1dG9waWxvdCByZWNvcmQgYmVmb3JlIHRoZSBkZXZpY2UgaXMgZGVwbG95ZWQuCi0gR2l2ZSBkZXZpY2VzIHRoYXQgd2VyZSBlbnJvbGxlZCBiZWZvcmUgdGhlIG5hbWluZyBzY2hlbWUgZXhpc3RlZCwgb3IgdGhhdCB3ZXJlIHJlZ2lzdGVyZWQgd2l0aCBhIGRpZmZlcmVudCBncm91cCB0YWcsIHRoZSBuYW1lIHRoYXQgbWF0Y2hlcyB0aGVpciBjdXJyZW50IGdyb3VwIHRhZy4KLSBTY2hlZHVsZSB0aGUgcnVuYm9vayBkYWlseSBzbyB0aGF0IG5ld2x5IHJlZ2lzdGVyZWQgQXV0b3BpbG90IGRldmljZXMgY2FycnkgdGhlIHJpZ2h0IG5hbWUgYmVmb3JlIHRoZWlyIGZpcnN0IGRlcGxveW1lbnQgYW5kIGdyb3VwIHRhZyBjaGFuZ2VzIGFyZSBwaWNrZWQgdXAgYXV0b21hdGljYWxseS4KCiMjIE5hbWUgdGVtcGxhdGUgYW5kIHBsYWNlaG9sZGVycwoKVGhlIG5hbWUgaXMgYnVpbHQgZnJvbSBgTmFtZVRlbXBsYXRlYC4gVHdvIHBsYWNlaG9sZGVycyBhcmUgcmVwbGFjZWQsIGNhc2UtaW5zZW5zaXRpdmU6Cgp8IFBsYWNlaG9sZGVyIHwgUmVwbGFjZWQgYnkgfAp8LS0tfC0tLXwKfCBgJUdST1VQVEFHJWAgKG9yIGAlT1JERVJJRCVgKSB8IHRoZSBBdXRvcGlsb3QgZ3JvdXAgdGFnIG9mIHRoZSBkZXZpY2UgfAp8IGAlU0VSSUFMJWAgfCB0aGUgc2VyaWFsIG51bWJlciBvZiB0aGUgQXV0b3BpbG90IHJlY29yZCB8CgpFdmVyeSBvdGhlciBjaGFyYWN0ZXIgb2YgdGhlIHRlbXBsYXRlIGlzIHVzZWQgYXMgdHlwZWQsIGZvciBleGFtcGxlIGAlR1JPVVBUQUclLSVTRVJJQUwlYCBvciBgUEMtJUdST1VQVEFHJSVTRVJJQUwlYC4gRWFjaCBwbGFjZWhvbGRlciBtdXN0IGFwcGVhciBleGFjdGx5IG9uY2U6IHdpdGhvdXQgdGhlIHNlcmlhbCBudW1iZXIgYWxsIGRldmljZXMgb2YgYSBsb2NhdGlvbiB3b3VsZCBzaGFyZSBvbmUgbmFtZSwgYW5kIHdpdGhvdXQgdGhlIGdyb3VwIHRhZyB0aGVyZSBpcyBub3RoaW5nIHRvIGRlcml2ZSB0aGUgbG9jYXRpb24gZnJvbS4gQSByYW5kb20gcGFydCBpcyBkZWxpYmVyYXRlbHkgbm90IHN1cHBvcnRlZCwgYmVjYXVzZSB0aGUgcnVuYm9vayBjb21wYXJlcyB0aGUgY3VycmVudCBuYW1lIHdpdGggdGhlIGV4cGVjdGVkIG5hbWUgb24gZXZlcnkgcnVuIGFuZCBhIHJhbmRvbSBwYXJ0IHdvdWxkIHJlbmFtZSBldmVyeSBkZXZpY2Ugb24gZXZlcnkgcnVuLgoKR3JvdXAgdGFnIGFuZCBzZXJpYWwgbnVtYmVyIGFyZSBjbGVhbmVkIGJlZm9yZSB0aGV5IGFyZSBpbnNlcnRlZDogY2hhcmFjdGVycyBvdGhlciB0aGFuIGxldHRlcnMsIGRpZ2l0cyBhbmQgaHlwaGVucyBhcmUgcmVtb3ZlZCwgc28gYSBncm91cCB0YWcgYERFX0hBTSAwMWAgYmVjb21lcyBgREVIQU0wMWAgYW5kIGEgc2VyaWFsIG51bWJlciBgVk13YXJlLTQyIDFhIDJiYCBiZWNvbWVzIGBWTXdhcmUtNDIxYTJiYC4gVGhlIGZpbmlzaGVkIG5hbWUgbXVzdCBmb2xsb3cgdGhlIFdpbmRvd3MgY29tcHV0ZXIgbmFtZSBydWxlczogMTUgY2hhcmFjdGVycyBhdCBtb3N0LCBsZXR0ZXJzLCBkaWdpdHMgYW5kIGh5cGhlbnMgb25seSwgc3RhcnRpbmcgYW5kIGVuZGluZyB3aXRoIGEgbGV0dGVyIG9yIGRpZ2l0LCBub3QgZGlnaXRzIG9ubHkuIEEgZGV2aWNlIHdob3NlIG5hbWUgd291bGQgYnJlYWsgdGhlc2UgcnVsZXMgaXMgcmVwb3J0ZWQgYW5kIHNraXBwZWQuCgpXaGVuIHRoZSBhc3NlbWJsZWQgbmFtZSBpcyBsb25nZXIgdGhhbiAxNSBjaGFyYWN0ZXJzLCBvbmx5IHRoZSBzZXJpYWwgbnVtYmVyIGlzIHNob3J0ZW5lZDsgdGhlIHRlbXBsYXRlIHRleHQgYW5kIHRoZSBncm91cCB0YWcgc3RheSBpbnRhY3QuIGBTZXJpYWxUcnVuY2F0aW9uYCBkZWNpZGVzIHdoaWNoIGVuZCBvZiB0aGUgc2VyaWFsIG51bWJlciBzdXJ2aXZlczoKCnwgU2VyaWFsIG51bWJlciB8IGAlR1JPVVBUQUclLSVTRVJJQUwlYCB3aXRoIHRhZyBgREVIQU1gIHwgS2VlcCB0aGUgZW5kIHwgS2VlcCB0aGUgc3RhcnQgfAp8LS0tfC0tLXwtLS18LS0tfAp8IGA3QUJDRDEyYCAoNyBjaGFyYWN0ZXJzKSB8IGZpdHMgfCBgREVIQU0tN0FCQ0QxMmAgfCBgREVIQU0tN0FCQ0QxMmAgfAp8IGA1Q0QxMjM0QUJDYCAoMTAgY2hhcmFjdGVycykgfCAxNiBjaGFyYWN0ZXJzLCBvbmUgdG9vIG1hbnkgfCBgREVIQU0tQ0QxMjM0QUJDYCB8IGBERUhBTS01Q0QxMjM0QUJgIHwKfCBgMDEyMzQ1Njc4OTAxYCAoMTIgY2hhcmFjdGVycykgfCAxOCBjaGFyYWN0ZXJzIHwgYERFSEFNLTM0NTY3ODkwMWAgfCBgREVIQU0tMDEyMzQ1Njc4YCB8CgpUaGUgYCVTRVJJQUwlYCBtYWNybyBvZiBhbiBBdXRvcGlsb3QgZGVwbG95bWVudCBwcm9maWxlIHRydW5jYXRlcyB0aGUgc2VyaWFsIG51bWJlciBmcm9tIHRoZSBiZWdpbm5pbmcgYXMgd2VsbCwgc28gdGhlIGRlZmF1bHQgKktlZXAgdGhlIGVuZCBvZiB0aGUgc2VyaWFsIG51bWJlciogcmVwcm9kdWNlcyB0aGUgbmFtZXMgdGhhdCBkZXZpY2VzIGRlcGxveWVkIHdpdGggc3VjaCBhIHByb2ZpbGUgYWxyZWFkeSBoYXZlLiBDaG9vc2UgKktlZXAgdGhlIHN0YXJ0IG9mIHRoZSBzZXJpYWwgbnVtYmVyKiBvbmx5IHdoZW4gYW4gZXhpc3RpbmcgbmFtaW5nIHNjaGVtZSByZXF1aXJlcyBpdC4KCiMjIFdoaWNoIGRldmljZXMgYXJlIGNoYW5nZWQgYW5kIHdoaWNoIGFyZSBza2lwcGVkCgpPbmx5IEF1dG9waWxvdCBkZXZpY2VzIHdpdGggYSBncm91cCB0YWcgYXJlIGNvbnNpZGVyZWQ7IGBHcm91cFRhZ0ZpbHRlcmAgbmFycm93cyB0aGVtIGZ1cnRoZXIgKGNvbW1hLXNlcGFyYXRlZCBsaXN0LCBleGFjdCBtYXRjaCwgYCpgIGFzIHdpbGRjYXJkLCBmb3IgZXhhbXBsZSBgREUqYCBmb3IgYWxsIEdlcm1hbiBsb2NhdGlvbnMpLiBGb3IgZWFjaCBkZXZpY2UgaW4gc2NvcGUgdGhlIHJ1bmJvb2sgY29tcGFyZXMgdGhlIGV4cGVjdGVkIG5hbWUgd2l0aCB0d28gcGxhY2VzOgoKLSBUaGUgZGlzcGxheSBuYW1lIG9mIHRoZSBBdXRvcGlsb3QgcmVjb3JkLiBJdCBpcyB1cGRhdGVkIHdoZW5ldmVyIGl0IGRpZmZlcnMsIGFsc28gZm9yIGRldmljZXMgdGhhdCBhcmUgbm90IGVucm9sbGVkIHlldCBhbmQgaW5kZXBlbmRlbnQgb2YgKlJlbmFtZSBlbnJvbGxlZCBkZXZpY2VzKi4gQXV0b3BpbG90IHVzZXMgdGhpcyBuYW1lIGFzIHRoZSBjb21wdXRlciBuYW1lIGF0IHRoZSBuZXh0IGRlcGxveW1lbnQgb2YgYW4gRW50cmEgam9pbmVkIGRldmljZS4gRm9yIGEgZGV2aWNlIHRoYXQgaXMgYWxyZWFkeSBydW5uaW5nLCB0aGUgZmllbGQgaGFzIG5vIGVmZmVjdCB1bnRpbCB0aGUgZGV2aWNlIGlzIHJlc2V0LCBzbyB0aGUgQXV0b3BpbG90IGxpc3QgbWF5IHNob3cgdGhlIHRhcmdldCBuYW1lIHdoaWxlIEludHVuZSBzdGlsbCBzaG93cyB0aGUgb2xkIG9uZS4KLSBUaGUgZGV2aWNlIG5hbWUgaW4gSW50dW5lLCBpZiB0aGUgZGV2aWNlIGlzIGVucm9sbGVkLiBXaGVuIGl0IGRpZmZlcnMgYW5kICpSZW5hbWUgZW5yb2xsZWQgZGV2aWNlcyogaXMgb24sIHRoZSBydW5ib29rIHF1ZXVlcyB0aGUgSW50dW5lIHJlbmFtZSBhY3Rpb24uIFRoZSBkZXZpY2UgcGlja3MgdGhlIG5ldyBuYW1lIHVwIGF0IGl0cyBuZXh0IGNoZWNrLWluIGFuZCBhcHBsaWVzIGl0IGFmdGVyIGEgcmVzdGFydC4KClRoZSByZXN1bHQgdGFibGUgaW4gdGhlIE91dHB1dCBEYXRhIHRhYiBsaXN0cyBldmVyeSBkZXZpY2UgaW4gc2NvcGUgd2l0aCB0aGUgYWN0aW9uIHRha2VuIGZvciBJbnR1bmUgYW5kIGZvciBBdXRvcGlsb3Q6Cgp8IFZhbHVlIHwgTWVhbmluZyB8CnwtLS18LS0tfAp8IGBBbHJlYWR5TmFtZWRgIHwgVGhlIG5hbWUgYWxyZWFkeSBtYXRjaGVzOyBub3RoaW5nIHRvIGRvLiB8CnwgYFJlbmFtZVF1ZXVlZGAgLyBgVXBkYXRlZGAgfCBUaGUgSW50dW5lIHJlbmFtZSB3YXMgcXVldWVkIC8gdGhlIEF1dG9waWxvdCByZWNvcmQgd2FzIHVwZGF0ZWQuIEluIGEgZHJ5IHJ1biB0aGUgdmFsdWVzIHJlYWQgYFdvdWxkUmVuYW1lUXVldWVgIC8gYFdvdWxkVXBkYXRlYC4gfAp8IGBSZW5hbWVQZW5kaW5nYCB8IEFuIEludHVuZSByZW5hbWUgaXMgc3RpbGwgcGVuZGluZyBvciBhY3RpdmUgZnJvbSBhbiBlYXJsaWVyIHJ1bjsgaXQgaXMgbm90IHF1ZXVlZCBhZ2Fpbi4gfAp8IGBOb3RFbnJvbGxlZGAgfCBUaGUgZGV2aWNlIGhhcyBubyBJbnR1bmUgcmVjb3JkOyBvbmx5IHRoZSBBdXRvcGlsb3QgcmVjb3JkIGlzIG1haW50YWluZWQuIHwKfCBgUmVuYW1lRGlzYWJsZWRgIHwgKlJlbmFtZSBlbnJvbGxlZCBkZXZpY2VzKiBpcyBvZmY7IHRoZSBJbnR1bmUgbmFtZSBpcyBsZWZ0IGFsb25lLiB8CnwgYE5vdENvbXBhbnlPd25lZGAgfCBJbnR1bmUgb25seSByZW5hbWVzIGNvcnBvcmF0ZS1vd25lZCBkZXZpY2VzLiB8CnwgYE5vdEVudHJhSm9pbmVkYCB8IEh5YnJpZCBqb2luZWQgb3IgRW50cmEgcmVnaXN0ZXJlZCBkZXZpY2VzIGNhbm5vdCBiZSByZW5hbWVkIHRocm91Z2ggSW50dW5lOyBoeWJyaWQgam9pbmVkIGRldmljZXMgZ2V0IHRoZWlyIG5hbWUgZnJvbSB0aGUgZG9tYWluIGpvaW4gcHJvZmlsZS4gfAp8IGBOYW1lSW5Vc2VCeU90aGVyRGV2aWNlYCB8IEFub3RoZXIgSW50dW5lIGRldmljZSBhbHJlYWR5IGNhcnJpZXMgdGhlIGV4cGVjdGVkIG5hbWU7IHJlbmFtaW5nIHdvdWxkIGNyZWF0ZSBhIGR1cGxpY2F0ZS4gVGhpcyB1c3VhbGx5IHJlc29sdmVzIGl0c2VsZiBvbmNlIHRoZSBvdGhlciBkZXZpY2UgaGFzIGJlZW4gcmVuYW1lZC4gfAp8IGBSZW5hbWVGYWlsZWRgIC8gYFVwZGF0ZUZhaWxlZGAgfCBUaGUgR3JhcGggY2FsbCBmYWlsZWQ7IHRoZSBlcnJvciBpcyBpbiB0aGUgam9iIGxvZy4gfAp8IGBNYXhDaGFuZ2VzUmVhY2hlZGAgfCAqTWF4aW11bSBjaGFuZ2VzIHBlciBydW4qIHdhcyByZWFjaGVkIGJlZm9yZSB0aGlzIGRldmljZTsgaXQgaXMgcHJvY2Vzc2VkIGluIGEgbGF0ZXIgcnVuLiB8CgpUaGUgYFJlYXNvbmAgY29sdW1uIG5hbWVzIHRoZSBwcm9ibGVtIHdoZW4gbm8gdmFsaWQgbmFtZSBjb3VsZCBiZSBidWlsdDogYEdyb3VwVGFnVW51c2FibGVgIG9yIGBTZXJpYWxVbnVzYWJsZWAgKG5vdGhpbmcgbGVmdCBhZnRlciBjbGVhbmluZyksIGBOYW1lVG9vTG9uZ2AgKHRlbXBsYXRlIHRleHQgYW5kIGdyb3VwIHRhZyBhbG9uZSBhbHJlYWR5IGZpbGwgMTUgY2hhcmFjdGVycyksIGBOYW1lSW52YWxpZGAgKHRoZSBmaW5pc2hlZCBuYW1lIGJyZWFrcyB0aGUgY29tcHV0ZXIgbmFtZSBydWxlcywgZm9yIGV4YW1wbGUgZGlnaXRzIG9ubHkgb3IgYSBoeXBoZW4gYXQgdGhlIGVuZCBhZnRlciB0cnVuY2F0aW9uKSBhbmQgYE5hbWVDb2xsaXNpb25gICh0d28gb3IgbW9yZSBBdXRvcGlsb3QgcmVjb3JkcyB3b3VsZCBnZXQgdGhlIHNhbWUgbmFtZSwgZm9yIGV4YW1wbGUgcGxhY2Vob2xkZXIgc2VyaWFsIG51bWJlcnMgc3VjaCBhcyBgRGVmYXVsdCBzdHJpbmdgIG9yIGEgY29sbGlzaW9uIGFmdGVyIHRydW5jYXRpb24pLiBOb25lIG9mIHRoZXNlIGRldmljZXMgaXMgY2hhbmdlZC4KCiMjIEludGVycGxheSB3aXRoIERlZHVwIERldmljZSBOYW1lcwoKKipEZWR1cCBEZXZpY2UgTmFtZXMgKFNjaGVkdWxlZCkqKiBjb3BpZXMgdGhlIGN1cnJlbnQgSW50dW5lIG5hbWUgb2YgZXZlcnkgZGV2aWNlIHdpdGggYSB1bmlxdWUgbmFtZSBpbnRvIGl0cyBBdXRvcGlsb3QgcmVjb3JkLiBXaGVuIGJvdGggcnVuYm9va3MgYXJlIHNjaGVkdWxlZCBmb3IgV2luZG93cyBkZXZpY2VzLCB0aGUgQXV0b3BpbG90IGRpc3BsYXkgbmFtZSBvZiBhIGRldmljZSB0aGF0IHRoaXMgcnVuYm9vayBjYW5ub3QgcmVuYW1lIChoeWJyaWQgam9pbmVkLCBwZXJzb25hbCwgcGVuZGluZyByZW5hbWUsIG5hbWUgY29sbGlzaW9uLCByZW5hbWUgZGlzYWJsZWQpIGlzIHdyaXR0ZW4gYmFjayBhbmQgZm9ydGggYmV0d2VlbiB0aGUgdHdvLiBSdW4gKipEZWR1cCBEZXZpY2UgTmFtZXMqKiB3aXRoIHRoZSBvcGVyYXRpbmcgc3lzdGVtIGZpbHRlciAqbWFjT1Mgb25seSogb3IgKk90aGVyKiBvbmNlIHRoaXMgcnVuYm9vayBtYW5hZ2VzIHRoZSBXaW5kb3dzIG5hbWVzLCBvciBhY2NlcHQgdGhlIGFsdGVybmF0aW5nIGZpZWxkIGZvciB0aG9zZSBkZXZpY2VzLiBEZXZpY2VzIHJlbmFtZWQgYnkgdGhpcyBydW5ib29rIG5ldmVyIHByb2R1Y2UgZHVwbGljYXRlcywgYmVjYXVzZSBhIG5hbWUgY29sbGlzaW9uIGlzIGRldGVjdGVkIGJlZm9yZSBhbnl0aGluZyBpcyB3cml0dGVuLgoKIyMgUmVjb21tZW5kZWQgZmlyc3QgcnVuCgoxLiBSdW4gd2l0aCAqRHJ5IHJ1biogb24gKHRoZSBkZWZhdWx0KSBhbmQgKkdyb3VwIHRhZyBmaWx0ZXIqIHNldCB0byBhIHNpbmdsZSBsb2NhdGlvbiwgZm9yIGV4YW1wbGUgYERFSEFNYC4gUmV2aWV3IHRoZSB0YWJsZSBpbiB0aGUgT3V0cHV0IERhdGEgdGFiOiB0aGUgZXhwZWN0ZWQgbmFtZXMsIHRoZSB0cnVuY2F0aW9uIG9mIGxvbmcgc2VyaWFsIG51bWJlcnMgYW5kIHRoZSBza2lwIHJlYXNvbnMuCjIuIFdpZGVuIHRoZSBmaWx0ZXIsIGZvciBleGFtcGxlIHRvIGBERSpgLCBzdGlsbCBhcyBhIGRyeSBydW4sIGFuZCBjaGVjayB0aGF0IGRldmljZXMgZGVwbG95ZWQgd2l0aCB0aGUgcHJldmlvdXMgcHJvZmlsZSB0ZW1wbGF0ZXMgc2hvdyBgQWxyZWFkeU5hbWVkYC4KMy4gU3dpdGNoICpEcnkgcnVuKiBvZmYgd2l0aCAqTWF4aW11bSBjaGFuZ2VzIHBlciBydW4qIHNldCB0byBhIG1hbmFnZWFibGUgbnVtYmVyIHN1Y2ggYXMgNTAsIHNvIHRoYXQgcmVuYW1lcyBvZiBhbHJlYWR5IGVucm9sbGVkIGRldmljZXMgYXJyaXZlIGluIHdhdmVzLiBSZW5hbWVkIGRldmljZXMgbmVlZCBhIHJlc3RhcnQgdG8gY29tcGxldGUgdGhlIHJlbmFtZS4KNC4gUmVtb3ZlIHRoZSBsaW1pdCBhbmQgdGhlIGZpbHRlciBhbmQgc2NoZWR1bGUgdGhlIHJ1bmJvb2ssIGZvciBleGFtcGxlIGRhaWx5LgoKIyMgQmVoYXZpb3VyCgotIFRoZSBJbnR1bmUgcmVuYW1lIGFjdGlvbiBkb2VzIG5vdCByZXN0YXJ0IHRoZSBkZXZpY2UuIFRoZSBuZXcgbmFtZSBpcyBhcHBsaWVkIGF0IHRoZSBuZXh0IGNoZWNrLWluIGFuZCBiZWNvbWVzIGVmZmVjdGl2ZSBhZnRlciB0aGUgbmV4dCByZXN0YXJ0OyB1bnRpbCB0aGVuIEludHVuZSBzdGlsbCBzaG93cyB0aGUgb2xkIG5hbWUgYW5kIHRoZSBydW5ib29rIHJlcG9ydHMgdGhlIHJlbmFtZSBhcyBwZW5kaW5nLgotIFRoZSBBdXRvcGlsb3QgZGV2aWNlIG5hbWUgYXBwbGllcyB0byBFbnRyYSBqb2luZWQgZGVwbG95bWVudHMgb25seS4gSHlicmlkIGpvaW5lZCBkZXZpY2VzIGFyZSBuYW1lZCBieSB0aGUgZG9tYWluIGpvaW4gcHJvZmlsZSwgYW5kIEF1dG9waWxvdCBkZXZpY2UgcHJlcGFyYXRpb24gZG9lcyBub3QgdXNlIEF1dG9waWxvdCBkZXZpY2UgaWRlbnRpdGllcyBhdCBhbGwuCi0gQSByZW5hbWUgdGhhdCBmYWlsZWQgb24gdGhlIGRldmljZSBpcyBxdWV1ZWQgYWdhaW4gb24gdGhlIG5leHQgcnVuLgotIEF1dG9waWxvdCBkaXNwbGF5IG5hbWUgY2hhbmdlcyBtYWRlIHZpYSBgdXBkYXRlRGV2aWNlUHJvcGVydGllc2AgdGFrZSBlZmZlY3QgYXQgdGhlIG5leHQgZGV2aWNlIHN5bmMgYW5kIG1heSBub3QgYmUgcmVmbGVjdGVkIGluIHRoZSBwb3J0YWwgaW1tZWRpYXRlbHkuCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.ReadWrite.All\",\n                    \"Reason\": \"Lists Intune managed Windows devices with their join type, reads pending device actions and renames enrolled devices via setDeviceName\"\n                },\n                {\n                    \"Value\": \"DeviceManagementServiceConfig.ReadWrite.All\",\n                    \"Reason\": \"Reads Windows Autopilot device identities (group tag, serial number, display name) and writes the expected name via updateDeviceProperties\"\n                },\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                    \"Reason\": \"Required for the privileged setDeviceName action that renames enrolled devices\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "DeviceManagementServiceConfig.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Report Devices Low Diskspace_Scheduled",
     "RunbookDisplayPath": "Org \\ Devices \\ Report Devices Low Diskspace_Scheduled",
     "RelativeRunbookPath": "org/devices/report-devices-low-diskspace_scheduled.ps1",

@@ -84,6 +84,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Notify Users About Low Diskspace (Scheduled)](#organization-devices-notify-users-about-low-diskspace-scheduled)
     - [Notify Users About Stale Devices (Scheduled)](#organization-devices-notify-users-about-stale-devices-scheduled)
     - [Outphase Devices](#organization-devices-outphase-devices)
+    - [Rename Devices By Group Tag (Scheduled)](#organization-devices-rename-devices-by-group-tag-scheduled)
     - [Report Devices Low Diskspace (Scheduled)](#organization-devices-report-devices-low-diskspace-scheduled)
     - [Report Devices Without Primary User (Scheduled)](#organization-devices-report-devices-without-primary-user-scheduled)
     - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
@@ -1194,6 +1195,21 @@ Wipe and clean up several devices at once
 | disableAADDevice |  | Boolean | Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID objects are disabled. |
 | excludeFromDefender |  | Boolean | Tags the devices in Microsoft Defender for Endpoint with the exclusion tag so rules that use the tag can exclude them from automated remediation. Skip leaves Defender untouched. |
 | defenderExclusionTag |  | String | Tag name written to the devices in Defender for Endpoint, for use in your exclusion rules. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-devices-rename-devices-by-group-tag-scheduled'></a>
+
+### Rename Devices By Group Tag (Scheduled)
+Name Autopilot devices after their group tag and serial number
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| NameTemplate |  | String | Pattern of the computer name. %GROUPTAG% is replaced by the Autopilot group tag and %SERIAL% by the serial number; other characters stay as typed. Letters, digits and hyphens only, 15 characters at most after replacement. |
+| SerialTruncation |  | String | Which end of the serial number is kept when the assembled name would exceed 15 characters; only the serial number is shortened. Keeping the end matches what Autopilot itself does with %SERIAL%. |
+| GroupTagFilter |  | String | Only devices with one of these Autopilot group tags, separated by commas; DE* matches every tag that starts with DE. Leave empty for all devices that have a group tag. |
+| RenameEnrolledDevices |  | Boolean | Also rename devices that are already enrolled in Intune. When off, only the Autopilot record is updated and the name is applied at the next Autopilot deployment. |
+| MaxChangesPerRun |  | Int32 | Stops after this many devices have been changed; 0 means no limit. Useful for a staged first run. |
+| WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-report-devices-low-diskspace-scheduled'></a>
