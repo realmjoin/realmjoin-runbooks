@@ -16,6 +16,18 @@
   - **List Room Mailbox Configuration** in User/Mail: the calendar processing settings are read via the user principal name
   - **Delegate Send On Behalf** and **List Mailbox Permissions** in User/Mail: Send on Behalf entries that resolve to more than one recipient are listed by name
 
+- Update **Get Teams User Info** Runbook in User/Phone
+  - Read the assigned Teams voice applications policy under its correct name, so a policy assigned to the user is reported instead of always showing `Global`
+
+- Add **Add Or Remove Call Queue Agents** Runbook in Org/Phone
+  - Adds several users at once as individually assigned agents of a call queue given by its name, or removes them; every user is checked for Enterprise Voice enablement and the limit of 20 individually assigned agents is enforced before any change
+  - Recognizes call queues whose agents come from a Teams channel, a group or a Shifts schedule and explains where the members are managed instead of changing anything; a removal that would leave the queue without any agent is refused
+  - Optional Graph permissions resolve team, channel and group names in the output; the call queue is read back after the change to confirm the result
+
+- Add **Add Or Remove Call Queue Authorized Users** Runbook in Org/Phone
+  - Adds several users at once as authorized users of a call queue given by its name, or removes them; every user is checked for Enterprise Voice enablement, the limit of 15 authorized users is enforced before any change and the list of hidden authorized users is kept consistent
+  - Optionally assigns or removes the Teams voice applications policy of the users; a policy is only removed when the user is not an authorized user of another call queue or auto attendant, and group-based policy assignments are reported instead of changed
+
 - New **Rename Devices By Group Tag (Scheduled)** Runbook in Org/Devices
   - Builds the computer name of every Windows Autopilot device from a template of group tag and serial number (for example `%GROUPTAG%-%SERIAL%`), writes it to the Autopilot record for the next deployment and renames already enrolled, Entra joined, corporate-owned devices through the Intune rename action
   - Shortens the serial number to fit the 15-character limit (end or start of the serial number), reports and skips name collisions, invalid names, hybrid joined and personal devices and renames that are still pending

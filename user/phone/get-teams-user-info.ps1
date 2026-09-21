@@ -50,7 +50,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 #endregion
@@ -169,8 +169,8 @@ $CurrentTeamsMeetingPolicy = if ($CurrentTeamsMeetingPolicy -like "") { "Global"
 $CurrentTeamsMeetingBroadcastPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsMeetingBroadcastPolicy").PolicyName
 $CurrentTeamsMeetingBroadcastPolicy = if ($CurrentTeamsMeetingBroadcastPolicy -like "") { "Global" } else { $CurrentTeamsMeetingBroadcastPolicy }
 
-#TeamsVoiceApplicaitonsPolicy
-$CurrentTeamsVoiceApplicationsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicaitonsPolicy").PolicyName
+#TeamsVoiceApplicationsPolicy
+$CurrentTeamsVoiceApplicationsPolicy = ($StatusQuo_UserPolicyAssignment | Where-Object PolicyType -eq "TeamsVoiceApplicationsPolicy").PolicyName
 $CurrentTeamsVoiceApplicationsPolicy = if ($CurrentTeamsVoiceApplicationsPolicy -like "") { "Global" } else { $CurrentTeamsVoiceApplicationsPolicy }
 
 #TeamsSharedCallingRoutingPolicy
