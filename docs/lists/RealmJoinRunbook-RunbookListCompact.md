@@ -120,7 +120,9 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Shared Mailbox | Create a shared mailbox with optional delegate |
 |  |  | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 |  |  | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
-|  | Phone | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
+|  | Phone | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
+|  |  | Add Or Remove Call Queue Authorized Users | Add or remove authorized users of a Teams call queue |
+|  |  | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
 |  | Security | Add Defender Indicator | Add an allow or block indicator to Defender for Endpoint |
 |  |  | Backup Conditional Access Policies | Back up all Conditional Access policies to Azure Storage |
 |  |  | Find SMS Auth Phone Number | Find the user who holds an SMS sign-in phone number |

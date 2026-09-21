@@ -19902,6 +19902,241 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Or Remove Call Queue Agents",
+    "RunbookDisplayPath": "Org \\ Phone \\ Add Or Remove Call Queue Agents",
+    "RelativeRunbookPath": "org/phone/add-or-remove-call-queue-agents.ps1",
+    "RelativeRunbookPath_PathOnly": "org/phone",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Phone",
+    "Synopsis": "Add or remove agents of a Teams call queue",
+    "Description": "Adds the selected users as individually assigned agents of a Teams call queue or takes them off that list. Agents that come from a group, a team or a shifts schedule are not touched; the output says where they are managed instead. Users without Enterprise Voice are skipped with the reason. Details on the checks and limits are in the runbook documentation (docs.realmjoin.com).",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Exact name of the call queue as shown in the Teams admin center. Upper and lower case do not matter, but the name has to match exactly one queue."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallQueueName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Add users as agents puts them on the list of individually assigned agents. Remove users as agents takes them off it; agents that come from a group or team stay as they are."
+          }
+        ],
+        "globbing": "false",
+        "name": "Remove",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Users to add or remove, several at a time. To work as an agent, a user needs a Teams Phone license with Enterprise Voice enabled."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String[]"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nA call queue gets its agents in exactly one of three ways, and the way is chosen in the Teams admin\ncenter under \"Call answering\":\n\n- **Users and groups** - agents are assigned individually, through groups, or both. This is the only\n  mode the runbook changes. It adds the selected users to the list of individually assigned agents or\n  takes them off it, and leaves the assigned groups exactly as they are.\n- **A team and channel** - every member of that channel's team is an agent. The runbook prints the team\n  and channel and stops without a change, because membership is managed in the team.\n- **A shifts schedule** - agents come from a scheduling group in the Shifts app. The runbook prints the\n  team behind the schedule and stops without a change.\n\nBefore anything is written, the runbook lists the current agents and checks every selected user. Users\nthat cannot become an agent are skipped with the reason, and the remaining ones are still processed.\nAdding a user who is already an agent, or removing a user who is not one, is reported as \"No action\ntaken\" and changes nothing.\n\nTwo situations stop the run before any change is made: the queue would end up with more than 20\nindividually assigned agents, or a removal would leave the queue with no agents and no groups at all. In\nthe second case, keep one agent or assign a group or team to the queue in the Teams admin center first.\n\nAfter the change the runbook reads the call queue back and compares the agent list with what was\nrequested. A mismatch is reported as a warning so it can be checked in the Teams admin center.\n\n## Requirements for agents\n\n- An agent needs a Teams Phone license with Enterprise Voice enabled. Users without it are skipped with\n  that reason; set up Teams Phone for them and run the runbook again.\n- Agents who take calls in the Teams app must be in TeamsOnly upgrade mode. Another mode is reported as a\n  warning, and the user is still added.\n- Only regular user accounts can be agents. Resource accounts and guests are skipped.\n- Microsoft allows 20 individually assigned agents per call queue, and up to 200 agents when they come\n  through groups. Use a group for larger teams.\n- License and policy changes need time to reach the Teams service. After a new Teams Phone license it can\n  take about an hour before a user can be assigned as an agent.\n- A user who becomes an agent through a group can take up to eight hours before the queue offers the\n  first call.\n\n## Notes and limitations\n\n- The runbook never changes the membership of a group or a team. A queue that gets its agents from a\n  group, a team channel or a shifts schedule is reported with the place where its members are managed.\n- Queues that mix individually assigned users with groups are supported. Only the individual assignments\n  are changed; the groups stay untouched and their members are still agents.\n- The agent list of a call queue is the service's own expansion of users and group members, and it is\n  cached. A user who was just added to one of the assigned groups can still be reported as not being an\n  agent, and a user removed from a group can still be listed for a while.\n- Clearing the agent list completely is not possible here on purpose. Removing the last agent of a queue\n  without groups is refused, because a queue without agents cannot take calls. Do that in the Teams admin\n  center if it is really intended.\n- Group, team and channel names come from Microsoft Graph. Without the optional permissions for it, the\n  runbook prints the object IDs instead and works exactly the same.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpBIGNhbGwgcXVldWUgZ2V0cyBpdHMgYWdlbnRzIGluIGV4YWN0bHkgb25lIG9mIHRocmVlIHdheXMsIGFuZCB0aGUgd2F5IGlzIGNob3NlbiBpbiB0aGUgVGVhbXMgYWRtaW4KY2VudGVyIHVuZGVyICJDYWxsIGFuc3dlcmluZyI6CgotICoqVXNlcnMgYW5kIGdyb3VwcyoqIC0gYWdlbnRzIGFyZSBhc3NpZ25lZCBpbmRpdmlkdWFsbHksIHRocm91Z2ggZ3JvdXBzLCBvciBib3RoLiBUaGlzIGlzIHRoZSBvbmx5CiAgbW9kZSB0aGUgcnVuYm9vayBjaGFuZ2VzLiBJdCBhZGRzIHRoZSBzZWxlY3RlZCB1c2VycyB0byB0aGUgbGlzdCBvZiBpbmRpdmlkdWFsbHkgYXNzaWduZWQgYWdlbnRzIG9yCiAgdGFrZXMgdGhlbSBvZmYgaXQsIGFuZCBsZWF2ZXMgdGhlIGFzc2lnbmVkIGdyb3VwcyBleGFjdGx5IGFzIHRoZXkgYXJlLgotICoqQSB0ZWFtIGFuZCBjaGFubmVsKiogLSBldmVyeSBtZW1iZXIgb2YgdGhhdCBjaGFubmVsJ3MgdGVhbSBpcyBhbiBhZ2VudC4gVGhlIHJ1bmJvb2sgcHJpbnRzIHRoZSB0ZWFtCiAgYW5kIGNoYW5uZWwgYW5kIHN0b3BzIHdpdGhvdXQgYSBjaGFuZ2UsIGJlY2F1c2UgbWVtYmVyc2hpcCBpcyBtYW5hZ2VkIGluIHRoZSB0ZWFtLgotICoqQSBzaGlmdHMgc2NoZWR1bGUqKiAtIGFnZW50cyBjb21lIGZyb20gYSBzY2hlZHVsaW5nIGdyb3VwIGluIHRoZSBTaGlmdHMgYXBwLiBUaGUgcnVuYm9vayBwcmludHMgdGhlCiAgdGVhbSBiZWhpbmQgdGhlIHNjaGVkdWxlIGFuZCBzdG9wcyB3aXRob3V0IGEgY2hhbmdlLgoKQmVmb3JlIGFueXRoaW5nIGlzIHdyaXR0ZW4sIHRoZSBydW5ib29rIGxpc3RzIHRoZSBjdXJyZW50IGFnZW50cyBhbmQgY2hlY2tzIGV2ZXJ5IHNlbGVjdGVkIHVzZXIuIFVzZXJzCnRoYXQgY2Fubm90IGJlY29tZSBhbiBhZ2VudCBhcmUgc2tpcHBlZCB3aXRoIHRoZSByZWFzb24sIGFuZCB0aGUgcmVtYWluaW5nIG9uZXMgYXJlIHN0aWxsIHByb2Nlc3NlZC4KQWRkaW5nIGEgdXNlciB3aG8gaXMgYWxyZWFkeSBhbiBhZ2VudCwgb3IgcmVtb3ZpbmcgYSB1c2VyIHdobyBpcyBub3Qgb25lLCBpcyByZXBvcnRlZCBhcyAiTm8gYWN0aW9uCnRha2VuIiBhbmQgY2hhbmdlcyBub3RoaW5nLgoKVHdvIHNpdHVhdGlvbnMgc3RvcCB0aGUgcnVuIGJlZm9yZSBhbnkgY2hhbmdlIGlzIG1hZGU6IHRoZSBxdWV1ZSB3b3VsZCBlbmQgdXAgd2l0aCBtb3JlIHRoYW4gMjAKaW5kaXZpZHVhbGx5IGFzc2lnbmVkIGFnZW50cywgb3IgYSByZW1vdmFsIHdvdWxkIGxlYXZlIHRoZSBxdWV1ZSB3aXRoIG5vIGFnZW50cyBhbmQgbm8gZ3JvdXBzIGF0IGFsbC4gSW4KdGhlIHNlY29uZCBjYXNlLCBrZWVwIG9uZSBhZ2VudCBvciBhc3NpZ24gYSBncm91cCBvciB0ZWFtIHRvIHRoZSBxdWV1ZSBpbiB0aGUgVGVhbXMgYWRtaW4gY2VudGVyIGZpcnN0LgoKQWZ0ZXIgdGhlIGNoYW5nZSB0aGUgcnVuYm9vayByZWFkcyB0aGUgY2FsbCBxdWV1ZSBiYWNrIGFuZCBjb21wYXJlcyB0aGUgYWdlbnQgbGlzdCB3aXRoIHdoYXQgd2FzCnJlcXVlc3RlZC4gQSBtaXNtYXRjaCBpcyByZXBvcnRlZCBhcyBhIHdhcm5pbmcgc28gaXQgY2FuIGJlIGNoZWNrZWQgaW4gdGhlIFRlYW1zIGFkbWluIGNlbnRlci4KCiMjIFJlcXVpcmVtZW50cyBmb3IgYWdlbnRzCgotIEFuIGFnZW50IG5lZWRzIGEgVGVhbXMgUGhvbmUgbGljZW5zZSB3aXRoIEVudGVycHJpc2UgVm9pY2UgZW5hYmxlZC4gVXNlcnMgd2l0aG91dCBpdCBhcmUgc2tpcHBlZCB3aXRoCiAgdGhhdCByZWFzb247IHNldCB1cCBUZWFtcyBQaG9uZSBmb3IgdGhlbSBhbmQgcnVuIHRoZSBydW5ib29rIGFnYWluLgotIEFnZW50cyB3aG8gdGFrZSBjYWxscyBpbiB0aGUgVGVhbXMgYXBwIG11c3QgYmUgaW4gVGVhbXNPbmx5IHVwZ3JhZGUgbW9kZS4gQW5vdGhlciBtb2RlIGlzIHJlcG9ydGVkIGFzIGEKICB3YXJuaW5nLCBhbmQgdGhlIHVzZXIgaXMgc3RpbGwgYWRkZWQuCi0gT25seSByZWd1bGFyIHVzZXIgYWNjb3VudHMgY2FuIGJlIGFnZW50cy4gUmVzb3VyY2UgYWNjb3VudHMgYW5kIGd1ZXN0cyBhcmUgc2tpcHBlZC4KLSBNaWNyb3NvZnQgYWxsb3dzIDIwIGluZGl2aWR1YWxseSBhc3NpZ25lZCBhZ2VudHMgcGVyIGNhbGwgcXVldWUsIGFuZCB1cCB0byAyMDAgYWdlbnRzIHdoZW4gdGhleSBjb21lCiAgdGhyb3VnaCBncm91cHMuIFVzZSBhIGdyb3VwIGZvciBsYXJnZXIgdGVhbXMuCi0gTGljZW5zZSBhbmQgcG9saWN5IGNoYW5nZXMgbmVlZCB0aW1lIHRvIHJlYWNoIHRoZSBUZWFtcyBzZXJ2aWNlLiBBZnRlciBhIG5ldyBUZWFtcyBQaG9uZSBsaWNlbnNlIGl0IGNhbgogIHRha2UgYWJvdXQgYW4gaG91ciBiZWZvcmUgYSB1c2VyIGNhbiBiZSBhc3NpZ25lZCBhcyBhbiBhZ2VudC4KLSBBIHVzZXIgd2hvIGJlY29tZXMgYW4gYWdlbnQgdGhyb3VnaCBhIGdyb3VwIGNhbiB0YWtlIHVwIHRvIGVpZ2h0IGhvdXJzIGJlZm9yZSB0aGUgcXVldWUgb2ZmZXJzIHRoZQogIGZpcnN0IGNhbGwuCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCi0gVGhlIHJ1bmJvb2sgbmV2ZXIgY2hhbmdlcyB0aGUgbWVtYmVyc2hpcCBvZiBhIGdyb3VwIG9yIGEgdGVhbS4gQSBxdWV1ZSB0aGF0IGdldHMgaXRzIGFnZW50cyBmcm9tIGEKICBncm91cCwgYSB0ZWFtIGNoYW5uZWwgb3IgYSBzaGlmdHMgc2NoZWR1bGUgaXMgcmVwb3J0ZWQgd2l0aCB0aGUgcGxhY2Ugd2hlcmUgaXRzIG1lbWJlcnMgYXJlIG1hbmFnZWQuCi0gUXVldWVzIHRoYXQgbWl4IGluZGl2aWR1YWxseSBhc3NpZ25lZCB1c2VycyB3aXRoIGdyb3VwcyBhcmUgc3VwcG9ydGVkLiBPbmx5IHRoZSBpbmRpdmlkdWFsIGFzc2lnbm1lbnRzCiAgYXJlIGNoYW5nZWQ7IHRoZSBncm91cHMgc3RheSB1bnRvdWNoZWQgYW5kIHRoZWlyIG1lbWJlcnMgYXJlIHN0aWxsIGFnZW50cy4KLSBUaGUgYWdlbnQgbGlzdCBvZiBhIGNhbGwgcXVldWUgaXMgdGhlIHNlcnZpY2UncyBvd24gZXhwYW5zaW9uIG9mIHVzZXJzIGFuZCBncm91cCBtZW1iZXJzLCBhbmQgaXQgaXMKICBjYWNoZWQuIEEgdXNlciB3aG8gd2FzIGp1c3QgYWRkZWQgdG8gb25lIG9mIHRoZSBhc3NpZ25lZCBncm91cHMgY2FuIHN0aWxsIGJlIHJlcG9ydGVkIGFzIG5vdCBiZWluZyBhbgogIGFnZW50LCBhbmQgYSB1c2VyIHJlbW92ZWQgZnJvbSBhIGdyb3VwIGNhbiBzdGlsbCBiZSBsaXN0ZWQgZm9yIGEgd2hpbGUuCi0gQ2xlYXJpbmcgdGhlIGFnZW50IGxpc3QgY29tcGxldGVseSBpcyBub3QgcG9zc2libGUgaGVyZSBvbiBwdXJwb3NlLiBSZW1vdmluZyB0aGUgbGFzdCBhZ2VudCBvZiBhIHF1ZXVlCiAgd2l0aG91dCBncm91cHMgaXMgcmVmdXNlZCwgYmVjYXVzZSBhIHF1ZXVlIHdpdGhvdXQgYWdlbnRzIGNhbm5vdCB0YWtlIGNhbGxzLiBEbyB0aGF0IGluIHRoZSBUZWFtcyBhZG1pbgogIGNlbnRlciBpZiBpdCBpcyByZWFsbHkgaW50ZW5kZWQuCi0gR3JvdXAsIHRlYW0gYW5kIGNoYW5uZWwgbmFtZXMgY29tZSBmcm9tIE1pY3Jvc29mdCBHcmFwaC4gV2l0aG91dCB0aGUgb3B0aW9uYWwgcGVybWlzc2lvbnMgZm9yIGl0LCB0aGUKICBydW5ib29rIHByaW50cyB0aGUgb2JqZWN0IElEcyBpbnN0ZWFkIGFuZCB3b3JrcyBleGFjdGx5IHRoZSBzYW1lLgo=",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Reason\": \"Required by the app-based Teams PowerShell sign-in (Connect-MicrosoftTeams -Identity) to read tenant info\"\n                },\n                {\n                    \"Value\": \"Channel.ReadBasic.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Group, team and channel names in the output\",\n                    \"Reason\": \"Resolves the channel name of a call queue that is answered by a team channel\"\n                },\n                {\n                    \"Value\": \"GroupMember.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Group, team and channel names in the output\",\n                    \"Reason\": \"Resolves the display names of the groups and shifts teams assigned to the call queue\"\n                },\n                {\n                    \"Value\": \"Team.ReadBasic.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Group, team and channel names in the output\",\n                    \"Reason\": \"Lists the teams of the channel owner to find the team behind the answering channel\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Teams Administrator\",\n            \"TemplateId\": \"69091246-20e8-4a56-aa4d-066075b2a7a8\",\n            \"Reason\": \"Required to run Get-CsCallQueue, Set-CsCallQueue and Get-CsOnlineUser via app-based Teams PowerShell\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "GroupMember.Read.All",
+            "Organization.Read.All",
+            "Team.ReadBasic.All"
+          ]
+        }
+      ],
+      "Roles": [
+        "Teams Administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Add Or Remove Call Queue Authorized Users",
+    "RunbookDisplayPath": "Org \\ Phone \\ Add Or Remove Call Queue Authorized Users",
+    "RelativeRunbookPath": "org/phone/add-or-remove-call-queue-authorized-users.ps1",
+    "RelativeRunbookPath_PathOnly": "org/phone",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Phone",
+    "Synopsis": "Add or remove authorized users of a Teams call queue",
+    "Description": "Adds the selected users to the authorized users of a call queue or removes them. Authorized users can change the queue settings in the Teams app; Microsoft allows 15 of them per call queue. The Teams voice applications policy they need for that can be assigned or removed in the same run. Details on the checks and options are in the runbook documentation (docs.realmjoin.com).",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Exact name of the call queue as it is shown in the Teams admin center. Upper and lower case do not matter."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallQueueName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Add users as authorized users puts them on the queue's authorized user list. Remove users as authorized users takes them off it again."
+          }
+        ],
+        "globbing": "false",
+        "name": "Remove",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Users that are added to or removed from the list of authorized users. Several users can be picked at once; each one needs to be enabled for Teams Phone."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String[]"
+        }
+      },
+      {
+        "defaultValue": "None",
+        "description": [
+          {
+            "Text": "Leave the policy unchanged touches no policy. Assign a voice applications policy grants the policy entered under \"Policy name\". Remove the voice applications policy resets a per-user assignment when the users are taken off the list."
+          }
+        ],
+        "globbing": "false",
+        "name": "VoiceApplicationsPolicyAction",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Voice applications policy to grant, named exactly as in the Teams admin center. Only used with \"Assign a voice applications policy\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "VoiceApplicationsPolicyName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe call queue is looked up by its exact name. Upper and lower case do not matter. If no queue matches, the runbook lists similar names it found; if two queues share the same name, it stops and asks for unique names.\n\nBefore anything is changed, the runbook prints the current authorized users of the queue with their voice applications policy, then the planned change per selected user. A user who cannot be found in Microsoft Teams, is not a regular user account or is not enabled for Enterprise Voice is skipped with the reason and the remaining users are still processed. Users who are already authorized (when adding) or not authorized at all (when removing) are reported and left alone.\n\nMicrosoft allows 15 authorized users per call queue. If the selection would push the queue over that limit, the runbook stops before any change instead of applying part of it.\n\nCall queues also keep a list of hidden authorized users. When an authorized user is removed, the runbook removes them from that list in the same write, so no entry is left dangling.\n\nAfter the write, the call queue is read again and the resulting list is compared with the expected one. A mismatch is reported as a warning rather than an error, because the service applies the change asynchronously.\n\n## Voice applications policy\n\nBeing an authorized user is only half of the permission. To actually change queue settings in the Teams app, the user also needs a Teams voice applications policy that allows call queue management. The Global policy usually does not, which is why the runbook warns about it when it adds an authorized user who has no policy of their own.\n\nThe policy field offers three options:\n\n- **Leave the policy unchanged** does not touch any policy assignment.\n- **Assign a voice applications policy** grants the named policy to every user that was added or was already authorized. The policy has to exist in the tenant; the name is checked before any change is made. A user who already uses that policy is reported and not touched again.\n- **Remove the voice applications policy** resets the per-user assignment of every user that was taken off the list.\n\nAssigning a policy is only offered together with adding users, removing one only together with removing users. The other two combinations are rejected right away, because they would change permissions in the opposite direction of the queue change.\n\nA policy that reaches the user through a group policy assignment cannot be removed per user. The runbook reports the policy and the group instead, so the assignment can be changed where it comes from. If a user has both a direct and a group assignment, removing the direct one lets the group assignment take over; the runbook says so in the output.\n\nBefore removing a policy, the runbook scans all other call queues and auto attendants for that user. If the user is still an authorized user somewhere else, the policy is kept and the affected objects are named in a warning. The user is still removed from this call queue.\n\n## Notes and limitations\n\nAuthorized users have to be enabled for Enterprise Voice, which in practice means a Teams Phone license. A freshly licensed user can take up to an hour to become visible to Teams PowerShell; until then the runbook reports them as not found.\n\nGreetings and holiday call flows can be changed by authorized users directly in the Teams client. Changing call routing, membership or exception handling and viewing reports requires the Queues app, which needs a Teams Premium license for every user of the app. The runbook only grants the permission and does not check the licensing of the app.\n\nChanges to authorized users and policy assignments are replicated by the service and can take a few minutes to show up in the Teams admin center and in the Teams client.\n\nWhether an authorized user is hidden is only maintained, never changed on purpose. Use the Teams admin center to hide or unhide an authorized user.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgY2FsbCBxdWV1ZSBpcyBsb29rZWQgdXAgYnkgaXRzIGV4YWN0IG5hbWUuIFVwcGVyIGFuZCBsb3dlciBjYXNlIGRvIG5vdCBtYXR0ZXIuIElmIG5vIHF1ZXVlIG1hdGNoZXMsIHRoZSBydW5ib29rIGxpc3RzIHNpbWlsYXIgbmFtZXMgaXQgZm91bmQ7IGlmIHR3byBxdWV1ZXMgc2hhcmUgdGhlIHNhbWUgbmFtZSwgaXQgc3RvcHMgYW5kIGFza3MgZm9yIHVuaXF1ZSBuYW1lcy4KCkJlZm9yZSBhbnl0aGluZyBpcyBjaGFuZ2VkLCB0aGUgcnVuYm9vayBwcmludHMgdGhlIGN1cnJlbnQgYXV0aG9yaXplZCB1c2VycyBvZiB0aGUgcXVldWUgd2l0aCB0aGVpciB2b2ljZSBhcHBsaWNhdGlvbnMgcG9saWN5LCB0aGVuIHRoZSBwbGFubmVkIGNoYW5nZSBwZXIgc2VsZWN0ZWQgdXNlci4gQSB1c2VyIHdobyBjYW5ub3QgYmUgZm91bmQgaW4gTWljcm9zb2Z0IFRlYW1zLCBpcyBub3QgYSByZWd1bGFyIHVzZXIgYWNjb3VudCBvciBpcyBub3QgZW5hYmxlZCBmb3IgRW50ZXJwcmlzZSBWb2ljZSBpcyBza2lwcGVkIHdpdGggdGhlIHJlYXNvbiBhbmQgdGhlIHJlbWFpbmluZyB1c2VycyBhcmUgc3RpbGwgcHJvY2Vzc2VkLiBVc2VycyB3aG8gYXJlIGFscmVhZHkgYXV0aG9yaXplZCAod2hlbiBhZGRpbmcpIG9yIG5vdCBhdXRob3JpemVkIGF0IGFsbCAod2hlbiByZW1vdmluZykgYXJlIHJlcG9ydGVkIGFuZCBsZWZ0IGFsb25lLgoKTWljcm9zb2Z0IGFsbG93cyAxNSBhdXRob3JpemVkIHVzZXJzIHBlciBjYWxsIHF1ZXVlLiBJZiB0aGUgc2VsZWN0aW9uIHdvdWxkIHB1c2ggdGhlIHF1ZXVlIG92ZXIgdGhhdCBsaW1pdCwgdGhlIHJ1bmJvb2sgc3RvcHMgYmVmb3JlIGFueSBjaGFuZ2UgaW5zdGVhZCBvZiBhcHBseWluZyBwYXJ0IG9mIGl0LgoKQ2FsbCBxdWV1ZXMgYWxzbyBrZWVwIGEgbGlzdCBvZiBoaWRkZW4gYXV0aG9yaXplZCB1c2Vycy4gV2hlbiBhbiBhdXRob3JpemVkIHVzZXIgaXMgcmVtb3ZlZCwgdGhlIHJ1bmJvb2sgcmVtb3ZlcyB0aGVtIGZyb20gdGhhdCBsaXN0IGluIHRoZSBzYW1lIHdyaXRlLCBzbyBubyBlbnRyeSBpcyBsZWZ0IGRhbmdsaW5nLgoKQWZ0ZXIgdGhlIHdyaXRlLCB0aGUgY2FsbCBxdWV1ZSBpcyByZWFkIGFnYWluIGFuZCB0aGUgcmVzdWx0aW5nIGxpc3QgaXMgY29tcGFyZWQgd2l0aCB0aGUgZXhwZWN0ZWQgb25lLiBBIG1pc21hdGNoIGlzIHJlcG9ydGVkIGFzIGEgd2FybmluZyByYXRoZXIgdGhhbiBhbiBlcnJvciwgYmVjYXVzZSB0aGUgc2VydmljZSBhcHBsaWVzIHRoZSBjaGFuZ2UgYXN5bmNocm9ub3VzbHkuCgojIyBWb2ljZSBhcHBsaWNhdGlvbnMgcG9saWN5CgpCZWluZyBhbiBhdXRob3JpemVkIHVzZXIgaXMgb25seSBoYWxmIG9mIHRoZSBwZXJtaXNzaW9uLiBUbyBhY3R1YWxseSBjaGFuZ2UgcXVldWUgc2V0dGluZ3MgaW4gdGhlIFRlYW1zIGFwcCwgdGhlIHVzZXIgYWxzbyBuZWVkcyBhIFRlYW1zIHZvaWNlIGFwcGxpY2F0aW9ucyBwb2xpY3kgdGhhdCBhbGxvd3MgY2FsbCBxdWV1ZSBtYW5hZ2VtZW50LiBUaGUgR2xvYmFsIHBvbGljeSB1c3VhbGx5IGRvZXMgbm90LCB3aGljaCBpcyB3aHkgdGhlIHJ1bmJvb2sgd2FybnMgYWJvdXQgaXQgd2hlbiBpdCBhZGRzIGFuIGF1dGhvcml6ZWQgdXNlciB3aG8gaGFzIG5vIHBvbGljeSBvZiB0aGVpciBvd24uCgpUaGUgcG9saWN5IGZpZWxkIG9mZmVycyB0aHJlZSBvcHRpb25zOgoKLSAqKkxlYXZlIHRoZSBwb2xpY3kgdW5jaGFuZ2VkKiogZG9lcyBub3QgdG91Y2ggYW55IHBvbGljeSBhc3NpZ25tZW50LgotICoqQXNzaWduIGEgdm9pY2UgYXBwbGljYXRpb25zIHBvbGljeSoqIGdyYW50cyB0aGUgbmFtZWQgcG9saWN5IHRvIGV2ZXJ5IHVzZXIgdGhhdCB3YXMgYWRkZWQgb3Igd2FzIGFscmVhZHkgYXV0aG9yaXplZC4gVGhlIHBvbGljeSBoYXMgdG8gZXhpc3QgaW4gdGhlIHRlbmFudDsgdGhlIG5hbWUgaXMgY2hlY2tlZCBiZWZvcmUgYW55IGNoYW5nZSBpcyBtYWRlLiBBIHVzZXIgd2hvIGFscmVhZHkgdXNlcyB0aGF0IHBvbGljeSBpcyByZXBvcnRlZCBhbmQgbm90IHRvdWNoZWQgYWdhaW4uCi0gKipSZW1vdmUgdGhlIHZvaWNlIGFwcGxpY2F0aW9ucyBwb2xpY3kqKiByZXNldHMgdGhlIHBlci11c2VyIGFzc2lnbm1lbnQgb2YgZXZlcnkgdXNlciB0aGF0IHdhcyB0YWtlbiBvZmYgdGhlIGxpc3QuCgpBc3NpZ25pbmcgYSBwb2xpY3kgaXMgb25seSBvZmZlcmVkIHRvZ2V0aGVyIHdpdGggYWRkaW5nIHVzZXJzLCByZW1vdmluZyBvbmUgb25seSB0b2dldGhlciB3aXRoIHJlbW92aW5nIHVzZXJzLiBUaGUgb3RoZXIgdHdvIGNvbWJpbmF0aW9ucyBhcmUgcmVqZWN0ZWQgcmlnaHQgYXdheSwgYmVjYXVzZSB0aGV5IHdvdWxkIGNoYW5nZSBwZXJtaXNzaW9ucyBpbiB0aGUgb3Bwb3NpdGUgZGlyZWN0aW9uIG9mIHRoZSBxdWV1ZSBjaGFuZ2UuCgpBIHBvbGljeSB0aGF0IHJlYWNoZXMgdGhlIHVzZXIgdGhyb3VnaCBhIGdyb3VwIHBvbGljeSBhc3NpZ25tZW50IGNhbm5vdCBiZSByZW1vdmVkIHBlciB1c2VyLiBUaGUgcnVuYm9vayByZXBvcnRzIHRoZSBwb2xpY3kgYW5kIHRoZSBncm91cCBpbnN0ZWFkLCBzbyB0aGUgYXNzaWdubWVudCBjYW4gYmUgY2hhbmdlZCB3aGVyZSBpdCBjb21lcyBmcm9tLiBJZiBhIHVzZXIgaGFzIGJvdGggYSBkaXJlY3QgYW5kIGEgZ3JvdXAgYXNzaWdubWVudCwgcmVtb3ZpbmcgdGhlIGRpcmVjdCBvbmUgbGV0cyB0aGUgZ3JvdXAgYXNzaWdubWVudCB0YWtlIG92ZXI7IHRoZSBydW5ib29rIHNheXMgc28gaW4gdGhlIG91dHB1dC4KCkJlZm9yZSByZW1vdmluZyBhIHBvbGljeSwgdGhlIHJ1bmJvb2sgc2NhbnMgYWxsIG90aGVyIGNhbGwgcXVldWVzIGFuZCBhdXRvIGF0dGVuZGFudHMgZm9yIHRoYXQgdXNlci4gSWYgdGhlIHVzZXIgaXMgc3RpbGwgYW4gYXV0aG9yaXplZCB1c2VyIHNvbWV3aGVyZSBlbHNlLCB0aGUgcG9saWN5IGlzIGtlcHQgYW5kIHRoZSBhZmZlY3RlZCBvYmplY3RzIGFyZSBuYW1lZCBpbiBhIHdhcm5pbmcuIFRoZSB1c2VyIGlzIHN0aWxsIHJlbW92ZWQgZnJvbSB0aGlzIGNhbGwgcXVldWUuCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCkF1dGhvcml6ZWQgdXNlcnMgaGF2ZSB0byBiZSBlbmFibGVkIGZvciBFbnRlcnByaXNlIFZvaWNlLCB3aGljaCBpbiBwcmFjdGljZSBtZWFucyBhIFRlYW1zIFBob25lIGxpY2Vuc2UuIEEgZnJlc2hseSBsaWNlbnNlZCB1c2VyIGNhbiB0YWtlIHVwIHRvIGFuIGhvdXIgdG8gYmVjb21lIHZpc2libGUgdG8gVGVhbXMgUG93ZXJTaGVsbDsgdW50aWwgdGhlbiB0aGUgcnVuYm9vayByZXBvcnRzIHRoZW0gYXMgbm90IGZvdW5kLgoKR3JlZXRpbmdzIGFuZCBob2xpZGF5IGNhbGwgZmxvd3MgY2FuIGJlIGNoYW5nZWQgYnkgYXV0aG9yaXplZCB1c2VycyBkaXJlY3RseSBpbiB0aGUgVGVhbXMgY2xpZW50LiBDaGFuZ2luZyBjYWxsIHJvdXRpbmcsIG1lbWJlcnNoaXAgb3IgZXhjZXB0aW9uIGhhbmRsaW5nIGFuZCB2aWV3aW5nIHJlcG9ydHMgcmVxdWlyZXMgdGhlIFF1ZXVlcyBhcHAsIHdoaWNoIG5lZWRzIGEgVGVhbXMgUHJlbWl1bSBsaWNlbnNlIGZvciBldmVyeSB1c2VyIG9mIHRoZSBhcHAuIFRoZSBydW5ib29rIG9ubHkgZ3JhbnRzIHRoZSBwZXJtaXNzaW9uIGFuZCBkb2VzIG5vdCBjaGVjayB0aGUgbGljZW5zaW5nIG9mIHRoZSBhcHAuCgpDaGFuZ2VzIHRvIGF1dGhvcml6ZWQgdXNlcnMgYW5kIHBvbGljeSBhc3NpZ25tZW50cyBhcmUgcmVwbGljYXRlZCBieSB0aGUgc2VydmljZSBhbmQgY2FuIHRha2UgYSBmZXcgbWludXRlcyB0byBzaG93IHVwIGluIHRoZSBUZWFtcyBhZG1pbiBjZW50ZXIgYW5kIGluIHRoZSBUZWFtcyBjbGllbnQuCgpXaGV0aGVyIGFuIGF1dGhvcml6ZWQgdXNlciBpcyBoaWRkZW4gaXMgb25seSBtYWludGFpbmVkLCBuZXZlciBjaGFuZ2VkIG9uIHB1cnBvc2UuIFVzZSB0aGUgVGVhbXMgYWRtaW4gY2VudGVyIHRvIGhpZGUgb3IgdW5oaWRlIGFuIGF1dGhvcml6ZWQgdXNlci4K",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Reason\": \"Required by the app-based Teams PowerShell sign-in (Connect-MicrosoftTeams -Identity) to read tenant info\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Teams Administrator\",\n            \"TemplateId\": \"69091246-20e8-4a56-aa4d-066075b2a7a8\",\n            \"Reason\": \"Required to run Get-CsCallQueue, Set-CsCallQueue, Get-CsAutoAttendant, Get-CsOnlineUser, Get-CsUserPolicyAssignment, Get-CsTeamsVoiceApplicationsPolicy and Grant-CsTeamsVoiceApplicationsPolicy via app-based Teams PowerShell\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [
+        "Teams Administrator"
+      ],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Get Teams Phone Number Assignment",
     "RunbookDisplayPath": "Org \\ Phone \\ Get Teams Phone Number Assignment",
     "RelativeRunbookPath": "org/phone/get-teams-phone-number-assignment.ps1",

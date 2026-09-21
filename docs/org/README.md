@@ -93,6 +93,8 @@
   - [Set Booking Config](mail/set-booking-config.md)
 <a name='org-phone'></a>
 ## Phone
+  - [Add Or Remove Call Queue Agents](phone/add-or-remove-call-queue-agents.md)
+  - [Add Or Remove Call Queue Authorized Users](phone/add-or-remove-call-queue-authorized-users.md)
   - [Get Teams Phone Number Assignment](phone/get-teams-phone-number-assignment.md)
 <a name='org-security'></a>
 ## Security

@@ -145,6 +145,8 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Hide Mailboxes (Scheduled)](#hide-mailboxes-(scheduled))
       - [Set Booking Config](#set-booking-config)
   - [Phone](#org-phone)
+      - [Add Or Remove Call Queue Agents](#add-or-remove-call-queue-agents)
+      - [Add Or Remove Call Queue Authorized Users](#add-or-remove-call-queue-authorized-users)
       - [Get Teams Phone Number Assignment](#get-teams-phone-number-assignment)
   - [Security](#org-security)
       - [Add Defender Indicator](#add-defender-indicator)
@@ -4292,6 +4294,138 @@ Org \ Mail \ Set Booking Config
 <a name='org-phone'></a>
 
 ## Phone
+<a name='org-phone-add-or-remove-call-queue-agents'></a>
+
+### Add Or Remove Call Queue Agents
+#### Add or remove agents of a Teams call queue
+
+#### Description
+
+Adds the selected users as individually assigned agents of a Teams call queue or takes them off that list. Agents that come from a group, a team or a shifts schedule are not touched; the output says where they are managed instead. Users without Enterprise Voice are skipped with the reason. Details on the checks and limits are in the runbook documentation (docs.realmjoin.com).
+
+#### Where to find
+
+Org \ Phone \ Add Or Remove Call Queue Agents
+
+## How it works
+
+A call queue gets its agents in exactly one of three ways, and the way is chosen in the Teams admin
+center under "Call answering":
+
+- **Users and groups** - agents are assigned individually, through groups, or both. This is the only
+  mode the runbook changes. It adds the selected users to the list of individually assigned agents or
+  takes them off it, and leaves the assigned groups exactly as they are.
+- **A team and channel** - every member of that channel's team is an agent. The runbook prints the team
+  and channel and stops without a change, because membership is managed in the team.
+- **A shifts schedule** - agents come from a scheduling group in the Shifts app. The runbook prints the
+  team behind the schedule and stops without a change.
+
+Before anything is written, the runbook lists the current agents and checks every selected user. Users
+that cannot become an agent are skipped with the reason, and the remaining ones are still processed.
+Adding a user who is already an agent, or removing a user who is not one, is reported as "No action
+taken" and changes nothing.
+
+Two situations stop the run before any change is made: the queue would end up with more than 20
+individually assigned agents, or a removal would leave the queue with no agents and no groups at all. In
+the second case, keep one agent or assign a group or team to the queue in the Teams admin center first.
+
+After the change the runbook reads the call queue back and compares the agent list with what was
+requested. A mismatch is reported as a warning so it can be checked in the Teams admin center.
+
+## Requirements for agents
+
+- An agent needs a Teams Phone license with Enterprise Voice enabled. Users without it are skipped with
+  that reason; set up Teams Phone for them and run the runbook again.
+- Agents who take calls in the Teams app must be in TeamsOnly upgrade mode. Another mode is reported as a
+  warning, and the user is still added.
+- Only regular user accounts can be agents. Resource accounts and guests are skipped.
+- Microsoft allows 20 individually assigned agents per call queue, and up to 200 agents when they come
+  through groups. Use a group for larger teams.
+- License and policy changes need time to reach the Teams service. After a new Teams Phone license it can
+  take about an hour before a user can be assigned as an agent.
+- A user who becomes an agent through a group can take up to eight hours before the queue offers the
+  first call.
+
+## Notes and limitations
+
+- The runbook never changes the membership of a group or a team. A queue that gets its agents from a
+  group, a team channel or a shifts schedule is reported with the place where its members are managed.
+- Queues that mix individually assigned users with groups are supported. Only the individual assignments
+  are changed; the groups stay untouched and their members are still agents.
+- The agent list of a call queue is the service's own expansion of users and group members, and it is
+  cached. A user who was just added to one of the assigned groups can still be reported as not being an
+  agent, and a user removed from a group can still be listed for a while.
+- Clearing the agent list completely is not possible here on purpose. Removing the last agent of a queue
+  without groups is refused, because a queue without agents cannot take calls. Do that in the Teams admin
+  center if it is really intended.
+- Group, team and channel names come from Microsoft Graph. Without the optional permissions for it, the
+  runbook prints the object IDs instead and works exactly the same.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-phone-add-or-remove-call-queue-authorized-users'></a>
+
+### Add Or Remove Call Queue Authorized Users
+#### Add or remove authorized users of a Teams call queue
+
+#### Description
+
+Adds the selected users to the authorized users of a call queue or removes them. Authorized users can change the queue settings in the Teams app; Microsoft allows 15 of them per call queue. The Teams voice applications policy they need for that can be assigned or removed in the same run. Details on the checks and options are in the runbook documentation (docs.realmjoin.com).
+
+#### Where to find
+
+Org \ Phone \ Add Or Remove Call Queue Authorized Users
+
+## How it works
+
+The call queue is looked up by its exact name. Upper and lower case do not matter. If no queue matches, the runbook lists similar names it found; if two queues share the same name, it stops and asks for unique names.
+
+Before anything is changed, the runbook prints the current authorized users of the queue with their voice applications policy, then the planned change per selected user. A user who cannot be found in Microsoft Teams, is not a regular user account or is not enabled for Enterprise Voice is skipped with the reason and the remaining users are still processed. Users who are already authorized (when adding) or not authorized at all (when removing) are reported and left alone.
+
+Microsoft allows 15 authorized users per call queue. If the selection would push the queue over that limit, the runbook stops before any change instead of applying part of it.
+
+Call queues also keep a list of hidden authorized users. When an authorized user is removed, the runbook removes them from that list in the same write, so no entry is left dangling.
+
+After the write, the call queue is read again and the resulting list is compared with the expected one. A mismatch is reported as a warning rather than an error, because the service applies the change asynchronously.
+
+## Voice applications policy
+
+Being an authorized user is only half of the permission. To actually change queue settings in the Teams app, the user also needs a Teams voice applications policy that allows call queue management. The Global policy usually does not, which is why the runbook warns about it when it adds an authorized user who has no policy of their own.
+
+The policy field offers three options:
+
+- **Leave the policy unchanged** does not touch any policy assignment.
+- **Assign a voice applications policy** grants the named policy to every user that was added or was already authorized. The policy has to exist in the tenant; the name is checked before any change is made. A user who already uses that policy is reported and not touched again.
+- **Remove the voice applications policy** resets the per-user assignment of every user that was taken off the list.
+
+Assigning a policy is only offered together with adding users, removing one only together with removing users. The other two combinations are rejected right away, because they would change permissions in the opposite direction of the queue change.
+
+A policy that reaches the user through a group policy assignment cannot be removed per user. The runbook reports the policy and the group instead, so the assignment can be changed where it comes from. If a user has both a direct and a group assignment, removing the direct one lets the group assignment take over; the runbook says so in the output.
+
+Before removing a policy, the runbook scans all other call queues and auto attendants for that user. If the user is still an authorized user somewhere else, the policy is kept and the affected objects are named in a warning. The user is still removed from this call queue.
+
+## Notes and limitations
+
+Authorized users have to be enabled for Enterprise Voice, which in practice means a Teams Phone license. A freshly licensed user can take up to an hour to become visible to Teams PowerShell; until then the runbook reports them as not found.
+
+Greetings and holiday call flows can be changed by authorized users directly in the Teams client. Changing call routing, membership or exception handling and viewing reports requires the Queues app, which needs a Teams Premium license for every user of the app. The runbook only grants the permission and does not check the licensing of the app.
+
+Changes to authorized users and policy assignments are replicated by the service and can take a few minutes to show up in the Teams admin center and in the Teams client.
+
+Whether an authorized user is hidden is only maintained, never changed on purpose. Use the Teams admin center to hide or unhide an authorized user.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-phone-get-teams-phone-number-assignment'></a>
 
 ### Get Teams Phone Number Assignment

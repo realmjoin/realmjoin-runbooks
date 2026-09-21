@@ -144,6 +144,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Hide Mailboxes (Scheduled)
     - Set Booking Config
   - [Phone](#organization-phone)
+    - Add Or Remove Call Queue Agents
+    - Add Or Remove Call Queue Authorized Users
     - Get Teams Phone Number Assignment
   - [Security](#organization-security)
     - Add Defender Indicator
@@ -423,6 +425,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 ### Phone
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
+| Add Or Remove Call Queue Authorized Users | Add or remove authorized users of a Teams call queue |
 | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)

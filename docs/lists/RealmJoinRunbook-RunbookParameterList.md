@@ -144,6 +144,8 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Hide Mailboxes (Scheduled)](#organization-mail-hide-mailboxes-scheduled)
     - [Set Booking Config](#organization-mail-set-booking-config)
   - [Phone](#organization-phone)
+    - [Add Or Remove Call Queue Agents](#organization-phone-add-or-remove-call-queue-agents)
+    - [Add Or Remove Call Queue Authorized Users](#organization-phone-add-or-remove-call-queue-authorized-users)
     - [Get Teams Phone Number Assignment](#organization-phone-get-teams-phone-number-assignment)
   - [Security](#organization-security)
     - [Add Defender Indicator](#organization-security-add-defender-indicator)
@@ -2168,6 +2170,32 @@ Configure the Microsoft Bookings settings of the tenant
 
 <a name='organization-phone'></a>
 ## Phone
+
+<a name='organization-phone-add-or-remove-call-queue-agents'></a>
+
+### Add Or Remove Call Queue Agents
+Add or remove agents of a Teams call queue
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| CallQueueName | ✓ | String | Exact name of the call queue as shown in the Teams admin center. Upper and lower case do not matter, but the name has to match exactly one queue. |
+| UserIds | ✓ | String Array | Users to add or remove, several at a time. To work as an agent, a user needs a Teams Phone license with Enterprise Voice enabled. |
+| Remove |  | Boolean | Add users as agents puts them on the list of individually assigned agents. Remove users as agents takes them off it; agents that come from a group or team stay as they are. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-phone-add-or-remove-call-queue-authorized-users'></a>
+
+### Add Or Remove Call Queue Authorized Users
+Add or remove authorized users of a Teams call queue
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| CallQueueName | ✓ | String | Exact name of the call queue as it is shown in the Teams admin center. Upper and lower case do not matter. |
+| UserIds | ✓ | String Array | Users that are added to or removed from the list of authorized users. Several users can be picked at once; each one needs to be enabled for Teams Phone. |
+| Remove |  | Boolean | Add users as authorized users puts them on the queue's authorized user list. Remove users as authorized users takes them off it again. |
+| VoiceApplicationsPolicyAction |  | String | Leave the policy unchanged touches no policy. Assign a voice applications policy grants the policy entered under "Policy name". Remove the voice applications policy resets a per-user assignment when the users are taken off the list. |
+| VoiceApplicationsPolicyName |  | String | Voice applications policy to grant, named exactly as in the Teams admin center. Only used with "Assign a voice applications policy". |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-phone-get-teams-phone-number-assignment'></a>
 
