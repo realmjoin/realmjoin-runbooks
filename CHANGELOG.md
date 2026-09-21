@@ -2,6 +2,17 @@
 
 ## 2026-09-21
 
+- Update **Delegate Full Access** Runbook in User/Mail
+  - Address the mailbox by its directory object id in all permission reads and changes, so mailboxes whose name also matches other recipients in the tenant (for example a shared mailbox named `Export`) are processed reliably
+  - Include the Exchange Online response in the run result when the connection, the mailbox lookup or the permission read-back fails
+
+- Address recipients by unique identifiers in further Exchange Online runbooks, so recipient names shared with other objects in the tenant are handled reliably
+  - **Add Or Remove User** and **Add Or Remove Nested Group** in Group/General: distribution group members are addressed by their directory object id
+  - **Add Or Remove Owner** in Group/General: the owner is added to or removed from the distribution group's owner list individually
+  - **Hide Mailboxes (Scheduled)** in Org/Mail: Bookings calendars are addressed by their SMTP address
+  - **List Room Mailbox Configuration** in User/Mail: the calendar processing settings are read via the user principal name
+  - **Delegate Send On Behalf** and **List Mailbox Permissions** in User/Mail: Send on Behalf entries that resolve to more than one recipient are listed by name
+
 - New **Rename Devices By Group Tag (Scheduled)** Runbook in Org/Devices
   - Builds the computer name of every Windows Autopilot device from a template of group tag and serial number (for example `%GROUPTAG%-%SERIAL%`), writes it to the Autopilot record for the next deployment and renames already enrolled, Entra joined, corporate-owned devices through the Intune rename action
   - Shortens the serial number to fit the 15-character limit (end or start of the serial number), reports and skips name collisions, invalid names, hybrid joined and personal devices and renames that are still pending

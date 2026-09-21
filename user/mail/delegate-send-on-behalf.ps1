@@ -82,7 +82,7 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 try {
@@ -123,10 +123,12 @@ try {
     ""
     "## Dump SendOnBehalf Permissions for '$UserName'"
     (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
-        $sobTrustee = Get-EXOMailbox -Identity $_
+        # The entries are recipient names, which are not unique in Exchange Online - list the raw name
+        # when it cannot be resolved to exactly one mailbox.
+        $sobTrustee = Get-EXOMailbox -Identity $_ -ErrorAction SilentlyContinue
         $result = @{}
         $result.Identity = $user.Identity
-        $result.Trustee = $sobTrustee.UserPrincipalName
+        $result.Trustee = if ($sobTrustee) { $sobTrustee.UserPrincipalName } else { "$_" }
         $result.AccessRights = "{SendOnBehalf}"
         [PsCustomObject]$result
     } | Format-Table -Property Identity, Trustee, AccessRights -AutoSize | Out-String

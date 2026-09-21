@@ -53,7 +53,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -103,13 +103,14 @@ else {
         Connect-RjRbExchangeOnline
         $groupObj = Get-Group -Identity $groupID
 
-        # Get User mailbox
+        # Get User mailbox. The membership changes below address the member by its directory object id -
+        # the mailbox Name is not unique in Exchange Online and can fail as an ambiguous identity.
         $targetMailbox = get-mailbox -Identity $targetUser.id
 
         if ($Remove) {
             # Remove user from EXO group
             if ($groupObj.Members -contains $targetMailbox.name) {
-                Remove-DistributionGroupMember -Identity $GroupID -Member $targetMailbox.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                Remove-DistributionGroupMember -Identity $GroupID -Member $targetUser.id -BypassSecurityGroupManagerCheck -Confirm:$false
                 "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)'."
             }
             else {
@@ -123,7 +124,7 @@ else {
                     "## User '$($targetUser.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
                 }
                 else {
-                    Add-DistributionGroupMember -Identity $GroupID -member $targetMailbox.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                    Add-DistributionGroupMember -Identity $GroupID -member $targetUser.id -BypassSecurityGroupManagerCheck -Confirm:$false
                     "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."
                 }
             }

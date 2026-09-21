@@ -38,7 +38,7 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 "## Trying to list all mailbox access / send permissions granted on mailbox '$UserName'."
@@ -62,7 +62,16 @@ try {
     ""
     "## SendOnBehalf Permissions"
     (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
-        $sobTrustee = Get-Recipient -Identity $_ | Where-Object { $_.RecipientType -eq "UserMailbox" }
+        # The entries are recipient names, which are not unique in Exchange Online - list the raw name
+        # when it cannot be resolved to exactly one recipient.
+        $sobEntry = $_
+        $sobRecipient = Get-Recipient -Identity $sobEntry -ErrorAction SilentlyContinue
+        if ($sobRecipient) {
+            $sobTrustee = $sobRecipient | Where-Object { $_.RecipientType -eq "UserMailbox" }
+        }
+        else {
+            $sobTrustee = [PSCustomObject]@{ PrimarySmtpAddress = "$sobEntry" }
+        }
         foreach ($trustee in [array]$sobTrustee) {
             $result = @{}
             $result.Identity = $user.Identity

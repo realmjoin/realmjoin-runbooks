@@ -54,7 +54,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -124,8 +124,9 @@ else {
 
         if ($Remove) {
             if ($exgroup.ManagedBy -contains $exuser.Name) {
-                $managedBy = $exgroup.ManagedBy | Where-Object { $_ -ne $exuser.Name }
-                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
+                # Remove only this owner instead of rewriting the whole list: the entries in ManagedBy are
+                # recipient names, which are not unique in Exchange Online and can fail as ambiguous identities.
+                Set-DistributionGroup -Identity $GroupID -ManagedBy @{Remove = $UserId } -BypassSecurityGroupManagerCheck:$true
                 "## Removed '$($targetUser.UserPrincipalName)' from the list of owners for '$($targetGroup.DisplayName)'."
             }
             else {
@@ -137,8 +138,8 @@ else {
                 "## '$($targetUser.UserPrincipalName)' is already owner of '$($targetGroup.DisplayName)'. No action taken."
             }
             else {
-                $managedBy = $exgroup.ManagedBy + $UserId
-                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
+                # Add only this owner instead of rewriting the whole list (see the Remove branch above).
+                Set-DistributionGroup -Identity $GroupID -ManagedBy @{Add = $UserId } -BypassSecurityGroupManagerCheck:$true
                 "## Added '$($targetUser.UserPrincipalName)' to the list of owners for '$($targetGroup.DisplayName)'."
             }
         }

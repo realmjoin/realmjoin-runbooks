@@ -53,7 +53,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -103,13 +103,14 @@ else {
         Connect-RjRbExchangeOnline
         $groupObj = Get-Group -Identity $groupID
 
-        # Get nested group
+        # Get nested group. The membership changes below address the member by its directory object id -
+        # the group Name is not unique in Exchange Online and can fail as an ambiguous identity.
         $nestedGroupObj = Get-Group -Identity $NestedGroupID
 
         if ($Remove) {
             # Remove user from EXO group
             if ($groupObj.Members -contains $nestedGroupObj.name) {
-                Remove-DistributionGroupMember -Identity $GroupID -Member $nestedGroupObj.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                Remove-DistributionGroupMember -Identity $GroupID -Member $NestedGroupID -BypassSecurityGroupManagerCheck -Confirm:$false
                 "## '$($nestedGroupObj.DisplayName)' is removed from '$($groupObj.DisplayName)'."
             }
             else {
@@ -123,7 +124,7 @@ else {
                     "## User '$($nestedGroupObj.DisplayName)' is already a member of '$($groupObj.DisplayName)'. No action taken."
                 }
                 else {
-                    Add-DistributionGroupMember -Identity $GroupID -member $nestedGroupObj.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                    Add-DistributionGroupMember -Identity $GroupID -member $NestedGroupID -BypassSecurityGroupManagerCheck -Confirm:$false
                     "## '$($nestedGroupObj.DisplayName)' is added to '$($groupObj.DisplayName)'."
                 }
             }

@@ -37,13 +37,15 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbExchangeOnline
 
 Get-Mailbox -RecipientTypeDetails SchedulingMailbox | ForEach-Object {
-    Set-Mailbox -HiddenFromAddressListsEnabled $HideBookingCalendars -Identity $_.Identity
+    # Address the mailbox by its SMTP address - the 'Identity' property holds the mailbox Name, which is
+    # not unique in Exchange Online and can fail as an ambiguous identity.
+    Set-Mailbox -HiddenFromAddressListsEnabled $HideBookingCalendars -Identity $_.PrimarySmtpAddress
     "## Updated Booking Calendar '$($_.Alias)' - hide in address book: '$HideBookingCalendars'."
 }
 
