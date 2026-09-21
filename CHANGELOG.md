@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-21
+
+- New **Rename Devices By Group Tag (Scheduled)** Runbook in Org/Devices
+  - Builds the computer name of every Windows Autopilot device from a template of group tag and serial number (for example `%GROUPTAG%-%SERIAL%`), writes it to the Autopilot record for the next deployment and renames already enrolled, Entra joined, corporate-owned devices through the Intune rename action
+  - Shortens the serial number to fit the 15-character limit (end or start of the serial number), reports and skips name collisions, invalid names, hybrid joined and personal devices and renames that are still pending
+  - Dry run (default), group tag filter with `*` wildcard and a maximum number of changes per run for a staged rollout; the result is listed as a sortable table in the portal's Output Data tab
+  - Replaces per-location Autopilot deployment profiles and dynamic groups that only exist to apply a location-specific naming template
+
 ## 2026-09-18
 
 - Update **Show Bitlocker Recovery Key** Runbook in Device/Security
