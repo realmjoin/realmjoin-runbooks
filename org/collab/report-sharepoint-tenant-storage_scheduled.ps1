@@ -5,11 +5,11 @@
 	.DESCRIPTION
 	Checks the storage of the SharePoint Online tenant on every run: the quota, how much is used, and the site collections that use the most. The full inventory is written to the run output. An alert email is sent only when the free storage drops below the low-storage limit or the licensed but unused storage exceeds the reclaimable limit.
 
-	.PARAMETER AlertLowStorageLimitInGB
-	Send an alert when the free tenant storage drops below this many gigabytes.
+    .PARAMETER AlertLowStorageLimitInGB
+    Send an alert when the free tenant storage drops below this many gigabytes.
 
-	.PARAMETER AlertUnusedStorageLimitInGB
-	Send an alert when the licensed storage that no site uses exceeds this many gigabytes. That storage could be reclaimed.
+    .PARAMETER AlertUnusedStorageLimitInGB
+    Send an alert when the licensed storage that no site uses exceeds this many gigabytes. That storage could be reclaimed.
 
 	.PARAMETER TopSiteCount
 	How many of the largest site collections are listed.
@@ -132,7 +132,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.2"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "AlertLowStorageLimitInGB: $AlertLowStorageLimitInGB" -Verbose
@@ -276,13 +276,13 @@ Write-Output "SharePoint Online Tenant Storage"
 Write-Output "---------------------"
 
 # ===== Derive storage metrics =====
-# Get-PnPGeoStorageQuota returns GeoUsedStorageMB and StorageQuotaMB
+# Get-PnPGeoStorageQuota returns GeoUsedStorageMB and StoragequotaGB
 $usedMB = $storageQuota.GeoUsedStorageMB
 $quotaMB = $storageQuota.TenantStorageMB
 
 # Fail with clear message if quota values are missing or unusable
 if ($null -eq $usedMB -or $null -eq $quotaMB -or $quotaMB -le 0) {
-    Write-Error "Unable to retrieve valid storage quota values. Used: $usedMB, Quota: $quotaMB" -ErrorAction Continue
+    Write-Error "Unable to retrieve valid storage quota values. Used MB: $usedMB, Quota MB: $quotaMB" -ErrorAction Continue
     throw "Cannot determine tenant storage quota"
 }
 
@@ -317,7 +317,7 @@ if ($allSites.Count -gt 0) {
         # Treat null storage as 0; normalize to GB
         $siteStorageMB = if ($null -eq $_.StorageUsageCurrent) { 0 } else { [double]$_.StorageUsageCurrent }
         $siteStorageGB = [Math]::Round($siteStorageMB / 1024, 2)
-        $sitePercent = if ($quotaMB -gt 0) { [Math]::Round(($siteStorageMB / $quotaMB) * 100, 2) } else { 0 }
+        $sitePercent = if ($quotaGB -gt 0) { [Math]::Round(($siteStorageMB / $quotaGB) * 100, 2) } else { 0 }
 
 
         # Handle empty title
@@ -334,7 +334,7 @@ if ($allSites.Count -gt 0) {
 
 # ===== Display to runbook output =====
 Write-Output "Total Quota: $quotaGB GB"
-Write-Output "Used: $usedMB MB ($usedPercent%)"
+Write-Output "Used: $usedGB GB ($usedPercent%)"
 Write-Output "Free: $freeGB GB"
 Write-Output ""
 
@@ -381,7 +381,7 @@ $($alertReasons | ForEach-Object { "- $_" } | Out-String)
 ## Storage Summary
 
 - **Total Quota:** $quotaGB GB
-- **Used:** $usedMB MB ($usedPercent%)
+- **Used:** $usedGB MB ($usedPercent%)
 - **Free:** $freeGB GB
 
 ## Top Site Collections

@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-23
+
+- Add **Pre-Provision OneDrive** Runbook in User/Collab
+  - Requests the creation of the selected user's OneDrive in SharePoint Online via PnP PowerShell (`New-PnPPersonalSite`), connecting with the Automation account's system-assigned managed identity, so the OneDrive is available before the first sign-in (e.g. onboarding or migration).
+  - Verifies via Microsoft Graph that the user account is enabled and aborts otherwise, as SharePoint silently ignores requests for users who are blocked from signing in.
+  - Optional license check (`CheckSharePointLicense`, enabled by default) aborts when the user has no enabled SharePoint service plan, regardless of the license source (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, group-based licensing).
+  - Idempotent: no request is sent if the OneDrive already exists; a warning is shown if a deleted OneDrive of the user is found in the tenant recycle bin. Provisioning is asynchronous, the runbook only queues the request and points to **Check OneDrive Status** for verification.
+
 ## 2026-09-21
 
 - Update **Delegate Full Access** Runbook in User/Mail
