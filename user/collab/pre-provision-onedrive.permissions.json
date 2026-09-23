@@ -1,0 +1,37 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the selected user (accountEnabled, userPrincipalName, assignedPlans) to verify that the account is enabled and, optionally, that an enabled SharePoint service plan is assigned before the provisioning request is sent."
+                },
+                {
+                    "Value": "Sites.Read.All",
+                    "Reason": "Reads the tenant root site (/sites/root) to derive the SharePoint admin center URL used by Connect-PnPOnline."
+                }
+            ]
+        },
+        {
+            "Name": "Office 365 SharePoint Online",
+            "Id": "00000003-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.FullControl.All",
+                    "Reason": "Required by Connect-PnPOnline against the SharePoint admin center and by the tenant-admin cmdlets Get-PnPTenantSite, Get-PnPTenantDeletedSite and New-PnPPersonalSite, which inspect OneDrive personal sites, the tenant recycle bin and enqueue the OneDrive creation; lower site scopes are not sufficient for the tenant-admin endpoint."
+                },
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Documented by PnP PowerShell as required for New-PnPPersonalSite with application permissions (user profile service); also covers reading the PersonalUrl via Get-PnPUserProfileProperty."
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "SharePoint Online: grant the 'Sites.FullControl.All' and 'User.ReadWrite.All' application permissions on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant."
+    ]
+}
