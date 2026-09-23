@@ -8,11 +8,11 @@
     .PARAMETER GroupIDs
     Assignments are matched against each picked group directly; assignments to parent groups are not included.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER IncludeApps
     Also lists the apps assigned to the groups.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -33,11 +33,11 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group })]
     [string[]] $GroupIDs,
-    [bool] $IncludeApps = $false
+    [bool] $IncludeApps = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

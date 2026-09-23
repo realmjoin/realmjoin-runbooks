@@ -5,9 +5,6 @@
     .DESCRIPTION
     Removes every device in this group from Windows Update for Business, either for one update category or by deleting the updatable asset registration entirely. Optionally the devices owned by the group's user members are included. Use it to offboard devices from Windows Update for Business reporting or to reset their enrollment.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER GroupId
     Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
@@ -16,6 +13,9 @@
 
     .PARAMETER IncludeUserOwnedDevices
     Also unenrolls every device owned by the users in this group, nested groups included.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -40,15 +40,15 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [Parameter(Mandatory = $true)]
     [string] $GroupId,
     [Parameter(Mandatory = $true)]
     [ValidateSet("driver", "feature", "quality", "all")]
     [string] $UpdateCategory = "all",
 
     [Parameter(Mandatory = $false)]
-    [bool] $IncludeUserOwnedDevices = $false
+    [bool] $IncludeUserOwnedDevices = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 ############################################################

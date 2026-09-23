@@ -70,8 +70,6 @@
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [int] $Days = 30,
     [string] $EmailTo,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
@@ -85,7 +83,9 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
     [string]$BrandingAccentColor,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
-    [string]$BrandingTextColor
+    [string]$BrandingTextColor,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 ########################################################

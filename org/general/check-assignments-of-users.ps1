@@ -8,11 +8,11 @@
     .PARAMETER UserPrincipalName
     Each picked user is checked separately through their group memberships, nested groups included.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER IncludeApps
     Also lists the apps assigned to the users.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -33,11 +33,11 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity User -Attribute userPrincipalName })]
     [string[]] $UserPrincipalName,
-    [bool] $IncludeApps = $false
+    [bool] $IncludeApps = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

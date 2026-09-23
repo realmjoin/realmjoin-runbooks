@@ -5,14 +5,14 @@
     .DESCRIPTION
     Reads the Entra ID audit log for Privileged Identity Management role activations of the last month and sends them as an email report, so privileged access can be reviewed regularly. Nothing is changed.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER sendAlertTo
     Gets the monthly PIM activation report.
 
     .PARAMETER sendAlertFrom
     User in the tenant the report is sent as; needs a mailbox.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -33,11 +33,11 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
+    [string] $sendAlertTo = "support@glueckkanja.com",
+    [string] $sendAlertFrom = "runbook@glueckkanja.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [string] $sendAlertTo = "support@glueckkanja.com",
-    [string] $sendAlertFrom = "runbook@glueckkanja.com"
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

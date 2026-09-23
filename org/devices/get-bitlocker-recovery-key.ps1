@@ -5,11 +5,11 @@
     .DESCRIPTION
     Finds the BitLocker recovery key that belongs to the key ID shown on a device's recovery screen and returns the key together with the device it belongs to. Use it when a user is locked out at the BitLocker prompt.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER bitlockeryRecoveryKeyId
     The key ID displayed on the BitLocker recovery screen of the device.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -28,9 +28,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
+    [string] $bitlockeryRecoveryKeyId,
     [Parameter(Mandatory = $true)]
-    [string] $bitlockeryRecoveryKeyId
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

@@ -11,9 +11,6 @@
     .PARAMETER DeviceGroup
     Name or object ID of the group the devices are added to.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER IncludeWindowsDevice
     Includes Windows devices.
 
@@ -31,6 +28,9 @@
 
     .PARAMETER IncludeIPadOSDevice
     Includes iPadOS devices.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -74,14 +74,14 @@ param(
     [string] $UserGroup,
     [Parameter(Mandatory = $true)]
     [string] $DeviceGroup,
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [bool] $IncludeWindowsDevice = $false,
     [bool] $IncludeMacOSDevice = $false,
     [bool] $IncludeLinuxDevice = $false,
     [bool] $IncludeAndroidDevice = $false,
     [bool] $IncludeIOSDevice = $false,
-    [bool] $IncludeIPadOSDevice = $false
+    [bool] $IncludeIPadOSDevice = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 ############################################################

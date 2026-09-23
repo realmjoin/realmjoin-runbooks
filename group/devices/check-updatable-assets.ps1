@@ -5,11 +5,11 @@
     .DESCRIPTION
     Checks for every device in this group whether it is registered as an updatable asset in Windows Update for Business. The result shows the enrollment state per update category and any error Windows Update returns. Nothing is changed.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER GroupId
     Object ID of the group the runbook acts on. Set by the portal from the selected group.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -28,9 +28,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
+    [string] $GroupId,
     [Parameter(Mandatory = $true)]
-    [string] $GroupId
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
