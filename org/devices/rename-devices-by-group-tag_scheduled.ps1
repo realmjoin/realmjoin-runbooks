@@ -3,7 +3,7 @@
     Name Autopilot devices after their group tag and serial number
 
     .DESCRIPTION
-    Builds the computer name of every Windows Autopilot device from a template of group tag and serial number, for example DEHAM-5CD1234ABC. The name goes into the Autopilot record for the next Autopilot deployment. Enrolled devices whose Intune name differs are renamed through Intune and take the new name after a restart. Hybrid joined and personal devices are only reported. A dry run lists all changes without writing anything.
+    Builds the computer name of every Windows Autopilot device from a template of group tag and serial number, for example SITE01-7ABCD12. The name goes into the Autopilot record for the next Autopilot deployment. Enrolled devices whose Intune name differs are renamed through Intune and take the new name after a restart. Hybrid joined and personal devices are only reported. A dry run lists all changes without writing anything.
 
     .PARAMETER NameTemplate
     Pattern of the computer name. %GROUPTAG% is replaced by the Autopilot group tag and %SERIAL% by the serial number; other characters stay as typed. Letters, digits and hyphens only, 15 characters at most after replacement.
@@ -12,7 +12,10 @@
     Which end of the serial number is kept when the assembled name would exceed 15 characters; only the serial number is shortened. Keeping the end matches what Autopilot itself does with %SERIAL%.
 
     .PARAMETER GroupTagFilter
-    Only devices with one of these Autopilot group tags, separated by commas; DE* matches every tag that starts with DE. Leave empty for all devices that have a group tag.
+    Only devices with one of these Autopilot group tags, separated by commas; SITE1* matches every tag that starts with SITE1. Leave empty for all devices that have a group tag.
+
+    .PARAMETER GroupTagExcludeFilter
+    Devices with one of these Autopilot group tags are left alone, separated by commas; KIOSK* matches every tag that starts with KIOSK. Applied after the group tag filter. Leave empty to exclude nothing.
 
     .PARAMETER RenameEnrolledDevices
     Also rename devices that are already enrolled in Intune. When off, only the Autopilot record is updated and the name is applied at the next Autopilot deployment.
@@ -52,6 +55,9 @@
             "GroupTagFilter": {
                 "DisplayName": "Group tag filter"
             },
+            "GroupTagExcludeFilter": {
+                "DisplayName": "Exclude group tags"
+            },
             "RenameEnrolledDevices": {
                 "DisplayName": "Rename enrolled devices?"
             },
@@ -81,6 +87,9 @@ param(
 
     [Parameter(Mandatory = $false)]
     [string]$GroupTagFilter = "",
+
+    [Parameter(Mandatory = $false)]
+    [string]$GroupTagExcludeFilter = "",
 
     [Parameter(Mandatory = $false)]
     [bool]$RenameEnrolledDevices = $true,
@@ -154,12 +163,15 @@ function Test-GroupTagMatch {
     return $false
 }
 
-# Removes everything that is not allowed in a Windows computer name (letters, digits, hyphen).
-# Serial numbers and group tags may contain spaces, underscores, dots or slashes.
+# Removes everything that is not allowed in a Windows computer name (letters, digits, hyphen), collapses
+# repeated hyphens and drops hyphens at both ends. Serial numbers and group tags may contain spaces,
+# underscores, dots or slashes; virtual machine serial numbers are often hyphen-separated groups.
 function Get-SanitizedNamePart {
     param([string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value)) { return "" }
-    return ($Value.Trim() -replace '[^A-Za-z0-9-]', '')
+    $clean = $Value.Trim() -replace '[^A-Za-z0-9-]', ''
+    $clean = $clean -replace '-{2,}', '-'
+    return $clean.Trim('-')
 }
 
 # Windows computer name rules (same as the Rename Device runbook): 1-15 characters, letters, digits
@@ -241,6 +253,13 @@ function Get-DeviceNameFromTemplate {
             $serial = $serial.Substring($serial.Length - $room)
         }
         $result.SerialTruncated = $true
+        # The cut can land on a hyphen; a fragment that starts or ends with one would produce "--" or a
+        # trailing hyphen next to the template text. The fragment is not refilled, it may stay shorter.
+        $serial = $serial.Trim('-')
+        if ($serial -eq "") {
+            $result.Reason = "SerialUnusable"
+            return $result
+        }
     }
 
     $name = $withTag -ireplace '%SERIAL%', $serial
@@ -251,6 +270,22 @@ function Get-DeviceNameFromTemplate {
     }
     $result.IsValid = $true
     return $result
+}
+
+# Classifies a processed device for the Output Data tables: Changed (at least one write, planned,
+# done or failed), AlreadyNamed (nothing to do on either side) or Skipped (no write, at least one reason).
+function Get-DeviceOutcome {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Entry
+    )
+    if ($Entry.IntuneAction -in @('RenameQueued', 'WouldRenameQueue', 'RenameFailed') -or $Entry.AutopilotAction -in @('Updated', 'WouldUpdate', 'UpdateFailed')) {
+        return "Changed"
+    }
+    if ($Entry.IsValid -and $Entry.IntuneAction -in @('AlreadyNamed', 'NotEnrolled') -and $Entry.AutopilotAction -eq 'AlreadyNamed') {
+        return "AlreadyNamed"
+    }
+    return "Skipped"
 }
 
 # POST with a small retry for Graph throttling (429). Any other error is rethrown to the caller.
@@ -296,6 +331,7 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "NameTemplate: $NameTemplate" -Verbose
 Write-RjRbLog -Message "SerialTruncation: $SerialTruncation" -Verbose
 Write-RjRbLog -Message "GroupTagFilter: $GroupTagFilter" -Verbose
+Write-RjRbLog -Message "GroupTagExcludeFilter: $GroupTagExcludeFilter" -Verbose
 Write-RjRbLog -Message "RenameEnrolledDevices: $RenameEnrolledDevices" -Verbose
 Write-RjRbLog -Message "MaxChangesPerRun: $MaxChangesPerRun" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
@@ -325,6 +361,7 @@ if ($MaxChangesPerRun -lt 0) {
 }
 
 $groupTagPatterns = @(ConvertTo-FilterList -RawValue $GroupTagFilter)
+$groupTagExcludePatterns = @(ConvertTo-FilterList -RawValue $GroupTagExcludeFilter)
 
 if ($WhatIfMode) {
     Write-Output "Mode: dry run - nothing is written, changes are only reported"
@@ -344,6 +381,12 @@ if ($groupTagPatterns.Count -gt 0) {
 }
 else {
     Write-Output "Group tag filter: none (all devices with a group tag)"
+}
+if ($groupTagExcludePatterns.Count -gt 0) {
+    Write-Output "Excluded group tags: $($groupTagExcludePatterns -join ', ')"
+}
+else {
+    Write-Output "Excluded group tags: none"
 }
 Write-Output "Rename enrolled devices: $RenameEnrolledDevices"
 if ($MaxChangesPerRun -gt 0) {
@@ -465,6 +508,7 @@ Write-Output "---------------------"
 # --- Scope: Autopilot devices with a group tag that matches the filter, in a deterministic order ---
 $noGroupTagCount = 0
 $filteredOutCount = 0
+$excludedByListCount = 0
 $inScope = [System.Collections.Generic.List[object]]::new()
 foreach ($ap in $autopilotDevices) {
     $tag = ([string]$ap.groupTag).Trim()
@@ -476,6 +520,10 @@ foreach ($ap in $autopilotDevices) {
         $filteredOutCount++
         continue
     }
+    if ($groupTagExcludePatterns.Count -gt 0 -and (Test-GroupTagMatch -Tag $tag -Patterns $groupTagExcludePatterns)) {
+        $excludedByListCount++
+        continue
+    }
     $inScope.Add($ap)
 }
 $inScope = @($inScope | Sort-Object -Property @{ Expression = { [string]$_.groupTag } }, @{ Expression = { [string]$_.serialNumber } })
@@ -484,8 +532,11 @@ Write-Output "Autopilot devices without group tag (ignored): $noGroupTagCount"
 if ($groupTagPatterns.Count -gt 0) {
     Write-Output "Autopilot devices excluded by group tag filter: $filteredOutCount"
 }
+if ($groupTagExcludePatterns.Count -gt 0) {
+    Write-Output "Autopilot devices excluded by the exclude list: $excludedByListCount"
+}
 Write-Output "Autopilot devices in scope: $($inScope.Count)"
-Write-RjRbLog -Message "Scope: $($inScope.Count) in scope, $noGroupTagCount without group tag, $filteredOutCount excluded by filter." -Verbose
+Write-RjRbLog -Message "Scope: $($inScope.Count) in scope, $noGroupTagCount without group tag, $filteredOutCount excluded by filter, $excludedByListCount excluded by the exclude list." -Verbose
 
 # --- Build the expected name for every device in scope ---
 $results = [System.Collections.Generic.List[object]]::new()
@@ -753,17 +804,121 @@ if ($failedCount -gt 0) {
 #region     Structured Output (Output Data)
 ########################################################
 
-# Emitted last on purpose so the table is not interleaved with the progress output.
+# Emitted last on purpose so the tables are not interleaved with the progress output. Every table gets its
+# own RjTableTitle marker and its own column set. A marker is only written when rows follow it, because
+# the portal applies the name to the next table it receives.
 Write-Output ""
-if ($results.Count -gt 0) {
-    $tableTitle = "Autopilot devices checked against '$NameTemplate'"
-    if ($WhatIfMode) { $tableTitle += " (dry run)" }
-    Write-Output "Listing $($results.Count) Autopilot device(s) in scope:"
-    Write-Output ([PSCustomObject]@{ RjTableTitle = $tableTitle })
-    Write-Output ($results | Select-Object -Property SerialNumber, GroupTag, ExpectedName, IntuneName, AutopilotName, IntuneAction, AutopilotAction, Reason)
+
+# Table 1: summary counters
+$summaryValues = [ordered]@{
+    "Autopilot devices total"                                  = $autopilotDevices.Count
+    "Without group tag (ignored)"                              = $noGroupTagCount
+    "Excluded by group tag filter"                             = $filteredOutCount
+    "Excluded by the exclude list"                             = $excludedByListCount
+    "In scope"                                                 = $results.Count
+    "Devices with nothing to write"                            = $noChangeCount
+    "Devices not enrolled in Intune (Autopilot record only)"   = $notEnrolledCount
+    "Intune renames already pending from an earlier run"       = $renamePendingCount
+    "Skipped Intune rename, renaming enrolled devices is off"  = $renameDisabledCount
+    "Skipped Intune rename, not corporate-owned"               = $notCompanyOwnedCount
+    "Skipped Intune rename, hybrid joined or Entra registered" = $notEntraJoinedCount
+    "Skipped Intune rename, name in use by another device"     = $nameInUseCount
+    "Skipped, no valid name"                                   = $invalidNameCount
+    "Not processed, change limit reached"                      = $limitReachedCount
+    "Failed writes"                                            = $failedCount
+}
+if ($WhatIfMode) {
+    $summaryValues["Devices that would change"] = $changedDeviceCount
+    $summaryValues["Intune renames that would be queued"] = $renameQueuedCount
+    $summaryValues["Autopilot names that would be updated"] = $autopilotUpdatedCount
 }
 else {
+    $summaryValues["Devices changed"] = $changedDeviceCount
+    $summaryValues["Intune renames queued"] = $renameQueuedCount
+    $summaryValues["Autopilot names updated"] = $autopilotUpdatedCount
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+# Tables 2-4: devices by outcome
+$changedRows = [System.Collections.Generic.List[object]]::new()
+$skippedRows = [System.Collections.Generic.List[object]]::new()
+$alreadyNamedRows = [System.Collections.Generic.List[object]]::new()
+foreach ($entry in $results) {
+    switch (Get-DeviceOutcome -Entry $entry) {
+        "Changed" {
+            $changedRows.Add([PSCustomObject]@{
+                    SerialNumber    = $entry.SerialNumber
+                    GroupTag        = $entry.GroupTag
+                    IntuneName      = $entry.IntuneName
+                    AutopilotName   = $entry.AutopilotName
+                    NewName         = $entry.ExpectedName
+                    IntuneAction    = $entry.IntuneAction
+                    AutopilotAction = $entry.AutopilotAction
+                })
+        }
+        "AlreadyNamed" {
+            $enrolled = "Yes"
+            if ($entry.IntuneAction -eq "NotEnrolled") { $enrolled = "No" }
+            $alreadyNamedRows.Add([PSCustomObject]@{
+                    SerialNumber = $entry.SerialNumber
+                    GroupTag     = $entry.GroupTag
+                    DeviceName   = $entry.ExpectedName
+                    Enrolled     = $enrolled
+                })
+        }
+        default {
+            # Reason carries the name problem or the change limit; otherwise the Intune action that blocked the rename.
+            $reason = $entry.Reason
+            if ($reason -eq "") { $reason = $entry.IntuneAction }
+            $skippedRows.Add([PSCustomObject]@{
+                    SerialNumber    = $entry.SerialNumber
+                    GroupTag        = $entry.GroupTag
+                    ExpectedName    = $entry.ExpectedName
+                    IntuneName      = $entry.IntuneName
+                    AutopilotName   = $entry.AutopilotName
+                    IntuneAction    = $entry.IntuneAction
+                    AutopilotAction = $entry.AutopilotAction
+                    Reason          = $reason
+                })
+        }
+    }
+}
+
+if ($results.Count -eq 0) {
     Write-Output "No Autopilot devices in scope."
+}
+
+$changesTitle = "Applied changes"
+if ($WhatIfMode) { $changesTitle = "Planned changes (dry run)" }
+if ($changedRows.Count -gt 0) {
+    Write-Output "$($changedRows.Count) device(s) with changes:"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = $changesTitle })
+    Write-Output $changedRows.ToArray()
+}
+elseif ($results.Count -gt 0) {
+    Write-Output "No device changes."
+}
+
+if ($skippedRows.Count -gt 0) {
+    Write-Output "$($skippedRows.Count) skipped device(s):"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Skipped devices" })
+    Write-Output $skippedRows.ToArray()
+}
+elseif ($results.Count -gt 0) {
+    Write-Output "No skipped devices."
+}
+
+if ($alreadyNamedRows.Count -gt 0) {
+    Write-Output "$($alreadyNamedRows.Count) device(s) already named:"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Devices already named" })
+    Write-Output $alreadyNamedRows.ToArray()
+}
+elseif ($results.Count -gt 0) {
+    Write-Output "No devices already named."
 }
 
 #endregion

@@ -15,26 +15,26 @@ The name is built from `NameTemplate`. Two placeholders are replaced, case-insen
 
 Every other character of the template is used as typed, for example `%GROUPTAG%-%SERIAL%` or `PC-%GROUPTAG%%SERIAL%`. Each placeholder must appear exactly once: without the serial number all devices of a location would share one name, and without the group tag there is nothing to derive the location from. A random part is deliberately not supported, because the runbook compares the current name with the expected name on every run and a random part would rename every device on every run.
 
-Group tag and serial number are cleaned before they are inserted: characters other than letters, digits and hyphens are removed, so a group tag `DE_HAM 01` becomes `DEHAM01` and a serial number `VMware-42 1a 2b` becomes `VMware-421a2b`. The finished name must follow the Windows computer name rules: 15 characters at most, letters, digits and hyphens only, starting and ending with a letter or digit, not digits only. A device whose name would break these rules is reported and skipped.
+Group tag and serial number are cleaned before they are inserted: characters other than letters, digits and hyphens are removed, so a group tag `SITE_01` becomes `SITE01` and a serial number `VMware-42 1a 2b` becomes `VMware-421a2b`. Repeated hyphens are collapsed into one, and hyphens at the start or end of a cleaned value or of the shortened serial number are dropped, so the virtual machine serial number `1234-5678-9012-3456-7890-1234-56` with the template `%GROUPTAG%-%SERIAL%` and group tag `SITE01` becomes `SITE01-1234-56` and not `SITE01--1234-56`. The finished name must follow the Windows computer name rules: 15 characters at most, letters, digits and hyphens only, starting and ending with a letter or digit, not digits only. A device whose name would break these rules is reported and skipped.
 
 When the assembled name is longer than 15 characters, only the serial number is shortened; the template text and the group tag stay intact. `SerialTruncation` decides which end of the serial number survives:
 
-| Serial number | `%GROUPTAG%-%SERIAL%` with tag `DEHAM` | Keep the end | Keep the start |
+| Serial number | `%GROUPTAG%-%SERIAL%` with tag `SITE01` | Keep the end | Keep the start |
 |---|---|---|---|
-| `7ABCD12` (7 characters) | fits | `DEHAM-7ABCD12` | `DEHAM-7ABCD12` |
-| `5CD1234ABC` (10 characters) | 16 characters, one too many | `DEHAM-CD1234ABC` | `DEHAM-5CD1234AB` |
-| `012345678901` (12 characters) | 18 characters | `DEHAM-345678901` | `DEHAM-012345678` |
+| `7ABCD12` (7 characters) | fits | `SITE01-7ABCD12` | `SITE01-7ABCD12` |
+| `5CD1234ABC` (10 characters) | 17 characters, two too many | `SITE01-D1234ABC` | `SITE01-5CD1234A` |
+| `012345678901` (12 characters) | 19 characters | `SITE01-45678901` | `SITE01-01234567` |
 
 The `%SERIAL%` macro of an Autopilot deployment profile truncates the serial number from the beginning as well, so the default *Keep the end of the serial number* reproduces the names that devices deployed with such a profile already have. Choose *Keep the start of the serial number* only when an existing naming scheme requires it.
 
 ## Which devices are changed and which are skipped
 
-Only Autopilot devices with a group tag are considered; `GroupTagFilter` narrows them further (comma-separated list, exact match, `*` as wildcard, for example `DE*` for all German locations). For each device in scope the runbook compares the expected name with two places:
+Only Autopilot devices with a group tag are considered; `GroupTagFilter` narrows them further (comma-separated list, exact match, `*` as wildcard, for example `SITE1*` for every location whose tag starts with SITE1). `GroupTagExcludeFilter` removes devices from that scope with the same syntax and is applied after the group tag filter, for example `MTR,SHARED,KIOSK*` to leave meeting room, shared and kiosk devices alone. For each device in scope the runbook compares the expected name with two places:
 
 - The display name of the Autopilot record. It is updated whenever it differs, also for devices that are not enrolled yet and independent of *Rename enrolled devices*. Autopilot uses this name as the computer name at the next deployment of an Entra joined device. For a device that is already running, the field has no effect until the device is reset, so the Autopilot list may show the target name while Intune still shows the old one.
 - The device name in Intune, if the device is enrolled. When it differs and *Rename enrolled devices* is on, the runbook queues the Intune rename action. The device picks the new name up at its next check-in and applies it after a restart.
 
-The result table in the Output Data tab lists every device in scope with the action taken for Intune and for Autopilot:
+The Output Data tab of the job shows up to four tables: *Summary* with the counters of the run, *Planned changes (dry run)* or *Applied changes* with every device that gets at least one write (the new name and the action per side), *Skipped devices* with every device in scope that was not changed and the governing reason, and *Devices already named* with the devices where nothing was left to do. A table without rows is left out. The action columns use these values:
 
 | Value | Meaning |
 |---|---|
@@ -49,7 +49,7 @@ The result table in the Output Data tab lists every device in scope with the act
 | `RenameFailed` / `UpdateFailed` | The Graph call failed; the error is in the job log. |
 | `MaxChangesReached` | *Maximum changes per run* was reached before this device; it is processed in a later run. |
 
-The `Reason` column names the problem when no valid name could be built: `GroupTagUnusable` or `SerialUnusable` (nothing left after cleaning), `NameTooLong` (template text and group tag alone already fill 15 characters), `NameInvalid` (the finished name breaks the computer name rules, for example digits only or a hyphen at the end after truncation) and `NameCollision` (two or more Autopilot records would get the same name, for example placeholder serial numbers such as `Default string` or a collision after truncation). None of these devices is changed.
+The `Reason` column of the skipped devices names the problem when no valid name could be built: `GroupTagUnusable` or `SerialUnusable` (nothing left after cleaning), `NameTooLong` (template text and group tag alone already fill 15 characters), `NameInvalid` (the finished name breaks the computer name rules, for example digits only) and `NameCollision` (two or more Autopilot records would get the same name, for example placeholder serial numbers such as `Default string` or a collision after truncation). None of these devices is changed. For a device with a valid name the column repeats the action that blocked the change, for example `NotEntraJoined` or `MaxChangesReached`.
 
 ## Interplay with Dedup Device Names
 
@@ -57,8 +57,8 @@ The `Reason` column names the problem when no valid name could be built: `GroupT
 
 ## Recommended first run
 
-1. Run with *Dry run* on (the default) and *Group tag filter* set to a single location, for example `DEHAM`. Review the table in the Output Data tab: the expected names, the truncation of long serial numbers and the skip reasons.
-2. Widen the filter, for example to `DE*`, still as a dry run, and check that devices deployed with the previous profile templates show `AlreadyNamed`.
+1. Run with *Dry run* on (the default) and *Group tag filter* set to a single location, for example `SITE01`. Put device types that must keep their names into *Exclude group tags*, for example `MTR,SHARED,KIOSK`. Review the tables in the Output Data tab: the planned changes with their new names, the truncation of long serial numbers and the skipped devices with their reasons.
+2. Widen the filter, for example to `SITE1*`, still as a dry run, and check that devices deployed with the previous profile templates show `AlreadyNamed`.
 3. Switch *Dry run* off with *Maximum changes per run* set to a manageable number such as 50, so that renames of already enrolled devices arrive in waves. Renamed devices need a restart to complete the rename.
 4. Remove the limit and the filter and schedule the runbook, for example daily.
 
